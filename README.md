@@ -2,7 +2,7 @@
 
 A differentiable PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model, for two complementary uses:
 
-1. **Emulator** — a fast neural surrogate that reproduces ECCO-Darwin tracer fields, enabling climate perturbation and paleoclimate experiments on timescales the full model cannot reach.
+1. **Emulator** — a fast neural surrogate that reproduces ECCO-Darwin tracer fields for climate perturbation and paleoclimate experiments on timescales the full model cannot reach.
 2. **Parameter learner** — end-to-end gradient-based replacement for ECCO-Darwin's Green's functions calibration, learning spatially-varying biogeochemical parameters in a single training run.
 
 > **Status:** early scaffolding. No physics implemented yet. The biogeochemistry equations live in Dutkiewicz et al. (2009) and Brix et al. (2015) and will be reviewed before any module is drafted.
@@ -28,15 +28,16 @@ DarwinDiff replaces the biogeochemistry side of this with PyTorch autograd: grad
 | [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Methodological template — differentiable CLM5 inside an NN for soil carbon. |
 | [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM, *Nature*) | Architectural reference for hybrid physics + ML emulators. |
 
-## Summer scope
+## Plan
 
-- **Region:** 2D depth–latitude transect (likely Southern Ocean).
-- **Tracers:** 4 — DIC, phosphate, iron, oxygen.
-- **Parameters to learn:** 5–10, anchored on the highest-impact ones from Carroll 2020 (large phytoplankton growth rate, iron scavenging, iron dust solubility, small phytoplankton growth rate).
+- **Region:** 2D regional testbed; specific region TBD with the domain advisor.
+- **Tracers:** 4 — DIC, phosphate, iron, oxygen (working set; subject to revision).
+- **Parameters to learn:** 5–10; whether to revisit Carroll 2020's 6 Green's functions parameters or to target the fixed-suboptimal parameters Savelli 2026 flags (e.g. DOC remineralization rate) is TBD with the domain advisor.
 - **Steady-state assumption** for tractability (BINN approach).
+- **Compute:** small-scale function tests on a single RTX 5090 locally; larger differentiable runs at manageable feedback time may require cloud GPU support — TBD.
 - **Validation:** synthetic recovery test, comparison to Carroll 2020 Green's functions optima, 10-fold CV against held-out GLODAP/Argo, mass conservation check.
 
-Staged plan:
+Stages:
 
 | Stage | Focus | Hoped-for outcome |
 |---|---|---|
