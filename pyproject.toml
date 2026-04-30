@@ -1,0 +1,83 @@
+[project]
+name = "darwindiff"
+version = "0.0.1"
+description = "Differentiable PyTorch reimplementation of ECCO-Darwin ocean biogeochemistry for emulation and parameter learning."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Ziming Qi" }]
+keywords = [
+    "ocean-biogeochemistry",
+    "differentiable-physics",
+    "ecco-darwin",
+    "pytorch",
+    "climate-modeling",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Scientific/Engineering :: Oceanography",
+]
+
+dependencies = [
+    "torch>=2.4",
+    "numpy>=1.26",
+    "scipy>=1.13",
+    "xarray>=2024.9",
+    "xgcm>=0.8",
+    "dask>=2024.9",
+    "netcdf4>=1.7",
+    "zarr>=2.18",
+    "argopy>=0.1.17",
+    "requests>=2.32",
+    "tqdm>=4.66",
+    "pyyaml>=6.0",
+    "typer>=0.12",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "ipykernel>=6.29",
+    "matplotlib>=3.9",
+]
+
+[project.urls]
+Repository = "https://github.com/2imi9/ECCO-DarwinDiff"
+Issues = "https://github.com/2imi9/ECCO-DarwinDiff/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/darwindiff"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "B", "UP", "SIM", "RUF"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B", "N"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
