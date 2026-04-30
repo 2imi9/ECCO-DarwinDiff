@@ -20,14 +20,15 @@ DarwinDiff replaces the biogeochemistry side of this with PyTorch autograd: grad
 
 | Reference | Contribution |
 |---|---|
-| Carroll et al. 2020 (*JAMES*) | The ECCO-Darwin paper this project differentiates against; defines the 6-parameter Green's functions calibration we replace. |
-| Brix et al. 2015 (*Ocean Modelling*) | Pilot ECCO-Darwin; original biogeochemistry equations and parameter set. |
-| Dutkiewicz et al. 2009 (*Global Biogeochem. Cycles*) | Underlying Darwin biogeochemistry formulation. |
-| Menemenlis et al. 2005 (*Mon. Weather Review*) | Green's functions method for ocean GCM calibration — the technique DarwinDiff replaces. |
-| Xu et al. 2025 (BINN, arXiv:2502.00672) | Methodological template — differentiable CLM5 inside an NN for soil carbon. |
-| Kochkov et al. 2024 (Neural GCM, *Nature*, arXiv:2311.07222) | Architectural reference for hybrid physics + ML emulators. |
+| [Carroll et al. 2020](https://doi.org/10.1029/2019MS001888) (*JAMES*) | The ECCO-Darwin paper this project differentiates against; defines the 6-parameter Green's functions calibration we replace. |
+| [Brix et al. 2015](https://doi.org/10.1016/j.ocemod.2015.07.008) (*Ocean Modelling*) | Pilot ECCO-Darwin; original biogeochemistry equations and parameter set. |
+| [Savelli et al. 2026](https://doi.org/10.5194/gmd-19-867-2026) (*GMD*) | Recent ECCO-Darwin update (riverine BGC inputs); explicitly flags fixed-parameter limits like 100-day DOC remineralization that DarwinDiff could relax. Same author team as Carroll 2020. |
+| [Dutkiewicz et al. 2009](https://doi.org/10.1029/2008GB003405) (*Global Biogeochem. Cycles*) | Underlying Darwin biogeochemistry formulation. |
+| [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) (*Mon. Weather Review*) | Green's functions method for ocean GCM calibration — the technique DarwinDiff replaces. |
+| [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Methodological template — differentiable CLM5 inside an NN for soil carbon. |
+| [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM, *Nature*) | Architectural reference for hybrid physics + ML emulators. |
 
-## Summer scope (single RTX 5090, 24 GB VRAM)
+## Summer scope
 
 - **Region:** 2D depth–latitude transect (likely Southern Ocean).
 - **Tracers:** 4 — DIC, phosphate, iron, oxygen.
