@@ -24,8 +24,8 @@ DarwinDiff replaces the biogeochemistry side of this with PyTorch autograd: grad
 | Brix et al. 2015 (*Ocean Modelling*) | Pilot ECCO-Darwin; original biogeochemistry equations and parameter set. |
 | Dutkiewicz et al. 2009 (*Global Biogeochem. Cycles*) | Underlying Darwin biogeochemistry formulation. |
 | Menemenlis et al. 2005 (*Mon. Weather Review*) | Green's functions method for ocean GCM calibration — the technique DarwinDiff replaces. |
-| Xu et al. 2025 (*BINN*, arXiv:2502.00672) | Methodological template — differentiable CLM5 inside an NN for soil carbon. |
-| Kochkov et al. 2024 (*Nature*, Neural GCM) | Architectural reference for hybrid physics + ML emulators. |
+| Xu et al. 2025 (BINN, arXiv:2502.00672) | Methodological template — differentiable CLM5 inside an NN for soil carbon. |
+| Kochkov et al. 2024 (Neural GCM, *Nature*, arXiv:2311.07222) | Architectural reference for hybrid physics + ML emulators. |
 
 ## Summer scope (single RTX 5090, 24 GB VRAM)
 
@@ -60,7 +60,7 @@ ecco-darwindiff/
 
 ## Installation
 
-Requires Python 3.11+. With [uv](https://github.com/astral-sh/uv):
+Requires Python 3.11+. With uv:
 
 ```bash
 uv sync

@@ -30,15 +30,15 @@ https://doi.org/10.1175/MWR2912.1
 
 ### Xu et al. (2025) — BINN, the methodological template
 
-Xu, H., et al. (2025). Biogeochemistry-Informed Neural Network (BINN) for analyzing soil carbon. arXiv:2502.00672.
+Xu et al. (2025). BINN. arXiv:2502.00672.
 https://arxiv.org/abs/2502.00672
 
 Reference implementation: https://doi.org/10.5281/zenodo.19237379
 
 ### Kochkov et al. (2024) — Neural GCM, hybrid physics + ML
 
-Kochkov, D., Yuval, J., Langmore, I., Norgaard, P., Smith, J., Mooers, G., et al. (2024). Neural general circulation models for weather and climate. *Nature*.
-https://doi.org/10.1038/s41586-024-07744-y
+Kochkov, D., Yuval, J., Langmore, I., Norgaard, P., Smith, J., Mooers, G., Klöwer, M., et al. (2024). Neural general circulation models for weather and climate. *Nature*.
+https://arxiv.org/abs/2311.07222
 
 ## Code
 
