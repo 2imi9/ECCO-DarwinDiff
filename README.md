@@ -36,14 +36,14 @@ DarwinDiff replaces the biogeochemistry side of this with PyTorch autograd: grad
 - **Steady-state assumption** for tractability (BINN approach).
 - **Validation:** synthetic recovery test, comparison to Carroll 2020 Green's functions optima, 10-fold CV against held-out GLODAP/Argo, mass conservation check.
 
-8-week plan:
+Staged plan:
 
-| Weeks | Focus |
-|---|---|
-| 1–2 | Data pipeline; read Darwin source code (Brix 2015, Dutkiewicz 2009). |
-| 3–5 | Differentiable Darwin module; MLP for parameters; train on 2D transect. |
-| 6–8 | Validate, sensitivity experiments, draft writeup. |
-| Stretch | Emulator extension if parameter learning succeeds early. |
+| Stage | Focus | Hoped-for outcome |
+|---|---|---|
+| 1 | Data pipeline; read Darwin source (Brix 2015, Dutkiewicz 2009); lock equation subset and parameter targets with Lauderdale. | Reproducible fetch of ED output and observations; clear technical plan agreed with the domain advisor. |
+| 2 | Differentiable BGC module for the 4 tracers; MLP for spatial parameters; forward + train on the 2D transect. | Gradients flow end-to-end through a working differentiable Darwin; first learned parameter fields. |
+| 3 | Validation: synthetic-recovery test, cross-validation against held-out GLODAP/Argo, mass conservation, comparison to Carroll 2020 Green's functions optima; sensitivity experiments; draft writeup. | A defensible scientific result and a paper draft. |
+| 4 (stretch) | Emulator: neural surrogate trained on full ED output; long-timescale stability test for paleoclimate / climate-perturbation runs. | A useful surrogate for the long-timescale CO2 work that motivated this for Lauderdale. |
 
 ## Repository layout
 
@@ -80,19 +80,13 @@ See [data/README.md](data/README.md). Summary:
 
 ## License
 
-MIT — see [LICENSE](LICENSE). © 2026 Ziming Qi.
+MIT — see [LICENSE](LICENSE). © 2026 ECCO-DarwinDiff contributors.
 
 ## Citation
 
-If you use this work, please cite:
+This project is in early development; a formal citation will be added when the work is published or when a Zenodo DOI is minted. Until then, please link to the repository.
 
-```
-Qi, Z. (2026). ECCO-DarwinDiff: a differentiable PyTorch reimplementation of the
-ECCO-Darwin ocean biogeochemistry model for emulation and parameter learning.
-https://github.com/2imi9/ECCO-DarwinDiff
-```
-
-And the underlying model:
+If your work depends on the underlying ECCO-Darwin model, please cite:
 
 ```
 Carroll, D., Menemenlis, D., Adkins, J. F., Bowman, K. W., Brix, H., Dutkiewicz, S.,
