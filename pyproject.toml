@@ -53,6 +53,14 @@ dev = [
 Repository = "https://github.com/2imi9/ECCO-DarwinDiff"
 Issues = "https://github.com/2imi9/ECCO-DarwinDiff/issues"
 
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

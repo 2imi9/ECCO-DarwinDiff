@@ -30,6 +30,7 @@ DarwinDiff replaces the biogeochemistry side of this with PyTorch autograd: grad
 
 ## Plan
 
+- **Method validation prototype:** a 1D toy reaction-diffusion simulator and small parameter MLP that runs a BINN-style synthetic-recovery test on a local GPU. Validates the differentiable scaffold (autograd through hand-coded physics, MLP-predicts-parameter composition, gradient-descent recovery) before committing to specific Darwin equations. Lives in [`src/darwindiff/prototype/`](src/darwindiff/prototype/).
 - **Region:** 2D regional testbed; specific region TBD with the domain advisor.
 - **Tracers:** 4 — DIC, phosphate, iron, oxygen (working set; subject to revision).
 - **Parameters to learn:** 5–10; whether to revisit Carroll 2020's 6 Green's functions parameters or to target the fixed-suboptimal parameters Savelli 2026 flags (e.g. DOC remineralization rate) is TBD with the domain advisor.
@@ -41,6 +42,7 @@ Stages:
 
 | Stage | Focus | Hoped-for outcome |
 |---|---|---|
+| 0 | Micro prototype: 1D toy reaction-diffusion + parameter MLP; BINN-style synthetic-recovery test on local GPU. | Empirical evidence the differentiable scaffold works end-to-end before scaling to real Darwin equations. |
 | 1 | Data pipeline; read Darwin source (Brix 2015, Dutkiewicz 2009); lock equation subset and parameter targets with Lauderdale. | Reproducible fetch of ED output and observations; clear technical plan agreed with the domain advisor. |
 | 2 | Differentiable BGC module for the 4 tracers; MLP for spatial parameters; forward + train on the 2D transect. | Gradients flow end-to-end through a working differentiable Darwin; first learned parameter fields. |
 | 3 | Validation: synthetic-recovery test, cross-validation against held-out GLODAP/Argo, mass conservation, comparison to Carroll 2020 Green's functions optima; sensitivity experiments; draft writeup. | A defensible scientific result and a paper draft. |
