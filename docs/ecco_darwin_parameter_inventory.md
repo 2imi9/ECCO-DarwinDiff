@@ -146,3 +146,111 @@ Audit performed 2026-05-02 via shallow clone of `MITgcm-contrib/ecco_darwin` (ma
 - Darwin 3 (`v06/llc270/`): `code_darwin/DARWIN_OPTIONS.h` (174 lines), `code_darwin/DARWIN_SIZE.h` (34 lines), `input_darwin/data.darwin` (267 lines), `input_darwin/data.traits` (93 lines) all read in full.
 
 Classifications cross-checked against `DARWIN_OPTIONS.h` `#ifdef` flags in each version. Temp clone deleted after audit; all numbers are reproducible by anyone running the same procedure.
+
+---
+
+## Appendix A — Darwin 1 (`darwin_init_fixed.F`) full parameter list
+
+123 distinct named parameters total. Categories below sum to that.
+
+**A.1 Independent active tunable scalars (103)**
+
+*Light + attenuation (6):* `k0`, `kc`, `parfrac`, `chlpmax`, `chlpmin`, `istar`
+
+*Iron cycle (11):* `alpfe` ★, `scav`, `ligand_tot`, `ligand_stab`, `freefemax`, `depthfesed`, `fesedflux`, `fesedflux_pcm`, `scav_rat` ★, `scav_inter`, `scav_exp`
+
+*Nitrification + O₂ (4):* `O2crit`, `Knita`, `Knitb`, `PAR0`
+
+*GEIDER growth scalars (4):* `Smallgrow` ★, `Biggrow` ★, `Smallgrowrange`, `Biggrowrange`
+
+*GEIDER chlorophyll + quantum yield (8):* `smallchl2cmax`, `smallchl2cmaxrange`, `Bigchl2cmax`, `Bigchl2cmaxrange`, `smallmQyield`, `smallmQyieldrange`, `BigmQyield`, `BigmQyieldrange`
+
+*Other phyto (2):* `aphy_chl_ave`, `inhibcoef_geid_val`
+
+*Dynamic chlorophyll (1):* `acclimtimescl`
+
+*Mortality + sinking scalars (8):* `Smallmort`, `Bigmort`, `Smallmortrange`, `Bigmortrange`, `Smallexport`, `Bigexport`, `SmallSink`, `BigSink`
+
+*Temperature (8):* `tempcoeff1`, `tempcoeff2_small`, `tempcoeff2_big`, `tempcoeff3`, `tempmax`, `temprange`, `tempnorm`, `tempdecay`
+
+*Phosphate half-saturation per phyto class (8):* `SmallPsat`, `BigPsat`, `ProcPsat`, `UniDzPsat`, `SmallPsatrange`, `BigPsatrange`, `ProcPsatrange`, `UniDzPsatrange`
+
+*Other nutrient (8):* `ksatNH4fac`, `ksatNO2fac`, `sig1`, `sig2`, `sig3`, `ngrowfac`, `ilight`, `val_ksatsi`
+
+*Elemental ratios — active (5):* `val_R_SiP_diatom`, `val_R_NP`, `val_RFeP`, `val_R_PC`, `val_R_PICPOC`
+
+*Grazing (14):* `kgrazesat`, `phygrazmin`, `GrazeFast`, `GrazeSlow`, `GrazeEfflow`, `GrazeEffmod`, `GrazeEffhi`, `palathi`, `palatlo`, `diatomgraz` ★, `coccograz`, `olargegraz`, `ExGrazfracbig`, `ExGrazfracsmall`
+
+*Zooplankton mortality + export (4):* `ZoomortSmall`, `ZoomortBig`, `ZooexfacSmall`, `ZooexfacBig`
+
+*Phyto biomass threshold (1):* `phymin`
+
+*DOM remineralisation (3):* `Kdop`, `Kdon`, `KdoFe`
+
+*POM remineralisation + sinking, independent (3):* `Kpremin_P`, `Kpremin_Si`, `wp_sink`
+
+*Carbon system, ALLOW_CARBON active (5):* `R_OP`, `Kdoc`, `Kpremin_C`, `Kdissc`, `wpic_sink`
+
+★ = tuned by Carroll 2020 Green's functions (5 of 103 in `init_fixed.F`; the 6th `R_PICPOC` override lives in `generate_phyto.F:484`).
+
+**A.2 Derived equalities (6)**
+
+`Kpremin_N` (= `Kpremin_P`), `Kpremin_Fe` (= `Kpremin_P`), `wn_sink` (= `wp_sink`), `wfe_sink` (= `wp_sink`), `wsi_sink` (= `wp_sink`), `wc_sink` (= `wp_sink`).
+
+**A.3 Dead in this build (11)**
+
+- `ALLOW_DENIT` undef: `depthdenit`, `denit_np`
+- `ALLOW_DIAZ` undef: `diaz_growfac`, `val_R_NP_diaz`, `val_RFeP_diaz`
+- `ALLOW_MUTANTS` undef: `prochlPsat` (commented "used only for mutants")
+- `DAR_DIAG_DIVER` undef: `diver_thresh0`, `diver_thresh1`, `diver_thresh2`, `diver_thresh3`, `diver_thresh4`
+
+**A.4 Unit conversions / physical constants (3)**
+
+`parconv` (W/m² → µEin), `permil` (1/1024.5, density conversion), `Pa2Atm` (Pa → atm).
+
+## Appendix B — Darwin 1 (`darwin_generate_phyto.F`) hardcoded per-phyto identity traits
+
+7 distinct trait arrays × 5 phyto types = **35 individual values**:
+
+`physize(np)`, `phyto_esd(np)`, `phyto_vol(np)`, `diacoc(np)`, `diazotroph(np)`, `nsource(np)`, `ap_type(np)`.
+
+Plus one inline Green's-functions override at line 484: `R_PICPOC(np) = 0.04245` for `np = 2, 3, 8` (only `np = 2, 3` valid since `npmax = 5`).
+
+## Appendix C — Darwin 3 (`v06/llc270` namelists) full parameter list
+
+100 distinct tunable parameter names total.
+
+**C.1 `&DARWIN_FORCING_PARAMS` (20)**
+
+`darwin_inscal_iron`, `darwin_inscal_ventHe3`, `darwin_inscal_DOCrunoff`, `darwin_inscal_DONrunoff`, `R_DOFe_DOP_runoff`, `darwin_inscal_DOPrunoff`, `R_NO3_DIN_runoff`, `R_NO2_DIN_runoff`, `R_NH4_DIN_runoff`, `darwin_inscal_DINrunoff`, `R_DFe_DIP_runoff`, `R_DIP_IP_runoff`, `darwin_inscal_IPrunoff`, `darwin_inscal_DSirunoff`, `darwin_inscal_POCrunoff`, `R_POFe_POP_runoff`, `darwin_inscal_POPrunoff`, `darwin_inscal_PONrunoff`, `R_ALK_DIC_runoff`, `darwin_inscal_DICrunoff`.
+
+**C.2 `&DARWIN_PARAMS` (29)**
+
+`tempCoeffArr`, `PARmin`, `alpfe`, `freefemax`, `depthfesed`, `scav_tau`, `ligand_tot`, `scav_POC_wgt`, `scav_PSi_wgt`, `scav_PIC_wgt`, `kdoc`, `kdop`, `kdon`, `kdofe`, `kPOC`, `kPOP`, `kPON`, `kPOFe`, `kPOSi`, `phygrazmin`, `hollexp`, `wC_sink`, `wN_sink`, `wP_sink`, `wFe_sink`, `wSi_sink`, `wPIC_sink`, `SURFDICMIN`, `SURFALKMIN`.
+
+**C.3 `&DARWIN_CDOM_PARAMS` (5)**
+
+`fracCDOM`, `cdomdegrd`, `CDOMbleach`, `PARCDOM`, `CDOMcoeff`.
+
+**C.4 `&DARWIN_RADTRANS_PARAMS` (10)**
+
+Scalars (7): `darwin_Sdom`, `darwin_aCDOM_fac`, `darwin_part_size_P`, `darwin_rCDOM`, `darwin_RPOC`, `darwin_absorpSlope`, `darwin_bbbSlope`.
+
+Spectral arrays of 13 values each (3): `darwin_scatSwitchSizeLog`, `darwin_scatSlopeSmall`, `darwin_scatSlopeLarge`.
+
+**C.5 `&DARWIN_TRAIT_PARAMS` (28)**
+
+`a_R_PICPOC`, `a_Xmin`, `a_phytoTempAe`, `a_mQyield`, `a_chl2cmax`, `a_acclimtimescl`, `logvolbase`, `logvolinc`, `logvol0ind`, `a_biosink`, `b_biosink`, `a_PCmax`, `a_PCmax_denom`, `b_PCmax`, `a_Qpmin`, `a_Qpmax`, `grp_ExportFracPreyPred`, `a_R_ChlC`, `a_grazemax`, `b_grazemax`, `a_phytoTempExp2`, `a_R_PC`, `a_R_FeC`, `a_R_NC`, `a_R_SiC`, `a_kgrazesat`, `b_kgrazesat`, `grp_ass_eff`.
+
+**C.6 `&DARWIN_TRAITS` from `data.traits` (8)**
+
+`EXPORTFRACMORT`, `EXPORTFRACMORT2`, `PALAT`, `ASSEFF`, `GRAZEMAX`, `EXPORTFRACPREYPRED`, `MORT`, `MORT2`.
+
+**C.7 Excluded from the 100 tunables (for the record)**
+
+- *File paths, dates, periods (51 in `&DARWIN_FORCING_PARAMS`):* `ironFile`, `ironPeriod`, `pCO2File`, `pCO2startdate1`, `pCO2startdate2`, `pCO2period`, `ventHe3File`, `ventHe3Period`, the 12 runoff `*file`/`*startdate1`/`*startdate2`/`*period` quartets (48 names), `darwin_useEXFwind`, `darwin_useQsw`, `darwin_useSEAICE` (3 booleans).
+- *Interpolation grid metadata (28 in `&DARWIN_INTERP_PARAMS`):* 10 `*_interpMethod` flags, 18 `lon0`/`lon_inc`/`lat0`/`lat_inc`/`nlon`/`nlat` for ventHe3, iron, pCO2.
+- *Numerical config in `&DARWIN_PARAMS` (8):* `darwin_chlIter0`, `darwin_pickupSuff`, `darwin_chlInitBalanced`, `diaz_ini_fac` (dead, `ALLOW_DIAZ` undef), `darwin_seed`, `darwin_disscSelect`, plus 2 commented-out: `selectPHsolver`, `selectK1K2const`.
+- *Commented-out CDOM stoichiometric ratios (3):* `R_NP_CDOM`, `R_FeP_CDOM`, `R_CP_CDOM`.
+- *RADTRANS file paths + boolean (4):* `darwin_waterabsorbFile`, `darwin_phytoabsorbFile`, `darwin_particleabsorbFile`, `darwin_allomSpectra`.
+- *TRAIT_PARAMS identity + classification (20):* `grp_names`, `grp_nplank`, `grp_photo`, `grp_pred`, `grp_prey`, `grp_hasSi`, `grp_hasPIC`, `grp_DIAZO`, `grp_useNH4`, `grp_useNO2`, `grp_useNO3`, `grp_combNO`, `grp_bacttype`, `grp_aerobic`, `grp_denit`, `grp_tempMort`, `grp_tempMort2`, `grp_aptype`, `darwin_effective_ksat`, `darwin_select_kn_allom`.
