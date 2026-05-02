@@ -86,21 +86,37 @@ Notable: denitrification is **on** in Darwin 3 (was off in Carroll 2020), diazot
 
 ### Verified tunable parameter counts (from namelists)
 
-Read in full: `data.darwin` (267 lines) and `data.traits` (93 lines).
+Read in full: `data.darwin` (267 lines) and `data.traits` (93 lines). Each namelist counted by listing every distinct LHS name.
 
-| Namelist | Distinct tunable parameter names | Notes |
+| Namelist | Tunable parameter names | Total names | Notes |
+|---|---|---|---|
+| `&DARWIN_FORCING_PARAMS` | **20** | 71 | 12 input scaling factors (`darwin_inscal_*`) + 8 stoichiometric ratios for runoff (`R_*_runoff`). Excludes file paths, dates, periods, 3 boolean toggles. |
+| `&DARWIN_INTERP_PARAMS` | 0 | 28 | Interpolation grid metadata only. |
+| `&DARWIN_PARAMS` (kinetic core) | **29** | 37 | iron (8: `alpfe`, `freefemax`, `depthfesed`, `scav_tau`, `ligand_tot`, `scav_POC_wgt`, `scav_PSi_wgt`, `scav_PIC_wgt`), DOM remin (4: `kdoc`/`kdop`/`kdon`/`kdofe`), POM remin (5: `kPOC`/`kPOP`/`kPON`/`kPOFe`/`kPOSi`), sinking (6: `wC_sink`/`wN_sink`/`wP_sink`/`wFe_sink`/`wSi_sink`/`wPIC_sink`), plus `phygrazmin`, `hollexp`, `tempCoeffArr`, `PARmin`, `SURFDICMIN`, `SURFALKMIN`. Excludes 5 numerical-config (`darwin_chlIter0`, `darwin_pickupSuff`, `darwin_chlInitBalanced`, `darwin_seed`, `darwin_disscSelect`) and 1 dead (`diaz_ini_fac`, `ALLOW_DIAZ` undef). 2 more (`selectPHsolver`, `selectK1K2const`) are commented out. |
+| `&DARWIN_CDOM_PARAMS` | **5** | 5 active | `fracCDOM`, `cdomdegrd`, `CDOMbleach`, `PARCDOM`, `CDOMcoeff`. 3 more (`R_NP_CDOM`, `R_FeP_CDOM`, `R_CP_CDOM`) commented out. |
+| `&DARWIN_RADTRANS_PARAMS` | **10** (7 scalars + 3 array names) | 14 | scalar tunables: `darwin_Sdom`, `darwin_aCDOM_fac`, `darwin_part_size_P`, `darwin_rCDOM`, `darwin_RPOC`, `darwin_absorpSlope`, `darwin_bbbSlope`. 3 spectral arrays of 13 values each: `darwin_scatSwitchSizeLog`, `darwin_scatSlopeSmall`, `darwin_scatSlopeLarge`. Excludes 3 file paths and 1 boolean (`darwin_allomSpectra`). |
+| `&DARWIN_RANDOM_PARAMS` | 0 | 0 | empty namelist |
+| `&DARWIN_TRAIT_PARAMS` | **28** | 48 | excludes `grp_names` (identity), 16 group classification flags (`grp_nplank`, `grp_photo`, `grp_pred`, `grp_prey`, `grp_hasSi`, `grp_hasPIC`, `grp_DIAZO`, `grp_useNH4`, `grp_useNO2`, `grp_useNO3`, `grp_combNO`, `grp_bacttype`, `grp_aerobic`, `grp_denit`, `grp_tempMort`, `grp_tempMort2`, `grp_aptype`), and 2 boolean/select configs (`darwin_effective_ksat`, `darwin_select_kn_allom`). Most tunables are arrays at size `nGroup=7`, `nPhoto=6`, or `nplank=10`; some (e.g. `a_PCmax(1..6)`) are set per index. |
+| `data.traits` `&DARWIN_TRAITS` | **8** | 8 | `EXPORTFRACMORT`, `EXPORTFRACMORT2`, `PALAT` (10×10 matrix), `ASSEFF` (10×10), `GRAZEMAX`, `EXPORTFRACPREYPRED` (10×10), `MORT`, `MORT2`. |
+
+**Darwin 3 distinct tunable parameter names: exactly 100.**
+
+| Counting basis | Count |
+|---|---|
+| Distinct tunable parameter names (across all namelists in `data.darwin` + `data.traits`) | **100** |
+| Individual tunable values, arrays expanded over plankton, groups, and matrix dimensions | **657** |
+
+Breakdown of the 657 individual values:
+
+| Source | Values | How counted |
 |---|---|---|
-| `&DARWIN_FORCING_PARAMS` | **20** | 12 input scaling factors (`darwin_inscal_*`) + 8 stoichiometric ratios for runoff. Excludes file paths, dates, periods, boolean toggles. |
-| `&DARWIN_INTERP_PARAMS` | 0 | Interpolation grid metadata only. |
-| `&DARWIN_PARAMS` (the kinetic core) | **28** | iron (`alpfe`, `freefemax`, `depthfesed`, `scav_tau`, `ligand_tot`, `scav_POC_wgt`, `scav_PSi_wgt`, `scav_PIC_wgt`), DOM remin (`kdoc`/`kdop`/`kdon`/`kdofe`), POM remin (`kPOC`/`kPOP`/`kPON`/`kPOFe`/`kPOSi`), sinking (`wC_sink`/`wN_sink`/`wP_sink`/`wFe_sink`/`wSi_sink`/`wPIC_sink`), `phygrazmin`, `hollexp`, `tempCoeffArr`, `PARmin`, `SURFDICMIN`, `SURFALKMIN`. Excludes numerical-config and pickup parameters. |
-| `&DARWIN_CDOM_PARAMS` | **5** | `fracCDOM`, `cdomdegrd`, `CDOMbleach`, `PARCDOM`, `CDOMcoeff`. New in Darwin 3. |
-| `&DARWIN_RADTRANS_PARAMS` | **8 scalars + 3 arrays of 13 values each** | optical absorption / scattering parameters; arrays are per-waveband-bin. |
-| `&DARWIN_TRAIT_PARAMS` | **29** kinetic trait parameters | excludes 16 group-classification flags (`grp_photo`, `grp_pred`, `grp_hasSi`, etc.) and `grp_names`. Most are arrays at size `nGroup=7` or `nPhoto=6` or `nplank=10`; `a_PCmax(1..6)` is set per phototroph individually. |
-| `data.traits` `&DARWIN_TRAITS` | **8** | `EXPORTFRACMORT`, `EXPORTFRACMORT2`, `PALAT` (10×10 matrix), `ASSEFF` (10×10), `GRAZEMAX`, `EXPORTFRACPREYPRED` (10×10), `MORT`, `MORT2`. |
-
-**Total distinct tunable parameter names in Darwin 3 namelists: 98 + 3 array-of-13 = ~101 tunable knobs at the namelist level.**
-
-Expanded as individual values (arrays over plankton, groups, and matrices), Darwin 3 carries **roughly 500–700 individual parameter values** — substantially more than Darwin 1's ~300, because there are more plankton types and most parameters are explicit arrays rather than scalars.
+| `&DARWIN_FORCING_PARAMS` | 20 | 20 scalars × 1 |
+| `&DARWIN_PARAMS` | 29 | 29 scalars × 1 |
+| `&DARWIN_CDOM_PARAMS` | 5 | 5 scalars × 1 |
+| `&DARWIN_RADTRANS_PARAMS` | 46 | 7 scalars + 3 arrays × 13 |
+| `&DARWIN_TRAIT_PARAMS` | 207 | sum of array sizes per name (10+6+6+6+6+6+1+1+7+7+7+6+6+7+7+7+6+1+1+1+7+7+7+7+7+7+7+49) |
+| `&DARWIN_TRAITS` | 350 | 10+10+100+100+10+100+10+10 |
+| Total | **657** | |
 
 ### Architectural difference that matters for DarwinDiff
 
