@@ -47,6 +47,9 @@ dev = [
     "mypy>=1.13",
     "ipykernel>=6.29",
     "matplotlib>=3.9",
+    "nbformat>=5.10",
+    "nbconvert>=7.16",
+    "jupyter>=1.1",
 ]
 
 [project.urls]
