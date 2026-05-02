@@ -179,3 +179,153 @@ def train_coupled_recovery(
         losses.append(loss.item())
 
     return mlp, losses
+
+
+# ---------------------------------------------------------------------------
+# Multi-parameter variant: learn mu(z) AND mortality(z) simultaneously.
+#
+# Why this matters: the central DarwinDiff claim is that gradient descent learns
+# many parameters in one training run, where Green's-functions has to do them one
+# at a time. Single-parameter recovery (the function above) does not exercise that
+# claim. Multi-parameter recovery does — the MLP outputs two values per cell, and
+# the optimiser has to disentangle which observation features go to which parameter.
+# ---------------------------------------------------------------------------
+
+
+def step_forward_coupled_mp(
+    N: torch.Tensor,
+    P: torch.Tensor,
+    mu_z: torch.Tensor,
+    mortality_z: torch.Tensor,
+    f_light: torch.Tensor,
+    kappa: float,
+    dz: float,
+    dt: float,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Coupled forward step where mortality is a per-cell array, not a global scalar."""
+    N_left = torch.cat([N[:1], N[:-1]])
+    N_right = torch.cat([N[1:], N[-1:]])
+    d2N = (N_right - 2.0 * N + N_left) / dz**2
+
+    P_left = torch.cat([P[:1], P[:-1]])
+    P_right = torch.cat([P[1:], P[-1:]])
+    d2P = (P_right - 2.0 * P + P_left) / dz**2
+
+    uptake = mu_z * P * f_light * N
+    loss = mortality_z * P * P
+
+    N_next = N + dt * (kappa * d2N - uptake)
+    P_next = P + dt * (kappa * d2P + uptake - loss)
+    return N_next, P_next
+
+
+def integrate_coupled_mp(
+    N0: torch.Tensor,
+    P0: torch.Tensor,
+    mu_z: torch.Tensor,
+    mortality_z: torch.Tensor,
+    f_light: torch.Tensor,
+    kappa: float,
+    dz: float,
+    dt: float,
+    n_steps: int,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Integrate the multi-parameter coupled system forward for n_steps."""
+    N, P = N0, P0
+    for _ in range(n_steps):
+        N, P = step_forward_coupled_mp(N, P, mu_z, mortality_z, f_light, kappa, dz, dt)
+    return N, P
+
+
+def true_mortality_profile(z: torch.Tensor) -> torch.Tensor:
+    """Ground-truth depth-dependent mortality.
+
+    Pattern: low at surface, increases linearly with depth (loosely stands in for
+    sinking and grazing pressure that grow downward in real ocean columns). Distinct
+    from the surface-enhanced shape of true_mu_profile, which keeps the joint inverse
+    problem better posed than two parameters with the same depth structure would.
+    """
+    return 0.1 + 0.4 * (z / 200.0)
+
+
+def generate_coupled_observations_mp(
+    z: torch.Tensor,
+    N0: torch.Tensor,
+    P0: torch.Tensor,
+    f_light: torch.Tensor,
+    kappa: float,
+    dz: float,
+    dt: float,
+    n_steps: int,
+    noise_std: float = 0.005,
+    seed: int = 0,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Run the coupled toy with TRUE mu(z) AND TRUE mortality(z), add noise.
+
+    Returns:
+        N_obs, P_obs: noisy final tracer profiles.
+        mu_true, mortality_true: ground-truth profiles for evaluation only.
+    """
+    torch.manual_seed(seed)
+    mu_true = true_mu_profile(z)
+    mortality_true = true_mortality_profile(z)
+    N_final, P_final = integrate_coupled_mp(
+        N0, P0, mu_true, mortality_true, f_light, kappa, dz, dt, n_steps
+    )
+    N_obs = N_final + noise_std * torch.randn_like(N_final)
+    P_obs = P_final + noise_std * torch.randn_like(P_final)
+    return N_obs, P_obs, mu_true, mortality_true
+
+
+def train_coupled_recovery_mp(
+    N_obs: torch.Tensor,
+    P_obs: torch.Tensor,
+    z: torch.Tensor,
+    N0: torch.Tensor,
+    P0: torch.Tensor,
+    f_light: torch.Tensor,
+    kappa: float,
+    dz: float,
+    dt: float,
+    n_steps: int,
+    n_epochs: int = 3000,
+    lr: float = 1e-2,
+    device: str = "cuda",
+) -> tuple[ParameterMLP, list[float]]:
+    """Train a 2-output MLP to recover mu(z) AND mortality(z) from observations of N, P.
+
+    The MLP has a shared trunk and Softplus-positive outputs for both parameters. Loss
+    is MSE on N + MSE on P, so the optimiser must find a (mu, mortality) pair that
+    jointly reproduces both observed tracer fields.
+
+    More epochs than the single-parameter variant: the joint inverse problem has a
+    bumpier loss landscape, and partial degeneracies between parameters slow convergence.
+    """
+    N_obs = N_obs.to(device)
+    P_obs = P_obs.to(device)
+    z = z.to(device)
+    N0 = N0.to(device)
+    P0 = P0.to(device)
+    f_light = f_light.to(device)
+
+    z_norm = (z - z.mean()) / z.std()
+    features = z_norm.unsqueeze(-1)
+
+    mlp = ParameterMLP(n_features=1, n_outputs=2).to(device)
+    optimizer = Adam(mlp.parameters(), lr=lr)
+    losses: list[float] = []
+
+    for _ in range(n_epochs):
+        optimizer.zero_grad()
+        params = mlp(features)
+        mu_pred = params[:, 0]
+        mortality_pred = params[:, 1]
+        N_pred, P_pred = integrate_coupled_mp(
+            N0, P0, mu_pred, mortality_pred, f_light, kappa, dz, dt, n_steps
+        )
+        loss = ((N_pred - N_obs) ** 2).mean() + ((P_pred - P_obs) ** 2).mean()
+        loss.backward()
+        optimizer.step()
+        losses.append(loss.item())
+
+    return mlp, losses
