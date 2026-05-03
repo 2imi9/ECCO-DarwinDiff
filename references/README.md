@@ -47,6 +47,13 @@ Reference implementation: https://doi.org/10.5281/zenodo.19237379
 Kochkov, D., Yuval, J., Langmore, I., Norgaard, P., Smith, J., Mooers, G., Klöwer, M., et al. (2024). Neural general circulation models for weather and climate. *Nature*.
 https://arxiv.org/abs/2311.07222
 
+### Ouala & Lachkar (2026) — Neural-BGC, observation-driven ocean BGC emulator coupled to ROMS
+
+Ouala, S., & Lachkar, Z. (2026). Neural-BGC: An Observation-Driven Emulator for Hybrid Physical–Biogeochemical Modeling. ESSOAr preprint, submitted to *Geophysical Research Letters*.
+https://doi.org/10.22541/essoar.15002003/v1
+
+Closest existing ocean BGC ML reference. Trains an NN on World Ocean Database in-situ profiles (1965–2024) to predict dissolved oxygen and nitrate from physical state (T, S, depth, latitude, longitude, month); cascaded architecture (DO predicted first, then NO3 conditioned on DO + physics). Coupled to ROMS by replacing the prognostic transport-reaction equation entirely; outperforms tuned ROMS-NPZD on mean state in the Arabian Sea and Canary Current Upwelling. Authors flag three limits: offline/diagnostic only (no BGC→physics feedback), generalization outside 1965–2024 training distribution untested, and DO + NO3 only. DarwinDiff differentiates by being mechanistic (emulates Darwin rather than bypassing the BGC model), parameter-aware (learns Darwin's scalars), and covering carbon-cycle variables (DIC, alkalinity, pCO2, POC export).
+
 ### Catão et al. (2025) — TUPANN, single-GPU differentiable physics + ML feasibility
 
 Catão, A., Poveda, M., Voltarelli, L., & Orenstein, P. (2025). Precipitation nowcasting of satellite data using physically-aligned neural networks. arXiv:2511.05471.

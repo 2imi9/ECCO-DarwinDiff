@@ -27,6 +27,7 @@ DarwinDiff replaces the biogeochemistry side of this with PyTorch autograd: grad
 | [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) (*Mon. Weather Review*) | The Green's functions calibration method DarwinDiff replaces. |
 | [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Method template — a differentiable CLM5 inside a neural network for soil carbon. |
 | [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM, *Nature*) | Design reference for hybrid physics + machine learning emulators. |
+| [Ouala & Lachkar 2026](https://doi.org/10.22541/essoar.15002003/v1) (Neural-BGC, ESSOAr preprint) | Closest existing ocean BGC ML — observation-driven NN emulator coupled to ROMS, predicts DO and NO3 from physical state. DarwinDiff differs: mechanistic (emulates Darwin rather than bypassing it), parameter-aware, and extends to carbon-cycle variables (DIC, alkalinity, pCO2, POC export). |
 
 ## Plan
 
