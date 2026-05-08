@@ -152,27 +152,54 @@ def carroll6_integrate(
     return torch.stack(snaps)
 
 
-def bounded_params(theta: torch.Tensor, bounds: torch.Tensor) -> torch.Tensor:
+def bounded_params(
+    theta: torch.Tensor,
+    bounds: torch.Tensor,
+    param_axis: int = 0,
+) -> torch.Tensor:
     """Map unconstrained theta to physical Carroll-6 ranges via sigmoid.
 
-    Handles ``theta`` of shape ``[n_params]`` (scalar fit, notebook 05 style)
-    or ``[n_params, ...]`` with arbitrary trailing dimensions (per-cell fit,
-    notebook 07 style ``[6, H, W]`` from a CNN). The convention is that the
-    parameter axis is always the **leading** dim of ``theta``.
+    The parameter axis of ``theta`` (the dim with size ``n_params`` matching
+    ``bounds.shape[0]``) is identified by ``param_axis``. The default is the
+    leading dim, which matches the notebook 05 / 07 usage. For trailing-axis
+    conventions (notebook 06 style batched MLP output, or batched CNN output),
+    pass ``param_axis`` explicitly.
+
+    Examples:
+        - ``theta`` shape ``[6]`` (any ``param_axis``): scalar fit, notebook 05.
+        - ``theta`` shape ``[6, H, W]`` with ``param_axis=0``: per-cell fit,
+          notebook 07.
+        - ``theta`` shape ``[B, 6]`` with ``param_axis=-1``: batched MLP
+          output, e.g. multiple regimes evaluated in one call.
+        - ``theta`` shape ``[B, 6, H, W]`` with ``param_axis=1``: batched CNN
+          output (PyTorch convention with batch + channel + spatial).
 
     Args:
-        theta: unconstrained learnable values, shape ``[n_params]`` or
-            ``[n_params, *trailing]``.
+        theta: unconstrained learnable values.
         bounds: per-parameter ``[lo, hi]`` ranges, shape ``[n_params, 2]``.
+        param_axis: index (positive or negative) of the parameter axis in
+            ``theta``. Defaults to ``0`` (leading).
 
     Returns:
         physical-range parameters, same shape as ``theta``.
+
+    Raises:
+        ValueError: if ``theta.shape[param_axis] != bounds.shape[0]``.
     """
     n_params = bounds.shape[0]
-    extra_dims = theta.ndim - 1
+    if theta.shape[param_axis] != n_params:
+        raise ValueError(
+            f"theta.shape[{param_axis}] = {theta.shape[param_axis]} does not "
+            f"match bounds.shape[0] = {n_params}"
+        )
+    # Move the parameter axis to position 0 so the reshape + broadcast pattern
+    # works uniformly regardless of where the caller put it.
+    theta_p = theta.movedim(param_axis, 0)
+    extra_dims = theta_p.ndim - 1
     lo = bounds[:, 0].reshape(n_params, *([1] * extra_dims))
     hi = bounds[:, 1].reshape(n_params, *([1] * extra_dims))
-    return lo + (hi - lo) * torch.sigmoid(theta)
+    result = lo + (hi - lo) * torch.sigmoid(theta_p)
+    return result.movedim(0, param_axis)
 
 
 def generate_synthetic_observations(

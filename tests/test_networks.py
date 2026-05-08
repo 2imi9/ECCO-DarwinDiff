@@ -131,3 +131,69 @@ def test_carroll_cnn_autograd_flows() -> None:
     for name, p in cnn.named_parameters():
         assert p.grad is not None, f"{name} received no gradient."
         assert torch.isfinite(p.grad).all(), f"{name} has non-finite gradient."
+
+
+def test_bounded_params_batched_trailing_axis() -> None:
+    """``[B, 6]`` with ``param_axis=-1`` works for batched MLP output (notebook 06 style).
+
+    With ``theta = zeros``, every batch element should get the per-parameter
+    midpoint value (since ``sigmoid(0) = 0.5``). Test catches the regression
+    where ``[B, 6]`` either errors or silently broadcasts wrong.
+    """
+    B = 4
+    theta = torch.zeros(B, 6)
+    params = bounded_params(theta, PARAM_BOUNDS, param_axis=-1)
+    assert params.shape == (B, 6)
+
+    midpoints = 0.5 * (PARAM_BOUNDS[:, 0] + PARAM_BOUNDS[:, 1])
+    for b in range(B):
+        torch.testing.assert_close(params[b], midpoints, rtol=1e-6, atol=1e-9)
+
+
+def test_bounded_params_batched_2d_cnn() -> None:
+    """``[B, 6, H, W]`` with ``param_axis=1`` works for batched CNN output.
+
+    Each per-parameter slice should be uniform across batch and spatial dims when
+    ``theta`` is zeros (sigmoid midpoint behaviour).
+    """
+    B, H, W = 2, 8, 8
+    theta = torch.zeros(B, 6, H, W)
+    params = bounded_params(theta, PARAM_BOUNDS, param_axis=1)
+    assert params.shape == (B, 6, H, W)
+
+    for i in range(6):
+        midpoint_i = (0.5 * (PARAM_BOUNDS[i, 0] + PARAM_BOUNDS[i, 1])).item()
+        slice_i = params[:, i, :, :]
+        assert torch.allclose(
+            slice_i,
+            torch.full_like(slice_i, midpoint_i),
+            rtol=1e-6,
+            atol=1e-9,
+        ), f"Param {i} not uniform at midpoint {midpoint_i}."
+
+
+def test_bounded_params_axis_mismatch_raises() -> None:
+    """Specifying a ``param_axis`` whose size doesn't match ``bounds.shape[0]`` raises."""
+    import pytest
+
+    theta = torch.zeros(4, 6)
+    # Default param_axis=0 picks dim 0 (size 4), which is not n_params=6.
+    with pytest.raises(ValueError):
+        bounded_params(theta, PARAM_BOUNDS)
+
+
+def test_bounded_params_carroll_mlp_batched_end_to_end() -> None:
+    """``CarrollMLP`` produces ``[B, 6]``; ``bounded_params(..., param_axis=-1)`` bounds it correctly."""
+    mlp = CarrollMLP()
+    B = 3
+    env = torch.randn(B, 3)
+    theta = mlp(env)               # [B, 6]
+    params = bounded_params(theta, PARAM_BOUNDS, param_axis=-1)
+
+    assert params.shape == (B, 6)
+    # Every per-parameter value across the batch must lie in its declared bounds.
+    for i in range(6):
+        lo = PARAM_BOUNDS[i, 0].item()
+        hi = PARAM_BOUNDS[i, 1].item()
+        assert (params[:, i] >= lo).all(), f"Param {i} below lower bound {lo}."
+        assert (params[:, i] <= hi).all(), f"Param {i} above upper bound {hi}."
