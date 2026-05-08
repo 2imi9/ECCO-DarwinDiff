@@ -153,16 +153,25 @@ def carroll6_integrate(
 
 
 def bounded_params(theta: torch.Tensor, bounds: torch.Tensor) -> torch.Tensor:
-    """Map unconstrained theta to physical ranges via sigmoid.
+    """Map unconstrained theta to physical Carroll-6 ranges via sigmoid.
+
+    Handles ``theta`` of shape ``[n_params]`` (scalar fit, notebook 05 style)
+    or ``[n_params, ...]`` with arbitrary trailing dimensions (per-cell fit,
+    notebook 07 style ``[6, H, W]`` from a CNN). The convention is that the
+    parameter axis is always the **leading** dim of ``theta``.
 
     Args:
-        theta: unconstrained learnable values, shape [6] (or broadcastable).
-        bounds: per-parameter [lo, hi] ranges, shape [6, 2].
+        theta: unconstrained learnable values, shape ``[n_params]`` or
+            ``[n_params, *trailing]``.
+        bounds: per-parameter ``[lo, hi]`` ranges, shape ``[n_params, 2]``.
 
     Returns:
-        physical-range parameters, same shape as theta.
+        physical-range parameters, same shape as ``theta``.
     """
-    lo, hi = bounds[..., 0], bounds[..., 1]
+    n_params = bounds.shape[0]
+    extra_dims = theta.ndim - 1
+    lo = bounds[:, 0].reshape(n_params, *([1] * extra_dims))
+    hi = bounds[:, 1].reshape(n_params, *([1] * extra_dims))
     return lo + (hi - lo) * torch.sigmoid(theta)
 
 
