@@ -31,7 +31,7 @@ https://doi.org/10.1175/MWR2912.1
 Savelli, R., Carroll, D., Menemenlis, D., Lauderdale, J. M., Bertin, C., Dutkiewicz, S., Manizza, M., Bloom, A. A., Castro-Morales, K., Miller, C. E., Simard, M., Bowman, K. W., & Zhang, H. (2026). Implementing riverine biogeochemical inputs in ECCO-Darwin: a sensitivity analysis of terrestrial fluxes in a data-assimilative global ocean biogeochemistry model. *Geoscientific Model Development*, 19, 867.
 https://doi.org/10.5194/gmd-19-867-2026
 
-Same author team as Carroll 2020 (Lauderdale is a co-author). Primarily about adding riverine BGC inputs to ED, but explicitly flags fixed parameters such as the 100-day DOC remineralization rate as a limitation — directly relevant to DarwinDiff's parameter-learning angle.
+Same author team as Carroll 2020. Primarily about adding riverine BGC inputs to ED, but explicitly flags fixed parameters such as the 100-day DOC remineralization rate as a limitation — directly relevant to DarwinDiff's parameter-learning angle.
 
 ## Methodological references
 
