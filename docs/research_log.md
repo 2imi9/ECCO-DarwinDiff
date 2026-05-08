@@ -167,7 +167,7 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 **Rationale.** Notebook 05's first draft had `carroll6_step` defined inline. After it was used unchanged in notebooks 06 and 07, the code was clearly stable enough to refactor — at that point `src/darwindiff/carroll6.py` was created and tested. Premature extraction (refactoring on the first use) creates churn when the API turns out to need changes for the second use case.
 
-**Consequences.** The `src/darwindiff/` modules grow incrementally as the project finds out what's reusable. Networks (CarrollMLP from 06, CarrollCNN from 07) and budget calculators (from 08) are extracted in this branch (after the third use case made the abstractions clear). Loss functions, AOI mask generators, and data loaders stay inline in notebooks until the patterns settle.
+**Consequences.** The `src/darwindiff/` modules grow incrementally as the project finds out what's reusable. Networks (`DINNRegional` from 06's MLP, `DINN` from 07's per-cell 1×1-conv — both following the BINN-family naming convention, "Darwin-Informed Neural Network") and budget calculators (from 08) are extracted in this branch (after the third use case made the abstractions clear). Loss functions, AOI mask generators, and data loaders stay inline in notebooks until the patterns settle.
 
 ### E2. Honest scope flags over forward promises
 
