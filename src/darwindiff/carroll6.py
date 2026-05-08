@@ -33,7 +33,6 @@ the project memory at reference_darwin3.md and is the first sub-step of notebook
 from __future__ import annotations
 
 import torch
-from torch.optim import Adam
 
 # Background (non-learned) parameters — the ~94% of Darwin knobs Carroll left at defaults.
 M_LIN: float = 0.05         # 1/d, linear phyto mortality
@@ -200,87 +199,3 @@ def bounded_params(
     hi = bounds[:, 1].reshape(n_params, *([1] * extra_dims))
     result = lo + (hi - lo) * torch.sigmoid(theta_p)
     return result.movedim(0, param_axis)
-
-
-def generate_synthetic_observations(
-    state0: torch.Tensor,
-    truth_params: torch.Tensor,
-    dt: float,
-    n_steps: int,
-    snapshot_indices: list[int],
-    noise_level: float = 0.01,
-    seed: int = 42,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Run the Carroll-6 box model with TRUE parameters and add per-tracer noise.
-
-    Args:
-        state0: initial state, shape [5].
-        truth_params: ground-truth Carroll-6 values, shape [6].
-        dt, n_steps, snapshot_indices: integration setup.
-        noise_level: Gaussian noise std relative to per-tracer mean (1% by default,
-            roughly matching vessel-recorded measurement uncertainty for BGC tracers).
-        seed: RNG seed for reproducibility.
-
-    Returns:
-        state_obs: noisy snapshots, shape [n_snap, 5].
-        state_traj_truth: clean snapshots, shape [n_snap, 5].
-        norm: per-tracer means used for normalisation, shape [5].
-    """
-    torch.manual_seed(seed)
-    with torch.no_grad():
-        state_traj_truth = carroll6_integrate(
-            state0=state0, params=truth_params, dt=dt,
-            n_steps=n_steps, snapshot_indices=snapshot_indices,
-        )
-    norm = state_traj_truth.mean(dim=0).clamp(min=1e-12)
-    state_obs = state_traj_truth + noise_level * norm * torch.randn_like(state_traj_truth)
-    return state_obs, state_traj_truth, norm
-
-
-def train_global_recovery(
-    state0: torch.Tensor,
-    state_obs: torch.Tensor,
-    norm: torch.Tensor,
-    dt: float,
-    n_steps: int,
-    snapshot_indices: list[int],
-    n_epochs: int = 2000,
-    lr: float = 5e-2,
-    device: str = "cpu",
-    seed: int = 0,
-) -> tuple[torch.Tensor, list[float]]:
-    """Recover six global Carroll-6 scalars from noisy observations via autograd.
-
-    The single-regime fit demonstrated in notebook 05. CPU is the default device because
-    the 5-element state autograd is dispatch-bound — see notebook 05's compute observation.
-
-    Returns:
-        recovered_params: shape [6] in physical units.
-        losses: per-epoch loss history.
-    """
-    torch.manual_seed(seed)
-    state_obs_dev = state_obs.to(device)
-    state0_dev = state0.to(device)
-    bounds_dev = PARAM_BOUNDS.to(device)
-    norm_dev = norm.to(device)
-
-    theta = torch.zeros(6, requires_grad=True, device=device)
-    optimizer = Adam([theta], lr=lr)
-    losses: list[float] = []
-
-    for _ in range(n_epochs):
-        optimizer.zero_grad()
-        params = bounded_params(theta, bounds_dev)
-        state_pred = carroll6_integrate(
-            state0=state0_dev, params=params, dt=dt,
-            n_steps=n_steps, snapshot_indices=snapshot_indices,
-        )
-        residual = (state_pred - state_obs_dev) / norm_dev
-        loss = (residual ** 2).mean()
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.item())
-
-    with torch.no_grad():
-        recovered = bounded_params(theta, bounds_dev).cpu()
-    return recovered, losses

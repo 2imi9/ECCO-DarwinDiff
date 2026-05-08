@@ -177,6 +177,27 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 **Consequences.** Every notebook ends with "What this scaffold does NOT demonstrate" and a list of open scope items. The pre-ORCD scoping in notebook 08 is the consolidated checklist of what blocks the move to real compute. This decision log itself is part of that pattern — capturing assumptions explicitly so they can be challenged.
 
+### E3. Real-data-only code direction (post-2026-05-08)
+
+**Decision.** With ECCO-Darwin v5 LLC270 output confirmed publicly available at `https://data.nas.nasa.gov/ecco/eccodata/llc_270/ecco_darwin_v5/`, the project transitions from synthetic-truth scaffolding to real-data fits. Code that only exists to support synthetic-recovery validation is removed from the repo.
+
+**Removed:**
+
+- `src/darwindiff/prototype/` — toy 1-D reaction-diffusion + synthetic NPZ scaffolding that supported notebooks 01–04. Notebooks 01–04 themselves stay in `notebooks/` with their committed outputs; their pre-cleanup commits (e.g., `8d465ce` and earlier) preserve the prototype module if anyone needs to re-run them.
+- `src/darwindiff/carroll6.generate_synthetic_observations` and `train_global_recovery` — synthetic-data helpers used only for the box-model unit tests. The box-model physics functions (`carroll6_step`, `carroll6_integrate`, `bounded_params`, constants, `PARAM_BOUNDS`, `PARAM_NAMES`, `CARROLL_VALUES`) all stay.
+- `tests/test_4param_recovery.py`, `test_coupled_recovery.py`, `test_multiparam_recovery.py`, `test_prototype_recovery.py` — synthetic-recovery tests for the prototype module.
+- `tests/test_carroll6_recovery.py::test_carroll6_recovery_matches_published_optimum` — the single end-to-end synthetic-truth recovery test in the carroll6 file. The 4 smoke / integration / autograd / bounds tests in that file stay; they exercise the math, not synthetic observations.
+
+**Kept (the production-relevant test suite):**
+
+- 4 box-model smoke tests in `test_carroll6_recovery.py` (single-step finite, integration stable at truth, autograd flows to all six, bounds respected).
+- 13 network tests in `test_networks.py` (DINN / DINNRegional shapes, per-cell isolation, bounded-params batched cases, autograd flow).
+- 13 budget tests in `test_budget.py` (per-op cost regimes, activation-memory under checkpointing, fits-on-GPU boolean).
+
+**Rationale.** Synthetic-recovery tests served their purpose during methodology validation (notebooks 05–07): we verified autograd works, gradients reach all parameters, the algorithm converges from a cold start, etc. With those facts established, the relevant question shifts to *does the methodology survive on real data?* — and that question is answered by notebook 09+ running against actual ECCO-Darwin output, not by synthetic-truth unit tests. Keeping dead synthetic-only code in the repo would obscure which paths are production-relevant.
+
+**Consequences.** Notebooks 01–04 lose import support from `main` after the cleanup commit lands (their committed outputs are preserved; re-execution requires `git checkout` to a pre-cleanup commit). The `darwindiff` package focus narrows to: `carroll6` (Darwin BGC physics, the simulator), `networks` (DINN / DINNRegional, the parameter learner), `budget` (compute and memory sizing for ORCD pitch). Test count drops from ~30 to ~21, but every remaining test exercises code on the production path.
+
 ---
 
 ## Open items not yet decided
