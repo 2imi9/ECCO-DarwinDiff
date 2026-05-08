@@ -44,10 +44,10 @@ Stages:
 | Stage | Focus | Hoped-for outcome |
 |---|---|---|
 | 0 | Pilot: 1D toy reaction-diffusion + small parameter neural network; BINN-style recovery test on local GPU. | Hard evidence the differentiable setup works end-to-end before we scale to real Darwin equations. |
-| 1 | Data flow; read Darwin source code (Brix 2015, Dutkiewicz 2009); pick equation subset and parameter targets with Lauderdale. | Reliable way to fetch ED output and observations; clear technical plan agreed with the science advisor. |
+| 1 | Data flow; read Darwin source code (Brix 2015, Dutkiewicz 2009); pick equation subset and parameter targets in collaboration with the ECCO-Darwin team. | Reliable way to fetch ED output and observations; clear technical plan agreed with the science advisor. |
 | 2 | Differentiable BGC module for the 4 tracers; neural network for spatial parameters; run forward and train on the 2D ocean column. | Gradients flow all the way through a working differentiable Darwin; first learned parameter maps. |
 | 3 | Checking: recovery test, cross-validation against held-out GLODAP/Argo, mass conservation, comparison to Carroll 2020 Green's functions optima; sensitivity experiments; first paper draft. | A solid scientific result and a paper draft. |
-| 4 (stretch) | Emulator: neural network stand-in trained on full ED output; long-timescale stability test for paleoclimate and climate-change runs. | A useful stand-in for the long-timescale CO2 work that motivates this for Lauderdale. |
+| 4 (stretch) | Emulator: neural network stand-in trained on full ED output; long-timescale stability test for paleoclimate and climate-change runs. | A useful stand-in for the long-timescale CO2 work that motivates the broader collaboration. |
 
 ## Repository layout
 

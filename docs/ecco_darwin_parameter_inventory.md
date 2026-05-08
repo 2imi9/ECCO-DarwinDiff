@@ -55,7 +55,7 @@ Six. Source values verified directly in the Carroll 2020 build, with paper Table
 | 5 | `diatomgraz` | `init_fixed.F:272` | 0.83003 | Diatom palatability |
 | 6 | `R_PICPOC` | `generate_phyto.F:484` | 0.04245 | PIC/POC ratio |
 
-Each parameter has its pre-optimization default visible in a commented-out line nearby (for example `cswd  scav_rat=0.005 _d 0/(86400.0 _d 0)` at line 99). The Green's functions workflow literally edits these constants in source and recompiles per experiment, which is the "labor-intensive" workflow Lauderdale described.
+Each parameter has its pre-optimization default visible in a commented-out line nearby (for example `cswd  scav_rat=0.005 _d 0/(86400.0 _d 0)` at line 99). The Green's functions workflow literally edits these constants in source and recompiles per experiment — the "labor-intensive" cycle this project replaces with autograd.
 
 ## What this means for DarwinDiff
 
