@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import json; nb = json.load\\(open\\('notebooks/05_carroll6_scalar_recovery.ipynb', encoding='utf-8'\\)\\); print\\(f'cells={len\\(nb[chr\\(0x22\\)+chr\\(0x63\\)+chr\\(0x65\\)+chr\\(0x6c\\)+chr\\(0x6c\\)+chr\\(0x73\\)+chr\\(0x22\\)]\\)}, OK'\\)\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git reset *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(gh pr *)",
+      "Bash(git fetch *)",
+      "Bash(jupyter nbconvert *)",
+      "Bash(git checkout *)",
+      "Bash(PYTHONPATH=src python -m pytest tests/test_networks.py tests/test_budget.py tests/test_carroll6_recovery.py -v --deselect tests/test_carroll6_recovery.py::test_carroll6_recovery_matches_published_optimum)",
+      "WebFetch(domain:podaac.jpl.nasa.gov)",
+      "WebFetch(domain:ecco-group.org)"
+    ]
+  }
+}

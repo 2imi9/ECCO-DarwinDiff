@@ -2,11 +2,10 @@
 
 Validates the differentiable scaffold for the exact six parameters Carroll et al. 2020
 (JAMES) tuned via Green's functions: smoke test for stable forward integration, autograd
-flow to all six knobs, and end-to-end recovery from synthetic observations.
-
-These tests lock in the box-model behaviour notebook 05 demonstrates against the Carroll
-published optimum, and the same module is used by notebook 06's ML-vs-Green's-functions
-benchmark.
+flow to all six knobs, and bounded-parameter mapping behaviour. End-to-end recovery
+against synthetic observations was removed when the project transitioned to real-data
+fits — recovery quality on real ECCO-Darwin v5 output is now exercised by the notebooks
+that load real data, not by unit tests.
 """
 
 from __future__ import annotations
@@ -20,8 +19,6 @@ from darwindiff.carroll6 import (
     bounded_params,
     carroll6_integrate,
     carroll6_step,
-    generate_synthetic_observations,
-    train_global_recovery,
 )
 
 
@@ -73,53 +70,6 @@ def test_carroll6_autograd_flows_to_all_six() -> None:
     for i, name in enumerate(PARAM_NAMES):
         assert theta.grad[i].abs().item() > 0, (
             f"Parameter {name} (index {i}) received zero gradient — autograd path broken."
-        )
-
-
-def test_carroll6_recovery_matches_published_optimum() -> None:
-    """End-to-end recovery from synthetic observations of the Carroll-2020 truth.
-
-    Per-parameter tolerances reflect the actual identifiability landscape measured in
-    notebook 05 (50-day spin-up, 5 snapshots, 2000 epochs, sigmoid-midpoint cold start):
-    R_PICPOC and Smallgrow recover to <1%, the rest to <10%. Tolerances here are loose
-    enough to accommodate run-to-run variance from RNG and Adam stochasticity while
-    catching catastrophic regressions.
-    """
-    state0, dt, n_steps, snapshot_indices = _fixture()
-    state_obs, _truth_traj, norm = generate_synthetic_observations(
-        state0=state0, truth_params=CARROLL_VALUES, dt=dt,
-        n_steps=n_steps, snapshot_indices=snapshot_indices,
-        noise_level=0.01, seed=42,
-    )
-    recovered, losses = train_global_recovery(
-        state0=state0, state_obs=state_obs, norm=norm,
-        dt=dt, n_steps=n_steps, snapshot_indices=snapshot_indices,
-        n_epochs=2000, lr=5e-2, device="cpu", seed=0,
-    )
-
-    assert losses[-1] < losses[0], "Loss should decrease during training."
-    assert losses[-1] < 1e-3, (
-        f"Final loss {losses[-1]:.3e} should reach noise floor (~1e-4 for 1% obs noise)."
-    )
-
-    # Per-parameter tolerances measured on CPU 2026-05-07. Loose to catch catastrophic
-    # regressions across RNG / device variance, not tight performance targets.
-    tolerances = {
-        "alpfe": 0.20,
-        "scav_rat": 0.20,
-        "Smallgrow": 0.10,
-        "Biggrow": 0.15,
-        "diatomgraz": 0.15,
-        "R_PICPOC": 0.05,
-    }
-    for i, name in enumerate(PARAM_NAMES):
-        rel = abs(
-            (recovered[i].item() - CARROLL_VALUES[i].item()) / CARROLL_VALUES[i].item()
-        )
-        bound = tolerances[name]
-        assert rel < bound, (
-            f"Parameter {name}: rel error {rel:.3f} exceeds {bound:.2f} tolerance "
-            f"(truth {CARROLL_VALUES[i].item():.4e}, recovered {recovered[i].item():.4e})."
         )
 
 
