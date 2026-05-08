@@ -74,3 +74,6 @@ desktop.ini
 .env
 .env.local
 *.env
+
+# Agent worktree settings (per-machine, not project content)
+.claude/
