@@ -2,11 +2,11 @@
 
 *Living doc. Update as things ship.*
 
-**Last updated:** 2026-05-09 (after nb15 architecture upgrade test).
+**Last updated:** 2026-05-09 (after nb16 cross-validation honesty check).
 
 ## Where we are in one line
 
-Track 1 (parameter recovery) at **v1.4** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Structural-ceiling argument holds in every fit. **Architecture upgrade test (nb15) shows that more network capacity drives r → 1.000 on the FeT pattern but does NOT improve Carroll-6 recovery — box-model proxy bias is the calibration ceiling, not network architecture.** Track 2 (neural emulator) not started.
+Track 1 (parameter recovery) at **v1.5** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Structural-ceiling argument holds in every fit. nb15 showed network capacity is not the recovery ceiling — box-model proxy bias is. **nb16 cross-validation showed DINNDeep's r=1.000 is INTERPOLATION ONLY: random hold-out r=0.997 (passes), block hold-out r=0.280 (fails extrapolation).** Track 2 (neural emulator) not started; Track 1 closing on local hardware, awaiting MIT cluster decision.
 
 ## Most important findings so far
 
@@ -23,6 +23,8 @@ Track 1 (parameter recovery) at **v1.4** — Carroll-6 recovery demonstrated aga
 6. **Best target depends on basin physics**, not just on Carroll's calibration choices. Mid-Atl: Chl `r=0.72` > NO₃ `r=0.61`. N Pacific: NO₃ `r=0.98` > Chl `r=0.97`. Likely reflects Mid-Atl NO₃ being dominated by Gulf Stream / mesoscale eddy structure that an SST-only DINN can't capture.
 
 7. **Network capacity ≠ better Carroll-6 recovery (nb15).** Multi-channel input (SST + MLD + wind + lat) into a deeper network (DINNDeep, ~9.4K params, 21× the baseline) drives Eq Pacific FeT r from 0.337 → **1.000** and reduces loss ~3000×. But recovered Carroll-6 means are NOT closer to Carroll's published values (some are worse). The fit memorizes the FeT pattern via degenerate parameter sets that produce the right field but don't match the published calibration. **The recovery ceiling is the box-model proxy simplification, not the network architecture.**
+
+8. **DINNDeep's r=1.000 is interpolation, not extrapolation (nb16).** Cross-validation confirms: random 80/20 hold-out gives held-out r=**0.997** (passes — interpolating gaps works), but block hold-out (western 2/3 train, eastern 1/3 test) gives held-out r=**0.280** (fails — can't extrapolate to unseen spatial blocks). DINNDeep is not memorizing in the trivial sense, but it IS learning a function that's smooth across the training set without extrapolating beyond it. **For cross-basin claims (e.g., training on Mid-Atl, applying to N Pacific), DINNDeep is unreliable; the SST-only DINN baseline is the more honest tool because it has less interpolation capacity to lean on.**
 
 ## Headline results table
 
@@ -67,6 +69,7 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] **13** — cross-basin Mid-Atl + N Pacific NO₃ (Track 1 v1.3)
 - [x] **14** — iron-pair recovery via FeT in Eq Pacific (Track 1 v1.2)
 - [x] **15** — DINNDeep architecture upgrade test on Eq Pacific FeT (Track 1 v1.4)
+- [x] **16** — Cross-validation honesty check on DINNDeep (Track 1 v1.5)
 
 ### Decisions and scope locked
 
@@ -101,5 +104,5 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 
 ## Project arc
 
-- **Track 1** (parameter recovery via differentiable physics) — at v1.4, four basin-target combinations validated, structural-ceiling argument established, architecture upgrade tested and shown to be ceiling-bound by box-model simplification.
-- **Track 2** (neural surrogate emulator) — not started; gated on time-resolved fitting machinery from Track 1 follow-ups.
+- **Track 1** (parameter recovery via differentiable physics) — at v1.5, four basin-target combinations validated, structural-ceiling argument established, architecture upgrade tested + cross-validated. Closing on local hardware; pending MIT cluster decision before next phase (box-model extension + Track 2).
+- **Track 2** (neural surrogate emulator) — not started; gated on cluster compute access + time-resolved fitting machinery from Track 1 follow-ups.
