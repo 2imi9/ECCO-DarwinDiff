@@ -6,7 +6,7 @@
 
 ## Where we are in one line
 
-Track 1 (parameter recovery) at **v1.5** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Structural-ceiling argument holds in every fit. nb15 showed network capacity is not the recovery ceiling — box-model proxy bias is. **nb16 cross-validation showed DINNDeep's r=1.000 is INTERPOLATION ONLY: random hold-out r=0.997 (passes), block hold-out r=0.280 (fails extrapolation).** Track 2 (neural emulator) not started; Track 1 closing on local hardware, awaiting MIT cluster decision.
+Track 1 (parameter recovery) at **v1.5** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Structural-ceiling argument holds in every fit. nb15 showed network capacity is not the recovery ceiling — box-model proxy bias is. **nb16 cross-validation showed DINNDeep's r=1.000 is INTERPOLATION ONLY: random hold-out r=0.995 (passes), block hold-out r=0.301 (fails extrapolation).** Track 2 (neural emulator) not started; Track 1 closing on local hardware, awaiting MIT cluster decision.
 
 ## Most important findings so far
 
@@ -24,7 +24,7 @@ Track 1 (parameter recovery) at **v1.5** — Carroll-6 recovery demonstrated aga
 
 7. **Network capacity ≠ better Carroll-6 recovery (nb15).** Multi-channel input (SST + MLD + wind + lat) into a deeper network (DINNDeep, ~9.4K params, 21× the baseline) drives Eq Pacific FeT r from 0.337 → **1.000** and reduces loss ~3000×. But recovered Carroll-6 means are NOT closer to Carroll's published values (some are worse). The fit memorizes the FeT pattern via degenerate parameter sets that produce the right field but don't match the published calibration. **The recovery ceiling is the box-model proxy simplification, not the network architecture.**
 
-8. **DINNDeep's r=1.000 is interpolation, not extrapolation (nb16).** Cross-validation confirms: random 80/20 hold-out gives held-out r=**0.997** (passes — interpolating gaps works), but block hold-out (western 2/3 train, eastern 1/3 test) gives held-out r=**0.280** (fails — can't extrapolate to unseen spatial blocks). DINNDeep is not memorizing in the trivial sense, but it IS learning a function that's smooth across the training set without extrapolating beyond it. **For cross-basin claims (e.g., training on Mid-Atl, applying to N Pacific), DINNDeep is unreliable; the SST-only DINN baseline is the more honest tool because it has less interpolation capacity to lean on.**
+8. **DINNDeep's r=1.000 is interpolation, not extrapolation (nb16).** Cross-validation confirms: random 80/20 hold-out gives held-out r=**0.995** (passes — interpolating gaps works), but block hold-out (western 2/3 train, eastern 1/3 test) gives held-out r=**0.301** (fails — can't extrapolate to unseen spatial blocks). DINNDeep is not memorizing in the trivial sense, but it IS learning a function that's smooth across the training set without extrapolating beyond it. **For cross-basin claims (e.g., training on Mid-Atl, applying to N Pacific), DINNDeep is unreliable; the SST-only DINN baseline is the more honest tool because it has less interpolation capacity to lean on.**
 
 ## Headline results table
 
