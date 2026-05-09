@@ -41,8 +41,9 @@ data/*
 !data/.gitkeep
 !data/README.md
 
-# References — store citations in README, not the PDFs themselves
+# References — store citations in README, not the PDFs or external repos themselves
 references/*.pdf
+references/ecco_darwin/
 
 # Models / checkpoints
 *.pt
