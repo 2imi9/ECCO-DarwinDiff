@@ -200,14 +200,67 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 ---
 
-## Open items not yet decided
+## F. Real-data fits (Track 1 v1.0 → v1.5, 2026-05-09)
 
-- **Loss function for sparse vessel observations.** The current per-tracer-normalised MSE assumes dense observation grids. Real GEOTRACES / GO-SHIP data is sparse and irregular; the loss needs a sparse-tensor or masked-MSE form. Decision should land before notebook 09 codes the real-observation loss.
-- **`scav_tau` units in Darwin 3.** The v06/llc270 namelist value is `1.0`, but Carroll's `scav_rat = 6.026e-7 /s` doesn't match under any obvious unit conversion. Resolution: grep `pkg/darwin/` for where `scav_tau` is consumed.
-- **`PALAT[5, ?]` predator index for `diatomgraz`.** Diatom is prey index 5; Carroll's `diatomgraz` mapped to a specific zooplankton predator that needs source-reading to identify in Darwin 3's 10-plankton system.
-- **Multi-GPU vs time-window decomposition** for LLC270 multi-year. Both are viable; the choice depends on what ORCD allocation looks like and how much engineering effort is available.
-- **First-iteration optimiser for production fits.** Adam at lr=5e-3 worked for 06/07 with bounds and noise. For real data the Adam → LBFGS / quasi-Newton fine-tune pattern is standard but adds a phase to the training loop.
+### F1. Carroll 2022 / Darwin 3 / v05 chosen as active calibration target
+
+**Decision.** Frame Track 1's recovery target as Carroll 2022 (Darwin 3, ECCO-Darwin v05), not Carroll 2020 (Darwin 1, v04). Carroll 2020 retained as historical reference.
+
+**Rationale.** Verified by reading the source namelists at `MITgcm-contrib/ecco_darwin/v04/llc270_JAMES_paper/code_darwin/{darwin_init_fixed.F, darwin_generate_phyto.F}` and `v05/llc270/input/data.darwin`: the 6 calibrated values are **bit-for-bit identical** between v04 and v05 (`alpfe=0.92831, scav_rat=6.025e-7, Smallgrow=0.66098, Biggrow=0.43148, diatomgraz=0.83003, R_PICPOC=0.04245`). The v05 setup uses Darwin 3 with new ecosystem features but inherits Carroll 2020's calibration unchanged. Choosing v05 as the framing target lets us reference the publicly-accessible run (NASA NAS portal serves only v05) without giving up any calibration accuracy.
+
+**Consequences.** All notebook 10+ work fits against v05 outputs. Carroll 2020 / Darwin 1 / v04 gets a single mention in `STATUS.md` and `reference_carroll_2020.md`; everything active points at Carroll 2022 / v05.
+
+### F2. Per-cell architecture is the structural-argument-preserving choice
+
+**Decision.** All Track 1 fits use 1×1 conv backbones (no spatial coupling between cells). Larger receptive fields (3×3+, attention) are deferred to Track 2.
+
+**Rationale.** The DarwinDiff scientific claim is structural: a single global parameter vector cannot reproduce spatial heterogeneity in ocean BGC, but per-cell parameters can. Quantifying that claim cleanly requires the comparison "global-scalar (0 spatial info) vs DINN per-cell (1 cell of spatial info)" — adding receptive field would let the DINN cheat by averaging neighbours, conflating the parametric-class advantage with a smoothing advantage.
+
+**Consequences.** Notebooks 09–16 all use 1×1 conv. The DINN baseline (~454 params, SST input only) and DINNDeep upgrade (~9.4K params, 4-channel input) both keep this constraint. ViT / FNO / graph-net architectures are reserved for Track 2 emulator work where spatial coupling is physically required (advection / diffusion).
+
+### F3. Three-AOI cross-basin validation as the reproducibility argument
+
+**Decision.** Validate Track 1 across Mid-Atlantic (30–50°N, 60–30°W), North Pacific (30–50°N, 160–130°W), and Equatorial Pacific (5°S–15°N, 160°W–110°W) AOIs.
+
+**Rationale.** Three basins with different physics (Gulf Stream complexity vs gyre interior vs HNLC equatorial upwelling) test whether the recovery methodology is regionally idiosyncratic or genuinely reproducible. Eq Pacific specifically targets iron-pair (`alpfe`, `scav_rat`) identifiability that's structurally absent in iron-replete basins.
+
+**Consequences.** Notebooks 11 (Mid-Atl + N Pacific Chl), 13 (same two basins, NO₃ target), 14 (Eq Pacific FeT) cover the matrix. Cross-basin parameter consistency emerged as a stronger scientific argument than any single fit — recovered Carroll-6 means stay within ~25% across basins with the same systematic offsets vs Carroll's published values, suggesting box-model proxy bias is basin-independent.
+
+### F4. Box-model proxy bias is the recovery ceiling, not network capacity (nb15)
+
+**Decision.** Highest-priority follow-up is extending the 5-tracer carroll6 box model with carbonate chemistry (DIC + ALK), not further architecture work.
+
+**Rationale.** Notebook 15 trained DINNDeep (~9.4K params, 4-channel input — 21× the baseline DINN) on Eq Pacific FeT. r jumped from 0.337 to **1.000** with ~3000× lower loss, but recovered Carroll-6 means did NOT get closer to Carroll's published values (some got worse). The network finds *a* per-cell parameter set that reproduces Darwin's FeT field, but it's a degenerate solution — many (alpfe, scav_rat) pairs produce the same surface DFe at steady state. The ceiling on Carroll-6 recovery is the 5-tracer simplification (which collapses Darwin 3's 5 PFTs + 2 zoo + DOM + carbonate chem into Ps + Pl + POC + PIC + DFe), not the network's representational capacity.
+
+**Consequences.** Future architecture work for Track 1 has diminishing returns — we're at the proxy ceiling. Box-model extension to add DIC + ALK + carbonate equilibria + Wanninkhof flux unblocks the path to actually matching Carroll's published values AND enables fitting Darwin's air–sea CO₂ flux pattern directly. Tracked in STATUS.md "next" section as the top priority.
+
+### F5. DINNDeep generalises by interpolation, not extrapolation (nb16)
+
+**Decision.** DINNDeep is the production architecture WITHIN a single AOI; SST-only DINN baseline remains the honest tool for cross-basin claims.
+
+**Rationale.** Notebook 16 cross-validation: DINNDeep trained on 80% random subset of Eq Pacific cells gives held-out r=0.995 (interpolation passes) but trained on western 2/3 with eastern 1/3 held out gives held-out r=0.301 (extrapolation fails). The network learns a function smooth across the training set without extrapolating to unseen spatial blocks. Random hold-out works because every held-out cell has neighbours in the train set; block hold-out fails because the eastern third's environment occupies regions of feature space the network never trained on.
+
+**Consequences.** Cross-basin DINNDeep results would need their own per-basin training; cannot assume DINNDeep trained in Mid-Atl applies to N Pacific without separate validation. For the broad cross-basin reproducibility argument, the lower-capacity DINN baseline (notebooks 11, 13) is more honest because it has less interpolation slack to mask extrapolation failure.
+
+### F6. Stop on local single-GPU at Track 1 v1.5; cluster compute needed for next phase
+
+**Decision.** Track 1 closes on local RTX 5090 hardware after notebook 16. Box-model carbonate extension, multi-tracer joint loss at LLC270 native resolution, time-resolved fitting, and Track 2 emulator all require cluster compute (MIT ORCD or similar).
+
+**Rationale.** A 1500-epoch DINN per-cell training run on a 1° AOI (~600–1000 cells) takes 7–8 minutes on the 5090. Scaling to LLC270 native (11.7× more cells per AOI) gives ~80 min per fit. Multi-tracer joint loss is 4–8× per-epoch cost. Time-resolved fitting (all 285 monthly snapshots) is 285× single-snapshot cost per epoch. Combinatorially these will saturate the 5090.
+
+**Consequences.** Track 1 status is "v1.5 closed locally, awaiting cluster decision". Next phase deliverables (box-model extension validation, multi-tracer joint loss, Track 2 emulator) are listed in STATUS.md "next" section and are gated on cluster access. Email to Jonathan with consolidated nb10–16 results + ORCD allocation request is the next external action.
 
 ---
 
-*Last updated: 2026-05-08, after notebook 08 (pre-ORCD scoping) and the checkpointed-memory correction.*
+## Open items not yet decided
+
+- **Multi-covariate + temporal input experiments** for the next round. SST + MLD + wind + lat in nb15 was a chosen quartet; other natural additions are SSS, irradiance (PAR), bathymetry, sea-ice fraction, distance-to-coast. The marginal improvement per added channel is unknown.
+- **Loss function for sparse vessel observations.** Future GEOTRACES iron-section fits will need a sparse-tensor or masked-MSE form. Not blocking current work.
+- **`scav_tau` units in Darwin 3.** Resolved for v05 (still `scav_rat`, same name as v04). Open for v06 setup, which uses `scav_tau`. Defer until/unless we target v06.
+- **`PALAT[5, ?]` predator index for `diatomgraz`.** Resolved for v05 (`diatomgraz` is a direct scalar, no PALAT-matrix decoding needed). Same v06 deferral applies.
+- **Multi-GPU vs time-window decomposition** for LLC270 native fits — gated on cluster access decision.
+- **First-iteration optimiser for production fits.** Adam at lr=5e-3 has worked across 09–16. Adam → LBFGS fine-tune pattern is standard but adds a training-loop phase; defer until cluster fits start.
+
+---
+
+*Last updated: 2026-05-09, after notebook 16 cross-validation (Track 1 v1.5 close on local hardware).*
