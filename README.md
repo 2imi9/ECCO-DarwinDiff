@@ -28,7 +28,11 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone) versus a gl
 
 In every fit, the Green's-functions parametric class produces a **constant prediction** (r mathematically undefined) — the structural ceiling Carroll 2020 / 2022's calibration is bounded by. Carroll's 6 calibrated values are inherited bit-for-bit between v04 / Carroll 2020 (Darwin 1) and v05 / Carroll 2022 (Darwin 3), verified locally against the source namelists.
 
-**On the r=1.000 result (notebook 15):** A deeper, wider DINNDeep network with 4-channel input (SST + MLD + wind + lat) drives the Eq Pacific FeT fit to r=1.000 and ~3000× lower loss. **However, the recovered Carroll-6 parameter values do NOT get closer to Carroll's published optima — some get worse.** The network finds *a* per-cell parameter set that produces Darwin's FeT field, but it's a degenerate solution that doesn't match the published calibration. This pins down a key result: **the recovery ceiling is the 5-tracer box-model simplification, not the network architecture.** Closing the gap to Carroll's actual values requires extending the box model (DIC + ALK + carbonate chemistry + the full 5 PFT ecosystem), not adding more network capacity.
+**On the r=1.000 result (notebooks 15 + 16):** A deeper, wider DINNDeep network with 4-channel input (SST + MLD + wind + lat) drives the Eq Pacific FeT fit to r=1.000 and ~3000× lower loss. **However:**
+
+1. **Recovered Carroll-6 values do NOT get closer to Carroll's published optima** — some get worse. The network finds *a* per-cell parameter set that produces Darwin's FeT field, but it's a degenerate solution that doesn't match the published calibration. **The recovery ceiling is the 5-tracer box-model simplification, not the network architecture.** Closing the gap to Carroll's actual values requires extending the box model (DIC + ALK + carbonate chemistry + the full 5 PFT ecosystem), not adding more network capacity.
+
+2. **DINNDeep's r=1.000 is interpolation, not extrapolation** (notebook 16 cross-validation). Random 80/20 hold-out: held-out r=0.995 (passes — interpolating gaps works). Block hold-out (W 2/3 train, E 1/3 test): held-out r=0.301 (fails — can't extrapolate to unseen spatial blocks). DINNDeep is fine for fitting within a single AOI but **does not generalize across spatial blocks**. For broad cross-basin claims, the SST-only DINN baseline (notebooks 11/13) is the more honest tool because it has less interpolation capacity to lean on.
 
 ## Background reading
 
@@ -53,7 +57,8 @@ In every fit, the Green's-functions parametric class produces a **constant predi
   - v1.2: iron-pair recovery via Darwin FeT in HNLC (notebook 14)
   - v1.3: cross-basin Darwin NO₃ (notebook 13)
   - v1.4: architecture upgrade test (notebook 15) — pins recovery ceiling on box-model bias, not network
-  - **Next:** box-model carbonate-chemistry extension (highest priority after nb15 finding), multi-tracer joint loss, broader DINNDeep rollout. See [STATUS.md](STATUS.md) for the live checklist.
+  - v1.5: cross-validation honesty check (notebook 16) — DINNDeep interpolates but doesn't extrapolate spatially
+  - **Next (gated on cluster compute):** box-model carbonate-chemistry extension, multi-tracer joint loss at LLC270 native resolution, time-resolved fitting, Track 2 emulator. Track 1 closing on local single-GPU; awaiting MIT cluster decision. See [STATUS.md](STATUS.md) for the live checklist.
 
 - **Track 2 — emulator** (not started)
   - Will be a separate architecture (likely transformer / FNO / graph net with spatial coupling), trained on time-resolved Darwin output. Different problem from parameter recovery — different network. Notes in STATUS.md once it begins.
