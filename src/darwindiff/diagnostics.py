@@ -67,6 +67,20 @@ def safe_pearson_r(pred: np.ndarray, target: np.ndarray) -> PearsonResult:
     appropriately — typically as "undefined (zero spatial variance)" when the
     structural-ceiling argument is the point.
 
+    .. warning::
+
+        **Pass RAW fields, not z-scored ones.** Pearson r is scale-and-shift
+        invariant for non-degenerate inputs, so the r value is identical
+        whether you pass raw or normalised arrays — but the
+        ``is_constant`` detection only fires on raw scale. A common anti-
+        pattern is to z-score with ``x.std().clamp(min=eps)`` first
+        (typically ``eps=1e-6``); the clamp magnifies float-level noise from
+        ``~eps_double`` to ``~eps_double/eps`` and moves ``std/|mean|`` from
+        ``~1e-16`` to ``~O(1)``, which is indistinguishable from a real
+        signal. The relative-tolerance constant check then misses the case
+        it exists to catch and the function returns a finite-but-meaningless
+        r against random noise. Compare raw to raw.
+
     Args:
         pred: 1-D array of predicted values.
         target: 1-D array of target values, same length as ``pred``.

@@ -112,6 +112,42 @@ class TestSafePearsonR:
         assert result.is_constant is False
         assert np.isfinite(result.r)
 
+    def test_pre_zscored_input_with_clamp_defeats_constant_detection(self) -> None:
+        """Regression / API contract: ``safe_pearson_r`` must be called on RAW
+        fields, not pre-z-scored ones. The notebook 09 anti-pattern was to
+        compute ``z = (x - x.mean()) / x.std().clamp(min=1e-6)`` and then
+        feed ``z`` to ``safe_pearson_r``. When ``x`` is float-noise around a
+        constant (the structural-ceiling case), the clamp magnifies noise
+        from ~1e-15 to ~1e-9, moving ``std/|mean|`` from ~1e-16 to O(1).
+        The relative-tolerance check then misses the case and a finite-but-
+        meaningless r against random noise gets reported.
+
+        This test asserts both halves: the helper correctly flags raw input,
+        AND demonstrates that pre-z-scored input slips through. The test
+        documents the correct usage pattern for callers.
+        """
+        rng = np.random.default_rng(0)
+        # Float-noise around a constant — the GPU box-model integration case
+        # the structural-ceiling argument targets. Use float64 so the noise
+        # survives arithmetic (in float32 it falls below ULP and ptp catches
+        # it bitwise).
+        raw_pred = 1.234 + 1e-15 * rng.standard_normal(582)
+        target = rng.standard_normal(582)
+
+        # Correct usage: raw input. Constant detection fires.
+        result_raw = safe_pearson_r(raw_pred, target)
+        assert result_raw.is_constant is True
+        assert np.isnan(result_raw.r)
+
+        # Anti-pattern: caller pre-z-scores with .std().clamp(min=1e-6) first.
+        # Detection fails — documented here so future callers see the
+        # consequence and the docstring's warning has a runnable example.
+        std_clamped = max(float(raw_pred.std()), 1e-6)
+        zscored_pred = (raw_pred - raw_pred.mean()) / std_clamped
+        result_z = safe_pearson_r(zscored_pred, target)
+        assert result_z.is_constant is False  # the bug case
+        assert np.isfinite(result_z.r)  # noise-against-target ≈ 0 but finite
+
     def test_all_nan_inputs(self) -> None:
         # No finite pairs at all — undefined for a different reason than
         # constant inputs (and is_constant should NOT be set).
