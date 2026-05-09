@@ -131,3 +131,113 @@ class DINN(nn.Module):
         if env.ndim == 3:
             return self.net(env.unsqueeze(0)).squeeze(0)
         return self.net(env)
+
+
+class _PerCellLayerNorm(nn.Module):
+    """LayerNorm over the channel dim only, applied independently at each (h, w).
+
+    Required for per-cell architecture — alternatives like ``GroupNorm(num_groups=1)``
+    or ``InstanceNorm2d`` couple cells via shared normalisation statistics, which
+    breaks the per-cell parameter-recovery argument.
+    """
+
+    def __init__(self, n_channels: int) -> None:
+        super().__init__()
+        self.norm = nn.LayerNorm(n_channels)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # [B, C, H, W] -> [B, H, W, C] -> norm over last dim -> [B, C, H, W]
+        return self.norm(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+
+
+class _PerCellResBlock(nn.Module):
+    """A per-cell residual block: norm -> 1x1 conv -> GELU -> norm -> 1x1 conv + skip.
+
+    All operations are 1x1 convolutions plus per-cell LayerNorm, so each cell
+    is processed independently (no spatial coupling, no shared normalisation
+    statistics across cells).
+    """
+
+    def __init__(self, hidden_dim: int) -> None:
+        super().__init__()
+        self.norm1 = _PerCellLayerNorm(hidden_dim)
+        self.conv1 = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1)
+        self.norm2 = _PerCellLayerNorm(hidden_dim)
+        self.conv2 = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        residual = x
+        x = self.conv1(nn.functional.gelu(self.norm1(x)))
+        x = self.conv2(nn.functional.gelu(self.norm2(x)))
+        return x + residual
+
+
+class DINNDeep(nn.Module):
+    """Upgraded per-cell Darwin-Informed Neural Network for production fits.
+
+    Drops the 2-layer 16-dim Tanh design of :class:`DINN` for a deeper, wider,
+    modern network: multi-channel input, configurable depth, residual blocks
+    with GELU + GroupNorm, all built from 1x1 convolutions to preserve the
+    per-cell parameter-recovery semantics (no spatial coupling between cells).
+
+    The structural argument from notebooks 09-14 (per-cell DINN class beats
+    global-scalar Green's-functions class) is unchanged — both still represent
+    a single parameter vector per cell, just with different network capacity.
+    DINNDeep is what you reach for when you want the actual best fit DarwinDiff
+    can produce on a given (AOI, target) combination, not the smallest network
+    that demonstrates the structural argument.
+
+    Default config (~8.5K weights at 4 input channels):
+        - 4 input channels (e.g. SST + MLD + windspeed + latitude)
+        - 32 hidden dim
+        - 4 residual blocks (8 conv layers + skip connections)
+        - GELU activation, pre-norm LayerNorm-equivalent (GroupNorm groups=1)
+
+    Args:
+        n_input_channels: number of environmental covariates per cell. Default
+            4. Set to 1 for SST-only (matches the SST-only DINN baseline).
+        hidden_dim: width of the hidden representation. Default 32.
+        n_outputs: number of Carroll parameters per cell. Default 6.
+        n_blocks: number of residual blocks. Default 4.
+
+    Forward:
+        ``env`` shape ``[n_input_channels, H, W]`` -> ``[n_outputs, H, W]``.
+        Batched ``[B, n_input_channels, H, W]`` -> ``[B, n_outputs, H, W]`` also works.
+
+        The output is **unbounded**; pair with
+        :func:`darwindiff.carroll6.bounded_params` to map into physical Carroll-6
+        ranges.
+    """
+
+    def __init__(
+        self,
+        n_input_channels: int = 4,
+        hidden_dim: int = 32,
+        n_outputs: int = 6,
+        n_blocks: int = 4,
+    ) -> None:
+        super().__init__()
+        if n_blocks < 1:
+            raise ValueError(f"n_blocks must be >= 1, got {n_blocks}")
+        if hidden_dim < 1:
+            raise ValueError(f"hidden_dim must be >= 1, got {hidden_dim}")
+        # Project from input channels into the hidden representation.
+        self.input_proj = nn.Conv2d(n_input_channels, hidden_dim, kernel_size=1)
+        # Stack of residual blocks at hidden width.
+        self.blocks = nn.Sequential(
+            *[_PerCellResBlock(hidden_dim) for _ in range(n_blocks)]
+        )
+        # Final norm + project to Carroll-6 outputs.
+        self.output_norm = _PerCellLayerNorm(hidden_dim)
+        self.output_proj = nn.Conv2d(hidden_dim, n_outputs, kernel_size=1)
+
+    def forward(self, env: torch.Tensor) -> torch.Tensor:
+        squeeze = env.ndim == 3
+        if squeeze:
+            env = env.unsqueeze(0)
+        x = self.input_proj(env)
+        x = self.blocks(x)
+        x = self.output_proj(nn.functional.gelu(self.output_norm(x)))
+        if squeeze:
+            x = x.squeeze(0)
+        return x

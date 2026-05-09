@@ -11,7 +11,7 @@ import pytest
 import torch
 
 from darwindiff.carroll6 import PARAM_BOUNDS, bounded_params
-from darwindiff.networks import DINN, DINNRegional
+from darwindiff.networks import DINN, DINNDeep, DINNRegional
 
 
 def test_dinn_regional_unbatched_shape() -> None:
@@ -193,3 +193,95 @@ def test_bounded_params_dinn_regional_batched_end_to_end() -> None:
         hi = PARAM_BOUNDS[i, 1].item()
         assert (params[:, i] >= lo).all(), f"Param {i} below lower bound {lo}."
         assert (params[:, i] <= hi).all(), f"Param {i} above upper bound {hi}."
+
+
+# ---------------------------------------------------------------------------
+# DINNDeep — upgraded per-cell network (multi-channel, deeper, residual)
+# ---------------------------------------------------------------------------
+
+
+def test_dinn_deep_unbatched_shape() -> None:
+    """Unbatched env [4, H, W] -> output [6, H, W]."""
+    net = DINNDeep(n_input_channels=4, hidden_dim=32, n_outputs=6, n_blocks=4)
+    env = torch.randn(4, 21, 31)
+    out = net(env)
+    assert out.shape == (6, 21, 31)
+    assert torch.isfinite(out).all()
+
+
+def test_dinn_deep_batched_shape() -> None:
+    """Batched env [B, C, H, W] -> output [B, 6, H, W]."""
+    net = DINNDeep(n_input_channels=4, hidden_dim=32, n_outputs=6, n_blocks=4)
+    env = torch.randn(2, 4, 21, 31)
+    out = net(env)
+    assert out.shape == (2, 6, 21, 31)
+
+
+def test_dinn_deep_is_per_cell() -> None:
+    """1x1 conv backbone means each cell is processed independently — no
+    spatial coupling. Verify by perturbing one cell's input and checking
+    only that cell's output changes (within the same batch / channel).
+    """
+    torch.manual_seed(0)
+    net = DINNDeep(n_input_channels=4, hidden_dim=16, n_outputs=6, n_blocks=2)
+    env_a = torch.randn(4, 8, 8)
+    env_b = env_a.clone()
+    env_b[:, 3, 5] += 5.0  # perturb only cell (3, 5)
+    out_a = net(env_a)
+    out_b = net(env_b)
+    diff = (out_a - out_b).abs()
+    # Only cell (3, 5) should differ; everything else should be identical.
+    assert diff[:, 3, 5].sum() > 1e-6, "Perturbed cell should produce different output"
+    mask = torch.ones_like(diff, dtype=torch.bool)
+    mask[:, 3, 5] = False
+    assert diff[mask].max() < 1e-6, "Other cells should be unaffected (no spatial coupling)"
+
+
+def test_dinn_deep_default_param_count_is_in_expected_range() -> None:
+    """Default DINNDeep should be ~10K params — substantially bigger than DINN's
+    ~454 but still small enough to train quickly on a single GPU."""
+    net = DINNDeep()  # default config
+    n = sum(p.numel() for p in net.parameters())
+    assert 5_000 < n < 20_000, f"Unexpected param count: {n}"
+
+
+def test_dinn_deep_works_with_single_channel_input() -> None:
+    """Backward-compat test: should run with n_input_channels=1 to match DINN's
+    SST-only setup, even though the default is 4."""
+    net = DINNDeep(n_input_channels=1, hidden_dim=16, n_outputs=6, n_blocks=2)
+    env = torch.randn(1, 21, 31)
+    out = net(env)
+    assert out.shape == (6, 21, 31)
+
+
+def test_dinn_deep_autograd_flows() -> None:
+    """Gradients reach all parameters through the full forward pass."""
+    net = DINNDeep(n_input_channels=4, hidden_dim=16, n_outputs=6, n_blocks=2)
+    env = torch.randn(4, 8, 8, requires_grad=True)
+    out = net(env)
+    loss = out.pow(2).sum()
+    loss.backward()
+    n_with_grads = sum(1 for p in net.parameters() if p.grad is not None and p.grad.abs().sum() > 0)
+    n_total = sum(1 for p in net.parameters())
+    assert n_with_grads == n_total, f"Some params had no gradient: {n_with_grads}/{n_total}"
+
+
+def test_dinn_deep_with_bounded_params() -> None:
+    """End-to-end check: DINNDeep output -> bounded_params produces values in Carroll's ranges."""
+    net = DINNDeep(n_input_channels=4, hidden_dim=16, n_outputs=6, n_blocks=2)
+    env = torch.randn(4, 21, 31)
+    theta = net(env)
+    params = bounded_params(theta, PARAM_BOUNDS)
+    assert params.shape == (6, 21, 31)
+    for i in range(6):
+        lo = PARAM_BOUNDS[i, 0].item()
+        hi = PARAM_BOUNDS[i, 1].item()
+        assert (params[i] >= lo).all() and (params[i] <= hi).all()
+
+
+def test_dinn_deep_invalid_config_raises() -> None:
+    """Sanity: invalid n_blocks / hidden_dim raise."""
+    with pytest.raises(ValueError):
+        DINNDeep(n_blocks=0)
+    with pytest.raises(ValueError):
+        DINNDeep(hidden_dim=0)
