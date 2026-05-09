@@ -1,66 +1,83 @@
 # ECCO-DarwinDiff
 
-A PyTorch version of the ECCO-Darwin ocean biogeochemistry model that lets gradients flow through every step of the simulation. Built for two related uses:
+A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model that lets gradients flow through every step of the simulation. Built for two related uses:
 
-1. **Emulator** — a fast neural network stand-in for ECCO-Darwin, so we can run climate and paleoclimate experiments on time spans the full model is too slow for.
-2. **Parameter learner** — a faster replacement for ECCO-Darwin's Green's functions calibration, learning biogeochemical parameters that change across space in one training run.
+1. **Parameter learner** — a faster, richer replacement for ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes one global vector of 6 biogeochemical parameters via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
+2. **Emulator** — a neural-network stand-in for ECCO-Darwin trained on the same Darwin output, for long-timescale climate runs the full model is too slow for. Not started yet — Track 2.
 
-> **Status:** early setup. No physics built in yet. The biogeochemistry equations live in Dutkiewicz et al. (2009) and Brix et al. (2015) and will be reviewed before any module is written.
+> **Status:** Track 1 (parameter recovery) at **v1.3** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). See [STATUS.md](STATUS.md) for live state and [notebooks/](notebooks/) for the experiments.
 
 ## Why this exists
 
-ECCO-Darwin (Carroll et al. 2020, *JAMES*) is a global ocean biogeochemistry model that uses both physical and biogeochemical observations on the ECCO LLC270 grid (~1/3° at the equator, ~18 km at high latitudes, 50 vertical levels) from 1992–2017. It currently uses two calibration approaches:
+ECCO-Darwin (Carroll et al. 2020, *JAMES*; Carroll et al. 2022, *GBC*) is a global ocean biogeochemistry model on the ECCO LLC270 grid (~1/3° at the equator, ~18 km at high latitudes, 50 vertical levels), 1992–2017+. Its biogeochemistry is calibrated via **Green's functions** (Menemenlis et al. 2005), which scales linearly badly: each tuned parameter needs a fresh full forward run, so Carroll's published calibration handles only **6 parameters** (iron dust solubility, iron scavenging rate, small + large phytoplankton growth rates, diatom palatability, PIC/POC ratio).
 
-- **Adjoint method** for ocean physics — many control variables, but expensive.
-- **Green's functions** for biogeochemistry — Carroll et al. (2020) tuned **6 biogeochemical parameters** (iron dust solubility, iron scavenging rate, small and large phytoplankton growth rates, diatom palatability, PIC/POC ratio) plus initial conditions through forward sensitivity experiments. Green's functions only handle a small number of control variables (Menemenlis et al. 2005), and each new parameter needs a fresh forward run.
+DarwinDiff replaces the biogeochemistry side of this with **PyTorch autograd**: gradients for all parameters are computed in one backward pass, and the parameter values themselves vary across space — predicted by a small per-cell neural network from local environmental conditions (SST + MLD + wind + lat). The structural argument: a single global parameter vector cannot reproduce spatial heterogeneity in ocean biogeochemistry; per-cell parameters can.
 
-DarwinDiff replaces the biogeochemistry side of this with PyTorch autograd: gradients for all parameters are computed in one backward pass, parameters can be predicted across space by a small neural network from local environmental conditions, and the same code trains a neural emulator on Darwin output for long-timescale climate runs.
+## Headline results (as of 2026-05-09)
+
+All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone) versus a global-scalar Green's-functions baseline, against z-scored Darwin v05 output over a Mid-Atlantic-sized AOI:
+
+| AOI | Target | Network | DINN r | Loss ratio Global / DINN |
+|---|---|---|---|---|
+| North Pacific | Darwin NO₃ | DINN (SST) | **0.979** | **23.8×** |
+| North Pacific | Darwin Chl | DINN (SST) | 0.966 | 14.6× |
+| Mid-Atlantic | Darwin Chl | DINN (SST) | 0.724 | 1.8× |
+| Mid-Atlantic | Darwin NO₃ | DINN (SST) | 0.607 | 1.3× |
+| Equatorial Pacific | Darwin FeT | DINN (SST) | 0.337 | 1.1× |
+| Equatorial Pacific | Darwin FeT | **DINNDeep (SST + MLD + wind + lat)** | **1.000** | *(saturates target field; see caveat below)* |
+
+In every fit, the Green's-functions parametric class produces a **constant prediction** (r mathematically undefined) — the structural ceiling Carroll 2020 / 2022's calibration is bounded by. Carroll's 6 calibrated values are inherited bit-for-bit between v04 / Carroll 2020 (Darwin 1) and v05 / Carroll 2022 (Darwin 3), verified locally against the source namelists.
+
+**On the r=1.000 result (notebook 15):** A deeper, wider DINNDeep network with 4-channel input (SST + MLD + wind + lat) drives the Eq Pacific FeT fit to r=1.000 and ~3000× lower loss. **However, the recovered Carroll-6 parameter values do NOT get closer to Carroll's published optima — some get worse.** The network finds *a* per-cell parameter set that produces Darwin's FeT field, but it's a degenerate solution that doesn't match the published calibration. This pins down a key result: **the recovery ceiling is the 5-tracer box-model simplification, not the network architecture.** Closing the gap to Carroll's actual values requires extending the box model (DIC + ALK + carbonate chemistry + the full 5 PFT ecosystem), not adding more network capacity.
 
 ## Background reading
 
 | Reference | Why it matters |
 |---|---|
-| [Carroll et al. 2020](https://doi.org/10.1029/2019MS001888) (*JAMES*) | The ECCO-Darwin paper this project differentiates against; defines the 6-parameter Green's functions calibration we replace. |
-| [Brix et al. 2015](https://doi.org/10.1016/j.ocemod.2015.07.008) (*Ocean Modelling*) | Earlier ECCO-Darwin version; original biogeochemistry equations and parameter set. |
-| [Savelli et al. 2026](https://doi.org/10.5194/gmd-19-867-2026) (*GMD*) | Recent ECCO-Darwin update (river inputs); explicitly flags fixed-parameter limits like the 100-day DOC remineralization that DarwinDiff could relax. Same author team as Carroll 2020. |
-| [Dutkiewicz et al. 2009](https://doi.org/10.1029/2008GB003405) (*Global Biogeochem. Cycles*) | Core Darwin biogeochemistry formulation. |
-| [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) (*Mon. Weather Review*) | The Green's functions calibration method DarwinDiff replaces. |
-| [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Method template — a differentiable CLM5 inside a neural network for soil carbon. |
-| [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM, *Nature*) | Design reference for hybrid physics + machine learning emulators. |
-| [Ouala & Lachkar 2026](https://doi.org/10.22541/essoar.15002003/v1) (Neural-BGC, ESSOAr preprint) | Closest existing ocean BGC ML — observation-driven NN emulator coupled to ROMS, predicts DO and NO3 from physical state. DarwinDiff differs: mechanistic (emulates Darwin rather than bypassing it), parameter-aware, and extends to carbon-cycle variables (DIC, alkalinity, pCO2, POC export). |
+| [Carroll et al. 2020](https://doi.org/10.1029/2019MS001888) (*JAMES*) | Original ECCO-Darwin paper; defines the 6-parameter Green's-functions calibration we differentiate against. |
+| [Carroll et al. 2022](https://doi.org/10.1029/2021GB007162) (*GBC*) | ECCO-Darwin v05 application paper; inherits Carroll 2020's calibration bit-for-bit. The publicly-accessible ECCO-Darwin output is from this run, so it's our active recovery target. |
+| [Brix et al. 2015](https://doi.org/10.1016/j.ocemod.2015.07.008) (*Ocean Modelling*) | Earlier ECCO-Darwin version; original biogeochemistry equations. |
+| [Savelli et al. 2026](https://doi.org/10.5194/gmd-19-867-2026) (*GMD*) | Recent ECCO-Darwin update; explicitly flags fixed parameters DarwinDiff could relax. |
+| [Dutkiewicz et al. 2009](https://doi.org/10.1029/2008GB003405) (*GBC*) | Core Darwin biogeochemistry formulation. |
+| [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) (*Mon. Weather Review*) | The Green's-functions calibration method DarwinDiff replaces. |
+| [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Method template — differentiable physics + per-location parameter network. |
+| [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM, *Nature*) | Design reference for hybrid physics + ML emulators. |
+| [Ouala & Lachkar 2026](https://doi.org/10.22541/essoar.15002003/v1) (Neural-BGC) | Closest existing ocean-BGC ML — observation-driven NN emulator coupled to ROMS. DarwinDiff differs by being mechanistic (emulates Darwin rather than bypassing it) and parameter-aware. |
 
-## Plan
+## Project arc
 
-- **Test pilot:** a 1D toy reaction-diffusion simulator and small parameter neural network that runs a BINN-style recovery test on a local GPU. Checks the differentiable setup (autograd through hand-written physics, the neural-network-predicts-parameter pairing, and gradient-descent recovery) before we lock in the real Darwin equations. Lives in [`src/darwindiff/prototype/`](src/darwindiff/prototype/).
-- **Region:** 2D ocean column to test on; specific region to be picked with the science advisor.
-- **Tracers:** 4 — DIC, phosphate, iron, oxygen (working set; may change).
-- **Parameters to learn:** 5–10; whether to revisit Carroll 2020's 6 Green's functions parameters or to target the fixed parameters Savelli 2026 flags as suspect (e.g. DOC remineralization rate) is to be picked with the science advisor.
-- **Steady-state assumption** for ease of computation (BINN approach).
-- **Compute:** small function tests on a single RTX 5090 locally; larger differentiable runs at usable response time may need cloud GPU support — to be decided.
-- **Checking:** synthetic recovery test, comparison to Carroll 2020 Green's functions optima, 10-fold cross-validation against held-out GLODAP/Argo, mass conservation check.
+- **Track 1 — parameter recovery** (current)
+  - v0.x → v0.95: synthetic-truth methodology validation (notebooks 05–08)
+  - v1.0: real-data demo on GLODAP (notebook 09) and on Darwin Chl (notebook 10)
+  - v1.1: cross-basin validation Mid-Atl + N Pacific (notebook 11)
+  - v1.2: iron-pair recovery via Darwin FeT in HNLC (notebook 14)
+  - v1.3: cross-basin Darwin NO₃ (notebook 13)
+  - v1.4: architecture upgrade test (notebook 15) — pins recovery ceiling on box-model bias, not network
+  - **Next:** box-model carbonate-chemistry extension (highest priority after nb15 finding), multi-tracer joint loss, broader DINNDeep rollout. See [STATUS.md](STATUS.md) for the live checklist.
 
-Stages:
-
-| Stage | Focus | Hoped-for outcome |
-|---|---|---|
-| 0 | Pilot: 1D toy reaction-diffusion + small parameter neural network; BINN-style recovery test on local GPU. | Hard evidence the differentiable setup works end-to-end before we scale to real Darwin equations. |
-| 1 | Data flow; read Darwin source code (Brix 2015, Dutkiewicz 2009); pick equation subset and parameter targets in collaboration with the ECCO-Darwin team. | Reliable way to fetch ED output and observations; clear technical plan agreed with the science advisor. |
-| 2 | Differentiable BGC module for the 4 tracers; neural network for spatial parameters; run forward and train on the 2D ocean column. | Gradients flow all the way through a working differentiable Darwin; first learned parameter maps. |
-| 3 | Checking: recovery test, cross-validation against held-out GLODAP/Argo, mass conservation, comparison to Carroll 2020 Green's functions optima; sensitivity experiments; first paper draft. | A solid scientific result and a paper draft. |
-| 4 (stretch) | Emulator: neural network stand-in trained on full ED output; long-timescale stability test for paleoclimate and climate-change runs. | A useful stand-in for the long-timescale CO2 work that motivates the broader collaboration. |
+- **Track 2 — emulator** (not started)
+  - Will be a separate architecture (likely transformer / FNO / graph net with spatial coupling), trained on time-resolved Darwin output. Different problem from parameter recovery — different network. Notes in STATUS.md once it begins.
 
 ## Repository layout
 
 ```
 ecco-darwindiff/
-├── README.md
-├── LICENSE                   MIT
-├── pyproject.toml            package details and dependencies
-├── src/darwindiff/           Python package (importable as `darwindiff`)
-├── tests/                    pytest tests
-├── data/                     local data cache (gitignored, see data/README.md)
-├── notebooks/                early notebooks
-└── references/               PDFs and citations (PDFs gitignored)
+├── README.md                  this file (project overview)
+├── STATUS.md                  living status doc — checklists + key findings
+├── LICENSE                    MIT
+├── pyproject.toml             package details + dependencies
+├── src/darwindiff/            Python package (importable as `darwindiff`)
+│   ├── carroll6.py              5-tracer Carroll-6 box model + Carroll's optima + bounds
+│   ├── networks.py              DINN (per-cell 1×1 conv) + DINNRegional (MLP)
+│   ├── diagnostics.py           NaN-safe Pearson r + constant-prediction handling
+│   ├── budget.py                compute / memory budget calculators
+│   ├── ecco_darwin_loader.py    ECCO-Darwin v5 bin_average product (1° NetCDF) loader + AOI presets
+│   └── llc270_loader.py         ECCO-Darwin v5 native LLC270 monthly tracer loader (xmitgcm-based)
+├── tests/                     pytest suite (96 tests + 1 opt-in real-data integration)
+├── notebooks/                 numbered notebooks, in order of project arc
+├── docs/                      decision log + chronological findings docs
+├── data/                      local data cache (gitignored; see data/README.md)
+└── references/                PDFs + external code references (gitignored content)
 ```
 
 ## Installation
@@ -69,7 +86,10 @@ Needs Python 3.11+. With uv:
 
 ```bash
 uv sync
+PYTHONPATH=src python -m pytest tests/ -q   # 96 passed, 1 skipped
 ```
+
+The `xmitgcm` dependency is needed for the native LLC270 loader; install with `pip install xmitgcm` if not already pulled in by `uv sync`.
 
 ## Data sources
 
@@ -77,10 +97,17 @@ See [data/README.md](data/README.md). Summary:
 
 | Source | Use | Access |
 |---|---|---|
-| ECCO-Darwin output | Emulator training, parameter-learner ground truth | https://data.nas.nasa.gov/ecco (registration required) |
-| SOCATv5 | Surface ocean fCO2 | https://socat.info |
-| GLODAPv2 | DIC, alkalinity, nutrients, oxygen | https://glodap.info |
-| BGC-Argo | NO3, O2 float profiles | https://biogeochemical-argo.org via `argopy` |
+| ECCO-Darwin v05 `bin_average` (1° NetCDF, surface) | Carroll-6 fits via Chl + carbonate diagnostics | https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/bin_average/ (public) |
+| ECCO-Darwin v05 native LLC270 monthly tracers (mds tile format, depth-resolved) | Carroll-6 fits via NO₃ / DIC / ALK / FeT etc. | https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/monthly/ (public; ~50 GB per tracer) |
+| LLC270 grid metadata | Required for xmitgcm loader | https://data.nas.nasa.gov/ecco/llc_270/grid/ |
+| GLODAPv2 | DIC, alkalinity, nutrients, oxygen — used by notebook 09 | https://glodap.info |
+| NASA GHG Center CO₂ flux GeoTIFFs | Validation of future CO₂ flux fits | https://earth.gov/ghgcenter/ |
+
+Earthdata signup required for some paths. Raw data files are stored outside the repo (`D:\ecco_darwin_v5\` on the local dev machine).
+
+## Documentation discipline
+
+Every major code or scientific change should update **both** [README.md](README.md) (project overview, framing for new readers) and [STATUS.md](STATUS.md) (live checklist + findings) in the same PR. Keeps the docs from drifting.
 
 ## License
 
@@ -88,9 +115,7 @@ MIT — see [LICENSE](LICENSE). © 2026 ECCO-DarwinDiff contributors.
 
 ## Citation
 
-This project is still in early development; a formal citation will be added once the work is published or a Zenodo DOI is created. For now, please link to the repository.
-
-If your work depends on the underlying ECCO-Darwin model, please cite:
+Project is in active development; formal citation TBD once results are published or a Zenodo DOI is created. If your work depends on the underlying ECCO-Darwin model, please cite:
 
 ```
 Carroll, D., Menemenlis, D., Adkins, J. F., Bowman, K. W., Brix, H., Dutkiewicz, S.,
@@ -98,4 +123,9 @@ et al. (2020). The ECCO-Darwin data-assimilative global ocean biogeochemistry mo
 Estimates of seasonal to multidecadal surface ocean pCO2 and air-sea CO2 flux.
 Journal of Advances in Modeling Earth Systems, 12, e2019MS001888.
 https://doi.org/10.1029/2019MS001888
+
+Carroll, D., Menemenlis, D., Dutkiewicz, S., Lauderdale, J. M., Adkins, J. F.,
+Bowman, K. W., et al. (2022). Attribution of space-time variability in
+global-ocean dissolved inorganic carbon. Global Biogeochemical Cycles, 36,
+e2021GB007162. https://doi.org/10.1029/2021GB007162
 ```
