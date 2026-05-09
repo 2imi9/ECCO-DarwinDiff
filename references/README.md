@@ -11,6 +11,13 @@ https://doi.org/10.1029/2019MS001888
 
 Local: `references/carroll_2020_ecco_darwin.pdf` (gitignored).
 
+### Carroll et al. (2022) — *the active calibration target*
+
+Carroll, D., Menemenlis, D., Dutkiewicz, S., Lauderdale, J. M., Adkins, J. F., Bowman, K. W., Brix, H., et al. (2022). Attribution of space-time variability in global-ocean dissolved inorganic carbon. *Global Biogeochemical Cycles*, 36, e2021GB007162.
+https://doi.org/10.1029/2021GB007162
+
+The ECCO-Darwin v05 application paper. **Inherits Carroll 2020's 6-parameter calibration bit-for-bit** — verified by reading the namelists in `MITgcm-contrib/ecco_darwin/v04/llc270_JAMES_paper/` and `v05/llc270/`. The publicly-accessible ECCO-Darwin output is from this v05 run, so it's our active recovery target (notebooks 10–16 fit against v05 surface fields).
+
 ### Brix et al. (2015) — earlier ECCO-Darwin version, biogeochemistry equations
 
 Brix, H., Menemenlis, D., Hill, C., Dutkiewicz, S., Jahn, O., Wang, D., Bowman, K., & Zhang, H. (2015). Using Green's functions to initialize and adjust a global, eddying ocean biogeochemistry general circulation model. *Ocean Modelling*, 95, 1–14.

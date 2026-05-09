@@ -2,6 +2,8 @@
 
 A verified count of biogeochemistry parameters in the ECCO-Darwin v04 LLC270 JAMES paper configuration (Carroll et al. 2020, Darwin 1). Captured here so DarwinDiff scoping arguments rest on real numbers rather than estimates.
 
+> **Note (2026-05-09):** Carroll 2022 (v05, Darwin 3) **inherits Carroll 2020's six calibrated values bit-for-bit** — verified directly by reading `v04/llc270_JAMES_paper/code_darwin/{darwin_init_fixed.F, darwin_generate_phyto.F}` and `v05/llc270/input/data.darwin`. The numbers in this doc are therefore current for both Carroll 2020 and Carroll 2022 setups. The DarwinDiff project's active recovery target is Carroll 2022 / v05 (publicly-accessible), but the underlying parameter inventory is unchanged. See `docs/findings/2026_05_09.md` finding 8 and `docs/research_log.md` §F1.
+
 ## Method
 
 Read three files line-by-line from a fresh clone of [`MITgcm-contrib/ecco_darwin`](https://github.com/MITgcm-contrib/ecco_darwin) at master, scoped to `v04/llc270_JAMES_paper/code_darwin/`:
