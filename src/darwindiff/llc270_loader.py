@@ -236,11 +236,16 @@ def open_llc270_tracer(
     elif isinstance(iters, int):
         iters = [iters]
 
+    # Register BOTH the MITgcm internal name (TRAC06) AND the file prefix
+    # name (FeT) in extra_variables. Single-iter loads only need the TRAC name
+    # (.meta fldList lookup), but multi-iter loads also probe the prefix name
+    # somewhere in xmitgcm's setup path and error with "Couldn't find metadata
+    # for variable FeT" if it isn't registered too. Registering both is harmless
+    # for single-iter and required for multi-iter.
+    attrs = _TRACER_ATTRS.get(trac_name, {"long_name": variable})
     extra_vars = {
-        trac_name: dict(
-            dims=["k", "j", "i"],
-            attrs=_TRACER_ATTRS.get(trac_name, {"long_name": variable}),
-        ),
+        trac_name: dict(dims=["k", "j", "i"], attrs=attrs),
+        variable: dict(dims=["k", "j", "i"], attrs=attrs),
     }
 
     ds = xmitgcm.open_mdsdataset(
@@ -253,9 +258,25 @@ def open_llc270_tracer(
         geometry="llc",
         nx=config.nx,
         extra_variables=extra_vars,
+        # Required when loading multiple iters: xmitgcm can't auto-detect the
+        # dtype across many .meta files and errors out with "Cannot find the
+        # dtype associated to ...". The on-disk .meta files all say
+        # `dataprec = [ 'float32' ]` so we hardcode np.float32 here.
+        default_dtype=np.float32,
     )
 
-    if trac_name in ds.data_vars:
+    # Normalize to the friendly variable name. Three observed cases depending
+    # on whether single or multiple iters were requested (xmitgcm's internal
+    # path differs):
+    #   - single iter: only TRAC06 in data_vars  -> rename TRAC06 -> FeT
+    #   - multi iter:  both TRAC06 AND FeT in data_vars (xmitgcm loads the
+    #                  same data under both registered names) -> drop TRAC06
+    #   - hypothetical: only FeT -> already correct
+    has_trac = trac_name in ds.data_vars
+    has_friendly = variable in ds.data_vars
+    if has_trac and has_friendly:
+        ds = ds.drop_vars(trac_name)
+    elif has_trac:
         ds = ds.rename({trac_name: variable})
 
     return ds
