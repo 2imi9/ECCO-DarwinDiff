@@ -20,5 +20,5 @@
   "stdev_test_mean": 4.210586212138878e-06,
   "stdev_ratio_test_train": 1.1729936599731445,
   "mann_whitney_p_value": 1.445338432271015e-10,
-  "verdict": "FAILS: held-out stdev (4.211e-06) <= train stdev (3.590e-06) -- ensemble is OVERCONFIDENT in extrapolation territory"
+  "verdict": "FAILS: held-out stdev only 1.17\u00d7 training stdev (held-out: 4.211e-06, train: 3.590e-06) -- effect size too small to flag extrapolation; model is overconfident in held-out territory"
 }
