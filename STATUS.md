@@ -47,6 +47,8 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 | 14 | Equatorial Pacific | Darwin FeT | DINN (SST) | 0.337 | 1.13× |
 | 15 | Equatorial Pacific | Darwin FeT | DINN baseline (SST) | 0.337 | — |
 | **15** | **Equatorial Pacific** | **Darwin FeT** | **DINNDeep (4-channel)** | **1.000** | — *(saturated, see caveat)* |
+| **18** | **North Pacific** | **Darwin Chl** | **DINNDeep (4-channel)** | **1.000** | — *(saturated, see caveat)* |
+| **19** | **Equatorial Pacific** | **FeT + Chl + POC + PIC (joint)** | **DINNDeep + multi-tracer** | **all 4 ≥ 0.998** | — *(saturated, see caveat)* |
 
 ## Done — checklist
 
@@ -92,8 +94,8 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 
 ### Highest priority (nb15 reordered the queue)
 
-- [ ] **Box-model extension** to add DIC + ALK + carbonate chemistry. nb15 showed that network architecture is no longer the recovery ceiling — the 5-tracer simplification is. Extending the box model is the path to actually matching Carroll's published values rather than producing degenerate solutions that fit the FeT field. Enables fitting Darwin's air-sea CO₂ flux pattern directly (closer to what Carroll 2022 was actually calibrated against).
-- [ ] **Multi-tracer joint loss** (NO₃ + Chl + DIC + FeT simultaneously). Should reduce the degeneracy nb15 exposed by giving DINN multiple loss surfaces to satisfy at once.
+- [ ] **Box-model extension** to add DIC + ALK + carbonate chemistry. nb15 showed that network architecture is no longer the recovery ceiling — the 5-tracer simplification is. Extending the box model is the path to actually matching Carroll's published values rather than producing degenerate solutions that fit the FeT field. Enables fitting Darwin's air-sea CO₂ flux pattern directly (closer to what Carroll 2022 was actually calibrated against), and unlocks adding DIC to the multi-tracer joint loss.
+- [x] ~~**Multi-tracer joint loss** (NO₃ + Chl + DIC + FeT simultaneously)~~ — done in **nb19** (Track 1 v1.8), using FeT + Chl + POC + PIC against carroll6's existing 5-tracer state. Partially collapses parameter degeneracy (3/6 Carroll-6 closer to published). Adding DIC to the joint loss requires the box-model carbonate extension above; adding NO₃ is a lower-priority extension.
 
 ### Ready to start (no new data needed)
 
