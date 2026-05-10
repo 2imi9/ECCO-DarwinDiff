@@ -174,6 +174,12 @@ def solve_carbonate(
             - "Hplus": [H⁺] (mol/kg).
             - "pH": -log₁₀([H⁺]).
     """
+    # Coerce scalar inputs to tensors so callers can pass Python floats for
+    # constant forcing (T = 15.0 etc.) without manual conversion.
+    DIC = torch.as_tensor(DIC, dtype=torch.float32)
+    ALK = torch.as_tensor(ALK, dtype=torch.float32)
+    T = torch.as_tensor(T, dtype=torch.float32)
+    S = torch.as_tensor(S, dtype=torch.float32)
     DIC_mk = DIC * _MMOL_PER_M3_TO_MOL_PER_KG
     ALK_mk = ALK * _MMOL_PER_M3_TO_MOL_PER_KG
 
@@ -236,6 +242,11 @@ def co2_flux(
     Returns:
         Air-sea flux, mmol C / m² / s. Positive = ocean → atmosphere.
     """
+    pCO2_ocean = torch.as_tensor(pCO2_ocean, dtype=torch.float32)
+    pCO2_atm = torch.as_tensor(pCO2_atm, dtype=torch.float32)
+    wind_speed = torch.as_tensor(wind_speed, dtype=torch.float32)
+    T = torch.as_tensor(T, dtype=torch.float32)
+    S = torch.as_tensor(S, dtype=torch.float32)
     if K0 is None:
         K0 = K0_solubility(T, S)
     Sc = schmidt_number_co2(T)
