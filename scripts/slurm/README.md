@@ -2,7 +2,7 @@
 
 Three templates covering the workloads documented in [`docs/cluster_setup.md`](../../docs/cluster_setup.md). Each script is intended to be customised for a specific cluster (account name, partition, module versions) and submitted with `sbatch`.
 
-> **Status:** placeholder templates with `# FIXME` markers for cluster-specific values. They run end-to-end on any SLURM cluster once the FIXMEs are filled in. Tested patterns; not yet verified against MIT ORCD specifically.
+> **Status:** ORCD Engaging values pre-filled (partition, modules, storage paths) against the public docs at <https://orcd-docs.mit.edu>. The four unverified items (CPU partition name, wall-time caps, account-flag requirement, PI-shared-pool path) are flagged in [`docs/cluster_setup.md`](../../docs/cluster_setup.md#pre-flight-questions-for-orcd-help-engagingmitedu) for Jonathan to confirm with orcd-help. For a non-ORCD cluster, the scripts work after overriding the partition + module-load section.
 
 ## Files
 
@@ -22,18 +22,24 @@ Three templates covering the workloads documented in [`docs/cluster_setup.md`](.
 ## Quick start
 
 ```bash
-# Adapt FIXMEs in each .sbatch (account, partition, module names) once.
+# ORCD Engaging: one-time environment bootstrap (loads miniforge, installs
+# uv, syncs deps, runs the test suite to verify the env works).
 cd ECCO-DarwinDiff
-mkdir -p logs
+bash scripts/orcd_quickstart.sh
 
-# 1. Sanity-check the install
+# Day-to-day:
+# 1. Sanity-check on a fresh node
 sbatch scripts/slurm/run_tests.sbatch
 
-# 2. Execute one notebook
+# 2. Execute one notebook on GPU
 sbatch scripts/slurm/run_notebook.sbatch notebooks/15_dinn_deep_eqpac_fet.ipynb
 
 # 3. Multi-seed ensemble (override SEED count via --array if needed)
 sbatch scripts/slurm/run_array.sbatch
+
+# Override DARWIN_DATA_ROOT if the LLC270 tree lives somewhere other
+# than $HOME/orcd/scratch/ecco_darwin_v5 (likely a PI-shared pool):
+export DARWIN_DATA_ROOT=/orcd/pool/<num>/follows_shared/ecco_darwin_v5
 ```
 
 ## What's not yet here
