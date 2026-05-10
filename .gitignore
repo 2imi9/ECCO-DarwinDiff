@@ -59,6 +59,12 @@ mlruns/
 *.log
 logs/
 
+# Per-seed ensemble checkpoints (regeneratable from the owning notebook;
+# typically hundreds of KB per file, not worth committing). Summary JSONs
+# and figures next to them ARE committed.
+notebooks/nb17_results/seedA_*.npz
+notebooks/nb17_results/seedB_*.npz
+
 # IDE
 .vscode/
 .idea/
