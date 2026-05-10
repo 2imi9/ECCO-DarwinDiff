@@ -1,8 +1,8 @@
 {
   "n_seeds": 10,
   "ensemble_mean_r": 0.9999151258852725,
-  "stdev_vs_abserr_pearson_r": 0.8690853458316433,
-  "stdev_vs_abserr_pearson_p": 0.0,
+  "stdev_vs_abserr_pearson_r": 0.869085345831643,
+  "stdev_vs_abserr_pearson_n_finite": 1071,
   "stdev_vs_abserr_spearman_rho": -0.41706583826071386,
   "stdev_vs_abserr_spearman_p": 2.5517427086521088e-46,
   "final_losses": [

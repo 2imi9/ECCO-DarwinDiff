@@ -2,7 +2,7 @@
 #SBATCH --job-name=darwindiff-ensemble
 #SBATCH --account=FIXME_ACCOUNT          # FIXME: ORCD account name
 #SBATCH --partition=FIXME_GPU_PARTITION  # FIXME: e.g. sched_mit_orcd_gpu
-#SBATCH --array=0-9                      # 10 seeds; override with --array=0-19 for 20 seeds, etc.
+#SBATCH --array=0-9%1                    # 10 seeds, max 1 concurrent (see SAFETY note below)
 #SBATCH --gres=gpu:1
 #SBATCH --time=00:30:00                  # per-seed, ~7 min on RTX 5090; trim if your GPU is faster
 #SBATCH --nodes=1
@@ -20,14 +20,26 @@
 #
 # Usage:
 #   sbatch scripts/slurm/run_array.sbatch
-#   sbatch --array=0-19 scripts/slurm/run_array.sbatch    # 20 seeds
+#   sbatch --array=0-19%1 scripts/slurm/run_array.sbatch    # 20 seeds, serialised
 #
-# IMPLEMENTATION NOTE: this template currently re-runs the entire nb17
-# notebook per array task, relying on the per-seed checkpoint cache to
-# short-circuit completed seeds. That works but is wasteful. A future
-# scripts/train_seed.py would let each array task train ONLY its assigned
-# seed, removing the redundant data loading and analysis. Land that when
-# multi-seed becomes a regular workload.
+# === SAFETY: %1 (max 1 concurrent task) is REQUIRED with this script ===
+#
+# Each array task currently re-runs the FULL notebook with `nbconvert
+# --inplace`, which writes back to the shared notebooks/17_*.ipynb file
+# at the end of execution. If two tasks run concurrently, both will write
+# to the same file with no locking and corrupt it. The per-seed .npz
+# cache short-circuits TRAINING for cached seeds, but does NOT prevent
+# the concurrent notebook writes — every task always rewrites the
+# notebook file, even when training is skipped.
+#
+# The %1 limiter forces tasks to run one at a time, eliminating the race.
+# Total wall-clock = N_seeds × per-seed-time (no parallelism benefit, but
+# safe). For N=10 seeds × 7 min ≈ 70 min; for N=20 ≈ 140 min.
+#
+# To restore parallelism, write a per-seed CLI trainer
+# (scripts/train_seed.py) that emits only seedA_NN.npz and never touches
+# the notebook file, then point this script at it. That refactor is
+# tracked in scripts/slurm/README.md "What's not yet here".
 
 set -euo pipefail
 
