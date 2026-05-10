@@ -32,7 +32,7 @@ files):
     NH4   -> TRAC04    PO4   -> TRAC05    FeT   -> TRAC06    SiO2  -> TRAC07
     DOC   -> TRAC08    DON   -> TRAC09    DOP   -> TRAC10    DOFe  -> TRAC11
     Chl1  -> TRAC27    Chl2  -> TRAC28    Chl3  -> TRAC29    Chl4  -> TRAC30
-    Chl5  -> TRAC31    O2    -> TRAC23    PIC   -> TRAC32    POC   -> TRAC33
+    Chl5  -> TRAC31    O2    -> TRAC23    PIC   -> TRAC17    POC   -> TRAC12
 
 (The list above includes a few tracers whose monthly data may not be on
 disk yet — `inspect_available_tracers` discovers what's actually present.)
@@ -68,8 +68,8 @@ TRAC_MAPPING: dict[str, str] = {
     "NO2": "TRAC03",
     "NO3": "TRAC02",
     "O2": "TRAC23",
-    "PIC": "TRAC32",
-    "POC": "TRAC33",
+    "PIC": "TRAC17",
+    "POC": "TRAC12",
     "PO4": "TRAC05",
     "SiO2": "TRAC07",
 }
@@ -97,8 +97,8 @@ _TRACER_ATTRS: dict[str, dict[str, str]] = {
     "TRAC29": {"long_name": "Chl group 3", "units": "mg Chl a / m^3"},
     "TRAC30": {"long_name": "Chl group 4", "units": "mg Chl a / m^3"},
     "TRAC31": {"long_name": "Chl group 5", "units": "mg Chl a / m^3"},
-    "TRAC32": {"long_name": "Particulate inorganic carbon", "units": "mmol C / m^3"},
-    "TRAC33": {"long_name": "Particulate organic carbon", "units": "mmol C / m^3"},
+    "TRAC17": {"long_name": "Particulate inorganic carbon", "units": "mmol C / m^3"},
+    "TRAC12": {"long_name": "Particulate organic carbon", "units": "mmol C / m^3"},
 }
 
 
@@ -263,6 +263,13 @@ def open_llc270_tracer(
         # dtype associated to ...". The on-disk .meta files all say
         # `dataprec = [ 'float32' ]` so we hardcode np.float32 here.
         default_dtype=np.float32,
+        # Some Darwin monthly .meta files have a multi-element fldList that
+        # references TRAC numbers we don't have friendly names for in
+        # TRAC_MAPPING (observed: TRAC12 in POC's meta). With the default
+        # ignore_unknown_vars=False, xmitgcm raises KeyError on those. The
+        # tracers we actually request via prefix=[variable] are correctly
+        # registered above; ignoring the rest is safe.
+        ignore_unknown_vars=True,
     )
 
     # Normalize to the friendly variable name. Three observed cases depending
