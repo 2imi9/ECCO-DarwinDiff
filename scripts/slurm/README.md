@@ -10,7 +10,7 @@ Three templates covering the workloads documented in [`docs/cluster_setup.md`](.
 |---|---|---|
 | [`run_tests.sbatch`](run_tests.sbatch) | Run the 104-test pytest suite as a sanity check on the cluster. CPU only. | 1 node, 4 CPU, 8 GB RAM, 30 min |
 | [`run_notebook.sbatch`](run_notebook.sbatch) | Execute one notebook via `jupyter nbconvert --execute`. Good for nb15-class single-fit jobs. | 1 GPU, 8 CPU, 32 GB RAM, 4 h |
-| [`run_array.sbatch`](run_array.sbatch) | Multi-seed ensemble (nb17-style). Each array task trains one seed and writes its checkpoint to `notebooks/nb17_results/`. | array of N × (1 GPU, 8 CPU, 32 GB RAM, 30 min) |
+| [`run_array.sbatch`](run_array.sbatch) | Multi-seed ensemble (nb17-style). Each array task trains one seed and writes its checkpoint to `notebooks/nb17_results/`. **Currently serialised (`--array=0-9%1`)** — the script writes back to a shared notebook file via `nbconvert --inplace`, so concurrent tasks would race. Will become genuinely parallel once the planned `scripts/train_seed.py` lands. | array of N × (1 GPU, 4 CPU, 16 GB RAM, 30 min), serialised |
 
 ## Conventions
 
@@ -38,6 +38,6 @@ sbatch scripts/slurm/run_array.sbatch
 
 ## What's not yet here
 
-- A standalone `scripts/train_seed.py` that the array job could call directly (avoiding repeated notebook re-execution per seed). The current array job re-executes the full notebook per seed, relying on the per-seed checkpoint cache to short-circuit completed seeds. That works but is wasteful — better to extract the training loop into a CLI script. Future work.
+- A standalone `scripts/train_seed.py` that the array job could call directly (avoiding repeated notebook re-execution per seed). The current array job re-executes the full notebook per seed AND writes back to a shared notebook file via `nbconvert --inplace`. That makes concurrent tasks UNSAFE — the array directive is therefore pinned to `%1` (max 1 concurrent task) as a stop-gap. Result: the array job is serial, not parallel. **Restoring parallelism requires extracting the per-seed training into a CLI script that writes only its `seedA_NN.npz` checkpoint and never touches the notebook file.** Until then, expect total wall-clock = N_seeds × per-seed time.
 - Multi-GPU / distributed templates. Not needed for current workloads; will land when time-resolved fitting (Track 2) starts.
 - A submission wrapper that pre-computes `--time` from the notebook size. Nice-to-have.
