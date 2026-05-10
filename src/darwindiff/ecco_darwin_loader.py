@@ -75,8 +75,8 @@ class AOI:
             )
 
 
-# Project AOIs from the May 7 collaboration call (Mid-Atlantic confirmed,
-# North Pacific proposed pending Jonathan sign-off).
+# Project AOIs (Mid-Atlantic confirmed, North Pacific proposed pending
+# project-lead sign-off).
 MID_ATLANTIC_AOI: AOI = AOI(
     name="Mid-Atlantic",
     lat_min=30.0,

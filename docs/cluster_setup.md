@@ -8,7 +8,7 @@
 
 This doc exists for three readers:
 - **The user** running DarwinDiff on cluster scratch — operational reference for env setup, data transfer, job patterns.
-- **A reviewer / collaborator** (e.g., Jonathan Lauderdale, ORCD admin) evaluating the compute ask — what we have, what we need, what scale-up unlocks.
+- **A reviewer / collaborator** (host project lead, cluster admin) evaluating the compute ask — what we have, what we need, what scale-up unlocks.
 - **A future development session** scoping cluster work — concrete requirements drive decisions about path-refactor, SLURM templates, distributed training.
 
 ## Local baseline (current state)
@@ -37,7 +37,7 @@ These are the workloads that are *infeasible or marginal locally* and become *ro
 | **Box-model carbonate extension** (DIC + ALK + carbonate chemistry + 5 PFTs vs current 5-tracer proxy) | Untested; will grow box-model state ~2-3× | Headroom matters once architecture grows alongside |
 | **Sweep over AOIs** (full-ocean parameter recovery) | Infeasible | Embarrassingly parallel across AOIs |
 
-The first two rows are immediately useful for the Jonathan-email asks (quantitative results in days, not weeks). The bottom four are the long-term Track 2 trajectory.
+The first two rows are immediately useful for the next-phase compute proposal (quantitative results in days, not weeks). The bottom four are the long-term Track 2 trajectory.
 
 ## Cluster requirements
 
@@ -111,7 +111,7 @@ SLURM templates pending — will be added under `scripts/slurm/` once cluster ac
 2. **Single notebook execute** — 1 GPU, 30 min, `jupyter nbconvert --execute --to notebook --inplace notebooks/NN_*.ipynb`
 3. **Array job for ensembles** — 1 GPU per array task, runs N seeds of nb17 in parallel
 
-## Open questions for ORCD / Jonathan
+## Open questions for the cluster phase
 
 These are the answers we need before finalizing the ask:
 - Which GPU types are available? (A100 40GB / 80GB / H100 / V100 mix?)

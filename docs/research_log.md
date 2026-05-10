@@ -17,7 +17,7 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 - `diatomgraz` (diatom palatability)
 - `R_PICPOC` (PIC/POC ratio)
 
-**Rationale.** Confirmed on the 2026-05-07 call with Jonathan Lauderdale. These are the parameters the ECCO-Darwin team operationally calibrates; matching them with autodiff is the cleanest way to demonstrate DarwinDiff replicates Green's-functions on its own ground before extending. Carroll's published values give a known optimum to score against.
+**Rationale.** Confirmed via discussion with the ECCO-Darwin team. These are the parameters the team operationally calibrates; matching them with autodiff is the cleanest way to demonstrate DarwinDiff replicates Green's-functions on its own ground before extending. Carroll's published values give a known optimum to score against.
 
 **Consequences.** Recovery numbers in notebooks 05/06/07 report against these six specifically. The 0-D box model in `src/darwindiff/carroll6.py` is built around these names. The Carroll 2020 paper is the bibliographic anchor for any future paper.
 
@@ -27,7 +27,7 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 **Decision.** DarwinDiff implements against Darwin 3 — the BGC core used by ECCO-Darwin v5 — not Darwin 1, the version Carroll 2020 ran.
 
-**Rationale.** Darwin 3 is namelist-driven (parameters in `data.darwin` and `data.traits` rather than hardcoded Fortran), which makes parameter override at runtime tractable. Darwin 1's parameters live in `code_darwin/init_fixed.F` and require recompilation to change. Verified 2026-05-07 with Jonathan: ECCO-Darwin v5 uses Darwin 3, and that's the production target.
+**Rationale.** Darwin 3 is namelist-driven (parameters in `data.darwin` and `data.traits` rather than hardcoded Fortran), which makes parameter override at runtime tractable. Darwin 1's parameters live in `code_darwin/init_fixed.F` and require recompilation to change. Confirmed via the ECCO-Darwin team that v5 uses Darwin 3 — that's the production target.
 
 **Consequences.** The Carroll-six parameter *names* are the science target, but their Darwin 3 namelist mapping is a separate engineering exercise. Notebook 08 documents the verified mapping (4 of 6 closed; `scav_tau` units and `PALAT[5,?]` predator index still open). Carroll's Darwin 1 *values* are still the published anchor for benchmarking, but production fits will produce Darwin 3 namelist values, which may differ from Carroll's optima after the Darwin 1 → Darwin 3 algorithmic changes.
 
@@ -173,7 +173,7 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 **Decision.** Every notebook explicitly flags what it does NOT yet demonstrate, and the closing markdown of each notebook lists open scope items that block downstream work.
 
-**Rationale.** The project is a multi-step staircase to a real-world fit, and every step has gaps that the *next* step needs to close. Hand-waving past those gaps would weaken the scientific argument. The notebook 08 memory-budget correction (after a reviewer caught a bug in the checkpointed-memory model) is a concrete example: the un-corrected version claimed LLC270 multi-year fits B200, which would have been a misleading headline for the ORCD pitch.
+**Rationale.** The project is a multi-step staircase to a real-world fit, and every step has gaps that the *next* step needs to close. Hand-waving past those gaps would weaken the scientific argument. The notebook 08 memory-budget correction (after a reviewer caught a bug in the checkpointed-memory model) is a concrete example: the un-corrected version claimed LLC270 multi-year fits B200, which would have been a misleading headline for the cluster compute proposal.
 
 **Consequences.** Every notebook ends with "What this scaffold does NOT demonstrate" and a list of open scope items. The pre-ORCD scoping in notebook 08 is the consolidated checklist of what blocks the move to real compute. This decision log itself is part of that pattern — capturing assumptions explicitly so they can be challenged.
 
@@ -196,7 +196,7 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 **Rationale.** Synthetic-recovery tests served their purpose during methodology validation (notebooks 05–07): we verified autograd works, gradients reach all parameters, the algorithm converges from a cold start, etc. With those facts established, the relevant question shifts to *does the methodology survive on real data?* — and that question is answered by notebook 09+ running against actual ECCO-Darwin output, not by synthetic-truth unit tests. Keeping dead synthetic-only code in the repo would obscure which paths are production-relevant.
 
-**Consequences.** Notebooks 01–04 lose import support from `main` after the cleanup commit lands (their committed outputs are preserved; re-execution requires `git checkout` to a pre-cleanup commit). The `darwindiff` package focus narrows to: `carroll6` (Darwin BGC physics, the simulator), `networks` (DINN / DINNRegional, the parameter learner), `budget` (compute and memory sizing for ORCD pitch). Test count drops from ~30 to ~21, but every remaining test exercises code on the production path.
+**Consequences.** Notebooks 01–04 lose import support from `main` after the cleanup commit lands (their committed outputs are preserved; re-execution requires `git checkout` to a pre-cleanup commit). The `darwindiff` package focus narrows to: `carroll6` (Darwin BGC physics, the simulator), `networks` (DINN / DINNRegional, the parameter learner), `budget` (compute and memory sizing for the cluster compute proposal). Test count drops from ~30 to ~21, but every remaining test exercises code on the production path.
 
 ---
 
@@ -248,7 +248,7 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 **Rationale.** A 1500-epoch DINN per-cell training run on a 1° AOI (~600–1000 cells) takes 7–8 minutes on the 5090. Scaling to LLC270 native (11.7× more cells per AOI) gives ~80 min per fit. Multi-tracer joint loss is 4–8× per-epoch cost. Time-resolved fitting (all 285 monthly snapshots) is 285× single-snapshot cost per epoch. Combinatorially these will saturate the 5090.
 
-**Consequences.** Track 1 status is "v1.5 closed locally, awaiting cluster decision". Next phase deliverables (box-model extension validation, multi-tracer joint loss, Track 2 emulator) are listed in STATUS.md "next" section and are gated on cluster access. Email to Jonathan with consolidated nb10–16 results + ORCD allocation request is the next external action.
+**Consequences.** Track 1 status is "v1.5 closed locally, awaiting cluster decision". Next phase deliverables (box-model extension validation, multi-tracer joint loss, Track 2 emulator) are listed in STATUS.md "next" section and are gated on cluster access. The next-phase compute proposal — consolidated nb10–16 results plus cluster allocation request — is the next external action.
 
 ---
 
