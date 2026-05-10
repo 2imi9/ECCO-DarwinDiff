@@ -2,7 +2,7 @@
 
 *Living doc. Update as things ship.*
 
-**Last updated:** 2026-05-09 (after nb17 ensemble-disagreement trust-map analysis).
+**Last updated:** 2026-05-10 (after cluster prep — notebook path-refactor + SLURM templates + v1.6 consolidated findings doc).
 
 ## Where we are in one line
 
@@ -57,6 +57,7 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] Loaders for both available ECCO-Darwin v5 product types (1° rectified bin_average + native LLC270 monthly tracer tiles)
 - [x] AOI presets for Mid-Atlantic, North Pacific, Equatorial Pacific
 - [x] **104-test test suite** covering all of the above
+- [x] **Cluster portability prep** — env-var-driven `DARWIN_DATA_ROOT` pattern across all data-loading notebooks (default unchanged on local Windows; cluster overrides via env); SLURM job templates in [`scripts/slurm/`](scripts/slurm/); compute / dataset-transfer spec in [`docs/cluster_setup.md`](docs/cluster_setup.md); `xmitgcm` runtime dep added to `pyproject.toml` (was previously implicit and missing from a fresh-venv install)
 
 ### Notebooks (all on main)
 
@@ -72,7 +73,7 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] **14** — iron-pair recovery via FeT in Eq Pacific (Track 1 v1.2)
 - [x] **15** — DINNDeep architecture upgrade test on Eq Pacific FeT (Track 1 v1.4)
 - [x] **16** — Cross-validation honesty check on DINNDeep (Track 1 v1.5)
-- [x] **17** — Ensemble disagreement as inference-time trust map (Track 1 v1.6)
+- [x] **17** — Ensemble disagreement as inference-time trust map (Track 1 v1.6) — full v1.6 record at [`docs/findings/2026_05_10.md`](docs/findings/2026_05_10.md)
 
 ### Decisions and scope locked
 

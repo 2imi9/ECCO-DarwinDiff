@@ -5,7 +5,7 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model that l
 1. **Parameter learner** — a faster, richer replacement for ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes one global vector of 6 biogeochemical parameters via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
 2. **Emulator** — a neural-network stand-in for ECCO-Darwin trained on the same Darwin output, for long-timescale climate runs the full model is too slow for. Not started yet — Track 2.
 
-> **Status:** Track 1 (parameter recovery) at **v1.5** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Architecture upgrade tested + cross-validated; box-model proxy bias identified as the recovery ceiling. Track 1 closing on local single-GPU; awaiting MIT cluster decision before next phase. See [STATUS.md](STATUS.md) for live state and [notebooks/](notebooks/) for the experiments.
+> **Status:** Track 1 (parameter recovery) at **v1.6** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Architecture upgrade tested + cross-validated (nb15, nb16); ensemble-disagreement evaluated as inference-time trust map (nb17) — useful as outlier flag, fails as extrapolation detector. Box-model proxy bias is the recovery ceiling; cheap solutions (more seeds, more capacity) do NOT rescue the cross-basin gap. **Track 1 closed on local single-GPU; awaiting cluster decision before next phase.** See [STATUS.md](STATUS.md) for live state and [notebooks/](notebooks/) for the experiments.
 
 ## Why this exists
 
@@ -17,7 +17,7 @@ DarwinDiff replaces the biogeochemistry side of this with **PyTorch autograd**: 
 >
 > **Cluster setup:** see [`docs/cluster_setup.md`](docs/cluster_setup.md) for compute requirements, environment setup on a Linux GPU cluster, dataset transfer plan for the LLC270 monthly tree, and the open questions list for ORCD.
 
-## Headline results (as of 2026-05-09)
+## Headline results (as of 2026-05-10)
 
 All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone) versus a global-scalar Green's-functions baseline, against z-scored Darwin v05 output over a Mid-Atlantic-sized AOI:
 
@@ -37,6 +37,8 @@ In every fit, the Green's-functions parametric class produces a **constant predi
 1. **Recovered Carroll-6 values do NOT get closer to Carroll's published optima** — some get worse. The network finds *a* per-cell parameter set that produces Darwin's FeT field, but it's a degenerate solution that doesn't match the published calibration. **The recovery ceiling is the 5-tracer box-model simplification, not the network architecture.** Closing the gap to Carroll's actual values requires extending the box model (DIC + ALK + carbonate chemistry + the full 5 PFT ecosystem), not adding more network capacity.
 
 2. **DINNDeep's r=1.000 is interpolation, not extrapolation** (notebook 16 cross-validation). Random 80/20 hold-out: held-out r=0.995 (passes — interpolating gaps works). Block hold-out (W 2/3 train, E 1/3 test): held-out r=0.301 (fails — can't extrapolate to unseen spatial blocks). DINNDeep is fine for fitting within a single AOI but **does not generalize across spatial blocks**. For broad cross-basin claims, the SST-only DINN baseline (notebooks 11/13) is the more honest tool because it has less interpolation capacity to lean on.
+
+3. **Ensemble disagreement is a tail-detector, not an extrapolation flag** (notebook 17). A 10-seed DINNDeep ensemble shows Pearson r(per-cell stdev, |error|) = **+0.87** but Spearman ρ = **−0.42** — the relationship is outlier-driven (high-disagreement cells coincide with high-error cells, but rank order in the well-predicted bulk is inverted). A separate 5-seed ensemble on the block-CV setup shows held-out stdev only **1.17×** training stdev — the ensemble is overconfident in extrapolation territory. nb16's r=0.301 is highly reproducible across these 5 seeds (per-seed: 0.278, 0.288, 0.301, 0.330, 0.358). **Cheap solutions (more seeds, more capacity) do NOT rescue the cross-basin gap.** The next phase has to be physics-constrained: carbonate-extended box model + multi-tracer joint loss + cluster compute. Full v1.6 record at [`docs/findings/2026_05_10.md`](docs/findings/2026_05_10.md).
 
 ## Background reading
 
@@ -62,7 +64,8 @@ In every fit, the Green's-functions parametric class produces a **constant predi
   - v1.3: cross-basin Darwin NO₃ (notebook 13)
   - v1.4: architecture upgrade test (notebook 15) — pins recovery ceiling on box-model bias, not network
   - v1.5: cross-validation honesty check (notebook 16) — DINNDeep interpolates but doesn't extrapolate spatially
-  - **Next (gated on cluster compute):** box-model carbonate-chemistry extension, multi-tracer joint loss at LLC270 native resolution, time-resolved fitting, Track 2 emulator. Track 1 closing on local single-GPU; awaiting MIT cluster decision. See [STATUS.md](STATUS.md) for the live checklist.
+  - v1.6: ensemble-disagreement trust map (notebook 17) — useful for in-domain outlier flagging, fails as extrapolation detector
+  - **Next (gated on cluster compute):** box-model carbonate-chemistry extension, multi-tracer joint loss at LLC270 native resolution, time-resolved fitting, Track 2 emulator. Track 1 **closed** on local single-GPU; cluster prep complete (env-var-driven `DARWIN_DATA_ROOT` across notebooks, SLURM templates in [`scripts/slurm/`](scripts/slurm/), compute spec in [`docs/cluster_setup.md`](docs/cluster_setup.md)); awaiting cluster decision. See [STATUS.md](STATUS.md) for the live checklist.
 
 - **Track 2 — emulator** (not started)
   - Will be a separate architecture (likely transformer / FNO / graph net with spatial coupling), trained on time-resolved Darwin output. Different problem from parameter recovery — different network. Notes in STATUS.md once it begins.
@@ -82,10 +85,11 @@ ecco-darwindiff/
 │   ├── budget.py                compute / memory budget calculators
 │   ├── ecco_darwin_loader.py    ECCO-Darwin v5 bin_average product (1° NetCDF) loader + AOI presets
 │   └── llc270_loader.py         ECCO-Darwin v5 native LLC270 monthly tracer loader (xmitgcm-based)
-├── tests/                     pytest suite (96 tests + 1 opt-in real-data integration)
+├── tests/                     pytest suite (104 tests + 1 opt-in real-data integration)
 ├── notebooks/                 numbered notebooks, in order of project arc
-├── docs/                      decision log + chronological findings docs
+├── docs/                      decision log + chronological findings docs (latest: 2026_05_10.md, Track 1 v1.6)
 ├── data/                      local data cache (gitignored; see data/README.md)
+├── scripts/slurm/             SLURM job templates for cluster runs (run_tests / run_notebook / run_array)
 └── references/                PDFs + external code references (gitignored content)
 ```
 
@@ -95,10 +99,18 @@ Needs Python 3.11+. With uv:
 
 ```bash
 uv sync
-PYTHONPATH=src python -m pytest tests/ -q   # 96 passed, 1 skipped
+uv run pytest -q   # 104 passed, 1 skipped
 ```
 
-The `xmitgcm` dependency is needed for the native LLC270 loader; install with `pip install xmitgcm` if not already pulled in by `uv sync`.
+All runtime deps (including `xmitgcm` for the native LLC270 loader) are pinned in `pyproject.toml` and installed by `uv sync`.
+
+For cluster runs, set `DARWIN_DATA_ROOT` to point at the LLC270 monthly tree (default keeps the local Windows behaviour):
+
+```bash
+export DARWIN_DATA_ROOT=/scratch/$USER/ecco_darwin_v5
+```
+
+See [`docs/cluster_setup.md`](docs/cluster_setup.md) for the full operational guide.
 
 ## Data sources
 
