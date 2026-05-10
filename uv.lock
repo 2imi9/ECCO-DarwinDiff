@@ -287,6 +287,15 @@ css = [
 ]
 
 [[package]]
+name = "cachetools"
+version = "7.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/e2/85f227594656000ff4d8adadae91a21f536d4a84c6c716a86bd6685874be/cachetools-7.1.1.tar.gz", hash = "sha256:27bdf856d68fd3c71c26c01b5edc312124ed427524d1ddb31aa2b7746fe20d4b", size = 40202, upload-time = "2026-05-03T20:00:29.391Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/0f/f897abe4ea0a8c408ae65c8c83bffab4936ad65d6032d4fb4cd35bbdc3ee/cachetools-7.1.1-py3-none-any.whl", hash = "sha256:0335cd7a0952d2b22327441fb0628139e234c565559eeb91a8a4ac7551c5353d", size = 16775, upload-time = "2026-05-03T20:00:27.857Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.4.22"
 source = { registry = "https://pypi.org/simple" }
@@ -719,6 +728,7 @@ dependencies = [
     { name = "typer" },
     { name = "xarray" },
     { name = "xgcm" },
+    { name = "xmitgcm" },
     { name = "zarr", version = "3.1.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "zarr", version = "3.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
@@ -749,6 +759,7 @@ requires-dist = [
     { name = "typer", specifier = ">=0.12" },
     { name = "xarray", specifier = ">=2024.9" },
     { name = "xgcm", specifier = ">=0.8" },
+    { name = "xmitgcm", specifier = ">=0.5" },
     { name = "zarr", specifier = ">=2.18" },
 ]
 
@@ -3703,6 +3714,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/01/4c/ad63096d9fcc21993a511a312085d30cbb10bcc504640aeaa29a9fa0db01/xgcm-0.9.0.tar.gz", hash = "sha256:7406a87bc619841ff5afc23da1521142642c766a583c6cdd57bd78a487950e2c", size = 3619614, upload-time = "2025-08-21T00:52:45.681Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a9/81/9872dd454a1cf27f8768ff3f752e606af78e3100e00b13fe4e99005c5971/xgcm-0.9.0-py3-none-any.whl", hash = "sha256:5f5be9b556b763091f9d79fc3b2ac2c266bc0635780b6890b8b8f392e7f95199", size = 3619118, upload-time = "2025-08-21T00:52:43.937Z" },
+]
+
+[[package]]
+name = "xmitgcm"
+version = "0.5.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cachetools" },
+    { name = "dask" },
+    { name = "xarray" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/06/bd/f966993301ed8adcde36599ae0a80c673b96dc04b82d0d9035dd95071f3d/xmitgcm-0.5.2.tar.gz", hash = "sha256:7dda45fdf6182a859f5c441cd5928a7c99d41c8bcea9fccf471b7011791b1131", size = 6340974, upload-time = "2021-07-27T13:31:15.006Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/ff/adca3079aab6bf6aec0e0b259f3c5afbe0d1b3af83b53af5b165a9535b9e/xmitgcm-0.5.2-py3-none-any.whl", hash = "sha256:0b1df166111d49079b53b6e5925059daa2babef46445bc6350cdfbaf9603cd8b", size = 100013, upload-time = "2021-07-27T13:31:13.571Z" },
 ]
 
 [[package]]
