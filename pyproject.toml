@@ -82,7 +82,14 @@ select = ["E", "F", "I", "N", "B", "UP", "SIM", "RUF"]
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["B", "N"]
+# Tests are descriptive; allow scientific Unicode (μ, ρ, –, ×) in docstrings.
+"tests/**" = ["B", "N", "RUF001", "RUF002"]
+# BGC modules use chemistry-equation naming (K0, K1, K2, DIC, ALK, DFe, etc.)
+# and Greek / Unicode notation in docstrings from the published literature
+# (Weiss 1974, Lueker 2000, Dickson 1990, Follows 2006, Carroll 2020/2022).
+# Forcing lowercase or ASCII-only would obscure the connection to those refs.
+"src/darwindiff/carroll6.py" = ["N806", "RUF002"]
+"src/darwindiff/carbonate.py" = ["N802", "N803", "N806", "RUF001", "RUF002"]
 
 [tool.mypy]
 python_version = "3.11"
