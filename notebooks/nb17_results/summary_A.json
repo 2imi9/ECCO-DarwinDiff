@@ -1,0 +1,21 @@
+{
+  "n_seeds": 10,
+  "ensemble_mean_r": 0.9999151258852725,
+  "stdev_vs_abserr_pearson_r": 0.8690853458316433,
+  "stdev_vs_abserr_pearson_p": 0.0,
+  "stdev_vs_abserr_spearman_rho": -0.41706583826071386,
+  "stdev_vs_abserr_spearman_p": 2.5517427086521088e-46,
+  "final_losses": [
+    0.0003009782521985471,
+    0.00021716891205869615,
+    0.00017899512022268027,
+    0.0017696527065709233,
+    0.0005427484284155071,
+    0.00018437595281284302,
+    0.00032268892391584814,
+    0.0001981929235626012,
+    0.00020415816106833518,
+    0.000147579878102988
+  ],
+  "verdict": "OUTLIER-DRIVEN TRUST MAP: Pearson +0.87 (tail-dominated) coexists with Spearman -0.42 (bulk-dominated, opposite sign). Useful for flagging cells with extreme errors; not a reliable fine-grained quality score within the well-predicted bulk."
+}

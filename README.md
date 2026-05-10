@@ -14,6 +14,8 @@ ECCO-Darwin (Carroll et al. 2020, *JAMES*; Carroll et al. 2022, *GBC*) is a glob
 DarwinDiff replaces the biogeochemistry side of this with **PyTorch autograd**: gradients for all parameters are computed in one backward pass, and the parameter values themselves vary across space — predicted by a small per-cell neural network (DINN) from local environmental conditions (SST + MLD + wind + lat). The structural argument: a single global parameter vector cannot reproduce spatial heterogeneity in ocean biogeochemistry; per-cell parameters can.
 
 > **Design details:** see [`docs/dinn_design.md`](docs/dinn_design.md) for the full per-cell architecture, training loop, structural-ceiling argument, and DINN vs DINNDeep variant decisions.
+>
+> **Cluster setup:** see [`docs/cluster_setup.md`](docs/cluster_setup.md) for compute requirements, environment setup on a Linux GPU cluster, dataset transfer plan for the LLC270 monthly tree, and the open questions list for ORCD.
 
 ## Headline results (as of 2026-05-09)
 

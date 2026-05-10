@@ -30,6 +30,7 @@ dependencies = [
     "scipy>=1.13",
     "xarray>=2024.9",
     "xgcm>=0.8",
+    "xmitgcm>=0.5",
     "dask>=2024.9",
     "netcdf4>=1.7",
     "zarr>=2.18",

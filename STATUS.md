@@ -2,11 +2,11 @@
 
 *Living doc. Update as things ship.*
 
-**Last updated:** 2026-05-09 (after nb16 cross-validation honesty check).
+**Last updated:** 2026-05-09 (after nb17 ensemble-disagreement trust-map analysis).
 
 ## Where we are in one line
 
-Track 1 (parameter recovery) at **v1.5** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Structural-ceiling argument holds in every fit. nb15 showed network capacity is not the recovery ceiling — box-model proxy bias is. **nb16 cross-validation showed DINNDeep's r=1.000 is INTERPOLATION ONLY: random hold-out r=0.995 (passes), block hold-out r=0.301 (fails extrapolation).** Track 2 (neural emulator) not started; Track 1 closing on local hardware, awaiting MIT cluster decision.
+Track 1 (parameter recovery) at **v1.6** — Carroll-6 recovery demonstrated against real ECCO-Darwin v5 output across 3 targets (Chl, NO₃, FeT) and 3 basins (Mid-Atlantic, North Pacific, Equatorial Pacific). Structural-ceiling argument holds in every fit. nb15 showed network capacity is not the recovery ceiling — box-model proxy bias is. nb16 cross-validation showed DINNDeep's r=1.000 is INTERPOLATION ONLY: random hold-out r=0.995 (passes), block hold-out r=0.301 (fails extrapolation). **nb17 tested ensemble disagreement (10 seeds full-AOI + 5 seeds block-CV) as an inference-time trust map — works as an outlier flag (Pearson +0.87 with |error|) but FAILS as an extrapolation detector (held-out stdev only 1.17× training stdev). nb16's r=0.301 is highly reproducible across seeds (0.278–0.358).** Cheap solutions (more seeds, more capacity) do NOT rescue the cross-basin gap; physics-constrained next phase is required. Track 2 (neural emulator) not started; Track 1 closed on local hardware, awaiting MIT cluster decision.
 
 ## Most important findings so far
 
@@ -25,6 +25,8 @@ Track 1 (parameter recovery) at **v1.5** — Carroll-6 recovery demonstrated aga
 7. **Network capacity ≠ better Carroll-6 recovery (nb15).** Multi-channel input (SST + MLD + wind + lat) into a deeper network (DINNDeep, ~9.4K params, 21× the baseline) drives Eq Pacific FeT r from 0.337 → **1.000** and reduces loss ~3000×. But recovered Carroll-6 means are NOT closer to Carroll's published values (some are worse). The fit memorizes the FeT pattern via degenerate parameter sets that produce the right field but don't match the published calibration. **The recovery ceiling is the box-model proxy simplification, not the network architecture.**
 
 8. **DINNDeep's r=1.000 is interpolation, not extrapolation (nb16).** Cross-validation confirms: random 80/20 hold-out gives held-out r=**0.995** (passes — interpolating gaps works), but block hold-out (western 2/3 train, eastern 1/3 test) gives held-out r=**0.301** (fails — can't extrapolate to unseen spatial blocks). DINNDeep is not memorizing in the trivial sense, but it IS learning a function that's smooth across the training set without extrapolating beyond it. **For cross-basin claims (e.g., training on Mid-Atl, applying to N Pacific), DINNDeep is unreliable; the SST-only DINN baseline is the more honest tool because it has less interpolation capacity to lean on.**
+
+9. **Ensemble disagreement is a tail-detector, not an extrapolation-flag (nb17).** A 10-seed DINNDeep ensemble on full Eq Pacific FeT shows Pearson r(per-cell stdev, |error|) = **+0.87** — high-disagreement cells coincide with high-error cells (useful outlier flag). But Spearman ρ = **−0.42** — opposite sign — meaning within the well-predicted bulk, rank order between stdev and |error| is inverted. Practical takeaway: ensemble stdev is a usable *flag for cells with extreme errors*, not a fine-grained quality ranking. A separate 5-seed ensemble trained on western 2/3 only (replicating nb16's block-CV) shows held-out stdev is only **1.17×** training stdev (Mann-Whitney p=1.4e-10, significant but tiny effect) — **the ensemble is overconfident in extrapolation territory.** nb16's r=0.301 is highly reproducible across these 5 seeds (per-seed: 0.278, 0.288, 0.301, 0.330, 0.358) — not noise. **Cheap solutions (more seeds, more capacity) do NOT rescue the cross-basin gap; the next phase has to be physics constraints (carbonate-extended box model + multi-tracer joint loss + cluster compute), not more network capacity.**
 
 ## Headline results table
 
@@ -70,6 +72,7 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] **14** — iron-pair recovery via FeT in Eq Pacific (Track 1 v1.2)
 - [x] **15** — DINNDeep architecture upgrade test on Eq Pacific FeT (Track 1 v1.4)
 - [x] **16** — Cross-validation honesty check on DINNDeep (Track 1 v1.5)
+- [x] **17** — Ensemble disagreement as inference-time trust map (Track 1 v1.6)
 
 ### Decisions and scope locked
 
@@ -104,5 +107,5 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 
 ## Project arc
 
-- **Track 1** (parameter recovery via differentiable physics) — at v1.5, four basin-target combinations validated, structural-ceiling argument established, architecture upgrade tested + cross-validated. Closing on local hardware; pending MIT cluster decision before next phase (box-model extension + Track 2).
+- **Track 1** (parameter recovery via differentiable physics) — at **v1.6**, four basin-target combinations validated, structural-ceiling argument established, architecture upgrade tested + cross-validated, ensemble-disagreement trust map evaluated (works as outlier flag, fails as extrapolation detector — nb17). **Closed on local hardware**; pending MIT cluster decision before next phase (box-model carbonate extension + multi-tracer joint loss + Track 2). Cluster transfer prep documented in [`docs/cluster_setup.md`](docs/cluster_setup.md).
 - **Track 2** (neural surrogate emulator) — not started; gated on cluster compute access + time-resolved fitting machinery from Track 1 follow-ups.
