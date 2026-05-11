@@ -1,0 +1,257 @@
+"""Carroll-6 + 5-PFT box model — Phase 2 of the v2.x calibration arc.
+
+Extends ``carroll6_carbonate_step`` from 2 lumped phytoplankton tracers
+(``Ps`` = small, ``Pl`` = large) to 5 phytoplankton functional types matching
+the Darwin 3 v05 setup used by Carroll 2022. Addresses the box-model
+bottleneck that v2.0 (gradient-based recovery) and v2.1 Phase 1 (GLODAP
+real-obs target swap) both confirmed: the 4-of-6 parameter drift is rooted
+in lumping species with different physical parameter values into one tracer.
+
+State vector (10 tracers, "large-to-small" ordering per Carroll 2022 abstract;
+matches the ``Chl1``..``Chl5`` index convention exposed by
+``ecco_darwin_loader.total_chlorophyll``):
+
+    state[0] = DFe       — dissolved iron (mmol Fe/m^3)
+    state[1] = P_diatom  — diatoms                        (Chl1)
+    state[2] = P_lge     — other large eukaryotes         (Chl2)
+    state[3] = P_syn     — Synechococcus                  (Chl3)
+    state[4] = P_proLL   — low-light Prochlorococcus      (Chl4)
+    state[5] = P_proHL   — high-light Prochlorococcus     (Chl5)
+    state[6] = POC, state[7] = PIC, state[8] = DIC, state[9] = ALK
+
+Carroll-6 → PFT mapping (Option A: 6 learnable parameters, each governing
+a single specific PFT instead of an average over multiple species):
+
+    1. alpfe       — iron dust solubility               (global, unchanged)
+    2. scav_rat    — iron scavenging rate               (global, unchanged)
+    3. Smallgrow   — growth rate of **Pro-HL** specifically
+                     (dominant small PFT — 47% of total Chl in Eq Pacific
+                     surface time-mean per ``scripts/phase2_p4_p5_check.py``)
+    4. Biggrow     — growth rate of **other large eukaryotes** specifically
+                     (diatoms have their own grazing parameter ``diatomgraz``)
+    5. diatomgraz  — diatom palatability/grazing rate
+    6. R_PICPOC    — PIC/POC ratio                       (global, unchanged)
+
+The 4 non-learned PFTs (Pro-LL, Syn, diatoms-growth, large-euks-growth-when-
+``Biggrow``-is-mapped-elsewhere) use literature default growth rates equal
+to the corresponding Carroll-2020 published value. This is the same effective
+calibration as the 2-PFT box for those species; the only change is that the
+LEARNED parameter now constrains a single specific PFT instead of an average.
+
+Hypothesis (the Phase 2 expected gain): all 4 currently-drifting parameters
+(Smallgrow, Biggrow, diatomgraz, R_PICPOC) recover toward calibration-grade
+because each governs exactly one species' dynamics — matching the iron-pair
+quality (~1% / 40% off Carroll) the v2.0 box achieved for ``alpfe`` /
+``scav_rat`` for the same reason.
+
+Background defaults (M_LIN, M_QUAD, G0_GRAZE, W_SINK, K_FE, PHI_DUST, Q_FE,
+LIGHT, H_MLD) are shared across all 5 PFTs for the v2.2 minimum-viable scope.
+Per-PFT half-saturation constants and per-PFT mortalities are deferred to
+v2.2.1 (Dutkiewicz et al. 2009 Table 1) if growth-rate-alone doesn't close
+the gap.
+
+Used by notebook 23 (5-PFT recovery on Eq Pacific) — see ``scripts/build_nb23.py``.
+"""
+
+from __future__ import annotations
+
+import torch
+
+from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
+from darwindiff.carroll6 import (
+    G0_GRAZE,
+    H_MLD,
+    K_FE,
+    LIGHT,
+    M_LIN,
+    M_QUAD,
+    PHI_DUST,
+    Q_FE,
+    W_SINK,
+)
+
+# --- State vector layout ------------------------------------------------------
+
+I_DFE = 0
+I_DIATOM = 1
+I_LGE = 2
+I_SYN = 3
+I_PROLL = 4
+I_PROHL = 5
+I_POC = 6
+I_PIC = 7
+I_DIC = 8
+I_ALK = 9
+
+N_TRACERS = 10
+N_PHYTO = 5
+
+# --- Carroll-6 parameter layout (unchanged from carroll6.py) ------------------
+
+I_ALPFE = 0
+I_SCAV_RAT = 1
+I_SMALLGROW = 2   # learned on Pro-HL
+I_BIGGROW = 3     # learned on other large euks
+I_DIATOMGRAZ = 4  # learned on diatoms
+I_R_PICPOC = 5
+
+# --- Default growth rates for the 4 non-learned PFTs --------------------------
+# Placeholders matching the Carroll-2020 published optima for the lumped
+# species the original calibration averaged over. Replace with Dutkiewicz 2009
+# Table 1 per-PFT values in v2.2.1 if a clean source is available.
+
+MU_DEFAULT_DIATOM: float = 0.43148  # Carroll-2020 Biggrow optimum
+MU_DEFAULT_SYN: float = 0.66098     # Carroll-2020 Smallgrow optimum
+MU_DEFAULT_PROLL: float = 0.66098   # Carroll-2020 Smallgrow optimum
+
+
+def carroll6_5pft_step(
+    state: torch.Tensor,
+    params: torch.Tensor,
+    dt: float,
+    T: torch.Tensor | float = 15.0,
+    S: torch.Tensor | float = 35.0,
+    wind: torch.Tensor | float = 7.0,
+    pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
+    h_mld: float = H_MLD,
+) -> torch.Tensor:
+    """One forward-Euler step of the 10-tracer 5-PFT Carroll-6 box model.
+
+    Args:
+        state: shape ``[10]``, layout per module docstring.
+        params: shape ``[6]``, same layout as ``carroll6.carroll6_step``
+            (``[alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC]``).
+            ``Smallgrow`` is applied to Pro-HL only, ``Biggrow`` to other
+            large eukaryotes only, ``diatomgraz`` to diatoms only.
+        dt: time step in days.
+        T, S, wind, pco2_atm, h_mld: identical to
+            ``carroll6.carroll6_carbonate_step``.
+
+    Returns:
+        Next state, shape ``[10]``.
+    """
+    DFe = state[I_DFE]
+    P_diatom = state[I_DIATOM]
+    P_lge = state[I_LGE]
+    P_syn = state[I_SYN]
+    P_proLL = state[I_PROLL]
+    P_proHL = state[I_PROHL]
+    POC = state[I_POC]
+    PIC = state[I_PIC]
+    DIC = state[I_DIC]
+    ALK = state[I_ALK]
+
+    alpfe = params[I_ALPFE]
+    scav_rat = params[I_SCAV_RAT]
+    mu_proHL = params[I_SMALLGROW]
+    mu_lge = params[I_BIGGROW]
+    g_diatom = params[I_DIATOMGRAZ]
+    R_PICPOC = params[I_R_PICPOC]
+    scav_rat_per_day = scav_rat * 86400.0
+
+    # Shared iron half-saturation across all 5 PFTs (v2.2 minimum-viable).
+    f_fe = DFe / (DFe + K_FE)
+
+    # Per-PFT growth — 2 of 5 are learned, 3 use Carroll-2020 defaults.
+    growth_diatom = MU_DEFAULT_DIATOM * f_fe * LIGHT * P_diatom
+    growth_lge = mu_lge * f_fe * LIGHT * P_lge
+    growth_syn = MU_DEFAULT_SYN * f_fe * LIGHT * P_syn
+    growth_proLL = MU_DEFAULT_PROLL * f_fe * LIGHT * P_proLL
+    growth_proHL = mu_proHL * f_fe * LIGHT * P_proHL
+    growth_total = (
+        growth_diatom + growth_lge + growth_syn + growth_proLL + growth_proHL
+    )
+    fe_uptake = Q_FE * growth_total
+
+    # Shared mortality + grazing across 5 PFTs (v2.2 minimum-viable).
+    mort_diatom = M_LIN * P_diatom + M_QUAD * P_diatom * P_diatom
+    mort_lge = M_LIN * P_lge + M_QUAD * P_lge * P_lge
+    mort_syn = M_LIN * P_syn + M_QUAD * P_syn * P_syn
+    mort_proLL = M_LIN * P_proLL + M_QUAD * P_proLL * P_proLL
+    mort_proHL = M_LIN * P_proHL + M_QUAD * P_proHL * P_proHL
+    graze_diatom = g_diatom * G0_GRAZE * P_diatom
+
+    mort_total = (
+        mort_diatom + mort_lge + mort_syn + mort_proLL + mort_proHL + graze_diatom
+    )
+
+    # Iron + biology tendencies.
+    dDFe = alpfe * PHI_DUST - scav_rat_per_day * DFe * POC - fe_uptake
+    dP_diatom = growth_diatom - mort_diatom - graze_diatom
+    dP_lge = growth_lge - mort_lge
+    dP_syn = growth_syn - mort_syn
+    dP_proLL = growth_proLL - mort_proLL
+    dP_proHL = growth_proHL - mort_proHL
+    dPOC = mort_total - W_SINK * POC
+    dPIC = R_PICPOC * mort_total - W_SINK * PIC
+
+    # Carbonate (identical to carroll6_carbonate_step).
+    carb = solve_carbonate(DIC, ALK, T, S)
+    F_co2 = co2_flux(carb["pCO2"], pco2_atm, wind, T, S)
+    F_per_m3_per_day = F_co2 * 86400.0 / h_mld
+
+    dDIC = (
+        -growth_total                 # phyto C fixation across all 5 PFTs
+        - R_PICPOC * mort_total       # CaCO3 formation
+        - F_per_m3_per_day            # air-sea export
+    )
+    dALK = -2.0 * R_PICPOC * mort_total
+
+    return torch.stack([
+        DFe + dt * dDFe,
+        P_diatom + dt * dP_diatom,
+        P_lge + dt * dP_lge,
+        P_syn + dt * dP_syn,
+        P_proLL + dt * dP_proLL,
+        P_proHL + dt * dP_proHL,
+        POC + dt * dPOC,
+        PIC + dt * dPIC,
+        DIC + dt * dDIC,
+        ALK + dt * dALK,
+    ])
+
+
+def carroll6_5pft_integrate(
+    state0: torch.Tensor,
+    params: torch.Tensor,
+    dt: float,
+    n_steps: int,
+    snapshot_indices: list[int] | None = None,
+    T: torch.Tensor | float = 15.0,
+    S: torch.Tensor | float = 35.0,
+    wind: torch.Tensor | float = 7.0,
+    pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
+    h_mld: float = H_MLD,
+) -> torch.Tensor:
+    """Forward-Euler integration of the 5-PFT 10-tracer Carroll-6 + carbonate box.
+
+    Mirrors ``carroll6.carroll6_carbonate_integrate`` (autograd-clean through
+    every step) with the 10-tracer state vector.
+
+    Args:
+        state0: initial 10-tracer state.
+        params: Carroll-6 parameters, shape ``[6]``.
+        dt: time step in days.
+        n_steps: number of forward-Euler steps.
+        snapshot_indices: 1-indexed steps at which to save state. If ``None``,
+            returns only the final state; otherwise returns shape
+            ``[len(snapshot_indices), 10]``.
+        T, S, wind, pco2_atm, h_mld: forcing — see
+            ``carroll6_5pft_step``.
+
+    Returns:
+        Final state shape ``[10]`` when ``snapshot_indices is None``, else
+        stacked snapshots.
+    """
+    state = state0
+    if snapshot_indices is None:
+        for _ in range(n_steps):
+            state = carroll6_5pft_step(state, params, dt, T, S, wind, pco2_atm, h_mld)
+        return state
+    snapshot_set = set(snapshot_indices)
+    snaps: list[torch.Tensor] = []
+    for step in range(1, n_steps + 1):
+        state = carroll6_5pft_step(state, params, dt, T, S, wind, pco2_atm, h_mld)
+        if step in snapshot_set:
+            snaps.append(state)
+    return torch.stack(snaps)
