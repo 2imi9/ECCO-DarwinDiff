@@ -53,9 +53,10 @@ if [[ ! -d "$DARWIN_DATA_ROOT/output/monthly" ]]; then
     exit 3
 fi
 
+# Install uv via miniforge's pip (avoids curl|sh supply-chain risk).
+# logs/ must exist before sbatch — orcd_quickstart.sh creates it.
 if ! command -v uv &> /dev/null; then
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="$HOME/.local/bin:$PATH"
+    python -m pip install --upgrade uv
 fi
 
 mkdir -p logs

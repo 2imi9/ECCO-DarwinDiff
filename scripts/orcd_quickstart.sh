@@ -24,18 +24,25 @@ module purge
 module load miniforge/24.3.0-0
 python --version
 
-echo "[2/4] Installing uv (one-time, into ~/.local/bin)..."
+echo "[2/4] Installing uv (one-time, into miniforge env)..."
+# Use pip from the loaded miniforge module rather than the upstream curl|sh
+# installer. Avoids the supply-chain risk of piping an internet script into
+# a shell, and keeps uv inside the miniforge environment that python --version
+# above is already pointing at.
 if ! command -v uv &> /dev/null; then
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="$HOME/.local/bin:$PATH"
+    python -m pip install --upgrade uv
 fi
 uv --version
 
 echo "[3/4] Syncing DarwinDiff dependencies (PyTorch CU128 wheels)..."
 uv sync --all-extras
 
-echo "[4/4] Running test suite (should be ~119 passed, 1 skipped)..."
+echo "[4/4] Running test suite (should be ~132 passed, 3 skipped)..."
 uv run pytest -ra
+
+# Create the logs/ directory used by scripts/slurm/*.sbatch — the SBATCH
+# --output directives are parsed at submission time and need this to exist.
+mkdir -p logs
 
 echo ""
 echo "OK — environment is ready."

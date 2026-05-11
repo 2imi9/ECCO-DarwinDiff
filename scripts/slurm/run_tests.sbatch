@@ -18,8 +18,14 @@
 # Usage on ORCD Engaging:
 #   ssh <kerb>@orcd-login.mit.edu
 #   git clone https://github.com/2imi9/ECCO-DarwinDiff.git && cd ECCO-DarwinDiff
-#   bash scripts/orcd_quickstart.sh    # one-time: install uv + sync deps
+#   bash scripts/orcd_quickstart.sh    # one-time: install uv + sync deps + mkdir logs
 #   sbatch scripts/slurm/run_tests.sbatch
+#
+# IMPORTANT: the logs/ directory must exist in the submit dir BEFORE sbatch
+# is called — the #SBATCH --output directive above is parsed at submission
+# time and tries to open logs/%x_%j.out before this script's body runs.
+# orcd_quickstart.sh creates logs/ for you; if you skip that script, run
+# `mkdir -p logs` once before your first sbatch.
 #
 # First run on a fresh node downloads ~1 GB of wheels via uv sync.
 # Subsequent runs are cache hits.
@@ -36,12 +42,15 @@ module load miniforge/24.3.0-0
 # Override via env if running on a non-ORCD cluster.
 export DARWIN_DATA_ROOT="${DARWIN_DATA_ROOT:-$HOME/orcd/scratch/ecco_darwin_v5}"
 
-# Install uv if not already present (one-time per home dir).
+# Install uv via miniforge's pip (avoids curl|sh supply-chain risk).
 if ! command -v uv &> /dev/null; then
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="$HOME/.local/bin:$PATH"
+    python -m pip install --upgrade uv
 fi
 
+# Belt-and-suspenders: also mkdir logs in case the user submitted without
+# running orcd_quickstart.sh first. (The SBATCH --output directive above
+# still needed logs/ at submission time — this just protects against the
+# rare case of mid-job log rotation.)
 mkdir -p logs
 
 uv sync --all-extras

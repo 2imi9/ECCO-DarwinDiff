@@ -30,8 +30,13 @@ from darwindiff.ecco_darwin_loader import (
 )
 
 # Real on-disk bin_average product. Opt-in (same env var as the LLC270 tree
-# opt-in, since both live on the same D: partition in the local setup).
-_REAL_BIN_AVG = r"D:\ecco_darwin_v5\bin_average\v05_ECCO-Darwin_bin_average_1x1_deg.nc"
+# opt-in, since both live under DARWIN_DATA_ROOT on the local setup). Honors
+# DARWIN_DATA_ROOT so the same test runs on ORCD with the PI-shared pool path
+# without local edits.
+_DATA_ROOT = os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5")
+_REAL_BIN_AVG = os.path.join(
+    _DATA_ROOT, "bin_average", "v05_ECCO-Darwin_bin_average_1x1_deg.nc"
+)
 _RUN_REAL = os.environ.get("DARWINDIFF_TEST_LLC270") == "1"
 
 
