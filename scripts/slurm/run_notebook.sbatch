@@ -1,9 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=darwindiff-nb
-#SBATCH --account=FIXME_ACCOUNT          # FIXME: ORCD account name
-#SBATCH --partition=FIXME_GPU_PARTITION  # FIXME: e.g. sched_mit_orcd_gpu
-#SBATCH --gres=gpu:1                     # 1 GPU per job; A100 / H100 / V100 fine
-#SBATCH --time=04:00:00                  # generous; trim per notebook
+# ORCD Engaging: --account is NOT required (open to all MIT users).
+# If your PI requires a specific allocation, add: #SBATCH --account=<pi>
+#SBATCH --partition=mit_normal_gpu       # ORCD GPU pool: L40S 44GB, H100 80GB, H200 140GB.
+# For A100-SXM4-80GB or A100-PCIe-80GB use mit_preemptable + --requeue:
+#     #SBATCH --partition=mit_preemptable
+#     #SBATCH --requeue
+#SBATCH --gres=gpu:1                     # 1 GPU; type-pin via -G l40s:1 / -G h100:1 if needed
+#SBATCH --time=04:00:00                  # generous; trim per notebook (nb15-class is ~5 min on L40S)
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
@@ -12,13 +16,10 @@
 #SBATCH --error=logs/%x_%j.err
 
 # Execute one DarwinDiff notebook end-to-end on a GPU node. Outputs are
-# written back into the notebook in-place; intermediate checkpoints (e.g.
-# nb17's per-seed .npz files) land in notebooks/<nb-results-dir>/.
+# written back into the notebook in-place; intermediate checkpoints land
+# in notebooks/<nb-results-dir>/.
 #
-# Usage:
-#   sbatch scripts/slurm/run_notebook.sbatch <notebook-path>
-#
-# Examples:
+# Usage on ORCD Engaging:
 #   sbatch scripts/slurm/run_notebook.sbatch notebooks/15_dinn_deep_eqpac_fet.ipynb
 #   sbatch scripts/slurm/run_notebook.sbatch notebooks/17_dinn_deep_ensemble_disagreement.ipynb
 
@@ -33,24 +34,32 @@ if [[ ! -f "$NOTEBOOK" ]]; then
     exit 2
 fi
 
-# Cluster modules
-module load python/3.11    # FIXME
-module load cuda/12.1      # FIXME: match the cluster's available CUDA + the PyTorch CU128 wheel pin in pyproject.toml
-module load gcc/11         # FIXME
+# ORCD Engaging: miniforge ships Python + CUDA — single module load.
+# PyTorch is then pulled from CU128 wheels via pyproject.toml.
+module purge
+module load miniforge/24.3.0-0
 
-# Data root — must contain the LLC270 monthly tree at $DARWIN_DATA_ROOT/output/monthly
-export DARWIN_DATA_ROOT="/scratch/$USER/ecco_darwin_v5"
+# Data root — must contain LLC270 monthly tree at $DARWIN_DATA_ROOT/output/monthly.
+# Default points at personal scratch but the LLC270 tree is ~1.5 TB and personal
+# scratch is capped at 1 TB. For real runs, override to the Follows-group
+# PI-shared pool (ask orcd-help-engaging@mit.edu for the path):
+#     export DARWIN_DATA_ROOT=/orcd/pool/<num>/follows_shared/ecco_darwin_v5
+export DARWIN_DATA_ROOT="${DARWIN_DATA_ROOT:-$HOME/orcd/scratch/ecco_darwin_v5}"
 
 if [[ ! -d "$DARWIN_DATA_ROOT/output/monthly" ]]; then
     echo "ERROR: $DARWIN_DATA_ROOT/output/monthly missing — transfer the LLC270 tree first" >&2
+    echo "       Globus collection: 'MIT ORCD Engaging Collection'" >&2
+    echo "       Endpoint ID:       ec54b570-cac5-47f7-b2a1-100c2078686f" >&2
     exit 3
 fi
 
-# Install uv if needed
+# Install uv via miniforge's pip (avoids curl|sh supply-chain risk).
+# logs/ must exist before sbatch — orcd_quickstart.sh creates it.
 if ! command -v uv &> /dev/null; then
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="$HOME/.local/bin:$PATH"
+    python -m pip install --upgrade uv
 fi
+
+mkdir -p logs
 
 uv sync --all-extras
 

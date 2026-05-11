@@ -21,6 +21,8 @@ from darwindiff.llc270_loader import (
     TRAC_MAPPING,
     LLC270Config,
     aoi_mask_from_xc_yc,
+    bin_native_tracer_to_1deg,
+    bin_to_1deg_grid,
     discover_tracer_meta,
     list_available_iterations,
     open_llc270_tracer,
@@ -201,6 +203,85 @@ class TestOpenLLC270Tracer:
         surf = ds.ALK.isel(time=0, k=0).values
         nonzero = surf[surf != 0]
         assert 1000 < float(nonzero.mean()) < 4000
+
+
+class TestBinTo1DegGrid:
+    """Pure-math tests for the bin-averaging math used by nb19+ joint-loss fits."""
+
+    def test_shape_matches_eqpac_aoi(self) -> None:
+        # Eq Pacific 5°S–15°N × 160°W–110°W → 21 lat bins × 51 lon bins,
+        # matching nb19's (21, 51) shape against the bin_average product.
+        xc = np.array([-130.0])
+        yc = np.array([0.0])
+        values = np.array([1.0])
+        out = bin_to_1deg_grid(xc, yc, values, -5.0, 15.0, -160.0, -110.0)
+        assert out.shape == (21, 51)
+
+    def test_single_cell_binned_to_correct_index(self) -> None:
+        # A point at (lat=0, lon=-130) sits in lat bin 5 (centers -5..15) and
+        # lon bin 30 (centers -160..-110). Verify the value lands there.
+        xc = np.array([-130.0])
+        yc = np.array([0.0])
+        values = np.array([42.0])
+        out = bin_to_1deg_grid(xc, yc, values, -5.0, 15.0, -160.0, -110.0)
+        assert out[5, 30] == 42.0
+        # All other bins should be NaN (empty).
+        mask = np.zeros_like(out, dtype=bool)
+        mask[5, 30] = True
+        assert np.isnan(out[~mask]).all()
+
+    def test_multiple_cells_in_same_bin_are_averaged(self) -> None:
+        # Two points within ±0.4° of (0, -130) both land in the same bin.
+        xc = np.array([-130.2, -129.8])
+        yc = np.array([-0.2, 0.2])
+        values = np.array([10.0, 20.0])
+        out = bin_to_1deg_grid(xc, yc, values, -5.0, 15.0, -160.0, -110.0)
+        assert out[5, 30] == 15.0   # mean of 10 and 20
+
+    def test_shape_mismatch_raises(self) -> None:
+        with pytest.raises(ValueError, match="shape mismatch"):
+            bin_to_1deg_grid(
+                np.array([0.0]), np.array([0.0, 1.0]), np.array([1.0]),
+                -5.0, 15.0, -160.0, -110.0,
+            )
+
+    def test_handles_2d_native_input(self) -> None:
+        # Native LLC270 tiles are (face, j, i); the binner should flatten them.
+        # Synthesize a small 2D field with known cell centers.
+        xc = np.array([[-130.0, -129.0], [-128.0, -127.0]])
+        yc = np.array([[0.0, 0.0], [1.0, 1.0]])
+        values = np.array([[1.0, 2.0], [3.0, 4.0]])
+        out = bin_to_1deg_grid(xc, yc, values, -5.0, 15.0, -160.0, -110.0)
+        # Each of the 4 points lands in its own bin.
+        assert out[5, 30] == 1.0   # (0, -130)
+        assert out[5, 31] == 2.0   # (0, -129)
+        assert out[6, 32] == 3.0   # (1, -128)
+        assert out[6, 33] == 4.0   # (1, -127)
+
+
+class TestBinNativeTracerTo1Deg:
+    """Integration test using xmitgcm + real data — opt-in via env var."""
+
+    @pytest.mark.skipif(not _RUN_REAL, reason="set DARWINDIFF_TEST_LLC270=1 to run")
+    def test_real_dic_bin_to_1deg_eqpac(self) -> None:
+        # nb20 needs DIC bin-averaged to Eq Pac 1° grid; matches the existing
+        # FeT / POC / PIC pattern from nb19 but for the new DIC + ALK tracers
+        # that Day 2's carroll6_carbonate_integrate consumes.
+        out = bin_native_tracer_to_1deg(
+            monthly_root=_REAL_MONTHLY_ROOT,
+            grid_dir=_REAL_GRID_DIR,
+            variable="DIC",
+            lat_min=-5.0, lat_max=15.0, lon_min=-160.0, lon_max=-110.0,
+            iters="first",   # one iter is enough for a smoke-style assert
+        )
+        assert out.shape == (21, 51)
+        # Surface DIC in the equatorial Pacific is typically 1900-2100 mmol/m^3
+        # (Carroll 2022 climatology) — anything outside that means the loader
+        # produced something wrong.
+        finite = out[np.isfinite(out)]
+        assert finite.size > 100, "too few finite cells; AOI masking went wrong"
+        mean_dic = float(finite.mean())
+        assert 1800.0 < mean_dic < 2200.0, f"Eq Pac surface DIC mean {mean_dic:.1f} off"
 
 
 class TestSurfaceLayer:

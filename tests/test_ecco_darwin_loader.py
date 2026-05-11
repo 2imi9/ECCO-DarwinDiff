@@ -8,6 +8,7 @@ so tests run without it.
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -27,6 +28,16 @@ from darwindiff.ecco_darwin_loader import (
     time_mean,
     total_chlorophyll,
 )
+
+# Real on-disk bin_average product. Opt-in (same env var as the LLC270 tree
+# opt-in, since both live under DARWIN_DATA_ROOT on the local setup). Honors
+# DARWIN_DATA_ROOT so the same test runs on ORCD with the PI-shared pool path
+# without local edits.
+_DATA_ROOT = os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5")
+_REAL_BIN_AVG = os.path.join(
+    _DATA_ROOT, "bin_average", "v05_ECCO-Darwin_bin_average_1x1_deg.nc"
+)
+_RUN_REAL = os.environ.get("DARWINDIFF_TEST_LLC270") == "1"
 
 
 def _make_synthetic_bin_average(tmp_path, n_time: int = 12) -> str:
@@ -245,3 +256,32 @@ class TestOceanMask:
         ds = open_bin_average(path)
         with pytest.raises(KeyError, match="not in dataset"):
             ocean_mask(ds, reference_var="DoesNotExist")
+
+
+class TestRealBinAverageCarbonateVars:
+    """Verify nb20 dependencies (CO₂_flux, pCO₂, apCO₂) exist on the real file.
+
+    nb20's joint loss adds the carbonate variables from the bin_average product
+    on top of nb19's 4-tracer setup. The loader docstring claims these variables
+    are present, but no existing test exercises that claim against the actual
+    file. Opt-in so CI stays fast.
+    """
+
+    @pytest.mark.skipif(not _RUN_REAL, reason="set DARWINDIFF_TEST_LLC270=1 to run")
+    def test_carbonate_vars_present_and_eq_pac_in_range(self) -> None:
+        ds = open_bin_average(_REAL_BIN_AVG)
+        # nb20 needs all three.
+        for var in ("CO2_flux", "pCO2", "apCO2"):
+            assert var in ds.data_vars, f"{var} missing — nb20 cannot run"
+        # Sanity-check magnitudes over Eq Pacific climatology.
+        eqpac = time_mean(subset_aoi(ds, EQUATORIAL_PACIFIC_AOI))
+        finite_co2_flux = eqpac.CO2_flux.values[np.isfinite(eqpac.CO2_flux.values)]
+        finite_pco2 = eqpac.pCO2.values[np.isfinite(eqpac.pCO2.values)]
+        # CO₂_flux in mol C / m² / s — typical surface ocean values are
+        # |F| < 1e-6. Eq Pacific is a CO₂ source so mean is positive.
+        assert abs(float(finite_co2_flux.mean())) < 1.0e-5, (
+            "CO₂_flux magnitude suspect — check units"
+        )
+        # pCO₂ in atm; Eq Pacific surface climatology ~350-450 µatm = ~4e-4 atm.
+        mean_pco2 = float(finite_pco2.mean())
+        assert 1.0e-4 < mean_pco2 < 1.0e-3, f"pCO₂ {mean_pco2:.2e} atm off"

@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=darwindiff-ensemble
-#SBATCH --account=FIXME_ACCOUNT          # FIXME: ORCD account name
-#SBATCH --partition=FIXME_GPU_PARTITION  # FIXME: e.g. sched_mit_orcd_gpu
+# ORCD Engaging: --account is NOT required (open to all MIT users).
+# If your PI requires a specific allocation, add: #SBATCH --account=<pi>
+#SBATCH --partition=mit_normal_gpu       # ORCD GPU pool: L40S/H100/H200
 #SBATCH --array=0-9%1                    # 10 seeds, max 1 concurrent (see SAFETY note below)
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:30:00                  # per-seed, ~7 min on RTX 5090; trim if your GPU is faster
+#SBATCH --time=00:30:00                  # per-seed; ~5-7 min on L40S
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -48,17 +49,19 @@ NOTEBOOK="notebooks/17_dinn_deep_ensemble_disagreement.ipynb"
 
 cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 
-module load python/3.11   # FIXME
-module load cuda/12.1     # FIXME
-module load gcc/11        # FIXME
+module purge
+module load miniforge/24.3.0-0
 
-export DARWIN_DATA_ROOT="/scratch/$USER/ecco_darwin_v5"
+export DARWIN_DATA_ROOT="${DARWIN_DATA_ROOT:-$HOME/orcd/scratch/ecco_darwin_v5}"
 export NB17_TARGET_SEED="$SEED"   # not used by current notebook; reserved for future train_seed.py
 
+# Install uv via miniforge's pip (avoids curl|sh supply-chain risk).
+# logs/ must exist before sbatch — orcd_quickstart.sh creates it.
 if ! command -v uv &> /dev/null; then
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="$HOME/.local/bin:$PATH"
+    python -m pip install --upgrade uv
 fi
+
+mkdir -p logs
 
 uv sync --all-extras
 

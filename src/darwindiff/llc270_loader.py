@@ -323,6 +323,130 @@ def aoi_mask_from_xc_yc(
     )
 
 
+def bin_to_1deg_grid(
+    xc: np.ndarray,
+    yc: np.ndarray,
+    values: np.ndarray,
+    lat_min: float,
+    lat_max: float,
+    lon_min: float,
+    lon_max: float,
+) -> np.ndarray:
+    """Bin scattered native-cell (xc, yc, value) triples onto a 1° lat/lon grid.
+
+    Edges are placed at ``lat_min - 0.5`` to ``lat_max + 0.5`` and similarly for
+    longitude, so the resulting grid has integer-degree cell centers spanning
+    the AOI inclusive of both endpoints (e.g. AOI ``5°S–15°N`` → 21 lat bins
+    centered at ``-5, -4, …, +15``). This matches the ECCO-Darwin v05
+    ``bin_average`` product's grid convention, enabling direct alignment with
+    bin_average covariates (SST, MLD, Chl, CO₂ flux, pCO₂) in joint-loss fits.
+
+    Args:
+        xc, yc: cell-center longitude / latitude arrays, same shape as values.
+        values: scalar values to average per bin (e.g. surface tracer field).
+        lat_min, lat_max, lon_min, lon_max: AOI bounds in degrees,
+            ``-180..180`` longitude convention.
+
+    Returns:
+        ``np.ndarray`` of shape ``(n_lat, n_lon)`` where
+        ``n_lat = lat_max - lat_min + 1`` and likewise for longitude. NaN at
+        bins with no native cells (land / outside the dataset coverage).
+
+    Raises:
+        ValueError: if input arrays have mismatched shape.
+    """
+    from scipy.stats import binned_statistic_2d
+
+    if not (xc.shape == yc.shape == values.shape):
+        raise ValueError(
+            f"shape mismatch: xc={xc.shape}, yc={yc.shape}, values={values.shape}"
+        )
+    lat_edges = np.arange(lat_min - 0.5, lat_max + 0.5 + 1.0e-3, 1.0)
+    lon_edges = np.arange(lon_min - 0.5, lon_max + 0.5 + 1.0e-3, 1.0)
+    binned, _, _, _ = binned_statistic_2d(
+        yc.ravel(),
+        xc.ravel(),
+        values.ravel(),
+        statistic="mean",
+        bins=[lat_edges, lon_edges],
+    )
+    return binned
+
+
+def bin_native_tracer_to_1deg(
+    monthly_root: str | Path,
+    grid_dir: str | Path,
+    variable: str,
+    lat_min: float,
+    lat_max: float,
+    lon_min: float,
+    lon_max: float,
+    iters: int | list[int] | str = "all",
+    config: LLC270Config = DEFAULT_CONFIG,
+) -> np.ndarray:
+    """Load LLC270 monthly tracer, time-mean surface field, bin-average to 1°.
+
+    The full nb20-class loader: open the native tracer via
+    :func:`open_llc270_tracer`, take ``k=0`` (surface), reduce over time with
+    NaN-safe mean (climatology), AOI-mask via ``xc/yc`` cell centers, and
+    bin-average onto the 1° lat/lon grid via :func:`bin_to_1deg_grid`.
+
+    Result aligns with the ``bin_average`` product's 1° grid, so callers can
+    stack it alongside bin_average covariates (SST, MLD, wind, Chl, CO₂_flux,
+    pCO₂) for joint-loss fits without further regridding.
+
+    Replaces the inline ``load_native_tracer`` cell in nb19 — nb20+ can call
+    this directly.
+
+    Args:
+        monthly_root: parent ``monthly/`` directory.
+        grid_dir: LLC270 grid metadata directory.
+        variable: friendly TRAC name registered in :data:`TRAC_MAPPING`
+            (e.g. ``"FeT"``, ``"DIC"``, ``"ALK"``, ``"POC"``, ``"PIC"``).
+        lat_min, lat_max, lon_min, lon_max: AOI bounds in degrees.
+        iters: passed to :func:`open_llc270_tracer`. ``"all"`` (default)
+            loads every available iteration via
+            :func:`list_available_iterations` and averages over them — the
+            natural climatology behaviour used by nb11+.
+        config: :class:`LLC270Config`.
+
+    Returns:
+        ``np.ndarray`` of shape ``(n_lat, n_lon)`` — surface time-mean tracer
+        field bin-averaged onto the AOI's 1° grid. NaN at land / no-data cells.
+
+    Raises:
+        FileNotFoundError: if ``iters="all"`` and no iterations are on disk.
+    """
+    if iters == "all":
+        iters = list_available_iterations(monthly_root, variable)
+        if not iters:
+            raise FileNotFoundError(
+                f"no iterations available for {variable!r} under {monthly_root}"
+            )
+
+    ds = open_llc270_tracer(
+        monthly_root, grid_dir, variable, iters=iters, config=config,
+    )
+    surf = surface_layer(ds)
+    mean_field = surf[variable].mean(dim="time", skipna=True).values
+    xc = surf.XC.values
+    yc = surf.YC.values
+
+    # Mask: inside AOI + finite + non-zero. The non-zero check excludes the
+    # MITgcm land-fill (0.0 on land cells in mds binary), which otherwise
+    # would skew the bin mean toward zero at coastal bins.
+    aoi_good = (
+        aoi_mask_from_xc_yc(xc, yc, lat_min, lat_max, lon_min, lon_max)
+        & np.isfinite(mean_field)
+        & (mean_field != 0)
+    )
+
+    return bin_to_1deg_grid(
+        xc[aoi_good], yc[aoi_good], mean_field[aoi_good],
+        lat_min, lat_max, lon_min, lon_max,
+    )
+
+
 def surface_layer(ds: xr.Dataset) -> xr.Dataset:
     """Pick the surface depth level (k=0) from an LLC270 tracer dataset.
 
