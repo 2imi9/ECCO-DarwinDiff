@@ -84,3 +84,6 @@ desktop.ini
 
 # Agent worktree settings (per-machine, not project content)
 .claude/
+
+# Audit artifacts
+darwin3_tree.json
