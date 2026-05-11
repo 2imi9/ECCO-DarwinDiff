@@ -191,6 +191,44 @@ Jonathan's 2026-05-10 ORCD email pitched ECCO-DarwinDiff for MIT's new AI Comput
 
 The v2.0 contribution is the proof of concept — gradient-based calibration works for the parameters Green's-functions targeted, AND specifically identifies a parameter (`scav_rat`) that Green's-functions arguably left underconstrained. The cluster work scales the same scope to global resolution + adds the emulator path.
 
+## Day 8 verification — Darwin v05 carbonate-constant alignment
+
+After the v2.0 result landed, audited our carbonate-constant choices in `src/darwindiff/carbonate.py` against the actual MITgcm/Darwin source code to verify calibration alignment. Three explicit mismatches found:
+
+| Constant | DarwinDiff v2.0 uses | MITgcm/Darwin uses | Source | Impact |
+|---|---|---|---|---|
+| K0 (CO₂ solubility) | Weiss 1974 | Weiss 1974 | matches | ✓ |
+| **K1, K2** (carbonic acid) | **Lueker et al. 2000**, total scale | **Mehrbach 1973 via Millero 1995** | [`pkg/dic/carbon_chem.F`](https://github.com/MITgcm/MITgcm/blob/master/pkg/dic/carbon_chem.F) comments cite "Millero p.664 (1995) using Mehrbach et al. data" | ~3–5% systematic pCO₂ offset |
+| KB (boric acid) | Dickson 1990 (direct) | Millero 1995 using Dickson 1990 data | numerically very close (same underlying data) | <1% |
+| **Wanninkhof coefficient** | **0.251** (Wanninkhof 2014) | **0.337** (Wanninkhof 1992 revised) | [`pkg/dic/dic_surfforcing.F`](https://github.com/MITgcm/MITgcm/blob/master/pkg/dic/dic_surfforcing.F): ``pisvel = 0.337 * wind**2 / 3.6e5`` | **34% systematic gas-transfer-velocity offset** |
+
+**Combined effect on absolute F_CO₂ predictions:** ~30–40% systematic offset. This means our nb20/nb21 CO₂ flux predictions are ~30–40% lower than what Darwin would produce internally for the same DIC, ALK, T, S, wind inputs.
+
+### Why this does NOT invalidate the v2.0 result
+
+1. **Iron-pair parameters (`alpfe`, `scav_rat`) don't enter the carbonate system at all.** Recovery numbers (alpfe within 1.1%, scav_rat within 40% of Carroll's published) are mathematically unaffected by carbonate-constant choices.
+2. **The joint loss is z-score normalized per tracer**, so spatial *patterns* drive the loss, not absolute magnitudes. A 34% systematic scaling on F_CO₂ is normalized away before contributing to the loss — only the spatial structure of F_CO₂ (which depends on DIC/ALK/T/S spatial fields, not on the choice of W1992 vs W2014) matters for parameter recovery.
+3. **The block-CV result (nb21) is therefore also robust** — the CO₂_flux test r = 0.488 captures spatial-pattern extrapolation, not absolute-magnitude match.
+
+### What this DOES affect
+
+- **Absolute F_CO₂ values printed in the notebook output.** If a reviewer wants to compare our nb20 F_CO₂ field to Darwin's CO₂_flux field bit-for-bit, there's a ~34% systematic factor to account for.
+- **Any future "DarwinDiff-recovered parameters produce Darwin-matching CO₂ flux" claim** would need W1992 coefficient 0.337 + Mehrbach K1/K2 to be calibration-grade.
+
+### Fix made in v2.0 (transparency, not re-running)
+
+- `K_WANNINKHOF = 0.251` exposed as a module constant in `src/darwindiff/carbonate.py` with explicit Darwin-alignment alternative documented inline. Set `darwindiff.carbonate.K_WANNINKHOF = 0.337` before calling `co2_flux()` for bit-for-bit Darwin alignment.
+- Module docstring explicitly lists the constants Darwin uses vs the ones we use, with the offset quantified for each.
+
+### Day-9+ follow-up for any cluster paper
+
+If a v2.1 / cluster paper wants absolute-magnitude CO₂ flux comparisons:
+1. Set `K_WANNINKHOF = 0.337` and re-run nb20/nb21 (~80 min × 2 on RTX 5090)
+2. Refactor `K1_K2_carbonic` to optionally use Mehrbach 1973 parameterization for full alignment
+3. Verify against `references/ecco_darwin/v05/llc270/input/data.gchem` (not data.darwin — the gchem package config carries the carbonate-system options)
+
+The shift in recovered parameter values from a full Mehrbach + 0.337 re-run is expected to be small (the z-score loss already normalizes most of the difference) but should be quantified for any calibration-grade claim.
+
 ## Cross-references
 
 - [README](../../README.md) — project overview, headline results table

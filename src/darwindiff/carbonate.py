@@ -11,12 +11,21 @@ Reference:
     12(3-4), 290–301. https://doi.org/10.1016/j.ocemod.2005.05.004
 
 Equilibrium constants:
-    K0 (CO₂ solubility) — Weiss (1974), mol/(kg·atm).
+    K0 (CO₂ solubility) — Weiss (1974), mol/(kg·atm). Matches MITgcm DIC package.
     K1, K2 (carbonic acid) — Lueker et al. (2000), total scale, mol/kg.
-    KB (boric acid) — Dickson (1990), total scale, mol/kg.
+        MITgcm DIC uses Mehrbach (1973) via Millero (1995) instead — ~3-5%
+        systematic pCO₂ offset.
+    KB (boric acid) — Dickson (1990), total scale, mol/kg. MITgcm DIC uses
+        Millero (1995) using Dickson 1990 data; numerically very close.
     BT (total boron) — Uppström (1974), mol/kg.
     Schmidt number for CO₂ — Wanninkhof (2014) Table 1.
-    Gas-transfer velocity — Wanninkhof (2014) Eq. 1, coefficient 0.251.
+    Gas-transfer velocity — Wanninkhof (2014) Eq. 1, coefficient K_WANNINKHOF
+        (default 0.251). MITgcm/Darwin uses 0.337 (Wanninkhof 1992 revised) per
+        pkg/dic/dic_surfforcing.F — set ``K_WANNINKHOF = 0.337`` for absolute
+        F_CO₂ alignment with Darwin output. v2.0 closeout uses 0.251; parameter
+        recovery (iron pair) is robust to this scaling because the loss is
+        z-score normalized. See ``docs/findings/v2_track1_closeout.md``
+        Day-8-verification section for the full alignment audit.
 
 Conventions:
     - Tracer concentrations in mmol/m³ on the I/O boundary (matches DarwinDiff).
@@ -58,6 +67,25 @@ PCO2_ATM_DEFAULT: float = 405.0
 """Default atmospheric pCO₂ (µatm) — modern surface-ocean climatology, close to
 Carroll 2022's reference period (2017–2019). Override at the call site for
 time-resolved fits.
+"""
+
+K_WANNINKHOF: float = 0.251
+"""Wanninkhof gas-transfer velocity coefficient (cm/hr at standard Schmidt number).
+
+**Calibration-alignment note** (verified 2026-05-11 against MITgcm source):
+- **Our default: 0.251** — Wanninkhof (2014) Eq. 1, the current oceanographic
+  best-practice value re-derived from the QuikSCAT wind product.
+- **MITgcm/Darwin uses: 0.337** — found in
+  `MITgcm/pkg/dic/dic_surfforcing.F`:
+  ``pisvel(i,j) = 0.337 _d 0 *wind(i,j,bi,bj)**2/3.6 _d 5``
+  This is Wanninkhof (1992) revised. **34% higher than our default.**
+
+The z-score normalized loss in nb20/nb21 makes parameter recovery robust to
+this systematic scaling (only spatial *patterns* contribute), so the v2.0
+iron-pair recovery numbers (alpfe within 1.1%, scav_rat within 40% of Carroll)
+are unaffected. For *absolute* CO₂ flux predictions matching Darwin to <5%,
+set ``carbonate.K_WANNINKHOF = 0.337`` before constructing the integration
+loop. See ``docs/findings/v2_track1_closeout.md`` § Day-8-verification.
 """
 
 _MMOL_PER_M3_TO_MOL_PER_KG: float = 1.0e-3 / RHO_SW
@@ -250,8 +278,10 @@ def co2_flux(
     if K0 is None:
         K0 = K0_solubility(T, S)
     Sc = schmidt_number_co2(T)
-    # Wanninkhof 2014 Eq. 1: k = 0.251 · U² · (Sc/660)^(-1/2), cm/hr → m/s.
-    k_w = 0.251 * wind_speed * wind_speed * (Sc / 660.0) ** (-0.5) * (1.0e-2 / 3600.0)
+    # k = K_WANNINKHOF · U² · (Sc/660)^(-1/2), cm/hr → m/s. K_WANNINKHOF defaults
+    # to 0.251 (Wanninkhof 2014); set to 0.337 for bit-for-bit alignment with
+    # MITgcm's pkg/dic/dic_surfforcing.F.
+    k_w = K_WANNINKHOF * wind_speed * wind_speed * (Sc / 660.0) ** (-0.5) * (1.0e-2 / 3600.0)
     delta_atm = (pCO2_ocean - pCO2_atm) * 1.0e-6  # µatm → atm
     flux_mol_m2_s = k_w * K0 * RHO_SW * delta_atm
     return flux_mol_m2_s * 1.0e3  # mol → mmol
