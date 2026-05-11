@@ -204,10 +204,18 @@ state0 = torch.tensor([
 ]).reshape(7, 1, 1).expand(7, H, W).contiguous()
 
 # Forcing fields (per-cell). Keep on device for the inner loop.
-T_field = torch.tensor(sst.astype(np.float32))
-S_field = torch.tensor(sss.astype(np.float32))
-wind_field = torch.tensor(wind.astype(np.float32))
-pco2_atm_t = torch.tensor(pco2_atm_field.astype(np.float32))
+# NaN-safe land-cell fill: bin_average has NaN at land. solve_carbonate's
+# torch.log(T) propagates NaN through the integration even at masked cells
+# (IEEE 754: NaN * 0 = NaN), so the masked loss term becomes NaN and Adam
+# silently does nothing. Replace land-cell NaN with neutral surface-ocean
+# defaults — those cells get masked out of the loss anyway, so the specific
+# value doesn't affect the recovery. Required for any AOI with coastal land
+# (Eq Pacific 5S-15N x 160W-110W happens to have zero land at 1deg, but
+# Mid-Atl / N Pac / full-ocean all have coastal cells).
+T_field = torch.tensor(np.where(np.isfinite(sst), sst, 15.0).astype(np.float32))
+S_field = torch.tensor(np.where(np.isfinite(sss), sss, 35.0).astype(np.float32))
+wind_field = torch.tensor(np.where(np.isfinite(wind), wind, 7.0).astype(np.float32))
+pco2_atm_t = torch.tensor(np.where(np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32))
 
 env_1ch_dev = env_1ch.to(device)
 env_4ch_dev = env_4ch.to(device)

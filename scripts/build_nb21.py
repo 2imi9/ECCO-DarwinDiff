@@ -175,10 +175,11 @@ state0 = torch.tensor([
     5.0e-4, 1.0, 1.0, 0.5, 0.025, 2050.0 * 1.025, 2350.0 * 1.025,
 ]).reshape(7, 1, 1).expand(7, H, W).contiguous()
 
-T_field = torch.tensor(sst.astype(np.float32))
-S_field = torch.tensor(sss.astype(np.float32))
-wind_field = torch.tensor(wind.astype(np.float32))
-pco2_atm_t = torch.tensor(pco2_atm_field.astype(np.float32))
+# NaN-safe land-cell fill — see build_nb20.py for rationale (same fix).
+T_field = torch.tensor(np.where(np.isfinite(sst), sst, 15.0).astype(np.float32))
+S_field = torch.tensor(np.where(np.isfinite(sss), sss, 35.0).astype(np.float32))
+wind_field = torch.tensor(np.where(np.isfinite(wind), wind, 7.0).astype(np.float32))
+pco2_atm_t = torch.tensor(np.where(np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32))
 
 env_1ch_dev = env_1ch.to(device)
 env_4ch_dev = env_4ch.to(device)
