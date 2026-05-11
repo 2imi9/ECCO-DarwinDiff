@@ -229,6 +229,57 @@ If a v2.1 / cluster paper wants absolute-magnitude CO₂ flux comparisons:
 
 The shift in recovered parameter values from a full Mehrbach + 0.337 re-run is expected to be small (the z-score loss already normalizes most of the difference) but should be quantified for any calibration-grade claim.
 
+## Day 9 audit — MITgcm CTRL + adjoint architecture, and where DarwinDiff sits relative to it
+
+After v2.0 shipped, audited MITgcm's existing parameter-calibration + adjoint infrastructure to understand exactly what DarwinDiff competes with vs. fills as a gap. Sources: MITgcm read-the-docs §10.4 (CTRL), §10.6 (lsopt), §7.1-7.2 (autodiff), §4.12 (tracer adjoint tutorial).
+
+### What MITgcm already provides
+
+| Component | What it covers |
+|---|---|
+| **CTRL package** | 2D/3D time-invariant initial state (T, S, velocities, GM/Redi diffusivity), 2D time-varying atmospheric forcing, bottom drag, geothermal heat flux, shelfice coefficients. **All physical, no BGC.** |
+| **lsopt / optim** | Quasi-Newton variable-storage method (Gilbert & Lemaréchal 1989) consuming the adjoint-generated gradient files. Online (forward+adjoint in one run) and offline (reads pre-computed) modes. |
+| **Adjoint generation** | TAF (default), OpenAD, Tapenade. Generic transformations applied to the whole MITgcm Fortran codebase. |
+| **`xx_gen*d_preproc_c = 'log10ctrl'`** | Log-space parameter transformation: `fld = 10**(log10InitVal + xx_genarr2d)`. The standard MITgcm idiom for bounded calibration parameters. |
+| **3-level checkpointing** | Memory-efficient adjoint over long integrations (72 timesteps → ~7 disk saves + 6 memory snapshots). |
+| **Tracer adjoint tutorial (§4.12)** | Walkthrough of `∂J/∂S` for a "carbon-like" passive tracer's out-gassing — but the documentation explicitly notes this "does not explicitly invoke biogeochemical parameters." |
+
+### What MITgcm does NOT provide
+
+- **Zero documented BGC parameter adjustment in CTRL.** All controls are physical (T, S, velocity, diffusivity, atm forcing, drag).
+- **No Darwin-specific adjoint** documented in either the CTRL or autodiff sections of the manual. The TAF/OpenAD/Tapenade tools could in principle be pointed at the Darwin source, but it's not part of the standard tutorial workflow.
+- **Carroll 2020's choice of Green's-functions** is consistent with this: BGC parameter calibration falls outside the standard adjoint-CTRL workflow, so they used sensitivity sweeps instead.
+
+### Where DarwinDiff sits
+
+DarwinDiff is **not a competitor to CTRL** — they target different parameter classes:
+
+| Tool | Parameter class | Method |
+|---|---|---|
+| **CTRL + adjoint** (ECCO uses this) | Physical state (T, S, velocities, GM/Redi, atm forcing) | Quasi-Newton + TAF-generated Fortran adjoint |
+| **Carroll Green's-functions** (Darwin BGC) | The 6 Carroll BGC parameters (alpfe, scav_rat, etc.) | Forward sensitivity sweeps (no adjoint) |
+| **DarwinDiff** (this project) | Same 6 Carroll BGC parameters | Gradient descent + PyTorch autograd |
+
+DarwinDiff fills the **"BGC-parameter-adjoint gap"** in the MITgcm ecosystem. The reason this gap exists is that running TAF over the full Darwin source is non-trivial (Darwin has many tracers, reaction-network branching, conditional logic that AD tools handle poorly), so the community has historically used the simpler Green's-functions sensitivity-sweep approach for BGC.
+
+**By reimplementing the relevant Darwin BGC + carbonate machinery in PyTorch, DarwinDiff sidesteps the "make Darwin's Fortran adjoint-friendly" engineering cost and gets gradient-based BGC parameter inversion in <1 day of compute on a single GPU instead of weeks of forward-Darwin sensitivity runs.**
+
+### Idiom alignment with MITgcm CTRL
+
+Our sigmoid-bounded parameter map in `darwindiff.carroll6.bounded_params` is the per-cell analog of CTRL's `xx_gen*d_preproc_c = 'log10ctrl'` preprocessor. Both transform an unconstrained learnable into a bounded physical range. Ours is sigmoid-onto-`[lo, hi]`; MITgcm's is log-base-10 around an initial value. The motivation is identical: **gradient-friendly parameterization of bounded calibration knobs**.
+
+### Implication for the v2.0 / cluster paper framing
+
+The methodology section should explicitly position DarwinDiff against the MITgcm ecosystem:
+
+> *MITgcm has mature adjoint + CTRL infrastructure for physical state estimation (the foundation of the ECCO project), but no documented BGC parameter adjoint exists in the standard release. Carroll et al. (2020) used Green's-functions sensitivity sweeps for the 6 Darwin BGC parameters precisely because the adjoint-CTRL workflow does not cover the biogeochemistry side. DarwinDiff fills this gap by reimplementing the relevant Darwin BGC + carbonate machinery in PyTorch with autograd-clean operations, enabling gradient-based BGC parameter inversion without requiring a TAF-built Darwin adjoint. The sigmoid-bounded parameter mapping mirrors MITgcm CTRL's `log10ctrl` preprocessor; both transform unconstrained learnables into bounded physical ranges.*
+
+This is the strongest positioning we've articulated so far — narrower than "DarwinDiff replaces Green's-functions" (overclaim) but stronger than "DarwinDiff is just another tool" (underclaim). It's: **"DarwinDiff fills the BGC-parameter-adjoint gap that the rest of the MITgcm/ECCO ecosystem doesn't cover."**
+
+### Open question for darwin3 specifically (cluster follow-up)
+
+Need to verify: does `github.com/darwinproject/darwin3` itself (the BGC plug-in, separate from MITgcm core) have any TAF-buildable adjoint config? The MITgcm docs don't mention one. If darwin3 doesn't either, DarwinDiff is provably the first BGC-parameter-adjoint capability in this ecosystem. If darwin3 does have a TAF adjoint, the positioning narrows further to "first PyTorch-based" rather than "first adjoint."
+
 ## Cross-references
 
 - [README](../../README.md) — project overview, headline results table
