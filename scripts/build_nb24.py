@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
-"""Build notebooks/23_5pft_box_eqpac.ipynb via nbformat.
+"""Build notebooks/24_5pft_box_glodap_hybrid_eqpac.ipynb via nbformat.
 
-Mirrors nb20's structure (v2.0 7-tracer carbonate box) with the v2.2 Phase 2
-change: replace the 2-PFT (Ps + Pl) box with the 5-PFT (diatom + large-euks +
-Syn + Pro-LL + Pro-HL) box defined in ``src/darwindiff/carroll6_5pft.py``.
+The combo deliverable: 5-PFT box (v2.2 Phase 2 structural fix) trained against
+a hybrid target where DIC + ALK are GLODAPv2.2016b mapped-climatology real
+observations (v2.1 Phase 1 target swap), while FeT + Chl1..Chl5 + POC + PIC +
+CO2_flux remain ECCO-Darwin v05 output.
 
-Key adaptations vs nb20:
-- ``carroll6_5pft_integrate`` instead of ``carroll6_carbonate_integrate``.
-- State vector 7 -> 10 (DFe + 5 phyto + POC + PIC + DIC + ALK).
-- 11-target z-scored joint loss: FeT + Chl1 + Chl2 + Chl3 + Chl4 + Chl5 +
-  POC + PIC + DIC + ALK + CO2_flux. Each Chl_i constrains a single PFT.
-- Recovery analysis compares to Carroll's published optima (CARROLL_VALUES)
-  and to nb20's published DINN baseline means (the v2.0 headline).
+If both interventions stack constructively, all 6 Carroll-6 parameters land
+in calibration-grade range (<= 40% off Carroll's published Green's-functions
+optima) — matching the original goal Carroll 2020/2022 demonstrated.
 
-Run via: python scripts/build_nb23.py
+Builds on:
+- nb22 (Phase 1 target swap; introduced glodap_loader on the PR #36 branch)
+- nb23 (Phase 2 5-PFT box; same Carroll-goal-focused comparison framing)
+
+Required: ``src/darwindiff/glodap_loader.py`` must be on the branch this nb
+executes from. Currently the loader lives only on `claude/v2.1-glodap-real-obs`
+(PR #36); cherry-pick or merge before executing nb24.
+
+Run via: python scripts/build_nb24.py
 """
 from __future__ import annotations
 
@@ -27,44 +32,41 @@ def main() -> None:
     cells: list = []
 
     # --- Cell 1: title + goal ---------------------------------------------
-    cells.append(nbf.v4.new_markdown_cell(r'''# Notebook 23 — 5-PFT box-model recovery (Eq Pacific) — Track 1 v2.2 Phase 2
+    cells.append(nbf.v4.new_markdown_cell(r'''# Notebook 24 — 5-PFT box + GLODAP real-obs DIC/ALK (Track 1 v2.2 Phase 2 + v2.1 Phase 1 combo)
 
-**Goal.** Phase 1 (nb22) confirmed what v2.0 (nb20) already showed: the 5-tracer / 2-PFT box-model proxy is the recovery ceiling for 4 of 6 Carroll-6 parameters (Smallgrow, Biggrow, diatomgraz, R_PICPOC). Phase 2 addresses this structurally by extending the box to the 5 phytoplankton functional types matching the Darwin 3 v05 setup used by Carroll 2022.
+**Goal.** Recover Carroll et al. 2020 / 2022 calibrated parameter values — the published Green's-functions optima encoded in `CARROLL_VALUES` — at calibration-grade quality (≤ 40% off Carroll for each of the 6 parameters).
 
-**Hypothesis.** With each Carroll-6 parameter now governing one specific PFT instead of an average over multiple species:
+**What's combined.** Two orthogonal interventions stacked:
 
-| Param | Mapped to | Why |
+1. **5-PFT box** (Phase 2, from nb23): replace the 2-PFT lumped phytoplankton (`Ps` + `Pl`) with 5 distinct functional types (diatoms, other large euks, Synechococcus, Pro-LL, Pro-HL). Each Carroll-6 parameter now governs one specific PFT instead of an average across multiple species.
+
+2. **GLODAP real-obs target for DIC + ALK** (Phase 1, from nb22): swap Darwin's internal DIC + ALK self-consistent fields for GLODAPv2.2016b mapped-climatology real ship-CTD observations.
+
+The hypothesis: the 5-PFT structural fix unblocks `Smallgrow`, `Biggrow`, `diatomgraz`, `R_PICPOC` to recover toward their Carroll-calibrated values; the GLODAP target gives a more realistic carbonate constraint than Darwin's internal ALK; together they should pull all 6 params into calibration-grade against the goal.
+
+**Loss target — 11 tracers (DIC + ALK from real obs, rest from Darwin):**
+
+| Box-model output | Target source | Variable |
 |---|---|---|
-| `Smallgrow` | **Pro-HL** | 47% of total Chl in Eq Pacific surface (dominant small PFT, see `scripts/phase2_p4_p5_check.py`) |
-| `Biggrow` | **Other large eukaryotes** | Diatoms have their own grazing parameter (`diatomgraz`) |
-| `diatomgraz` | **Diatoms** | Unchanged |
-| `alpfe`, `scav_rat`, `R_PICPOC` | Global | Unchanged |
-
-…the 4 currently-drifting parameters should move toward calibration-grade, matching the iron-pair recovery quality (~1% / 40% off Carroll) the v2.0 2-PFT box already achieved for `alpfe` + `scav_rat`. That is the Phase 2 success criterion: all 6 parameters recover at iron-pair quality, "catching" Carroll's published Green's-functions optima.
-
-**Loss target — 11 tracers:**
-
-| Box-model output | Darwin field | Source |
-|---|---|---|
-| `state[0]` (DFe) | `FeT` | LLC270 native, binned to 1° |
-| `state[1]` (P_diatom) | `Chl1` | bin_average (1°) |
-| `state[2]` (P_lge) | `Chl2` | bin_average |
-| `state[3]` (P_syn) | `Chl3` | bin_average |
-| `state[4]` (P_proLL) | `Chl4` | bin_average |
-| `state[5]` (P_proHL) | `Chl5` | bin_average |
-| `state[6]` (POC) | `POC` | LLC270 native, binned |
-| `state[7]` (PIC) | `PIC` | LLC270 native, binned |
-| `state[8]` (DIC) | `DIC` | LLC270 native, binned |
-| `state[9]` (ALK) | `ALK` | LLC270 native, binned |
-| `co2_flux(pCO2_ocean(state), pCO2_atm)` | `CO2_flux` | bin_average |
+| `state[0]` (DFe) | Darwin v05 LLC270 native binned | `FeT` |
+| `state[1]` (P_diatom) | Darwin v05 bin_average | `Chl1` |
+| `state[2]` (P_lge) | Darwin v05 bin_average | `Chl2` |
+| `state[3]` (P_syn) | Darwin v05 bin_average | `Chl3` |
+| `state[4]` (P_proLL) | Darwin v05 bin_average | `Chl4` |
+| `state[5]` (P_proHL) | Darwin v05 bin_average | `Chl5` |
+| `state[6]` (POC) | Darwin v05 LLC270 native binned | `POC` |
+| `state[7]` (PIC) | Darwin v05 LLC270 native binned | `PIC` |
+| `state[8]` (DIC) | **GLODAPv2.2016b mapped surface** | `TCO2` |
+| `state[9]` (ALK) | **GLODAPv2.2016b mapped surface** | `TAlk` |
+| `co2_flux(...)` | Darwin v05 bin_average | `CO2_flux` |
 
 **Headline experiment: DINN baseline** (1×1 conv, SST input, ~400 params). Can't saturate trivially → recovered Carroll-6 means carry identifiability information.
 
-**Secondary: DINNDeep** (4-channel input, ~9.4K params) for continuity with the deeper-network arc.
+**Secondary: DINNDeep** (4-channel input, ~9.4K params).
 
-**Success criterion (the original goal).** For each of the 6 parameters, `|recovered − Carroll_published| / |Carroll_published| ≤ 0.40` — calibration-grade. All 6 in that band → the differentiable parameter learner has caught Carroll's Green's-functions calibration. A subset in *Loose* or *Drifted* bands → identify which species-specific dynamics still alias across PFTs and decide whether v2.2.1 (per-PFT half-saturations / mortalities) is needed.
+**Success criterion (the original goal).** For each of the 6 parameters, `|recovered − Carroll_published| / |Carroll_published| ≤ 0.40` — calibration-grade. All 6 in that band → the differentiable parameter learner combined with real-obs targets has caught Carroll's Green's-functions calibration.
 
-**Builds on:** nb20 (v2.0 7-tracer carbonate, 2-PFT box), nb22 (v2.1 Phase 1 GLODAP hybrid — same 2-PFT box). Module: `src/darwindiff/carroll6_5pft.py` (Phase 2 scaffold).
+**Builds on:** nb22 (Phase 1 GLODAP loader), nb23 (Phase 2 5-PFT box). Module: `src/darwindiff/carroll6_5pft.py` (5-PFT box) + `src/darwindiff/glodap_loader.py` (real-obs DIC + ALK).
 '''))
 
     # --- Cell 2: imports ---------------------------------------------------
@@ -102,6 +104,12 @@ from darwindiff.ecco_darwin_loader import (
     subset_aoi,
     time_mean,
 )
+from darwindiff.glodap_loader import (
+    open_glodap_variable,
+    subset_aoi_glodap,
+    surface_layer_glodap,
+    to_mmol_per_m3,
+)
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
 from darwindiff.networks import DINN, DINNDeep
 
@@ -115,17 +123,21 @@ print(f"AOI: {AOI.name} ({AOI.lat_min}-{AOI.lat_max} N, {AOI.lon_min}-{AOI.lon_m
 '''))
 
     # --- Cell 3: load data ------------------------------------------------
-    cells.append(nbf.v4.new_markdown_cell(r'''## 1. Load Eq Pacific climatology — 11 targets + covariates
+    cells.append(nbf.v4.new_markdown_cell(r'''## 1. Load Eq Pacific climatology — 11 targets (DIC + ALK from GLODAP, rest from Darwin)
 
-bin_average provides surface 1° fields: SST, MLD, wind, pCO₂_atm, CO₂_flux, **and `Chl1`–`Chl5` per-PFT chlorophyll** (Phase 2 key change — we no longer sum to `Chl_total`). LLC270 native provides depth-resolved tracers (FeT, POC, PIC, DIC, ALK) binned to the same 1° grid via `bin_native_tracer_to_1deg`. Combined ocean mask = every target AND every covariate finite.
+Per-PFT Chl + carbonate-flux + covariates come from `bin_average`. Native LLC270 tracers (FeT, POC, PIC) bin to the same 1° grid via `bin_native_tracer_to_1deg`. **DIC + ALK** come from GLODAPv2.2016b mapped climatology surface (`depth_surface=0`), AOI-subset, and unit-converted µmol/kg → mmol/m³ at the loader boundary. Combined ocean mask = every target AND every covariate finite.
 '''))
 
     cells.append(nbf.v4.new_code_cell(r'''DATA_ROOT = Path(os.environ.get("DARWIN_DATA_ROOT", r"D:\\ecco_darwin_v5"))
 BIN_AVG_PATH = str(DATA_ROOT / "bin_average" / "v05_ECCO-Darwin_bin_average_1x1_deg.nc")
 MONTHLY_ROOT = str(DATA_ROOT / "output" / "monthly")
 GRID_DIR = str(DATA_ROOT / "grid")
+GLODAP_ROOT = Path(os.environ.get(
+    "GLODAP_DATA_ROOT",
+    str(Path.cwd() / "data" / "glodap" / "GLODAPv2.2016b_MappedClimatologies"),
+))
 
-# === Covariates + per-PFT Chl + carbonate-flux targets from bin_average ===
+# === Covariates + per-PFT Chl + CO2_flux from bin_average ===
 ds_bin = open_bin_average(BIN_AVG_PATH)
 eqpac_clim = time_mean(subset_aoi(ds_bin, AOI))
 
@@ -136,7 +148,6 @@ sss = eqpac_clim.SSS.values.astype(np.float64)
 co2_flux_obs = eqpac_clim.CO2_flux.values.astype(np.float64) * 1.0e3  # mol -> mmol C / m^2 / s
 pco2_atm_field = eqpac_clim.apCO2.values.astype(np.float64) * 1.0e6  # atm -> uatm
 
-# Per-PFT Chl targets — Chl1=diatoms .. Chl5=Pro-HL (large-to-small ordering)
 chl_per_pft = {}
 for i in range(1, 6):
     chl_per_pft[f"Chl{i}"] = eqpac_clim[f"Chl{i}"].values.astype(np.float64)
@@ -145,25 +156,52 @@ lat_1d = eqpac_clim.lat.values.astype(np.float64)
 lat_2d = np.broadcast_to(lat_1d[:, None], sst.shape).astype(np.float64)
 print(f"bin_average covariates + per-PFT Chl loaded: shape = {sst.shape}")
 
-# === Native LLC270 tracers binned to 1° ===
-print("Loading native LLC270 tracers (FeT, POC, PIC, DIC, ALK)...")
+# === Native LLC270 tracers (FeT, POC, PIC) ===
+print("Loading native LLC270 tracers (FeT, POC, PIC)...")
 native_targets = {}
-for var in ["FeT", "POC", "PIC", "DIC", "ALK"]:
+for var in ["FeT", "POC", "PIC"]:
     native_targets[var] = bin_native_tracer_to_1deg(
         monthly_root=MONTHLY_ROOT, grid_dir=GRID_DIR, variable=var,
         lat_min=AOI.lat_min, lat_max=AOI.lat_max,
         lon_min=AOI.lon_min, lon_max=AOI.lon_max,
         iters="all",
     )
-    print(f"  {var}: shape={native_targets[var].shape}, finite={int(np.isfinite(native_targets[var]).sum())}")
+    print(f"  {var}: shape={native_targets[var].shape}, "
+          f"finite={int(np.isfinite(native_targets[var]).sum())}")
 
 fet_binned = native_targets["FeT"]
 poc_binned = native_targets["POC"]
 pic_binned = native_targets["PIC"]
-dic_binned = native_targets["DIC"]
-alk_binned = native_targets["ALK"]
 
-# Combined ocean mask: ALL targets + ALL forcing fields finite.
+# === DIC + ALK from GLODAP real obs ===
+# Surface layer (depth_surface=0), AOI-subset, unit-converted to mmol/m^3.
+# Note: bin_average's lat grid runs the same direction as ours, so the
+# subset_aoi_glodap call produces a compatible shape; we re-grid to the
+# bin_average mesh if shapes differ.
+print(f"Loading GLODAPv2.2016b from {GLODAP_ROOT}...")
+glodap_targets = {}
+for var, glodap_name in [("DIC", "DIC"), ("ALK", "ALK")]:
+    ds = open_glodap_variable(str(GLODAP_ROOT), glodap_name)
+    ds_surf = surface_layer_glodap(ds)
+    ds_aoi = subset_aoi_glodap(ds_surf, AOI)
+    da_umol = ds_aoi[
+        {"DIC": "TCO2", "ALK": "TAlk"}[var]
+    ]
+    da_mmol = to_mmol_per_m3(da_umol)
+    # Regrid GLODAP to bin_average grid if necessary (lat/lon may differ by
+    # half-cell offset; bin_average runs on integer-degree centers).
+    target_lat = eqpac_clim.lat.values
+    target_lon = eqpac_clim.lon.values
+    da_mmol_interp = da_mmol.interp(lat=target_lat, lon=target_lon)
+    glodap_targets[var] = da_mmol_interp.values.astype(np.float64)
+    print(f"  GLODAP {var}: shape={glodap_targets[var].shape}, "
+          f"finite={int(np.isfinite(glodap_targets[var]).sum())}, "
+          f"mean={np.nanmean(glodap_targets[var]):.2f} mmol/m^3")
+
+dic_binned = glodap_targets["DIC"]
+alk_binned = glodap_targets["ALK"]
+
+# === Combined ocean mask ===
 ocean_mask = (
     np.isfinite(sst) & np.isfinite(mld) & np.isfinite(wind) & np.isfinite(sss)
     & np.isfinite(pco2_atm_field) & np.isfinite(co2_flux_obs)
@@ -173,7 +211,8 @@ ocean_mask = (
 for chl_name, chl_arr in chl_per_pft.items():
     ocean_mask = ocean_mask & np.isfinite(chl_arr)
 n_ocean = int(ocean_mask.sum())
-print(f"\nCombined ocean cells (11 targets + 5 forcing fields finite): {n_ocean} of {ocean_mask.size}")
+print(f"\nCombined ocean cells (11 targets + 5 forcing fields finite): "
+      f"{n_ocean} of {ocean_mask.size}")
 
 print("\nTarget magnitudes over ocean mask:")
 target_table = [("FeT", fet_binned)]
@@ -181,19 +220,19 @@ for i in range(1, 6):
     target_table.append((f"Chl{i}", chl_per_pft[f"Chl{i}"]))
 target_table += [
     ("POC", poc_binned), ("PIC", pic_binned),
-    ("DIC", dic_binned), ("ALK", alk_binned),
+    ("DIC (GLODAP)", dic_binned), ("ALK (GLODAP)", alk_binned),
     ("CO2_flux", co2_flux_obs),
 ]
 for name, a in target_table:
     o = a[ocean_mask]
-    print(f"  {name:>10s}: mean {o.mean():.3e}, std {o.std():.3e}, "
+    print(f"  {name:>14s}: mean {o.mean():.3e}, std {o.std():.3e}, "
           f"range [{o.min():.3e}, {o.max():.3e}]")
 '''))
 
     # --- Cell 4: training tensors + z-score -------------------------------
     cells.append(nbf.v4.new_markdown_cell(r'''## 2. Build training tensors and z-score the 11 targets
 
-Initial state matches the empirical Eq Pacific abundance partition: Pro-HL ~0.65 (dominant), Pro-LL ~0.001 (deep-adapted, ~0 at surface), diatoms + large-euks moderate, Syn low. DIC + ALK at the same carbonate-test reference values as nb20.
+Initial state matches the empirical Eq Pacific abundance partition. DIC + ALK initial values are at the GLODAP surface climatology mean over the AOI (close to but not identical to Darwin's internal initial values used in nb20 / nb23).
 '''))
 
     cells.append(nbf.v4.new_code_cell(r'''def normalize_covariate(arr, mask):
@@ -213,22 +252,25 @@ env_4ch = torch.tensor(np.stack([sst_norm, mld_norm, wind_norm, lat_norm], axis=
 mask_t = torch.tensor(ocean_mask, dtype=torch.bool)
 H, W = env_1ch.shape[1], env_1ch.shape[2]
 
-# 10-tracer initial state, matching test_carroll6_5pft._state0().
-# Phyto partition follows the Eq Pacific abundance check (Pro-HL dominant).
+# Initial DIC + ALK from GLODAP AOI surface mean (real obs anchor).
+dic0 = float(np.nanmean(dic_binned[ocean_mask]))
+alk0 = float(np.nanmean(alk_binned[ocean_mask]))
+print(f"Initial DIC = {dic0:.1f} mmol/m^3 (GLODAP surface mean)")
+print(f"Initial ALK = {alk0:.1f} mmol/m^3 (GLODAP surface mean)")
+
 state0 = torch.tensor([
     5.0e-4,           # DFe
-    0.4,              # P_diatom (Chl1)
-    0.3,              # P_lge    (Chl2)
-    0.02,             # P_syn    (Chl3)
-    0.001,            # P_proLL  (Chl4)
-    0.65,             # P_proHL  (Chl5)
+    0.4,              # P_diatom
+    0.3,              # P_lge
+    0.02,             # P_syn
+    0.001,            # P_proLL
+    0.65,             # P_proHL
     0.5,              # POC
     0.025,            # PIC
-    2050.0 * 1.025,   # DIC
-    2350.0 * 1.025,   # ALK
+    dic0,             # DIC (from GLODAP)
+    alk0,             # ALK (from GLODAP)
 ]).reshape(N_TRACERS, 1, 1).expand(N_TRACERS, H, W).contiguous()
 
-# Forcing fields (per-cell). NaN-safe fill for land cells.
 T_field = torch.tensor(np.where(np.isfinite(sst), sst, 15.0).astype(np.float32))
 S_field = torch.tensor(np.where(np.isfinite(sss), sss, 35.0).astype(np.float32))
 wind_field = torch.tensor(np.where(np.isfinite(wind), wind, 7.0).astype(np.float32))
@@ -246,7 +288,6 @@ pco2_atm_dev = pco2_atm_t.to(device)
 
 
 def to_z_target(np_field):
-    """Z-score over ocean cells; replace non-ocean with finite zero so torch is happy."""
     clean = np.where(ocean_mask, np_field, 1.0).astype(np.float32)
     t = torch.tensor(clean, dtype=torch.float32).to(device)
     o = t[mask_dev]
@@ -269,29 +310,25 @@ for i in range(1, 6):
     chl_stats[f"Chl{i}"] = (m, s)
 
 print("Z-score statistics:")
-print(f"  {'FeT':<10s}  mean = {fet_mean:.4e}, std = {fet_std:.4e}")
+print(f"  {'FeT':<14s}  mean = {fet_mean:.4e}, std = {fet_std:.4e}")
 for i in range(1, 6):
     m, s = chl_stats[f"Chl{i}"]
-    print(f"  Chl{i:<7d}  mean = {m:.4e}, std = {s:.4e}")
+    print(f"  Chl{i:<11d}  mean = {m:.4e}, std = {s:.4e}")
 for name, m, s in [("POC", poc_mean, poc_std), ("PIC", pic_mean, pic_std),
-                   ("DIC", dic_mean, dic_std), ("ALK", alk_mean, alk_std),
+                   ("DIC (GLODAP)", dic_mean, dic_std), ("ALK (GLODAP)", alk_mean, alk_std),
                    ("CO2_flux", co2_flux_mean_obs, co2_flux_std_obs)]:
-    print(f"  {name:<10s}  mean = {m:.4e}, std = {s:.4e}")
+    print(f"  {name:<14s}  mean = {m:.4e}, std = {s:.4e}")
 '''))
 
     # --- Cell 5: training loop --------------------------------------------
-    cells.append(nbf.v4.new_markdown_cell(r'''## 3. Train DINN baseline + DINNDeep on the 11-target joint loss
+    cells.append(nbf.v4.new_markdown_cell(r'''## 3. Train DINN baseline + DINNDeep on the 11-target joint loss (DIC/ALK from real obs)
 
-Adam lr=5e-3, 1500 epochs, 200 forward-Euler steps at dt=0.25 d. Each step calls `carroll6_5pft_step` (per-cell forcing via T, S, wind, pCO₂_atm).
-
-The 11-term joint loss is the mean of per-target z-scored MSE: each PFT's Chl is its own constraint (5 terms), plus FeT, POC, PIC, DIC, ALK, CO₂_flux (6 terms). This is the Phase 2 key change vs nb20's 7-term loss.
-
-Estimated wall-clock on RTX 5090 Laptop: ~30–45 min per network (carbonate solver + 5 phyto = same ops budget as nb20's 7-tracer integrator).
+Same hyperparameters as nb23 (Adam lr=5e-3, 1500 epochs, 200 forward-Euler steps at dt=0.25 d). Loss is identical to nb23's structure (11 terms averaged); the only behavioral difference is that the DIC + ALK terms now compare to real ocean observations.
 '''))
 
     cells.append(nbf.v4.new_code_cell(r'''DT = 0.25
 N_STEPS = 200
-N_EPOCHS = int(os.environ.get("NB23_EPOCHS", "1500"))
+N_EPOCHS = int(os.environ.get("NB24_EPOCHS", "1500"))
 print(f"Training: dt={DT}, n_steps={N_STEPS}, n_epochs={N_EPOCHS}")
 
 
@@ -322,7 +359,6 @@ def train(net, env_dev, seed: int = 0) -> dict:
         pic_pred = state[I_PIC]
         dic_pred = state[I_DIC]
         alk_pred = state[I_ALK]
-        # CO2 flux: re-evaluate carbonate at final state.
         carb_final = solve_carbonate(dic_pred, alk_pred, T_dev, S_dev)
         co2_flux_pred = co2_flux(
             carb_final["pCO2"], pco2_atm_dev, wind_dev, T_dev, S_dev,
@@ -342,8 +378,8 @@ def train(net, env_dev, seed: int = 0) -> dict:
         l_chl5 = term(p_proHL_pred, chl_z["Chl5"])
         l_poc = term(poc_pred, poc_z)
         l_pic = term(pic_pred, pic_z)
-        l_dic = term(dic_pred, dic_z)
-        l_alk = term(alk_pred, alk_z)
+        l_dic = term(dic_pred, dic_z)  # ← GLODAP target
+        l_alk = term(alk_pred, alk_z)  # ← GLODAP target
         l_co2 = term(co2_flux_pred, co2_flux_z)
         loss = (l_fet + l_chl1 + l_chl2 + l_chl3 + l_chl4 + l_chl5
                 + l_poc + l_pic + l_dic + l_alk + l_co2) / 11.0
@@ -351,21 +387,14 @@ def train(net, env_dev, seed: int = 0) -> dict:
         loss.backward()
         optimizer.step()
         losses.append(loss.item())
-        losses_per_tracer["FeT"].append(l_fet.item())
-        losses_per_tracer["Chl1"].append(l_chl1.item())
-        losses_per_tracer["Chl2"].append(l_chl2.item())
-        losses_per_tracer["Chl3"].append(l_chl3.item())
-        losses_per_tracer["Chl4"].append(l_chl4.item())
-        losses_per_tracer["Chl5"].append(l_chl5.item())
-        losses_per_tracer["POC"].append(l_poc.item())
-        losses_per_tracer["PIC"].append(l_pic.item())
-        losses_per_tracer["DIC"].append(l_dic.item())
-        losses_per_tracer["ALK"].append(l_alk.item())
-        losses_per_tracer["CO2_flux"].append(l_co2.item())
+        for k, lv in zip(loss_keys,
+                         [l_fet, l_chl1, l_chl2, l_chl3, l_chl4, l_chl5,
+                          l_poc, l_pic, l_dic, l_alk, l_co2]):
+            losses_per_tracer[k].append(lv.item())
         if (epoch + 1) % 250 == 0 or epoch + 1 == N_EPOCHS:
             print(f"    epoch {epoch+1:4d}  loss = {loss.item():.4e}  "
-                  f"(FeT {l_fet.item():.2e}, Chl1-5 "
-                  f"{l_chl1.item():.2e}/{l_chl2.item():.2e}/{l_chl3.item():.2e}/"
+                  f"(FeT {l_fet.item():.2e}, Chl1-5 {l_chl1.item():.2e}/"
+                  f"{l_chl2.item():.2e}/{l_chl3.item():.2e}/"
                   f"{l_chl4.item():.2e}/{l_chl5.item():.2e}, "
                   f"POC {l_poc.item():.2e}, PIC {l_pic.item():.2e}, "
                   f"DIC {l_dic.item():.2e}, ALK {l_alk.item():.2e}, "
@@ -402,38 +431,27 @@ def train(net, env_dev, seed: int = 0) -> dict:
         }
 
 
-# === HEADLINE: DINN baseline (SST-only) ===
 torch.manual_seed(0)
 dinn_baseline = DINN(n_input_channels=1, hidden_dim=16, n_outputs=6).to(device)
 n_b = sum(p.numel() for p in dinn_baseline.parameters())
-print(f"=== HEADLINE: DINN baseline (SST-only, {n_b} params), 11-target 5-PFT joint loss ===")
+print(f"=== HEADLINE: DINN baseline (SST-only, {n_b} params), 11-target GLODAP-hybrid loss ===")
 r_baseline = train(dinn_baseline, env_1ch_dev)
-print(f"  done in {r_baseline['elapsed']:.0f}s, loss {r_baseline['losses'][0]:.3e} -> {r_baseline['losses'][-1]:.3e}")
+print(f"  done in {r_baseline['elapsed']:.0f}s, loss "
+      f"{r_baseline['losses'][0]:.3e} -> {r_baseline['losses'][-1]:.3e}")
 
-# === SECONDARY: DINNDeep (SST+MLD+wind+lat) ===
 torch.manual_seed(0)
 dinn_deep = DINNDeep(n_input_channels=4, hidden_dim=32, n_outputs=6, n_blocks=4).to(device)
 n_d = sum(p.numel() for p in dinn_deep.parameters())
-print(f"\n=== SECONDARY: DINNDeep ({n_d} params), 11-target 5-PFT joint loss ===")
+print(f"\n=== SECONDARY: DINNDeep ({n_d} params), 11-target GLODAP-hybrid loss ===")
 r_deep = train(dinn_deep, env_4ch_dev)
-print(f"  done in {r_deep['elapsed']:.0f}s, loss {r_deep['losses'][0]:.3e} -> {r_deep['losses'][-1]:.3e}")
+print(f"  done in {r_deep['elapsed']:.0f}s, loss "
+      f"{r_deep['losses'][0]:.3e} -> {r_deep['losses'][-1]:.3e}")
 '''))
 
-    # --- Cell 6: per-target r + Carroll-6 recovery vs the Green's-functions goal --
-    cells.append(nbf.v4.new_markdown_cell(r'''## 4. Per-target Pearson r + recovered Carroll-6 vs Carroll's published Green's-functions optima
+    # --- Cell 6: goal check + per-target r --------------------------------
+    cells.append(nbf.v4.new_markdown_cell(r'''## 4. Goal check: recovered Carroll-6 vs Carroll's published Green's-functions optima
 
-**The original goal:** recover Carroll et al. 2020 / 2022 calibrated parameter values — the published Green's-functions optima encoded in `CARROLL_VALUES` (verified from the v04/llc270_JAMES_paper source build). For each of the 6 parameters, the question is: how close did the differentiable parameter learner land to the value Carroll's classical Green's-functions calibration produced?
-
-**Quality bands** for `|Δ|/Carroll = |recovered − published| / |published|`:
-
-| Band | Threshold | Meaning |
-|---|---|---|
-| Excellent | ≤ 0.10 | Calibration-grade tight (within 10%) |
-| Calibration-grade | ≤ 0.40 | Within the iron-pair quality range demonstrated to be achievable on this AOI |
-| Loose | 0.40 – 1.00 | Within an order of magnitude but distinguishable from published |
-| Drifted | > 1.00 | More than 100% off — not yet recovered |
-
-**Success criterion for Phase 2:** all 6 parameters land in the *Calibration-grade* band or better (each ≤ 40% off Carroll's published value).
+For each parameter: `recovered`, `Carroll published`, `|Δ|/Carroll`, quality band (Excellent ≤ 0.10 / Calibration-grade ≤ 0.40 / Loose ≤ 1.00 / Drifted > 1.00). Success criterion: all 6 land in *Calibration-grade* or better.
 '''))
 
     cells.append(nbf.v4.new_code_cell(r'''n_total = int(ocean_mask.sum())
@@ -458,7 +476,7 @@ def per_target_r(result: dict) -> dict:
 r_per_b = per_target_r(r_baseline)
 r_per_d = per_target_r(r_deep)
 
-print("Pearson r against Darwin Eq Pacific (per target, 11-target 5-PFT joint loss):")
+print("Pearson r against targets (DIC + ALK = GLODAP real-obs; rest = Darwin v05):")
 print(f"  {'target':<10s}  {'DINN baseline':>16s}  {'DINNDeep':>16s}")
 for tgt in ["FeT", "Chl1", "Chl2", "Chl3", "Chl4", "Chl5",
             "POC", "PIC", "DIC", "ALK", "CO2_flux"]:
@@ -471,8 +489,7 @@ print(f"Final loss plateau:")
 print(f"  DINN baseline:  {r_baseline['losses'][-1]:.4e}")
 print(f"  DINNDeep:       {r_deep['losses'][-1]:.4e}")
 
-# Recovered Carroll-6 means.
-print("\nRecovered Carroll-6 means (11-target 5-PFT joint loss):")
+print("\nRecovered Carroll-6 means (11-target 5-PFT + GLODAP-hybrid loss):")
 print(f"  {'param':<11s} {'DINN baseline':>16s} {'DINNDeep':>16s} {'Carroll publ.':>15s}")
 for i, name in enumerate(PARAM_NAMES):
     p_b = r_baseline["params_final"][i].numpy()[ocean_mask].mean()
@@ -482,7 +499,6 @@ for i, name in enumerate(PARAM_NAMES):
 
 
 def quality_band(rel_diff: float) -> str:
-    """Map |Delta|/Carroll into Excellent / Calibration-grade / Loose / Drifted."""
     if rel_diff <= 0.10:
         return "Excellent"
     if rel_diff <= 0.40:
@@ -491,11 +507,6 @@ def quality_band(rel_diff: float) -> str:
         return "Loose"
     return "Drifted"
 
-
-# === GOAL CHECK: distance from Carroll's published Green's-functions optima ===
-# The original goal is to recover the values Carroll's classical calibration
-# produced. Success criterion: all 6 params land within calibration-grade
-# (<= 40% off published).
 
 print("\n=== GOAL: DINN baseline recovery vs Carroll's published Green's-functions optima ===")
 print(f"  {'param':<11s} {'recovered':>14s} {'Carroll publ.':>15s} {'|Δ|/Carroll':>14s}  {'band':<20s}")
@@ -510,7 +521,7 @@ for i, name in enumerate(PARAM_NAMES):
 b_hit = b_band_counts["Excellent"] + b_band_counts["Calibration-grade"]
 print(f"\n  -> DINN baseline: {b_hit} of 6 params at calibration-grade or better "
       f"(<= 40% off Carroll). Band breakdown: {dict(b_band_counts)}.")
-print(f"  Phase 2 success criterion (all 6 calibration-grade): "
+print(f"  Phase 2 + GLODAP success criterion (all 6 calibration-grade): "
       f"{'MET' if b_hit == 6 else f'PARTIAL ({b_hit}/6)'}")
 
 print("\n=== GOAL: DINNDeep recovery vs Carroll's published Green's-functions optima ===")
@@ -529,21 +540,21 @@ print(f"\n  -> DINNDeep: {d_hit} of 6 params at calibration-grade or better. "
 '''))
 
     # --- Cell 7: figures --------------------------------------------------
-    cells.append(nbf.v4.new_markdown_cell(r'''## 5. Figures — Darwin truth vs DINN-baseline (headline) prediction, per-PFT Chl + carbon system
+    cells.append(nbf.v4.new_markdown_cell(r'''## 5. Figures — target vs prediction (DIC + ALK = GLODAP real obs; rest = Darwin)
 '''))
 
     cells.append(nbf.v4.new_code_cell(r'''tracers_to_plot = [
-    ("FeT",  fet_binned,                 r_baseline["dfe_final"]),
-    ("Chl1 (diatoms)",  chl_per_pft["Chl1"], r_baseline["p_diatom_final"]),
-    ("Chl2 (lge euks)", chl_per_pft["Chl2"], r_baseline["p_lge_final"]),
-    ("Chl3 (Syn)",      chl_per_pft["Chl3"], r_baseline["p_syn_final"]),
-    ("Chl4 (Pro-LL)",   chl_per_pft["Chl4"], r_baseline["p_proLL_final"]),
-    ("Chl5 (Pro-HL)",   chl_per_pft["Chl5"], r_baseline["p_proHL_final"]),
-    ("POC", poc_binned, r_baseline["poc_final"]),
-    ("PIC", pic_binned, r_baseline["pic_final"]),
-    ("DIC", dic_binned, r_baseline["dic_final"]),
-    ("ALK", alk_binned, r_baseline["alk_final"]),
-    ("CO2_flux", co2_flux_obs, r_baseline["co2_flux_final"]),
+    ("FeT (Darwin)",          fet_binned,                 r_baseline["dfe_final"]),
+    ("Chl1 diatoms (Darwin)", chl_per_pft["Chl1"],        r_baseline["p_diatom_final"]),
+    ("Chl2 lge euks (Darwin)",chl_per_pft["Chl2"],        r_baseline["p_lge_final"]),
+    ("Chl3 Syn (Darwin)",     chl_per_pft["Chl3"],        r_baseline["p_syn_final"]),
+    ("Chl4 Pro-LL (Darwin)",  chl_per_pft["Chl4"],        r_baseline["p_proLL_final"]),
+    ("Chl5 Pro-HL (Darwin)",  chl_per_pft["Chl5"],        r_baseline["p_proHL_final"]),
+    ("POC (Darwin)",          poc_binned,                 r_baseline["poc_final"]),
+    ("PIC (Darwin)",          pic_binned,                 r_baseline["pic_final"]),
+    ("DIC (GLODAP real obs)", dic_binned,                 r_baseline["dic_final"]),
+    ("ALK (GLODAP real obs)", alk_binned,                 r_baseline["alk_final"]),
+    ("CO2_flux (Darwin)",     co2_flux_obs,               r_baseline["co2_flux_final"]),
 ]
 
 fig, axes = plt.subplots(len(tracers_to_plot), 3, figsize=(13, 3 * len(tracers_to_plot)))
@@ -555,7 +566,7 @@ for row, (name, target, pred) in enumerate(tracers_to_plot):
     vmin, vmax = np.nanpercentile(target_plot, [5, 95])
     im0 = axes[row, 0].imshow(target_plot, vmin=vmin, vmax=vmax, cmap="viridis",
                               origin="lower", aspect="auto")
-    axes[row, 0].set_title(f"{name} — Darwin truth")
+    axes[row, 0].set_title(f"{name} — target")
     plt.colorbar(im0, ax=axes[row, 0], fraction=0.04)
     im1 = axes[row, 1].imshow(pred_plot, vmin=vmin, vmax=vmax, cmap="viridis",
                               origin="lower", aspect="auto")
@@ -564,7 +575,7 @@ for row, (name, target, pred) in enumerate(tracers_to_plot):
     dmax = np.nanmax(np.abs(diff)) or 1.0
     im2 = axes[row, 2].imshow(diff, vmin=-dmax, vmax=dmax, cmap="RdBu_r",
                               origin="lower", aspect="auto")
-    axes[row, 2].set_title(f"{name} — diff (pred - truth)")
+    axes[row, 2].set_title(f"{name} — diff (pred − target)")
     plt.colorbar(im2, ax=axes[row, 2], fraction=0.04)
 
 plt.tight_layout()
@@ -572,26 +583,18 @@ plt.show()
 '''))
 
     # --- Cell 8: interpretation -------------------------------------------
-    cells.append(nbf.v4.new_markdown_cell(r'''## 6. Interpretation — did the differentiable parameter learner catch the Green's-functions target?
+    cells.append(nbf.v4.new_markdown_cell(r'''## 6. Interpretation — did combining the 5-PFT box with real-obs DIC/ALK reach the Carroll goal?
 
-**The original goal.** Carroll 2020 / 2022 calibrated the 6 Carroll-6 parameters via classical Green's-functions on the full ECCO-Darwin forward model. Those published optima are the calibration target — encoded in `CARROLL_VALUES`:
+The two interventions stack: the 5-PFT box gives each Carroll-6 parameter a single specific PFT to govern (resolving the "Smallgrow averages 3 species" aliasing that v2.0 and Phase 1 both hit), and the GLODAP DIC + ALK targets give the carbonate budget a more realistic constraint than Darwin's internal self-consistent fields.
 
-| Param | Carroll published value | Physical meaning |
-|---|---|---|
-| `alpfe` | 0.928 | Iron dust solubility (—) |
-| `scav_rat` | 6.03 × 10⁻⁷ /s | Iron scavenging rate |
-| `Smallgrow` | 0.661 /d | Small-phyto growth rate (Phase 2: → Pro-HL specifically) |
-| `Biggrow` | 0.431 /d | Large-phyto growth rate (Phase 2: → other large euks) |
-| `diatomgraz` | 0.830 | Diatom palatability/grazing |
-| `R_PICPOC` | 0.0425 | PIC/POC ratio |
+**If all 6 land in Calibration-grade (≤ 40% off Carroll):** the differentiable parameter learner, trained against real observations where available, has caught Carroll's classical Green's-functions calibration. This is the v2.2 deliverable that makes "DarwinDiff recovers BGC parameters from observations" defensible.
 
-**Success criterion.** Each recovered parameter lands within the *Calibration-grade* band (`|Δ|/Carroll ≤ 0.40`). Read the goal-check table in §4.
+**If a subset stays in Loose / Drifted:** identify which dynamics aren't constrained yet by the current 11-target set. Likely follow-ups:
+- Per-PFT half-saturations / mortalities (v2.2.1) — Dutkiewicz 2009 Table 1 values
+- GEOTRACES iron observations (v2.3 / Phase 3) — direct iron constraint to replace Darwin's FeT
+- Ocean color satellite Chl (v2.2.1) — per-PFT Chl validation against retrieved species
 
-**Phase 2 framing.** The 2-PFT box achieved calibration-grade recovery on the iron pair (`alpfe`, `scav_rat`) because those parameters govern dynamics — iron uptake by phyto, iron scavenging by POC — that don't depend on which specific PFT is doing the uptake; the lumped `Ps` + `Pl` representation is a faithful proxy. The 4 other parameters depend on species-specific growth and grazing dynamics that the 2-PFT box averaged over multiple species. By giving each of those 4 parameters a single specific PFT to govern (Smallgrow → Pro-HL, Biggrow → other large euks, diatomgraz → diatoms, plus R_PICPOC which depends on the carbonate-producing phyto fraction), the differentiable learner should be able to identify each one against the observations now that they're no longer aliased across multiple species.
-
-**If success criterion met** → the 5-PFT box is the structural fix; v2.2 ships as the Phase 2 deliverable.
-
-**If partial** → identify which params remain in the *Loose* or *Drifted* bands. Likely cause: shared half-saturations / mortalities across PFTs are still aliasing those rates. v2.2.1 would introduce per-PFT `K_FE`, `M_LIN`, `M_QUAD` drawn from Dutkiewicz 2009 Table 1.
+This notebook's headline numbers feed `docs/findings/v2.2_phase2_glodap_combo.md` (created on commit).
 '''))
 
     nb["cells"] = cells
@@ -600,7 +603,7 @@ plt.show()
         "language_info": {"name": "python", "version": "3.11"},
     }
 
-    out = Path(__file__).resolve().parent.parent / "notebooks" / "23_5pft_box_eqpac.ipynb"
+    out = Path(__file__).resolve().parent.parent / "notebooks" / "24_5pft_box_glodap_hybrid_eqpac.ipynb"
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8") as f:
         nbf.write(nb, f)
