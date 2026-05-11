@@ -276,9 +276,39 @@ The methodology section should explicitly position DarwinDiff against the MITgcm
 
 This is the strongest positioning we've articulated so far — narrower than "DarwinDiff replaces Green's-functions" (overclaim) but stronger than "DarwinDiff is just another tool" (underclaim). It's: **"DarwinDiff fills the BGC-parameter-adjoint gap that the rest of the MITgcm/ECCO ecosystem doesn't cover."**
 
-### Open question for darwin3 specifically (cluster follow-up)
+### darwin3 audit (resolved) — pkg/darwin is NOT wired into MITgcm's adjoint infrastructure
 
-Need to verify: does `github.com/darwinproject/darwin3` itself (the BGC plug-in, separate from MITgcm core) have any TAF-buildable adjoint config? The MITgcm docs don't mention one. If darwin3 doesn't either, DarwinDiff is provably the first BGC-parameter-adjoint capability in this ecosystem. If darwin3 does have a TAF adjoint, the positioning narrows further to "first PyTorch-based" rather than "first adjoint."
+Audited `github.com/darwinproject/darwin3` branch `darwin` (HEAD `1142163` at audit time) for any BGC-parameter-adjoint configuration. Seven independent angles checked, all pointing the same direction:
+
+| Check | Result |
+|---|---|
+| `code_ad/` directories | 16 exist; **none activate `pkg/darwin`** in their `packages.conf`. Two BGC-adjacent ones (`verification/global_oce_biogeo_bling/{code_ad,code_tap,input_ad}` and `verification/tutorial_global_oce_biogeo/{code_ad,code_tap,code_oad,input_ad,input_oad,input_tap}`) cover BLING / DIC state-and-forcing but exclude `pkg/darwin`. |
+| `CADJ` directives in `pkg/darwin/*.F` | **Zero.** Verified by reading `darwin_plankton.F` (70 KB), `darwin_forcing.F`, `darwin_readparms.F`. Repo-wide 134 `CADJ` directives sit in MITgcm core / DIC / BLING / ECCO. |
+| `ALLOW_AUTODIFF` / `ALLOW_ADJOINT_RUN` / `ALLOW_TAMC` / `#include "AD_CONFIG.h"` in `pkg/darwin` | **Zero.** `DARWIN_OPTIONS.h` has 60+ CPP flags, none AD-related. |
+| `Makefile` targets in `pkg/darwin` | 8-line Makefile, runs only the `cog` code generator. No `adtaf`/`adall`/`adtamc` targets. |
+| `pkg/cost` referencing Darwin parameters (alpfe, scav_rat, Smallgrow, etc.) | **Zero** across 24 files. The `cost_tracer.F` in BGC-adjoint configs is a generic PTRACERS-state cost, not a Darwin-parameter cost. |
+| `pkg/ctrl` registering Darwin parameters | **Zero** across 65 files. `data.ctrl` in BGC-adjoint configs lists `xx_theta`, `xx_salt`, `xx_ptr1..6` (tracer ICs), `xx_qnet/empmr/fu/fv` (forcing), `xx_diffkr` (mixing) — no `xx_alpfe`, no `xx_scav_rat`. |
+| `doc/phys_pkgs/darwin.rst` + 24 sibling `darwin_*.rst` docs | **Zero** hits on `adjoint`/`TAF`/`tapenade`/`openad`/`automatic differentiation`/`control variable`. |
+
+### Verdict (high confidence)
+
+**darwin3 ships adjoint capability for BGC state and forcing (BLING + DIC initial conditions; mixing diffusivity), but NOT for BGC process parameters (rate constants, half-saturations, iron solubility, scavenging, mortality, grazing — the things Carroll-2020 calibrated).** The `pkg/darwin` plankton model itself is excluded from every adjoint configuration in the public release.
+
+**The "DarwinDiff is the first BGC-parameter-adjoint capability in the MITgcm/Darwin ecosystem" claim is defensible.** To stay maximally precise:
+
+> *MITgcm's adjoint infrastructure (via TAF / Tapenade / OpenAD with `pkg/autodiff` + `pkg/ctrl` + `pkg/cost`) supports state-and-forcing inversion and has been demonstrated for BLING / DIC initial-condition recovery (`verification/global_oce_biogeo_bling`, `verification/tutorial_global_oce_biogeo`). However, the `pkg/darwin` plankton model is not wired into this infrastructure in the public `darwin3` release: no `pkg/darwin` source file carries TAF directives, no `code_ad/` configuration activates `pkg/darwin`, and no Darwin trait/rate parameter is registered as a control variable. DarwinDiff fills this gap by providing a PyTorch-based parameter-adjoint pathway for the Darwin BGC parameters that Carroll et al. (2020) calibrated by hand.*
+
+### Remaining uncertainty (not falsifying)
+
+A private / unreleased adjoint fork could exist (Lauderdale / Follows / Dutkiewicz lab work off-GitHub). MITgcm's generic-array control machinery (`xx_genarr*` + `ctrl_map_ini_genarr.F`) could in principle be repurposed for Darwin scalars — but no such configuration exists in the public tree, and there are no Darwin trait-vector hooks. Neither possibility changes the "standard public release" claim.
+
+### Citable evidence paths (for the paper)
+
+- `pkg/darwin/DARWIN_OPTIONS.h` — 60+ CPP flags, none AD-related
+- `pkg/darwin/darwin_plankton.F` — 70 KB BGC kernel, zero `CADJ` directives
+- `verification/global_oce_biogeo_bling/{code_ad,input_ad}/` — closest existing BGC-adjoint setup, but BLING (not Darwin) + state-only
+- `verification/tutorial_global_oce_biogeo/{code_ad,code_tap,code_oad,input_ad}/` — three-AD-backend tutorial, but DIC package, not Darwin
+- `verification/tutorial_global_oce_biogeo/input_ad/data.ctrl` — proves only tracer ICs and forcing are controls, not BGC parameters
 
 ## Cross-references
 
