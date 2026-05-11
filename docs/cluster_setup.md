@@ -1,8 +1,27 @@
-# Cluster setup — DarwinDiff on MIT ORCD Engaging
+# Cluster setup — DarwinDiff on MIT ORCD
 
-*Operational complement to [README](../README.md) and [STATUS](../STATUS.md). Covers compute requirements, environment setup, dataset transfer, and SLURM job patterns for running DarwinDiff on the MIT ORCD Engaging cluster (or any Linux cluster with NVIDIA GPUs).*
+*Operational complement to [README](../README.md) and [STATUS](../STATUS.md). Covers compute requirements, environment setup, dataset transfer, and SLURM job patterns for running DarwinDiff on the MIT ORCD clusters (or any Linux cluster with NVIDIA GPUs).*
 
-**Last updated:** 2026-05-10. ORCD Engaging values verified against the public docs at <https://orcd-docs.mit.edu>.
+**Last updated:** 2026-05-10 (Track 1 v2.0 closeout, B200 burn-in pitch sent).
+
+## Target cluster — MIT ORCD new AI Compute Resources (B200)
+
+**The primary target for v2.0+ work is MIT ORCD's new AI Compute Resources (B200 GPUs + fast InfiniBand interconnects).** Jonathan Lauderdale (MIT EAPS) submitted a burn-in partnership pitch to `orcd-help@mit.edu` on 2026-05-10 for the May 2026 burn-in window. Specs as advertised:
+
+| Resource | Notes |
+|---|---|
+| GPU | NVIDIA **B200** (180 GB HBM3e per GPU) + **RTX 6000 Pro** (Blackwell) |
+| Interconnect | Fast InfiniBand (multi-node training) |
+| Status | New cluster, burn-in phase May 2026; Lucas + Jonathan are partner-tier |
+| Access path | Through Jonathan's burn-in invitation (MIT Kerberos required) |
+
+The workload-fit pitch: DarwinDiff combines large autograd graphs (1500 epochs × 200 forward-Euler steps × full LLC270 ~1 M ocean cells) with memory-intensive backpropagation through coupled scientific equations — well-matched to B200's 180 GB HBM3e and InfiniBand-coupled multi-GPU data parallel. Estimated full-ocean v2.0-equivalent run: ~90 GPU·hours on B200.
+
+**The SLURM templates in [`scripts/slurm/`](../scripts/slurm/) target ORCD Engaging (the public production cluster).** They work on the new B200 cluster once Jonathan gets partition names + module paths from ORCD — typically a one-line change per template. Keeping the Engaging-targeted templates as the documented baseline because they're verifiable against [the public ORCD docs](https://orcd-docs.mit.edu); the B200 cluster's specifics are not on the public web yet.
+
+## Fallback target — ORCD Engaging (publicly documented)
+
+ORCD Engaging is the existing publicly-documented MIT ORCD cluster. Useful as a backup or for any quick sanity check. Values verified against <https://orcd-docs.mit.edu>.
 
 ## Jonathan quickstart — 4 steps from clone to results
 
