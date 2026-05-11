@@ -122,10 +122,45 @@ Mirrors nb16's block-CV pattern (western 2/3 train, eastern 1/3 test) but applie
 
 **Headline question:** does adding carbonate reduce nb16's r=0.301 extrapolation gap, or is the extrapolation limit independent of the loss structure?
 
-*[Numbers TBC pending notebook execution; the structure of the comparison is described in the notebook's section 4. The two-path framing:*
+### nb21 result — carbonate doubles the block-CV extrapolation r
 
-- *If block-CV test r improves substantially, carbonate is a structural fix (helps spatial extrapolation, not just iron-pair identifiability).*
-- *If block-CV test r stays near 0.301, the extrapolation limit is independent of loss structure — needs multi-basin training (cluster-gated).]*
+**DINNDeep + 7-tracer carbonate, held-out east 1/3 test cells:**
+
+| Tracer | nb21 train r | nb21 test r | nb16 comparable (FeT only) |
+|---|---:|---:|---:|
+| FeT | 0.995 | **0.637** | 0.301 |
+| Chl | 0.999 | 0.677 | — |
+| POC | 0.997 | 0.738 | — |
+| PIC | 0.997 | 0.721 | — |
+| **DIC** | **0.989** | **0.980** | — |
+| **ALK** | **0.989** | **0.974** | — |
+| CO₂_flux | 0.919 | 0.488 | — |
+| **mean(7)** | — | **0.745** | 0.301 (single tracer) |
+
+The DINNDeep + 7-tracer test r on FeT **more than doubles** (0.301 → 0.637) vs nb16's single-tracer setup. DIC and ALK in particular extrapolate near-perfectly to the held-out east 1/3 (test r > 0.97 with train-test gap < 0.02) — these carbonate fields have spatial structure that DINNDeep can capture from west-only training and apply correctly to east. Mean across all 7 tracers test r = 0.745.
+
+**DINN baseline + 7-tracer carbonate (the recovery-grade architecture from nb20) — block-CV is harder:**
+
+| Tracer | nb21 train r | nb21 test r |
+|---|---:|---:|
+| FeT | 0.235 | 0.176 |
+| DIC | −0.222 | −0.731 |
+| ALK | −0.077 | −0.772 |
+| CO₂_flux | 0.783 | −0.223 |
+| **mean(7)** | — | **−0.273** |
+
+DINN baseline can't memorize OR extrapolate the field. Its capacity (~400 params) is too small to learn a generalizable function from the west 2/3 — this is the trade-off for the architecture's calibration-grade parameter recovery in nb20. The two architectures serve different scientific purposes: DINN baseline for honest parameter calibration, DINNDeep for fit-quality + spatial extrapolation.
+
+### Interpretation — carbonate is a structural fix, not just an iron-pair fix
+
+The v1.4–v1.8 framing was that nb16's r=0.301 reflected a fundamental limitation: DINNDeep memorizes within the training block but can't extrapolate. nb21 refutes the most pessimistic version of that: **with 3 additional loss surfaces (DIC + ALK + CO₂_flux), DINNDeep's spatial extrapolation more than doubles.**
+
+Two structural ways carbonate helps:
+
+1. **More loss surfaces = stronger spatial gradients to track.** Single-target FeT (nb16) gave the network one signal to fit; the network learned a smooth-but-flat function. Seven tracers give the network a richer constraint that forces a more diverse spatial dependency on the input covariates.
+2. **DIC + ALK have stronger spatial structure than FeT.** Carbonate fields vary with regional ocean physics (upwelling, mixed-layer depth, temperature) in ways that DINNDeep can capture from the 4-channel input. FeT alone is largely controlled by dust deposition + scavenging, which don't co-vary as cleanly with SST/MLD/wind/lat.
+
+This means: **carbonate constraints provide both identifiability (iron-pair, nb20) AND generalization (spatial extrapolation, nb21).** The v2.0 contribution is broader than the iron-pair headline alone suggests.
 
 ## What v2.0 ships
 
