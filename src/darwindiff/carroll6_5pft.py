@@ -149,6 +149,7 @@ def carroll6_5pft_step(
     pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
     h_mld: float = H_MLD,
     k_fe_per_pft: tuple[float, float, float, float, float] | None = None,
+    lumped_mapping: bool = False,
 ) -> torch.Tensor:
     """One forward-Euler step of the 10-tracer 5-PFT Carroll-6 box model.
 
@@ -200,12 +201,27 @@ def carroll6_5pft_step(
         f_fe_proLL  = DFe / (DFe + k_fe_per_pft[3])
         f_fe_proHL  = DFe / (DFe + k_fe_per_pft[4])
 
-    # Per-PFT growth — 2 of 5 are learned, 3 use Carroll-2020 defaults.
-    growth_diatom = MU_DEFAULT_DIATOM * f_fe_diatom * LIGHT * P_diatom
-    growth_lge = mu_lge * f_fe_lge * LIGHT * P_lge
-    growth_syn = MU_DEFAULT_SYN * f_fe_syn * LIGHT * P_syn
-    growth_proLL = MU_DEFAULT_PROLL * f_fe_proLL * LIGHT * P_proLL
-    growth_proHL = mu_proHL * f_fe_proHL * LIGHT * P_proHL
+    # Per-PFT growth:
+    # - "specific" (default): Smallgrow learns Pro-HL only; Biggrow learns lge
+    #   only; other 3 PFTs use Carroll-2020 defaults. Each Carroll-6 rate
+    #   governs ONE species exactly.
+    # - "lumped" (Carroll 2020 SI mapping): Smallgrow applies to ALL 3 small
+    #   PFTs (Syn + Pro-LL + Pro-HL); Biggrow applies to BOTH large PFTs
+    #   (diatoms + lge). This matches how Carroll's published Smallgrow=0.661
+    #   and Biggrow=0.431 were calibrated as group-level parameters.
+    if lumped_mapping:
+        mu_for_diatom = mu_lge       # Biggrow → diatoms too
+        mu_for_syn    = mu_proHL     # Smallgrow → Syn
+        mu_for_proLL  = mu_proHL     # Smallgrow → Pro-LL
+    else:
+        mu_for_diatom = MU_DEFAULT_DIATOM
+        mu_for_syn    = MU_DEFAULT_SYN
+        mu_for_proLL  = MU_DEFAULT_PROLL
+    growth_diatom = mu_for_diatom * f_fe_diatom * LIGHT * P_diatom
+    growth_lge    = mu_lge         * f_fe_lge    * LIGHT * P_lge
+    growth_syn    = mu_for_syn     * f_fe_syn    * LIGHT * P_syn
+    growth_proLL  = mu_for_proLL   * f_fe_proLL  * LIGHT * P_proLL
+    growth_proHL  = mu_proHL       * f_fe_proHL  * LIGHT * P_proHL
     growth_total = (
         growth_diatom + growth_lge + growth_syn + growth_proLL + growth_proHL
     )
@@ -271,6 +287,7 @@ def carroll6_5pft_integrate(
     pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
     h_mld: float = H_MLD,
     k_fe_per_pft: tuple[float, float, float, float, float] | None = None,
+    lumped_mapping: bool = False,
 ) -> torch.Tensor:
     """Forward-Euler integration of the 5-PFT 10-tracer Carroll-6 + carbonate box.
 
@@ -298,7 +315,7 @@ def carroll6_5pft_integrate(
     if snapshot_indices is None:
         for _ in range(n_steps):
             state = carroll6_5pft_step(
-                state, params, dt, T, S, wind, pco2_atm, h_mld, k_fe_per_pft,
+                state, params, dt, T, S, wind, pco2_atm, h_mld, k_fe_per_pft, lumped_mapping,
             )
         return state
     snapshot_set = set(snapshot_indices)

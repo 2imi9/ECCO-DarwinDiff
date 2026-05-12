@@ -298,7 +298,9 @@ Estimated wall-clock on RTX 5090 Laptop: ~30–45 min per network (carbonate sol
     cells.append(nbf.v4.new_code_cell(r'''DT = 0.25
 N_STEPS = 200
 N_EPOCHS = int(os.environ.get("NB23_EPOCHS", "1500"))
+LUMPED_MAPPING = os.environ.get("NB23_LUMPED_MAPPING", "0") == "1"
 print(f"Training: dt={DT}, n_steps={N_STEPS}, n_epochs={N_EPOCHS}")
+print(f"Mapping mode: {'lumped (Carroll-style)' if LUMPED_MAPPING else 'specific (Pro-HL / lge only)'}")
 
 
 def train(net, env_dev, seed: int = 0) -> dict:
@@ -317,6 +319,7 @@ def train(net, env_dev, seed: int = 0) -> dict:
         state = _integrate_compiled(
             state0_dev, params, DT, N_STEPS,
             T=T_dev, S=S_dev, wind=wind_dev, pco2_atm=pco2_atm_dev, h_mld=H_MLD,
+            lumped_mapping=LUMPED_MAPPING,
         )
         dfe_pred = state[I_DFE]
         p_diatom_pred = state[I_DIATOM]
@@ -390,13 +393,21 @@ def train(net, env_dev, seed: int = 0) -> dict:
             mu_lge_p   = params[3]  # Biggrow learned, mapped to other large euks
             K_FE_local = 5.0e-5  # matches the integrator's shared K_FE
             f_fe_final = state[I_DFE] / (state[I_DFE] + K_FE_local)
-            growth_total_final = (
-                MU_DEFAULT_DIATOM * f_fe_final * state[I_DIATOM]
-                + mu_lge_p * f_fe_final * state[I_LGE]
-                + MU_DEFAULT_SYN * f_fe_final * state[I_SYN]
-                + MU_DEFAULT_PROLL * f_fe_final * state[I_PROLL]
-                + mu_proHL_p * f_fe_final * state[I_PROHL]
-            )
+            if LUMPED_MAPPING:
+                # Carroll-style: Smallgrow on all 3 small PFTs; Biggrow on both large.
+                growth_total_final = (
+                    mu_lge_p * f_fe_final * (state[I_DIATOM] + state[I_LGE])
+                    + mu_proHL_p * f_fe_final * (state[I_SYN] + state[I_PROLL] + state[I_PROHL])
+                )
+            else:
+                # "Specific" mapping: Smallgrow only on Pro-HL; Biggrow only on lge.
+                growth_total_final = (
+                    MU_DEFAULT_DIATOM * f_fe_final * state[I_DIATOM]
+                    + mu_lge_p * f_fe_final * state[I_LGE]
+                    + MU_DEFAULT_SYN * f_fe_final * state[I_SYN]
+                    + MU_DEFAULT_PROLL * f_fe_final * state[I_PROLL]
+                    + mu_proHL_p * f_fe_final * state[I_PROHL]
+                )
             iron_source = alpfe_p * PHI_DUST
             iron_sink = scav_rat_p * 86400.0 * state[I_DFE] * state[I_POC] + Q_FE * growth_total_final
             if PINN_TYPE == "drift":
@@ -680,13 +691,15 @@ plt.show()
     raw_fet_w = os.environ.get("NB23_RAW_FET_WEIGHT", "0.0")
     pinn_w = os.environ.get("NB23_PINN_WEIGHT", "0.0")
     pinn_type = os.environ.get("NB23_PINN_TYPE", "balance").lower()
+    lumped = os.environ.get("NB23_LUMPED_MAPPING", "0") == "1"
+    lumped_suffix = "_lumped" if lumped else ""
     if float(pinn_w) > 0:
         # v2.4 PINN iron variant → nb28 (balance) or nb29 (drift).
         # When raw_fet_weight is ALSO > 0 (v2.5 combo), include it in the
         # filename so combo runs don't overwrite pure-PINN runs.
         base = "29_v2_4_pinn_drift" if pinn_type == "drift" else "28_v2_4_pinn_balance"
         rfw_suffix = f"_rawfet{raw_fet_w}" if float(raw_fet_w) > 0 else ""
-        out = Path(__file__).resolve().parent.parent / "notebooks" / f"{base}_eqpac_w{pinn_w}{rfw_suffix}.ipynb"
+        out = Path(__file__).resolve().parent.parent / "notebooks" / f"{base}_eqpac_w{pinn_w}{rfw_suffix}{lumped_suffix}.ipynb"
     elif float(raw_fet_w) > 0:
         # v2.3 raw-FeT magnitude-preserving variant → nb27
         out = Path(__file__).resolve().parent.parent / "notebooks" / f"27_v2_3_raw_fet_eqpac_w{raw_fet_w}.ipynb"
