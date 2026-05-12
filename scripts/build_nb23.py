@@ -382,17 +382,23 @@ def train(net, env_dev, seed: int = 0) -> dict:
         PINN_W = float(os.environ.get("NB23_PINN_WEIGHT", "0.0"))
         PINN_TYPE = os.environ.get("NB23_PINN_TYPE", "balance").lower()
         if PINN_W > 0:
+            # Extract per-cell Carroll-6 params from the [6, H, W] tensor.
+            # Indices match carroll6_5pft: alpfe=0, scav_rat=1, Smallgrow(->ProHL)=2, Biggrow(->lge)=3.
+            alpfe_p   = params[0]
+            scav_rat_p = params[1]
+            mu_proHL_p = params[2]  # Smallgrow learned, mapped to Pro-HL
+            mu_lge_p   = params[3]  # Biggrow learned, mapped to other large euks
             K_FE_local = 5.0e-5  # matches the integrator's shared K_FE
             f_fe_final = state[I_DFE] / (state[I_DFE] + K_FE_local)
             growth_total_final = (
                 MU_DEFAULT_DIATOM * f_fe_final * state[I_DIATOM]
-                + mu_lge * f_fe_final * state[I_LGE]
+                + mu_lge_p * f_fe_final * state[I_LGE]
                 + MU_DEFAULT_SYN * f_fe_final * state[I_SYN]
                 + MU_DEFAULT_PROLL * f_fe_final * state[I_PROLL]
-                + mu_proHL * f_fe_final * state[I_PROHL]
+                + mu_proHL_p * f_fe_final * state[I_PROHL]
             )
-            iron_source = alpfe * PHI_DUST
-            iron_sink = scav_rat * 86400.0 * state[I_DFE] * state[I_POC] + Q_FE * growth_total_final
+            iron_source = alpfe_p * PHI_DUST
+            iron_sink = scav_rat_p * 86400.0 * state[I_DFE] * state[I_POC] + Q_FE * growth_total_final
             if PINN_TYPE == "drift":
                 # Relative rate of change of DFe pool (units: 1/d). Penalize
                 # when dDFe/dt is large fraction of DFe.
