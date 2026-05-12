@@ -2,11 +2,11 @@
 
 *Living doc. Update as things ship.*
 
-**Last updated:** 2026-05-10 (Track 1 **v2.0** — carbonate-extended box + 7-tracer joint loss; nb20 + nb21 + new `darwindiff.carbonate` solver + `carroll6_carbonate_integrate`).
+**Last updated:** 2026-05-11 (Track 1 **v2.2 Phase 2** — 5-PFT box-model extension. v2.0 shipped to main + tagged. v2.1 Phase 1 GLODAP-hybrid open as PR #36 with P1/P2 review-bot fixes pushed. v2.2 Phase 2 lives on branch `v2.2-5pft-box` — nb23 + nb24 executed; v2.2.1 nb25 with per-PFT K_FE training as of this writing).
 
 ## Where we are in one line
 
-Track 1 (parameter recovery) at **v2.0** — DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable end-to-end on a single GPU in ~90 minutes. **v2.0 headline:** the carbonate-extended box model + 7-tracer joint loss (nb20) moves the iron pair to within **1.1% (`alpfe`)** and **40% (`scav_rat`)** of Carroll's published values — closer in BOTH DINN baseline AND DINNDeep architectures, so the move is reproducible across network capacity, not a fitting artifact. The remaining 4 Carroll-6 parameters drift because the 5-tracer box can't simultaneously satisfy 7 Darwin field constraints — joint loss redistributes degeneracy from the iron pair onto the others. Block-CV on the same setup (nb21) tests whether carbonate extension changes nb16's r=0.301 extrapolation gap. Coverage: 3 basins × 7 targets (Chl, NO₃, FeT, POC, PIC, DIC, ALK, + diagnostic CO₂ flux). **Track 1 closed locally on a single GPU**; B200 cluster burn-in pitch sent to MIT ORCD 2026-05-10 (Jonathan Lauderdale); cluster work scales the same scope to global resolution + Track 2 emulator.
+Track 1 (parameter recovery) at **v2.2 Phase 2 in flight** — DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable end-to-end on a single GPU in ~70 min per training run. **v2.0 (merged to main, tag `v2.0`):** carbonate-extended 7-tracer box + 7-tracer joint loss recovers the iron pair to calibration-grade against Carroll's published Green's-functions optima (`alpfe` 1.1%, `scav_rat` 40% off Carroll); other 4 parameters drift because the 2-PFT box averages across species with very different physical rates. **v2.1 Phase 1 (PR #36 open):** nb22 swaps Darwin DIC + ALK for GLODAPv2.2016b real ocean observations as a hybrid target. `R_PICPOC` moves from 360% off Carroll to 74% off (most dramatic single-parameter improvement on the project); iron pair degrades against Carroll (real Darwin-vs-reality coupling artifact). **v2.2 Phase 2 (branch `v2.2-5pft-box`, 8 commits ahead of main):** nb23 replaces the 2-PFT box with a 5-PFT box matching Darwin 3 v05 (diatoms, other large euks, Synechococcus, Pro-LL, Pro-HL); each Carroll-6 parameter now governs one specific PFT instead of an average. nb23 hits **3 of 6 Carroll-6 params at calibration-grade** (`Biggrow`, `diatomgraz`, `scav_rat`) but `alpfe` regresses out of calibration-grade — suspected shared-K_FE aliasing. nb24 (Phase 2 + GLODAP combo) degraded (1/6); combo rejected for Eq Pacific. v2.2.1 nb25 tests per-PFT K_FE half-saturations; results pending. Coverage: 3 basins × 11 targets (FeT + 5 separate Chl_i + POC + PIC + DIC + ALK + CO₂_flux). **Track 1 closed locally on a single GPU**; B200 cluster burn-in pitch sent to MIT ORCD 2026-05-10 (Jonathan Lauderdale); cluster work scales the same scope to global resolution + Track 2 emulator (gated on PhysicsNeMo adoption — see [`docs/future_work_checklist.md`](docs/future_work_checklist.md)).
 
 ## Most important findings so far
 
@@ -36,6 +36,14 @@ Track 1 (parameter recovery) at **v2.0** — DarwinDiff is a gradient-based repl
 
 13. **Carbonate also closes the spatial-extrapolation gap from nb16 (nb21).** Block cross-validation on the same 7-tracer carbonate setup (western 2/3 train, eastern 1/3 test, target z-scores from train cells only) gives DINNDeep held-out test r = **0.637 on FeT** — more than doubling nb16's r = 0.301 baseline with single-target FeT. Mean test r across all 7 tracers = **0.745**. DIC and ALK extrapolate near-perfectly (test r > 0.97 with train-test gap < 0.02). DINN baseline can't extrapolate even with the extra signals (test mean r = −0.273) — its ~400 params are too small to learn a generalizable function from the train block. **The v1.5 "DINNDeep is interpolation only" finding was specific to single-target FeT loss; with the broader 7-tracer carbonate loss, DINNDeep's extrapolation is meaningfully better.** Two architectures, two roles: DINN baseline = calibration-grade parameter recovery (nb20); DINNDeep = fit quality + spatial generalization (nb21). **Carbonate constraints provide BOTH identifiability AND generalization.**
 
+14. **GLODAP real-obs DIC + ALK target dramatically improves `R_PICPOC` recovery but degrades the iron pair (nb22 / v2.1 Phase 1, PR #36).** Swapped Darwin's internal DIC + ALK for GLODAPv2.2016b mapped-climatology real ocean observations as a hybrid target (FeT + Chl + POC + PIC + CO₂_flux stay on Darwin output; DIC + ALK come from GLODAP). `R_PICPOC` moves from **360% off Carroll's published value → 74% off** — the most dramatic single-parameter improvement on the project so far. But `scav_rat` simultaneously degrades from 40% off → 92% off Carroll. Three coupled phenomena (full breakdown in [`docs/findings/v2.1_phase1_glodap.md`](docs/findings/v2.1_phase1_glodap.md) — on PR #36 branch): (a) GLODAP ALK is a stronger CaCO₃ constraint than Darwin's internal ALK, pulling `R_PICPOC` toward Carroll; (b) the box-model carbonate-iron coupling that v2.0's `scav_rat` recovery implicitly relied on differs between Darwin and reality, breaking the iron-pair calibration against Carroll; (c) DIC + ALK per-tracer fit quality drops (0.985→0.942 on DIC; 0.986→0.963 on ALK) — real fields have spatial structure the 5-tracer box can't reproduce as cleanly as Darwin's smooth self-consistent fields. **Phase 1 does NOT fix the box; the box-model bottleneck v2.0 exposed is still the binding constraint.**
+
+15. **5-PFT box-model extension recovers 3 of 6 Carroll-6 params at calibration-grade — but `alpfe` regresses (nb23 / v2.2 Phase 2).** Replaced the 2-PFT lumped phytoplankton (`Ps` + `Pl`) with 5 distinct functional types matching Darwin 3 v05 (state vector 7 → 10); each Carroll-6 parameter now governs one specific PFT instead of an average over multiple species (`Smallgrow`→Pro-HL, `Biggrow`→other-large-euks, `diatomgraz`→diatoms). 11-target z-scored loss (FeT + Chl1..Chl5 separately + POC + PIC + DIC + ALK + CO₂_flux). **DINN baseline goal check vs Carroll's published Green's-functions:** `alpfe` 0.891 off (Loose, regressed from v2.0's 1.1%); `scav_rat` 0.300 off (✓ Calibration-grade); `Smallgrow` 1.244 off (Drifted); `Biggrow` 0.326 off (✓ Cal-grade, moved up from Drifted in v2.0); `diatomgraz` 0.282 off (✓ Cal-grade, moved up from Loose); `R_PICPOC` 0.738 off (Loose, moved up from Drifted). **3 of 6 at calibration-grade.** The structural fix moved 3 of the 4 v2.0-drifted parameters toward Carroll, but the shared `K_FE` simplification across PFTs aliases the iron-pair recovery — Pro-HL (47% biomass, oligotrophic Fe specialist) and diatoms (30% biomass, Fe-demanding) being forced to share one half-saturation pushes `alpfe` off-optimum. Full v2.2 record at [`docs/findings/v2.2_phase2.md`](docs/findings/v2.2_phase2.md).
+
+16. **5-PFT + GLODAP hybrid combo does NOT compound — interventions conflict on this AOI (nb24).** Stacked Phase 2 (5-PFT box) + Phase 1 (GLODAP DIC + ALK target). DINN baseline got only **1 of 6** params to calibration-grade vs nb23's 3 of 6. Direction of failure: `scav_rat` lost cal-grade status, `Biggrow` regressed dramatically, `R_PICPOC` regressed. The one big win was `diatomgraz` jumping to **Excellent (0.5–8% off Carroll, DINNDeep at 0.005)** — the best single-parameter recovery on this project. GLODAP ALK lit up the diatom-grazing-driven calcification signal, but Darwin-Chl and GLODAP-carbonate are incompatible constraints on the same parameter set. **Phase 2 + Phase 1 combo strategy rejected for Eq Pacific.**
+
+17. **Methodology rules locked in tonight.** Two project-level decisions captured to auto-memory + `CONTRIBUTING.md` for future sessions: (a) **Recovery analyses compare against Carroll's published Green's-functions optima — not against prior notebooks.** The headline is "did the parameter learner catch the goal?" not "did v2.2 beat v2.0?" Inter-notebook deltas are supplementary methodology context, never the headline. (b) **From v2.2.x onward, train DINN baseline only — drop DINNDeep.** DINNDeep saturates trivially (r→1.0 on biomass tracers) and recovers fewer calibration-grade Carroll-6 params than the baseline; halves wall-clock from ~70 min to ~35 min per notebook. The nb20/nb21 dual-network framing was right for the v2.0 saturation-ceiling argument but stops adding value at the Phase 2 recovery-quality question.
+
 ## Headline results table
 
 All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial coupling) versus a global-scalar Green's-functions baseline, against z-scored Darwin (or GLODAP) target over a Mid-Atlantic-sized AOI. Hyperparameters held constant (Adam lr=5e-3, 200 forward-Euler integration steps, identical box model).
@@ -55,6 +63,10 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 | **19** | **Equatorial Pacific** | **FeT + Chl + POC + PIC (joint)** | **DINNDeep + multi-tracer** | **all 4 ≥ 0.998** | — *(saturated, see caveat)* |
 | **20** | **Equatorial Pacific** | **7-tracer carbonate joint** | **DINN baseline + carbonate** | *poor (-0.36 to 0.62)* | *iron pair within 1.1%/40% of Carroll — v2.0 headline recovery* |
 | **20** | **Equatorial Pacific** | **7-tracer carbonate joint** | **DINNDeep + carbonate** | *all ≥ 0.88* | *scav_rat closer to Carroll in both architectures (robust)* |
+| **22** | **Equatorial Pacific** | **7-tracer hybrid (GLODAP DIC + ALK)** | **DINN baseline + carbonate** | *R_PICPOC 360%→74% off Carroll* | *v2.1 Phase 1 headline — most dramatic single-param improvement; iron pair degraded* |
+| **23** | **Equatorial Pacific** | **11-target 5-PFT box (Darwin)** | **DINN baseline (5-PFT)** | *3 / 6 calibration-grade* | *v2.2 Phase 2 — Biggrow + diatomgraz + scav_rat hit ≤ 40% off Carroll; alpfe regressed* |
+| **24** | **Equatorial Pacific** | **11-target 5-PFT + GLODAP DIC/ALK combo** | **DINN baseline (5-PFT, hybrid)** | *1 / 6 cal-grade; diatomgraz to 0.5% off* | *combo rejected; conflict between Darwin-Chl and GLODAP-carbonate constraints* |
+| **25** | **Equatorial Pacific** | **11-target 5-PFT + per-PFT K_FE** | **DINN baseline (v2.2.1)** | *executing as of this writing* | *tests whether per-PFT K_FE breaks the shared-K_FE aliasing pushing alpfe off-optimum* |
 
 ## Done — checklist
 
@@ -90,6 +102,10 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] **19** — Multi-tracer joint loss on Eq Pacific (Track 1 v1.8) — 4-tracer constraint partially collapses degeneracy (3/6 Carroll-6 parameters closer to published); iron pair stays underconstrained without depth-resolved observations
 - [x] **20** — Carbonate-extended box + 7-tracer joint loss on Eq Pacific (**Track 1 v2.0 headline**) — iron pair moves to within 1.1%/40% of Carroll's published; reproducible across DINN baseline + DINNDeep architectures; full record at [`docs/findings/v2_track1_closeout.md`](docs/findings/v2_track1_closeout.md)
 - [x] **21** — Block-CV check on the 7-tracer carbonate setup (Track 1 v2.0) — tests whether carbonate extension reduces nb16's r=0.301 extrapolation gap
+- [x] **22** — GLODAPv2.2016b real-obs DIC + ALK hybrid (Track 1 v2.1 Phase 1, PR #36) — `R_PICPOC` dramatic improvement (360% → 74% off Carroll); iron pair degraded; full record at [`docs/findings/v2.1_phase1_glodap.md`](docs/findings/v2.1_phase1_glodap.md)
+- [x] **23** — 5-PFT box-model extension (Track 1 v2.2 Phase 2) — 3 of 6 Carroll-6 params at calibration-grade against Carroll's published optima; `alpfe` regressed (shared-K_FE aliasing)
+- [x] **24** — 5-PFT + GLODAP DIC/ALK combo (Track 1 v2.2) — 1 of 6 cal-grade; combo strategy rejected for Eq Pacific; `diatomgraz` to 0.5% off Carroll (best single-param recovery on project)
+- [ ] **25** — 5-PFT + per-PFT K_FE half-saturations (Track 1 v2.2.1) — executing as of this writing; tests whether per-PFT differentiation restores `alpfe` to calibration-grade
 
 ### Decisions and scope locked
 
@@ -100,20 +116,33 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 
 ## In progress / next
 
-### Highest priority (nb15 reordered the queue)
+See [`docs/future_work_checklist.md`](docs/future_work_checklist.md) for the full prioritized backlog (methodology stages not yet applied, Jon-shared datasets not yet wired in, PhysicsNeMo reading queue for Track 2, reference papers).
 
-- [ ] **Box-model extension** to add DIC + ALK + carbonate chemistry. nb15 showed that network architecture is no longer the recovery ceiling — the 5-tracer simplification is. Extending the box model is the path to actually matching Carroll's published values rather than producing degenerate solutions that fit the FeT field. Enables fitting Darwin's air-sea CO₂ flux pattern directly (closer to what Carroll 2022 was actually calibrated against), and unlocks adding DIC to the multi-tracer joint loss.
-- [x] ~~**Multi-tracer joint loss** (NO₃ + Chl + DIC + FeT simultaneously)~~ — done in **nb19** (Track 1 v1.8), using FeT + Chl + POC + PIC against carroll6's existing 5-tracer state. Partially collapses parameter degeneracy (3/6 Carroll-6 closer to published). Adding DIC to the joint loss requires the box-model carbonate extension above; adding NO₃ is a lower-priority extension.
+### Highest priority — closing v2.2
 
-### Ready to start (no new data needed)
+- [ ] **nb25 execution** — 5-PFT box + per-PFT K_FE half-saturations (v2.2.1). Training as of this writing. Tests whether per-PFT differentiation breaks the shared-K_FE aliasing that pushed `alpfe` off-optimum in nb23. Success criterion: 4+ of 6 Carroll-6 params at calibration-grade.
+- [ ] **PR #36 (v2.1 Phase 1) merge decision** — P1 + P2 review-bot fixes pushed (`43173f7` on `claude/v2.1-glodap-real-obs`); awaiting re-review and user merge call.
+- [ ] **v2.2-5pft-box PR** — open once nb25 result is in. Branch is 8 commits ahead of main.
 
-- [ ] Re-run nb11 / nb13 / nb14 with DINNDeep + multi-channel input. nb15's r=1.000 finding should generalize across (AOI, target) combos. Useful for showing the upper bound of the current methodology even if it doesn't improve recovery.
-- [ ] Re-execute nb09 to refresh outputs (cleared at v0.95 closeout, never re-run).
+### Methodology gaps to apply to v2.2
 
-### Larger scope
+- [ ] **Block CV on nb23 / nb25** — mirror v2.0 nb21. Currently no spatial CV evidence for Phase 2; the "3 of 6 cal-grade" headline could be an Eq-Pacific-specific artifact. ~3 h on RTX 5090 or queue for cluster.
+- [ ] **Multi-seed robustness** — re-run nb23 / nb25 with seeds 0–4; report mean ± std. All Phase 2 runs are seed=0; no evidence the result isn't seed-dependent.
+- [ ] **Cross-basin** — train on Eq Pacific, test on Mid-Atlantic + N Pacific (existing AOIs).
 
-- [ ] Time-resolved fitting (use all available monthly snapshots instead of climatology). Opens Track 2 emulator territory — requires the model to learn temporal dynamics, not just spatial patterns.
-- [ ] Pacific AOI confirmation: we've been using 5°S–15°N, 160°W–110°W for the Equatorial Pacific HNLC test. Open to refining.
+### Datasets shared by Jon to add (priority order, see checklist for full reasoning)
+
+- [ ] **GEOTRACES IDP2025** — direct iron obs; Phase 3 candidate; directly attacks the alpfe/scav_rat regression.
+- [ ] **Ocean color satellite Chl** — per-PFT Chl validation; URL pending from Jon.
+- [ ] **SOCAT v2025** — surface pCO₂; Phase 4 candidate (forward Darwin CO₂ flux validation).
+- [ ] **BGC-Argo** — depth-resolved sparse-obs; Phase 5 candidate.
+- [ ] **ECCO-Darwin LLC90 1° baseline** — URL pending; ECCO portal in maintenance 2026-05-11/12.
+
+### Track 2 emulator (gated on cluster + PhysicsNeMo)
+
+- [ ] **PhysicsNeMo reading queue** — Tier 1 (FNO, AFNO, GraphCastNet, HEALPixRecUNet, `physicsnemo.sym`) + Tier 3 (custom-model authoring + PyTorch conversion + multi-GPU). ~6 h focused. See [`docs/future_work_checklist.md`](docs/future_work_checklist.md). Do AFTER v2.2 closeout.
+- [ ] **Prognostic validation (Brenowitz & Bretherton 2018)** — run learned Carroll-6 parameters back through actual forward Darwin v05 on the cluster; check long-term stability + R² against real ocean fields. Cluster-gated.
+- [ ] **Time-resolved fitting** — use all available monthly snapshots instead of climatology. Required for Track 2 emulator (must learn temporal dynamics).
 
 ## Open questions worth tracking
 
