@@ -371,12 +371,16 @@ def train(net, env_dev, seed: int = 0) -> dict:
             l_fet_raw = (residual_raw ** 2).sum() / mask_dev.sum().to(residual_raw.dtype) / fet_obs_scale
             loss = loss + RAW_FET_W * l_fet_raw
 
-        # v2.4: PINN iron mass-balance constraint. Couples alpfe and scav_rat
-        # through their physical relationship: at quasi-steady state, the iron
-        # source (alpfe x PHI_DUST) should equal the iron sink (scav_rat x DFe
-        # x POC + Q_FE x total_growth). Normalized by mean source magnitude
-        # so the weight is dimensionless.
+        # v2.4: PINN iron mass-balance constraint. Two variants:
+        # - "balance" (default): strict source = sink at final state, normalized
+        #   by mean source magnitude. Assumes the 50-day window is enough for
+        #   quasi-steady state.
+        # - "drift": penalizes relative rate of change dDFe/dt / DFe, which is
+        #   physically more defensible since it doesn't require strict steady
+        #   state -  only that the iron pool isn't growing/shrinking fast
+        #   relative to its current size (i.e., turnover-time < spin-up time).
         PINN_W = float(os.environ.get("NB23_PINN_WEIGHT", "0.0"))
+        PINN_TYPE = os.environ.get("NB23_PINN_TYPE", "balance").lower()
         if PINN_W > 0:
             K_FE_local = 5.0e-5  # matches the integrator's shared K_FE
             f_fe_final = state[I_DFE] / (state[I_DFE] + K_FE_local)
@@ -389,9 +393,16 @@ def train(net, env_dev, seed: int = 0) -> dict:
             )
             iron_source = alpfe * PHI_DUST
             iron_sink = scav_rat * 86400.0 * state[I_DFE] * state[I_POC] + Q_FE * growth_total_final
-            iron_norm = iron_source[mask_dev].abs().mean().clamp(min=1e-12)
-            imbalance = (iron_source - iron_sink) / iron_norm
-            l_pinn_iron = ((imbalance ** 2) * mask_dev.to(imbalance.dtype)).sum() / mask_dev.sum().to(imbalance.dtype)
+            if PINN_TYPE == "drift":
+                # Relative rate of change of DFe pool (units: 1/d). Penalize
+                # when dDFe/dt is large fraction of DFe.
+                dDFe_dt = iron_source - iron_sink  # mmol Fe / m^3 / d
+                rel_rate = dDFe_dt / state[I_DFE].clamp(min=1e-10)
+                l_pinn_iron = ((rel_rate ** 2) * mask_dev.to(rel_rate.dtype)).sum() / mask_dev.sum().to(rel_rate.dtype)
+            else:  # "balance" (default)
+                iron_norm = iron_source[mask_dev].abs().mean().clamp(min=1e-12)
+                imbalance = (iron_source - iron_sink) / iron_norm
+                l_pinn_iron = ((imbalance ** 2) * mask_dev.to(imbalance.dtype)).sum() / mask_dev.sum().to(imbalance.dtype)
             loss = loss + PINN_W * l_pinn_iron
 
         loss.backward()
@@ -662,9 +673,13 @@ plt.show()
     fet_w = os.environ.get("NB23_FET_WEIGHT", "1.0")
     raw_fet_w = os.environ.get("NB23_RAW_FET_WEIGHT", "0.0")
     pinn_w = os.environ.get("NB23_PINN_WEIGHT", "0.0")
+    pinn_type = os.environ.get("NB23_PINN_TYPE", "balance").lower()
     if float(pinn_w) > 0:
-        # v2.4 PINN iron mass-balance variant → nb28
-        out = Path(__file__).resolve().parent.parent / "notebooks" / f"28_v2_4_pinn_iron_eqpac_w{pinn_w}.ipynb"
+        # v2.4 PINN iron variant → nb28 (balance) or nb29 (drift)
+        if pinn_type == "drift":
+            out = Path(__file__).resolve().parent.parent / "notebooks" / f"29_v2_4_pinn_drift_eqpac_w{pinn_w}.ipynb"
+        else:
+            out = Path(__file__).resolve().parent.parent / "notebooks" / f"28_v2_4_pinn_balance_eqpac_w{pinn_w}.ipynb"
     elif float(raw_fet_w) > 0:
         # v2.3 raw-FeT magnitude-preserving variant → nb27
         out = Path(__file__).resolve().parent.parent / "notebooks" / f"27_v2_3_raw_fet_eqpac_w{raw_fet_w}.ipynb"
