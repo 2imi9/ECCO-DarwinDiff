@@ -2,65 +2,75 @@
 
 GEOTRACES IDP (Intermediate Data Product) is the authoritative compilation
 of trace-element observations from research cruises worldwide. IDP2025 is
-the latest release (June 2025), containing 23,912 dissolved iron values
-across the global ocean — the **absolute-units, depth-resolved iron data**
+the June 2025 release, containing **23,912 dissolved iron observations**
+across the global ocean — the absolute-units, depth-resolved iron data
 that resolves the alpfe ↔ scav_rat identifiability degeneracy left
-unresolved by the v2.2 closeout.
+unresolved by the v2.2 closeout and Wave 3 follow-ups.
 
-**Why GEOTRACES specifically.** Across 22 v2.2 experiments + 3 Wave 3
-follow-ups (2026-05-12), ``alpfe`` sat at 0.80–0.94 off Carroll regardless
-of loss design — except one configuration (``raw_fet w=0.01`` standalone)
-which moved alpfe to 0.392 but broke scav_rat to 2.556. The structural
-explanation: z-scored FeT loss normalizes away the absolute iron
-magnitude that alpfe controls (dust solubility coefficient × atmospheric
-dust flux). Adding GEOTRACES iron in absolute units (nmol/kg) as an
-additional loss term ties the recovered DFe field to a real scale,
-breaking the alpfe-scav_rat degeneracy without sacrificing one for the
-other.
+**Why GEOTRACES specifically.** Across 25 experiments (v2.2 + Wave 3),
+``alpfe`` sat at 0.80–0.94 off Carroll regardless of loss design —
+except one configuration (``raw_fet w=0.01`` standalone) which moved
+alpfe to 0.392 but broke scav_rat to 2.556. The structural explanation:
+z-scored FeT loss normalizes away the absolute iron magnitude that
+alpfe controls (dust solubility coefficient × atmospheric dust flux).
+Adding GEOTRACES iron in absolute units (nmol/kg) as an additional loss
+term ties the recovered DFe field to a real scale, breaking the
+alpfe-scav_rat degeneracy without sacrificing one for the other.
 
-**Data product.** IDP2025 distributes in ASCII, NetCDF (ODV), and Ocean
-Data View collection formats via DOI ``10.5285/42c92148-8d03-8be6-e063-7086abc09f0c``.
-We use the NetCDF ODV format because it preserves the discrete-bottle
-schema (irregular cruise stations at lat/lon/depth/time), unit metadata,
-and per-cruise provenance the ASCII tables strip.
+**Real schema (validated against the IDP2025 NetCDF, 2026-05-12).** The
+v2.5 scaffold loader (PR #39) assumed an IDP2017-style schema with
+``_BOTTLE``/``_PUMP`` suffixes and 1D ``(N_SAMPLES,)`` structure. The
+real IDP2025 NetCDF is different:
 
-**Format.** Unlike GLODAP's regular 1°×1° gridded climatology, GEOTRACES
-bottle data is **discrete and irregular**: each row is one bottle sample
-on one cruise at one (lat, lon, depth, time). For DarwinDiff's
-AOI-on-regular-grid fits, this loader provides three layers:
+    Dims:   N_STATIONS = 4094, N_SAMPLES = 698 (per-station bottles)
+    Coords: latitude, longitude (lowercase, per-station, 0..360 lon)
+            date_time (per-station, datetime64)
+            Bot_Depth (per-station, m)
+    Per-sample: DEPTH (N_STATIONS, N_SAMPLES) in meters
+    Iron vars: Fe_D_CONC, Fe_II_D_CONC, Fe_S_CONC, Fe_TP_CONC,
+              Fe_TPL_CONC, Fe_TPR_CONC, Fe_LPT_CONC, Fe_MPT_CONC,
+              Fe_SPT_CONC, Fe_SPL_CONC, Fe_56_54_D_DELTA, Fe_CELL_CONC
+              all shape (N_STATIONS, N_SAMPLES), units nmol/kg
+              (Fe_56_54_D_DELTA is per-mil isotope ratio, Fe_CELL_CONC
+              is amol/cell)
+    Companions: each iron var has *_err (1σ uncertainty) and *_qc
+              (quality-control flag) of the same shape
+    Fill value: -1.0e10 (replaced with NaN in the loader)
+    QC flag convention (SeaDataNet, stored as ASCII char codes — NOT
+    plain integer flags as the older GEOTRACES IDPs used):
+        48 = '0' = no_quality_control
+        49 = '1' = good_value          ← default keep
+        50 = '2' = probably_good_value ← default keep
+        51 = '3' = probably_bad_value
+        52 = '4' = bad_value
+        53 = '5' = changed_value
+        54 = '6' = value_below_detection
+        55 = '7' = value_in_excess
+        56 = '8' = interpolated_value
+        57 = '9' = missing_value
+        65 = 'A' = value_phenomenon_uncertain
+        66 = 'B' = nominal_value
+        81 = 'Q' = value_below_limit_of_quantification
 
-    1. ``open_geotraces_bottle``   — raw discrete dataset, all stations.
-    2. ``subset_aoi_geotraces``    — filter to an AOI lat/lon box.
-    3. ``bin_to_grid``             — bin discrete observations to a 1°
-                                     regular grid for AOI-compatible fits.
+Iron values are SPARSE — only ~0.8% of the (N_STATIONS × N_SAMPLES)
+grid has Fe_D_CONC measured. The loader unpacks to flat sample arrays
+before AOI subsetting and grid binning.
 
-**Variable naming.** GEOTRACES uses ``<Param>_<Type>_CONC_<Phase>``:
-
-    Fe_D_CONC_BOTTLE   — Dissolved Fe from bottle samples (nmol/kg)
-    Fe_T_CONC_BOTTLE   — Total Fe from bottle samples (nmol/kg)
-    Fe_S_CONC_BOTTLE   — Soluble Fe from filtered bottle samples
-    Fe_TP_CONC_PUMP    — Total particulate Fe from pump samples
-
-Only dissolved Fe (``Fe_D_CONC_BOTTLE``) is mapped here at v2.5; other
-phases can be added when the v2.6+ loss extends to particulate iron.
+**Format chosen.** NetCDF (ODV-style) from the bulk-download DOI
+``10.5285/42c92148-8d03-8be6-e063-7086abc09f0c``. ASCII and ODV
+collection formats also distributed but are awkward for the discrete-
+bottle schema; the NetCDF preserves cruise/station provenance, unit
+metadata, and per-station coordinates cleanly.
 
 **Unit convention.** GEOTRACES reports concentrations as **nmol per kg
-of seawater**. DarwinDiff's box model uses **mmol per m³**. Conversion at
-surface seawater density (ρ_sw ≈ 1025 kg/m³):
+of seawater**. DarwinDiff's box model uses **mmol per m³**. Conversion
+at surface seawater density (ρ_sw ≈ 1025 kg/m³):
 
     1 nmol/kg = 1e-6 mmol/kg × 1025 kg/m³ = 1.025 × 10⁻³ mmol/m³
 
 Or equivalently multiply GEOTRACES by ``RHO_SW * 1e-6`` to get our
 internal units. Same ``RHO_SW`` constant as ``darwindiff.glodap_loader``
 and ``darwindiff.carbonate``, kept in sync deliberately.
-
-**Schema assumptions.** The loader is built against the documented GEOTRACES
-IDP variable-naming conventions (IDP2014/2017/2021/2025). The schema may
-be refined in v2.5.1 once IDP2025 NetCDFs are on disk and the exact
-variable names + coordinate conventions are confirmed against the data.
-Tests use a synthetic fixture matching the documented schema; the opt-in
-``test_real_idp2025_iron`` test gates on the real download to validate
-against actual bytes.
 
 Source: GEOTRACES Standards and Intercalibration Committee, IDP2025
         https://www.geotraces.org/idp2025/
@@ -76,15 +86,17 @@ import xarray as xr
 
 from darwindiff.ecco_darwin_loader import AOI
 
-# Friendly DarwinDiff name → GEOTRACES IDP variable name. Add new phases
-# as the loss surface extends. Names follow the standard IDP naming
-# convention; verify against the actual IDP2025 NetCDF metadata when the
-# data is downloaded.
+# Friendly DarwinDiff name → GEOTRACES IDP2025 variable name.
+#
+# IDP2025 drops the ``_BOTTLE``/``_PUMP`` suffixes the older IDPs used —
+# the sampling method is recorded in per-station metadata
+# (``Sampling_Devices``) but not the variable name. Each entry below is
+# validated against the real ``GEOTRACES_IDP2025_Seawater.nc`` schema.
 GEOTRACES_VAR_MAP: dict[str, str] = {
-    "Fe_D":  "Fe_D_CONC_BOTTLE",   # Dissolved iron, nmol/kg — alpfe target
-    "Fe_T":  "Fe_T_CONC_BOTTLE",   # Total iron, nmol/kg
-    "Fe_S":  "Fe_S_CONC_BOTTLE",   # Soluble iron, nmol/kg
-    "Fe_TP": "Fe_TP_CONC_PUMP",    # Total particulate iron from pump
+    "Fe_D":  "Fe_D_CONC",      # Dissolved iron, nmol/kg — primary alpfe target
+    "Fe_S":  "Fe_S_CONC",      # Soluble iron, nmol/kg
+    "Fe_TP": "Fe_TP_CONC",     # Total particulate iron, nmol/kg
+    "Fe_II_D": "Fe_II_D_CONC", # Dissolved Fe(II), nmol/kg
 }
 
 RHO_SW: float = 1025.0
@@ -94,25 +106,43 @@ use, kept in sync deliberately."""
 
 _NMOL_PER_KG_TO_MMOL_PER_M3: float = RHO_SW * 1.0e-6
 
+# IDP2025 fill value: any value at or below this threshold is missing.
+# The NetCDF declares ``_FillValue = -1.00000e+10`` for float arrays.
+FILL_VALUE_THRESHOLD: float = -1.0e9
 
-def open_geotraces_bottle(
-    geotraces_path: str | Path,
-) -> xr.Dataset:
-    """Open the IDP2025 bottle-data NetCDF, normalize coordinates.
+# Good-quality QC flags. IDP2025 stores SeaDataNet QC codes as ASCII
+# character codes: 49 = '1' = good_value; 50 = '2' = probably_good_value.
+# Default filter to {49, 50}; everything else is excluded unless caller
+# opts in via the ``qc_flags`` argument. See module docstring for the
+# full code table.
+QC_GOOD_VALUE: int = 49
+QC_PROBABLY_GOOD_VALUE: int = 50
+QC_GOOD: tuple[int, ...] = (QC_GOOD_VALUE, QC_PROBABLY_GOOD_VALUE)
 
-    Standardizes longitude to ``-180..180`` (DarwinDiff's AOI convention).
-    GEOTRACES IDP files use either ``-180..180`` or ``0..360`` depending on
-    the cruise; we detect and normalize.
+
+def open_geotraces_bottle(geotraces_path: str | Path) -> xr.Dataset:
+    """Open the IDP2025 Seawater NetCDF, normalize longitude, mask fill values.
+
+    Reads the canonical IDP2025 NetCDF (``GEOTRACES_IDP2025_Seawater.nc``)
+    and performs three boundary normalizations so downstream code sees a
+    well-conditioned dataset:
+
+    - Longitude rolled from 0..360 to -180..180 (DarwinDiff's AOI
+      convention).
+    - Fill-value sentinels (``-1.0e10``) on iron + depth variables
+      replaced with ``NaN`` so finite-mask filtering works naturally.
+    - Iron variables kept on 2D ``(N_STATIONS, N_SAMPLES)`` shape; AOI
+      subsetting and grid binning unpack to 1D internally.
 
     Args:
         geotraces_path: path to the IDP2025 NetCDF (e.g.
-            ``GEOTRACES_IDP2025_v1_Discrete_Sample_Data.nc``).
+            ``D:\\geotraces\\GEOTRACES_IDP2025_Seawater.nc``).
 
     Returns:
-        ``xr.Dataset`` with discrete-sample observations along an ``N_SAMPLES``
-        dimension; coordinates ``Latitude``, ``Longitude``, ``DEPTH`` (or
-        ``Pressure``), ``time``; variables include the iron measurements
-        listed in :data:`GEOTRACES_VAR_MAP` (those present in this file).
+        ``xr.Dataset`` with the IDP2025 schema preserved (dims
+        ``N_STATIONS``, ``N_SAMPLES``), longitude normalized to
+        ``-180..180``, fill values replaced with NaN on iron + depth
+        variables.
 
     Raises:
         FileNotFoundError: if the NetCDF is not at the given path.
@@ -121,32 +151,42 @@ def open_geotraces_bottle(
     if not path.is_file():
         raise FileNotFoundError(f"GEOTRACES IDP file not found: {path}")
     ds = xr.open_dataset(path)
-    # Normalize longitude to -180..180 if needed.
-    if "Longitude" in ds and float(ds.Longitude.max()) > 180.0:
+    # Roll longitude 0..360 → -180..180.
+    if "longitude" in ds and float(ds.longitude.max()) > 180.0:
         ds = ds.assign_coords(
-            Longitude=(((ds.Longitude + 180) % 360) - 180)
+            longitude=(((ds.longitude + 180) % 360) - 180)
         )
+    # Mask fill values on iron + depth variables. Iron variables follow
+    # the ``Fe...`` or ``L*Fe...`` naming pattern; DEPTH is the per-sample
+    # depth coordinate. Other char / qc fields are left alone.
+    for v in ds.data_vars:
+        if (v.startswith("Fe_") or v.startswith("L1Fe_") or v.startswith("L2Fe_")
+                or v.startswith("LFe_") or v == "DEPTH"):
+            ds[v] = ds[v].where(ds[v] > FILL_VALUE_THRESHOLD)
     return ds
 
 
 def subset_aoi_geotraces(ds: xr.Dataset, aoi: AOI) -> xr.Dataset:
     """Filter discrete bottle samples to those inside an AOI box.
 
-    GEOTRACES bottle data is irregular (samples at arbitrary lat/lon along
-    cruise tracks), so AOI subsetting is a boolean filter on the sample
-    dimension rather than a ``sel`` slice.
+    GEOTRACES is per-station — coordinates are stored once per station,
+    and each station holds up to 698 bottle samples down a cast. AOI
+    subsetting filters STATIONS by their (lat, lon) and keeps every
+    sample on those stations.
 
     Args:
-        ds: GEOTRACES dataset with ``Latitude`` and ``Longitude`` coords
-            (already normalized to ``-180..180`` via :func:`open_geotraces_bottle`).
+        ds: GEOTRACES dataset (already opened via :func:`open_geotraces_bottle`,
+            so longitude is in ``-180..180`` convention).
         aoi: AOI in ``-180..180`` convention.
 
     Returns:
-        ``xr.Dataset`` filtered to samples inside the AOI bounding box.
+        ``xr.Dataset`` filtered along the ``N_STATIONS`` dimension.
+        Stations outside the AOI are dropped; all samples on retained
+        stations are kept.
     """
-    in_lat = (ds.Latitude >= aoi.lat_min) & (ds.Latitude <= aoi.lat_max)
-    in_lon = (ds.Longitude >= aoi.lon_min) & (ds.Longitude <= aoi.lon_max)
-    return ds.where(in_lat & in_lon, drop=True)
+    in_lat = (ds.latitude >= aoi.lat_min) & (ds.latitude <= aoi.lat_max)
+    in_lon = (ds.longitude >= aoi.lon_min) & (ds.longitude <= aoi.lon_max)
+    return ds.isel(N_STATIONS=(in_lat & in_lon).values)
 
 
 def bin_to_grid(
@@ -156,31 +196,44 @@ def bin_to_grid(
     lat_res: float = 1.0,
     lon_res: float = 1.0,
     depth_max: float = 50.0,
+    qc_flags: tuple[int, ...] = QC_GOOD,
 ) -> xr.DataArray:
-    """Bin discrete GEOTRACES samples to a regular 1°×1° grid in an AOI.
+    """Bin discrete GEOTRACES samples to a regular 1°×1° AOI grid.
 
-    Aggregates all bottle samples within each (lat, lon) bin and shallower
-    than ``depth_max`` (default 50 m surface mixed layer) by simple mean.
-    Empty bins are NaN. The output grid matches the DarwinDiff AOI
-    convention (1° cell centers offset by 0.5°).
+    Flattens the 2D ``(N_STATIONS, N_SAMPLES)`` discrete-bottle dataset
+    into a list of finite, QC-passing, surface samples and bins them to
+    a regular lat/lon grid by simple mean per cell. Bin edges are aligned
+    at integer degrees; cell centers are at integer + 0.5°. Empty bins
+    return ``NaN``.
+
+    Each station's (lat, lon) is broadcast to all its samples before
+    binning, so multiple bottles from the same station vote into the
+    same bin.
 
     Args:
-        ds: pre-AOI-subset GEOTRACES dataset (use :func:`subset_aoi_geotraces`).
-        variable: friendly name from :data:`GEOTRACES_VAR_MAP`.
+        ds: pre-AOI-subset GEOTRACES dataset (use :func:`subset_aoi_geotraces`
+            first).
+        variable: friendly name from :data:`GEOTRACES_VAR_MAP` (e.g.
+            ``"Fe_D"``).
         aoi: AOI matching the desired output grid.
         lat_res, lon_res: grid resolution in degrees. Default 1°.
-        depth_max: maximum sample depth in meters to include in the surface
-            average. Default 50 m. Set to ``np.inf`` for full water column.
+        depth_max: maximum sample depth in meters to include in the
+            surface mean. Default 50 m (typical surface-MLD scale). Set
+            to ``np.inf`` for full water column.
+        qc_flags: GEOTRACES SeaDataNet quality-control flags to accept.
+            Default ``(49, 50)`` for ASCII-coded "good" + "probably good".
+            See module docstring for the full code table. Pass empty
+            tuple to disable QC filtering entirely.
 
     Returns:
-        ``xr.DataArray`` shape ``(n_lat, n_lon)``, units **nmol/kg**
-        (still raw GEOTRACES — convert with :func:`to_mmol_per_m3` for the
-        DarwinDiff box-model unit).
+        ``xr.DataArray`` shape ``(n_lat, n_lon)``, units **nmol/kg**.
+        Convert to DarwinDiff's internal mmol/m³ via
+        :func:`to_mmol_per_m3`.
 
     Raises:
         KeyError: if ``variable`` is not registered in :data:`GEOTRACES_VAR_MAP`.
-        ValueError: if the dataset lacks ``Latitude``/``Longitude``/depth coords
-            or the variable column.
+        ValueError: if the dataset lacks ``latitude``/``longitude``/``DEPTH``
+            or the resolved variable column.
     """
     if variable not in GEOTRACES_VAR_MAP:
         raise KeyError(
@@ -191,19 +244,41 @@ def bin_to_grid(
     if geotraces_var not in ds:
         raise ValueError(
             f"variable {geotraces_var!r} (friendly: {variable!r}) not "
-            f"present in dataset; available: {sorted(ds.data_vars)}"
+            f"present in dataset; available Fe vars: "
+            f"{sorted(v for v in ds.data_vars if v.startswith('Fe_') and not v.endswith(('_qc','_err')))}"
         )
+    for needed in ("latitude", "longitude", "DEPTH"):
+        if needed not in ds:
+            raise ValueError(
+                f"dataset missing {needed!r} coord/variable; "
+                f"available: {sorted(list(ds.coords) + list(ds.data_vars))[:15]}..."
+            )
 
-    depth_coord = "DEPTH" if "DEPTH" in ds else "Pressure"
-    if depth_coord not in ds:
-        raise ValueError(
-            f"dataset missing depth coordinate (expected 'DEPTH' or 'Pressure'); "
-            f"available coords: {sorted(ds.coords)}"
-        )
+    # Flatten (N_STATIONS, N_SAMPLES) to 1D using broadcasting. Each
+    # station's lat/lon repeats across its samples.
+    n_stations, n_samples = ds[geotraces_var].shape
+    lats = np.broadcast_to(
+        ds.latitude.values[:, None], (n_stations, n_samples)
+    ).flatten()
+    lons = np.broadcast_to(
+        ds.longitude.values[:, None], (n_stations, n_samples)
+    ).flatten()
+    depths = ds.DEPTH.values.flatten()
+    values = ds[geotraces_var].values.flatten()
 
-    # Surface-MLD subset.
-    surface_mask = ds[depth_coord] <= depth_max
-    ds_surf = ds.where(surface_mask, drop=True)
+    # Quality-control filter. Iron variables have a companion ``<var>_qc``
+    # with the same shape; keep only specified flags when present.
+    qc_var = f"{geotraces_var}_qc"
+    if qc_var in ds and len(qc_flags) > 0:
+        qc_values = ds[qc_var].values.flatten()
+        in_qc = np.isin(qc_values, np.array(qc_flags, dtype=qc_values.dtype))
+    else:
+        in_qc = np.ones_like(values, dtype=bool)
+
+    surface = depths <= depth_max
+    finite = np.isfinite(values) & np.isfinite(lats) & np.isfinite(lons)
+    keep = surface & finite & in_qc
+    lats, lons, values = lats[keep], lons[keep], values[keep]
 
     # Build the target 1° grid: cell centers at integer + 0.5° offset.
     lat_centers = np.arange(
@@ -218,26 +293,21 @@ def bin_to_grid(
     )
 
     grid = np.full((len(lat_centers), len(lon_centers)), np.nan, dtype=np.float64)
-    values = ds_surf[geotraces_var].values.flatten()
-    lats = ds_surf.Latitude.values.flatten()
-    lons = ds_surf.Longitude.values.flatten()
-    finite = np.isfinite(values) & np.isfinite(lats) & np.isfinite(lons)
-    values, lats, lons = values[finite], lats[finite], lons[finite]
-
     lat_idx = np.floor((lats - aoi.lat_min) / lat_res).astype(np.int64)
     lon_idx = np.floor((lons - aoi.lon_min) / lon_res).astype(np.int64)
-    in_bounds = (
-        (lat_idx >= 0) & (lat_idx < len(lat_centers))
-        & (lon_idx >= 0) & (lon_idx < len(lon_centers))
-    )
+    # Samples exactly on the lat_max / lon_max edge floor() to n; clamp into
+    # the top bin so they're not silently dropped.
+    lat_idx = np.minimum(lat_idx, len(lat_centers) - 1)
+    lon_idx = np.minimum(lon_idx, len(lon_centers) - 1)
+    in_bounds = (lat_idx >= 0) & (lon_idx >= 0)
     lat_idx, lon_idx, values = lat_idx[in_bounds], lon_idx[in_bounds], values[in_bounds]
 
-    # Mean per bin via numpy accumulation; bins with no samples stay NaN.
+    # Vectorized bin accumulation via np.add.at (handles duplicate indices
+    # without a Python loop).
     sum_grid = np.zeros_like(grid)
     count_grid = np.zeros_like(grid, dtype=np.int64)
-    for li, lo, v in zip(lat_idx, lon_idx, values):
-        sum_grid[li, lo] += v
-        count_grid[li, lo] += 1
+    np.add.at(sum_grid, (lat_idx, lon_idx), values)
+    np.add.at(count_grid, (lat_idx, lon_idx), 1)
     nonzero = count_grid > 0
     grid[nonzero] = sum_grid[nonzero] / count_grid[nonzero]
 
@@ -248,7 +318,11 @@ def bin_to_grid(
         name=variable,
         attrs={
             "units": "nmol/kg",
-            "source": f"GEOTRACES IDP2025 ({geotraces_var}), bin-mean to 1°",
+            "source": (
+                f"GEOTRACES IDP2025 ({geotraces_var}), "
+                f"bin-mean to {lat_res}°×{lon_res}°, surface<={depth_max}m, "
+                f"QC in {qc_flags or 'unfiltered'}"
+            ),
             "depth_max_m": depth_max,
             "n_samples_aggregated": int(count_grid.sum()),
         },
