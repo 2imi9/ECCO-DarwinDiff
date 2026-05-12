@@ -2,7 +2,7 @@
 
 *Living doc. Update as things ship.*
 
-**Last updated:** 2026-05-11 (Track 1 **v2.2 Phase 2** — 5-PFT box-model extension. v2.0 shipped to main + tagged. v2.1 Phase 1 GLODAP-hybrid open as PR #36 with P1/P2 review-bot fixes pushed. v2.2 Phase 2 lives on branch `v2.2-5pft-box` — nb23 + nb24 executed; v2.2.1 nb25 with per-PFT K_FE training as of this writing).
+**Last updated:** 2026-05-11 (Track 1 **v2.2 Phase 2** — 5-PFT box-model extension. v2.0 shipped to main + tagged. v2.1 Phase 1 GLODAP-hybrid open as PR #36 with P1/P2 review-bot fixes pushed. v2.2 Phase 2 lives on branch `v2.2-5pft-box`, 11 commits ahead of main — nb23 (3/6 cal-grade) + nb24 (combo rejected) + nb25 (v2.2.1 per-PFT K_FE, 2/6 cal-grade, hypothesis rejected). **nb23 is the current best v2.2 result.**)
 
 ## Where we are in one line
 
@@ -44,6 +44,8 @@ Track 1 (parameter recovery) at **v2.2 Phase 2 in flight** — DarwinDiff is a g
 
 17. **Methodology rules locked in tonight.** Two project-level decisions captured to auto-memory + `CONTRIBUTING.md` for future sessions: (a) **Recovery analyses compare against Carroll's published Green's-functions optima — not against prior notebooks.** The headline is "did the parameter learner catch the goal?" not "did v2.2 beat v2.0?" Inter-notebook deltas are supplementary methodology context, never the headline. (b) **From v2.2.x onward, train DINN baseline only — drop DINNDeep.** DINNDeep saturates trivially (r→1.0 on biomass tracers) and recovers fewer calibration-grade Carroll-6 params than the baseline; halves wall-clock from ~70 min to ~35 min per notebook. The nb20/nb21 dual-network framing was right for the v2.0 saturation-ceiling argument but stops adding value at the Phase 2 recovery-quality question.
 
+18. **v2.2.1 per-PFT K_FE hypothesis REJECTED — alpfe regression is NOT a shared-K_FE aliasing artifact (nb25).** Refactored `carroll6_5pft.py` to optionally take per-PFT iron half-saturations; ran nb25 with literature-plausible K_FE values (Pro-HL 5 nM → diatoms 100 nM). DINN baseline goal check: `alpfe` 0.891 → 0.851 off Carroll (essentially flat); `Biggrow` regressed Cal-grade → Loose (0.326 → 0.888 off); `diatomgraz` improved Cal-grade → **Excellent** (0.282 → 0.062 off). 2 of 6 at calibration-grade — WORSE than nb23's 3/6. **What this tells us:** per-PFT K_FE wasn't the alpfe aliasing source. Working hypothesis for the actual root cause: the 11-target loss is 7:1 weighted toward carbonate/Chl signals (5 Chl_i + POC + PIC + DIC + ALK vs 1 FeT target), starving the iron-pair capacity. v2.2.2 candidate fix is **loss weighting** (upweight FeT). nb23 (3/6) remains the best v2.2 result; v2.2.1 is filed as failed-hypothesis-but-informative.
+
 ## Headline results table
 
 All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial coupling) versus a global-scalar Green's-functions baseline, against z-scored Darwin (or GLODAP) target over a Mid-Atlantic-sized AOI. Hyperparameters held constant (Adam lr=5e-3, 200 forward-Euler integration steps, identical box model).
@@ -66,7 +68,7 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 | **22** | **Equatorial Pacific** | **7-tracer hybrid (GLODAP DIC + ALK)** | **DINN baseline + carbonate** | *R_PICPOC 360%→74% off Carroll* | *v2.1 Phase 1 headline — most dramatic single-param improvement; iron pair degraded* |
 | **23** | **Equatorial Pacific** | **11-target 5-PFT box (Darwin)** | **DINN baseline (5-PFT)** | *3 / 6 calibration-grade* | *v2.2 Phase 2 — Biggrow + diatomgraz + scav_rat hit ≤ 40% off Carroll; alpfe regressed* |
 | **24** | **Equatorial Pacific** | **11-target 5-PFT + GLODAP DIC/ALK combo** | **DINN baseline (5-PFT, hybrid)** | *1 / 6 cal-grade; diatomgraz to 0.5% off* | *combo rejected; conflict between Darwin-Chl and GLODAP-carbonate constraints* |
-| **25** | **Equatorial Pacific** | **11-target 5-PFT + per-PFT K_FE** | **DINN baseline (v2.2.1)** | *executing as of this writing* | *tests whether per-PFT K_FE breaks the shared-K_FE aliasing pushing alpfe off-optimum* |
+| **25** | **Equatorial Pacific** | **11-target 5-PFT + per-PFT K_FE** | **DINN baseline (v2.2.1)** | *2 / 6 cal-grade* | *v2.2.1 hypothesis rejected — alpfe regression persists; diatomgraz to Excellent (0.062 off); Biggrow lost cal-grade* |
 
 ## Done — checklist
 
@@ -105,7 +107,7 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] **22** — GLODAPv2.2016b real-obs DIC + ALK hybrid (Track 1 v2.1 Phase 1, PR #36) — `R_PICPOC` dramatic improvement (360% → 74% off Carroll); iron pair degraded; full record at [`docs/findings/v2.1_phase1_glodap.md`](docs/findings/v2.1_phase1_glodap.md)
 - [x] **23** — 5-PFT box-model extension (Track 1 v2.2 Phase 2) — 3 of 6 Carroll-6 params at calibration-grade against Carroll's published optima; `alpfe` regressed (shared-K_FE aliasing)
 - [x] **24** — 5-PFT + GLODAP DIC/ALK combo (Track 1 v2.2) — 1 of 6 cal-grade; combo strategy rejected for Eq Pacific; `diatomgraz` to 0.5% off Carroll (best single-param recovery on project)
-- [ ] **25** — 5-PFT + per-PFT K_FE half-saturations (Track 1 v2.2.1) — executing as of this writing; tests whether per-PFT differentiation restores `alpfe` to calibration-grade
+- [x] **25** — 5-PFT + per-PFT K_FE half-saturations (Track 1 v2.2.1) — **hypothesis REJECTED**, 2/6 calibration-grade vs nb23's 3/6; `alpfe` regression unchanged; `diatomgraz` to Excellent (0.062 off); `Biggrow` regressed; root cause is loss-balance not K_FE-aliasing
 
 ### Decisions and scope locked
 
@@ -118,9 +120,10 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 
 ### Closing v2.2 — highest priority
 
-- [ ] **nb25 execution** — v2.2.1 per-PFT K_FE; training in flight. Tests whether per-PFT differentiation breaks the shared-K_FE aliasing that pushed `alpfe` off-optimum in nb23.
+- [x] **nb25 execution** — v2.2.1 per-PFT K_FE; **hypothesis rejected** (2/6 cal-grade vs nb23's 3/6); committed `3a11b7f`.
+- [ ] **Pick: open v2.2 PR with nb23 as deliverable, OR try v2.2.2 first.** Best result so far is nb23 (3/6 cal-grade). v2.2.2 candidate: loss weighting to fix the 7:1 carbonate:iron imbalance suspected of causing the `alpfe` regression. ~35 min training.
 - [ ] **PR #36 (v2.1 Phase 1) merge decision** — P1 + P2 review-bot fixes pushed (`43173f7`); awaiting re-review + user merge call.
-- [ ] **v2.2-5pft-box PR** — open once nb25 lands.
+- [ ] **v2.2-5pft-box PR** — open after the v2.2.2 decision.
 
 ### Methodology stages not yet applied to v2.2
 
