@@ -138,15 +138,24 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] **PR #37 open** at https://github.com/2imi9/ECCO-DarwinDiff/pull/37 with all v2.2 work — Greptile cleared at 5/5 on `5c37e1a`. Four Greptile follow-up fixes pushed: P1 lumped_mapping in carroll6_5pft snapshot branch (`7d24791`), P2 DARWIN_DATA_ROOT env-var guard (`7d24791`), build_nb23.py seed_suffix in all routing branches (`5795e4f`), eval rollout lumped_mapping consistency (`5c37e1a`). data/README.md updated with Jon's canonical URLs (`207841f`); Wave 3 runner added (`6968b19`).
 - [x] **PR #36 (v2.1 Phase 1 GLODAP)** — still open; P1 + P2 fixes already pushed at `43173f7`.
 
-### Wave 3 — 6/6 push experiments (running 2026-05-12)
+### Wave 3 — 6/6 push experiments (DONE 2026-05-12, ~15 min total)
 
-Three sequential experiments via [`scripts/wave3_alpfe_push.ps1`](scripts/wave3_alpfe_push.ps1) (~4.5h total) targeting the alpfe-scav_rat identifiability degeneracy uncovered in nb27 (raw_fet w=0.01 moved alpfe to 0.392 but broke scav_rat to 2.556):
+Three sequential experiments via [`scripts/wave3_alpfe_push.ps1`](scripts/wave3_alpfe_push.ps1) targeting the alpfe-scav_rat identifiability degeneracy uncovered in nb27 (raw_fet w=0.01 moved alpfe to 0.392 but broke scav_rat to 2.556). All 3 completed in ~5 min each.
 
-- [ ] **raw_fet w=0.005 + PINN drift w=3.0** — gentler raw_fet for alpfe + PINN drift to hold scav_rat
-- [ ] **raw_fet w=0.01 + PINN drift w=3.0** — replicate the alpfe-rescuing w=0.01 with PINN drift preventing scav_rat collapse
-- [ ] **PINN drift w=5.0 alone** — sweep extension past the current winner
+| Config | Cal-grade | alpfe | scav_rat | Smallgrow | Biggrow | diatomgraz | R_PICPOC |
+|---|---|---|---|---|---|---|---|
+| **Baseline winner (nb29 PINN drift w=3.0)** | **4/6** | 0.888 | 0.345 | 1.251 | 0.314 | 0.299 | 0.358 |
+| Wave 3 #1: raw_fet 0.005 + PINN drift 3.0 | 2/6 | 0.852 | 0.339 | 1.131 | 1.323 | 0.113 | 2.856 |
+| Wave 3 #2: raw_fet 0.01 + PINN drift 3.0 | 2/6 | 0.839 | **3.842** | 1.435 | 0.025 | 0.010 | 0.879 |
+| Wave 3 #3: PINN drift 5.0 alone | 3/6 | 0.882 | 0.360 | 1.236 | 0.074 | 0.304 | 1.993 |
 
-**Success criterion:** if any run lands alpfe < 0.4 off Carroll AND scav_rat < 0.4, that's the project's first **5/6**.
+**Conclusion: alpfe-scav_rat is structural under z-scored loss.** None of 3 alpfe-push experiments beat the 4/6 baseline. Adding PINN drift cancels the raw_fet effect on alpfe (compare Wave 3 #2 alpfe=0.839 vs the standalone `raw_fet w=0.01` from earlier at 0.392 — PINN drift damps the alpfe drop). Higher PINN drift weight (w=5.0) doesn't move alpfe either — sweeps 0.05/0.3/1.0/3.0/5.0 all converge to alpfe ≈ 0.86–0.89.
+
+**Implication:** the path to 6/6 is now confirmed to require **external real-iron absolute-units observations** — z-scored loss alone cannot break the alpfe-scav_rat degeneracy regardless of loss-design tricks. PR #38 (GEOTRACES IDP2025 loader) is the right next move.
+
+- [x] raw_fet w=0.005 + PINN drift w=3.0 — 2/6
+- [x] raw_fet w=0.01 + PINN drift w=3.0 — 2/6 (scav_rat catastrophic)
+- [x] PINN drift w=5.0 alone — 3/6 (Biggrow → Excellent, R_PICPOC out)
 
 ### Next-PR pipeline
 
