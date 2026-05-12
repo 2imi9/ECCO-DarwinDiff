@@ -35,10 +35,14 @@ Source: NOAA NCEI accession 0162565
         https://www.ncei.noaa.gov/data/oceans/ncei/ocads/data/0162565/mapped/
 
 Unit convention note: GLODAP reports concentrations as µmol per kg of
-seawater. The DarwinDiff box model uses mmol per m³. Conversion at surface
-seawater density (ρ_sw ≈ 1025 kg/m³): ``1 µmol/kg = 1.025 × 10⁻³ mmol/m³``,
-or equivalently multiply GLODAP by ``RHO_SW * 1e-3`` to get our internal units.
-That conversion is the same factor used inside ``darwindiff.carbonate``.
+seawater. The DarwinDiff box model uses mmol per m³. At surface seawater
+density (ρ_sw ≈ 1025 kg/m³):
+
+    1 µmol/kg × 1025 kg/m³ = 1025 µmol/m³ = 1.025 mmol/m³
+
+Equivalently, multiply GLODAP values by ``RHO_SW * 1e-3 = 1.025`` to get
+our internal units. That conversion factor is the same as the one used
+inside ``darwindiff.carbonate``.
 """
 
 from __future__ import annotations

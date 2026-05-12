@@ -28,7 +28,9 @@ from darwindiff.glodap_loader import (
     to_mmol_per_m3,
 )
 
-_DATA_ROOT = os.environ.get("DARWIN_DATA_ROOT")
+# Real-data GLODAP tests are guarded by DARWINDIFF_TEST_LLC270; the env-var
+# DARWIN_DATA_ROOT is not consulted here because the GLODAP path is anchored
+# to the repo via __file__, not to the LLC270 data root.
 _REAL_GLODAP = (
     Path(__file__).resolve().parent.parent
     / "data"
