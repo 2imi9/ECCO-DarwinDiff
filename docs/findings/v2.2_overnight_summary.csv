@@ -1,0 +1,21 @@
+notebook,cal_grade_count,excellent_count,elapsed_s,alpfe_rel,scav_rat_rel,Smallgrow_rel,Biggrow_rel,diatomgraz_rel,R_PICPOC_rel,summary
+29_v2_4_pinn_drift_eqpac_w3.0.ipynb,4,0,174,0.888,0.345,1.251,0.314,0.299,0.358,DINN baseline: 4 of 6 params at calibration-grade or better
+23_5pft_box_eqpac_seed3.ipynb,3,0,161,0.841,0.213,0.911,0.346,0.199,0.565,DINN baseline: 3 of 6 params at calibration-grade or better
+28_v2_4_pinn_balance_eqpac_w1.0.ipynb,3,0,176,0.882,0.317,1.221,0.103,0.319,0.418,DINN baseline: 3 of 6 params at calibration-grade or better
+23_5pft_box_eqpac.ipynb,3,0,4036,0.891,0.3,1.244,0.326,0.282,0.738,DINN baseline: 3 of 6 params at calibration-grade or better
+27_v2_3_raw_fet_eqpac_w0.05.ipynb,3,1,179,0.897,0.134,1.184,1.155,0.1,0.262,DINN baseline: 3 of 6 params at calibration-grade or better
+26_v2_2_2_lossweighted_fet3.0x.ipynb,2,1,149,0.833,0.028,1.487,0.594,0.174,0.882,DINN baseline: 2 of 6 params at calibration-grade or better
+23_5pft_box_eqpac_seed4.ipynb,2,0,161,0.857,0.323,1.187,0.656,0.306,1.969,DINN baseline: 2 of 6 params at calibration-grade or better
+23_5pft_box_eqpac_seed2.ipynb,2,0,157,0.871,0.14,1.229,1.192,0.206,1.495,DINN baseline: 2 of 6 params at calibration-grade or better
+23_5pft_box_eqpac_seed1.ipynb,2,1,166,0.887,0.383,1.787,1.803,0.022,3.134,DINN baseline: 2 of 6 params at calibration-grade or better
+29_v2_4_pinn_drift_eqpac_w0.05.ipynb,2,0,170,0.893,0.327,1.252,0.414,0.158,0.616,DINN baseline: 2 of 6 params at calibration-grade or better
+27_v2_3_raw_fet_eqpac_w0.01.ipynb,1,0,162,0.392,2.556,1.824,1.293,0.657,0.76,DINN baseline: 1 of 6 params at calibration-grade or better
+29_v2_4_pinn_drift_eqpac_w0.3_rawfet0.05.ipynb,1,1,173,0.817,0.088,1.577,2.858,0.411,1.383,DINN baseline: 1 of 6 params at calibration-grade or better
+24_5pft_box_glodap_hybrid_eqpac.ipynb,1,1,4475,0.852,0.42,1.137,1.536,0.084,1.833,DINN baseline: 1 of 6 params at calibration-grade or better
+28_v2_4_pinn_balance_eqpac_w0.3.ipynb,1,0,182,0.887,0.403,1.248,0.428,0.205,2.974,DINN baseline: 1 of 6 params at calibration-grade or better
+27_v2_3_raw_fet_eqpac_w1.0.ipynb,1,1,162,0.892,0.509,1.891,3.502,0.917,0.068,DINN baseline: 1 of 6 params at calibration-grade or better
+27_v2_3_raw_fet_eqpac_w0.3.ipynb,1,1,194,0.903,0.046,1.757,2.847,0.801,0.882,DINN baseline: 1 of 6 params at calibration-grade or better
+27_v2_3_raw_fet_eqpac_w0.5.ipynb,1,0,179,0.907,0.136,1.844,3.577,0.882,0.879,DINN baseline: 1 of 6 params at calibration-grade or better
+27_v2_3_raw_fet_eqpac_w3.0.ipynb,1,0,162,0.935,3.865,1.182,2.876,0.119,2.942,DINN baseline: 1 of 6 params at calibration-grade or better
+27_v2_3_raw_fet_eqpac_w0.1.ipynb,0,0,164,0.799,0.7,1.879,3.146,0.725,0.881,DINN baseline: 0 of 6 params at calibration-grade or better
+29_v2_4_pinn_drift_eqpac_w1.0_rawfet0.05.ipynb,0,0,176,0.862,0.413,1.295,3.346,0.534,2.907,DINN baseline: 0 of 6 params at calibration-grade or better

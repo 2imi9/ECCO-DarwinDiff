@@ -681,11 +681,12 @@ plt.show()
     pinn_w = os.environ.get("NB23_PINN_WEIGHT", "0.0")
     pinn_type = os.environ.get("NB23_PINN_TYPE", "balance").lower()
     if float(pinn_w) > 0:
-        # v2.4 PINN iron variant → nb28 (balance) or nb29 (drift)
-        if pinn_type == "drift":
-            out = Path(__file__).resolve().parent.parent / "notebooks" / f"29_v2_4_pinn_drift_eqpac_w{pinn_w}.ipynb"
-        else:
-            out = Path(__file__).resolve().parent.parent / "notebooks" / f"28_v2_4_pinn_balance_eqpac_w{pinn_w}.ipynb"
+        # v2.4 PINN iron variant → nb28 (balance) or nb29 (drift).
+        # When raw_fet_weight is ALSO > 0 (v2.5 combo), include it in the
+        # filename so combo runs don't overwrite pure-PINN runs.
+        base = "29_v2_4_pinn_drift" if pinn_type == "drift" else "28_v2_4_pinn_balance"
+        rfw_suffix = f"_rawfet{raw_fet_w}" if float(raw_fet_w) > 0 else ""
+        out = Path(__file__).resolve().parent.parent / "notebooks" / f"{base}_eqpac_w{pinn_w}{rfw_suffix}.ipynb"
     elif float(raw_fet_w) > 0:
         # v2.3 raw-FeT magnitude-preserving variant → nb27
         out = Path(__file__).resolve().parent.parent / "notebooks" / f"27_v2_3_raw_fet_eqpac_w{raw_fet_w}.ipynb"
