@@ -452,6 +452,7 @@ def train(net, env_dev, seed: int = 0) -> dict:
         state = _integrate_compiled(
             state0_dev, params_dev, DT, N_STEPS,
             T=T_dev, S=S_dev, wind=wind_dev, pco2_atm=pco2_atm_dev, h_mld=H_MLD,
+            lumped_mapping=LUMPED_MAPPING,
         )
         carb_final = solve_carbonate(state[I_DIC], state[I_ALK], T_dev, S_dev)
         co2_flux_pred_final = co2_flux(
