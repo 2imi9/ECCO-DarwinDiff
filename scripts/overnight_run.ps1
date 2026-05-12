@@ -34,6 +34,15 @@ $experiments = @(
     @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.3"; pinn_type = "drift" },
     @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "1.0"; pinn_type = "drift" },
 
+    # v2.4 PINN drift weight extension - extend the curve at low and high ends
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.05"; pinn_type = "drift" },
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "3.0";  pinn_type = "drift" },
+
+    # v2.5 combo: raw-FeT (w=0.05 sweet spot) + PINN drift - test if magnitude
+    # pressure and physical-coupling stack constructively or conflict
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.05"; pinn_weight = "0.3"; pinn_type = "drift" },
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.05"; pinn_weight = "1.0"; pinn_type = "drift" },
+
     # nb23 multi-seed robustness (baseline, no FeT/PINN modifications)
     @{ nb_seed = "1"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.0"; pinn_type = "balance" },
     @{ nb_seed = "2"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.0"; pinn_type = "balance" },
