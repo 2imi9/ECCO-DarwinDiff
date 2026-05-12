@@ -6,7 +6,7 @@
 
 ## Where we are in one line
 
-Track 1 (parameter recovery) at **v2.2 Phase 2 in flight** — DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable end-to-end on a single GPU in ~70 min per training run. **v2.0 (merged to main, tag `v2.0`):** carbonate-extended 7-tracer box + 7-tracer joint loss recovers the iron pair to calibration-grade against Carroll's published Green's-functions optima (`alpfe` 1.1%, `scav_rat` 40% off Carroll); other 4 parameters drift because the 2-PFT box averages across species with very different physical rates. **v2.1 Phase 1 (PR #36 open):** nb22 swaps Darwin DIC + ALK for GLODAPv2.2016b real ocean observations as a hybrid target. `R_PICPOC` moves from 360% off Carroll to 74% off (most dramatic single-parameter improvement on the project); iron pair degrades against Carroll (real Darwin-vs-reality coupling artifact). **v2.2 Phase 2 (branch `v2.2-5pft-box`, 8 commits ahead of main):** nb23 replaces the 2-PFT box with a 5-PFT box matching Darwin 3 v05 (diatoms, other large euks, Synechococcus, Pro-LL, Pro-HL); each Carroll-6 parameter now governs one specific PFT instead of an average. nb23 hits **3 of 6 Carroll-6 params at calibration-grade** (`Biggrow`, `diatomgraz`, `scav_rat`) but `alpfe` regresses out of calibration-grade — suspected shared-K_FE aliasing. nb24 (Phase 2 + GLODAP combo) degraded (1/6); combo rejected for Eq Pacific. v2.2.1 nb25 tests per-PFT K_FE half-saturations; results pending. Coverage: 3 basins × 11 targets (FeT + 5 separate Chl_i + POC + PIC + DIC + ALK + CO₂_flux). **Track 1 closed locally on a single GPU**; B200 cluster burn-in pitch sent to MIT ORCD 2026-05-10 (Jonathan Lauderdale); cluster work scales the same scope to global resolution + Track 2 emulator (gated on PhysicsNeMo adoption — see [`docs/future_work_checklist.md`](docs/future_work_checklist.md)).
+Track 1 (parameter recovery) at **v2.2 Phase 2 in flight** — DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable end-to-end on a single GPU in ~70 min per training run. **v2.0 (merged to main, tag `v2.0`):** carbonate-extended 7-tracer box + 7-tracer joint loss recovers the iron pair to calibration-grade against Carroll's published Green's-functions optima (`alpfe` 1.1%, `scav_rat` 40% off Carroll); other 4 parameters drift because the 2-PFT box averages across species with very different physical rates. **v2.1 Phase 1 (PR #36 open):** nb22 swaps Darwin DIC + ALK for GLODAPv2.2016b real ocean observations as a hybrid target. `R_PICPOC` moves from 360% off Carroll to 74% off (most dramatic single-parameter improvement on the project); iron pair degrades against Carroll (real Darwin-vs-reality coupling artifact). **v2.2 Phase 2 (branch `v2.2-5pft-box`, 8 commits ahead of main):** nb23 replaces the 2-PFT box with a 5-PFT box matching Darwin 3 v05 (diatoms, other large euks, Synechococcus, Pro-LL, Pro-HL); each Carroll-6 parameter now governs one specific PFT instead of an average. nb23 hits **3 of 6 Carroll-6 params at calibration-grade** (`Biggrow`, `diatomgraz`, `scav_rat`) but `alpfe` regresses out of calibration-grade — suspected shared-K_FE aliasing. nb24 (Phase 2 + GLODAP combo) degraded (1/6); combo rejected for Eq Pacific. v2.2.1 nb25 tests per-PFT K_FE half-saturations; results pending. Coverage: 3 basins × 11 targets (FeT + 5 separate Chl_i + POC + PIC + DIC + ALK + CO₂_flux). **Track 1 closed locally on a single GPU**; B200 cluster burn-in pitch sent to MIT ORCD 2026-05-10 (Jonathan Lauderdale); cluster work scales the same scope to global resolution + Track 2 emulator (gated on PhysicsNeMo adoption — see § *In progress / next* below).
 
 ## Most important findings so far
 
@@ -116,33 +116,48 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 
 ## In progress / next
 
-See [`docs/future_work_checklist.md`](docs/future_work_checklist.md) for the full prioritized backlog (methodology stages not yet applied, Jon-shared datasets not yet wired in, PhysicsNeMo reading queue for Track 2, reference papers).
+### Closing v2.2 — highest priority
 
-### Highest priority — closing v2.2
+- [ ] **nb25 execution** — v2.2.1 per-PFT K_FE; training in flight. Tests whether per-PFT differentiation breaks the shared-K_FE aliasing that pushed `alpfe` off-optimum in nb23.
+- [ ] **PR #36 (v2.1 Phase 1) merge decision** — P1 + P2 review-bot fixes pushed (`43173f7`); awaiting re-review + user merge call.
+- [ ] **v2.2-5pft-box PR** — open once nb25 lands.
 
-- [ ] **nb25 execution** — 5-PFT box + per-PFT K_FE half-saturations (v2.2.1). Training as of this writing. Tests whether per-PFT differentiation breaks the shared-K_FE aliasing that pushed `alpfe` off-optimum in nb23. Success criterion: 4+ of 6 Carroll-6 params at calibration-grade.
-- [ ] **PR #36 (v2.1 Phase 1) merge decision** — P1 + P2 review-bot fixes pushed (`43173f7` on `claude/v2.1-glodap-real-obs`); awaiting re-review and user merge call.
-- [ ] **v2.2-5pft-box PR** — open once nb25 result is in. Branch is 8 commits ahead of main.
+### Methodology stages not yet applied to v2.2
 
-### Methodology gaps to apply to v2.2
+- [ ] **Block CV on nb23 / nb25** — mirror nb21. Currently no spatial-CV evidence for Phase 2; the "3 of 6" headline could be Eq-Pacific-specific.
+- [ ] **Multi-seed robustness** — re-run with seeds 0–4; report mean ± std. All Phase 2 runs are seed=0.
+- [ ] **Cross-basin** — train Eq Pacific, test Mid-Atl + N Pacific (AOIs already in `ecco_darwin_loader`).
+- [ ] **Prognostic validation (Brenowitz & Bretherton 2018 § 3.4)** — run learned Carroll-6 back through forward Darwin v05 on cluster; check long-term stability + R² vs real ocean. Cluster-gated (Phase 3).
+- [ ] **Multi-time-step loss (Brenowitz & Bretherton 2018 § 3.2)** — Eq. 4 mass-weighted norm over T forward-Euler steps. Gate for Track 2 emulator if integrators become unstable.
+- [ ] **Uncertainty quantification** — multi-seed + bred-vector ensemble (Mahesh et al. 2025 SFNO recipe) → distribution over each Carroll-6 param, not just a point estimate.
+- [ ] **Formal identifiability analysis** — Fisher info / SVD on loss surface; which 6 params are truly identifiable from the 11-target loss vs underconstrained vs optimizer-stuck.
+- [ ] **Verification-setup consistency audit (Gupta et al. 2026 HealDA)** — small changes in `|Δ|/Carroll` definition (mean vs median, ocean_mask, z-score stats) can shift band assignments. Document the chosen protocol and stick to it.
 
-- [ ] **Block CV on nb23 / nb25** — mirror v2.0 nb21. Currently no spatial CV evidence for Phase 2; the "3 of 6 cal-grade" headline could be an Eq-Pacific-specific artifact. ~3 h on RTX 5090 or queue for cluster.
-- [ ] **Multi-seed robustness** — re-run nb23 / nb25 with seeds 0–4; report mean ± std. All Phase 2 runs are seed=0; no evidence the result isn't seed-dependent.
-- [ ] **Cross-basin** — train on Eq Pacific, test on Mid-Atlantic + N Pacific (existing AOIs).
+### Datasets shared by Jon to add (priority order for v2.2 → v2.3)
 
-### Datasets shared by Jon to add (priority order, see checklist for full reasoning)
+- [ ] **GEOTRACES IDP2025** — direct iron obs; Phase 3 candidate; directly attacks the alpfe/scav_rat regression. URL: https://www.geotraces.org/ (verified).
+- [ ] **Ocean color satellite Chl** — per-PFT Chl validation (MODIS Aqua / GlobColour); URL pending from Jon.
+- [ ] **SOCAT v2025** — surface pCO₂; Phase 4 candidate (forward Darwin CO₂-flux validation). URL: https://www.socat.info/ (verified).
+- [ ] **BGC-Argo** — depth-resolved sparse-obs from ~5K floats; Phase 5 candidate. `argopy` already in `pyproject.toml`. URL: https://biogeochemical-argo.org/ (verified).
+- [ ] **WOD / WOA** — backup; partly redundant with GLODAP but different corrections (Jon flagged this).
+- [ ] **ECCO-Darwin LLC90 1° baseline** — URL pending; ECCO portal in maintenance 2026-05-11/12; re-request after Tuesday.
 
-- [ ] **GEOTRACES IDP2025** — direct iron obs; Phase 3 candidate; directly attacks the alpfe/scav_rat regression.
-- [ ] **Ocean color satellite Chl** — per-PFT Chl validation; URL pending from Jon.
-- [ ] **SOCAT v2025** — surface pCO₂; Phase 4 candidate (forward Darwin CO₂ flux validation).
-- [ ] **BGC-Argo** — depth-resolved sparse-obs; Phase 5 candidate.
-- [ ] **ECCO-Darwin LLC90 1° baseline** — URL pending; ECCO portal in maintenance 2026-05-11/12.
+### Track 2 emulator — PhysicsNeMo reading queue (do AFTER v2.2 closeout)
 
-### Track 2 emulator (gated on cluster + PhysicsNeMo)
+Tier 1 (must-read, ~3 h): `physicsnemo.models` → FNO, AFNO, GraphCastNet, HEALPixRecUNet, + `physicsnemo.sym` intro + one PINN tutorial.
+Tier 2 (if Tier 1 has a gap, ~1 h): MeshGraphNet + one concrete weather example (e.g. AFNO Earth-2 forecasting).
+Tier 3 (cross-cutting, ~2 h): "How to Write Your Own PhysicsNeMo Model" + "Converting PyTorch Models" + `physicsnemo.distributed`.
 
-- [ ] **PhysicsNeMo reading queue** — Tier 1 (FNO, AFNO, GraphCastNet, HEALPixRecUNet, `physicsnemo.sym`) + Tier 3 (custom-model authoring + PyTorch conversion + multi-GPU). ~6 h focused. See [`docs/future_work_checklist.md`](docs/future_work_checklist.md). Do AFTER v2.2 closeout.
-- [ ] **Prognostic validation (Brenowitz & Bretherton 2018)** — run learned Carroll-6 parameters back through actual forward Darwin v05 on the cluster; check long-term stability + R² against real ocean fields. Cluster-gated.
-- [ ] **Time-resolved fitting** — use all available monthly snapshots instead of climatology. Required for Track 2 emulator (must learn temporal dynamics).
+DarwinDiff fit: Track 1 stays as pure PyTorch. Track 2 emulator replaces `carroll6_5pft_integrate` with FNO/AFNO that learns the state-transition map. No shipped ocean-BGC examples in PhysicsNeMo → we'd be pioneer users in this domain.
+
+### Reference papers worth keeping on hand
+
+- ✓ **Carroll 2020 (JAMES)**, **Carroll 2022 (GBC)** — `CARROLL_VALUES` source; the active recovery target.
+- ✗ **Dutkiewicz et al. 2009 (GBC)** — Darwin's core BGC paper with per-PFT equations. Paywalled; needed to refine v2.2.1's literature-plausible per-PFT K_FE to Darwin-exact.
+- ✓ **Brenowitz & Bretherton 2018 (GRL)** — prognostic-validation framework + multi-step loss. Anchor for Track 2 + cluster-gated Phase 3 forward validation.
+- ✓ **Mahesh et al. 2025 (GMD Parts 1+2)** — SFNO huge ensembles; UQ recipe via bred-vector + multi-checkpoint.
+- ✓ **Gupta et al. 2026 (arXiv 2601.17636, HealDA)** — ML-based DA; verification-setup-sensitivity finding. Same NVIDIA / Brenowitz ecosystem that ships PhysicsNeMo.
+- ✗ **Darwin 3 v05 `data.traits` namelist** — would give Darwin-exact per-PFT half-saturations / mortalities / quotas. Ask Jon when next exchanging email.
 
 ## Open questions worth tracking
 
