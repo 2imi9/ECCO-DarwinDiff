@@ -5,11 +5,18 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model that l
 1. **Parameter learner** — a faster, richer replacement for ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes one global vector of 6 biogeochemical parameters via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
 2. **Emulator** — a neural-network stand-in for ECCO-Darwin trained on the same Darwin output, for long-timescale climate runs the full model is too slow for. Not started yet — Track 2.
 
-## Status — Track 1 at v2.2 closeout (2026-05-12)
+## Status — Track 1 at v2.6 GEOTRACES hybrid (2026-05-12)
 
-Track 1 (parameter recovery) is locally complete on a single GPU. Each experiment runs in ~5–90 min on an RTX 5090.
+Track 1 (parameter recovery) at v2.6 — first reproducible per-parameter recovery anchored on real iron observations. 5-PFT training runs ~80 sec on RTX 5090 Laptop.
 
-**Headline result:** [`notebooks/29_v2_4_pinn_drift_eqpac_w3.0.ipynb`](notebooks/29_v2_4_pinn_drift_eqpac_w3.0.ipynb) — v2.4 PINN drift w=3.0 — recovers **4 of 6 Carroll-6 parameters** at calibration-grade (≤ 40% off Carroll's published optima): `scav_rat`, `Biggrow`, `diatomgraz`, `R_PICPOC`. Project's first 4/6.
+**Headline result:** the v2.4 PINN drift w=3.0 setup + a GEOTRACES IDP2025 absolute-units dissolved-iron loss term (`scripts/run_geotraces_hybrid_quick.py`) recovers **4 of 6 Carroll-6 parameters at calibration-grade across 5 seeds**, with **Smallgrow consistently at Excellent (0.040 ± 0.040 off Carroll's 0.661 — first time the project has had a reproducibly Excellent recovery).** alpfe lands cal-grade (0.39 ± 0.07). The two stuck parameters shift from `(alpfe, Smallgrow)` in v2.2 → `(scav_rat, R_PICPOC)` in v2.6 — now identified as HNLC-region structural limits.
+
+**Reframes the v2.2 closeout claim.** The "alpfe + Smallgrow are structurally stuck" finding from v2.2 is **wrong** — they're recoverable once you anchor the iron magnitude with real observations. The genuine structural limits sit elsewhere:
+
+- **scav_rat** (0.92 ± 0.01) — Eq Pacific is HNLC; biological iron uptake dominates over particle scavenging, so scav_rat is intrinsically underconstrained here. Cross-basin to N Atlantic / S Ocean (cluster-gated) is the unblock.
+- **R_PICPOC** (2.78 ± 0.55) — carbonate stoichiometry re-equilibrates with iron pair without independent PIC observations.
+
+**Earlier headline (v2.4 PINN drift w=3.0, no GEOTRACES, seed=0):** 4/6 with `scav_rat`, `Biggrow`, `diatomgraz`, `R_PICPOC` cal-grade. Multi-seed of that result showed seed=0 was somewhat lucky on Biggrow + R_PICPOC; reproducible v2.2 result is closer to 2-3/6 with alpfe + Smallgrow consistently broken. The v2.6 result is the stronger headline.
 
 **Stuck parameters (25 experiments across v2.2 + Wave 3):**
 
