@@ -105,6 +105,40 @@ MU_DEFAULT_SYN: float = 0.66098     # Carroll-2020 Smallgrow optimum
 MU_DEFAULT_PROLL: float = 0.66098   # Carroll-2020 Smallgrow optimum
 
 
+# Per-PFT iron half-saturation constants (v2.2.1 optional override).
+#
+# v2.2 minimum-viable scope used a shared K_FE = 5e-5 across all 5 PFTs.
+# v2.2.1 introduces per-PFT half-saturations following the ocean BGC
+# literature convention: small Prochlorococcus are highly Fe-efficient
+# (oligotrophic surface specialists with very low K_Fe), diatoms are the
+# least Fe-efficient (largest cells, high absolute demand, higher K_Fe).
+#
+# Values below are literature-PLAUSIBLE order-of-magnitude estimates
+# (Pro-HL most efficient -> diatoms least efficient). They are NOT
+# verified against Darwin 3 v05's actual data.traits values - that file
+# is not on disk locally. The principle (per-PFT K_FE breaks the shared-
+# half-saturation aliasing that pushes alpfe / scav_rat off-optimum)
+# is what v2.2.1 tests; the exact numbers can be refined to Darwin-exact
+# values in a follow-up once the namelist is accessible.
+#
+# Units: mmol Fe / m^3. For reference: 1 nM Fe = 1e-6 mmol Fe / m^3.
+
+K_FE_PER_PFT_DIATOM: float = 1.0e-4   # ~100 nM (largest cells, highest demand)
+K_FE_PER_PFT_LGE: float    = 6.0e-5   # ~60 nM (other large eukaryotes)
+K_FE_PER_PFT_SYN: float    = 3.0e-5   # ~30 nM (Synechococcus, intermediate)
+K_FE_PER_PFT_PROLL: float  = 1.0e-5   # ~10 nM (Pro low-light)
+K_FE_PER_PFT_PROHL: float  = 5.0e-6   # ~5 nM (Pro high-light, oligotrophic)
+
+K_FE_VEC_PERFT: tuple[float, float, float, float, float] = (
+    K_FE_PER_PFT_DIATOM,
+    K_FE_PER_PFT_LGE,
+    K_FE_PER_PFT_SYN,
+    K_FE_PER_PFT_PROLL,
+    K_FE_PER_PFT_PROHL,
+)
+"""Per-PFT K_FE in state-vector order (diatom..Pro-HL). v2.2.1 default."""
+
+
 def carroll6_5pft_step(
     state: torch.Tensor,
     params: torch.Tensor,
@@ -114,6 +148,7 @@ def carroll6_5pft_step(
     wind: torch.Tensor | float = 7.0,
     pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
     h_mld: float = H_MLD,
+    k_fe_per_pft: tuple[float, float, float, float, float] | None = None,
 ) -> torch.Tensor:
     """One forward-Euler step of the 10-tracer 5-PFT Carroll-6 box model.
 
@@ -126,6 +161,10 @@ def carroll6_5pft_step(
         dt: time step in days.
         T, S, wind, pco2_atm, h_mld: identical to
             ``carroll6.carroll6_carbonate_step``.
+        k_fe_per_pft: optional per-PFT iron half-saturations in state-vector
+            order (diatom, large_euk, Syn, Pro-LL, Pro-HL), mmol Fe / m^3.
+            ``None`` -> v2.2 minimum-viable behavior (shared ``K_FE``).
+            ``K_FE_VEC_PERFT`` -> v2.2.1 literature-plausible per-PFT values.
 
     Returns:
         Next state, shape ``[10]``.
@@ -149,15 +188,24 @@ def carroll6_5pft_step(
     R_PICPOC = params[I_R_PICPOC]
     scav_rat_per_day = scav_rat * 86400.0
 
-    # Shared iron half-saturation across all 5 PFTs (v2.2 minimum-viable).
-    f_fe = DFe / (DFe + K_FE)
+    # Iron half-saturation: shared (v2.2) or per-PFT (v2.2.1).
+    if k_fe_per_pft is None:
+        f_fe_diatom = f_fe_lge = f_fe_syn = f_fe_proLL = f_fe_proHL = (
+            DFe / (DFe + K_FE)
+        )
+    else:
+        f_fe_diatom = DFe / (DFe + k_fe_per_pft[0])
+        f_fe_lge    = DFe / (DFe + k_fe_per_pft[1])
+        f_fe_syn    = DFe / (DFe + k_fe_per_pft[2])
+        f_fe_proLL  = DFe / (DFe + k_fe_per_pft[3])
+        f_fe_proHL  = DFe / (DFe + k_fe_per_pft[4])
 
     # Per-PFT growth — 2 of 5 are learned, 3 use Carroll-2020 defaults.
-    growth_diatom = MU_DEFAULT_DIATOM * f_fe * LIGHT * P_diatom
-    growth_lge = mu_lge * f_fe * LIGHT * P_lge
-    growth_syn = MU_DEFAULT_SYN * f_fe * LIGHT * P_syn
-    growth_proLL = MU_DEFAULT_PROLL * f_fe * LIGHT * P_proLL
-    growth_proHL = mu_proHL * f_fe * LIGHT * P_proHL
+    growth_diatom = MU_DEFAULT_DIATOM * f_fe_diatom * LIGHT * P_diatom
+    growth_lge = mu_lge * f_fe_lge * LIGHT * P_lge
+    growth_syn = MU_DEFAULT_SYN * f_fe_syn * LIGHT * P_syn
+    growth_proLL = MU_DEFAULT_PROLL * f_fe_proLL * LIGHT * P_proLL
+    growth_proHL = mu_proHL * f_fe_proHL * LIGHT * P_proHL
     growth_total = (
         growth_diatom + growth_lge + growth_syn + growth_proLL + growth_proHL
     )
@@ -222,6 +270,7 @@ def carroll6_5pft_integrate(
     wind: torch.Tensor | float = 7.0,
     pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
     h_mld: float = H_MLD,
+    k_fe_per_pft: tuple[float, float, float, float, float] | None = None,
 ) -> torch.Tensor:
     """Forward-Euler integration of the 5-PFT 10-tracer Carroll-6 + carbonate box.
 
@@ -238,6 +287,8 @@ def carroll6_5pft_integrate(
             ``[len(snapshot_indices), 10]``.
         T, S, wind, pco2_atm, h_mld: forcing — see
             ``carroll6_5pft_step``.
+        k_fe_per_pft: optional per-PFT iron half-saturations (v2.2.1).
+            ``None`` -> shared K_FE (v2.2 default).
 
     Returns:
         Final state shape ``[10]`` when ``snapshot_indices is None``, else
@@ -246,12 +297,16 @@ def carroll6_5pft_integrate(
     state = state0
     if snapshot_indices is None:
         for _ in range(n_steps):
-            state = carroll6_5pft_step(state, params, dt, T, S, wind, pco2_atm, h_mld)
+            state = carroll6_5pft_step(
+                state, params, dt, T, S, wind, pco2_atm, h_mld, k_fe_per_pft,
+            )
         return state
     snapshot_set = set(snapshot_indices)
     snaps: list[torch.Tensor] = []
     for step in range(1, n_steps + 1):
-        state = carroll6_5pft_step(state, params, dt, T, S, wind, pco2_atm, h_mld)
+        state = carroll6_5pft_step(
+            state, params, dt, T, S, wind, pco2_atm, h_mld, k_fe_per_pft,
+        )
         if step in snapshot_set:
             snaps.append(state)
     return torch.stack(snaps)

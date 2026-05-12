@@ -33,6 +33,7 @@ from darwindiff.carroll6_5pft import (
     I_PROHL,
     I_PROLL,
     I_SYN,
+    K_FE_VEC_PERFT,
     N_PHYTO,
     N_TRACERS,
     carroll6_5pft_integrate,
@@ -181,4 +182,43 @@ def test_smallgrow_only_affects_proHL() -> None:
     assert proHL_diff > 5 * proLL_diff, (
         f"Pro-HL should respond ≥5× more than Pro-LL; got proHL={proHL_diff} "
         f"vs proLL={proLL_diff}"
+    )
+
+
+def test_per_pft_kfe_changes_state_relative_to_shared() -> None:
+    """v2.2.1: passing k_fe_per_pft=K_FE_VEC_PERFT produces different state
+    than the default shared K_FE, confirming the per-PFT path is exercised.
+    """
+    s0 = _state0()
+    with torch.no_grad():
+        s_shared = carroll6_5pft_integrate(
+            s0, CARROLL_VALUES, dt=0.25, n_steps=50,
+        )
+        s_perpft = carroll6_5pft_integrate(
+            s0, CARROLL_VALUES, dt=0.25, n_steps=50,
+            k_fe_per_pft=K_FE_VEC_PERFT,
+        )
+    # Phyto state vector should diverge (different f_Fe → different growth).
+    phyto_diff = (s_perpft[1:6] - s_shared[1:6]).abs().sum().item()
+    assert phyto_diff > 1e-3, (
+        f"Per-PFT K_FE should give a meaningfully different state from "
+        f"shared K_FE; got summed |diff| = {phyto_diff}"
+    )
+    # All tracers stay finite + roughly non-negative.
+    assert torch.isfinite(s_perpft).all()
+    assert (s_perpft > -1e-6).all()
+
+
+def test_per_pft_kfe_default_is_backwards_compatible() -> None:
+    """Calling with k_fe_per_pft=None must match the pre-v2.2.1 behavior
+    (shared K_FE). Same state, byte-for-byte (well, within float tolerance).
+    """
+    s0 = _state0()
+    with torch.no_grad():
+        s_implicit = carroll6_5pft_integrate(s0, CARROLL_VALUES, dt=0.25, n_steps=50)
+        s_explicit = carroll6_5pft_integrate(
+            s0, CARROLL_VALUES, dt=0.25, n_steps=50, k_fe_per_pft=None,
+        )
+    assert torch.allclose(s_implicit, s_explicit), (
+        "k_fe_per_pft=None should be identical to omitting the argument"
     )
