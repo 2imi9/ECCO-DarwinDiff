@@ -693,22 +693,27 @@ plt.show()
     pinn_type = os.environ.get("NB23_PINN_TYPE", "balance").lower()
     lumped = os.environ.get("NB23_LUMPED_MAPPING", "0") == "1"
     lumped_suffix = "_lumped" if lumped else ""
+    # Seed suffix applies in every routing branch. Pre-fix, only the
+    # baseline branch attached it, so multi-seed runs of nb27/nb28/nb29
+    # variants silently overwrote the seed=0 result (e.g., the v2.4 PINN
+    # drift w=3.0 4/6 winner). Seed "0" keeps the historical filename.
+    seed_suffix = "" if seed == "0" else f"_seed{seed}"
+    notebooks_dir = Path(__file__).resolve().parent.parent / "notebooks"
     if float(pinn_w) > 0:
         # v2.4 PINN iron variant → nb28 (balance) or nb29 (drift).
         # When raw_fet_weight is ALSO > 0 (v2.5 combo), include it in the
         # filename so combo runs don't overwrite pure-PINN runs.
         base = "29_v2_4_pinn_drift" if pinn_type == "drift" else "28_v2_4_pinn_balance"
         rfw_suffix = f"_rawfet{raw_fet_w}" if float(raw_fet_w) > 0 else ""
-        out = Path(__file__).resolve().parent.parent / "notebooks" / f"{base}_eqpac_w{pinn_w}{rfw_suffix}{lumped_suffix}.ipynb"
+        out = notebooks_dir / f"{base}_eqpac_w{pinn_w}{rfw_suffix}{lumped_suffix}{seed_suffix}.ipynb"
     elif float(raw_fet_w) > 0:
         # v2.3 raw-FeT magnitude-preserving variant → nb27
-        out = Path(__file__).resolve().parent.parent / "notebooks" / f"27_v2_3_raw_fet_eqpac_w{raw_fet_w}.ipynb"
+        out = notebooks_dir / f"27_v2_3_raw_fet_eqpac_w{raw_fet_w}{seed_suffix}.ipynb"
     elif float(fet_w) != 1.0:
         # v2.2.2 loss-weighted variant → nb26
-        out = Path(__file__).resolve().parent.parent / "notebooks" / f"26_v2_2_2_lossweighted_fet{fet_w}x.ipynb"
+        out = notebooks_dir / f"26_v2_2_2_lossweighted_fet{fet_w}x{seed_suffix}.ipynb"
     else:
-        suffix = "" if seed == "0" else f"_seed{seed}"
-        out = Path(__file__).resolve().parent.parent / "notebooks" / f"23_5pft_box_eqpac{suffix}.ipynb"
+        out = notebooks_dir / f"23_5pft_box_eqpac{seed_suffix}.ipynb"
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8") as f:
         nbf.write(nb, f)
