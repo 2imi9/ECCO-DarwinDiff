@@ -2,11 +2,11 @@
 
 *Living doc. Update as things ship.*
 
-**Last updated:** 2026-05-12 (Track 1 **v2.2 Phase 2 + v2.4 PINN — 4/6 cal-grade winner found**. v2.0 shipped to main + tagged. v2.1 Phase 1 GLODAP-hybrid open as PR #36 with P1/P2 review-bot fixes pushed. v2.2-5pft-box branch ~25 commits ahead of main with 20 executed experiments. **Current best: nb29 PINN drift w=3.0 at 4/6 cal-grade (Biggrow + diatomgraz + scav_rat + R_PICPOC). alpfe confirmed structurally stuck at ~0.85 off Carroll across all 20 interventions** — IC compensation or GEOTRACES iron observations are the remaining unblockers.)
+**Last updated:** 2026-05-12 (Track 1 **v2.2 closeout** — 22 experiments executed; v2.4 PINN drift w=3.0 reaches project-first **4/6 calibration-grade**; alpfe + Smallgrow remain stuck; PR #37 open and Greptile-cleared at 5/5; Wave 3 alpfe-push experiments running to probe alpfe-scav_rat tradeoff).
 
 ## Where we are in one line
 
-Track 1 (parameter recovery) at **v2.2 Phase 2 in flight** — DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable end-to-end on a single GPU in ~70 min per training run. **v2.0 (merged to main, tag `v2.0`):** carbonate-extended 7-tracer box + 7-tracer joint loss recovers the iron pair to calibration-grade against Carroll's published Green's-functions optima (`alpfe` 1.1%, `scav_rat` 40% off Carroll); other 4 parameters drift because the 2-PFT box averages across species with very different physical rates. **v2.1 Phase 1 (PR #36 open):** nb22 swaps Darwin DIC + ALK for GLODAPv2.2016b real ocean observations as a hybrid target. `R_PICPOC` moves from 360% off Carroll to 74% off (most dramatic single-parameter improvement on the project); iron pair degrades against Carroll (real Darwin-vs-reality coupling artifact). **v2.2 Phase 2 (branch `v2.2-5pft-box`, 8 commits ahead of main):** nb23 replaces the 2-PFT box with a 5-PFT box matching Darwin 3 v05 (diatoms, other large euks, Synechococcus, Pro-LL, Pro-HL); each Carroll-6 parameter now governs one specific PFT instead of an average. nb23 hits **3 of 6 Carroll-6 params at calibration-grade** (`Biggrow`, `diatomgraz`, `scav_rat`) but `alpfe` regresses out of calibration-grade — suspected shared-K_FE aliasing. nb24 (Phase 2 + GLODAP combo) degraded (1/6); combo rejected for Eq Pacific. v2.2.1 nb25 tests per-PFT K_FE half-saturations; results pending. Coverage: 3 basins × 11 targets (FeT + 5 separate Chl_i + POC + PIC + DIC + ALK + CO₂_flux). **Track 1 closed locally on a single GPU**; B200 cluster burn-in pitch sent to MIT ORCD 2026-05-10 (Jonathan Lauderdale); cluster work scales the same scope to global resolution + Track 2 emulator (gated on PhysicsNeMo adoption — see § *In progress / next* below).
+Track 1 (parameter recovery) at **v2.2 closeout** — DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable end-to-end on a single GPU in ~70–90 min per training run. **v2.0 (merged to main, tag `v2.0`):** carbonate-extended 7-tracer box + joint loss recovers the iron pair to within 1.1% (`alpfe`) / 40% (`scav_rat`) of Carroll's published in the 2-PFT proxy; other 4 parameters drift because the 2-PFT box averages across species with very different physical rates. **v2.1 Phase 1 (PR #36 open):** nb22 swaps Darwin DIC + ALK for GLODAPv2.2016b real-obs as a hybrid target — `R_PICPOC` 360% → 74% off Carroll (most dramatic single-parameter improvement); iron pair degrades against Carroll under the obs swap. **v2.2 closeout (branch `v2.2-5pft-box`, PR #37 open at `6968b19`, Greptile 5/5):** 22 experiments across z-scored loss, raw-FeT magnitude (7 weights), PINN balance (2), PINN drift (4), GLODAP combo, per-PFT K_FE, and lumped mapping. **Headline: v2.4 PINN drift w=3.0 reaches the project-first 4/6 calibration-grade** — `scav_rat`, `Biggrow`, `diatomgraz`, `R_PICPOC` all within 40% of Carroll's published. **Stuck:** `alpfe` (0.80–0.94 off across all 22 runs; raw_fet w=0.01 alone moved it to 0.392 but broke `scav_rat` to 2.556 — classic identifiability degeneracy under z-scored loss) and `Smallgrow` (1.18–1.79 off; likely a target-mapping issue — Carroll's 0.661 is the group mean over {Syn, Pro-LL, Pro-HL}, our v2.2 mapped Smallgrow → Pro-HL specifically). **Wave 3 running 2026-05-12** ([`scripts/wave3_alpfe_push.ps1`](scripts/wave3_alpfe_push.ps1)): 3 sequential experiments testing whether `raw_fet × PINN drift` combos break the alpfe-scav_rat tradeoff. **Next: PR #38 GEOTRACES IDP2025 loader** — adds real-iron absolute-units obs to break the identifiability degeneracy properly (URL https://www.geotraces.org/idp2025/ verified from Jon's email .eml decoded 2026-05-12). Coverage: 3 basins × 11 targets (FeT + 5 separate Chl_i + POC + PIC + DIC + ALK + CO₂_flux). **Track 1 closed locally on a single GPU**; B200 cluster burn-in pitch sent to MIT ORCD 2026-05-10 (Jonathan Lauderdale); cluster work scales the same scope to global resolution + Track 2 emulator.
 
 ## Most important findings so far
 
@@ -92,7 +92,7 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] Compute / memory budget calculators
 - [x] Loaders for both available ECCO-Darwin v5 product types (1° rectified bin_average + native LLC270 monthly tracer tiles)
 - [x] AOI presets for Mid-Atlantic, North Pacific, Equatorial Pacific
-- [x] **104-test test suite** covering all of the above
+- [x] **154-test test suite** covering all of the above (plus 5 opt-in real-data tests, skipped by default)
 - [x] **Cluster portability prep** — env-var-driven `DARWIN_DATA_ROOT` pattern across all data-loading notebooks (default unchanged on local Windows; cluster overrides via env); SLURM job templates in [`scripts/slurm/`](scripts/slurm/); compute / dataset-transfer spec in [`docs/cluster_setup.md`](docs/cluster_setup.md); `xmitgcm` runtime dep added to `pyproject.toml` (was previously implicit and missing from a fresh-venv install)
 
 ### Notebooks (all on main)
@@ -118,6 +118,10 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [x] **23** — 5-PFT box-model extension (Track 1 v2.2 Phase 2) — 3 of 6 Carroll-6 params at calibration-grade against Carroll's published optima; `alpfe` regressed (shared-K_FE aliasing)
 - [x] **24** — 5-PFT + GLODAP DIC/ALK combo (Track 1 v2.2) — 1 of 6 cal-grade; combo strategy rejected for Eq Pacific; `diatomgraz` to 0.5% off Carroll (best single-param recovery on project)
 - [x] **25** — 5-PFT + per-PFT K_FE half-saturations (Track 1 v2.2.1) — **hypothesis REJECTED**, 2/6 calibration-grade vs nb23's 3/6; `alpfe` regression unchanged; `diatomgraz` to Excellent (0.062 off); `Biggrow` regressed; root cause is loss-balance not K_FE-aliasing
+- [x] **26** — 5-PFT + FET-weighted z-score loss 3.0× (Track 1 v2.2.2) — 2/6 cal-grade; FET upweighting alone does not break alpfe
+- [x] **27** — 5-PFT + raw-FeT magnitude-preserving loss (Track 1 v2.3, 7 weights: 0.01/0.05/0.1/0.3/0.5/1.0/3.0) — at w=0.05: 3/6 cal-grade + 1 Excellent (best of the sweep). At w=0.01: alpfe alone moves to **0.392 off Carroll** (within cal-grade band) but scav_rat catastrophically broken to 2.556 — the alpfe-scav_rat identifiability degeneracy explicitly observed
+- [x] **28** — 5-PFT + PINN iron mass-balance loss (Track 1 v2.4 "balance" type, w=0.3, w=1.0) — best 3/6 at w=1.0; balance type underperforms drift
+- [x] **29** — 5-PFT + PINN iron drift loss (Track 1 v2.4 "drift" type, w=0.05, w=0.3, w=1.0, w=3.0, plus combo and lumped variants) — **v2.4 PINN drift w=3.0 reaches project-first 4/6 calibration-grade** (scav_rat, Biggrow, diatomgraz, R_PICPOC); lumped-mapping variant rejected at 2/6; full record at [`docs/findings/v2.2_phase2.md`](docs/findings/v2.2_phase2.md)
 
 ### Decisions and scope locked
 
@@ -128,12 +132,36 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 
 ## In progress / next
 
-### Closing v2.2 — highest priority
+### Closing v2.2 — DONE, awaiting merge
 
-- [x] **nb25 execution** — v2.2.1 per-PFT K_FE; **hypothesis rejected** (2/6 cal-grade vs nb23's 3/6); committed `3a11b7f`.
-- [ ] **Pick: open v2.2 PR with nb23 as deliverable, OR try v2.2.2 first.** Best result so far is nb23 (3/6 cal-grade). v2.2.2 candidate: loss weighting to fix the 7:1 carbonate:iron imbalance suspected of causing the `alpfe` regression. ~35 min training.
-- [ ] **PR #36 (v2.1 Phase 1) merge decision** — P1 + P2 review-bot fixes pushed (`43173f7`); awaiting re-review + user merge call.
-- [ ] **v2.2-5pft-box PR** — open after the v2.2.2 decision.
+- [x] **All 22 v2.2 experiments executed and aggregated** in [`docs/findings/v2.2_overnight_summary.{md,csv}`](docs/findings/v2.2_overnight_summary.md). Headline: v2.4 PINN drift w=3.0 at **4/6 cal-grade**.
+- [x] **PR #37 open** at https://github.com/2imi9/ECCO-DarwinDiff/pull/37 with all v2.2 work — Greptile cleared at 5/5 on `5c37e1a`. Four Greptile follow-up fixes pushed: P1 lumped_mapping in carroll6_5pft snapshot branch (`7d24791`), P2 DARWIN_DATA_ROOT env-var guard (`7d24791`), build_nb23.py seed_suffix in all routing branches (`5795e4f`), eval rollout lumped_mapping consistency (`5c37e1a`). data/README.md updated with Jon's canonical URLs (`207841f`); Wave 3 runner added (`6968b19`).
+- [x] **PR #36 (v2.1 Phase 1 GLODAP)** — still open; P1 + P2 fixes already pushed at `43173f7`.
+
+### Wave 3 — 6/6 push experiments (DONE 2026-05-12, ~15 min total)
+
+Three sequential experiments via [`scripts/wave3_alpfe_push.ps1`](scripts/wave3_alpfe_push.ps1) targeting the alpfe-scav_rat identifiability degeneracy uncovered in nb27 (raw_fet w=0.01 moved alpfe to 0.392 but broke scav_rat to 2.556). All 3 completed in ~5 min each.
+
+| Config | Cal-grade | alpfe | scav_rat | Smallgrow | Biggrow | diatomgraz | R_PICPOC |
+|---|---|---|---|---|---|---|---|
+| **Baseline winner (nb29 PINN drift w=3.0)** | **4/6** | 0.888 | 0.345 | 1.251 | 0.314 | 0.299 | 0.358 |
+| Wave 3 #1: raw_fet 0.005 + PINN drift 3.0 | 2/6 | 0.852 | 0.339 | 1.131 | 1.323 | 0.113 | 2.856 |
+| Wave 3 #2: raw_fet 0.01 + PINN drift 3.0 | 2/6 | 0.839 | **3.842** | 1.435 | 0.025 | 0.010 | 0.879 |
+| Wave 3 #3: PINN drift 5.0 alone | 3/6 | 0.882 | 0.360 | 1.236 | 0.074 | 0.304 | 1.993 |
+
+**Conclusion: alpfe-scav_rat is structural under z-scored loss.** None of 3 alpfe-push experiments beat the 4/6 baseline. Adding PINN drift cancels the raw_fet effect on alpfe (compare Wave 3 #2 alpfe=0.839 vs the standalone `raw_fet w=0.01` from earlier at 0.392 — PINN drift damps the alpfe drop). Higher PINN drift weight (w=5.0) doesn't move alpfe either — sweeps 0.05/0.3/1.0/3.0/5.0 all converge to alpfe ≈ 0.86–0.89.
+
+**Implication:** the path to 6/6 is now confirmed to require **external real-iron absolute-units observations** — z-scored loss alone cannot break the alpfe-scav_rat degeneracy regardless of loss-design tricks. PR #38 (GEOTRACES IDP2025 loader) is the right next move.
+
+- [x] raw_fet w=0.005 + PINN drift w=3.0 — 2/6
+- [x] raw_fet w=0.01 + PINN drift w=3.0 — 2/6 (scav_rat catastrophic)
+- [x] PINN drift w=5.0 alone — 3/6 (Biggrow → Excellent, R_PICPOC out)
+
+### Next-PR pipeline
+
+- [ ] **PR #38 — GEOTRACES IDP2025 loader** (alpfe unblocker via real-iron absolute-units obs; URL https://www.geotraces.org/idp2025/ verified from Jon's email .eml decoded 2026-05-12). Target effort: ~half-day loader + tests + one experiment notebook.
+- [ ] **PR #39 — Ocean color loader (Smallgrow target)** — exact URL pending from Jon (he suggested ocean color but didn't link a specific source).
+- [ ] **GLODAPv2.2023 mapped upgrade** — refinement vs v2.2016b currently used; bundle with PR #38 or follow-up.
 
 ### Methodology stages not yet applied to v2.2
 
@@ -146,14 +174,15 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone, no spatial 
 - [ ] **Formal identifiability analysis** — Fisher info / SVD on loss surface; which 6 params are truly identifiable from the 11-target loss vs underconstrained vs optimizer-stuck.
 - [ ] **Verification-setup consistency audit (Gupta et al. 2026 HealDA)** — small changes in `|Δ|/Carroll` definition (mean vs median, ocean_mask, z-score stats) can shift band assignments. Document the chosen protocol and stick to it.
 
-### Datasets shared by Jon to add (priority order for v2.2 → v2.3)
+### Datasets shared by Jon to add (priority order, URLs decoded from `.eml` 2026-05-12)
 
-- [ ] **GEOTRACES IDP2025** — direct iron obs; Phase 3 candidate; directly attacks the alpfe/scav_rat regression. URL: https://www.geotraces.org/ (verified).
-- [ ] **Ocean color satellite Chl** — per-PFT Chl validation (MODIS Aqua / GlobColour); URL pending from Jon.
-- [ ] **SOCAT v2025** — surface pCO₂; Phase 4 candidate (forward Darwin CO₂-flux validation). URL: https://www.socat.info/ (verified).
-- [ ] **BGC-Argo** — depth-resolved sparse-obs from ~5K floats; Phase 5 candidate. `argopy` already in `pyproject.toml`. URL: https://biogeochemical-argo.org/ (verified).
-- [ ] **WOD / WOA** — backup; partly redundant with GLODAP but different corrections (Jon flagged this).
-- [ ] **ECCO-Darwin LLC90 1° baseline** — URL pending; ECCO portal in maintenance 2026-05-11/12; re-request after Tuesday.
+- [ ] **GEOTRACES IDP2025** — alpfe unblocker (real-iron absolute-units obs). URL: https://www.geotraces.org/idp2025/ — **Step 1 / PR #38**.
+- [ ] **GLODAPv2.2023 upgrade** — 7 yrs newer than the v2.2016b we currently use. Bottle: https://glodap.info/index.php/merged-and-adjusted-data-product-v2-2023/ · Mapped: https://glodap.info/index.php/mapped-data-product/ — **Step 2** (refinement, low-risk).
+- [ ] **Ocean color** — Smallgrow target validation via PFT-specific Chl. Jon did NOT link a specific source ("we could also think about bringing in ocean color"); likely NASA OB.DAAC https://oceancolor.gsfc.nasa.gov/ or ESA OC-CCI for PFT decomposition — **Step 3** (ask Jon for preference).
+- [ ] **BGC-Argo** — Wave 4 (time-resolved + depth-resolved). URL: https://biogeochemical-argo.org/data-access.php — Step 4. `argopy` already in `pyproject.toml`.
+- [ ] **SOCAT v2025** — surface CO₂ refinement. URL: https://socat.info/index.php/version-2025/ — Step 5.
+- [ ] **WOD / WOA** — Background T/S + nutrients. WOD: https://www.ncei.noaa.gov/products/world-ocean-database · WOA: https://www.ncei.noaa.gov/products/world-ocean-atlas — Steps 6 / 7. Jon flagged WOA's monthly nutrient products are limited to the upper few hundred metres (full-depth annual only).
+- [x] **ECCO-Darwin LLC90 1° baseline** — Jon's canonical URL: https://ecco.jpl.nasa.gov/drive/files/ECCO2/LLC90/ECCO-Darwin/. We pulled from the NAS mirror data.nas.nasa.gov in 2026-05; bin_average (1.9 GB) on disk. LLC270 extension: https://ecco.jpl.nasa.gov/drive/files/ECCO2/LLC270/ECCO-Darwin_extension/ (1.9 TB on disk from NAS mirror).
 
 ### Track 2 emulator — PhysicsNeMo reading queue (do AFTER v2.2 closeout)
 
@@ -181,5 +210,5 @@ DarwinDiff fit: Track 1 stays as pure PyTorch. Track 2 emulator replaces `carrol
 
 ## Project arc
 
-- **Track 1** (parameter recovery via differentiable physics) — at **v2.0**. Per-cell DINN baseline fits the spatial pattern where global-scalar produces a constant prediction; DINNDeep saturates fit quality with degenerate per-cell recovery (nb15, nb18); cross-validation confirms DINNDeep is interpolation-only (nb16); ensemble disagreement detects extreme errors but not extrapolation territory (nb17); 4-tracer joint loss partially collapses degeneracy with 3/6 closer (nb19). **v2.0 contribution:** carbonate-extended box + 7-tracer joint loss (nb20) moves the iron pair to within 1.1% (alpfe) / 40% (scav_rat) of Carroll's published values — reproducible across DINN baseline AND DINNDeep architectures. Other 4 parameters trapped by 5-tracer box-model proxy (cluster work + 5-PFT extension addresses). **Track 1 closed locally on a single GPU**; cluster ask sent to MIT ORCD 2026-05-10 for May B200 burn-in window. Cluster transfer prep documented in [`docs/cluster_setup.md`](docs/cluster_setup.md).
+- **Track 1** (parameter recovery via differentiable physics) — at **v2.2 closeout**. Per-cell DINN baseline fits the spatial pattern where global-scalar produces a constant prediction; DINNDeep saturates fit quality with degenerate per-cell recovery (nb15, nb18); cross-validation confirms DINNDeep is interpolation-only (nb16); ensemble disagreement detects extreme errors but not extrapolation territory (nb17); 4-tracer joint loss partially collapses degeneracy with 3/6 closer (nb19). **v2.0 contribution:** carbonate-extended box + 7-tracer joint loss (nb20-21) moves the iron pair to within 1.1% (alpfe) / 40% (scav_rat) of Carroll's published in the 2-PFT proxy — reproducible across DINN baseline AND DINNDeep architectures. **v2.1 Phase 1** (nb22, PR #36): GLODAPv2.2016b DIC/ALK real-obs hybrid; R_PICPOC dramatic improvement (360% → 74% off); iron pair degraded under the obs swap. **v2.2** (nb23-29, PR #37): full 5-PFT box matching Darwin v05 + 22 experiments across methodology axes; **v2.4 PINN drift w=3.0 reaches project-first 4/6 calibration-grade** (scav_rat, Biggrow, diatomgraz, R_PICPOC). `alpfe` + `Smallgrow` confirmed structurally non-identifiable under current observation set; Wave 3 alpfe-push experiments running 2026-05-12 to probe whether the alpfe-scav_rat tradeoff is loss-design or structural. **Track 1 closed locally on a single GPU**; cluster ask sent to MIT ORCD 2026-05-10 for May B200 burn-in window. Cluster transfer prep documented in [`docs/cluster_setup.md`](docs/cluster_setup.md). **Next:** PR #38 GEOTRACES IDP2025 loader — adds real-iron absolute-units observations to break alpfe identifiability degeneracy.
 - **Track 2** (neural surrogate emulator) — not started; gated on cluster compute access + time-resolved fitting machinery from Track 1 follow-ups.
