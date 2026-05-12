@@ -5,7 +5,7 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model that l
 1. **Parameter learner** — a faster, richer replacement for ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes one global vector of 6 biogeochemical parameters via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
 2. **Emulator** — a neural-network stand-in for ECCO-Darwin trained on the same Darwin output, for long-timescale climate runs the full model is too slow for. Not started yet — Track 2.
 
-> **Status:** Track 1 (parameter recovery) at **v2.0** — DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable on a single GPU (~90 min on RTX 5090). **v2.0 headline result:** adding the carbonate cycle (DIC + ALK + air-sea CO₂ flux) as joint-loss targets moves the iron pair to **1.1% (alpfe)** and **40% (scav_rat)** off Carroll's published values — closer in BOTH DINN baseline AND DINNDeep architectures, robust across network capacity. The remaining 4 Carroll-6 parameters are trapped by the 5-tracer box-model proxy; cluster work + 5-PFT box extension addresses this (B200 burn-in pitch sent to MIT ORCD 2026-05-10). Track 2 (neural emulator) gated on cluster compute. See [STATUS.md](STATUS.md) for live state and [`docs/findings/v2_track1_closeout.md`](docs/findings/v2_track1_closeout.md) for the consolidated v2.0 record.
+> **Status:** Track 1 (parameter recovery) at **v2.2 closeout** (2026-05-12). DarwinDiff is a gradient-based replacement for ECCO-Darwin's Green's-functions calibration at the same parameter scope (Carroll's 6). Locally-runnable on a single GPU (~90 min on RTX 5090). **v2.2 headline result:** the v2.4 PINN drift w=3.0 setup ([`notebooks/29_v2_4_pinn_drift_eqpac_w3.0.ipynb`](notebooks/29_v2_4_pinn_drift_eqpac_w3.0.ipynb)) recovers **4 of 6 Carroll-6 parameters at calibration-grade (≤ 40% off Carroll's published optima)** — `scav_rat`, `Biggrow`, `diatomgraz`, `R_PICPOC`. Project's first 4/6. **Stuck:** `alpfe` (0.80–0.94 off across 22 experiments — alpfe-scav_rat identifiability degeneracy under z-scored loss) and `Smallgrow` (target ambiguity: Carroll's 0.661 is the group mean over {Syn, Pro-LL, Pro-HL}, our v2.2 mapped Smallgrow→Pro-HL specifically). Wave 3 alpfe-push experiments running 2026-05-12 to test combo `raw_fet × PINN drift` weights; PR #38 (GEOTRACES IDP2025 loader) planned next to break alpfe identifiability via real-iron observations. Track 2 (neural emulator) gated on cluster compute. v2.0 carbonate-cycle work (nb20-21) reached 1.1%/40% iron-pair recovery in the 2-PFT proxy; v2.2 (nb23-29) extended to the full 5-PFT setup matching Darwin 3 v05. See [STATUS.md](STATUS.md) for live state and [`docs/findings/v2.2_phase2.md`](docs/findings/v2.2_phase2.md) for the v2.2 narrative.
 
 ## Why this exists
 
@@ -17,9 +17,9 @@ DarwinDiff replaces the biogeochemistry side of this with **PyTorch autograd**: 
 >
 > **Cluster setup:** see [`docs/cluster_setup.md`](docs/cluster_setup.md) for compute requirements, environment setup on a Linux GPU cluster, dataset transfer plan for the LLC270 monthly tree, and the open questions list for ORCD.
 
-## Headline results (as of 2026-05-10)
+## Headline results (as of 2026-05-12)
 
-All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone) versus a global-scalar Green's-functions baseline, against z-scored Darwin v05 output over a Mid-Atlantic-sized AOI:
+All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone) versus a global-scalar Green's-functions baseline, against z-scored Darwin v05 output over a Mid-Atlantic-sized AOI. v2.2 5-PFT (nb23–29) results are added below the v1.x / v2.0 table.
 
 | AOI | Target | Network | DINN r | Loss ratio Global / DINN |
 |---|---|---|---|---|
@@ -33,6 +33,22 @@ All fits use a 1500-epoch DINN per-cell network (1×1 conv backbone) versus a gl
 | Equatorial Pacific | FeT + Chl + POC + PIC (joint) | **DINNDeep + multi-tracer loss** | **all 4 ≥ 0.998** | *(saturates jointly; see caveat below)* |
 | Equatorial Pacific | **7-tracer carbonate joint** | **DINN baseline + carbonate (nb20)** | poor per-tracer (−0.36 to 0.62) | *iron pair within **1.1%/40%** of Carroll — v2.0 headline* |
 | Equatorial Pacific | 7-tracer carbonate joint | DINNDeep + carbonate (nb20) | all r ≥ 0.88 | *scav_rat moves closer to Carroll in both architectures — robust signal* |
+| Equatorial Pacific | 7-tracer carbonate joint (GLODAPv2.2016b DIC/ALK hybrid) | **nb22 (Track 1 v2.1 Phase 1, PR #36)** | per-tracer mixed | *R_PICPOC 360% → 74% off Carroll; iron pair degraded — validates real-obs hybrid approach* |
+
+### v2.2 (5-PFT box, nb23–29) — 22 experiments testing 6/6 push
+
+Track 1 v2.2 extends the box-model from the 2-PFT proxy used in v2.0 to the full 5-PFT setup matching Darwin 3 v05. Sorted by calibration-grade count (≤ 40% off Carroll); selected rows from [`docs/findings/v2.2_overnight_summary.md`](docs/findings/v2.2_overnight_summary.md):
+
+| Notebook | Config | Cal-grade | alpfe | scav_rat | Smallgrow | Biggrow | diatomgraz | R_PICPOC |
+|---|---|---|---|---|---|---|---|---|
+| **29_v2_4_pinn_drift_eqpac_w3.0** | **PINN drift w=3.0** | **4/6** | 0.888 | **0.345** | 1.251 | **0.314** | **0.299** | **0.358** |
+| 23_5pft_box_eqpac_seed3 | baseline, seed 3 | 3/6 | 0.841 | 0.213 | 0.911 | 0.346 | 0.199 | 0.565 |
+| 28_v2_4_pinn_balance_eqpac_w1.0 | PINN balance w=1.0 | 3/6 | 0.882 | 0.317 | 1.221 | 0.103 | 0.319 | 0.418 |
+| 23_5pft_box_eqpac | baseline, seed 0 | 3/6 | 0.891 | 0.300 | 1.244 | 0.326 | 0.282 | 0.738 |
+| 27_v2_3_raw_fet_eqpac_w0.05 | raw_fet w=0.05 | 3/6 | 0.897 | 0.134 | 1.184 | 1.155 | 0.100 | 0.262 |
+| 27_v2_3_raw_fet_eqpac_w0.01 | raw_fet w=0.01 | 1/6 | **0.392** | 2.556 | 1.824 | 1.293 | 0.657 | 0.760 |
+
+Values are `|recovered − Carroll| / Carroll`; **bold** = within 40% cal-grade band. The last row (raw_fet w=0.01) is the only experiment where alpfe enters cal-grade — but at the cost of breaking scav_rat. The alpfe-scav_rat tradeoff is the open question Wave 3 is probing right now.
 
 In every fit, the Green's-functions parametric class produces a **constant prediction** (r mathematically undefined) — the structural ceiling Carroll 2020 / 2022's calibration is bounded by. Carroll's 6 calibrated values are inherited bit-for-bit between v04 / Carroll 2020 (Darwin 1) and v05 / Carroll 2022 (Darwin 3), verified locally against the source namelists.
 
@@ -79,9 +95,10 @@ In every fit, the Green's-functions parametric class produces a **constant predi
   - v1.6: ensemble-disagreement trust map (notebook 17) — useful for in-domain outlier flagging, fails as extrapolation detector
   - v1.7: cross-basin DINNDeep on N Pacific Chl (notebook 18) — saturation pattern generalises; per-parameter recovery direction is target-specific
   - v1.8: multi-tracer joint loss on Eq Pacific (notebook 19) — adding 4 tracer fields as joint loss surfaces partially collapses parameter degeneracy (3/6 closer to Carroll), iron pair stays underconstrained
-  - **v2.0: carbonate-extended box + 7-tracer joint loss (notebooks 20–21)** — iron pair moves to within 1.1% (alpfe) and 40% (scav_rat) of Carroll's published. Robust across architectures. Other 4 parameters trapped by 5-tracer box-model proxy. **Track 1 closed locally on a single GPU; cluster work scales the same scope to global resolution + Track 2 emulator.**
-  - **Next local experiment (no cluster needed):** box-model carbonate-chemistry extension (nb20 candidate) — adds DIC + ALK + carbonate equilibrium to carroll6, addresses the 5-tracer-proxy ceiling identified in nb15. ~4–5 days authoring (autograd-compatible carbonate equilibrium is non-trivial), ~20 min run.
-  - **Gated on cluster compute:** full-ocean parameter recovery, time-resolved multi-year fitting, Track 2 emulator. Cluster prep complete (env-var-driven `DARWIN_DATA_ROOT`, SLURM templates in [`scripts/slurm/`](scripts/slurm/), compute spec in [`docs/cluster_setup.md`](docs/cluster_setup.md)); awaiting cluster decision. See [STATUS.md](STATUS.md) for the live checklist.
+  - v2.0: carbonate-extended box + 7-tracer joint loss (notebooks 20–21) — iron pair moves to within 1.1% (alpfe) and 40% (scav_rat) of Carroll's published. Robust across architectures. Other 4 parameters trapped by 5-tracer box-model proxy.
+  - v2.1 Phase 1: GLODAPv2.2016b DIC + ALK hybrid (notebook 22, PR #36) — first real-observation hybrid; R_PICPOC dramatic improvement (360% → 74% off); iron pair degraded under the obs swap; validates the hybrid framework
+  - **v2.2: full 5-PFT box-model extension (notebooks 23–29, PR #37)** — 22 experiments across z-scored loss, raw-FeT magnitude (7 weights), PINN balance (2), PINN drift (4), GLODAP combo, per-PFT K_FE, lumped mapping. **Headline: v2.4 PINN drift w=3.0 reaches 4/6 calibration-grade** — project's first 4/6. `alpfe` + `Smallgrow` confirmed structurally non-identifiable under current observation set. Wave 3 (raw_fet × PINN drift combos) running 2026-05-12 to probe the alpfe-scav_rat tradeoff. **Next local experiment:** PR #38 GEOTRACES IDP2025 loader — adds real-iron absolute-units observations to break the alpfe identifiability degeneracy.
+  - **Gated on cluster compute:** full-ocean parameter recovery, time-resolved multi-year fitting, Track 2 emulator, forward Darwin validation of recovered `scav_rat = 3.95e-7`. Cluster prep complete (env-var-driven `DARWIN_DATA_ROOT`, SLURM templates in [`scripts/slurm/`](scripts/slurm/), compute spec in [`docs/cluster_setup.md`](docs/cluster_setup.md)); B200 burn-in pitch sent to MIT ORCD 2026-05-10. See [STATUS.md](STATUS.md) for the live checklist.
 
 - **Track 2 — emulator** (not started)
   - Will be a separate architecture (likely transformer / FNO / graph net with spatial coupling), trained on time-resolved Darwin output. Different problem from parameter recovery — different network. Notes in STATUS.md once it begins.
@@ -96,16 +113,21 @@ ecco-darwindiff/
 ├── pyproject.toml             package details + dependencies
 ├── src/darwindiff/            Python package (importable as `darwindiff`)
 │   ├── carroll6.py              5-tracer Carroll-6 box model + Carroll's optima + bounds
-│   ├── networks.py              DINN (per-cell 1×1 conv) + DINNRegional (MLP)
+│   ├── carbonate.py             Follows-2006 carbonate solver + Wanninkhof 2014 CO₂ flux (v2.0)
+│   ├── carroll6_5pft.py         10-tracer / 5-PFT box matching Darwin v05 (v2.2; optional per-PFT K_FE + lumped/specific mapping)
+│   ├── networks.py              DINN (per-cell 1×1 conv) + DINNRegional (MLP) + DINNDeep
 │   ├── diagnostics.py           NaN-safe Pearson r + constant-prediction handling
 │   ├── budget.py                compute / memory budget calculators
 │   ├── ecco_darwin_loader.py    ECCO-Darwin v5 bin_average product (1° NetCDF) loader + AOI presets
-│   └── llc270_loader.py         ECCO-Darwin v5 native LLC270 monthly tracer loader (xmitgcm-based)
-├── tests/                     pytest suite (104 tests + 1 opt-in real-data integration)
-├── notebooks/                 numbered notebooks, in order of project arc
-├── docs/                      decision log + chronological findings docs (latest: 2026_05_10.md, Track 1 v1.6)
-├── data/                      local data cache (gitignored; see data/README.md)
-├── scripts/slurm/             SLURM job templates for cluster runs (run_tests / run_notebook / run_array)
+│   ├── llc270_loader.py         ECCO-Darwin v5 native LLC270 monthly tracer loader (xmitgcm-based)
+│   └── glodap_loader.py         GLODAPv2.2016b real-obs DIC/ALK loader (v2.1; cherry-picked into both PR #36 and PR #37 by design)
+├── tests/                     pytest suite (154 passed, 5 skipped opt-in real-data)
+├── notebooks/                 numbered notebooks 05–29, in order of project arc (latest: nb29 v2.4 PINN drift 4/6 winner)
+├── docs/                      decision log + chronological findings docs
+│   └── findings/                v2_track1_closeout.md (v2.0), v2.1_phase1_glodap.md, v2.2_phase2.md, v2.2_overnight_summary.{md,csv}
+├── data/                      local data cache (gitignored except README.md; see data/README.md for canonical URLs)
+├── scripts/                   build_nb23.py (configurable notebook builder), overnight_run.ps1 / overnight_wave2.ps1 (sequential overnight queues), multiseed_v2_4_drift_w3.ps1 (winner robustness), wave3_alpfe_push.ps1 (Wave 3 push), overnight_summary.py (idempotent aggregator), phase2_p4_p5_check.py (prereqs), slurm/ (cluster job templates)
+├── CONTRIBUTING.md            branch convention, commit/PR title format, no Co-Authored-By rule
 └── references/                PDFs + external code references (gitignored content)
 ```
 
@@ -115,7 +137,7 @@ Needs Python 3.11+. With uv:
 
 ```bash
 uv sync
-uv run pytest -q   # 104 passed, 1 skipped
+uv run pytest -q   # 154 passed, 5 skipped (opt-in real-data tests)
 ```
 
 All runtime deps (including `xmitgcm` for the native LLC270 loader) are pinned in `pyproject.toml` and installed by `uv sync`.
@@ -130,17 +152,29 @@ See [`docs/cluster_setup.md`](docs/cluster_setup.md) for the full operational gu
 
 ## Data sources
 
-See [data/README.md](data/README.md). Summary:
+See [data/README.md](data/README.md) for the full annotated index and Jon Lauderdale's authoritative URLs (decoded from his 2026-05-11 email). Summary:
 
-| Source | Use | Access |
+### In active use
+
+| Source | Use | Canonical URL |
 |---|---|---|
-| ECCO-Darwin v05 `bin_average` (1° NetCDF, surface) | Carroll-6 fits via Chl + carbonate diagnostics | https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/bin_average/ (public) |
-| ECCO-Darwin v05 native LLC270 monthly tracers (mds tile format, depth-resolved) | Carroll-6 fits via NO₃ / DIC / ALK / FeT etc. | https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/monthly/ (public; ~50 GB per tracer) |
-| LLC270 grid metadata | Required for xmitgcm loader | https://data.nas.nasa.gov/ecco/llc_270/grid/ |
-| GLODAPv2 | DIC, alkalinity, nutrients, oxygen — used by notebook 09 | https://glodap.info |
-| NASA GHG Center CO₂ flux GeoTIFFs | Validation of future CO₂ flux fits | https://earth.gov/ghgcenter/ |
+| ECCO-Darwin v05 `bin_average` (1° NetCDF) | Carroll-6 fits via Chl + carbonate diagnostics, nb09-29 | https://ecco.jpl.nasa.gov/drive/files/ECCO2/LLC90/ECCO-Darwin/ (Jon's canonical) · NAS mirror used in 2026-05: https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/bin_average/ |
+| ECCO-Darwin v05 native LLC270 monthly tracers | Carroll-6 fits via depth-resolved NO₃ / DIC / ALK / FeT etc., nb13-19 | https://ecco.jpl.nasa.gov/drive/files/ECCO2/LLC270/ECCO-Darwin_extension/ (Jon's canonical) · NAS mirror: https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/monthly/ |
+| GLODAPv2.2016b mapped | DIC / ALK real-obs hybrid, nb22 (PR #36) | https://glodap.info (2.2023 recommended by Jon for upgrade) |
+| NASA GHG Center CO₂ flux GeoTIFFs | Future CO₂ flux validation | https://earth.gov/ghgcenter/data-catalog/eccodarwin-co2flux-monthgrid-v5 |
 
-Earthdata signup required for some paths. Raw data files are stored outside the repo (`D:\ecco_darwin_v5\` on the local dev machine).
+### Planned (Jon's email 2026-05-11)
+
+| Source | Unblocks | URL |
+|---|---|---|
+| **GEOTRACES IDP2025** | **alpfe identifiability (PR #38)** | https://www.geotraces.org/idp2025/ |
+| GLODAPv2.2023 | Refines carbonate signal vs v2.2016b | https://glodap.info/index.php/merged-and-adjusted-data-product-v2-2023/ |
+| Ocean color (NASA OB.DAAC / OC-CCI) | Smallgrow target via PFT-specific Chl | https://oceancolor.gsfc.nasa.gov/ |
+| BGC-Argo | Wave 4 time-resolved + depth-resolved BGC | https://biogeochemical-argo.org/data-access.php |
+| SOCAT 2025 | Surface CO₂ flux refinement | https://socat.info/index.php/version-2025/ |
+| WOD / WOA | Background T/S + nutrients | https://www.ncei.noaa.gov/products/world-ocean-database |
+
+Raw data files are stored outside the repo (`D:\ecco_darwin_v5\` on the local dev machine). All loaders respect the `DARWIN_DATA_ROOT` / `GLODAP_DATA_ROOT` env vars for cluster portability. We don't mirror raw third-party data to GitHub or Hugging Face — see [data/README.md](data/README.md) § "Hosting decision".
 
 ## Documentation discipline
 
