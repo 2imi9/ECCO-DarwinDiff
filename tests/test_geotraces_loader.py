@@ -261,7 +261,8 @@ def test_bin_to_grid_qc_filter(tmp_path: Path) -> None:
     opened = open_geotraces_bottle(path)
     aoi = AOI("OneBin", 0.0, 1.0, 0.0, 1.0)
 
-    # Default {1, 2}: only the 3 station-A samples count → mean = 1.0
+    # Default {49, 50} (SeaDataNet '1' good + '2' probably-good):
+    # only the 3 station-A samples count → mean = 1.0
     good_only = bin_to_grid(opened, "Fe_D", aoi)
     assert float(good_only.values[0, 0]) == pytest.approx(1.0, abs=1e-6)
     assert good_only.attrs["n_samples_aggregated"] == 3

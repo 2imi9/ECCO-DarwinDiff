@@ -157,8 +157,12 @@ def open_geotraces_bottle(geotraces_path: str | Path) -> xr.Dataset:
             longitude=(((ds.longitude + 180) % 360) - 180)
         )
     # Mask fill values on iron + depth variables. Iron variables follow
-    # the ``Fe...`` or ``L*Fe...`` naming pattern; DEPTH is the per-sample
-    # depth coordinate. Other char / qc fields are left alone.
+    # the ``Fe...`` or ``L*Fe...`` naming pattern (which matches the
+    # companion ``*_err`` and ``*_qc`` fields too — that's intentional;
+    # they're numeric and a -1e10 sentinel would propagate the same way).
+    # DEPTH is the per-sample depth coordinate. Character-typed metadata
+    # vars (cruise_id, station_id, etc.) don't match these prefixes and
+    # are left alone.
     for v in ds.data_vars:
         if (v.startswith("Fe_") or v.startswith("L1Fe_") or v.startswith("L2Fe_")
                 or v.startswith("LFe_") or v == "DEPTH"):
@@ -295,11 +299,18 @@ def bin_to_grid(
     grid = np.full((len(lat_centers), len(lon_centers)), np.nan, dtype=np.float64)
     lat_idx = np.floor((lats - aoi.lat_min) / lat_res).astype(np.int64)
     lon_idx = np.floor((lons - aoi.lon_min) / lon_res).astype(np.int64)
-    # Samples exactly on the lat_max / lon_max edge floor() to n; clamp into
-    # the top bin so they're not silently dropped.
+    # Two bin-edge cases to handle: (1) samples exactly on the lat_max /
+    # lon_max boundary floor() to index n (out of [0, n-1]) — clamp these
+    # into the top bin so they're not silently dropped. (2) samples beyond
+    # the AOI bounds should be excluded entirely. Check bounds BEFORE
+    # clamping so we don't accidentally fold out-of-AOI samples into the
+    # top bin (matters if caller skips subset_aoi_geotraces).
+    in_bounds = (
+        (lat_idx >= 0) & (lat_idx <= len(lat_centers))
+        & (lon_idx >= 0) & (lon_idx <= len(lon_centers))
+    )
     lat_idx = np.minimum(lat_idx, len(lat_centers) - 1)
     lon_idx = np.minimum(lon_idx, len(lon_centers) - 1)
-    in_bounds = (lat_idx >= 0) & (lon_idx >= 0)
     lat_idx, lon_idx, values = lat_idx[in_bounds], lon_idx[in_bounds], values[in_bounds]
 
     # Vectorized bin accumulation via np.add.at (handles duplicate indices
