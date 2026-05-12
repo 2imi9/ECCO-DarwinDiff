@@ -17,6 +17,7 @@ Run via: python scripts/build_nb23.py
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import nbformat as nbf
@@ -308,7 +309,7 @@ def train(net, env_dev, seed: int = 0) -> dict:
     for epoch in range(N_EPOCHS):
         optimizer.zero_grad()
         params = bounded_params(net(env_dev), bounds_dev)
-        state = carroll6_5pft_integrate(
+        state = _integrate_compiled(
             state0_dev, params, DT, N_STEPS,
             T=T_dev, S=S_dev, wind=wind_dev, pco2_atm=pco2_atm_dev, h_mld=H_MLD,
         )
@@ -345,8 +346,25 @@ def train(net, env_dev, seed: int = 0) -> dict:
         l_dic = term(dic_pred, dic_z)
         l_alk = term(alk_pred, alk_z)
         l_co2 = term(co2_flux_pred, co2_flux_z)
-        loss = (l_fet + l_chl1 + l_chl2 + l_chl3 + l_chl4 + l_chl5
-                + l_poc + l_pic + l_dic + l_alk + l_co2) / 11.0
+        # FeT loss-weight via env var (NB23_FET_WEIGHT, default 1.0). v2.2.2
+        # tests whether upweighting FeT to compensate for the 1:11 iron-target
+        # dilution restores `alpfe` to calibration-grade.
+        FET_W = float(os.environ.get("NB23_FET_WEIGHT", "1.0"))
+        loss = (FET_W*l_fet + l_chl1 + l_chl2 + l_chl3 + l_chl4 + l_chl5
+                + l_poc + l_pic + l_dic + l_alk + l_co2) / (FET_W + 10.0)
+
+        # v2.3: raw (non-z-scored) FeT magnitude term. Carroll 2020 used raw
+        # weighted quadratic cost (Section 2.4); z-scoring strips alpfe's
+        # magnitude information. Adding raw MSE on FeT restores it.
+        RAW_FET_W = float(os.environ.get("NB23_RAW_FET_WEIGHT", "0.0"))
+        if RAW_FET_W > 0:
+            fet_raw_target = torch.tensor(fet_binned, dtype=torch.float32).to(device)
+            residual_raw = (dfe_pred - fet_raw_target) * mask_dev.to(dfe_pred.dtype)
+            # Scale by 1/mean(FeT^2) so the raw term is dimensionless and the
+            # weight is order-of-magnitude-meaningful vs the z-scored 0..few range.
+            fet_obs_scale = (fet_raw_target[mask_dev] ** 2).mean().clamp(min=1e-30)
+            l_fet_raw = (residual_raw ** 2).sum() / mask_dev.sum().to(residual_raw.dtype) / fet_obs_scale
+            loss = loss + RAW_FET_W * l_fet_raw
 
         loss.backward()
         optimizer.step()
@@ -375,7 +393,7 @@ def train(net, env_dev, seed: int = 0) -> dict:
     elapsed = time.time() - t0
     with torch.no_grad():
         params_dev = bounded_params(net(env_dev), bounds_dev)
-        state = carroll6_5pft_integrate(
+        state = _integrate_compiled(
             state0_dev, params_dev, DT, N_STEPS,
             T=T_dev, S=S_dev, wind=wind_dev, pco2_atm=pco2_atm_dev, h_mld=H_MLD,
         )
@@ -403,7 +421,19 @@ def train(net, env_dev, seed: int = 0) -> dict:
 
 
 # === HEADLINE: DINN baseline (SST-only) ===
-torch.manual_seed(0)
+SEED = int(os.environ.get("NB23_SEED", "0"))
+print(f"Training seed: {SEED}")
+
+# torch.compile the integrator for ~1.5x speedup (PyTorch 2.x JIT, fuses ops,
+# reduces Python overhead). Falls back to eager if compile fails.
+try:
+    _integrate_compiled = torch.compile(carroll6_5pft_integrate, mode="reduce-overhead")
+    print("Integrator torch.compile'd successfully")
+except Exception as exc:
+    print(f"torch.compile fallback to eager: {exc}")
+    _integrate_compiled = carroll6_5pft_integrate
+
+torch.manual_seed(SEED)
 dinn_baseline = DINN(n_input_channels=1, hidden_dim=16, n_outputs=6).to(device)
 n_b = sum(p.numel() for p in dinn_baseline.parameters())
 print(f"=== HEADLINE: DINN baseline (SST-only, {n_b} params), 11-target 5-PFT joint loss ===")
@@ -411,7 +441,7 @@ r_baseline = train(dinn_baseline, env_1ch_dev)
 print(f"  done in {r_baseline['elapsed']:.0f}s, loss {r_baseline['losses'][0]:.3e} -> {r_baseline['losses'][-1]:.3e}")
 
 # === SECONDARY: DINNDeep (SST+MLD+wind+lat) ===
-torch.manual_seed(0)
+torch.manual_seed(SEED)
 dinn_deep = DINNDeep(n_input_channels=4, hidden_dim=32, n_outputs=6, n_blocks=4).to(device)
 n_d = sum(p.numel() for p in dinn_deep.parameters())
 print(f"\n=== SECONDARY: DINNDeep ({n_d} params), 11-target 5-PFT joint loss ===")
@@ -600,7 +630,18 @@ plt.show()
         "language_info": {"name": "python", "version": "3.11"},
     }
 
-    out = Path(__file__).resolve().parent.parent / "notebooks" / "23_5pft_box_eqpac.ipynb"
+    seed = os.environ.get("NB23_SEED", "0")
+    fet_w = os.environ.get("NB23_FET_WEIGHT", "1.0")
+    raw_fet_w = os.environ.get("NB23_RAW_FET_WEIGHT", "0.0")
+    if float(raw_fet_w) > 0:
+        # v2.3 raw-FeT magnitude-preserving variant → nb27
+        out = Path(__file__).resolve().parent.parent / "notebooks" / f"27_v2_3_raw_fet_eqpac_w{raw_fet_w}.ipynb"
+    elif float(fet_w) != 1.0:
+        # v2.2.2 loss-weighted variant → nb26
+        out = Path(__file__).resolve().parent.parent / "notebooks" / f"26_v2_2_2_lossweighted_fet{fet_w}x.ipynb"
+    else:
+        suffix = "" if seed == "0" else f"_seed{seed}"
+        out = Path(__file__).resolve().parent.parent / "notebooks" / f"23_5pft_box_eqpac{suffix}.ipynb"
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8") as f:
         nbf.write(nb, f)
