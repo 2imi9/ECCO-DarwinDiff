@@ -14,6 +14,9 @@ Both are one-off prereq diagnostics, not part of the package.
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 import torch
 import xarray as xr
 
@@ -24,7 +27,8 @@ from darwindiff.ecco_darwin_loader import (
     time_mean,
 )
 
-BIN_AVERAGE_NC = r"D:\ecco_darwin_v5\bin_average\v05_ECCO-Darwin_bin_average_1x1_deg.nc"
+DATA_ROOT = Path(os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5"))
+BIN_AVERAGE_NC = str(DATA_ROOT / "bin_average" / "v05_ECCO-Darwin_bin_average_1x1_deg.nc")
 
 
 def p4_pft_abundance() -> dict[str, float]:

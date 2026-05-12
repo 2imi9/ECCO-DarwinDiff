@@ -322,7 +322,7 @@ def carroll6_5pft_integrate(
     snaps: list[torch.Tensor] = []
     for step in range(1, n_steps + 1):
         state = carroll6_5pft_step(
-            state, params, dt, T, S, wind, pco2_atm, h_mld, k_fe_per_pft,
+            state, params, dt, T, S, wind, pco2_atm, h_mld, k_fe_per_pft, lumped_mapping,
         )
         if step in snapshot_set:
             snaps.append(state)

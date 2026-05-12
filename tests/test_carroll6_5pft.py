@@ -222,3 +222,42 @@ def test_per_pft_kfe_default_is_backwards_compatible() -> None:
     assert torch.allclose(s_implicit, s_explicit), (
         "k_fe_per_pft=None should be identical to omitting the argument"
     )
+
+
+def test_lumped_mapping_propagates_through_snapshot_branch() -> None:
+    """Regression: ``lumped_mapping`` must flow into the snapshot branch.
+
+    Pre-fix bug: ``carroll6_5pft_integrate`` dropped ``lumped_mapping`` when
+    ``snapshot_indices`` was provided, silently applying the "specific" PFT
+    mapping. Verified by asserting (a) lumped vs specific produce different
+    trajectories in snapshot mode, and (b) snapshot-mode and no-snapshot-mode
+    agree at the final step when ``lumped_mapping=True``.
+    """
+    s0 = _state0()
+    # Push Smallgrow far from its literature default so the lumped-vs-specific
+    # divergence (Smallgrow routed to Syn + Pro-LL under lumped) is large.
+    params = CARROLL_VALUES.clone()
+    params[2] = CARROLL_VALUES[2] * 0.2  # Smallgrow at 20% of optimum
+    n_steps = 20
+    with torch.no_grad():
+        traj_lumped = carroll6_5pft_integrate(
+            s0, params, dt=0.25, n_steps=n_steps,
+            snapshot_indices=[n_steps], lumped_mapping=True,
+        )
+        traj_specific = carroll6_5pft_integrate(
+            s0, params, dt=0.25, n_steps=n_steps,
+            snapshot_indices=[n_steps], lumped_mapping=False,
+        )
+        final_lumped_nosnap = carroll6_5pft_integrate(
+            s0, params, dt=0.25, n_steps=n_steps, lumped_mapping=True,
+        )
+
+    diff = (traj_lumped[0] - traj_specific[0]).abs().sum().item()
+    assert diff > 1e-3, (
+        f"lumped_mapping must affect snapshot-branch trajectories; got "
+        f"summed |diff| = {diff} (pre-fix: ~0 because the arg was dropped)"
+    )
+    assert torch.allclose(traj_lumped[0], final_lumped_nosnap, atol=1e-6), (
+        "Snapshot final step must match no-snapshot final state under the "
+        "same lumped_mapping setting (branches must be semantically identical)"
+    )
