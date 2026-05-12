@@ -21,15 +21,20 @@ $LogPath = Join-Path $PSScriptRoot "overnight_log.txt"
 #   raw_fet_weight:    NB23_RAW_FET_WEIGHT (raw-magnitude FeT term weight)
 $experiments = @(
     # v2.3 raw-FeT weight sweep (extending tonight's w=0.1/0.3/0.05)
-    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.01" },
-    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.5"  },
-    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "3.0"  },
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.01"; pinn_weight = "0.0" },
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.5";  pinn_weight = "0.0" },
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "3.0";  pinn_weight = "0.0" },
 
-    # nb23 multi-seed robustness (baseline, no FeT modifications)
-    @{ nb_seed = "1"; fet_weight = "1.0"; raw_fet_weight = "0.0" },
-    @{ nb_seed = "2"; fet_weight = "1.0"; raw_fet_weight = "0.0" },
-    @{ nb_seed = "3"; fet_weight = "1.0"; raw_fet_weight = "0.0" },
-    @{ nb_seed = "4"; fet_weight = "1.0"; raw_fet_weight = "0.0" }
+    # v2.4 PINN iron mass-balance sweep - main scientific test
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.1" },
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.3" },
+    @{ nb_seed = "0"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "1.0" },
+
+    # nb23 multi-seed robustness (baseline, no FeT/PINN modifications)
+    @{ nb_seed = "1"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.0" },
+    @{ nb_seed = "2"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.0" },
+    @{ nb_seed = "3"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.0" },
+    @{ nb_seed = "4"; fet_weight = "1.0"; raw_fet_weight = "0.0"; pinn_weight = "0.0" }
 )
 
 function Write-Log {
@@ -50,7 +55,8 @@ foreach ($exp in $experiments) {
     $env:NB23_SEED = $exp.nb_seed
     $env:NB23_FET_WEIGHT = $exp.fet_weight
     $env:NB23_RAW_FET_WEIGHT = $exp.raw_fet_weight
-    $tag = "seed=$($exp.nb_seed) fet_w=$($exp.fet_weight) raw_fet_w=$($exp.raw_fet_weight)"
+    $env:NB23_PINN_WEIGHT = $exp.pinn_weight
+    $tag = "seed=$($exp.nb_seed) fet_w=$($exp.fet_weight) raw_fet_w=$($exp.raw_fet_weight) pinn_w=$($exp.pinn_weight)"
 
     Write-Log "BUILDING: $tag"
     $buildOutput = & python scripts/build_nb23.py 2>&1
@@ -100,3 +106,4 @@ Write-Log "Done."
 Remove-Item Env:NB23_SEED -ErrorAction SilentlyContinue
 Remove-Item Env:NB23_FET_WEIGHT -ErrorAction SilentlyContinue
 Remove-Item Env:NB23_RAW_FET_WEIGHT -ErrorAction SilentlyContinue
+Remove-Item Env:NB23_PINN_WEIGHT -ErrorAction SilentlyContinue
