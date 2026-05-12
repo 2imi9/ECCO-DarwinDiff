@@ -48,15 +48,15 @@ Multi-line commit messages are preferred for any non-trivial change. Hard wrap a
 
 ## Branch naming
 
-Existing pattern, keep using it:
+Use a scope prefix that matches the PR title pattern. Do **not** prefix branches with `claude/` — branch names should look like normal human work, not agent-flagged work.
 
 | Pattern | Use for |
 |---|---|
-| `claude/<descriptive-slug>` | Feature work driven by an agent session (most common) |
-| `claude/nbNN-<topic>` | Notebook-specific branches |
-| `claude/vX.Y-<topic>` | Version-scoped work (e.g. `claude/v2.1-glodap-real-obs`) |
+| `vX.Y-<topic>` | Version-scoped work (e.g. `v2.1-glodap-real-obs`, `v2.2-5pft-box`) |
+| `nbNN-<topic>` | Notebook-specific branches |
 | `docs/<topic>` | Documentation-only branches |
 | `fix/<topic>` | Bug-fix branches |
+| `infra/<topic>` or `cluster/<topic>` | SLURM / ORCD / data-loader infrastructure |
 
 Worktrees live under `.claude/worktrees/<random-name>/` and are gitignored; safe to delete after the branch is merged.
 

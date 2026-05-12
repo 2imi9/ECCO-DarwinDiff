@@ -117,7 +117,10 @@ print(f"AOI: {AOI.name}")
 BIN_AVG_PATH = str(DATA_ROOT / "bin_average" / "v05_ECCO-Darwin_bin_average_1x1_deg.nc")
 MONTHLY_ROOT = str(DATA_ROOT / "output" / "monthly")
 GRID_DIR = str(DATA_ROOT / "grid")
-GLODAP_ROOT = Path("data/glodap/GLODAPv2.2016b_MappedClimatologies")
+GLODAP_ROOT = Path(os.environ.get(
+    "GLODAP_DATA_ROOT",
+    str(DATA_ROOT / "glodap" / "GLODAPv2.2016b_MappedClimatologies"),
+))
 
 ds_bin = open_bin_average(BIN_AVG_PATH)
 eqpac_clim = time_mean(subset_aoi(ds_bin, AOI))
@@ -161,9 +164,15 @@ def load_glodap_to_bin_average_grid(glodap_root: Path, variable: str, target_ds)
     ds_glodap = open_glodap_variable(glodap_root, variable)
     glodap_friendly_to_file = {"DIC": "TCO2", "ALK": "TAlk"}
     var_file = glodap_friendly_to_file[variable]
-    da_full = surface_layer_glodap(subset_aoi_glodap(ds_glodap, AOI))[var_file]
-    # GLODAP's own AOI extent is slightly different from bin_average's
-    # because of the half-integer cell centers. Interp to bin_average grid.
+    # Interpolate on the full surface field BEFORE subsetting to the AOI.
+    # GLODAP cells are centered on half-integers (-89.5..89.5), bin_average
+    # on integers; if we subset_aoi_glodap first we lose the boundary half-
+    # degree source points needed to interpolate onto bin_average's integer
+    # AOI edges (-5/15 lat, -160/-110 lon), and xarray.interp doesn't
+    # extrapolate, so those edges become NaN and get dropped by ocean_mask.
+    # The interp call only evaluates at target_ds.lat/lon, so working from
+    # the full surface field is cheap (~65K source cells per variable).
+    da_full = surface_layer_glodap(ds_glodap)[var_file]
     da_aligned = da_full.interp(lat=target_ds.lat, lon=target_ds.lon)
     # Convert units. GLODAP is in µmol/kg.
     return to_mmol_per_m3(da_aligned).values.astype(np.float64)
