@@ -114,7 +114,7 @@ GEOTRACES_W = float(os.environ.get("GEOTRACES_W", "1.0"))
 
 DT = 0.25
 N_STEPS = 200
-N_EPOCHS = 1500
+N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
 H_MLD = 50.0
 K_FE = 5.0e-5
 
@@ -125,41 +125,98 @@ print(f"Config: seed={SEED}, fet_w={FET_W}, raw_fet_w={RAW_FET_W}, "
 print()
 
 
-# ============================== Darwin targets ============================
+# ============================== Darwin targets (with on-disk cache) =======
+#
+# LLC270 native loading + xmitgcm decoding takes ~60 s. Cache the
+# AOI-binned 1-deg targets + bin_average covariates as a single .pt
+# tensor file. Cache key includes the AOI bounds so different AOIs
+# don't collide. Shared with run_v2.7_multilayer_quick.py.
 
-print("Loading Darwin bin_average covariates + per-PFT Chl...")
-ds_bin = open_bin_average(BIN_AVG_PATH)
-ds_aoi = subset_aoi(ds_bin, AOI)
-ds_avg = time_mean(ds_aoi)
+CACHE_DIR = DATA_ROOT / "cache"
+CACHE_PATH = CACHE_DIR / f"eqpac_targets_{AOI.name.replace(' ', '_').lower()}.pt"
 
-sst = ds_avg["SST"].values.astype(np.float32)
-mld = ds_avg["mldDepth"].values.astype(np.float32)
-wind = ds_avg["windSpeed"].values.astype(np.float32)
-sss = ds_avg["SSS"].values.astype(np.float32) if "SSS" in ds_avg else np.full_like(sst, 35.0)
-pco2_atm_field = ds_avg["apCO2"].values.astype(np.float32)
-co2_flux_obs = ds_avg["CO2_flux"].values.astype(np.float32)
-chl_per_pft = {
-    f"Chl{i}": ds_avg[f"Chl{i}"].values.astype(np.float32) for i in range(1, 6)
-}
-lat_2d = np.broadcast_to(
-    ds_avg.lat.values[:, None].astype(np.float32), sst.shape
-).copy()
+
+def _build_eqpac_targets() -> dict:
+    """Slow path: load bin_average + 5 LLC270 native variables."""
+    print("  building target cache from Darwin bin_average + LLC270 native...")
+    ds_bin = open_bin_average(BIN_AVG_PATH)
+    ds_aoi = subset_aoi(ds_bin, AOI)
+    ds_avg_local = time_mean(ds_aoi)
+
+    out = {
+        "aoi_name": AOI.name,
+        "aoi_bounds": (AOI.lat_min, AOI.lat_max, AOI.lon_min, AOI.lon_max),
+        "darwin_lats": ds_avg_local.lat.values.astype(np.float64),
+        "darwin_lons": ds_avg_local.lon.values.astype(np.float64),
+        "sst": ds_avg_local["SST"].values.astype(np.float32),
+        "mld": ds_avg_local["mldDepth"].values.astype(np.float32),
+        "wind": ds_avg_local["windSpeed"].values.astype(np.float32),
+        "sss": (
+            ds_avg_local["SSS"].values.astype(np.float32)
+            if "SSS" in ds_avg_local
+            else np.full_like(ds_avg_local["SST"].values.astype(np.float32), 35.0)
+        ),
+        "pco2_atm_field": ds_avg_local["apCO2"].values.astype(np.float32),
+        "co2_flux_obs": ds_avg_local["CO2_flux"].values.astype(np.float32),
+        "chl_per_pft": {
+            f"Chl{i}": ds_avg_local[f"Chl{i}"].values.astype(np.float32)
+            for i in range(1, 6)
+        },
+    }
+    for var in ["FeT", "POC", "PIC", "DIC", "ALK"]:
+        out[f"{var.lower()}_binned"] = bin_native_tracer_to_1deg(
+            monthly_root=MONTHLY_ROOT, grid_dir=GRID_DIR, variable=var,
+            lat_min=AOI.lat_min, lat_max=AOI.lat_max,
+            lon_min=AOI.lon_min, lon_max=AOI.lon_max,
+            iters="all",
+        )
+    return out
+
+
+def _load_or_build_target_cache() -> dict:
+    """Fast path: torch.load the .pt cache if AOI matches; else rebuild."""
+    expected_bounds = (AOI.lat_min, AOI.lat_max, AOI.lon_min, AOI.lon_max)
+    if CACHE_PATH.is_file():
+        try:
+            cached = torch.load(CACHE_PATH, map_location="cpu", weights_only=False)
+            if (cached.get("aoi_name") == AOI.name
+                    and cached.get("aoi_bounds") == expected_bounds):
+                print(f"Loaded target cache from {CACHE_PATH} "
+                      f"(skipping ~60 s of LLC270 binning).")
+                return cached
+            print(f"  cache AOI mismatch ({cached.get('aoi_name')!r} vs "
+                  f"{AOI.name!r}); rebuilding...")
+        except Exception as e:
+            print(f"  cache load failed ({e}); rebuilding...")
+
+    data = _build_eqpac_targets()
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        torch.save(data, CACHE_PATH)
+        print(f"  saved target cache to {CACHE_PATH}")
+    except Exception as e:
+        print(f"  [warn] could not save cache to {CACHE_PATH}: {e}")
+    return data
+
+
+print(f"Loading targets (cache: {CACHE_PATH})...")
+_targets = _load_or_build_target_cache()
+
+sst = _targets["sst"]
+mld = _targets["mld"]
+wind = _targets["wind"]
+sss = _targets["sss"]
+pco2_atm_field = _targets["pco2_atm_field"]
+co2_flux_obs = _targets["co2_flux_obs"]
+chl_per_pft = _targets["chl_per_pft"]
+fet_binned = _targets["fet_binned"]
+poc_binned = _targets["poc_binned"]
+pic_binned = _targets["pic_binned"]
+dic_binned = _targets["dic_binned"]
+alk_binned = _targets["alk_binned"]
+darwin_lats_cached = _targets["darwin_lats"]
+darwin_lons_cached = _targets["darwin_lons"]
 print(f"  bin_average shape: {sst.shape}")
-
-print("Loading LLC270 native FeT/POC/PIC/DIC/ALK...")
-native_targets = {}
-for var in ["FeT", "POC", "PIC", "DIC", "ALK"]:
-    native_targets[var] = bin_native_tracer_to_1deg(
-        monthly_root=MONTHLY_ROOT, grid_dir=GRID_DIR, variable=var,
-        lat_min=AOI.lat_min, lat_max=AOI.lat_max,
-        lon_min=AOI.lon_min, lon_max=AOI.lon_max,
-        iters="all",
-    )
-fet_binned = native_targets["FeT"]
-poc_binned = native_targets["POC"]
-pic_binned = native_targets["PIC"]
-dic_binned = native_targets["DIC"]
-alk_binned = native_targets["ALK"]
 
 
 # ============================== GEOTRACES iron ============================
@@ -173,8 +230,8 @@ print(f"  Eq Pac stations: {geotraces_sub.sizes['N_STATIONS']}")
 # at integer degrees, NOT the half-integer convention bin_to_grid uses).
 # Reuses subset_aoi_geotraces output and the QC + depth filters but
 # inlines a custom binning so the output shape matches fet_binned exactly.
-darwin_lats = ds_avg.lat.values.astype(np.float64)   # e.g. -5, -4, ..., 15 (21 cells)
-darwin_lons = ds_avg.lon.values.astype(np.float64)   # e.g. -160, ..., -110 (51 cells)
+darwin_lats = darwin_lats_cached   # e.g. -5, -4, ..., 15 (21 cells)
+darwin_lons = darwin_lons_cached   # e.g. -160, ..., -110 (51 cells)
 n_dlat = len(darwin_lats)
 n_dlon = len(darwin_lons)
 darwin_lat_res = float(darwin_lats[1] - darwin_lats[0]) if n_dlat > 1 else 1.0
@@ -320,8 +377,13 @@ except Exception:
     _integrate = carroll6_5pft_integrate
 
 t0 = time.time()
-losses_total = []
-losses_geo = []
+# Pre-allocate GPU loss histories so we never sync host<->device in the hot
+# loop. ~2 .item() calls per epoch × 1500 epochs = ~3000 GPU syncs would
+# otherwise dominate small-grid runs; storing to a pre-allocated GPU tensor
+# and bulk-syncing at the end is dramatically cheaper.
+NAN_F32 = float("nan")
+loss_history = torch.full((N_EPOCHS,), NAN_F32, dtype=torch.float32, device=device)
+geo_history = torch.full((N_EPOCHS,), NAN_F32, dtype=torch.float32, device=device)
 for epoch in range(N_EPOCHS):
     optimizer.zero_grad()
     params = bounded_params(net(env_1ch), bounds_dev)
@@ -403,26 +465,35 @@ for epoch in range(N_EPOCHS):
     # NEW: GEOTRACES iron loss term. Absolute-units MSE on the sparse
     # populated cells, normalized by mean target magnitude (so the weight
     # is order-of-magnitude meaningful).
+    l_geotraces = None
     if GEOTRACES_W > 0 and n_geo_in_ocean > 0:
         residual_geo = (dfe_pred - geotraces_target_t) * geotraces_mask_t.to(dfe_pred.dtype)
         geo_scale = (geotraces_target_t[geotraces_mask_t] ** 2).mean().clamp(min=1e-30)
         l_geotraces = (residual_geo ** 2).sum() / geotraces_mask_t.sum().to(residual_geo.dtype) / geo_scale
         loss = loss + GEOTRACES_W * l_geotraces
-        losses_geo.append(l_geotraces.item())
-    else:
-        losses_geo.append(float("nan"))
 
     loss.backward()
     optimizer.step()
-    losses_total.append(loss.item())
+
+    # Stash the per-epoch losses on GPU (no host sync in the hot loop).
+    with torch.no_grad():
+        loss_history[epoch] = loss.detach()
+        if l_geotraces is not None:
+            geo_history[epoch] = l_geotraces.detach()
 
     if (epoch + 1) % 250 == 0 or epoch + 1 == N_EPOCHS:
-        print(f"  epoch {epoch+1:4d}  loss = {loss.item():.4e}  "
-              f"geo = {losses_geo[-1] if not np.isnan(losses_geo[-1]) else float('nan'):.4e}")
+        # Single sync per log line.
+        l_now = float(loss_history[epoch].item())
+        g_now = float(geo_history[epoch].item())
+        print(f"  epoch {epoch+1:4d}  loss = {l_now:.4e}  geo = {g_now:.4e}")
 
 if device == "cuda":
     torch.cuda.synchronize()
 elapsed = time.time() - t0
+
+# Bulk-sync histories to CPU once.
+losses_total = loss_history.cpu().numpy().tolist()
+losses_geo = geo_history.cpu().numpy().tolist()
 print(f"Done in {elapsed:.0f}s, loss {losses_total[0]:.3e} -> {losses_total[-1]:.3e}")
 
 
