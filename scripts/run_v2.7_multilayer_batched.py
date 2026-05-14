@@ -104,6 +104,7 @@ from darwindiff.geotraces_loader import (
     open_geotraces_bottle,
     subset_aoi_geotraces,
 )
+from darwindiff.diagnostics import band_of
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
 from darwindiff.networks import DINN
 
@@ -641,14 +642,12 @@ with torch.no_grad():
         n_excellent = 0
         for name, rec, pub in zip(param_names, param_means, carroll_published):
             rel = abs(rec - float(pub)) / abs(float(pub))
-            if rel <= 0.05:
-                band = "Excellent"; n_cal_grade += 1; n_excellent += 1
-            elif rel <= 0.40:
-                band = "Cal-grade"; n_cal_grade += 1
-            elif rel <= 0.80:
-                band = "Loose"
-            else:
-                band = "Drifted"
+            band = band_of(rel)
+            if band == "Excellent":
+                n_cal_grade += 1
+                n_excellent += 1
+            elif band == "Cal-grade":
+                n_cal_grade += 1
             print(f"{seed:<6d} {name:<12s} {rec:>12.4e} {float(pub):>12.4e} "
                   f"{rel:>12.4f} {band:<12s}")
             result["params"][name] = {
@@ -680,7 +679,7 @@ else:
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
-            json.dump(r, f, indent=2)
+            json.dump(r, f, indent=2, allow_nan=False)
         suffix = " (overwrote existing)" if existed else ""
         print(f"  wrote {out.name}{suffix}")
 

@@ -93,6 +93,7 @@ from darwindiff.geotraces_loader import (
     open_geotraces_bottle,
     subset_aoi_geotraces,
 )
+from darwindiff.diagnostics import band_of
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
 from darwindiff.networks import DINN
 
@@ -571,10 +572,21 @@ results = {
     "elapsed_s": elapsed,
     "loss_initial": losses_total[0],
     "loss_final": losses_total[-1],
-    "geo_surface_loss_initial": losses_geo_surface[0],
-    "geo_surface_loss_final": losses_geo_surface[-1],
-    "geo_sub_loss_initial": losses_geo_sub[0],
-    "geo_sub_loss_final": losses_geo_sub[-1],
+    # NaN-safe JSON: replace nan with None so json.dump(allow_nan=False)
+    # produces spec-compliant output even when a loss term is disabled
+    # (e.g. GEOTRACES_SUB_W=0 leaves geo_sub_loss history full of NaN).
+    "geo_surface_loss_initial": (
+        None if not np.isfinite(losses_geo_surface[0]) else losses_geo_surface[0]
+    ),
+    "geo_surface_loss_final": (
+        None if not np.isfinite(losses_geo_surface[-1]) else losses_geo_surface[-1]
+    ),
+    "geo_sub_loss_initial": (
+        None if not np.isfinite(losses_geo_sub[0]) else losses_geo_sub[0]
+    ),
+    "geo_sub_loss_final": (
+        None if not np.isfinite(losses_geo_sub[-1]) else losses_geo_sub[-1]
+    ),
     "dfe1_pred_mean_mmol_m3": dfe1_final,
     "dfe2_pred_mean_mmol_m3": dfe2_final,
     "params": {},
@@ -586,17 +598,12 @@ n_cal_grade = 0
 n_excellent = 0
 for name, recovered, published in zip(param_names, param_means, carroll_published):
     rel = abs(recovered - float(published)) / abs(float(published))
-    if rel <= 0.05:
-        band = "Excellent"
+    band = band_of(rel)
+    if band == "Excellent":
         n_cal_grade += 1
         n_excellent += 1
-    elif rel <= 0.40:
-        band = "Cal-grade"
+    elif band == "Cal-grade":
         n_cal_grade += 1
-    elif rel <= 0.80:
-        band = "Loose"
-    else:
-        band = "Drifted"
     print(f"{name:<12s} {recovered:>12.4e} {float(published):>12.4e} {rel:>12.4f} {band:<12s}")
     results["params"][name] = {
         "recovered": float(recovered),
@@ -623,5 +630,5 @@ results_path = Path(__file__).resolve().parent / (
     f"_pinn{PINN_W}.json"
 )
 with results_path.open("w", encoding="utf-8") as f:
-    json.dump(results, f, indent=2)
+    json.dump(results, f, indent=2, allow_nan=False)
 print(f"\nResults JSON written to: {results_path}")

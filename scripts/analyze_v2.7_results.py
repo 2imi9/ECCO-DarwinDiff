@@ -11,12 +11,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 
-SCRIPTS = Path(__file__).resolve().parent
+_HERE = Path(__file__).resolve().parent
+_SRC = _HERE.parent / "src"
+if _SRC.exists() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+from darwindiff.diagnostics import band_of  # noqa: E402
+
+SCRIPTS = _HERE
 
 PARAM_NAMES = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
 CARROLL = {
@@ -27,16 +35,6 @@ CARROLL = {
     "diatomgraz": 0.8300300240516663,
     "R_PICPOC": 0.04244999960064888,
 }
-
-
-def band_of(rel_offset: float) -> str:
-    if rel_offset <= 0.05:
-        return "Excellent"
-    if rel_offset <= 0.40:
-        return "Cal-grade"
-    if rel_offset <= 0.80:
-        return "Loose"
-    return "Drifted"
 
 
 def load_results() -> list[dict]:

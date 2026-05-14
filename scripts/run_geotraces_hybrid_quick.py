@@ -74,7 +74,7 @@ from darwindiff.carroll6_5pft import (
     N_TRACERS,
     carroll6_5pft_integrate,
 )
-from darwindiff.diagnostics import safe_pearson_r
+from darwindiff.diagnostics import band_of
 from darwindiff.ecco_darwin_loader import (
     EQUATORIAL_PACIFIC_AOI,
     open_bin_average,
@@ -521,8 +521,14 @@ results = {
     "elapsed_s": elapsed,
     "loss_initial": losses_total[0],
     "loss_final": losses_total[-1],
-    "geo_loss_initial": losses_geo[0],
-    "geo_loss_final": losses_geo[-1],
+    # NaN-safe JSON: replace nan with None so json.dump(allow_nan=False)
+    # produces spec-compliant output even when GEOTRACES_W=0.
+    "geo_loss_initial": (
+        None if not np.isfinite(losses_geo[0]) else losses_geo[0]
+    ),
+    "geo_loss_final": (
+        None if not np.isfinite(losses_geo[-1]) else losses_geo[-1]
+    ),
     "params": {},
 }
 
@@ -532,17 +538,12 @@ n_cal_grade = 0
 n_excellent = 0
 for name, recovered, published in zip(param_names, param_means, carroll_published):
     rel = abs(recovered - float(published)) / abs(float(published))
-    if rel <= 0.05:
-        band = "Excellent"
+    band = band_of(rel)
+    if band == "Excellent":
         n_cal_grade += 1
         n_excellent += 1
-    elif rel <= 0.40:
-        band = "Cal-grade"
+    elif band == "Cal-grade":
         n_cal_grade += 1
-    elif rel <= 0.80:
-        band = "Loose"
-    else:
-        band = "Drifted"
     print(f"{name:<12s} {recovered:>12.4e} {float(published):>12.4e} {rel:>12.4f} {band:<12s}")
     results["params"][name] = {
         "recovered": float(recovered),
@@ -571,5 +572,5 @@ results_path = Path(__file__).resolve().parent / (
     f"_pinn{PINN_W}.json"
 )
 with results_path.open("w", encoding="utf-8") as f:
-    json.dump(results, f, indent=2)
+    json.dump(results, f, indent=2, allow_nan=False)
 print(f"\nResults JSON written to: {results_path}")
