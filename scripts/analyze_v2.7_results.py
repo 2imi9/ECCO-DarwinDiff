@@ -86,8 +86,16 @@ def main() -> None:
         )
         seeds = sorted(r["seed"] for r in runs)
         print(f"Seeds: {seeds}")
+        # Column key:
+        #   mean_band  = band of the seed-mean recovered value vs Carroll.
+        #                Useful as a summary statistic but CAN silently
+        #                disagree with the per-seed Cal/Exc rate when the
+        #                seed distribution straddles a band boundary.
+        #   Cal/Exc    = per-seed verdict count. This is the canonical
+        #                reproducibility metric — use it (not mean_band)
+        #                when reporting how often the recovery is good.
         print(f"{'Param':<12s} {'mean':>12s} {'std':>12s} {'rel_off':>10s} "
-              f"{'band':<12s} {'Cal/Exc rate':>14s}")
+              f"{'mean_band':<12s} {'Cal/Exc rate':>14s}")
         for name in PARAM_NAMES:
             recovered = np.array([r["params"][name]["recovered"] for r in runs])
             mean = recovered.mean()

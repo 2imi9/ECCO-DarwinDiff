@@ -619,6 +619,15 @@ with torch.no_grad():
         dfe1_final_mean = float(state_final[I_DFE_1, seed_idx][mask_dev].mean().item())
         dfe2_final_mean = float(state_final[I_DFE_2, seed_idx][mask_dev].mean().item())
 
+        # Per-seed geo-loss initial/final (NaN-safe — replaced with None when
+        # the loss term is disabled). Matches the single-seed runner's JSON
+        # schema so the downstream aggregator sees the same fields whichever
+        # runner produced the file.
+        gs_init = float(geo_surface_history[0, seed_idx].item())
+        gs_final = float(geo_surface_history[-1, seed_idx].item())
+        gsub_init = float(geo_sub_history[0, seed_idx].item())
+        gsub_final = float(geo_sub_history[-1, seed_idx].item())
+
         result = {
             "seed": seed,
             "geotraces_w": GEOTRACES_W,
@@ -634,6 +643,10 @@ with torch.no_grad():
             "n_seeds_in_batch": N_SEEDS,
             "loss_initial": float(loss_history[0, seed_idx].item()),
             "loss_final": float(loss_history[-1, seed_idx].item()),
+            "geo_surface_loss_initial": None if not np.isfinite(gs_init) else gs_init,
+            "geo_surface_loss_final": None if not np.isfinite(gs_final) else gs_final,
+            "geo_sub_loss_initial": None if not np.isfinite(gsub_init) else gsub_init,
+            "geo_sub_loss_final": None if not np.isfinite(gsub_final) else gsub_final,
             "dfe1_pred_mean_mmol_m3": dfe1_final_mean,
             "dfe2_pred_mean_mmol_m3": dfe2_final_mean,
             "params": {},
