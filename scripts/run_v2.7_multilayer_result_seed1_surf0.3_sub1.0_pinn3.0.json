@@ -9,53 +9,50 @@
   "fet_w": 1.0,
   "n_geo_surface_cells": 26,
   "n_geo_sub_cells": 28,
-  "elapsed_s": 86.30132293701172,
-  "loss_initial": 2.4009830951690674,
-  "loss_final": 1.6370795965194702,
-  "geo_surface_loss_initial": 0.8022585511207581,
-  "geo_surface_loss_final": 0.15156379342079163,
-  "geo_sub_loss_initial": 0.37142735719680786,
-  "geo_sub_loss_final": 0.0950281098484993,
-  "dfe1_pred_mean_mmol_m3": 0.00018885575991589576,
-  "dfe2_pred_mean_mmol_m3": 0.0004678832192439586,
+  "elapsed_s_total_batch": 126.61556053161621,
+  "n_seeds_in_batch": 3,
+  "loss_initial": 2.3461878299713135,
+  "loss_final": 1.3442351818084717,
+  "dfe1_pred_mean_mmol_m3": 0.00020863553800154477,
+  "dfe2_pred_mean_mmol_m3": 0.0004471230204217136,
   "params": {
     "alpfe": {
-      "recovered": 0.9476135969161987,
+      "recovered": 0.7637154459953308,
       "carroll_published": 0.928309977054596,
-      "abs_rel_offset": 0.020794368625500072,
-      "band": "Excellent"
+      "abs_rel_offset": 0.1773055715521896,
+      "band": "Cal-grade"
     },
     "scav_rat": {
-      "recovered": 1.0822721208114672e-07,
+      "recovered": 7.55601448076959e-08,
       "carroll_published": 6.025023253641848e-07,
-      "abs_rel_offset": 0.8203704657642137,
+      "abs_rel_offset": 0.8745894552987438,
       "band": "Drifted"
     },
     "Smallgrow": {
-      "recovered": 0.4042028486728668,
+      "recovered": 0.7268578410148621,
       "carroll_published": 0.6609799861907959,
-      "abs_rel_offset": 0.3884794439809389,
+      "abs_rel_offset": 0.09966694332716168,
       "band": "Cal-grade"
     },
     "Biggrow": {
-      "recovered": 0.11203613877296448,
+      "recovered": 0.16843447089195251,
       "carroll_published": 0.4314799904823303,
-      "abs_rel_offset": 0.7403445322047848,
+      "abs_rel_offset": 0.609635499658587,
       "band": "Loose"
     },
     "diatomgraz": {
-      "recovered": 0.9441362619400024,
+      "recovered": 0.6432970762252808,
       "carroll_published": 0.8300300240516663,
-      "abs_rel_offset": 0.13747242217979513,
+      "abs_rel_offset": 0.22497131719992103,
       "band": "Cal-grade"
     },
     "R_PICPOC": {
-      "recovered": 0.00877199973911047,
+      "recovered": 0.18259687721729279,
       "carroll_published": 0.04244999960064888,
-      "abs_rel_offset": 0.7933568946611631,
-      "band": "Loose"
+      "abs_rel_offset": 3.3014576898724317,
+      "band": "Drifted"
     }
   },
   "n_cal_grade": 3,
-  "n_excellent": 1
+  "n_excellent": 0
 }

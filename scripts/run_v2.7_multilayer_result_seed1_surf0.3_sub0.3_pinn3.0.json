@@ -9,53 +9,50 @@
   "fet_w": 1.0,
   "n_geo_surface_cells": 26,
   "n_geo_sub_cells": 28,
-  "elapsed_s": 88.81748366355896,
-  "loss_initial": 2.140984058380127,
-  "loss_final": 1.3167779445648193,
-  "geo_surface_loss_initial": 0.8022585511207581,
-  "geo_surface_loss_final": 0.15158875286579132,
-  "geo_sub_loss_initial": 0.37142735719680786,
-  "geo_sub_loss_final": 0.11365444958209991,
-  "dfe1_pred_mean_mmol_m3": 0.0002020277752308175,
-  "dfe2_pred_mean_mmol_m3": 0.0004968746798112988,
+  "elapsed_s_total_batch": 157.21125721931458,
+  "n_seeds_in_batch": 5,
+  "loss_initial": 2.0379884243011475,
+  "loss_final": 1.2834031581878662,
+  "dfe1_pred_mean_mmol_m3": 0.00019502871145959944,
+  "dfe2_pred_mean_mmol_m3": 0.0004776573914568871,
   "params": {
     "alpfe": {
-      "recovered": 0.8430774807929993,
+      "recovered": 0.6010546684265137,
       "carroll_published": 0.928309977054596,
-      "abs_rel_offset": 0.0918146937642834,
+      "abs_rel_offset": 0.3525280528239283,
       "band": "Cal-grade"
     },
     "scav_rat": {
-      "recovered": 5.704324124167215e-08,
+      "recovered": 3.347142296661332e-08,
       "carroll_published": 6.025023253641848e-07,
-      "abs_rel_offset": 0.9053227865847785,
+      "abs_rel_offset": 0.9444459854219128,
       "band": "Drifted"
     },
     "Smallgrow": {
-      "recovered": 0.5493811368942261,
+      "recovered": 0.8654884099960327,
       "carroll_published": 0.6609799861907959,
-      "abs_rel_offset": 0.16883846958772536,
+      "abs_rel_offset": 0.30940183981032704,
       "band": "Cal-grade"
     },
     "Biggrow": {
-      "recovered": 0.11080276221036911,
+      "recovered": 0.27153098583221436,
       "carroll_published": 0.4314799904823303,
-      "abs_rel_offset": 0.74320301136906,
-      "band": "Loose"
-    },
-    "diatomgraz": {
-      "recovered": 0.957444429397583,
-      "carroll_published": 0.8300300240516663,
-      "abs_rel_offset": 0.15350577889214484,
+      "abs_rel_offset": 0.3706985449575931,
       "band": "Cal-grade"
     },
+    "diatomgraz": {
+      "recovered": 0.7927386164665222,
+      "carroll_published": 0.8300300240516663,
+      "abs_rel_offset": 0.04492778153145794,
+      "band": "Excellent"
+    },
     "R_PICPOC": {
-      "recovered": 0.19120025634765625,
+      "recovered": 0.17045624554157257,
       "carroll_published": 0.04244999960064888,
-      "abs_rel_offset": 3.504128578242286,
+      "abs_rel_offset": 3.0154592967055533,
       "band": "Drifted"
     }
   },
-  "n_cal_grade": 3,
-  "n_excellent": 0
+  "n_cal_grade": 4,
+  "n_excellent": 1
 }

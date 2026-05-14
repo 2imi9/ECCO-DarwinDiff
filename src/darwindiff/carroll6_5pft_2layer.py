@@ -28,26 +28,33 @@ The L1 sub-block exactly mirrors ``carroll6_5pft`` (10 tracers) so the
 ``carroll6_5pft_integrate``-compatible surface diagnostics still work
 when L1 alone is read out.
 
-**Vertical coupling (the new physics).** Two fluxes link L1 ↔ L2:
+**Vertical coupling (the new physics).**
 
-1. **Sinking POC carries iron downward.** Surface POC sinks at rate
-   ``W_SINK = 0.10/day``. The iron bound to sinking particles is parameterized
-   at Carroll's phytoplankton Fe quota ``Q_FE = 1e-5 mol Fe / mol C`` (sinking
-   detritus is dominated by phyto-derived material at scoping precision).
-   Iron flux per unit area = ``Q_FE * W_SINK * POC_1 * h1``. Re-expressing
-   as a per-volume rate in L2: ``Q_FE * W_SINK * POC_1 * (h1/h2)``.
+**Iron accounting (v2.7.1, post-Greptile-P1 fix).** Iron leaves DFe_1 via
+biological uptake ``fe_uptake = Q_FE * growth_total`` only. Iron is
+NOT also explicitly subtracted at the sinking-POC rate — that would
+double-count the same iron pathway, because the model does not track
+Fe-on-POC as a separate tracer. The phyto → POC → sinking-POC iron
+path is therefore implicit; iron re-enters the dissolved pool ONLY at
+L2 remineralisation, via ``fe_remin_L2 = Q_FE_REMIN * R_REMIN * POC_2``.
+Whatever fraction of sinking POC does not remineralise in L2 is lost
+to deep (consistent with the W_SINK * POC_2 → 0 boundary assumption).
+This corrects the v2.7.0 pre-fix integrator that subtracted both
+fe_uptake AND fe_sink_out_L1 from DFe_1 and double-counted L2 ingress.
 
-2. **Vertical eddy diffusion** across the thermocline at ``Kz = 1e-5 m^2/s``
-   (Whalen et al. 2012 typical thermocline value). Per-area flux =
-   ``Kz * (DFe_2 - DFe_1) / dz_int``, where ``dz_int = (h1+h2)/2``. Order-of-
-   magnitude check: with the observed Eq Pac gradient of ~0.4 nmol/kg the
-   diffusive flux is ~1000x smaller than the dust source — included for
-   completeness but not the dominant coupling.
+**Vertical eddy diffusion** across the thermocline at ``Kz = 1e-5 m^2/s``
+(Whalen et al. 2012 typical thermocline value). Per-area flux =
+``Kz * (DFe_2 - DFe_1) / dz_int``, where ``dz_int = (h1+h2)/2``.
+Order-of-magnitude check: with the observed Eq Pac gradient of
+~0.4 nmol/kg the diffusive flux is ~1000x smaller than the dust source;
+included for completeness but not the dominant coupling.
 
 **Remineralization in L2.** Sinking POC is broken down by bacteria at
 ``R_REMIN = 0.05/day`` (Martin curve b ≈ 0.86; ~200 m remineralization
-length scale in the upper twilight zone). Remineralization releases bound
-iron back to DFe_2 at the same stoichiometry: ``Q_FE * R_REMIN * POC_2``.
+length scale in the upper twilight zone). Remineralization releases the
+iron that was implicit on the sinking POC back to DFe_2 at the rate
+``Q_FE_REMIN * R_REMIN * POC_2``. This is the SOLE iron return path to
+L2 in v2.7.1.
 
 **Parameter interpretation (unchanged from v2.6).** The 6 learnable params
 (``[alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC]``) keep their
@@ -238,27 +245,37 @@ def carroll6_5pft_2layer_step(
     # =========================================================================
     # L1 ↔ L2 coupling fluxes (the NEW physics)
     # =========================================================================
+    #
+    # Iron accounting (v2.7.1 — corrects the double-count Greptile flagged
+    # on PR #42 at e19a5d0). Iron leaves DFe_1 via biological uptake
+    # ``fe_uptake = Q_FE * growth_total`` and is implicitly carried in the
+    # phyto → POC → sinking-POC pathway. The model does NOT track Fe-on-POC
+    # as a separate tracer, so we MUST NOT also subtract a per-volume
+    # sinking-POC iron term from DFe_1 (that double-counts the same iron
+    # that ``fe_uptake`` already removed). Symmetrically, L2 must NOT
+    # receive a separate sinking-POC iron source -- the iron is implicit
+    # in the sinking POC mass, and re-enters DFe_2 only when that POC
+    # remineralises (``fe_remin_L2``). At steady state the conservation is:
+    #     L1 lost via fe_uptake  ≈  Q_FE * growth_total
+    #     L2 gained via fe_remin_L2 = Q_FE_REMIN * r_remin * POC_2
+    # Mass that doesn't remineralise in L2 sinks further (lost to deep,
+    # consistent with the W_SINK*POC_2 → 0 boundary assumption).
 
-    # (a) Iron carried out of L1 by sinking POC. v2.6 already removed POC at
-    #     rate W_SINK*POC_1 from L1; here we just attach iron at the Q_FE
-    #     stoichiometry and route it into L2 with the volume-conservation
-    #     factor (h1/h2).
-    fe_sink_out_L1 = Q_FE_SINK * W_SINK * POC_1                # mmol Fe/m^3/d in L1's frame
-    fe_sink_in_L2  = fe_sink_out_L1 * (h1 / h2)                # mmol Fe/m^3/d in L2's frame
-
-    # (b) Vertical eddy diffusion of DFe across the thermocline.
+    # (a) Vertical eddy diffusion of DFe across the thermocline.
     fe_diff_flux_per_area = kz_m2_per_day * (DFe_2 - DFe_1) / DZ_INT  # mmol Fe/m^2/d
     fe_diff_L1 = fe_diff_flux_per_area / h1                          # into L1 if DFe_2>DFe_1
     fe_diff_L2 = -fe_diff_flux_per_area / h2                         # out of L2 if DFe_2>DFe_1
 
-    # (c) POC sinking (same as v2.6) routes POC into L2.
+    # (b) POC sinking (same as v2.6) routes POC mass into L2. Iron content
+    #     of the sinking POC is IMPLICIT — see iron-accounting comment above.
     poc_sink_out_L1 = W_SINK * POC_1                                 # mmol C/m^3/d in L1
     poc_sink_in_L2  = poc_sink_out_L1 * (h1 / h2)                    # into L2
 
     pic_sink_out_L1 = W_SINK * PIC_1
     pic_sink_in_L2  = pic_sink_out_L1 * (h1 / h2)
 
-    # (d) Subsurface remineralization releases bound iron + carbon.
+    # (c) Subsurface remineralization releases bound iron + carbon. This is
+    #     the SOLE iron path back to dissolved phase in L2.
     poc_remin = r_remin * POC_2                                       # mmol C/m^3/d
     pic_dissolve = r_remin * PIC_2                                    # symmetric for PIC
     fe_remin_L2 = Q_FE_REMIN * poc_remin                              # mmol Fe/m^3/d
@@ -270,8 +287,7 @@ def carroll6_5pft_2layer_step(
     dDFe_1 = (
         alpfe * PHI_DUST                                  # dust source (per-volume in v2.6 convention)
         - scav_rat_per_day * DFe_1 * POC_1                # surface scavenging
-        - fe_uptake                                       # biology uptake
-        - fe_sink_out_L1                                  # export with sinking POC
+        - fe_uptake                                       # biology uptake (carries iron implicitly via POC to L2)
         + fe_diff_L1                                      # diffusive exchange with L2
     )
     dP_diatom = growth_diatom - mort_diatom - graze_diatom
@@ -300,9 +316,8 @@ def carroll6_5pft_2layer_step(
     # =========================================================================
 
     dDFe_2 = (
-        + fe_sink_in_L2                     # iron arriving on sinking POC
-        + fe_remin_L2                       # iron released by POC remineralization
-        - scav_rat_per_day * DFe_2 * POC_2  # subsurface scavenging — the NEW scav_rat anchor
+        + fe_remin_L2                       # iron released by POC remineralization (the SOLE L2 source)
+        - scav_rat_per_day * DFe_2 * POC_2  # subsurface scavenging — the scav_rat anchor
         + fe_diff_L2                        # diffusive exchange with L1
     )
 
