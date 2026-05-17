@@ -101,6 +101,9 @@ from darwindiff.carroll6_5pft_2layer import (
 )
 from darwindiff.ecco_darwin_loader import (
     EQUATORIAL_PACIFIC_AOI,
+    MID_ATLANTIC_AOI,
+    NORTH_ATLANTIC_SUBPOLAR_AOI,
+    NORTH_PACIFIC_AOI,
     open_bin_average,
     subset_aoi,
     time_mean,
@@ -160,7 +163,19 @@ N_STEPS = 200
 # Imported from darwindiff.carroll6 so the PINN block uses the same
 # constant as the integrator.
 
-AOI = EQUATORIAL_PACIFIC_AOI
+# DARWIN_AOI env var selects which AOI to train on (v3.0 multi-AOI scoping
+# precursor). Defaults to 'eqpac' so all existing v2.6/v2.7/v2.8 JSONs and
+# cache files stay reproducible bit-for-bit.
+AOI_MAP = {
+    "eqpac": EQUATORIAL_PACIFIC_AOI,
+    "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
+    "midatl": MID_ATLANTIC_AOI,
+    "npac": NORTH_PACIFIC_AOI,
+}
+AOI_KEY = os.environ.get("DARWIN_AOI", "eqpac")
+if AOI_KEY not in AOI_MAP:
+    raise ValueError(f"DARWIN_AOI={AOI_KEY!r} not in {sorted(AOI_MAP)}")
+AOI = AOI_MAP[AOI_KEY]
 print(f"AOI: {AOI.name} ({AOI.lat_min}-{AOI.lat_max} N, {AOI.lon_min}-{AOI.lon_max} E)")
 print(f"Seeds: {SEEDS} (N={N_SEEDS})")
 print(f"Config: fet_w={FET_W}, pinn_w={PINN_W} ({PINN_TYPE}),")
@@ -730,6 +745,8 @@ with torch.no_grad():
             "pinn_type": PINN_TYPE,
             "use_darwin_ic": USE_DARWIN_IC,
             "poc_sub_w": POC_SUB_W,
+            "aoi_key": AOI_KEY,
+            "aoi_name": AOI.name,
             "fet_w": FET_W,
             "n_geo_surface_cells": n_geo_surface_in_ocean,
             "n_geo_sub_cells": n_geo_sub_in_ocean,
@@ -779,6 +796,7 @@ if SKIP_JSON_WRITE:
 else:
     ic_tag = f"_{DARWIN_IC_TAG}" if USE_DARWIN_IC else ""
     poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
+    aoi_tag = f"_{AOI_KEY}" if AOI_KEY != "eqpac" else ""
     for r in all_results:
         out = out_dir / (
             f"run_v2.7_multilayer_result_seed{r['seed']}"
@@ -786,7 +804,8 @@ else:
             f"_sub{GEOTRACES_SUB_W}"
             f"_pinn{PINN_W}"
             f"{ic_tag}"
-            f"{poc_tag}.json"
+            f"{poc_tag}"
+            f"{aoi_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:

@@ -1,0 +1,66 @@
+{
+  "seed": 1,
+  "geotraces_w": 0.3,
+  "geotraces_sub_w": 1.0,
+  "sub_depth_min_m": 50.0,
+  "sub_depth_max_m": 1000.0,
+  "pinn_w": 3.0,
+  "pinn_type": "drift",
+  "use_darwin_ic": true,
+  "poc_sub_w": 3.0,
+  "aoi_key": "natlsubpolar",
+  "aoi_name": "North Atlantic Subpolar",
+  "fet_w": 1.0,
+  "n_geo_surface_cells": 13,
+  "n_geo_sub_cells": 13,
+  "elapsed_s_total_batch": 122.90220379829407,
+  "n_seeds_in_batch": 10,
+  "loss_initial": 6.586496353149414,
+  "loss_final": 4.028232574462891,
+  "geo_surface_loss_initial": 0.8777914047241211,
+  "geo_surface_loss_final": 0.6488283276557922,
+  "geo_sub_loss_initial": 0.5206055045127869,
+  "geo_sub_loss_final": 0.1297382116317749,
+  "dfe1_pred_mean_mmol_m3": 8.933131903177127e-05,
+  "dfe2_pred_mean_mmol_m3": 0.0007296889671124518,
+  "params": {
+    "alpfe": {
+      "recovered": 0.4814532995223999,
+      "carroll_published": 0.928309977054596,
+      "abs_rel_offset": 0.48136580299396636,
+      "band": "Loose"
+    },
+    "scav_rat": {
+      "recovered": 3.135514958785279e-08,
+      "carroll_published": 6.025023253641848e-07,
+      "abs_rel_offset": 0.9479584588011339,
+      "band": "Drifted"
+    },
+    "Smallgrow": {
+      "recovered": 0.29324403405189514,
+      "carroll_published": 0.6609799861907959,
+      "abs_rel_offset": 0.5563496018361311,
+      "band": "Loose"
+    },
+    "Biggrow": {
+      "recovered": 1.2505837678909302,
+      "carroll_published": 0.4314799904823303,
+      "abs_rel_offset": 1.8983586619925616,
+      "band": "Drifted"
+    },
+    "diatomgraz": {
+      "recovered": 0.3243165910243988,
+      "carroll_published": 0.8300300240516663,
+      "abs_rel_offset": 0.6092712532959996,
+      "band": "Loose"
+    },
+    "R_PICPOC": {
+      "recovered": 0.015708591789007187,
+      "carroll_published": 0.04244999960064888,
+      "abs_rel_offset": 0.6299507199814657,
+      "band": "Loose"
+    }
+  },
+  "n_cal_grade": 0,
+  "n_excellent": 0
+}

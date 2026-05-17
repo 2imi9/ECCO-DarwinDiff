@@ -34,8 +34,20 @@ _SRC = _HERE.parent / "src"
 if _SRC.exists() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from darwindiff.ecco_darwin_loader import EQUATORIAL_PACIFIC_AOI
+from darwindiff.ecco_darwin_loader import (
+    EQUATORIAL_PACIFIC_AOI,
+    MID_ATLANTIC_AOI,
+    NORTH_ATLANTIC_SUBPOLAR_AOI,
+    NORTH_PACIFIC_AOI,
+)
 from darwindiff.llc270_loader import bin_to_1deg_grid
+
+_AOI_MAP = {
+    "eqpac": EQUATORIAL_PACIFIC_AOI,
+    "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
+    "midatl": MID_ATLANTIC_AOI,
+    "npac": NORTH_PACIFIC_AOI,
+}
 
 # --- Paths --------------------------------------------------------------------
 
@@ -118,12 +130,15 @@ def depth_weighted_mean(volume: np.ndarray, drf: np.ndarray, levels: slice) -> n
 
 
 def main():
+    aoi_key = _os.environ.get("DARWIN_AOI", "eqpac")
+    if aoi_key not in _AOI_MAP:
+        raise ValueError(f"DARWIN_AOI={aoi_key!r} not in {sorted(_AOI_MAP)}")
+    aoi = _AOI_MAP[aoi_key]
     print(f"=== Build Darwin v5 IC cache ===")
     print(f"  Pickup : {PICKUP_PATH}")
     print(f"  Grid   : {GRID_DIR}")
-    print(f"  AOI    : {EQUATORIAL_PACIFIC_AOI.name} "
-          f"({EQUATORIAL_PACIFIC_AOI.lat_min}..{EQUATORIAL_PACIFIC_AOI.lat_max} N, "
-          f"{EQUATORIAL_PACIFIC_AOI.lon_min}..{EQUATORIAL_PACIFIC_AOI.lon_max} E)")
+    print(f"  AOI    : {aoi.name} ({aoi.lat_min}..{aoi.lat_max} N, "
+          f"{aoi.lon_min}..{aoi.lon_max} E)")
     print(f"  Output : {CACHE_PATH}")
 
     if not PICKUP_PATH.is_file():
@@ -147,7 +162,6 @@ def main():
     print(f"  L1 window (0-50 m): levels {L1_LEVELS.start}..{L1_LEVELS.stop - 1}, sum_dz = {drf[L1_LEVELS].sum():.1f} m")
     print(f"  L2 window (50-1056 m): levels {L2_LEVELS.start}..{L2_LEVELS.stop - 1}, sum_dz = {drf[L2_LEVELS].sum():.1f} m")
 
-    aoi = EQUATORIAL_PACIFIC_AOI
     aoi_mask_native = (
         (yc >= aoi.lat_min) & (yc <= aoi.lat_max)
         & (xc >= aoi.lon_min) & (xc <= aoi.lon_max)

@@ -98,6 +98,17 @@ EQUATORIAL_PACIFIC_AOI: AOI = AOI(
     lon_min=-160.0,
     lon_max=-110.0,
 )
+# v3.0 multi-AOI scoping — see docs/findings/v3.0_multi_aoi_scoping.md §2.
+# Iron-replete, scavenging-dominated regime; the canonical "non-HNLC"
+# counterpart to EQUATORIAL_PACIFIC_AOI for breaking the (alpfe, scav_rat)
+# bimodal degeneracy v2.8 surfaced.
+NORTH_ATLANTIC_SUBPOLAR_AOI: AOI = AOI(
+    name="North Atlantic Subpolar",
+    lat_min=50.0,
+    lat_max=65.0,
+    lon_min=-40.0,
+    lon_max=-10.0,
+)
 
 
 def matlab_datenum_to_datetime64(values: np.ndarray) -> np.ndarray:
