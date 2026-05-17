@@ -156,6 +156,12 @@ DARWIN_IC_TAG = os.environ.get("DARWIN_IC_TAG", "darwinic")
 # When > 0, the integrator's L2 POC trajectory gets a direct constraint,
 # closing the dynamical degeneracy that scav_rat sits in.
 POC_SUB_W = float(os.environ.get("POC_SUB_W", "0.0"))
+# Block cross-validation: if < 1.0, train on the westernmost TRAIN_LON_FRAC of
+# columns and hold out the easternmost (1 - TRAIN_LON_FRAC). After training,
+# the recovery report shows both the train-cell-mean recovery and the
+# test-cell-mean recovery for spatial-generalization validation. Default 1.0
+# = no split (existing behavior preserved bit-for-bit).
+TRAIN_LON_FRAC = float(os.environ.get("TRAIN_LON_FRAC", "1.0"))
 
 DT = 0.25
 N_STEPS = 200
@@ -333,14 +339,31 @@ print(f"  Surface bins: {n_geo_surface};  Subsurface bins: {n_geo_subsurface}")
 
 # ============================== Ocean mask ================================
 
-ocean_mask = (
+full_ocean_mask = (
     np.isfinite(sst) & np.isfinite(mld) & np.isfinite(wind) & np.isfinite(sss)
     & np.isfinite(pco2_atm_field) & np.isfinite(co2_flux_obs)
     & np.isfinite(fet_binned) & np.isfinite(poc_binned) & np.isfinite(pic_binned)
     & np.isfinite(dic_binned) & np.isfinite(alk_binned)
 )
 for chl_arr in chl_per_pft.values():
-    ocean_mask = ocean_mask & np.isfinite(chl_arr)
+    full_ocean_mask = full_ocean_mask & np.isfinite(chl_arr)
+
+# Block-CV split (default: TRAIN_LON_FRAC=1.0 = no split, train_mask == full).
+if TRAIN_LON_FRAC < 1.0:
+    H_total, W_total = full_ocean_mask.shape
+    train_cols_end = int(round(W_total * TRAIN_LON_FRAC))
+    lon_filter = np.zeros_like(full_ocean_mask)
+    lon_filter[:, :train_cols_end] = True
+    test_lon_filter = ~lon_filter
+    train_mask = full_ocean_mask & lon_filter
+    test_mask = full_ocean_mask & test_lon_filter
+    print(f"BLOCK-CV: TRAIN_LON_FRAC={TRAIN_LON_FRAC}  train cells={int(train_mask.sum())} (west cols 0..{train_cols_end-1})  test cells={int(test_mask.sum())} (east cols {train_cols_end}..{W_total-1})")
+else:
+    train_mask = full_ocean_mask
+    test_mask = np.zeros_like(full_ocean_mask)
+
+# ocean_mask = the mask used for loss computation (=train_mask under block-CV).
+ocean_mask = train_mask
 n_ocean = int(ocean_mask.sum())
 geotraces_loss_mask_np = geotraces_mask_np & ocean_mask
 geotraces_sub_loss_mask_np = geotraces_sub_mask_np & ocean_mask
@@ -718,11 +741,21 @@ with torch.no_grad():
         T=T_dev, S=S_dev, wind=wind_dev, pco2_atm=pco2_atm_dev,
     )
 
+    # Build test_mask tensor for block-CV evaluation (if enabled).
+    test_mask_dev = (
+        torch.tensor(test_mask, dtype=torch.bool).to(device)
+        if TRAIN_LON_FRAC < 1.0 else None
+    )
+
     for seed_idx, seed in enumerate(SEEDS):
-        param_means = []
+        param_means = []           # over train cells (= ocean_mask)
+        test_param_means = []      # over test cells (block-CV); empty if no split
         for i in range(6):
-            p = params_b_final[i, seed_idx][mask_dev]
-            param_means.append(float(p.mean().cpu().numpy()))
+            p_train = params_b_final[i, seed_idx][mask_dev]
+            param_means.append(float(p_train.mean().cpu().numpy()))
+            if test_mask_dev is not None and int(test_mask_dev.sum()) > 0:
+                p_test = params_b_final[i, seed_idx][test_mask_dev]
+                test_param_means.append(float(p_test.mean().cpu().numpy()))
         dfe1_final_mean = float(state_final[I_DFE_1, seed_idx][mask_dev].mean().item())
         dfe2_final_mean = float(state_final[I_DFE_2, seed_idx][mask_dev].mean().item())
 
@@ -774,15 +807,31 @@ with torch.no_grad():
                 n_cal_grade += 1
             print(f"{seed:<6d} {name:<12s} {rec:>12.4e} {float(pub):>12.4e} "
                   f"{rel:>12.4f} {band:<12s}")
-            result["params"][name] = {
+            entry = {
                 "recovered": float(rec),
                 "carroll_published": float(pub),
                 "abs_rel_offset": float(rel),
                 "band": band,
             }
+            # Block-CV: per-parameter test-cell mean + offset/band, for spatial-
+            # generalization verdicts.
+            if test_param_means:
+                t_rec = test_param_means[param_names.index(name)]
+                t_rel = abs(t_rec - float(pub)) / abs(float(pub))
+                t_band = band_of(t_rel)
+                entry["test_recovered"] = float(t_rec)
+                entry["test_abs_rel_offset"] = float(t_rel)
+                entry["test_band"] = t_band
+            result["params"][name] = entry
         result["n_cal_grade"] = n_cal_grade
         result["n_excellent"] = n_excellent
+        result["train_lon_frac"] = TRAIN_LON_FRAC
         print(f"       -> {n_cal_grade}/6 cal-grade ({n_excellent} Excellent)")
+        if test_param_means:
+            n_cg_test = sum(1 for name, t_rec in zip(param_names, test_param_means)
+                            if band_of(abs(t_rec - float(carroll_published[param_names.index(name)])) /
+                                       abs(float(carroll_published[param_names.index(name)]))) in ("Cal-grade", "Excellent"))
+            print(f"       -> TEST cells: {n_cg_test}/6 cal-grade")
         all_results.append(result)
 
 # Write one JSON per seed (matching the single-seed runner's naming).
@@ -797,6 +846,7 @@ else:
     ic_tag = f"_{DARWIN_IC_TAG}" if USE_DARWIN_IC else ""
     poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
     aoi_tag = f"_{AOI_KEY}" if AOI_KEY != "eqpac" else ""
+    cv_tag = f"_blockcvW{TRAIN_LON_FRAC}" if TRAIN_LON_FRAC < 1.0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v2.7_multilayer_result_seed{r['seed']}"
@@ -805,7 +855,8 @@ else:
             f"_pinn{PINN_W}"
             f"{ic_tag}"
             f"{poc_tag}"
-            f"{aoi_tag}.json"
+            f"{aoi_tag}"
+            f"{cv_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
