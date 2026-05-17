@@ -1,0 +1,62 @@
+{
+  "seed": 5,
+  "geotraces_w": 0.3,
+  "geotraces_sub_w": 1.0,
+  "sub_depth_min_m": 50.0,
+  "sub_depth_max_m": 1000.0,
+  "pinn_w": 3.0,
+  "pinn_type": "drift",
+  "fet_w": 1.0,
+  "n_geo_surface_cells": 26,
+  "n_geo_sub_cells": 28,
+  "elapsed_s_total_batch": 101.71458458900452,
+  "n_seeds_in_batch": 5,
+  "loss_initial": 3.02386474609375,
+  "loss_final": 1.3395390510559082,
+  "geo_surface_loss_initial": 0.7952420711517334,
+  "geo_surface_loss_final": 0.15943852066993713,
+  "geo_sub_loss_initial": 0.5503191947937012,
+  "geo_sub_loss_final": 0.08530452847480774,
+  "dfe1_pred_mean_mmol_m3": 0.00020863351528532803,
+  "dfe2_pred_mean_mmol_m3": 0.000444109202362597,
+  "params": {
+    "alpfe": {
+      "recovered": 0.7825543880462646,
+      "carroll_published": 0.928309977054596,
+      "abs_rel_offset": 0.15701176612449474,
+      "band": "Cal-grade"
+    },
+    "scav_rat": {
+      "recovered": 8.066608359058591e-08,
+      "carroll_published": 6.025023253641848e-07,
+      "abs_rel_offset": 0.8661149008149852,
+      "band": "Drifted"
+    },
+    "Smallgrow": {
+      "recovered": 0.6773061752319336,
+      "carroll_published": 0.6609799861907959,
+      "abs_rel_offset": 0.024699974858883308,
+      "band": "Excellent"
+    },
+    "Biggrow": {
+      "recovered": 0.2949700355529785,
+      "carroll_published": 0.4314799904823303,
+      "abs_rel_offset": 0.3163760960890771,
+      "band": "Cal-grade"
+    },
+    "diatomgraz": {
+      "recovered": 0.6240710020065308,
+      "carroll_published": 0.8300300240516663,
+      "abs_rel_offset": 0.2481344241498369,
+      "band": "Cal-grade"
+    },
+    "R_PICPOC": {
+      "recovered": 0.17880918085575104,
+      "carroll_published": 0.04244999960064888,
+      "abs_rel_offset": 3.212230448478445,
+      "band": "Drifted"
+    }
+  },
+  "n_cal_grade": 4,
+  "n_excellent": 1
+}

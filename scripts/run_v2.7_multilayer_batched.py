@@ -81,13 +81,17 @@ from darwindiff.carroll6_5pft import (
 )
 from darwindiff.carroll6_5pft_2layer import (
     I_ALK_1,
+    I_ALK_2,
     I_DFE_1,
     I_DFE_2,
     I_DIATOM,
     I_DIC_1,
+    I_DIC_2,
     I_LGE,
     I_PIC_1,
+    I_PIC_2,
     I_POC_1,
+    I_POC_2,
     I_PROHL,
     I_PROLL,
     I_SYN,
@@ -136,6 +140,19 @@ GEOTRACES_SUB_W = float(os.environ.get("GEOTRACES_SUB_W", "0.3"))
 SUB_DEPTH_MIN = float(os.environ.get("GEOTRACES_SUB_DEPTH_MIN", "50.0"))
 SUB_DEPTH_MAX = float(os.environ.get("GEOTRACES_SUB_DEPTH_MAX", "1000.0"))
 N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
+# DARWIN_IC=1 swaps literature-default initial conditions for Darwin v5
+# pickup-derived per-cell ICs (5 inorganics x 2 layers, see
+# scripts/build_darwin_ic_cache.py). Phyto biomass stays at literature
+# defaults since the 7-PFT -> 5-PFT mapping is non-trivial and biomass
+# equilibrates fast. Default off so existing v2.7 JSONs stay reproducible.
+USE_DARWIN_IC = os.environ.get("DARWIN_IC", "0") == "1"
+DARWIN_IC_CACHE_PATH = Path(__file__).resolve().parent / os.environ.get("DARWIN_IC_CACHE", "darwin_ic_cache.npz")
+DARWIN_IC_TAG = os.environ.get("DARWIN_IC_TAG", "darwinic")
+# v2.8: depth-resolved POC observation as an L2 z-score loss term. Target
+# is Darwin's depth-mean POC over the L2 window (from the same IC cache).
+# When > 0, the integrator's L2 POC trajectory gets a direct constraint,
+# closing the dynamical degeneracy that scav_rat sits in.
+POC_SUB_W = float(os.environ.get("POC_SUB_W", "0.0"))
 
 DT = 0.25
 N_STEPS = 200
@@ -332,12 +349,58 @@ H, W = env_1ch.shape[1], env_1ch.shape[2]
 mask_f = mask_dev.to(torch.float32)
 n_ocean_f = mask_f.sum()
 
-# State replicated across the new seed dim:  [15, N_seeds, H, W]
-state0_single = torch.tensor([
+# Literature-default IC values (mmol/m^3 for tracers, mg/m^3 for Chl).
+# Order matches the state vector layout in carroll6_5pft_2layer.py:
+#   L1: DFe_1, P_diatom, P_lge, P_syn, P_proLL, P_proHL, POC_1, PIC_1, DIC_1, ALK_1
+#   L2: DFe_2, POC_2, PIC_2, DIC_2, ALK_2
+LIT_IC = [
     5.0e-4, 0.4, 0.3, 0.02, 0.001, 0.65,
     0.5, 0.025, 2050.0 * 1.025, 2350.0 * 1.025,
     5.0e-4, 0.05, 0.003, 2150.0 * 1.025, 2400.0 * 1.025,
-]).reshape(N_TRACERS_2LAYER, 1, 1, 1).expand(N_TRACERS_2LAYER, N_SEEDS, H, W).contiguous().to(device)
+]
+state0_hw = torch.tensor(LIT_IC, dtype=torch.float32).reshape(N_TRACERS_2LAYER, 1, 1).expand(N_TRACERS_2LAYER, H, W).clone()
+
+if USE_DARWIN_IC:
+    if not DARWIN_IC_CACHE_PATH.is_file():
+        raise FileNotFoundError(
+            f"DARWIN_IC=1 but cache not found at {DARWIN_IC_CACHE_PATH}. "
+            f"Run `python scripts/build_darwin_ic_cache.py` first."
+        )
+    print(f"Loading Darwin v5 ICs from {DARWIN_IC_CACHE_PATH}")
+    _ic = np.load(DARWIN_IC_CACHE_PATH)
+    # Inorganic L1 / L2 overrides; phyto biomass stays literature.
+    # Map: (state_index, cache_key)
+    _ic_overrides = [
+        (I_DFE_1, "FeT_L1"),
+        (I_POC_1, "POC_L1"),
+        (I_PIC_1, "PIC_L1"),
+        (I_DIC_1, "DIC_L1"),
+        (I_ALK_1, "ALK_L1"),
+        (I_DFE_2, "FeT_L2"),
+        (I_POC_2, "POC_L2"),
+        (I_PIC_2, "PIC_L2"),
+        (I_DIC_2, "DIC_L2"),
+        (I_ALK_2, "ALK_L2"),
+    ]
+    for state_idx, key in _ic_overrides:
+        field = _ic[key]  # shape (n_lat, n_lon) = (H, W)
+        if field.shape != (H, W):
+            raise ValueError(
+                f"Darwin IC field {key!r} has shape {field.shape}, expected ({H}, {W}). "
+                f"AOI mismatch — rebuild the cache."
+            )
+        # Replace NaN with literature default for that tracer (defensive).
+        field_safe = np.where(np.isfinite(field), field, LIT_IC[state_idx]).astype(np.float32)
+        # Clip tiny negatives from MITgcm advection overshoots.
+        if state_idx in (I_DFE_1, I_DFE_2, I_POC_1, I_POC_2, I_PIC_1, I_PIC_2):
+            field_safe = np.clip(field_safe, a_min=1e-10, a_max=None)
+        state0_hw[state_idx] = torch.tensor(field_safe, dtype=torch.float32)
+    print(f"  applied {len(_ic_overrides)} per-cell IC overrides (phyto biomass kept literature)")
+else:
+    print("Using literature-default ICs (DARWIN_IC=0)")
+
+# Expand to [15, N_seeds, H, W]
+state0_single = state0_hw.unsqueeze(1).expand(N_TRACERS_2LAYER, N_SEEDS, H, W).contiguous().to(device)
 
 T_dev = torch.tensor(np.where(np.isfinite(sst), sst, 15.0).astype(np.float32)).to(device)
 S_dev = torch.tensor(np.where(np.isfinite(sss), sss, 35.0).astype(np.float32)).to(device)
@@ -378,6 +441,24 @@ dic_z = to_z_target(dic_binned)
 alk_z = to_z_target(alk_binned)
 co2_flux_z = to_z_target(co2_flux_obs)
 chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
+
+# v2.8: build POC_L2 z-score target from the Darwin IC cache (re-uses the
+# same depth-averaged POC field the IC pipeline produces).
+poc_l2_z = None
+if POC_SUB_W > 0:
+    if not DARWIN_IC_CACHE_PATH.is_file():
+        raise FileNotFoundError(
+            f"POC_SUB_W={POC_SUB_W} but cache not found at {DARWIN_IC_CACHE_PATH}. "
+            f"Run `python scripts/build_darwin_ic_cache.py` first."
+        )
+    print(f"Loading POC_L2 target from {DARWIN_IC_CACHE_PATH.name} (POC_SUB_W={POC_SUB_W})")
+    _ic_for_target = np.load(DARWIN_IC_CACHE_PATH)
+    _poc_l2_target = _ic_for_target["POC_L2"]
+    if _poc_l2_target.shape != (H, W):
+        raise ValueError(
+            f"POC_L2 target shape {_poc_l2_target.shape} != ({H}, {W}); AOI mismatch"
+        )
+    poc_l2_z = to_z_target(_poc_l2_target.astype(np.float32))
 
 
 # ============================== Networks (one per seed) ===================
@@ -569,6 +650,14 @@ for epoch in range(N_EPOCHS):
         l_geo_sub = (residual ** 2).flatten(1).sum(dim=1) / n_geo_sub_f / sub_scale
         z_term = z_term + GEOTRACES_SUB_W * l_geo_sub
 
+    # v2.8: subsurface POC z-score loss (per seed). Constrains the
+    # integrator's L2 POC trajectory directly, closing the dynamical
+    # degeneracy scav_rat sits in.
+    l_poc_sub = None
+    if POC_SUB_W > 0 and poc_l2_z is not None:
+        l_poc_sub = term_batched(state[I_POC_2], poc_l2_z)
+        z_term = z_term + POC_SUB_W * l_poc_sub
+
     # Sum across seeds so each seed's gradient routes to its own net's params.
     total_loss = z_term.sum()
     total_loss.backward()
@@ -639,6 +728,8 @@ with torch.no_grad():
             "sub_depth_max_m": SUB_DEPTH_MAX,
             "pinn_w": PINN_W,
             "pinn_type": PINN_TYPE,
+            "use_darwin_ic": USE_DARWIN_IC,
+            "poc_sub_w": POC_SUB_W,
             "fet_w": FET_W,
             "n_geo_surface_cells": n_geo_surface_in_ocean,
             "n_geo_sub_cells": n_geo_sub_in_ocean,
@@ -686,12 +777,16 @@ out_dir = Path(__file__).resolve().parent
 if SKIP_JSON_WRITE:
     print(f"\nNB23_SKIP_JSON_WRITE=1: skipping JSON write for {len(all_results)} results.")
 else:
+    ic_tag = f"_{DARWIN_IC_TAG}" if USE_DARWIN_IC else ""
+    poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v2.7_multilayer_result_seed{r['seed']}"
             f"_surf{GEOTRACES_W}"
             f"_sub{GEOTRACES_SUB_W}"
-            f"_pinn{PINN_W}.json"
+            f"_pinn{PINN_W}"
+            f"{ic_tag}"
+            f"{poc_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
