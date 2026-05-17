@@ -34,6 +34,49 @@ from dataclasses import dataclass
 import numpy as np
 
 
+# --- Carroll-6 recovery banding ----------------------------------------------
+#
+# The DarwinDiff parameter-recovery experiments classify each recovered
+# Carroll-6 parameter by its relative offset from Carroll's published value,
+# ``rel = abs(recovered - carroll) / abs(carroll)``. The four-band scheme
+# (Excellent / Cal-grade / Loose / Drifted) is used consistently across
+# notebooks, runner scripts, and the result aggregator. Keep the thresholds
+# canonical here so everywhere reports the same verdict for the same number.
+
+BAND_EXCELLENT_MAX: float = 0.05
+"""Relative-offset ceiling for the ``Excellent`` band. <= 5 % off Carroll."""
+
+BAND_CAL_GRADE_MAX: float = 0.40
+"""Relative-offset ceiling for the ``Cal-grade`` band. <= 40 % off Carroll."""
+
+BAND_LOOSE_MAX: float = 0.80
+"""Relative-offset ceiling for the ``Loose`` band. <= 80 % off Carroll;
+anything beyond is ``Drifted``."""
+
+
+def band_of(rel_offset: float) -> str:
+    """Classify a Carroll-6 parameter recovery by its relative offset.
+
+    Args:
+        rel_offset: ``abs(recovered - carroll) / abs(carroll)``. Must be
+            non-negative; NaN is treated as ``Drifted`` (worst case) so the
+            caller doesn't need a special path for missing values.
+
+    Returns:
+        One of ``"Excellent"`` (<= 5 %), ``"Cal-grade"`` (<= 40 %),
+        ``"Loose"`` (<= 80 %), ``"Drifted"`` (> 80 % or NaN).
+    """
+    if not np.isfinite(rel_offset):
+        return "Drifted"
+    if rel_offset <= BAND_EXCELLENT_MAX:
+        return "Excellent"
+    if rel_offset <= BAND_CAL_GRADE_MAX:
+        return "Cal-grade"
+    if rel_offset <= BAND_LOOSE_MAX:
+        return "Loose"
+    return "Drifted"
+
+
 @dataclass(frozen=True)
 class PearsonResult:
     """Result of a NaN-safe Pearson correlation.
