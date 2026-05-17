@@ -1,0 +1,718 @@
+# -*- coding: utf-8 -*-
+"""v3.0 multi-AOI joint training — shared Carroll-6 across regimes.
+
+Trains a single shared DINN (per seed) jointly against the union of per-AOI
+losses, with the v2.8 anchor configuration (Darwin IC + L2 POC observation
+loss). The hypothesis under test is whether cross-regime constraint resolves
+the bimodal (alpfe, scav_rat) degeneracy v2.8 surfaced in Eq Pacific alone
+AND simultaneously recovers R_PICPOC (which only N Atl unblocks).
+
+Default AOIs: Equatorial Pacific (HNLC) + North Atlantic Subpolar
+(iron-replete). Designed to demonstrate the multi-AOI principle at minimum
+complexity; 3-AOI (adding Southern Ocean) is a trivial extension once both
+target caches exist on disk.
+
+Env vars (same defaults as the v2.7 batched runner unless noted):
+    AOIS                  comma-separated list (default "eqpac,natlsubpolar")
+    NB23_SEEDS            seeds (default "0")
+    GEOTRACES_W           surface GEOTRACES weight per AOI (default 0.3)
+    GEOTRACES_SUB_W       subsurface GEOTRACES weight per AOI (default 1.0,
+                          matching v2.8 anchor)
+    NB23_PINN_WEIGHT      PINN drift weight per AOI (default 3.0)
+    NB23_FET_WEIGHT       z-scored FeT weight per AOI (default 1.0)
+    POC_SUB_W             L2 POC observation z-score weight (default 3.0,
+                          v2.8 anchor)
+    NB23_N_EPOCHS         training epochs (default 1500)
+    DARWIN_IC             1 to load Darwin v5 pickup-derived ICs per AOI
+                          (default 1 — v3.0 always uses Darwin ICs since the
+                          v2.8 finding established them as essential)
+    AOI_W_<KEY>           per-AOI loss weight override (default 1.0 each;
+                          e.g. AOI_W_NATLSUBPOLAR=2.0 to upweight N Atl)
+    DARWIN_DATA_ROOT      Darwin v05 data root (default D:\\ecco_darwin_v5)
+    GEOTRACES_DATA_ROOT   IDP2025 NetCDF root (default D:\\geotraces)
+
+Result JSON naming: ``run_v3.0_joint_<AOI_KEYS>_seed{S}_surf{X}_sub{Y}_pinn{Z}_pocsubW{P}.json``
+where ``<AOI_KEYS>`` is the AOI list joined with hyphens (e.g.
+``eqpac-natlsubpolar``). Per-AOI breakdowns + joint cell-mean recovery
+are both written into the JSON.
+"""
+from __future__ import annotations
+
+import io
+import json
+import os
+import sys
+import time
+from pathlib import Path
+
+try:
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", line_buffering=True)
+except Exception:
+    pass
+
+import numpy as np
+import torch
+
+_HERE = Path(__file__).resolve().parent
+_SRC = _HERE.parent / "src"
+if _SRC.exists() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
+from darwindiff.carroll6 import (
+    CARROLL_VALUES,
+    K_FE,
+    PARAM_BOUNDS,
+    PHI_DUST,
+    Q_FE,
+    bounded_params,
+)
+from darwindiff.carroll6_5pft import (
+    MU_DEFAULT_DIATOM,
+    MU_DEFAULT_PROLL,
+    MU_DEFAULT_SYN,
+)
+from darwindiff.carroll6_5pft_2layer import (
+    I_ALK_1,
+    I_ALK_2,
+    I_DFE_1,
+    I_DFE_2,
+    I_DIATOM,
+    I_DIC_1,
+    I_DIC_2,
+    I_LGE,
+    I_PIC_1,
+    I_PIC_2,
+    I_POC_1,
+    I_POC_2,
+    I_PROHL,
+    I_PROLL,
+    I_SYN,
+    N_TRACERS_2LAYER,
+    carroll6_5pft_2layer_step,
+)
+from darwindiff.ecco_darwin_loader import (
+    EQUATORIAL_PACIFIC_AOI,
+    MID_ATLANTIC_AOI,
+    NORTH_ATLANTIC_SUBPOLAR_AOI,
+    NORTH_PACIFIC_AOI,
+    open_bin_average,
+    subset_aoi,
+    time_mean,
+)
+from darwindiff.geotraces_loader import (
+    open_geotraces_bottle,
+    subset_aoi_geotraces,
+)
+from darwindiff.diagnostics import band_of
+from darwindiff.llc270_loader import bin_native_tracer_to_1deg
+from darwindiff.networks import DINN
+
+# ============================== Config ====================================
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Device: {device}")
+if device == "cuda":
+    print(f"GPU: {torch.cuda.get_device_name(0)}")
+
+DATA_ROOT = Path(os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5"))
+BIN_AVG_PATH = str(DATA_ROOT / "bin_average" / "v05_ECCO-Darwin_bin_average_1x1_deg.nc")
+MONTHLY_ROOT = DATA_ROOT / "output" / "monthly"
+GRID_DIR = DATA_ROOT / "grid"
+GEOTRACES_ROOT = Path(os.environ.get("GEOTRACES_DATA_ROOT", r"D:\geotraces"))
+GEOTRACES_NC = GEOTRACES_ROOT / "GEOTRACES_IDP2025_Seawater.nc"
+CACHE_DIR = DATA_ROOT / "cache"
+
+AOI_MAP = {
+    "eqpac": EQUATORIAL_PACIFIC_AOI,
+    "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
+    "midatl": MID_ATLANTIC_AOI,
+    "npac": NORTH_PACIFIC_AOI,
+}
+IC_CACHE_NAME = {
+    "eqpac": "darwin_ic_cache.npz",
+    "natlsubpolar": "darwin_ic_cache_natlsubpolar.npz",
+}
+
+AOIS_KEYS = [s.strip() for s in os.environ.get("AOIS", "eqpac,natlsubpolar").split(",") if s.strip()]
+for k in AOIS_KEYS:
+    if k not in AOI_MAP:
+        raise ValueError(f"AOIS contains unknown key {k!r}; valid: {sorted(AOI_MAP)}")
+N_AOIS = len(AOIS_KEYS)
+
+_seeds_env = os.environ.get("NB23_SEEDS", os.environ.get("NB23_BATCH_SEEDS", "0"))
+SEEDS: list[int] = [int(s.strip()) for s in _seeds_env.split(",") if s.strip()]
+N_SEEDS = len(SEEDS)
+
+FET_W = float(os.environ.get("NB23_FET_WEIGHT", "1.0"))
+PINN_W = float(os.environ.get("NB23_PINN_WEIGHT", "3.0"))
+PINN_TYPE = os.environ.get("NB23_PINN_TYPE", "drift").lower()
+GEOTRACES_W = float(os.environ.get("GEOTRACES_W", "0.3"))
+GEOTRACES_SUB_W = float(os.environ.get("GEOTRACES_SUB_W", "1.0"))
+SUB_DEPTH_MIN = float(os.environ.get("GEOTRACES_SUB_DEPTH_MIN", "50.0"))
+SUB_DEPTH_MAX = float(os.environ.get("GEOTRACES_SUB_DEPTH_MAX", "1000.0"))
+N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
+USE_DARWIN_IC = os.environ.get("DARWIN_IC", "1") == "1"   # default ON for v3.0
+POC_SUB_W = float(os.environ.get("POC_SUB_W", "3.0"))      # default v2.8 anchor
+
+# Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
+AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
+
+DT = 0.25
+N_STEPS = 200
+
+print(f"AOIS: {AOIS_KEYS}  (joint training across {N_AOIS} AOIs)")
+print(f"Per-AOI weights: {AOI_W}")
+print(f"Seeds: {SEEDS} (N={N_SEEDS})")
+print(f"Config: fet_w={FET_W}, pinn_w={PINN_W}, geo_surf_w={GEOTRACES_W}, "
+      f"geo_sub_w={GEOTRACES_SUB_W}, poc_sub_w={POC_SUB_W}, darwin_ic={USE_DARWIN_IC}")
+print(f"        epochs={N_EPOCHS}, subsurface depth: [{SUB_DEPTH_MIN}, {SUB_DEPTH_MAX}] m")
+print()
+
+
+# ============================== Per-AOI loader ============================
+
+def _build_aoi_targets(aoi) -> dict:
+    print(f"  building target cache from Darwin bin_average + LLC270 native for {aoi.name}...")
+    ds_bin = open_bin_average(BIN_AVG_PATH)
+    ds_aoi = subset_aoi(ds_bin, aoi)
+    ds_avg_local = time_mean(ds_aoi)
+    out = {
+        "aoi_name": aoi.name,
+        "aoi_bounds": (aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max),
+        "darwin_lats": ds_avg_local.lat.values.astype(np.float64),
+        "darwin_lons": ds_avg_local.lon.values.astype(np.float64),
+        "sst": ds_avg_local["SST"].values.astype(np.float32),
+        "mld": ds_avg_local["mldDepth"].values.astype(np.float32),
+        "wind": ds_avg_local["windSpeed"].values.astype(np.float32),
+        "sss": (
+            ds_avg_local["SSS"].values.astype(np.float32)
+            if "SSS" in ds_avg_local
+            else np.full_like(ds_avg_local["SST"].values.astype(np.float32), 35.0)
+        ),
+        "pco2_atm_field": ds_avg_local["apCO2"].values.astype(np.float32),
+        "co2_flux_obs": ds_avg_local["CO2_flux"].values.astype(np.float32),
+        "chl_per_pft": {
+            f"Chl{i}": ds_avg_local[f"Chl{i}"].values.astype(np.float32)
+            for i in range(1, 6)
+        },
+    }
+    for var in ["FeT", "POC", "PIC", "DIC", "ALK"]:
+        out[f"{var.lower()}_binned"] = bin_native_tracer_to_1deg(
+            monthly_root=MONTHLY_ROOT, grid_dir=GRID_DIR, variable=var,
+            lat_min=aoi.lat_min, lat_max=aoi.lat_max,
+            lon_min=aoi.lon_min, lon_max=aoi.lon_max,
+            iters="all",
+        )
+    return out
+
+
+def _load_or_build_target_cache(aoi) -> dict:
+    cache_path = CACHE_DIR / f"eqpac_targets_{aoi.name.replace(' ', '_').lower()}.pt"
+    expected_bounds = (aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
+    if cache_path.is_file():
+        try:
+            cached = torch.load(cache_path, map_location="cpu", weights_only=False)
+            if (cached.get("aoi_name") == aoi.name
+                    and cached.get("aoi_bounds") == expected_bounds):
+                print(f"  loaded target cache from {cache_path}")
+                return cached
+        except Exception as e:
+            print(f"  cache load failed ({e}); rebuilding...")
+    data = _build_aoi_targets(aoi)
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        torch.save(data, cache_path)
+        print(f"  saved target cache to {cache_path}")
+    except Exception as e:
+        print(f"  [warn] could not save cache: {e}")
+    return data
+
+
+def load_aoi_bundle(aoi_key: str) -> dict:
+    """Build everything per-AOI: tensors, masks, target z-scores, GEOTRACES,
+    initial conditions. Returns a dict suitable for hot use in the training loop."""
+    aoi = AOI_MAP[aoi_key]
+    print(f"\n=== Loading AOI bundle: {aoi_key} ({aoi.name}) ===")
+    targets = _load_or_build_target_cache(aoi)
+
+    sst = targets["sst"]; sss = targets["sss"]; wind = targets["wind"]
+    pco2_atm_field = targets["pco2_atm_field"]
+    chl_per_pft = targets["chl_per_pft"]
+    fet_binned = targets["fet_binned"]
+    poc_binned = targets["poc_binned"]
+    pic_binned = targets["pic_binned"]
+    dic_binned = targets["dic_binned"]
+    alk_binned = targets["alk_binned"]
+    co2_flux_obs = targets["co2_flux_obs"]
+
+    H, W = sst.shape
+    # ocean_mask: finite SST AND finite tracers (matching v2.7 runner logic).
+    ocean_mask = (
+        np.isfinite(sst) & np.isfinite(sss) & np.isfinite(wind)
+        & np.isfinite(fet_binned) & np.isfinite(poc_binned) & np.isfinite(pic_binned)
+        & np.isfinite(dic_binned) & np.isfinite(alk_binned)
+    )
+    n_ocean = int(ocean_mask.sum())
+    print(f"  AOI shape: ({H}, {W}); ocean cells: {n_ocean}")
+
+    # Env input for DINN (SST only, 1 channel). Defer z-scoring to a SHARED
+    # scale across all AOIs (set below after all bundles are loaded), so the
+    # network sees absolute-temperature contrast between regimes and can
+    # differentiate per-AOI param predictions. Per-AOI z-scoring destroys
+    # the very signal multi-AOI training is supposed to use.
+    sst_raw_for_env = np.where(ocean_mask, sst, 15.0).astype(np.float32)
+    env_1ch = sst_raw_for_env[None]  # [1, H, W] (will be z-scored shared after bundle load)
+
+    # Move everything to device.
+    mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
+    mask_f = mask_dev.to(torch.float32)
+    n_ocean_f = mask_f.sum()
+    env_1ch_dev = torch.tensor(env_1ch, dtype=torch.float32).to(device)
+    T_dev = torch.tensor(np.where(np.isfinite(sst), sst, 15.0).astype(np.float32)).to(device)
+    S_dev = torch.tensor(np.where(np.isfinite(sss), sss, 35.0).astype(np.float32)).to(device)
+    wind_dev = torch.tensor(np.where(np.isfinite(wind), wind, 7.0).astype(np.float32)).to(device)
+    pco2_atm_dev = torch.tensor(
+        np.where(np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)
+    ).to(device)
+
+    # z-score targets
+    def to_z_target(field):
+        clean = np.where(ocean_mask, field, 1.0).astype(np.float32)
+        t = torch.tensor(clean, dtype=torch.float32).to(device)
+        o = t[mask_dev]
+        m = o.mean(); s = o.std().clamp(min=1e-6)
+        return (t - m) / s
+    fet_z = to_z_target(fet_binned)
+    poc_z = to_z_target(poc_binned)
+    pic_z = to_z_target(pic_binned)
+    dic_z = to_z_target(dic_binned)
+    alk_z = to_z_target(alk_binned)
+    co2_flux_z = to_z_target(co2_flux_obs)
+    chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
+
+    # GEOTRACES per-AOI (surface + subsurface).
+    print(f"  loading GEOTRACES IDP2025 (Eq Pac stations slice)...")
+    geo_full = open_geotraces_bottle(GEOTRACES_NC)
+    geo_aoi = subset_aoi_geotraces(geo_full, aoi)
+    n_st = geo_aoi.sizes["N_STATIONS"]
+    n_sa = geo_aoi.sizes["N_SAMPLES"]
+    fe_vals = geo_aoi.Fe_D_CONC.values
+    g_lats_all = np.broadcast_to(geo_aoi.latitude.values[:, None], (n_st, n_sa)).flatten()
+    g_lons_all = np.broadcast_to(geo_aoi.longitude.values[:, None], (n_st, n_sa)).flatten()
+    g_depths_all = geo_aoi.DEPTH.values.flatten()
+    g_fe_all = fe_vals.flatten()
+    g_qc_all = geo_aoi.Fe_D_CONC_qc.values.flatten()
+    QC_GOOD = (49, 50)
+    finite_basic = (
+        np.isfinite(g_fe_all) & np.isfinite(g_lats_all) & np.isfinite(g_lons_all)
+        & np.isfinite(g_depths_all)
+        & np.isin(g_qc_all, np.array(QC_GOOD, dtype=g_qc_all.dtype))
+    )
+    DEPTH_MAX_SURFACE = 50.0
+    darwin_lats = targets["darwin_lats"]; darwin_lons = targets["darwin_lons"]
+    n_dlat = len(darwin_lats); n_dlon = len(darwin_lons)
+    dlat_res = float(darwin_lats[1] - darwin_lats[0]) if n_dlat > 1 else 1.0
+    dlon_res = float(darwin_lons[1] - darwin_lons[0]) if n_dlon > 1 else 1.0
+    dlat_lo = darwin_lats[0] - dlat_res / 2.0
+    dlon_lo = darwin_lons[0] - dlon_res / 2.0
+
+    def bin_to_grid(keep_mask):
+        lats = g_lats_all[keep_mask]; lons = g_lons_all[keep_mask]
+        fe = g_fe_all[keep_mask] * 1025.0 * 1.0e-6  # nmol/kg -> mmol/m^3
+        lat_idx = np.floor((lats - dlat_lo) / dlat_res).astype(np.int64)
+        lon_idx = np.floor((lons - dlon_lo) / dlon_res).astype(np.int64)
+        lat_idx = np.minimum(lat_idx, n_dlat - 1)
+        lon_idx = np.minimum(lon_idx, n_dlon - 1)
+        in_bounds = (lat_idx >= 0) & (lon_idx >= 0)
+        target = np.zeros((n_dlat, n_dlon), dtype=np.float64)
+        count = np.zeros((n_dlat, n_dlon), dtype=np.float64)
+        np.add.at(target, (lat_idx[in_bounds], lon_idx[in_bounds]), fe[in_bounds])
+        np.add.at(count, (lat_idx[in_bounds], lon_idx[in_bounds]), 1.0)
+        loss_mask = (count > 0) & ocean_mask
+        out_t = np.zeros((n_dlat, n_dlon), dtype=np.float32)
+        nz = count > 0
+        out_t[nz] = (target[nz] / count[nz]).astype(np.float32)
+        return out_t, loss_mask
+
+    surf_mask = finite_basic & (g_depths_all <= DEPTH_MAX_SURFACE)
+    sub_mask = finite_basic & (g_depths_all >= SUB_DEPTH_MIN) & (g_depths_all <= SUB_DEPTH_MAX)
+    geo_surf_target, geo_surf_loss_mask = bin_to_grid(surf_mask)
+    geo_sub_target, geo_sub_loss_mask = bin_to_grid(sub_mask)
+    print(f"  GEOTRACES bins in-AOI: surface={int(geo_surf_loss_mask.sum())}, "
+          f"subsurface={int(geo_sub_loss_mask.sum())}")
+
+    geo_surf_target_t = torch.tensor(
+        np.where(geo_surf_loss_mask, geo_surf_target, 0.0).astype(np.float32)
+    ).to(device)
+    geo_surf_mask_t = torch.tensor(geo_surf_loss_mask, dtype=torch.bool).to(device)
+    geo_surf_mask_f = geo_surf_mask_t.to(torch.float32)
+    n_geo_surf_f = geo_surf_mask_f.sum().clamp(min=1.0)
+
+    geo_sub_target_t = torch.tensor(
+        np.where(geo_sub_loss_mask, geo_sub_target, 0.0).astype(np.float32)
+    ).to(device)
+    geo_sub_mask_t = torch.tensor(geo_sub_loss_mask, dtype=torch.bool).to(device)
+    geo_sub_mask_f = geo_sub_mask_t.to(torch.float32)
+    n_geo_sub_f = geo_sub_mask_f.sum().clamp(min=1.0)
+
+    # Initial state: literature defaults, optionally overridden by Darwin IC cache.
+    LIT_IC = [
+        5.0e-4, 0.4, 0.3, 0.02, 0.001, 0.65,
+        0.5, 0.025, 2050.0 * 1.025, 2350.0 * 1.025,
+        5.0e-4, 0.05, 0.003, 2150.0 * 1.025, 2400.0 * 1.025,
+    ]
+    state0_hw = torch.tensor(
+        LIT_IC, dtype=torch.float32
+    ).reshape(N_TRACERS_2LAYER, 1, 1).expand(N_TRACERS_2LAYER, H, W).clone()
+
+    poc_l2_z = None
+    if USE_DARWIN_IC:
+        ic_cache_name = IC_CACHE_NAME[aoi_key]
+        ic_cache_path = _HERE / ic_cache_name
+        if not ic_cache_path.is_file():
+            raise FileNotFoundError(
+                f"Darwin IC cache not found at {ic_cache_path}. "
+                f"Run `CACHE_NAME={ic_cache_name} DARWIN_AOI={aoi_key} "
+                f"python scripts/build_darwin_ic_cache.py` first."
+            )
+        print(f"  loading Darwin IC cache {ic_cache_name}")
+        _ic = np.load(ic_cache_path)
+        ic_overrides = [
+            (I_DFE_1, "FeT_L1"), (I_POC_1, "POC_L1"), (I_PIC_1, "PIC_L1"),
+            (I_DIC_1, "DIC_L1"), (I_ALK_1, "ALK_L1"),
+            (I_DFE_2, "FeT_L2"), (I_POC_2, "POC_L2"), (I_PIC_2, "PIC_L2"),
+            (I_DIC_2, "DIC_L2"), (I_ALK_2, "ALK_L2"),
+        ]
+        for state_idx, key in ic_overrides:
+            field = _ic[key]
+            if field.shape != (H, W):
+                raise ValueError(f"IC field {key!r} shape {field.shape} != ({H}, {W})")
+            field_safe = np.where(np.isfinite(field), field, LIT_IC[state_idx]).astype(np.float32)
+            if state_idx in (I_DFE_1, I_DFE_2, I_POC_1, I_POC_2, I_PIC_1, I_PIC_2):
+                field_safe = np.clip(field_safe, a_min=1e-10, a_max=None)
+            state0_hw[state_idx] = torch.tensor(field_safe, dtype=torch.float32)
+        if POC_SUB_W > 0:
+            poc_l2_target = _ic["POC_L2"]
+            poc_l2_z = to_z_target(np.where(np.isfinite(poc_l2_target), poc_l2_target,
+                                            np.nanmean(poc_l2_target)).astype(np.float32))
+
+    state0_per_seed = state0_hw.unsqueeze(1).expand(
+        N_TRACERS_2LAYER, N_SEEDS, H, W
+    ).contiguous().to(device)
+
+    return {
+        "key": aoi_key, "aoi": aoi, "H": H, "W": W,
+        "ocean_mask": ocean_mask, "n_ocean": n_ocean,
+        "mask_dev": mask_dev, "mask_f": mask_f, "n_ocean_f": n_ocean_f,
+        "env_1ch_dev": env_1ch_dev,
+        "T_dev": T_dev, "S_dev": S_dev, "wind_dev": wind_dev, "pco2_atm_dev": pco2_atm_dev,
+        "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z,
+        "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
+        "geo_surf_target_t": geo_surf_target_t, "geo_surf_mask_t": geo_surf_mask_t,
+        "geo_surf_mask_f": geo_surf_mask_f, "n_geo_surf_f": n_geo_surf_f,
+        "geo_sub_target_t": geo_sub_target_t, "geo_sub_mask_t": geo_sub_mask_t,
+        "geo_sub_mask_f": geo_sub_mask_f, "n_geo_sub_f": n_geo_sub_f,
+        "n_geo_surf": int(geo_surf_loss_mask.sum()),
+        "n_geo_sub": int(geo_sub_loss_mask.sum()),
+        "state0_per_seed": state0_per_seed,
+        "weight": AOI_W[aoi_key],
+    }
+
+
+# Load all AOI bundles up-front.
+bundles = [load_aoi_bundle(k) for k in AOIS_KEYS]
+bounds_dev = PARAM_BOUNDS.to(device)
+
+# Shared-scale SST z-score across all AOIs. Compute mean/std over the union
+# of all ocean cells; apply the SAME (mean, std) to every AOI's env input.
+# This preserves absolute-temperature contrast: Eq Pac z-scores positive
+# (warm), N Atl z-scores negative (cold), so the DINN can differentiate.
+_all_sst = []
+for b in bundles:
+    sst_np = b["env_1ch_dev"].cpu().numpy()[0]   # [H, W]
+    mask_np = b["ocean_mask"]
+    _all_sst.append(sst_np[mask_np])
+_all_sst_flat = np.concatenate(_all_sst)
+_shared_sst_mean = float(_all_sst_flat.mean())
+_shared_sst_std = float(_all_sst_flat.std()) or 1.0
+print(f"\nShared-scale SST z-score: mean={_shared_sst_mean:.2f}, std={_shared_sst_std:.2f}")
+for b in bundles:
+    sst_np = b["env_1ch_dev"].cpu().numpy()[0]
+    sst_z = (sst_np - _shared_sst_mean) / _shared_sst_std
+    sst_z = np.where(b["ocean_mask"], sst_z, 0.0).astype(np.float32)
+    b["env_1ch_dev"] = torch.tensor(sst_z[None], dtype=torch.float32).to(device)
+    print(f"  {b['key']}: SST z-score range [{sst_z[b['ocean_mask']].min():.2f}, "
+          f"{sst_z[b['ocean_mask']].max():.2f}]")
+
+
+# ============================== Networks (shared per seed) ===================
+
+print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
+nets: list[DINN] = []
+for s in SEEDS:
+    torch.manual_seed(s)
+    n = DINN(n_input_channels=1, hidden_dim=16, n_outputs=6).to(device)
+    nets.append(n)
+all_params = []
+for n in nets:
+    all_params.extend(n.parameters())
+optimizer = torch.optim.Adam(all_params, lr=5e-3)
+
+_COMPILE_STEP = os.environ.get("TORCH_COMPILE_BATCHED", "1") == "1"
+if _COMPILE_STEP:
+    try:
+        _compiled_step = torch.compile(carroll6_5pft_2layer_step, mode="default")
+        print("torch.compile applied to per-step function (mode='default').")
+    except Exception as e:
+        print(f"torch.compile failed ({e}); falling back to eager per-step.")
+        _compiled_step = carroll6_5pft_2layer_step
+else:
+    _compiled_step = carroll6_5pft_2layer_step
+
+
+def _integrate(state0, params, dt, n_steps, T, S, wind, pco2_atm):
+    from darwindiff.carroll6_5pft_2layer import H1, H2, KZ_M2_PER_DAY, R_REMIN
+    state = state0
+    for _ in range(n_steps):
+        state = _compiled_step(state, params, dt, T, S, wind, pco2_atm,
+                               H1, H2, KZ_M2_PER_DAY, R_REMIN)
+    return state
+
+
+# ============================== Batched losses (per AOI) ===================
+
+def term_batched(pred_b: torch.Tensor, target_z: torch.Tensor,
+                 mask_f: torch.Tensor, n_ocean_f: torch.Tensor,
+                 bessel_div: int) -> torch.Tensor:
+    pred_m = pred_b * mask_f[None]
+    sums = pred_m.flatten(1).sum(dim=1)
+    means = sums / n_ocean_f
+    diff = (pred_b - means[:, None, None]) * mask_f[None]
+    var = (diff ** 2).flatten(1).sum(dim=1) / bessel_div
+    stds = var.sqrt().clamp(min=1e-6)
+    pred_z = (pred_b - means[:, None, None]) / stds[:, None, None]
+    residual = (pred_z - target_z[None]) * mask_f[None]
+    return (residual ** 2).flatten(1).sum(dim=1) / n_ocean_f
+
+
+def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Compute per-seed loss for one AOI. Returns (loss [N_seeds], state [15, N_seeds, H, W])."""
+    state0 = bundle["state0_per_seed"]
+    state = _integrate(
+        state0, params_b, DT, N_STEPS,
+        T=bundle["T_dev"], S=bundle["S_dev"],
+        wind=bundle["wind_dev"], pco2_atm=bundle["pco2_atm_dev"],
+    )
+    dfe1 = state[I_DFE_1]; dfe2 = state[I_DFE_2]
+    poc = state[I_POC_1]; pic = state[I_PIC_1]; dic = state[I_DIC_1]; alk = state[I_ALK_1]
+    p_diatom = state[I_DIATOM]; p_lge = state[I_LGE]
+    p_syn = state[I_SYN]; p_proLL = state[I_PROLL]; p_proHL = state[I_PROHL]
+
+    carb = solve_carbonate(dic, alk, bundle["T_dev"][None], bundle["S_dev"][None])
+    co2_pred = co2_flux(carb["pCO2"], bundle["pco2_atm_dev"][None],
+                        bundle["wind_dev"][None], bundle["T_dev"][None], bundle["S_dev"][None])
+
+    mask_f = bundle["mask_f"]; n_ocean_f = bundle["n_ocean_f"]
+    bessel_div = max(int(n_ocean_f.item()) - 1, 1)
+    tb = lambda p, z: term_batched(p, z, mask_f, n_ocean_f, bessel_div)
+
+    z = (
+        FET_W * tb(dfe1, bundle["fet_z"])
+        + tb(p_diatom, bundle["chl_z"]["Chl1"])
+        + tb(p_lge,    bundle["chl_z"]["Chl2"])
+        + tb(p_syn,    bundle["chl_z"]["Chl3"])
+        + tb(p_proLL,  bundle["chl_z"]["Chl4"])
+        + tb(p_proHL,  bundle["chl_z"]["Chl5"])
+        + tb(poc,      bundle["poc_z"])
+        + tb(pic,      bundle["pic_z"])
+        + tb(dic,      bundle["dic_z"])
+        + tb(alk,      bundle["alk_z"])
+        + tb(co2_pred, bundle["co2_flux_z"])
+    ) / (FET_W + 10.0)
+
+    if PINN_W > 0:
+        alpfe_b = params_b[0]; scav_rat_b = params_b[1]
+        mu_proHL_b = params_b[2]; mu_lge_b = params_b[3]
+        f_fe = state[I_DFE_1] / (state[I_DFE_1] + K_FE)
+        growth_total = (
+            MU_DEFAULT_DIATOM * f_fe * state[I_DIATOM]
+            + mu_lge_b * f_fe * state[I_LGE]
+            + MU_DEFAULT_SYN * f_fe * state[I_SYN]
+            + MU_DEFAULT_PROLL * f_fe * state[I_PROLL]
+            + mu_proHL_b * f_fe * state[I_PROHL]
+        )
+        iron_source = alpfe_b * PHI_DUST
+        iron_sink = scav_rat_b * 86400.0 * state[I_DFE_1] * state[I_POC_1] + Q_FE * growth_total
+        dDFe_dt = iron_source - iron_sink
+        rel_rate = dDFe_dt / state[I_DFE_1].clamp(min=1e-10)
+        l_pinn = ((rel_rate ** 2) * mask_f[None]).flatten(1).sum(dim=1) / n_ocean_f
+        z = z + PINN_W * l_pinn
+
+    if GEOTRACES_W > 0 and bundle["n_geo_surf"] > 0:
+        residual = (dfe1 - bundle["geo_surf_target_t"][None]) * bundle["geo_surf_mask_f"][None]
+        scale = (bundle["geo_surf_target_t"][bundle["geo_surf_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_geo_surf_f"] / scale
+        z = z + GEOTRACES_W * l
+
+    if GEOTRACES_SUB_W > 0 and bundle["n_geo_sub"] > 0:
+        residual = (dfe2 - bundle["geo_sub_target_t"][None]) * bundle["geo_sub_mask_f"][None]
+        scale = (bundle["geo_sub_target_t"][bundle["geo_sub_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_geo_sub_f"] / scale
+        z = z + GEOTRACES_SUB_W * l
+
+    if POC_SUB_W > 0 and bundle["poc_l2_z"] is not None:
+        l_poc_sub = tb(state[I_POC_2], bundle["poc_l2_z"])
+        z = z + POC_SUB_W * l_poc_sub
+
+    return z, state
+
+
+# ============================== Training ==================================
+
+print(f"\n=== v3.0 joint training: {N_AOIS} AOIs, {N_SEEDS} seeds, {N_EPOCHS} epochs ===")
+t0 = time.time()
+loss_history = torch.full((N_EPOCHS, N_SEEDS), float("nan"), dtype=torch.float32, device=device)
+per_aoi_history = {k: torch.full((N_EPOCHS, N_SEEDS), float("nan"),
+                                  dtype=torch.float32, device=device) for k in AOIS_KEYS}
+
+for epoch in range(N_EPOCHS):
+    optimizer.zero_grad()
+    total_loss_per_seed = torch.zeros(N_SEEDS, device=device)
+
+    # For each AOI, forward the SHARED nets (per seed) on that AOI's env,
+    # integrate, compute loss, accumulate weighted.
+    last_states_per_aoi = {}
+    last_params_per_aoi = {}
+    for bundle in bundles:
+        env = bundle["env_1ch_dev"]
+        per_seed_params = [bounded_params(net(env), bounds_dev) for net in nets]
+        params_b = torch.stack(per_seed_params, dim=1)  # [6, N_seeds, H, W]
+        aoi_l, state_final = aoi_loss(bundle, params_b)
+        total_loss_per_seed = total_loss_per_seed + bundle["weight"] * aoi_l
+        per_aoi_history[bundle["key"]][epoch] = aoi_l.detach()
+        last_states_per_aoi[bundle["key"]] = state_final.detach()
+        last_params_per_aoi[bundle["key"]] = params_b.detach()
+
+    total_loss = total_loss_per_seed.sum()
+    total_loss.backward()
+    optimizer.step()
+    loss_history[epoch] = total_loss_per_seed.detach()
+
+    if (epoch + 1) % 250 == 0 or epoch + 1 == N_EPOCHS:
+        mean_l = float(total_loss_per_seed.mean().item())
+        print(f"  epoch {epoch+1:4d}  per-seed joint loss: mean={mean_l:.3e}")
+
+if device == "cuda":
+    torch.cuda.synchronize()
+elapsed = time.time() - t0
+print(f"\nDone in {elapsed:.0f}s ({elapsed/N_SEEDS:.1f}s amortized per seed)")
+
+
+# ============================== Recovery report ===========================
+
+PARAM_NAMES = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
+carroll_published = CARROLL_VALUES  # tensor of length 6
+
+all_results = []
+for seed_idx, seed in enumerate(SEEDS):
+    print(f"\n=== Seed {seed} recovery ===")
+    per_aoi_means = {}
+    for bundle in bundles:
+        # Re-compute params for this AOI from the FINAL net state (no_grad).
+        with torch.no_grad():
+            env = bundle["env_1ch_dev"]
+            params_b = bounded_params(nets[seed_idx](env), bounds_dev)  # [6, H, W]
+        mask_f = bundle["mask_f"]
+        n_ocean_f = bundle["n_ocean_f"]
+        per_cell = params_b * mask_f[None]
+        means_b = per_cell.flatten(1).sum(dim=1) / n_ocean_f  # [6]
+        per_aoi_means[bundle["key"]] = means_b.cpu().numpy()
+
+    # Joint recovery: mask-weighted mean across all AOIs combined.
+    weighted_sum = torch.zeros(6, device=device)
+    weighted_count = torch.zeros((), device=device)
+    for bundle in bundles:
+        with torch.no_grad():
+            env = bundle["env_1ch_dev"]
+            params_b = bounded_params(nets[seed_idx](env), bounds_dev)
+        mask_f = bundle["mask_f"]
+        per_cell = params_b * mask_f[None]
+        weighted_sum = weighted_sum + per_cell.flatten(1).sum(dim=1)
+        weighted_count = weighted_count + mask_f.sum()
+    joint_means = (weighted_sum / weighted_count).cpu().numpy()
+
+    # Print per-AOI + joint table.
+    print(f"{'Param':<12} " + "  ".join(f"{k[:8]:>10s}" for k in AOIS_KEYS) + f"  {'JOINT':>10s}  {'Carroll':>10s}")
+    n_cal_joint = 0; n_exc_joint = 0
+    result_params = {}
+    for i, name in enumerate(PARAM_NAMES):
+        pub = float(carroll_published[i])
+        joint_val = float(joint_means[i])
+        joint_rel = abs(joint_val - pub) / abs(pub)
+        joint_band = band_of(joint_rel)
+        if joint_band == "Excellent": n_cal_joint += 1; n_exc_joint += 1
+        elif joint_band == "Cal-grade": n_cal_joint += 1
+        per_aoi_str = "  ".join(
+            f"{per_aoi_means[k][i]:>10.4g}" for k in AOIS_KEYS
+        )
+        print(f"{name:<12} {per_aoi_str}  {joint_val:>10.4g}  {pub:>10.4g}  joint={joint_band} ({joint_rel:.3f})")
+        result_params[name] = {
+            "joint_recovered": joint_val,
+            "joint_carroll_published": pub,
+            "joint_abs_rel_offset": joint_rel,
+            "joint_band": joint_band,
+            "per_aoi_recovered": {k: float(per_aoi_means[k][i]) for k in AOIS_KEYS},
+        }
+    print(f"       -> joint {n_cal_joint}/6 cal-grade ({n_exc_joint} Excellent)")
+
+    result = {
+        "seed": seed,
+        "aois": AOIS_KEYS,
+        "aoi_weights": AOI_W,
+        "n_aois": N_AOIS,
+        "geotraces_w": GEOTRACES_W,
+        "geotraces_sub_w": GEOTRACES_SUB_W,
+        "pinn_w": PINN_W,
+        "pinn_type": PINN_TYPE,
+        "use_darwin_ic": USE_DARWIN_IC,
+        "poc_sub_w": POC_SUB_W,
+        "fet_w": FET_W,
+        "n_epochs": N_EPOCHS,
+        "n_seeds_in_batch": N_SEEDS,
+        "elapsed_s_total_batch": elapsed,
+        "loss_final": float(loss_history[-1, seed_idx].item()),
+        "per_aoi_loss_final": {k: float(per_aoi_history[k][-1, seed_idx].item()) for k in AOIS_KEYS},
+        "params": result_params,
+        "n_cal_grade": n_cal_joint,
+        "n_excellent": n_exc_joint,
+    }
+    all_results.append(result)
+
+
+# ============================== Write JSONs =================================
+
+SKIP_JSON_WRITE = os.environ.get("NB23_SKIP_JSON_WRITE", "0") == "1"
+out_dir = Path(__file__).resolve().parent
+if SKIP_JSON_WRITE:
+    print(f"\nNB23_SKIP_JSON_WRITE=1: skipping JSON write for {len(all_results)} results.")
+else:
+    aoi_tag = "-".join(AOIS_KEYS)
+    poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
+    for r in all_results:
+        out = out_dir / (
+            f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
+            f"_surf{GEOTRACES_W}"
+            f"_sub{GEOTRACES_SUB_W}"
+            f"_pinn{PINN_W}"
+            f"{poc_tag}.json"
+        )
+        existed = out.is_file()
+        with out.open("w", encoding="utf-8") as f:
+            json.dump(r, f, indent=2, allow_nan=False)
+        suffix = " (overwrote existing)" if existed else ""
+        print(f"  wrote {out.name}{suffix}")
+
+print(f"\nBatch summary: {N_AOIS} AOIs x {N_SEEDS} seeds in {elapsed:.0f}s "
+      f"({elapsed/N_SEEDS:.1f}s amortized per seed)")
