@@ -68,6 +68,7 @@ if _SRC.exists() and str(_SRC) not in sys.path:
 from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
 from darwindiff.carroll6 import (
     CARROLL_VALUES,
+    K_FE,
     PARAM_BOUNDS,
     PHI_DUST,
     Q_FE,
@@ -138,7 +139,9 @@ N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
 
 DT = 0.25
 N_STEPS = 200
-K_FE_LOCAL = 5.0e-5
+# K_FE is the iron half-saturation used inside the PINN drift loss.
+# Imported from darwindiff.carroll6 so the PINN block uses the same
+# constant as the integrator.
 
 AOI = EQUATORIAL_PACIFIC_AOI
 print(f"AOI: {AOI.name} ({AOI.lat_min}-{AOI.lat_max} N, {AOI.lon_min}-{AOI.lon_max} E)")
@@ -529,7 +532,7 @@ for epoch in range(N_EPOCHS):
         scav_rat_b = params_b[1]
         mu_proHL_b = params_b[2]
         mu_lge_b   = params_b[3]
-        f_fe = state[I_DFE_1] / (state[I_DFE_1] + K_FE_LOCAL)
+        f_fe = state[I_DFE_1] / (state[I_DFE_1] + K_FE)
         growth_total = (
             MU_DEFAULT_DIATOM * f_fe * state[I_DIATOM]
             + mu_lge_b * f_fe * state[I_LGE]
