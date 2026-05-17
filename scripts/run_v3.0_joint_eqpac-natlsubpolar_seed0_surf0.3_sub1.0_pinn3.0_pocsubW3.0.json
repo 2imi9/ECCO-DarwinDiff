@@ -1,0 +1,91 @@
+{
+  "seed": 0,
+  "aois": [
+    "eqpac",
+    "natlsubpolar"
+  ],
+  "aoi_weights": {
+    "eqpac": 1.0,
+    "natlsubpolar": 1.0
+  },
+  "n_aois": 2,
+  "geotraces_w": 0.3,
+  "geotraces_sub_w": 1.0,
+  "pinn_w": 3.0,
+  "pinn_type": "drift",
+  "use_darwin_ic": true,
+  "poc_sub_w": 3.0,
+  "fet_w": 1.0,
+  "n_epochs": 1500,
+  "n_seeds_in_batch": 5,
+  "elapsed_s_total_batch": 246.94177412986755,
+  "loss_final": 3.1483283042907715,
+  "per_aoi_loss_final": {
+    "eqpac": 1.3622019290924072,
+    "natlsubpolar": 1.7861263751983643
+  },
+  "params": {
+    "alpfe": {
+      "joint_recovered": 0.3748621642589569,
+      "joint_carroll_published": 0.928309977054596,
+      "joint_abs_rel_offset": 0.5961885862216577,
+      "joint_band": "Loose",
+      "per_aoi_recovered": {
+        "eqpac": 0.3673221170902252,
+        "natlsubpolar": 0.39154675602912903
+      }
+    },
+    "scav_rat": {
+      "joint_recovered": 7.922488407530182e-07,
+      "joint_carroll_published": 6.025023253641848e-07,
+      "joint_abs_rel_offset": 0.3149307602657639,
+      "joint_band": "Cal-grade",
+      "per_aoi_recovered": {
+        "eqpac": 7.831247899048321e-07,
+        "natlsubpolar": 8.124387136376754e-07
+      }
+    },
+    "Smallgrow": {
+      "joint_recovered": 0.7071048617362976,
+      "joint_carroll_published": 0.6609799861907959,
+      "joint_abs_rel_offset": 0.06978256000051941,
+      "joint_band": "Cal-grade",
+      "per_aoi_recovered": {
+        "eqpac": 0.7441529631614685,
+        "natlsubpolar": 0.6251245141029358
+      }
+    },
+    "Biggrow": {
+      "joint_recovered": 0.3360009789466858,
+      "joint_carroll_published": 0.4314799904823303,
+      "joint_abs_rel_offset": 0.2212825939597181,
+      "joint_band": "Cal-grade",
+      "per_aoi_recovered": {
+        "eqpac": 0.3114181160926819,
+        "natlsubpolar": 0.3903981149196625
+      }
+    },
+    "diatomgraz": {
+      "joint_recovered": 0.2844027578830719,
+      "joint_carroll_published": 0.8300300240516663,
+      "joint_abs_rel_offset": 0.6573584694023443,
+      "joint_band": "Loose",
+      "per_aoi_recovered": {
+        "eqpac": 0.3141656816005707,
+        "natlsubpolar": 0.21854308247566223
+      }
+    },
+    "R_PICPOC": {
+      "joint_recovered": 0.019981350749731064,
+      "joint_carroll_published": 0.04244999960064888,
+      "joint_abs_rel_offset": 0.5292967976983058,
+      "joint_band": "Loose",
+      "per_aoi_recovered": {
+        "eqpac": 0.019281011074781418,
+        "natlsubpolar": 0.02153106778860092
+      }
+    }
+  },
+  "n_cal_grade": 3,
+  "n_excellent": 0
+}
