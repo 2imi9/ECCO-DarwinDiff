@@ -42,6 +42,17 @@ Env vars (same defaults as the v2.7 batched runner unless noted):
                           AOI-mean of parameter p and p_avg is the AOIs-mean
                           of those AOI-means. lam -> inf collapses to
                           shared-DINN behaviour; lam = 0 is fully decoupled.
+    PIC_ABS_W             absolute-units MSE loss weight on surface PIC vs the
+                          Darwin pic_binned target (default 0 = off).
+    POC_ABS_W             absolute-units MSE loss weight on surface POC vs the
+                          Darwin poc_binned target (default 0 = off). PAIRED
+                          with PIC_ABS_W: anchoring POC_1 absolute pins
+                          mort_total (since POC_1 ~ mort_total / W_SINK at
+                          steady state); paired anchoring then forces
+                          R_PICPOC ~ obs(PIC) / obs(POC) per cell, breaking
+                          the R_PICPOC * mort_total scale degeneracy that
+                          PR #59's PIC_ABS_W-alone sweep showed PIC alone
+                          can't fix.
     DARWIN_DATA_ROOT      Darwin v05 data root (default D:\\ecco_darwin_v5)
     GEOTRACES_DATA_ROOT   IDP2025 NetCDF root (default D:\\geotraces)
 
@@ -198,6 +209,21 @@ CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
 # same neighborhood, breaking the 5/6 shared-MLP architectural ceiling.
 USE_PER_AOI_DINN = os.environ.get("PER_AOI_DINN", "0") == "1"
 CONSISTENCY_LAMBDA = float(os.environ.get("CONSISTENCY_LAMBDA", "0.0"))
+# PIC_ABS_W: absolute-units MSE loss weight on surface PIC against the Darwin
+# pic_binned target. The existing pic_z term (line ~660) constrains spatial
+# pattern only; with z-score normalisation the per-cell R_PICPOC and biomass
+# scale are jointly free (any uniform scaling cancels). PR #58 diagnosed this
+# as the cause of R_PICPOC staying ~3x below Carroll across both regimes:
+# both AOIs collapse to the same biomass-degenerate value. Adding the
+# absolute term anchors per-cell PIC magnitude, pinning R_PICPOC * mort_total.
+# Default 0 = off (legacy behaviour reproduces).
+PIC_ABS_W = float(os.environ.get("PIC_ABS_W", "0.0"))
+# POC_ABS_W: PAIRED anchor on surface POC absolute magnitude. Without this,
+# PIC_ABS_W alone only constrains the product R_PICPOC * mort_total (PR #59's
+# negative result). POC anchors mort_total independently (steady-state
+# POC_1 ~ mort_total / W_SINK), so the pair forces R_PICPOC ~ obs(PIC)/obs(POC)
+# per cell. Default 0 = off.
+POC_ABS_W = float(os.environ.get("POC_ABS_W", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -337,6 +363,39 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     alk_z = to_z_target(alk_binned)
     co2_flux_z = to_z_target(co2_flux_obs)
     chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
+
+    # Absolute-units surface PIC target (PIC_ABS_W). Masks to ocean cells with
+    # finite, positive PIC. Always prepared (negligible memory) so the loss
+    # path stays uniform; the loss contribution itself is gated on PIC_ABS_W > 0.
+    pic_abs_mask_np = ocean_mask & np.isfinite(pic_binned) & (pic_binned > 0)
+    pic_abs_target_np = np.where(pic_abs_mask_np, pic_binned, 0.0).astype(np.float32)
+    pic_abs_target_t = torch.tensor(pic_abs_target_np).to(device)
+    pic_abs_mask_t = torch.tensor(pic_abs_mask_np, dtype=torch.bool).to(device)
+    pic_abs_mask_f = pic_abs_mask_t.to(torch.float32)
+    n_pic_abs = int(pic_abs_mask_np.sum())
+    n_pic_abs_f = pic_abs_mask_f.sum().clamp(min=1.0)
+    if PIC_ABS_W > 0:
+        if n_pic_abs > 0:
+            print(f"  PIC absolute target: {n_pic_abs} cells, "
+                  f"mean={float(pic_abs_target_t[pic_abs_mask_t].mean()):.4f} mmol C/m^3")
+        else:
+            print(f"  [warn] PIC_ABS_W={PIC_ABS_W} but no finite-positive PIC cells in AOI; loss term will be skipped")
+
+    # Absolute-units surface POC target (POC_ABS_W). Paired with pic_abs to
+    # anchor R_PICPOC; same prep pattern as PIC.
+    poc_abs_mask_np = ocean_mask & np.isfinite(poc_binned) & (poc_binned > 0)
+    poc_abs_target_np = np.where(poc_abs_mask_np, poc_binned, 0.0).astype(np.float32)
+    poc_abs_target_t = torch.tensor(poc_abs_target_np).to(device)
+    poc_abs_mask_t = torch.tensor(poc_abs_mask_np, dtype=torch.bool).to(device)
+    poc_abs_mask_f = poc_abs_mask_t.to(torch.float32)
+    n_poc_abs = int(poc_abs_mask_np.sum())
+    n_poc_abs_f = poc_abs_mask_f.sum().clamp(min=1.0)
+    if POC_ABS_W > 0:
+        if n_poc_abs > 0:
+            print(f"  POC absolute target: {n_poc_abs} cells, "
+                  f"mean={float(poc_abs_target_t[poc_abs_mask_t].mean()):.4f} mmol C/m^3")
+        else:
+            print(f"  [warn] POC_ABS_W={POC_ABS_W} but no finite-positive POC cells in AOI; loss term will be skipped")
 
     # GEOTRACES per-AOI (surface + subsurface).
     print(f"  loading GEOTRACES IDP2025 (Eq Pac stations slice)...")
@@ -530,6 +589,12 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "geo_poc_target_t": geo_poc_target_t, "geo_poc_mask_t": geo_poc_mask_t,
         "geo_poc_mask_f": geo_poc_mask_f, "n_geo_poc_f": n_geo_poc_f,
         "n_geo_poc": n_geo_poc_in_ocean,
+        "pic_abs_target_t": pic_abs_target_t, "pic_abs_mask_t": pic_abs_mask_t,
+        "pic_abs_mask_f": pic_abs_mask_f, "n_pic_abs_f": n_pic_abs_f,
+        "n_pic_abs": n_pic_abs,
+        "poc_abs_target_t": poc_abs_target_t, "poc_abs_mask_t": poc_abs_mask_t,
+        "poc_abs_mask_f": poc_abs_mask_f, "n_poc_abs_f": n_poc_abs_f,
+        "n_poc_abs": n_poc_abs,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -761,6 +826,25 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_geo_poc_f"] / scale
         z = z + GEOTRACES_POC_SUB_W * l
 
+    # PIC absolute-units MSE on surface PIC vs Darwin pic_binned. Z-scored
+    # PIC pattern is already in `z` above (tb(pic, bundle["pic_z"])); this
+    # is the MAGNITUDE constraint that breaks the R_PICPOC x biomass
+    # scale-degeneracy diagnosed in PR #58.
+    if PIC_ABS_W > 0 and bundle["n_pic_abs"] > 0:
+        residual = (pic - bundle["pic_abs_target_t"][None]) * bundle["pic_abs_mask_f"][None]
+        scale = (bundle["pic_abs_target_t"][bundle["pic_abs_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_pic_abs_f"] / scale
+        z = z + PIC_ABS_W * l
+
+    # POC absolute-units MSE on surface POC -- paired anchor for PIC_ABS_W.
+    # Anchors mort_total via POC_1 ~ mort_total / W_SINK; together with PIC
+    # absolute, R_PICPOC ~ obs(PIC) / obs(POC) per cell.
+    if POC_ABS_W > 0 and bundle["n_poc_abs"] > 0:
+        residual = (poc - bundle["poc_abs_target_t"][None]) * bundle["poc_abs_mask_f"][None]
+        scale = (bundle["poc_abs_target_t"][bundle["poc_abs_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_poc_abs_f"] / scale
+        z = z + POC_ABS_W * l
+
     return z, state
 
 
@@ -935,6 +1019,10 @@ for seed_idx, seed in enumerate(SEEDS):
         "chl1_w_extra": CHL1_W_EXTRA,
         "per_aoi_dinn": USE_PER_AOI_DINN,
         "consistency_lambda": CONSISTENCY_LAMBDA,
+        "pic_abs_w": PIC_ABS_W,
+        "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
+        "poc_abs_w": POC_ABS_W,
+        "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -969,6 +1057,8 @@ else:
     jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
     chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
     peraoi_tag = f"_peraoi_lam{CONSISTENCY_LAMBDA}" if USE_PER_AOI_DINN else ""
+    pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
+    poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -983,7 +1073,9 @@ else:
             f"{aoi_w_tag}"
             f"{jrm_tag}"
             f"{chl1_extra_tag}"
-            f"{peraoi_tag}.json"
+            f"{peraoi_tag}"
+            f"{pic_abs_tag}"
+            f"{poc_abs_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:

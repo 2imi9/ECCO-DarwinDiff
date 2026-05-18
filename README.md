@@ -5,38 +5,44 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model that l
 1. **Parameter learner** — a faster, richer replacement for ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes one global vector of 6 biogeochemical parameters via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
 2. **Emulator** — a neural-network stand-in for ECCO-Darwin trained on the same Darwin output, for long-timescale climate runs the full model is too slow for. Not started yet — Track 2.
 
-## Status — Track 1 at v2.6 GEOTRACES hybrid (2026-05-12)
+## Status — Track 1 v3.0 multi-AOI arc closed at the 5/6 ceiling (2026-05-18)
 
-Track 1 (parameter recovery) at v2.6 — first reproducible per-parameter recovery anchored on real iron observations. 5-PFT training runs ~80 sec on RTX 5090 Laptop.
+Track 1 (parameter recovery) at **v3.0 multi-AOI close-out**. The 5/6 ceiling is now characterized structurally: **parameter conservation** — the observations support ~5 effective constraints on 6 parameters; the 6th is always the "residual sink", and loss weighting decides which.
 
-**Headline result:** the v2.4 PINN drift w=3.0 setup + a GEOTRACES IDP2025 absolute-units dissolved-iron loss term (`scripts/run_geotraces_hybrid_quick.py`) recovers **4 of 6 Carroll-6 parameters at calibration-grade across 5 seeds**, with **Smallgrow consistently at Excellent (0.040 ± 0.040 off Carroll's 0.661 — first time the project has had a reproducibly Excellent recovery).** alpfe lands cal-grade (0.39 ± 0.07). The two stuck parameters shift from `(alpfe, Smallgrow)` in v2.2 → `(scav_rat, R_PICPOC)` in v2.6 — now identified as HNLC-region structural limits.
+**Project state:**
 
-**Reframes the v2.2 closeout claim.** The "alpfe + Smallgrow are structurally stuck" finding from v2.2 is **wrong** — they're recoverable once you anchor the iron magnitude with real observations. The genuine structural limits sit elsewhere:
+- 5-PFT 2-layer box (v2.7) on main; v2.8 Darwin v5 pickup ICs + L2 POC observation loss on main (PR #45). Joint multi-AOI training (Eq Pac + N Atl Subpolar) with a shared Carroll-6 implemented across PRs #46–#57.
+- Best baseline (PR #57 best config: AOI ID + GEO POC=0.5 + hd=32 + NAtl_W=2.0, n=15): **7/15 at 5/6 Cal-grade, mean_cal = 3.93**. The actual baseline binding parameter is `diatomgraz` (2/15 Cal, 13%; 6/7 5/6-miss seeds drop diatomgraz specifically). R_PICPOC is Cal-grade in 11/15 baseline seeds.
+- **PR #58 (ready for review)**: per-AOI DINNs + cross-AOI consistency penalty. λ sweep × n=10: 0/40 at 6/6; best λ=0.1 only 3/10 at 5/6. **Architectural-ceiling hypothesis falsified.**
+- **PR #59 (draft)**: PIC_ABS_W + POC_ABS_W paired absolute anchors. Three sweeps (PIC alone; paired heavy; paired light) all underperform baseline on aggregate. R_PICPOC can be magnitude-pinned per-AOI but at full iron-pair Cal collapse. Recommended NOT for merge as v3.0 default; the deliverable is the diagnosis in [`notebooks/32_v3_0_param_learner_ceiling.ipynb`](notebooks/32_v3_0_param_learner_ceiling.ipynb).
 
-- **scav_rat** (0.92 ± 0.01) — Eq Pacific is HNLC; biological iron uptake dominates over particle scavenging, so scav_rat is intrinsically underconstrained here. Cross-basin to N Atlantic / S Ocean (cluster-gated) is the unblock.
-- **R_PICPOC** (2.78 ± 0.55) — carbonate stoichiometry re-equilibrates with iron pair without independent PIC observations.
+**Different interventions shift WHICH parameter is the dominant 5/6 miss:**
 
-**Earlier headline (v2.4 PINN drift w=3.0, no GEOTRACES, seed=0):** 4/6 with `scav_rat`, `Biggrow`, `diatomgraz`, `R_PICPOC` cal-grade. Multi-seed of that result showed seed=0 was somewhat lucky on Biggrow + R_PICPOC; reproducible v2.2 result is closer to 2-3/6 with alpfe + Smallgrow consistently broken. The v2.6 result is the stronger headline.
+| Family | Dominant 5/6 miss | Mechanism |
+|---|---|---|
+| Baseline (PR #57) | **diatomgraz** | Chl1 z-score under-constrains diatom-specific growth |
+| Per-AOI DINN (PR #58) | R_PICPOC | shared-MLP regularization removed |
+| PIC alone (PR #59) | alpfe + scav_rat | magnitude anchor on PIC competes with iron budget |
+| Paired POC+PIC (PR #59) | alpfe + scav_rat | both anchors disturb iron budget |
 
-**Stuck parameters (25 experiments across v2.2 + Wave 3):**
+**Path to 6/6 (laptop-tractable, empirically justified):**
 
-- `alpfe` (0.80–0.94 off) — locked in an alpfe ↔ scav_rat identifiability degeneracy under z-scored FeT loss. One config (raw_fet w=0.01 alone) moved alpfe to 0.392 but broke scav_rat to 2.556. Wave 3 (2026-05-12) confirmed adding PINN drift cancels the raw_fet effect on alpfe — no combo recovers both.
-- `Smallgrow` (1.18–1.79 off) — target ambiguity, not necessarily recovery failure. Carroll's published 0.661 is the group mean over {Syn, Pro-LL, Pro-HL}; v2.2 mapped Smallgrow → Pro-HL specifically. The "right" Pro-HL-only value awaits Darwin 3 `data.traits` namelist confirmation.
+1. **POSi (biogenic silica) loss + box-model state extension** — diatom-specific tracer (~1280 finite GEOTRACES bSi values) that directly constrains `diatomgraz` (the actual baseline binding param) without competing with the iron-pair budget. ~1-2 hr code lift; extends 15→16 tracer state.
+2. **3rd AOI: Southern Ocean Pacific sector** — adds high-particle-flux + carbonate-rich regime; per-AOI DINN tool from PR #58 makes 3-AOI nearly free.
+3. **Reduce parameter count** — given the ~5-effective-constraint finding, fixing some Carroll-6 entries at published values and learning only the unconstrained subset is a structural alternative.
+4. **Cluster cross-basin** — canonical fallback for scav_rat. Gated on ORCD reply (no response by 2026-05-18).
 
-**Path to 6/6:** real observations to break the identifiability. See [`data/README.md`](data/README.md) for the planned-integrations table.
-
-1. **PR #38 — GEOTRACES IDP2025 loader** (next) — adds real-iron absolute-units depth-resolved observations. Breaks alpfe ↔ scav_rat degeneracy because real iron sets the scale that z-scored loss normalizes away.
-2. **Ocean color loader** — resolves Smallgrow target via PFT-specific Chl.
-3. Cluster work (B200 burn-in pitch sent to MIT ORCD 2026-05-10) for Track 2 emulator + forward Darwin validation.
-
-**Project arc to here:**
+**Project arc summary:**
 
 - v2.0 (carbonate cycle, nb20-21): iron pair to 1.1% / 40% off Carroll in the 2-PFT proxy.
-- v2.1 (GLODAP real-obs hybrid, nb22, PR #36): `R_PICPOC` 360% → 74% off — validates real-obs hybrid approach.
-- v2.2 (5-PFT box matching Darwin v05, nb23-29, PR #37, merged): 22 experiments → 4/6 winner; alpfe + Smallgrow stuck.
-- Wave 3 (2026-05-12): 3 alpfe-push experiments confirm structural degeneracy. GEOTRACES is the unblock.
+- v2.1 (GLODAP real-obs hybrid, nb22, PR #41): `R_PICPOC` 360% → 74% off.
+- v2.2 (5-PFT box matching Darwin v05, nb23-29, PR #37): 22 experiments → 4/6 winner; alpfe + Smallgrow appeared stuck (later falsified by v2.6).
+- v2.6 (GEOTRACES IDP2025 absolute-units iron loss, PR #40): 4/6 reproducibly across n=10; Smallgrow at 9/10 Cal-grade.
+- v2.7 (2-layer box, PR #42): vetted 2-layer integrator; subsurface DFe alone doesn't unblock scav_rat.
+- v2.8 (Darwin v5 ICs + L2 POC obs, PR #45): project-first reproducible scav_rat recovery (7/10 Cal-grade, 4/10 Excellent).
+- v3.0 (multi-AOI joint training, PRs #46-#59): 5/6 plateau established across 50+ seeds; architectural and observational-anchor break attempts all empirically falsified; the structural ceiling is parameter conservation. The deliverable is the arc analysis notebook nb32.
 
-See [STATUS.md](STATUS.md) for live state and [`docs/findings/v2.2_phase2.md`](docs/findings/v2.2_phase2.md) for the v2.2 narrative.
+See [STATUS.md](STATUS.md) for full live state and [`notebooks/32_v3_0_param_learner_ceiling.ipynb`](notebooks/32_v3_0_param_learner_ceiling.ipynb) for the v3.0 close-out analysis.
 
 ## Why this exists
 
