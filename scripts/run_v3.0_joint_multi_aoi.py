@@ -29,13 +29,16 @@ Env vars (same defaults as the v2.7 batched runner unless noted):
     AOI_W_<KEY>           per-AOI loss weight override (default 1.0 each;
                           e.g. AOI_W_NATLSUBPOLAR=2.0 to upweight N Atl)
     PIC_ABS_W             absolute-units MSE loss weight on surface PIC vs the
-                          Darwin pic_binned target (default 0 = off). The
-                          existing pic_z term constrains spatial PATTERN only;
-                          the absolute term anchors MAGNITUDE so R_PICPOC can
-                          be pinned. Targets the 5/6 ceiling diagnosed in
-                          PR #58 where R_PICPOC stays ~3x below Carroll
-                          because both regimes converge on the same
-                          biomass-degenerate value.
+                          Darwin pic_binned target (default 0 = off).
+    POC_ABS_W             absolute-units MSE loss weight on surface POC vs the
+                          Darwin poc_binned target (default 0 = off). PAIRED
+                          with PIC_ABS_W: anchoring POC_1 absolute pins
+                          mort_total (since POC_1 ~ mort_total / W_SINK at
+                          steady state); paired anchoring then forces
+                          R_PICPOC ~ obs(PIC) / obs(POC) per cell, breaking
+                          the R_PICPOC * mort_total scale degeneracy that
+                          PR #59's PIC_ABS_W-alone sweep showed PIC alone
+                          can't fix.
     DARWIN_DATA_ROOT      Darwin v05 data root (default D:\\ecco_darwin_v5)
     GEOTRACES_DATA_ROOT   IDP2025 NetCDF root (default D:\\geotraces)
 
@@ -189,6 +192,12 @@ CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
 # absolute term anchors per-cell PIC magnitude, pinning R_PICPOC * mort_total.
 # Default 0 = off (legacy behaviour reproduces).
 PIC_ABS_W = float(os.environ.get("PIC_ABS_W", "0.0"))
+# POC_ABS_W: PAIRED anchor on surface POC absolute magnitude. Without this,
+# PIC_ABS_W alone only constrains the product R_PICPOC * mort_total (PR #59's
+# negative result). POC anchors mort_total independently (steady-state
+# POC_1 ~ mort_total / W_SINK), so the pair forces R_PICPOC ~ obs(PIC)/obs(POC)
+# per cell. Default 0 = off.
+POC_ABS_W = float(os.environ.get("POC_ABS_W", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -345,6 +354,22 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                   f"mean={float(pic_abs_target_t[pic_abs_mask_t].mean()):.4f} mmol C/m^3")
         else:
             print(f"  [warn] PIC_ABS_W={PIC_ABS_W} but no finite-positive PIC cells in AOI; loss term will be skipped")
+
+    # Absolute-units surface POC target (POC_ABS_W). Paired with pic_abs to
+    # anchor R_PICPOC; same prep pattern as PIC.
+    poc_abs_mask_np = ocean_mask & np.isfinite(poc_binned) & (poc_binned > 0)
+    poc_abs_target_np = np.where(poc_abs_mask_np, poc_binned, 0.0).astype(np.float32)
+    poc_abs_target_t = torch.tensor(poc_abs_target_np).to(device)
+    poc_abs_mask_t = torch.tensor(poc_abs_mask_np, dtype=torch.bool).to(device)
+    poc_abs_mask_f = poc_abs_mask_t.to(torch.float32)
+    n_poc_abs = int(poc_abs_mask_np.sum())
+    n_poc_abs_f = poc_abs_mask_f.sum().clamp(min=1.0)
+    if POC_ABS_W > 0:
+        if n_poc_abs > 0:
+            print(f"  POC absolute target: {n_poc_abs} cells, "
+                  f"mean={float(poc_abs_target_t[poc_abs_mask_t].mean()):.4f} mmol C/m^3")
+        else:
+            print(f"  [warn] POC_ABS_W={POC_ABS_W} but no finite-positive POC cells in AOI; loss term will be skipped")
 
     # GEOTRACES per-AOI (surface + subsurface).
     print(f"  loading GEOTRACES IDP2025 (Eq Pac stations slice)...")
@@ -541,6 +566,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "pic_abs_target_t": pic_abs_target_t, "pic_abs_mask_t": pic_abs_mask_t,
         "pic_abs_mask_f": pic_abs_mask_f, "n_pic_abs_f": n_pic_abs_f,
         "n_pic_abs": n_pic_abs,
+        "poc_abs_target_t": poc_abs_target_t, "poc_abs_mask_t": poc_abs_mask_t,
+        "poc_abs_mask_f": poc_abs_mask_f, "n_poc_abs_f": n_poc_abs_f,
+        "n_poc_abs": n_poc_abs,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -757,6 +785,15 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_pic_abs_f"] / scale
         z = z + PIC_ABS_W * l
 
+    # POC absolute-units MSE on surface POC -- paired anchor for PIC_ABS_W.
+    # Anchors mort_total via POC_1 ~ mort_total / W_SINK; together with PIC
+    # absolute, R_PICPOC ~ obs(PIC) / obs(POC) per cell.
+    if POC_ABS_W > 0 and bundle["n_poc_abs"] > 0:
+        residual = (poc - bundle["poc_abs_target_t"][None]) * bundle["poc_abs_mask_f"][None]
+        scale = (bundle["poc_abs_target_t"][bundle["poc_abs_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_poc_abs_f"] / scale
+        z = z + POC_ABS_W * l
+
     return z, state
 
 
@@ -907,6 +944,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "chl1_w_extra": CHL1_W_EXTRA,
         "pic_abs_w": PIC_ABS_W,
         "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
+        "poc_abs_w": POC_ABS_W,
+        "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -941,6 +980,7 @@ else:
     jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
     chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
     pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
+    poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -955,7 +995,8 @@ else:
             f"{aoi_w_tag}"
             f"{jrm_tag}"
             f"{chl1_extra_tag}"
-            f"{pic_abs_tag}.json"
+            f"{pic_abs_tag}"
+            f"{poc_abs_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
