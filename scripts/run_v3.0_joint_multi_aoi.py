@@ -167,6 +167,14 @@ GEOTRACES_POC_SUB_W = float(os.environ.get("GEOTRACES_POC_SUB_W", "0.0"))
 # settles into a compromise that can't separate alpfe from R_PICPOC across
 # regimes. Defaults off (1-channel SST-only) so PR #48 behavior is unchanged.
 USE_AOI_ID_CHANNEL = os.environ.get("AOI_ID_CHANNEL", "0") == "1"
+# v3.0+: DINN hidden_dim override. Default 16 (matches v2.7/v2.8). Increase
+# to 32/64 to test whether the shared-MLP capacity is the binding constraint
+# on the regime-specific parameter mappings (diatomgraz especially).
+DINN_HIDDEN_DIM = int(os.environ.get("DINN_HIDDEN_DIM", "16"))
+# v3.0+: add MLD as a 3rd env channel (after SST + AOI ID) when set. MLD is
+# regime-distinctive (winter convection in N Atl vs perennial-thermocline
+# in Eq Pac) and biology-relevant.
+USE_MLD_CHANNEL = os.environ.get("MLD_CHANNEL", "0") == "1"
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -250,6 +258,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     targets = _load_or_build_target_cache(aoi)
 
     sst = targets["sst"]; sss = targets["sss"]; wind = targets["wind"]
+    mld = targets["mld"]
     pco2_atm_field = targets["pco2_atm_field"]
     chl_per_pft = targets["chl_per_pft"]
     fet_binned = targets["fet_binned"]
@@ -276,6 +285,8 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     # the very signal multi-AOI training is supposed to use.
     sst_raw_for_env = np.where(ocean_mask, sst, 15.0).astype(np.float32)
     env_1ch = sst_raw_for_env[None]  # [1, H, W] (will be z-scored shared after bundle load)
+    # Stash MLD raw for the optional 3rd channel (shared-scaled after bundle load).
+    mld_raw_for_env = np.where(ocean_mask & np.isfinite(mld), mld, 30.0).astype(np.float32)
 
     # Move everything to device.
     mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
@@ -473,6 +484,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "ocean_mask": ocean_mask, "n_ocean": n_ocean,
         "mask_dev": mask_dev, "mask_f": mask_f, "n_ocean_f": n_ocean_f,
         "env_1ch_dev": env_1ch_dev,
+        "mld_raw_for_env": mld_raw_for_env,
         "T_dev": T_dev, "S_dev": S_dev, "wind_dev": wind_dev, "pco2_atm_dev": pco2_atm_dev,
         "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z,
         "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
@@ -515,37 +527,53 @@ if USE_AOI_ID_CHANNEL:
     else:
         aoi_id_scalars = [-1.0 + 2.0 * i / (N_AOIS - 1) for i in range(N_AOIS)]
     print(f"AOI ID channel ENABLED: per-AOI scalars = {dict(zip(AOIS_KEYS, aoi_id_scalars))}")
-    n_input_channels = 2
 else:
     aoi_id_scalars = [0.0] * N_AOIS
-    n_input_channels = 1
+
+# Shared-scale MLD z-score (if MLD channel is enabled).
+if USE_MLD_CHANNEL:
+    _all_mld = []
+    for b in bundles:
+        _all_mld.append(b["mld_raw_for_env"][b["ocean_mask"]])
+    _all_mld_flat = np.concatenate(_all_mld)
+    _shared_mld_mean = float(_all_mld_flat.mean())
+    _shared_mld_std = float(_all_mld_flat.std()) or 1.0
+    print(f"Shared-scale MLD z-score: mean={_shared_mld_mean:.2f} m, std={_shared_mld_std:.2f} m")
+
+n_input_channels = 1 + (1 if USE_AOI_ID_CHANNEL else 0) + (1 if USE_MLD_CHANNEL else 0)
 
 for i, b in enumerate(bundles):
     sst_np = b["env_1ch_dev"].cpu().numpy()[0]
     sst_z = (sst_np - _shared_sst_mean) / _shared_sst_std
     sst_z = np.where(b["ocean_mask"], sst_z, 0.0).astype(np.float32)
+    channels = [sst_z]
+    extra_info = []
     if USE_AOI_ID_CHANNEL:
         aoi_id_field = np.full_like(sst_z, aoi_id_scalars[i], dtype=np.float32)
-        # zero out at land cells (consistent with sst_z) so the DINN can't
-        # leak AOI info through padded land regions
         aoi_id_field = np.where(b["ocean_mask"], aoi_id_field, 0.0).astype(np.float32)
-        env_arr = np.stack([sst_z, aoi_id_field], axis=0)  # [2, H, W]
-    else:
-        env_arr = sst_z[None]   # [1, H, W]
+        channels.append(aoi_id_field)
+        extra_info.append(f"AOI_id={aoi_id_scalars[i]:+.1f}")
+    if USE_MLD_CHANNEL:
+        mld_z = (b["mld_raw_for_env"] - _shared_mld_mean) / _shared_mld_std
+        mld_z = np.where(b["ocean_mask"], mld_z, 0.0).astype(np.float32)
+        channels.append(mld_z)
+        extra_info.append(f"MLD z-range [{mld_z[b['ocean_mask']].min():.2f}, "
+                          f"{mld_z[b['ocean_mask']].max():.2f}]")
+    env_arr = np.stack(channels, axis=0)
     b["env_1ch_dev"] = torch.tensor(env_arr, dtype=torch.float32).to(device)
-    print(f"  {b['key']}: SST z-range [{sst_z[b['ocean_mask']].min():.2f}, "
-          f"{sst_z[b['ocean_mask']].max():.2f}]"
-          + (f"  AOI_id={aoi_id_scalars[i]:+.1f}" if USE_AOI_ID_CHANNEL else ""))
+    base = f"  {b['key']}: SST z-range [{sst_z[b['ocean_mask']].min():.2f}, {sst_z[b['ocean_mask']].max():.2f}]"
+    print(base + ("  " + "  ".join(extra_info) if extra_info else ""))
 
 
 # ============================== Networks (shared per seed) ===================
 
 print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
-print(f"  DINN input channels: {n_input_channels} (USE_AOI_ID_CHANNEL={USE_AOI_ID_CHANNEL})")
+print(f"  DINN: n_input_channels={n_input_channels}  hidden_dim={DINN_HIDDEN_DIM}  "
+      f"(AOI_ID={USE_AOI_ID_CHANNEL}, MLD={USE_MLD_CHANNEL})")
 nets: list[DINN] = []
 for s in SEEDS:
     torch.manual_seed(s)
-    n = DINN(n_input_channels=n_input_channels, hidden_dim=16, n_outputs=6).to(device)
+    n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
     nets.append(n)
 all_params = []
 for n in nets:
@@ -779,6 +807,9 @@ for seed_idx, seed in enumerate(SEEDS):
         "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,
         "n_geo_poc_subsurface_cells_per_aoi": {b["key"]: b["n_geo_poc"] for b in bundles},
         "use_aoi_id_channel": USE_AOI_ID_CHANNEL,
+        "use_mld_channel": USE_MLD_CHANNEL,
+        "dinn_hidden_dim": DINN_HIDDEN_DIM,
+        "dinn_n_input_channels": n_input_channels,
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -803,6 +834,11 @@ else:
     poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
     geo_poc_tag = f"_geopocW{GEOTRACES_POC_SUB_W}" if GEOTRACES_POC_SUB_W > 0 else ""
     aoi_id_tag = "_aoiid" if USE_AOI_ID_CHANNEL else ""
+    mld_tag = "_mld" if USE_MLD_CHANNEL else ""
+    hd_tag = f"_hd{DINN_HIDDEN_DIM}" if DINN_HIDDEN_DIM != 16 else ""
+    # Tag any non-default AOI weights so weight sweeps don't overwrite each other.
+    aoi_w_parts = [f"{k}{AOI_W[k]}" for k in AOIS_KEYS if AOI_W[k] != 1.0]
+    aoi_w_tag = ("_w-" + "-".join(aoi_w_parts)) if aoi_w_parts else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -811,7 +847,10 @@ else:
             f"_pinn{PINN_W}"
             f"{poc_tag}"
             f"{geo_poc_tag}"
-            f"{aoi_id_tag}.json"
+            f"{aoi_id_tag}"
+            f"{mld_tag}"
+            f"{hd_tag}"
+            f"{aoi_w_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
