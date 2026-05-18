@@ -764,7 +764,30 @@ for seed_idx, seed in enumerate(SEEDS):
         per_aoi_means[bundle["key"]] = (per_cell_sum / n_ocean_f).cpu().numpy()
         weighted_sum = weighted_sum + per_cell_sum
         weighted_count = weighted_count + mask_f.sum()
-    joint_means = (weighted_sum / weighted_count).cpu().numpy()
+    # Two joint-recovery interpretations:
+    #   cellweighted: cell-weighted mean across all AOIs combined (AOIs with
+    #     more cells dominate; previously the only definition).
+    #   aoiweighted:  equal-weight mean over per-AOI means (each AOI
+    #     contributes the same regardless of cell count). For regime-
+    #     specific parameters this honors N Atl's recovery quality even
+    #     though it has fewer cells than Eq Pac.
+    joint_means_cellweighted = (weighted_sum / weighted_count).cpu().numpy()
+    joint_means_aoiweighted = np.mean(
+        [per_aoi_means[k] for k in AOIS_KEYS], axis=0
+    )
+    # The "primary" joint_means used for n_cal_grade reporting is configurable
+    # via JOINT_RECOVERY_MODE; default "cellweighted" so previously-reported
+    # joint_recovered values reproduce bit-identically. Set to "aoiweighted"
+    # to use the equal-weight-per-AOI mean (better when one AOI has fewer
+    # cells but stronger constraint on a regime-specific parameter).
+    JOINT_RECOVERY_MODE = os.environ.get("JOINT_RECOVERY_MODE", "cellweighted")
+    if JOINT_RECOVERY_MODE == "cellweighted":
+        joint_means = joint_means_cellweighted
+    elif JOINT_RECOVERY_MODE == "aoiweighted":
+        joint_means = joint_means_aoiweighted
+    else:
+        raise ValueError(f"JOINT_RECOVERY_MODE={JOINT_RECOVERY_MODE!r}; "
+                         f"expected 'aoiweighted' or 'cellweighted'")
 
     # Print per-AOI + joint table.
     print(f"{'Param':<12} " + "  ".join(f"{k[:8]:>10s}" for k in AOIS_KEYS) + f"  {'JOINT':>10s}  {'Carroll':>10s}")
@@ -781,11 +804,25 @@ for seed_idx, seed in enumerate(SEEDS):
             f"{per_aoi_means[k][i]:>10.4g}" for k in AOIS_KEYS
         )
         print(f"{name:<12} {per_aoi_str}  {joint_val:>10.4g}  {pub:>10.4g}  joint={joint_band} ({joint_rel:.3f})")
+        # Also store both joint interpretations so analysis is not locked
+        # into the choice of JOINT_RECOVERY_MODE made at training time.
+        cw_val = float(joint_means_cellweighted[i])
+        cw_rel = abs(cw_val - pub) / abs(pub)
+        cw_band = band_of(cw_rel)
+        aw_val = float(joint_means_aoiweighted[i])
+        aw_rel = abs(aw_val - pub) / abs(pub)
+        aw_band = band_of(aw_rel)
         result_params[name] = {
             "joint_recovered": joint_val,
             "joint_carroll_published": pub,
             "joint_abs_rel_offset": joint_rel,
             "joint_band": joint_band,
+            "joint_cellweighted_recovered": cw_val,
+            "joint_cellweighted_abs_rel_offset": cw_rel,
+            "joint_cellweighted_band": cw_band,
+            "joint_aoiweighted_recovered": aw_val,
+            "joint_aoiweighted_abs_rel_offset": aw_rel,
+            "joint_aoiweighted_band": aw_band,
             "per_aoi_recovered": {k: float(per_aoi_means[k][i]) for k in AOIS_KEYS},
         }
     print(f"       -> joint {n_cal_joint}/6 cal-grade ({n_exc_joint} Excellent)")
@@ -807,6 +844,7 @@ for seed_idx, seed in enumerate(SEEDS):
         "use_mld_channel": USE_MLD_CHANNEL,
         "dinn_hidden_dim": DINN_HIDDEN_DIM,
         "dinn_n_input_channels": n_input_channels,
+        "joint_recovery_mode": JOINT_RECOVERY_MODE,
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -836,6 +874,9 @@ else:
     # Tag any non-default AOI weights so weight sweeps don't overwrite each other.
     aoi_w_parts = [f"{k}{AOI_W[k]}" for k in AOIS_KEYS if AOI_W[k] != 1.0]
     aoi_w_tag = ("_w-" + "-".join(aoi_w_parts)) if aoi_w_parts else ""
+    # JOINT_RECOVERY_MODE is read from each result row (constant across batch).
+    jrm = all_results[0]["joint_recovery_mode"] if all_results else "cellweighted"
+    jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -847,7 +888,8 @@ else:
             f"{aoi_id_tag}"
             f"{mld_tag}"
             f"{hd_tag}"
-            f"{aoi_w_tag}.json"
+            f"{aoi_w_tag}"
+            f"{jrm_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
