@@ -1,0 +1,69 @@
+{
+  "seed": 7,
+  "geotraces_w": 0.3,
+  "geotraces_sub_w": 1.0,
+  "sub_depth_min_m": 50.0,
+  "sub_depth_max_m": 1000.0,
+  "pinn_w": 3.0,
+  "pinn_type": "drift",
+  "use_darwin_ic": true,
+  "poc_sub_w": 3.0,
+  "geotraces_poc_sub_w": 0.5,
+  "n_geo_poc_subsurface_cells": 7,
+  "aoi_key": "eqpac",
+  "aoi_name": "Equatorial Pacific",
+  "fet_w": 1.0,
+  "n_geo_surface_cells": 26,
+  "n_geo_sub_cells": 28,
+  "elapsed_s_total_batch": 112.83316612243652,
+  "n_seeds_in_batch": 10,
+  "loss_initial": 7.2804670333862305,
+  "loss_final": 2.7848920822143555,
+  "geo_surface_loss_initial": 0.7930319905281067,
+  "geo_surface_loss_final": 0.18583804368972778,
+  "geo_sub_loss_initial": 0.4716888964176178,
+  "geo_sub_loss_final": 0.06552638858556747,
+  "dfe1_pred_mean_mmol_m3": 0.00015267835988197476,
+  "dfe2_pred_mean_mmol_m3": 0.000435990106780082,
+  "params": {
+    "alpfe": {
+      "recovered": 0.7612963318824768,
+      "carroll_published": 0.928309977054596,
+      "abs_rel_offset": 0.1799115051009483,
+      "band": "Cal-grade"
+    },
+    "scav_rat": {
+      "recovered": 1.7444135380628722e-07,
+      "carroll_published": 6.025023253641848e-07,
+      "abs_rel_offset": 0.7104718995053745,
+      "band": "Loose"
+    },
+    "Smallgrow": {
+      "recovered": 0.33776360750198364,
+      "carroll_published": 0.6609799861907959,
+      "abs_rel_offset": 0.488995711581975,
+      "band": "Loose"
+    },
+    "Biggrow": {
+      "recovered": 0.2452651858329773,
+      "carroll_published": 0.4314799904823303,
+      "abs_rel_offset": 0.4315722832041241,
+      "band": "Loose"
+    },
+    "diatomgraz": {
+      "recovered": 0.45792195200920105,
+      "carroll_published": 0.8300300240516663,
+      "abs_rel_offset": 0.4483067615145725,
+      "band": "Loose"
+    },
+    "R_PICPOC": {
+      "recovered": 0.013578057289123535,
+      "carroll_published": 0.04244999960064888,
+      "abs_rel_offset": 0.6801399901799767,
+      "band": "Loose"
+    }
+  },
+  "n_cal_grade": 1,
+  "n_excellent": 0,
+  "train_lon_frac": 1.0
+}

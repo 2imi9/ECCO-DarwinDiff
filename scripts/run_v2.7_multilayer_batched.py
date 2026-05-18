@@ -156,6 +156,12 @@ DARWIN_IC_TAG = os.environ.get("DARWIN_IC_TAG", "darwinic")
 # When > 0, the integrator's L2 POC trajectory gets a direct constraint,
 # closing the dynamical degeneracy that scav_rat sits in.
 POC_SUB_W = float(os.environ.get("POC_SUB_W", "0.0"))
+# GEOTRACES_POC_SUB_W: weight on a separate absolute-units MSE loss against
+# REAL GEOTRACES IDP2025 POC observations (POC_LPT_CONC + POC_SPT_CONC at
+# subsurface depths, summed and unit-converted to mmol/m^3). Distinct from
+# POC_SUB_W (which uses Darwin self-target z-score over all AOI cells).
+# The two can coexist. Default 0 = off; existing v2.8 JSONs unchanged.
+GEOTRACES_POC_SUB_W = float(os.environ.get("GEOTRACES_POC_SUB_W", "0.0"))
 # Block cross-validation: if < 1.0, train on the westernmost TRAIN_LON_FRAC of
 # columns and hold out the easternmost (1 - TRAIN_LON_FRAC). After training,
 # the recovery report shows both the train-cell-mean recovery and the
@@ -337,6 +343,59 @@ n_geo_subsurface = int(geotraces_sub_mask_np.sum())
 print(f"  Surface bins: {n_geo_surface};  Subsurface bins: {n_geo_subsurface}")
 
 
+# GEOTRACES POC subsurface target (LPT + SPT) for v2.8's
+# GEOTRACES_POC_SUB_W loss term. Units: POC_*_CONC are umol C/kg;
+# multiply by RHO_SW (1025) and 1e-3 to get mmol C/m^3 (matches the
+# integrator's POC_2 units).
+geotraces_poc_target_np = None
+geotraces_poc_mask_np = None
+n_geo_poc_subsurface = 0
+if GEOTRACES_POC_SUB_W > 0:
+    print(f"  building GEOTRACES POC subsurface target (POC_LPT + POC_SPT)...")
+    poc_lpt = geotraces_sub.POC_LPT_CONC.values
+    poc_spt = geotraces_sub.POC_SPT_CONC.values
+    poc_lpt_qc = geotraces_sub.POC_LPT_CONC_qc.values
+    poc_spt_qc = geotraces_sub.POC_SPT_CONC_qc.values
+    poc_lpt_f = poc_lpt.flatten(); poc_spt_f = poc_spt.flatten()
+    poc_lpt_qc_f = poc_lpt_qc.flatten(); poc_spt_qc_f = poc_spt_qc.flatten()
+    # Either tracer present + good QC + finite + positive (drop negative artifacts).
+    qc_good_arr = np.array(QC_GOOD)
+    lpt_ok = (np.isfinite(poc_lpt_f) & np.isin(poc_lpt_qc_f, qc_good_arr.astype(poc_lpt_qc_f.dtype)) & (poc_lpt_f > 0))
+    spt_ok = (np.isfinite(poc_spt_f) & np.isin(poc_spt_qc_f, qc_good_arr.astype(poc_spt_qc_f.dtype)) & (poc_spt_f > 0))
+    poc_total = np.where(lpt_ok, poc_lpt_f, 0.0) + np.where(spt_ok, poc_spt_f, 0.0)
+    poc_any = lpt_ok | spt_ok
+    # Subsurface depth filter (re-use SUB_DEPTH_MIN/MAX), basic finiteness.
+    poc_keep = (
+        poc_any & np.isfinite(g_lats_all) & np.isfinite(g_lons_all)
+        & np.isfinite(g_depths_all)
+        & (g_depths_all > SUB_DEPTH_MIN) & (g_depths_all <= SUB_DEPTH_MAX)
+    )
+    # Bin to AOI grid with unit conversion umol/kg -> mmol/m^3.
+    def bin_poc_to_grid(keep_mask):
+        lats = g_lats_all[keep_mask]; lons = g_lons_all[keep_mask]
+        poc = poc_total[keep_mask] * 1025.0 * 1.0e-3
+        lat_idx = np.floor((lats - darwin_lat_edge_lo) / darwin_lat_res).astype(np.int64)
+        lon_idx = np.floor((lons - darwin_lon_edge_lo) / darwin_lon_res).astype(np.int64)
+        lat_idx = np.minimum(lat_idx, n_dlat - 1)
+        lon_idx = np.minimum(lon_idx, n_dlon - 1)
+        in_b = (lat_idx >= 0) & (lon_idx >= 0)
+        lat_idx, lon_idx, poc = lat_idx[in_b], lon_idx[in_b], poc[in_b]
+        sum_grid = np.zeros((n_dlat, n_dlon), dtype=np.float64)
+        cnt_grid = np.zeros((n_dlat, n_dlon), dtype=np.int64)
+        np.add.at(sum_grid, (lat_idx, lon_idx), poc)
+        np.add.at(cnt_grid, (lat_idx, lon_idx), 1)
+        target = np.full((n_dlat, n_dlon), np.nan, dtype=np.float32)
+        nz = cnt_grid > 0
+        target[nz] = (sum_grid[nz] / cnt_grid[nz]).astype(np.float32)
+        return target, nz
+
+    geotraces_poc_target_np, geotraces_poc_mask_np = bin_poc_to_grid(poc_keep)
+    n_geo_poc_subsurface = int(geotraces_poc_mask_np.sum())
+    poc_finite_vals = geotraces_poc_target_np[geotraces_poc_mask_np]
+    print(f"  GEOTRACES POC subsurface bins: {n_geo_poc_subsurface} "
+          f"(range [{poc_finite_vals.min():.3g}, {poc_finite_vals.max():.3g}] mmol/m^3)")
+
+
 # ============================== Ocean mask ================================
 
 full_ocean_mask = (
@@ -461,6 +520,23 @@ geotraces_sub_target_t = torch.tensor(
 geotraces_sub_mask_t = torch.tensor(geotraces_sub_loss_mask_np, dtype=torch.bool).to(device)
 geo_sub_mask_f = geotraces_sub_mask_t.to(torch.float32)
 n_geo_sub_f = geo_sub_mask_f.sum().clamp(min=1.0)
+
+# GEOTRACES POC subsurface tensors (v2.8 real-obs swap).
+geotraces_poc_target_t = None
+geotraces_poc_mask_t = None
+geo_poc_mask_f = None
+n_geo_poc_f = None
+n_geo_poc_in_ocean = 0
+if GEOTRACES_POC_SUB_W > 0 and geotraces_poc_target_np is not None:
+    geotraces_poc_loss_mask_np = geotraces_poc_mask_np & ocean_mask
+    n_geo_poc_in_ocean = int(geotraces_poc_loss_mask_np.sum())
+    print(f"GEOTRACES POC in-ocean subsurface bins: {n_geo_poc_in_ocean}")
+    geotraces_poc_target_t = torch.tensor(
+        np.where(geotraces_poc_loss_mask_np, geotraces_poc_target_np, 0.0).astype(np.float32)
+    ).to(device)
+    geotraces_poc_mask_t = torch.tensor(geotraces_poc_loss_mask_np, dtype=torch.bool).to(device)
+    geo_poc_mask_f = geotraces_poc_mask_t.to(torch.float32)
+    n_geo_poc_f = geo_poc_mask_f.sum().clamp(min=1.0)
 
 
 def to_z_target(np_field):
@@ -696,6 +772,16 @@ for epoch in range(N_EPOCHS):
         l_poc_sub = term_batched(state[I_POC_2], poc_l2_z)
         z_term = z_term + POC_SUB_W * l_poc_sub
 
+    # v2.8 + GEOTRACES POC swap: absolute-units MSE on real POC obs at
+    # the populated subsurface bins. Analogous to the iron GEOTRACES_SUB
+    # loss above; uses POC_LPT + POC_SPT (sum), unit-converted to mmol/m^3.
+    l_geo_poc = None
+    if GEOTRACES_POC_SUB_W > 0 and n_geo_poc_in_ocean > 0:
+        residual = (state[I_POC_2] - geotraces_poc_target_t[None]) * geo_poc_mask_f[None]
+        poc_scale = (geotraces_poc_target_t[geotraces_poc_mask_t] ** 2).mean().clamp(min=1e-30)
+        l_geo_poc = (residual ** 2).flatten(1).sum(dim=1) / n_geo_poc_f / poc_scale
+        z_term = z_term + GEOTRACES_POC_SUB_W * l_geo_poc
+
     # Sum across seeds so each seed's gradient routes to its own net's params.
     total_loss = z_term.sum()
     total_loss.backward()
@@ -778,6 +864,8 @@ with torch.no_grad():
             "pinn_type": PINN_TYPE,
             "use_darwin_ic": USE_DARWIN_IC,
             "poc_sub_w": POC_SUB_W,
+            "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,
+            "n_geo_poc_subsurface_cells": n_geo_poc_in_ocean,
             "aoi_key": AOI_KEY,
             "aoi_name": AOI.name,
             "fet_w": FET_W,
@@ -847,6 +935,7 @@ else:
     poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
     aoi_tag = f"_{AOI_KEY}" if AOI_KEY != "eqpac" else ""
     cv_tag = f"_blockcvW{TRAIN_LON_FRAC}" if TRAIN_LON_FRAC < 1.0 else ""
+    geo_poc_tag = f"_geopocW{GEOTRACES_POC_SUB_W}" if GEOTRACES_POC_SUB_W > 0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v2.7_multilayer_result_seed{r['seed']}"
@@ -856,7 +945,8 @@ else:
             f"{ic_tag}"
             f"{poc_tag}"
             f"{aoi_tag}"
-            f"{cv_tag}.json"
+            f"{cv_tag}"
+            f"{geo_poc_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
