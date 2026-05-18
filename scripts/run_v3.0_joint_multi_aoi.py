@@ -28,6 +28,31 @@ Env vars (same defaults as the v2.7 batched runner unless noted):
                           v2.8 finding established them as essential)
     AOI_W_<KEY>           per-AOI loss weight override (default 1.0 each;
                           e.g. AOI_W_NATLSUBPOLAR=2.0 to upweight N Atl)
+    PER_AOI_DINN          1 to build one independent DINN per (seed, AOI)
+                          instead of a single shared DINN per seed across
+                          AOIs (default 0 = legacy shared-DINN). The 5/6
+                          ceiling diagnosed in PR #57 is hypothesized to be
+                          the shared-MLP-per-cell constraint; per-AOI DINNs
+                          break that by letting each regime fit independently.
+    CONSISTENCY_LAMBDA    coefficient on the cross-AOI parameter-mean
+                          consistency penalty (default 0.0; only active when
+                          PER_AOI_DINN=1). Adds
+                              lam * sum_p sum_aoi ((p_aoi - p_avg)/p_avg)^2
+                          per seed to the total loss, where p_aoi is the
+                          AOI-mean of parameter p and p_avg is the AOIs-mean
+                          of those AOI-means. lam -> inf collapses to
+                          shared-DINN behaviour; lam = 0 is fully decoupled.
+    PIC_ABS_W             absolute-units MSE loss weight on surface PIC vs the
+                          Darwin pic_binned target (default 0 = off).
+    POC_ABS_W             absolute-units MSE loss weight on surface POC vs the
+                          Darwin poc_binned target (default 0 = off). PAIRED
+                          with PIC_ABS_W: anchoring POC_1 absolute pins
+                          mort_total (since POC_1 ~ mort_total / W_SINK at
+                          steady state); paired anchoring then forces
+                          R_PICPOC ~ obs(PIC) / obs(POC) per cell, breaking
+                          the R_PICPOC * mort_total scale degeneracy that
+                          PR #59's PIC_ABS_W-alone sweep showed PIC alone
+                          can't fix.
     DARWIN_DATA_ROOT      Darwin v05 data root (default D:\\ecco_darwin_v5)
     GEOTRACES_DATA_ROOT   IDP2025 NetCDF root (default D:\\geotraces)
 
@@ -173,6 +198,33 @@ USE_MLD_CHANNEL = os.environ.get("MLD_CHANNEL", "0") == "1"
 # the existing 1/11-weighted Chl1 loss apparently isn't pulling hard
 # enough. Default 0 = no extra term; existing v3.0 JSONs reproduce.
 CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
+# v3.0+: per-AOI DINNs with cross-AOI consistency penalty. PER_AOI_DINN=1
+# builds N_AOIS * N_SEEDS independent DINNs (each (seed, AOI) pair gets its
+# own net) instead of N_SEEDS shared DINNs applied across AOIs. The
+# CONSISTENCY_LAMBDA penalty (only meaningful when PER_AOI_DINN=1) is
+# computed as the squared relative deviation of each AOI's parameter mean
+# from the AOIs-averaged mean, summed across parameters and AOIs. Larger
+# lambda pulls per-AOI parameter means toward agreement (-> shared DINN in
+# the limit); zero leaves them fully decoupled. Hypothesis: small positive
+# lambda lets each regime fit its preferred parameters while staying in the
+# same neighborhood, breaking the 5/6 shared-MLP architectural ceiling.
+USE_PER_AOI_DINN = os.environ.get("PER_AOI_DINN", "0") == "1"
+CONSISTENCY_LAMBDA = float(os.environ.get("CONSISTENCY_LAMBDA", "0.0"))
+# PIC_ABS_W: absolute-units MSE loss weight on surface PIC against the Darwin
+# pic_binned target. The existing pic_z term (line ~660) constrains spatial
+# pattern only; with z-score normalisation the per-cell R_PICPOC and biomass
+# scale are jointly free (any uniform scaling cancels). PR #58 diagnosed this
+# as the cause of R_PICPOC staying ~3x below Carroll across both regimes:
+# both AOIs collapse to the same biomass-degenerate value. Adding the
+# absolute term anchors per-cell PIC magnitude, pinning R_PICPOC * mort_total.
+# Default 0 = off (legacy behaviour reproduces).
+PIC_ABS_W = float(os.environ.get("PIC_ABS_W", "0.0"))
+# POC_ABS_W: PAIRED anchor on surface POC absolute magnitude. Without this,
+# PIC_ABS_W alone only constrains the product R_PICPOC * mort_total (PR #59's
+# negative result). POC anchors mort_total independently (steady-state
+# POC_1 ~ mort_total / W_SINK), so the pair forces R_PICPOC ~ obs(PIC)/obs(POC)
+# per cell. Default 0 = off.
+POC_ABS_W = float(os.environ.get("POC_ABS_W", "0.0"))
 # POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
 # diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
 # observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
@@ -321,6 +373,39 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     alk_z = to_z_target(alk_binned)
     co2_flux_z = to_z_target(co2_flux_obs)
     chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
+
+    # Absolute-units surface PIC target (PIC_ABS_W). Masks to ocean cells with
+    # finite, positive PIC. Always prepared (negligible memory) so the loss
+    # path stays uniform; the loss contribution itself is gated on PIC_ABS_W > 0.
+    pic_abs_mask_np = ocean_mask & np.isfinite(pic_binned) & (pic_binned > 0)
+    pic_abs_target_np = np.where(pic_abs_mask_np, pic_binned, 0.0).astype(np.float32)
+    pic_abs_target_t = torch.tensor(pic_abs_target_np).to(device)
+    pic_abs_mask_t = torch.tensor(pic_abs_mask_np, dtype=torch.bool).to(device)
+    pic_abs_mask_f = pic_abs_mask_t.to(torch.float32)
+    n_pic_abs = int(pic_abs_mask_np.sum())
+    n_pic_abs_f = pic_abs_mask_f.sum().clamp(min=1.0)
+    if PIC_ABS_W > 0:
+        if n_pic_abs > 0:
+            print(f"  PIC absolute target: {n_pic_abs} cells, "
+                  f"mean={float(pic_abs_target_t[pic_abs_mask_t].mean()):.4f} mmol C/m^3")
+        else:
+            print(f"  [warn] PIC_ABS_W={PIC_ABS_W} but no finite-positive PIC cells in AOI; loss term will be skipped")
+
+    # Absolute-units surface POC target (POC_ABS_W). Paired with pic_abs to
+    # anchor R_PICPOC; same prep pattern as PIC.
+    poc_abs_mask_np = ocean_mask & np.isfinite(poc_binned) & (poc_binned > 0)
+    poc_abs_target_np = np.where(poc_abs_mask_np, poc_binned, 0.0).astype(np.float32)
+    poc_abs_target_t = torch.tensor(poc_abs_target_np).to(device)
+    poc_abs_mask_t = torch.tensor(poc_abs_mask_np, dtype=torch.bool).to(device)
+    poc_abs_mask_f = poc_abs_mask_t.to(torch.float32)
+    n_poc_abs = int(poc_abs_mask_np.sum())
+    n_poc_abs_f = poc_abs_mask_f.sum().clamp(min=1.0)
+    if POC_ABS_W > 0:
+        if n_poc_abs > 0:
+            print(f"  POC absolute target: {n_poc_abs} cells, "
+                  f"mean={float(poc_abs_target_t[poc_abs_mask_t].mean()):.4f} mmol C/m^3")
+        else:
+            print(f"  [warn] POC_ABS_W={POC_ABS_W} but no finite-positive POC cells in AOI; loss term will be skipped")
 
     # GEOTRACES per-AOI (surface + subsurface).
     print(f"  loading GEOTRACES IDP2025 (Eq Pac stations slice)...")
@@ -578,6 +663,12 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "geo_poc_target_t": geo_poc_target_t, "geo_poc_mask_t": geo_poc_mask_t,
         "geo_poc_mask_f": geo_poc_mask_f, "n_geo_poc_f": n_geo_poc_f,
         "n_geo_poc": n_geo_poc_in_ocean,
+        "pic_abs_target_t": pic_abs_target_t, "pic_abs_mask_t": pic_abs_mask_t,
+        "pic_abs_mask_f": pic_abs_mask_f, "n_pic_abs_f": n_pic_abs_f,
+        "n_pic_abs": n_pic_abs,
+        "poc_abs_target_t": poc_abs_target_t, "poc_abs_mask_t": poc_abs_mask_t,
+        "poc_abs_mask_f": poc_abs_mask_f, "n_poc_abs_f": n_poc_abs_f,
+        "n_poc_abs": n_poc_abs,
         "posi_target_t": posi_target_t, "posi_mask_t": posi_mask_t,
         "posi_mask_f": posi_mask_f, "n_posi_f": n_posi_f,
         "n_posi": n_posi_in_ocean,
@@ -656,17 +747,42 @@ for i, b in enumerate(bundles):
 
 # ============================== Networks (shared per seed) ===================
 
-print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
+# Networks. Unified container nets_per_aoi[key] -> list of N_SEEDS DINNs.
+# In legacy shared mode (PER_AOI_DINN=0), every AOI's entry is the SAME
+# per-seed list (aliasing); the optimizer dedupes parameters by id() so the
+# shared per-seed nets receive a single Adam-tracked parameter group, exactly
+# matching prior behavior. In per-AOI mode each (seed, AOI) gets an
+# independent DINN, seeded as (seed + aoi_idx * 10000) for determinism.
+nets_per_aoi: dict[str, list[DINN]] = {}
+if USE_PER_AOI_DINN:
+    print(f"\nBuilding {N_SEEDS * N_AOIS} per-AOI DINN networks "
+          f"(one per (seed, AOI); lambda_consistency={CONSISTENCY_LAMBDA})...")
+    for aoi_idx, k in enumerate(AOIS_KEYS):
+        nets_per_aoi[k] = []
+        for s in SEEDS:
+            torch.manual_seed(s + aoi_idx * 10000)
+            n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
+            nets_per_aoi[k].append(n)
+else:
+    print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
+    shared_nets: list[DINN] = []
+    for s in SEEDS:
+        torch.manual_seed(s)
+        n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
+        shared_nets.append(n)
+    for k in AOIS_KEYS:
+        nets_per_aoi[k] = shared_nets  # alias: all AOIs reference the same per-seed nets
 print(f"  DINN: n_input_channels={n_input_channels}  hidden_dim={DINN_HIDDEN_DIM}  "
       f"(AOI_ID={USE_AOI_ID_CHANNEL}, MLD={USE_MLD_CHANNEL})")
-nets: list[DINN] = []
-for s in SEEDS:
-    torch.manual_seed(s)
-    n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
-    nets.append(n)
+
 all_params = []
-for n in nets:
-    all_params.extend(n.parameters())
+seen_param_ids: set[int] = set()
+for k in AOIS_KEYS:
+    for n in nets_per_aoi[k]:
+        for p in n.parameters():
+            if id(p) not in seen_param_ids:
+                seen_param_ids.add(id(p))
+                all_params.append(p)
 optimizer = torch.optim.Adam(all_params, lr=5e-3)
 
 _COMPILE_STEP = os.environ.get("TORCH_COMPILE_BATCHED", "1") == "1"
@@ -787,6 +903,25 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_geo_poc_f"] / scale
         z = z + GEOTRACES_POC_SUB_W * l
 
+    # PIC absolute-units MSE on surface PIC vs Darwin pic_binned. Z-scored
+    # PIC pattern is already in `z` above (tb(pic, bundle["pic_z"])); this
+    # is the MAGNITUDE constraint that breaks the R_PICPOC x biomass
+    # scale-degeneracy diagnosed in PR #58.
+    if PIC_ABS_W > 0 and bundle["n_pic_abs"] > 0:
+        residual = (pic - bundle["pic_abs_target_t"][None]) * bundle["pic_abs_mask_f"][None]
+        scale = (bundle["pic_abs_target_t"][bundle["pic_abs_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_pic_abs_f"] / scale
+        z = z + PIC_ABS_W * l
+
+    # POC absolute-units MSE on surface POC -- paired anchor for PIC_ABS_W.
+    # Anchors mort_total via POC_1 ~ mort_total / W_SINK; together with PIC
+    # absolute, R_PICPOC ~ obs(PIC) / obs(POC) per cell.
+    if POC_ABS_W > 0 and bundle["n_poc_abs"] > 0:
+        residual = (poc - bundle["poc_abs_target_t"][None]) * bundle["poc_abs_mask_f"][None]
+        scale = (bundle["poc_abs_target_t"][bundle["poc_abs_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_poc_abs_f"] / scale
+        z = z + POC_ABS_W * l
+
     # POSi absolute-units MSE on a steady-state biogenic-silica diagnostic.
     # Compute bsi_1 = R_SI_C * (mort_diatom + graze_diatom) / W_SINK from the
     # integrated state's diatom biomass and the seed's per-cell diatomgraz
@@ -812,23 +947,46 @@ loss_history = torch.full((N_EPOCHS, N_SEEDS), float("nan"), dtype=torch.float32
 per_aoi_history = {k: torch.full((N_EPOCHS, N_SEEDS), float("nan"),
                                   dtype=torch.float32, device=device) for k in AOIS_KEYS}
 
+_apply_consistency_penalty = USE_PER_AOI_DINN and CONSISTENCY_LAMBDA > 0
 for epoch in range(N_EPOCHS):
     optimizer.zero_grad()
     total_loss_per_seed = torch.zeros(N_SEEDS, device=device)
 
-    # For each AOI, forward the SHARED nets (per seed) on that AOI's env,
-    # integrate, compute loss, accumulate weighted.
+    # For each AOI, forward that AOI's nets (per seed) on its env input,
+    # integrate, compute loss, accumulate weighted. In shared mode the
+    # per-AOI lists alias the same set of per-seed nets (same parameters
+    # touched across AOIs), reproducing prior behavior bit-identically.
     last_states_per_aoi = {}
     last_params_per_aoi = {}
+    per_aoi_param_means = {} if _apply_consistency_penalty else None
     for bundle in bundles:
         env = bundle["env_1ch_dev"]
-        per_seed_params = [bounded_params(net(env), bounds_dev) for net in nets]
+        aoi_nets = nets_per_aoi[bundle["key"]]
+        per_seed_params = [bounded_params(net(env), bounds_dev) for net in aoi_nets]
         params_b = torch.stack(per_seed_params, dim=1)  # [6, N_seeds, H, W]
         aoi_l, state_final = aoi_loss(bundle, params_b)
         total_loss_per_seed = total_loss_per_seed + bundle["weight"] * aoi_l
         per_aoi_history[bundle["key"]][epoch] = aoi_l.detach()
         last_states_per_aoi[bundle["key"]] = state_final.detach()
         last_params_per_aoi[bundle["key"]] = params_b.detach()
+        if per_aoi_param_means is not None:
+            mask_f = bundle["mask_f"]; n_ocean_f = bundle["n_ocean_f"]
+            sums = (params_b * mask_f[None, None]).flatten(2).sum(dim=2)  # [6, N_seeds]
+            per_aoi_param_means[bundle["key"]] = sums / n_ocean_f
+
+    # Consistency penalty: sum_aoi sum_p ((mean_aoi_p - mean_avg_p) / mean_avg_p)^2
+    # per seed, then scaled by CONSISTENCY_LAMBDA. For 2 AOIs this differs
+    # from the literal (mean_A - mean_B)^2 / mean_avg^2 form by a factor of
+    # 1/2 -- absorbed into the lambda scale chosen at sweep time. Generalizes
+    # naturally to >2 AOIs once a 3rd AOI (e.g., SO Pacific) is added.
+    if per_aoi_param_means is not None:
+        stacked = torch.stack([per_aoi_param_means[k] for k in AOIS_KEYS], dim=0)
+        # [N_AOIS, 6, N_seeds]
+        mean_over_aois = stacked.mean(dim=0)  # [6, N_seeds]
+        denom = mean_over_aois.abs().clamp(min=1e-30)
+        rel_dev_sq = ((stacked - mean_over_aois[None]) / denom[None]) ** 2
+        penalty_per_seed = rel_dev_sq.sum(dim=(0, 1))  # [N_seeds]
+        total_loss_per_seed = total_loss_per_seed + CONSISTENCY_LAMBDA * penalty_per_seed
 
     total_loss = total_loss_per_seed.sum()
     total_loss.backward()
@@ -860,7 +1018,8 @@ for seed_idx, seed in enumerate(SEEDS):
     weighted_count = torch.zeros((), device=device)
     for bundle in bundles:
         with torch.no_grad():
-            params_b = bounded_params(nets[seed_idx](bundle["env_1ch_dev"]), bounds_dev)
+            net = nets_per_aoi[bundle["key"]][seed_idx]
+            params_b = bounded_params(net(bundle["env_1ch_dev"]), bounds_dev)
         mask_f = bundle["mask_f"]
         n_ocean_f = bundle["n_ocean_f"]
         per_cell_sum = (params_b * mask_f[None]).flatten(1).sum(dim=1)  # [6]
@@ -949,6 +1108,12 @@ for seed_idx, seed in enumerate(SEEDS):
         "dinn_n_input_channels": n_input_channels,
         "joint_recovery_mode": JOINT_RECOVERY_MODE,
         "chl1_w_extra": CHL1_W_EXTRA,
+        "per_aoi_dinn": USE_PER_AOI_DINN,
+        "consistency_lambda": CONSISTENCY_LAMBDA,
+        "pic_abs_w": PIC_ABS_W,
+        "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
+        "poc_abs_w": POC_ABS_W,
+        "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
         "posi_w": POSI_W,
         "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
         "fet_w": FET_W,
@@ -984,6 +1149,9 @@ else:
     jrm = all_results[0]["joint_recovery_mode"] if all_results else "cellweighted"
     jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
     chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
+    peraoi_tag = f"_peraoi_lam{CONSISTENCY_LAMBDA}" if USE_PER_AOI_DINN else ""
+    pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
+    poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
     for r in all_results:
         out = out_dir / (
@@ -999,6 +1167,9 @@ else:
             f"{aoi_w_tag}"
             f"{jrm_tag}"
             f"{chl1_extra_tag}"
+            f"{peraoi_tag}"
+            f"{pic_abs_tag}"
+            f"{poc_abs_tag}"
             f"{posi_tag}.json"
         )
         existed = out.is_file()
