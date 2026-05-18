@@ -161,6 +161,12 @@ POC_SUB_W = float(os.environ.get("POC_SUB_W", "3.0"))      # default v2.8 anchor
 # to test whether real POC obs + cross-regime constraint together unblock
 # both alpfe AND R_PICPOC.
 GEOTRACES_POC_SUB_W = float(os.environ.get("GEOTRACES_POC_SUB_W", "0.0"))
+# v3.0+: when set, append a per-AOI identity channel to the DINN env input
+# so the shared MLP can produce regime-specific parameter mappings. Without
+# this, the network has only SST to distinguish AOIs, and the joint loss
+# settles into a compromise that can't separate alpfe from R_PICPOC across
+# regimes. Defaults off (1-channel SST-only) so PR #48 behavior is unchanged.
+USE_AOI_ID_CHANNEL = os.environ.get("AOI_ID_CHANNEL", "0") == "1"
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -501,22 +507,45 @@ _all_sst_flat = np.concatenate(_all_sst)
 _shared_sst_mean = float(_all_sst_flat.mean())
 _shared_sst_std = float(_all_sst_flat.std()) or 1.0
 print(f"\nShared-scale SST z-score: mean={_shared_sst_mean:.2f}, std={_shared_sst_std:.2f}")
-for b in bundles:
+# AOI identity scalars (centered around zero, evenly spaced):
+# [-1, +1] for 2 AOIs; [-1, 0, +1] for 3; etc.
+if USE_AOI_ID_CHANNEL:
+    if N_AOIS == 1:
+        aoi_id_scalars = [0.0]
+    else:
+        aoi_id_scalars = [-1.0 + 2.0 * i / (N_AOIS - 1) for i in range(N_AOIS)]
+    print(f"AOI ID channel ENABLED: per-AOI scalars = {dict(zip(AOIS_KEYS, aoi_id_scalars))}")
+    n_input_channels = 2
+else:
+    aoi_id_scalars = [0.0] * N_AOIS
+    n_input_channels = 1
+
+for i, b in enumerate(bundles):
     sst_np = b["env_1ch_dev"].cpu().numpy()[0]
     sst_z = (sst_np - _shared_sst_mean) / _shared_sst_std
     sst_z = np.where(b["ocean_mask"], sst_z, 0.0).astype(np.float32)
-    b["env_1ch_dev"] = torch.tensor(sst_z[None], dtype=torch.float32).to(device)
-    print(f"  {b['key']}: SST z-score range [{sst_z[b['ocean_mask']].min():.2f}, "
-          f"{sst_z[b['ocean_mask']].max():.2f}]")
+    if USE_AOI_ID_CHANNEL:
+        aoi_id_field = np.full_like(sst_z, aoi_id_scalars[i], dtype=np.float32)
+        # zero out at land cells (consistent with sst_z) so the DINN can't
+        # leak AOI info through padded land regions
+        aoi_id_field = np.where(b["ocean_mask"], aoi_id_field, 0.0).astype(np.float32)
+        env_arr = np.stack([sst_z, aoi_id_field], axis=0)  # [2, H, W]
+    else:
+        env_arr = sst_z[None]   # [1, H, W]
+    b["env_1ch_dev"] = torch.tensor(env_arr, dtype=torch.float32).to(device)
+    print(f"  {b['key']}: SST z-range [{sst_z[b['ocean_mask']].min():.2f}, "
+          f"{sst_z[b['ocean_mask']].max():.2f}]"
+          + (f"  AOI_id={aoi_id_scalars[i]:+.1f}" if USE_AOI_ID_CHANNEL else ""))
 
 
 # ============================== Networks (shared per seed) ===================
 
 print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
+print(f"  DINN input channels: {n_input_channels} (USE_AOI_ID_CHANNEL={USE_AOI_ID_CHANNEL})")
 nets: list[DINN] = []
 for s in SEEDS:
     torch.manual_seed(s)
-    n = DINN(n_input_channels=1, hidden_dim=16, n_outputs=6).to(device)
+    n = DINN(n_input_channels=n_input_channels, hidden_dim=16, n_outputs=6).to(device)
     nets.append(n)
 all_params = []
 for n in nets:
@@ -749,6 +778,7 @@ for seed_idx, seed in enumerate(SEEDS):
         "poc_sub_w": POC_SUB_W,
         "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,
         "n_geo_poc_subsurface_cells_per_aoi": {b["key"]: b["n_geo_poc"] for b in bundles},
+        "use_aoi_id_channel": USE_AOI_ID_CHANNEL,
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -772,6 +802,7 @@ else:
     aoi_tag = "-".join(AOIS_KEYS)
     poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
     geo_poc_tag = f"_geopocW{GEOTRACES_POC_SUB_W}" if GEOTRACES_POC_SUB_W > 0 else ""
+    aoi_id_tag = "_aoiid" if USE_AOI_ID_CHANNEL else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -779,7 +810,8 @@ else:
             f"_sub{GEOTRACES_SUB_W}"
             f"_pinn{PINN_W}"
             f"{poc_tag}"
-            f"{geo_poc_tag}.json"
+            f"{geo_poc_tag}"
+            f"{aoi_id_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
