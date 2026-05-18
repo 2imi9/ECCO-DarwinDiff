@@ -155,6 +155,12 @@ SUB_DEPTH_MAX = float(os.environ.get("GEOTRACES_SUB_DEPTH_MAX", "1000.0"))
 N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
 USE_DARWIN_IC = os.environ.get("DARWIN_IC", "1") == "1"   # default ON for v3.0
 POC_SUB_W = float(os.environ.get("POC_SUB_W", "3.0"))      # default v2.8 anchor
+# GEOTRACES_POC_SUB_W: weight on absolute-units MSE against real GEOTRACES
+# POC observations (POC_LPT_CONC + POC_SPT_CONC) at subsurface depths,
+# per-AOI. Default 0 = off. Pairs naturally with the v3.0 joint training
+# to test whether real POC obs + cross-regime constraint together unblock
+# both alpfe AND R_PICPOC.
+GEOTRACES_POC_SUB_W = float(os.environ.get("GEOTRACES_POC_SUB_W", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -343,6 +349,60 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     print(f"  GEOTRACES bins in-AOI: surface={int(geo_surf_loss_mask.sum())}, "
           f"subsurface={int(geo_sub_loss_mask.sum())}")
 
+    # GEOTRACES POC subsurface target (LPT + SPT) if GEOTRACES_POC_SUB_W > 0.
+    geo_poc_target_t = None
+    geo_poc_mask_t = None
+    geo_poc_mask_f = None
+    n_geo_poc_f = None
+    n_geo_poc_in_ocean = 0
+    if GEOTRACES_POC_SUB_W > 0:
+        poc_lpt = geo_aoi.POC_LPT_CONC.values.flatten()
+        poc_spt = geo_aoi.POC_SPT_CONC.values.flatten()
+        poc_lpt_qc = geo_aoi.POC_LPT_CONC_qc.values.flatten()
+        poc_spt_qc = geo_aoi.POC_SPT_CONC_qc.values.flatten()
+        qc_good_arr = np.array(QC_GOOD)
+        lpt_ok = (np.isfinite(poc_lpt)
+                  & np.isin(poc_lpt_qc, qc_good_arr.astype(poc_lpt_qc.dtype))
+                  & (poc_lpt > 0))
+        spt_ok = (np.isfinite(poc_spt)
+                  & np.isin(poc_spt_qc, qc_good_arr.astype(poc_spt_qc.dtype))
+                  & (poc_spt > 0))
+        poc_total = np.where(lpt_ok, poc_lpt, 0.0) + np.where(spt_ok, poc_spt, 0.0)
+        poc_any = lpt_ok | spt_ok
+        poc_keep = (
+            poc_any & np.isfinite(g_lats_all) & np.isfinite(g_lons_all)
+            & np.isfinite(g_depths_all)
+            & (g_depths_all > SUB_DEPTH_MIN) & (g_depths_all <= SUB_DEPTH_MAX)
+        )
+        # Bin POC (umol C/kg -> mmol C/m^3 via *1.025).
+        def bin_poc(keep):
+            lats = g_lats_all[keep]; lons = g_lons_all[keep]
+            poc = poc_total[keep] * 1025.0 * 1.0e-3
+            lat_idx = np.floor((lats - dlat_lo) / dlat_res).astype(np.int64)
+            lon_idx = np.floor((lons - dlon_lo) / dlon_res).astype(np.int64)
+            lat_idx = np.minimum(lat_idx, n_dlat - 1)
+            lon_idx = np.minimum(lon_idx, n_dlon - 1)
+            in_b = (lat_idx >= 0) & (lon_idx >= 0)
+            target = np.zeros((n_dlat, n_dlon), dtype=np.float64)
+            count = np.zeros((n_dlat, n_dlon), dtype=np.float64)
+            np.add.at(target, (lat_idx[in_b], lon_idx[in_b]), poc[in_b])
+            np.add.at(count, (lat_idx[in_b], lon_idx[in_b]), 1.0)
+            lm = (count > 0) & ocean_mask
+            out_t = np.zeros((n_dlat, n_dlon), dtype=np.float32)
+            nz = count > 0
+            out_t[nz] = (target[nz] / count[nz]).astype(np.float32)
+            return out_t, lm
+        geo_poc_target_np, geo_poc_loss_mask = bin_poc(poc_keep)
+        n_geo_poc_in_ocean = int(geo_poc_loss_mask.sum())
+        print(f"  GEOTRACES POC in-AOI subsurface bins: {n_geo_poc_in_ocean}")
+        if n_geo_poc_in_ocean > 0:
+            geo_poc_target_t = torch.tensor(
+                np.where(geo_poc_loss_mask, geo_poc_target_np, 0.0).astype(np.float32)
+            ).to(device)
+            geo_poc_mask_t = torch.tensor(geo_poc_loss_mask, dtype=torch.bool).to(device)
+            geo_poc_mask_f = geo_poc_mask_t.to(torch.float32)
+            n_geo_poc_f = geo_poc_mask_f.sum().clamp(min=1.0)
+
     geo_surf_target_t = torch.tensor(
         np.where(geo_surf_loss_mask, geo_surf_target, 0.0).astype(np.float32)
     ).to(device)
@@ -416,6 +476,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "geo_sub_mask_f": geo_sub_mask_f, "n_geo_sub_f": n_geo_sub_f,
         "n_geo_surf": int(geo_surf_loss_mask.sum()),
         "n_geo_sub": int(geo_sub_loss_mask.sum()),
+        "geo_poc_target_t": geo_poc_target_t, "geo_poc_mask_t": geo_poc_mask_t,
+        "geo_poc_mask_f": geo_poc_mask_f, "n_geo_poc_f": n_geo_poc_f,
+        "n_geo_poc": n_geo_poc_in_ocean,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -566,6 +629,12 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l_poc_sub = tb(state[I_POC_2], bundle["poc_l2_z"])
         z = z + POC_SUB_W * l_poc_sub
 
+    if GEOTRACES_POC_SUB_W > 0 and bundle["n_geo_poc"] > 0:
+        residual = (state[I_POC_2] - bundle["geo_poc_target_t"][None]) * bundle["geo_poc_mask_f"][None]
+        scale = (bundle["geo_poc_target_t"][bundle["geo_poc_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_geo_poc_f"] / scale
+        z = z + GEOTRACES_POC_SUB_W * l
+
     return z, state
 
 
@@ -678,6 +747,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "pinn_type": PINN_TYPE,
         "use_darwin_ic": USE_DARWIN_IC,
         "poc_sub_w": POC_SUB_W,
+        "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,
+        "n_geo_poc_subsurface_cells_per_aoi": {b["key"]: b["n_geo_poc"] for b in bundles},
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -700,13 +771,15 @@ if SKIP_JSON_WRITE:
 else:
     aoi_tag = "-".join(AOIS_KEYS)
     poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
+    geo_poc_tag = f"_geopocW{GEOTRACES_POC_SUB_W}" if GEOTRACES_POC_SUB_W > 0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
             f"_surf{GEOTRACES_W}"
             f"_sub{GEOTRACES_SUB_W}"
             f"_pinn{PINN_W}"
-            f"{poc_tag}.json"
+            f"{poc_tag}"
+            f"{geo_poc_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
