@@ -93,10 +93,7 @@ from darwindiff.carroll6_5pft_2layer import (
     carroll6_5pft_2layer_step,
 )
 from darwindiff.ecco_darwin_loader import (
-    EQUATORIAL_PACIFIC_AOI,
-    MID_ATLANTIC_AOI,
-    NORTH_ATLANTIC_SUBPOLAR_AOI,
-    NORTH_PACIFIC_AOI,
+    AOI_BY_KEY,
     open_bin_average,
     subset_aoi,
     time_mean,
@@ -124,12 +121,6 @@ GEOTRACES_ROOT = Path(os.environ.get("GEOTRACES_DATA_ROOT", r"D:\geotraces"))
 GEOTRACES_NC = GEOTRACES_ROOT / "GEOTRACES_IDP2025_Seawater.nc"
 CACHE_DIR = DATA_ROOT / "cache"
 
-AOI_MAP = {
-    "eqpac": EQUATORIAL_PACIFIC_AOI,
-    "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
-    "midatl": MID_ATLANTIC_AOI,
-    "npac": NORTH_PACIFIC_AOI,
-}
 IC_CACHE_NAME = {
     "eqpac": "darwin_ic_cache.npz",
     "natlsubpolar": "darwin_ic_cache_natlsubpolar.npz",
@@ -137,8 +128,8 @@ IC_CACHE_NAME = {
 
 AOIS_KEYS = [s.strip() for s in os.environ.get("AOIS", "eqpac,natlsubpolar").split(",") if s.strip()]
 for k in AOIS_KEYS:
-    if k not in AOI_MAP:
-        raise ValueError(f"AOIS contains unknown key {k!r}; valid: {sorted(AOI_MAP)}")
+    if k not in AOI_BY_KEY:
+        raise ValueError(f"AOIS contains unknown key {k!r}; valid: {sorted(AOI_BY_KEY)}")
 N_AOIS = len(AOIS_KEYS)
 
 _seeds_env = os.environ.get("NB23_SEEDS", os.environ.get("NB23_BATCH_SEEDS", "0"))
@@ -253,7 +244,7 @@ def _load_or_build_target_cache(aoi) -> dict:
 def load_aoi_bundle(aoi_key: str) -> dict:
     """Build everything per-AOI: tensors, masks, target z-scores, GEOTRACES,
     initial conditions. Returns a dict suitable for hot use in the training loop."""
-    aoi = AOI_MAP[aoi_key]
+    aoi = AOI_BY_KEY[aoi_key]
     print(f"\n=== Loading AOI bundle: {aoi_key} ({aoi.name}) ===")
     targets = _load_or_build_target_cache(aoi)
 
@@ -446,6 +437,16 @@ def load_aoi_bundle(aoi_key: str) -> dict:
 
     poc_l2_z = None
     if USE_DARWIN_IC:
+        if aoi_key not in IC_CACHE_NAME:
+            raise KeyError(
+                f"No Darwin IC cache configured for AOI {aoi_key!r}. "
+                f"AOIs with caches: {sorted(IC_CACHE_NAME)}. "
+                f"To add: build a cache with "
+                f"`CACHE_NAME=darwin_ic_cache_{aoi_key}.npz "
+                f"DARWIN_AOI={aoi_key} python scripts/build_darwin_ic_cache.py`, "
+                f"then add {{{aoi_key!r}: 'darwin_ic_cache_{aoi_key}.npz'}} to "
+                f"IC_CACHE_NAME in scripts/run_v3.0_joint_multi_aoi.py."
+            )
         ic_cache_name = IC_CACHE_NAME[aoi_key]
         ic_cache_path = _HERE / ic_cache_name
         if not ic_cache_path.is_file():
@@ -516,8 +517,12 @@ for b in bundles:
     mask_np = b["ocean_mask"]
     _all_sst.append(sst_np[mask_np])
 _all_sst_flat = np.concatenate(_all_sst)
-_shared_sst_mean = float(_all_sst_flat.mean())
-_shared_sst_std = float(_all_sst_flat.std()) or 1.0
+# NaN-safe stats: ocean_mask should exclude NaNs upstream, but if any
+# bundle leaks a NaN in here, .mean()/.std() return NaN and `or 1.0`
+# fails (NaN is truthy). Use nan-aware reductions defensively.
+_shared_sst_mean = float(np.nanmean(_all_sst_flat))
+_shared_sst_std_raw = float(np.nanstd(_all_sst_flat))
+_shared_sst_std = _shared_sst_std_raw if (np.isfinite(_shared_sst_std_raw) and _shared_sst_std_raw > 0) else 1.0
 print(f"\nShared-scale SST z-score: mean={_shared_sst_mean:.2f}, std={_shared_sst_std:.2f}")
 # AOI identity scalars (centered around zero, evenly spaced):
 # [-1, +1] for 2 AOIs; [-1, 0, +1] for 3; etc.
@@ -536,8 +541,9 @@ if USE_MLD_CHANNEL:
     for b in bundles:
         _all_mld.append(b["mld_raw_for_env"][b["ocean_mask"]])
     _all_mld_flat = np.concatenate(_all_mld)
-    _shared_mld_mean = float(_all_mld_flat.mean())
-    _shared_mld_std = float(_all_mld_flat.std()) or 1.0
+    _shared_mld_mean = float(np.nanmean(_all_mld_flat))
+    _mld_std_raw = float(np.nanstd(_all_mld_flat))
+    _shared_mld_std = _mld_std_raw if (np.isfinite(_mld_std_raw) and _mld_std_raw > 0) else 1.0
     print(f"Shared-scale MLD z-score: mean={_shared_mld_mean:.2f} m, std={_shared_mld_std:.2f} m")
 
 n_input_channels = 1 + (1 if USE_AOI_ID_CHANNEL else 0) + (1 if USE_MLD_CHANNEL else 0)
@@ -745,27 +751,18 @@ all_results = []
 for seed_idx, seed in enumerate(SEEDS):
     print(f"\n=== Seed {seed} recovery ===")
     per_aoi_means = {}
-    for bundle in bundles:
-        # Re-compute params for this AOI from the FINAL net state (no_grad).
-        with torch.no_grad():
-            env = bundle["env_1ch_dev"]
-            params_b = bounded_params(nets[seed_idx](env), bounds_dev)  # [6, H, W]
-        mask_f = bundle["mask_f"]
-        n_ocean_f = bundle["n_ocean_f"]
-        per_cell = params_b * mask_f[None]
-        means_b = per_cell.flatten(1).sum(dim=1) / n_ocean_f  # [6]
-        per_aoi_means[bundle["key"]] = means_b.cpu().numpy()
-
-    # Joint recovery: mask-weighted mean across all AOIs combined.
+    # Cache per-AOI per-cell sums + cell counts in one forward pass each,
+    # then reuse for both per-AOI means and joint mean (Greptile P2 PR #48).
     weighted_sum = torch.zeros(6, device=device)
     weighted_count = torch.zeros((), device=device)
     for bundle in bundles:
         with torch.no_grad():
-            env = bundle["env_1ch_dev"]
-            params_b = bounded_params(nets[seed_idx](env), bounds_dev)
+            params_b = bounded_params(nets[seed_idx](bundle["env_1ch_dev"]), bounds_dev)
         mask_f = bundle["mask_f"]
-        per_cell = params_b * mask_f[None]
-        weighted_sum = weighted_sum + per_cell.flatten(1).sum(dim=1)
+        n_ocean_f = bundle["n_ocean_f"]
+        per_cell_sum = (params_b * mask_f[None]).flatten(1).sum(dim=1)  # [6]
+        per_aoi_means[bundle["key"]] = (per_cell_sum / n_ocean_f).cpu().numpy()
+        weighted_sum = weighted_sum + per_cell_sum
         weighted_count = weighted_count + mask_f.sum()
     joint_means = (weighted_sum / weighted_count).cpu().numpy()
 

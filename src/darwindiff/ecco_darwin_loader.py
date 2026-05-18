@@ -111,6 +111,19 @@ NORTH_ATLANTIC_SUBPOLAR_AOI: AOI = AOI(
 )
 
 
+# Canonical AOI lookup table for env-var-driven scripts. The runners
+# (run_v2.7_multilayer_batched.py, run_v3.0_joint_multi_aoi.py) and the
+# IC-cache builder (build_darwin_ic_cache.py) all read DARWIN_AOI / AOIS
+# env vars; this dict is the single source of truth for the mapping
+# from short string keys to AOI dataclass instances.
+AOI_BY_KEY: dict[str, AOI] = {
+    "eqpac": EQUATORIAL_PACIFIC_AOI,
+    "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
+    "midatl": MID_ATLANTIC_AOI,
+    "npac": NORTH_PACIFIC_AOI,
+}
+
+
 def matlab_datenum_to_datetime64(values: np.ndarray) -> np.ndarray:
     """Convert MATLAB datenums to numpy ``datetime64[ns]``.
 
