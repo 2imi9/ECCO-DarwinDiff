@@ -105,6 +105,7 @@ from darwindiff.geotraces_loader import (
 from darwindiff.diagnostics import band_of
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
 from darwindiff.networks import DINN
+from darwindiff.silica import diagnostic_bsi_steady, R_SI_C, R_SI_DISSOL
 
 # ============================== Config ====================================
 
@@ -172,6 +173,15 @@ USE_MLD_CHANNEL = os.environ.get("MLD_CHANNEL", "0") == "1"
 # the existing 1/11-weighted Chl1 loss apparently isn't pulling hard
 # enough. Default 0 = no extra term; existing v3.0 JSONs reproduce.
 CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
+# POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
+# diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
+# observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
+# is produced only by diatoms, so its absolute magnitude pins
+# `diatomgraz` * G0_GRAZE * P_diatom -- the only Carroll-6 parameter that
+# enters silica production directly. Targets the v3.0 5/6-ceiling
+# diagnosis (diatomgraz binding) from `notebooks/32_*`. Default 0 = off
+# (legacy reproduces).
+POSI_W = float(os.environ.get("POSI_W", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -417,6 +427,70 @@ def load_aoi_bundle(aoi_key: str) -> dict:
             geo_poc_mask_f = geo_poc_mask_t.to(torch.float32)
             n_geo_poc_f = geo_poc_mask_f.sum().clamp(min=1.0)
 
+    # GEOTRACES surface biogenic-silica target (bSi_LPT + bSi_SPT) if POSI_W > 0.
+    # Mirrors the POC pattern but at SURFACE depth (<= 50 m) since the silica
+    # diagnostic bsi_1 is the surface bSi field. nmol Si/kg -> mmol Si/m^3 via
+    # x rho_sw x 1e-6 (same unit convention as iron).
+    posi_target_t = None
+    posi_mask_t = None
+    posi_mask_f = None
+    n_posi_f = None
+    n_posi_in_ocean = 0
+    if POSI_W > 0:
+        bsi_lpt = geo_aoi.bSi_LPT_CONC.values.flatten() if "bSi_LPT_CONC" in geo_aoi else None
+        bsi_spt = geo_aoi.bSi_SPT_CONC.values.flatten() if "bSi_SPT_CONC" in geo_aoi else None
+        if bsi_lpt is None and bsi_spt is None:
+            print("  [warn] POSI_W>0 but neither bSi_LPT_CONC nor bSi_SPT_CONC present in GEOTRACES; skipping")
+        else:
+            qc_good_arr = np.array(QC_GOOD)
+            def _bsi_keep(vals, qc_name):
+                qc = geo_aoi[qc_name].values.flatten() if qc_name in geo_aoi else None
+                ok = np.isfinite(vals) & (vals > 0)
+                if qc is not None:
+                    ok = ok & np.isin(qc, qc_good_arr.astype(qc.dtype))
+                return ok
+            lpt_ok = _bsi_keep(bsi_lpt, "bSi_LPT_CONC_qc") if bsi_lpt is not None else np.zeros(len(bsi_spt), dtype=bool)
+            spt_ok = _bsi_keep(bsi_spt, "bSi_SPT_CONC_qc") if bsi_spt is not None else np.zeros(len(bsi_lpt), dtype=bool)
+            bsi_total = (
+                (np.where(lpt_ok, bsi_lpt, 0.0) if bsi_lpt is not None else 0.0)
+                + (np.where(spt_ok, bsi_spt, 0.0) if bsi_spt is not None else 0.0)
+            )
+            bsi_any = lpt_ok | spt_ok
+            DEPTH_MAX_POSI = float(os.environ.get("POSI_DEPTH_MAX", "50.0"))
+            posi_keep = (
+                bsi_any & np.isfinite(g_lats_all) & np.isfinite(g_lons_all)
+                & np.isfinite(g_depths_all) & (g_depths_all <= DEPTH_MAX_POSI)
+            )
+            # nmol Si/kg -> mmol Si/m^3 via rho_sw x 1e-6 = 1025 x 1e-6 = 1.025e-3.
+            def bin_bsi(keep):
+                lats = g_lats_all[keep]; lons = g_lons_all[keep]
+                bsi = bsi_total[keep] * 1025.0 * 1.0e-6
+                lat_idx = np.floor((lats - dlat_lo) / dlat_res).astype(np.int64)
+                lon_idx = np.floor((lons - dlon_lo) / dlon_res).astype(np.int64)
+                lat_idx = np.minimum(lat_idx, n_dlat - 1)
+                lon_idx = np.minimum(lon_idx, n_dlon - 1)
+                in_b = (lat_idx >= 0) & (lon_idx >= 0)
+                target = np.zeros((n_dlat, n_dlon), dtype=np.float64)
+                count = np.zeros((n_dlat, n_dlon), dtype=np.float64)
+                np.add.at(target, (lat_idx[in_b], lon_idx[in_b]), bsi[in_b])
+                np.add.at(count, (lat_idx[in_b], lon_idx[in_b]), 1.0)
+                lm = (count > 0) & ocean_mask
+                out_t = np.zeros((n_dlat, n_dlon), dtype=np.float32)
+                nz = count > 0
+                out_t[nz] = (target[nz] / count[nz]).astype(np.float32)
+                return out_t, lm
+            posi_target_np, posi_loss_mask = bin_bsi(posi_keep)
+            n_posi_in_ocean = int(posi_loss_mask.sum())
+            print(f"  GEOTRACES bSi in-AOI surface bins (depth <= {DEPTH_MAX_POSI}m): {n_posi_in_ocean}, "
+                  f"mean target = {float(posi_target_np[posi_loss_mask].mean()) if n_posi_in_ocean > 0 else 0:.4g} mmol Si/m^3")
+            if n_posi_in_ocean > 0:
+                posi_target_t = torch.tensor(
+                    np.where(posi_loss_mask, posi_target_np, 0.0).astype(np.float32)
+                ).to(device)
+                posi_mask_t = torch.tensor(posi_loss_mask, dtype=torch.bool).to(device)
+                posi_mask_f = posi_mask_t.to(torch.float32)
+                n_posi_f = posi_mask_f.sum().clamp(min=1.0)
+
     geo_surf_target_t = torch.tensor(
         np.where(geo_surf_loss_mask, geo_surf_target, 0.0).astype(np.float32)
     ).to(device)
@@ -504,6 +578,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "geo_poc_target_t": geo_poc_target_t, "geo_poc_mask_t": geo_poc_mask_t,
         "geo_poc_mask_f": geo_poc_mask_f, "n_geo_poc_f": n_geo_poc_f,
         "n_geo_poc": n_geo_poc_in_ocean,
+        "posi_target_t": posi_target_t, "posi_mask_t": posi_mask_t,
+        "posi_mask_f": posi_mask_f, "n_posi_f": n_posi_f,
+        "n_posi": n_posi_in_ocean,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -710,6 +787,20 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_geo_poc_f"] / scale
         z = z + GEOTRACES_POC_SUB_W * l
 
+    # POSi absolute-units MSE on a steady-state biogenic-silica diagnostic.
+    # Compute bsi_1 = R_SI_C * (mort_diatom + graze_diatom) / W_SINK from the
+    # integrated state's diatom biomass and the seed's per-cell diatomgraz
+    # prediction. Only diatoms produce bSi, so g_diatom enters this term
+    # directly via graze_diatom = g_diatom * G0_GRAZE * P_diatom. Compares to
+    # surface GEOTRACES bSi obs (bSi_LPT + bSi_SPT, QC 49/50, depth <= 50 m).
+    if POSI_W > 0 and bundle["n_posi"] > 0:
+        g_diatom_b = params_b[4]   # params order: [alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC]
+        bsi_1_pred, _ = diagnostic_bsi_steady(p_diatom, g_diatom_b)
+        residual = (bsi_1_pred - bundle["posi_target_t"][None]) * bundle["posi_mask_f"][None]
+        scale = (bundle["posi_target_t"][bundle["posi_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_posi_f"] / scale
+        z = z + POSI_W * l
+
     return z, state
 
 
@@ -858,6 +949,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "dinn_n_input_channels": n_input_channels,
         "joint_recovery_mode": JOINT_RECOVERY_MODE,
         "chl1_w_extra": CHL1_W_EXTRA,
+        "posi_w": POSI_W,
+        "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -891,6 +984,7 @@ else:
     jrm = all_results[0]["joint_recovery_mode"] if all_results else "cellweighted"
     jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
     chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
+    posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -904,7 +998,8 @@ else:
             f"{hd_tag}"
             f"{aoi_w_tag}"
             f"{jrm_tag}"
-            f"{chl1_extra_tag}.json"
+            f"{chl1_extra_tag}"
+            f"{posi_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
