@@ -100,10 +100,7 @@ from darwindiff.carroll6_5pft_2layer import (
     carroll6_5pft_2layer_step,
 )
 from darwindiff.ecco_darwin_loader import (
-    EQUATORIAL_PACIFIC_AOI,
-    MID_ATLANTIC_AOI,
-    NORTH_ATLANTIC_SUBPOLAR_AOI,
-    NORTH_PACIFIC_AOI,
+    AOI_BY_KEY,
     open_bin_average,
     subset_aoi,
     time_mean,
@@ -177,17 +174,12 @@ N_STEPS = 200
 
 # DARWIN_AOI env var selects which AOI to train on (v3.0 multi-AOI scoping
 # precursor). Defaults to 'eqpac' so all existing v2.6/v2.7/v2.8 JSONs and
-# cache files stay reproducible bit-for-bit.
-AOI_MAP = {
-    "eqpac": EQUATORIAL_PACIFIC_AOI,
-    "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
-    "midatl": MID_ATLANTIC_AOI,
-    "npac": NORTH_PACIFIC_AOI,
-}
+# cache files stay reproducible bit-for-bit. AOI_BY_KEY is the canonical
+# lookup table in darwindiff.ecco_darwin_loader.
 AOI_KEY = os.environ.get("DARWIN_AOI", "eqpac")
-if AOI_KEY not in AOI_MAP:
-    raise ValueError(f"DARWIN_AOI={AOI_KEY!r} not in {sorted(AOI_MAP)}")
-AOI = AOI_MAP[AOI_KEY]
+if AOI_KEY not in AOI_BY_KEY:
+    raise ValueError(f"DARWIN_AOI={AOI_KEY!r} not in {sorted(AOI_BY_KEY)}")
+AOI = AOI_BY_KEY[AOI_KEY]
 print(f"AOI: {AOI.name} ({AOI.lat_min}-{AOI.lat_max} N, {AOI.lon_min}-{AOI.lon_max} E)")
 print(f"Seeds: {SEEDS} (N={N_SEEDS})")
 print(f"Config: fet_w={FET_W}, pinn_w={PINN_W} ({PINN_TYPE}),")
@@ -913,7 +905,8 @@ with torch.no_grad():
             result["params"][name] = entry
         result["n_cal_grade"] = n_cal_grade
         result["n_excellent"] = n_excellent
-        result["train_lon_frac"] = TRAIN_LON_FRAC
+        if TRAIN_LON_FRAC < 1.0:
+            result["train_lon_frac"] = TRAIN_LON_FRAC
         print(f"       -> {n_cal_grade}/6 cal-grade ({n_excellent} Excellent)")
         if test_param_means:
             n_cg_test = sum(1 for name, t_rec in zip(param_names, test_param_means)

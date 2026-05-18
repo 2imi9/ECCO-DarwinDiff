@@ -53,7 +53,9 @@ def _find_project_root(start: Path) -> Path:
 PROJECT_ROOT = _find_project_root(Path.cwd())
 SCRIPTS = PROJECT_ROOT / 'scripts'
 
-print(f'PROJECT_ROOT={PROJECT_ROOT}')
+# Don't print the absolute project path (avoids leaking local usernames into
+# committed notebook outputs).
+print(f"project root located at {PROJECT_ROOT.name}/  (scripts/ found)")
 """),
     ("md", """\
 ## 1. Load both AOI's runs at the v2.8 anchor

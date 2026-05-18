@@ -34,20 +34,8 @@ _SRC = _HERE.parent / "src"
 if _SRC.exists() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from darwindiff.ecco_darwin_loader import (
-    EQUATORIAL_PACIFIC_AOI,
-    MID_ATLANTIC_AOI,
-    NORTH_ATLANTIC_SUBPOLAR_AOI,
-    NORTH_PACIFIC_AOI,
-)
+from darwindiff.ecco_darwin_loader import AOI_BY_KEY as _AOI_MAP
 from darwindiff.llc270_loader import bin_to_1deg_grid
-
-_AOI_MAP = {
-    "eqpac": EQUATORIAL_PACIFIC_AOI,
-    "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
-    "midatl": MID_ATLANTIC_AOI,
-    "npac": NORTH_PACIFIC_AOI,
-}
 
 # --- Paths --------------------------------------------------------------------
 

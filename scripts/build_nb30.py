@@ -54,7 +54,9 @@ def _find_project_root(start: Path) -> Path:
     raise FileNotFoundError('project root not found')
 PROJECT_ROOT = _find_project_root(Path.cwd())
 SCRIPTS = PROJECT_ROOT / 'scripts'
-print(f'PROJECT_ROOT={PROJECT_ROOT}')
+# Don't print the absolute project path (avoids leaking local usernames into
+# committed notebook outputs); print a relative confirmation instead.
+print(f"project root located at {PROJECT_ROOT.name}/  (scripts/ found)")
 
 def load_config(pattern: str, exclude_substrs=()):
     files = sorted(SCRIPTS.glob(pattern))
@@ -215,9 +217,12 @@ for ax, (name, runs) in zip(axes, poc_sub_configs):
     ax.set_xlabel('alpfe'); ax.set_xscale('log'); ax.set_yscale('log')
     ax.grid(alpha=0.3)
 axes[0].set_ylabel('scav_rat')
+from matplotlib.lines import Line2D
 legend_elems = [
     mpatches.Patch(color='C0', label='alpfe-correct basin'),
     mpatches.Patch(color='C3', label='scav-correct basin'),
+    Line2D([0], [0], marker='*', color='w', markerfacecolor='gold',
+           markeredgecolor='black', markersize=14, label=\"Carroll's joint target\"),
 ]
 axes[-1].legend(handles=legend_elems, loc='lower left')
 plt.suptitle('Bimodal degeneracy — POC_SUB_W selects which basin the optimizer falls into', y=1.04)
