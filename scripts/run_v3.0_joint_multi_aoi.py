@@ -166,6 +166,12 @@ DINN_HIDDEN_DIM = int(os.environ.get("DINN_HIDDEN_DIM", "16"))
 # regime-distinctive (winter convection in N Atl vs perennial-thermocline
 # in Eq Pac) and biology-relevant.
 USE_MLD_CHANNEL = os.environ.get("MLD_CHANNEL", "0") == "1"
+# CHL1_W_EXTRA adds an EXTRA Chl1 (diatom chl) z-score loss term on top of
+# the existing per-PFT chl_z term. Targets diatomgraz recovery: the 5/6
+# seeds that consistently miss diatomgraz do so at ~0.75 off Carroll, and
+# the existing 1/11-weighted Chl1 loss apparently isn't pulling hard
+# enough. Default 0 = no extra term; existing v3.0 JSONs reproduce.
+CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -692,6 +698,12 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l_poc_sub = tb(state[I_POC_2], bundle["poc_l2_z"])
         z = z + POC_SUB_W * l_poc_sub
 
+    # CHL1_W_EXTRA: extra diatom-chl loss to amplify diatomgraz signal.
+    # State[I_DIATOM] vs Darwin's Chl1 (z-scored over AOI ocean mask).
+    if CHL1_W_EXTRA > 0:
+        l_chl1_extra = tb(state[I_DIATOM], bundle["chl_z"]["Chl1"])
+        z = z + CHL1_W_EXTRA * l_chl1_extra
+
     if GEOTRACES_POC_SUB_W > 0 and bundle["n_geo_poc"] > 0:
         residual = (state[I_POC_2] - bundle["geo_poc_target_t"][None]) * bundle["geo_poc_mask_f"][None]
         scale = (bundle["geo_poc_target_t"][bundle["geo_poc_mask_t"]] ** 2).mean().clamp(min=1e-30)
@@ -845,6 +857,7 @@ for seed_idx, seed in enumerate(SEEDS):
         "dinn_hidden_dim": DINN_HIDDEN_DIM,
         "dinn_n_input_channels": n_input_channels,
         "joint_recovery_mode": JOINT_RECOVERY_MODE,
+        "chl1_w_extra": CHL1_W_EXTRA,
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -877,6 +890,7 @@ else:
     # JOINT_RECOVERY_MODE is read from each result row (constant across batch).
     jrm = all_results[0]["joint_recovery_mode"] if all_results else "cellweighted"
     jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
+    chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -889,7 +903,8 @@ else:
             f"{mld_tag}"
             f"{hd_tag}"
             f"{aoi_w_tag}"
-            f"{jrm_tag}.json"
+            f"{jrm_tag}"
+            f"{chl1_extra_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
