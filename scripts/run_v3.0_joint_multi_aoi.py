@@ -62,6 +62,13 @@ Env vars (same defaults as the v2.7 batched runner unless noted):
                           term alone cancels them); anchors F_CO2 magnitude and
                           couples DIC/ALK/R_PICPOC via calcite -> ALK -> pCO2.
                           Default 0 = off.
+    COCCOLITH_ONLY        1 to restrict PIC production to Chl2 (large-eukaryote
+                          / coccolithophore-proxy) mortality only, instead of
+                          total mortality across all 5 PFTs. Physically correct
+                          in Darwin 3 -- only coccolithophores produce calcite.
+                          Needs PIC_ABS_W > 0 to anchor magnitude; otherwise
+                          the optimizer finds a degenerate solution. Default 0
+                          = legacy mort_total scaling.
     USE_MEHRBACH_K1K2     1 to swap Lueker 2000 K1/K2 (default) for Mehrbach
                           1973/Millero 1995 (MITgcm/Darwin's pkg/dic
                           formulation). Spatial T,S response differs from
@@ -134,6 +141,12 @@ from darwindiff.carroll6_5pft import (
     MU_DEFAULT_PROLL,
     MU_DEFAULT_SYN,
 )
+from darwindiff import carroll6_5pft_2layer as _layer2
+# Path C (session 2026-05-18): restrict PIC production to Chl2 (coccolithophore
+# proxy) mortality only. Default OFF (legacy mort_total_1 reproduces). The
+# integrator resolves this via a module-level bool at torch.compile trace time,
+# so we set it HERE before any integrator import / compile.
+_layer2.USE_COCCOLITH_ONLY_CALCITE = os.environ.get("COCCOLITH_ONLY", "0") == "1"
 from darwindiff.carroll6_5pft_2layer import (
     I_ALK_1,
     I_ALK_2,
@@ -1198,6 +1211,7 @@ for seed_idx, seed in enumerate(SEEDS):
         "n_f_co2_abs_cells_per_aoi": {b["key"]: b["n_f_co2_abs"] for b in bundles},
         "use_mehrbach_k1k2": _carbonate.USE_MEHRBACH_K1K2,
         "k_wanninkhof": _carbonate.K_WANNINKHOF,
+        "use_coccolith_only_calcite": _layer2.USE_COCCOLITH_ONLY_CALCITE,
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -1238,6 +1252,7 @@ else:
     fco2_abs_tag = f"_fco2absW{F_CO2_ABS_W}" if F_CO2_ABS_W > 0 else ""
     mehrbach_tag = "_mehrbach" if _carbonate.USE_MEHRBACH_K1K2 else ""
     kw_tag = f"_kw{_carbonate.K_WANNINKHOF}" if _K_WANNINKHOF_OVERRIDE is not None else ""
+    cocco_tag = "_cocco" if _layer2.USE_COCCOLITH_ONLY_CALCITE else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -1258,7 +1273,8 @@ else:
             f"{posi_tag}"
             f"{fco2_abs_tag}"
             f"{mehrbach_tag}"
-            f"{kw_tag}.json"
+            f"{kw_tag}"
+            f"{cocco_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
