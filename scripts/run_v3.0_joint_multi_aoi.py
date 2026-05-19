@@ -53,6 +53,19 @@ Env vars (same defaults as the v2.7 batched runner unless noted):
                           the R_PICPOC * mort_total scale degeneracy that
                           PR #59's PIC_ABS_W-alone sweep showed PIC alone
                           can't fix.
+    POSI_W                absolute-units MSE loss on a steady-state biogenic
+                          silica diagnostic vs GEOTRACES IDP2025 bSi (default 0
+                          = off; see PR #60).
+    USE_MEHRBACH_K1K2     1 to swap Lueker 2000 K1/K2 (default) for Mehrbach
+                          1973/Millero 1995 (MITgcm/Darwin's pkg/dic
+                          formulation). Spatial T,S response differs from
+                          Lueker (~0.4-1.0% pCO2 across surface ocean) and
+                          survives z-scoring; default 0 = off.
+    K_WANNINKHOF          gas-transfer velocity coefficient (default 0.251 =
+                          Wanninkhof 2014; set to 0.337 for MITgcm/Darwin
+                          alignment). NO-OP under the current z-score-only
+                          F_CO2 loss because uniform rescaling cancels;
+                          documented here for future absolute-F_CO2 anchors.
     DARWIN_DATA_ROOT      Darwin v05 data root (default D:\\ecco_darwin_v5)
     GEOTRACES_DATA_ROOT   IDP2025 NetCDF root (default D:\\geotraces)
 
@@ -84,7 +97,24 @@ _SRC = _HERE.parent / "src"
 if _SRC.exists() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
+from darwindiff import carbonate as _carbonate
 from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
+
+# Carbonate-constant alignment (orthogonal lever). USE_MEHRBACH_K1K2=1 swaps
+# Lueker 2000 K1/K2 (PyCO2SYS default) for Mehrbach 1973/Millero 1995 (the
+# formulation in MITgcm pkg/dic). The spatial T,S response of K1/K2 differs
+# slightly between the two; unlike a uniform K_WANNINKHOF rescaling -- which
+# cancels exactly under z-score loss -- this lever survives z-scoring. Empirical
+# pCO2 offset across surface ocean: 0.4-1.0%, so the recovery effect is expected
+# to be small but non-zero. Default 0 = Lueker (legacy reproduces).
+_carbonate.USE_MEHRBACH_K1K2 = os.environ.get("USE_MEHRBACH_K1K2", "0") == "1"
+# K_WANNINKHOF is exposed for completeness and absolute F_CO2 comparisons. Note
+# this is a NO-OP under the current z-score-only F_CO2 loss term -- any uniform
+# rescaling of co2_pred is removed by per-AOI z-scoring. Documented here so
+# future absolute-F_CO2 anchor losses can use the same env var.
+_K_WANNINKHOF_OVERRIDE = os.environ.get("K_WANNINKHOF")
+if _K_WANNINKHOF_OVERRIDE is not None:
+    _carbonate.K_WANNINKHOF = float(_K_WANNINKHOF_OVERRIDE)
 from darwindiff.carroll6 import (
     CARROLL_VALUES,
     K_FE,
@@ -1116,6 +1146,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
         "posi_w": POSI_W,
         "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
+        "use_mehrbach_k1k2": _carbonate.USE_MEHRBACH_K1K2,
+        "k_wanninkhof": _carbonate.K_WANNINKHOF,
         "fet_w": FET_W,
         "n_epochs": N_EPOCHS,
         "n_seeds_in_batch": N_SEEDS,
@@ -1153,6 +1185,8 @@ else:
     pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
     poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
+    mehrbach_tag = "_mehrbach" if _carbonate.USE_MEHRBACH_K1K2 else ""
+    kw_tag = f"_kw{_carbonate.K_WANNINKHOF}" if _K_WANNINKHOF_OVERRIDE is not None else ""
     for r in all_results:
         out = out_dir / (
             f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
@@ -1170,7 +1204,9 @@ else:
             f"{peraoi_tag}"
             f"{pic_abs_tag}"
             f"{poc_abs_tag}"
-            f"{posi_tag}.json"
+            f"{posi_tag}"
+            f"{mehrbach_tag}"
+            f"{kw_tag}.json"
         )
         existed = out.is_file()
         with out.open("w", encoding="utf-8") as f:
