@@ -148,6 +148,24 @@ Q_FE_REMIN: float = Q_FE
 as Q_FE_SINK at scoping precision: iron and carbon return to dissolved phase
 in the same proportion they were exported."""
 
+USE_COCCOLITH_ONLY_CALCITE: bool = False
+"""Restrict PIC production (and the matching DIC + ALK calcite budget terms)
+to the Chl2 = "other large eukaryote" mortality source only, instead of the
+sum over all 5 PFTs.
+
+In Darwin 3, only coccolithophores produce calcite. The 5-PFT mapping used
+here treats Chl2 as the coccolithophore-proxy pool. Empirical Darwin v05
+PIC/POC ratio (verified 2026-05-18): eqpac median 0.031, natlsubpolar median
+0.722 — a 23x variance that the global ``mort_total_1`` scaling could not
+satisfy with a single R_PICPOC scalar. With PFT-specific scaling the cross-AOI
+PIC differences come naturally from P_lge abundance.
+
+Module flag (resolved by torch.compile at trace time, so set BEFORE compile).
+Default ``False`` -> legacy ``mort_total_1`` behaviour reproduces.
+Pair with ``PIC_ABS_W > 0`` to anchor PIC magnitude; otherwise the optimizer
+finds a degenerate (R_PICPOC, mort_lge) pair that satisfies the z-scored PIC
+loss at any scale."""
+
 
 def carroll6_5pft_2layer_step(
     state: torch.Tensor,
@@ -297,7 +315,22 @@ def carroll6_5pft_2layer_step(
     dP_proHL  = growth_proHL  - mort_proHL
 
     dPOC_1 = mort_total_1 - poc_sink_out_L1
-    dPIC_1 = R_PICPOC * mort_total_1 - pic_sink_out_L1
+    # PFT-specific calcite production (Path C, session 2026-05-18):
+    # In Darwin 3, only coccolithophores produce calcite. In our 5-PFT mapping
+    # Chl2 = "other large eukaryotes" includes the coccolithophore pool. So PIC
+    # production scales with mort_lge (Chl2 mortality), NOT mort_total_1 (sum
+    # across all 5 PFTs). This fixes the inter-AOI tension diagnosed this
+    # session: empirical Darwin v05 PIC/POC ratio varies 23x between eqpac
+    # (0.031, no coccolithophores) and natlsubpolar (0.722, coccolithophore
+    # bloom zone). With PFT-specific scaling, natlsubpolar's high P_lge
+    # naturally produces high PIC at a modest R_PICPOC; eqpac's low P_lge
+    # produces low PIC at the SAME R_PICPOC -- removing the cross-AOI tension
+    # the global mort_total scaling created. Gated by module-level flag
+    # USE_COCCOLITH_ONLY_CALCITE (default False -> legacy mort_total behaviour
+    # reproduces). Needs to be PAIRED with PIC_ABS_W > 0 to anchor PIC magnitude,
+    # otherwise the optimizer finds a degenerate (R_PICPOC, mort_lge) pair.
+    calcite_mort_src = mort_lge if USE_COCCOLITH_ONLY_CALCITE else mort_total_1
+    dPIC_1 = R_PICPOC * calcite_mort_src - pic_sink_out_L1
 
     # L1 carbonate (same surface air-sea CO2 flux as v2.6).
     carb_1 = solve_carbonate(DIC_1, ALK_1, T, S)
@@ -306,10 +339,10 @@ def carroll6_5pft_2layer_step(
 
     dDIC_1 = (
         -growth_total                       # phyto C fixation across all 5 PFTs
-        - R_PICPOC * mort_total_1           # CaCO3 formation
+        - R_PICPOC * calcite_mort_src       # CaCO3 formation
         - F_per_m3_per_day                  # air-sea export
     )
-    dALK_1 = -2.0 * R_PICPOC * mort_total_1
+    dALK_1 = -2.0 * R_PICPOC * calcite_mort_src
 
     # =========================================================================
     # L2 tendencies (no biology — iron, POC/PIC dynamics + carbonate dissolution)

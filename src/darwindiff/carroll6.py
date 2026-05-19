@@ -85,7 +85,12 @@ PARAM_BOUNDS: torch.Tensor = torch.tensor([
     [0.10, 2.0],     # Smallgrow (1/d)
     [0.10, 2.0],     # Biggrow (1/d)
     [0.05, 1.0],     # diatomgraz
-    [0.005, 0.20],   # R_PICPOC
+    [0.005, 1.5],    # R_PICPOC -- bound raised from 0.20 (session 2026-05-18 diagnostic).
+                     #   Empirical Darwin v05 PIC/POC ratio: eqpac median 0.031, natl
+                     #   median 0.722 (23x AOI variance). Original bound 0.20 capped at
+                     #   3.6x below natl's true ratio. Diagnostic: does the learner
+                     #   push above 0.20 when allowed? If not, the binding constraint
+                     #   is the inter-AOI tension, not the bound.
 ])
 
 
