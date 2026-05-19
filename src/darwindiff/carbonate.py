@@ -12,9 +12,12 @@ Reference:
 
 Equilibrium constants:
     K0 (CO₂ solubility) — Weiss (1974), mol/(kg·atm). Matches MITgcm DIC package.
-    K1, K2 (carbonic acid) — Lueker et al. (2000), total scale, mol/kg.
-        MITgcm DIC uses Mehrbach (1973) via Millero (1995) instead — ~3-5%
-        systematic pCO₂ offset.
+    K1, K2 (carbonic acid) — Lueker et al. (2000), total scale, mol/kg, by
+        default. MITgcm DIC uses Mehrbach (1973) via Millero (1995) instead;
+        set ``USE_MEHRBACH_K1K2 = True`` to switch. Empirical offset across
+        surface ocean (T ∈ [2, 28], S ∈ [34.5, 36.5]): 0.4-1.0% pCO₂ — much
+        smaller than the carbonate.py original docstring's "3-5%" claim,
+        verified 2026-05-18.
     KB (boric acid) — Dickson (1990), total scale, mol/kg. MITgcm DIC uses
         Millero (1995) using Dickson 1990 data; numerically very close.
     BT (total boron) — Uppström (1974), mol/kg.
@@ -111,27 +114,67 @@ def K0_solubility(T: torch.Tensor, S: torch.Tensor) -> torch.Tensor:
     return torch.exp(ln_K0)
 
 
-def K1_K2_carbonic(T: torch.Tensor, S: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-    """First and second dissociation constants of carbonic acid (Lueker et al. 2000).
+USE_MEHRBACH_K1K2: bool = False
+"""Switch K1/K2 carbonic-acid constants to Mehrbach 1973 refit by Millero 1995.
 
-    Total scale, mol/kg. Same parameterization used in PyCO2SYS default and the
-    standard MITgcm/Darwin carbonate module.
+- ``False`` (default): Lueker et al. 2000 (total scale, mol/kg) — modern best-fit,
+  PyCO2SYS default.
+- ``True``: Mehrbach 1973 / DOE 1994 / Millero 1995 (SWS scale, mol/kg) — the
+  formulation in MITgcm ``pkg/dic`` ``carbon_co2_uptake.F``, used by Darwin.
+
+The ~3-5% systematic pCO₂ offset between the two propagates to F_CO₂ as a
+**spatially non-uniform** scaling via T,S dependence — unlike the uniform
+K_WANNINKHOF scaling, which cancels exactly under z-score normalization, this
+lever DOES survive z-scoring and is therefore a genuine orthogonal direction
+for parameter recovery. See ``docs/findings/v2_track1_closeout.md`` Day-8
+carbonate alignment audit for the absolute-units comparison.
+"""
+
+
+def K1_K2_carbonic(T: torch.Tensor, S: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """First and second dissociation constants of carbonic acid.
+
+    Selects between two formulations via the module-level ``USE_MEHRBACH_K1K2``
+    flag:
+
+    - ``False`` (default): Lueker et al. 2000 (total scale, mol/kg) — PyCO2SYS
+      default.
+    - ``True``: Mehrbach 1973 / Millero 1995 (SWS scale, mol/kg) — MITgcm/Darwin
+      ``pkg/dic``.
+
+    Both are fed into the same Follows iteration; switching just changes the
+    spatial T,S response of K1/K2.
     """
     Tk = _temp_kelvin(T)
-    log10_K1 = (
-        -3633.86 / Tk
-        + 61.2172
-        - 9.67770 * torch.log(Tk)
-        + S * 0.011555
-        - S * S * 0.0001152
-    )
-    log10_K2 = (
-        -471.78 / Tk
-        - 25.9290
-        + 3.16967 * torch.log(Tk)
-        + S * 0.01781
-        - S * S * 0.0001122
-    )
+    if USE_MEHRBACH_K1K2:
+        log10_K1 = -(
+            3670.7 / Tk
+            - 62.008
+            + 9.7944 * torch.log(Tk)
+            - 0.0118 * S
+            + 0.000116 * S * S
+        )
+        log10_K2 = -(
+            1394.7 / Tk
+            + 4.777
+            - 0.0184 * S
+            + 0.000118 * S * S
+        )
+    else:
+        log10_K1 = (
+            -3633.86 / Tk
+            + 61.2172
+            - 9.67770 * torch.log(Tk)
+            + S * 0.011555
+            - S * S * 0.0001152
+        )
+        log10_K2 = (
+            -471.78 / Tk
+            - 25.9290
+            + 3.16967 * torch.log(Tk)
+            + S * 0.01781
+            - S * S * 0.0001122
+        )
     return 10.0**log10_K1, 10.0**log10_K2
 
 
