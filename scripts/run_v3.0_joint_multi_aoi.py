@@ -56,6 +56,12 @@ Env vars (same defaults as the v2.7 batched runner unless noted):
     POSI_W                absolute-units MSE loss on a steady-state biogenic
                           silica diagnostic vs GEOTRACES IDP2025 bSi (default 0
                           = off; see PR #60).
+    F_CO2_ABS_W           absolute-units MSE loss on surface air-sea CO2 flux
+                          vs Darwin CO2_flux. Activates K_WANNINKHOF and the
+                          K1/K2 choice as real levers (the z-scored co2_flux
+                          term alone cancels them); anchors F_CO2 magnitude and
+                          couples DIC/ALK/R_PICPOC via calcite -> ALK -> pCO2.
+                          Default 0 = off.
     USE_MEHRBACH_K1K2     1 to swap Lueker 2000 K1/K2 (default) for Mehrbach
                           1973/Millero 1995 (MITgcm/Darwin's pkg/dic
                           formulation). Spatial T,S response differs from
@@ -264,6 +270,16 @@ POC_ABS_W = float(os.environ.get("POC_ABS_W", "0.0"))
 # diagnosis (diatomgraz binding) from `notebooks/32_*`. Default 0 = off
 # (legacy reproduces).
 POSI_W = float(os.environ.get("POSI_W", "0.0"))
+# F_CO2_ABS_W: absolute-units MSE loss on surface air-sea CO2 flux against the
+# Darwin CO2_flux output (mmol C / m^2 / s). The existing co2_flux term in `z`
+# uses tb(co2_pred, co2_flux_z), which z-scores per AOI and cancels any uniform
+# rescaling of co2_pred -- making K_WANNINKHOF a no-op there. The absolute term
+# anchors F_CO2 magnitude, so K_WANNINKHOF and the K1/K2 choice (Lueker vs
+# Mehrbach) become real levers via this loss. F_CO2 magnitude couples to DIC,
+# ALK, R_PICPOC (calcite production reduces ALK -> raises pCO2 -> shifts flux),
+# so this is the orthogonal anchor for the R_PICPOC + carbonate cluster.
+# Default 0 = off.
+F_CO2_ABS_W = float(os.environ.get("F_CO2_ABS_W", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
@@ -436,6 +452,23 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                   f"mean={float(poc_abs_target_t[poc_abs_mask_t].mean()):.4f} mmol C/m^3")
         else:
             print(f"  [warn] POC_ABS_W={POC_ABS_W} but no finite-positive POC cells in AOI; loss term will be skipped")
+
+    # Absolute-units surface F_CO2 target (F_CO2_ABS_W). Unlike PIC/POC, F_CO2
+    # can be either sign (ocean source = positive, sink = negative), so the mask
+    # accepts any finite value -- no positivity gate.
+    f_co2_abs_mask_np = ocean_mask & np.isfinite(co2_flux_obs)
+    f_co2_abs_target_np = np.where(f_co2_abs_mask_np, co2_flux_obs, 0.0).astype(np.float32)
+    f_co2_abs_target_t = torch.tensor(f_co2_abs_target_np).to(device)
+    f_co2_abs_mask_t = torch.tensor(f_co2_abs_mask_np, dtype=torch.bool).to(device)
+    f_co2_abs_mask_f = f_co2_abs_mask_t.to(torch.float32)
+    n_f_co2_abs = int(f_co2_abs_mask_np.sum())
+    n_f_co2_abs_f = f_co2_abs_mask_f.sum().clamp(min=1.0)
+    if F_CO2_ABS_W > 0:
+        if n_f_co2_abs > 0:
+            print(f"  F_CO2 absolute target: {n_f_co2_abs} cells, "
+                  f"mean={float(f_co2_abs_target_t[f_co2_abs_mask_t].mean()):.4e} mmol C/m^2/s")
+        else:
+            print(f"  [warn] F_CO2_ABS_W={F_CO2_ABS_W} but no finite F_CO2 cells in AOI; loss term will be skipped")
 
     # GEOTRACES per-AOI (surface + subsurface).
     print(f"  loading GEOTRACES IDP2025 (Eq Pac stations slice)...")
@@ -702,6 +735,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "posi_target_t": posi_target_t, "posi_mask_t": posi_mask_t,
         "posi_mask_f": posi_mask_f, "n_posi_f": n_posi_f,
         "n_posi": n_posi_in_ocean,
+        "f_co2_abs_target_t": f_co2_abs_target_t, "f_co2_abs_mask_t": f_co2_abs_mask_t,
+        "f_co2_abs_mask_f": f_co2_abs_mask_f, "n_f_co2_abs_f": n_f_co2_abs_f,
+        "n_f_co2_abs": n_f_co2_abs,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -966,6 +1002,18 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_posi_f"] / scale
         z = z + POSI_W * l
 
+    # F_CO2 absolute-units MSE on surface air-sea CO2 flux. The z-scored term
+    # tb(co2_pred, co2_flux_z) above constrains spatial pattern only and cancels
+    # any uniform rescaling (so K_WANNINKHOF and Lueker-vs-Mehrbach are no-ops
+    # in z-space). This absolute term anchors the F_CO2 magnitude, making
+    # carbonate-constant choices into real levers and coupling DIC/ALK/R_PICPOC
+    # through the calcite -> ALK -> pCO2 chain.
+    if F_CO2_ABS_W > 0 and bundle["n_f_co2_abs"] > 0:
+        residual = (co2_pred - bundle["f_co2_abs_target_t"][None]) * bundle["f_co2_abs_mask_f"][None]
+        scale = (bundle["f_co2_abs_target_t"][bundle["f_co2_abs_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_f_co2_abs_f"] / scale
+        z = z + F_CO2_ABS_W * l
+
     return z, state
 
 
@@ -1146,6 +1194,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
         "posi_w": POSI_W,
         "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
+        "f_co2_abs_w": F_CO2_ABS_W,
+        "n_f_co2_abs_cells_per_aoi": {b["key"]: b["n_f_co2_abs"] for b in bundles},
         "use_mehrbach_k1k2": _carbonate.USE_MEHRBACH_K1K2,
         "k_wanninkhof": _carbonate.K_WANNINKHOF,
         "fet_w": FET_W,
@@ -1185,6 +1235,7 @@ else:
     pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
     poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
+    fco2_abs_tag = f"_fco2absW{F_CO2_ABS_W}" if F_CO2_ABS_W > 0 else ""
     mehrbach_tag = "_mehrbach" if _carbonate.USE_MEHRBACH_K1K2 else ""
     kw_tag = f"_kw{_carbonate.K_WANNINKHOF}" if _K_WANNINKHOF_OVERRIDE is not None else ""
     for r in all_results:
@@ -1205,6 +1256,7 @@ else:
             f"{pic_abs_tag}"
             f"{poc_abs_tag}"
             f"{posi_tag}"
+            f"{fco2_abs_tag}"
             f"{mehrbach_tag}"
             f"{kw_tag}.json"
         )
