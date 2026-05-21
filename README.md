@@ -30,7 +30,7 @@ can learn parameters that Carroll's Green's-functions calibration tunes one-at-a
   - `c_chl40_posi15` seed 9: CHL1_W + POSI_W combo. Recovers iron pair + Smallgrow + Biggrow + R_PICPOC; misses diatomgraz. Not yet retested at n=20.
 - **Binary mutex confirmed at low PIC dose**: any `PIC_ABS_W ≥ 0.02` wipes iron pair regardless of magnitude or POC pairing.
 
-The structural 5/6 ceiling holds. Both 5/6 events recover complementary param subsets, suggesting combining their interventions is the natural 6/6 candidate. Cluster path via MIT ORCD AICR (B200) is opening; Engaging cluster experience is the prerequisite.
+The structural 5/6 ceiling holds. The two 5/6 events recover complementary params (one lands diatomgraz, the other R_PICPOC), so combining their interventions is a testable hypothesis for 6/6 — not a prediction. v3.0's parameter-conservation framing (~5 effective constraints on 6 params) leans against composability; the optimizer may just redistribute the residual to a new binding param. Cluster path via MIT ORCD AICR (B200) is opening; Engaging cluster experience is the prerequisite.
 
 See [STATUS.md][status_url] for live state and per-version findings.
 
