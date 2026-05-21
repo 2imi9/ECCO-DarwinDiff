@@ -22,16 +22,16 @@ can learn parameters that Carroll's Green's-functions calibration tunes one-at-a
 
 ## Status — Track 1 v3.1
 
-3-AOI joint training (Eq Pac + N Atl Subpolar + Southern Ocean Pacific) across **847 seeds in 85 configs**:
+3-AOI joint training (Eq Pac + N Atl Subpolar + Southern Ocean Pacific) across **857 seeds in 86 configs**:
 
 - **Basin C iron-pair recovery: 38/40 (95%) at n=40** across four independent 10-seed batches.
-- **Two 5/6 Cal-grade single-seed events** (unreproduced at scale, 2/847 = 0.24% break rate):
+- **Two 5/6 Cal-grade single-seed events** (unreproduced at scale, 2/857 = 0.23% break rate):
   - `w2e_peraoi_lam0.1` seed 3: PER_AOI_DINN + low CONSISTENCY_LAMBDA. Recovers iron pair + 3 phyto/grazing; misses R_PICPOC. Wave 5 dose-response + n=20 extension produced 0 additional 5/6.
-  - `c_chl40_posi15` seed 9: CHL1_W + POSI_W combo. Recovers iron pair + Smallgrow + Biggrow + R_PICPOC; misses diatomgraz. Not yet retested at n=20.
+  - `c_chl40_posi15` seed 9: CHL1_W + POSI_W combo. Recovers iron pair + Smallgrow + Biggrow + R_PICPOC; misses diatomgraz. n=20 retest at seeds 10-19 produced 0 additional 5/6 (combined: 1/20).
 - **Composition test of the two 5/6 recipes fails (Wave 6).** Stacking both intervention families → 0/10 at 5/6, mean_cal 2.00 (worse than either parent 2.40 / 2.70). Iron pair survives (9/10) but R_PICPOC and diatomgraz both drift, Smallgrow + Biggrow regress. Interventions interfere.
 - **Binary mutex confirmed at low PIC dose**: any `PIC_ABS_W ≥ 0.02` wipes iron pair regardless of magnitude or POC pairing.
 
-The structural 5/6 ceiling is the headline finding, now supported by three independent pieces of evidence (single-lever sweep at scale + unreproduced 5/6 events + failed composition test). v3.0's parameter-conservation framing is strengthened. Cluster path via MIT ORCD AICR (B200) is opening; Engaging cluster experience is the prerequisite.
+The structural 5/6 ceiling is the headline finding, now supported by four independent pieces of evidence: 0/857 at 6/6 across 86 single-lever configs, both 5/6 events independently confirmed unreproduced at n=20 (each 1/20), and the composition test of the two complementary 5/6 lever families fails. v3.0's parameter-conservation framing is fully strengthened. Cluster path via MIT ORCD AICR (B200) is opening; Engaging cluster experience is the prerequisite.
 
 See [STATUS.md][status_url] for live state and per-version findings.
 

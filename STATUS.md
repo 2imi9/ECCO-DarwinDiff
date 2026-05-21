@@ -6,16 +6,16 @@ Live status doc. Headlines reflect verified results at the current project versi
 
 DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with gradient descent through a differentiable box model, predicted by a per-cell neural network. Active at **3-AOI multi-AOI joint training** (Equatorial Pacific + N Atlantic Subpolar + Southern Ocean Pacific) on a single workstation (NVIDIA RTX 5090 32 GB).
 
-**Verified results from the v3.1 sweep set** (847 seeds across 85 configs, outputs in `D:\runs\bcr_*\`):
+**Verified results from the v3.1 sweep set** (857 seeds across 86 configs, outputs in `D:\runs\bcr_*\`):
 
 - **Basin C iron-pair recovery is reproducible at n=40, 38/40 (95%).** Four independent 10-seed batches at the F2 Basin C config (POSI_W=1.0 + AOI_W_NATLSUBPOLAR=2.0 + AOI_W_SOUTHERNOCEANPAC=2.0 + CHL1_W_EXTRA=3.0). Per-batch iron-pair counts: 10/10, 10/10, 10/10, 8/10.
 - **Two 5/6 Cal-grade single-seed events** out of 847 seeds (0.24% break rate, both unreproduced at scale):
   - `w2e_peraoi_lam0.1` seed 3: PER_AOI_DINN + CONSISTENCY_LAMBDA=0.1 at Basin C base. Recovers alpfe (Excellent) + scav_rat + Smallgrow + Biggrow + diatomgraz; R_PICPOC drifts. Wave 5 dose-response (CONSISTENCY_LAMBDA ∈ {0.05, 0.15, 0.20, 0.30}) and n=20 extension (seeds 10-19 at the same config) produced 0 additional 5/6.
-  - `c_chl40_posi15` seed 9: CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C base. Recovers alpfe + scav_rat (Excellent) + Smallgrow + Biggrow + R_PICPOC; diatomgraz drifts. Not yet n=20 retested.
+  - `c_chl40_posi15` seed 9: CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C base. Recovers alpfe + scav_rat (Excellent) + Smallgrow + Biggrow + R_PICPOC; diatomgraz drifts. n=20 retest at seeds 10-19 produced 0 additional 5/6 (combined: 1/20 at 5/6).
 - **Composition test of the two 5/6 recipes fails (Wave 6).** Combining PER_AOI_DINN + CONSISTENCY_LAMBDA=0.1 + CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C 3-AOI base yields 0/10 at 5/6, 0/10 at 4/6, mean_cal 2.00 — worse than either parent (2.40 / 2.70). Iron pair survives (9/10) but R_PICPOC and diatomgraz both drift; small-cell phyto params (Smallgrow, Biggrow) also regress. The two intervention families interfere.
 - **Binary mutex confirmed at low PIC dose.** Any nonzero `PIC_ABS_W` (tested down to 0.02) wipes iron-pair recovery → 0/10, regardless of POC pair. `POC_ABS_W` alone also kills iron pair, with different downstream basin geometry.
 
-The structural 5/6 ceiling holds at 2/847 across all v3.1 work. Three independent pieces of evidence now support parameter conservation as the binding limit: (1) 0 at 6/6 across 847 seeds and 85 configs of single-lever variation, (2) both 5/6 events are unreproduced at extended seeds, (3) the composition test of the two complementary 5/6 lever families fails to even reach 5/6. The 5/6 ceiling is the headline finding.
+The structural 5/6 ceiling holds at 2/857 across all v3.1 work. Four independent pieces of evidence now support parameter conservation as the binding limit: (1) 0 at 6/6 across 857 seeds and 86 configs of single-lever variation, (2) `w2e_peraoi_lam0.1` n=20 → 1/20 at 5/6, (3) `c_chl40_posi15` n=20 → 1/20 at 5/6 (both 5/6 events unreproduced), (4) the composition test of the two complementary 5/6 lever families produces 0/10 at 5/6. The 5/6 ceiling is the headline finding.
 
 ## Headline results
 
