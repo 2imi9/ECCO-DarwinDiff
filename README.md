@@ -11,7 +11,7 @@ A differentiable PyTorch reimplementation of the ECCO-Darwin ocean biogeochemist
 model. Gradients flow through every step of the simulation, so the same loss surface
 can learn parameters that Carroll's Green's-functions calibration tunes one-at-a-time.
 
-[Status][status_url] · [Design][design_url] · [Cluster setup][cluster_url] · [Data][data_url] · [Skills][skills_url]
+[Status][status_url] · [Design][design_url] · [Cluster setup][cluster_url] · [Data][data_url] · [Skills][skills_url] · [Demo][demo_url]
 
 </div>
 
@@ -221,3 +221,4 @@ If your work depends on the underlying ECCO-Darwin model, please also cite:
 [cluster_url]: docs/cluster_setup.md
 [data_url]: data/README.md
 [skills_url]: .claude/skills/README.md
+[demo_url]: notebooks/demo_colab.ipynb
