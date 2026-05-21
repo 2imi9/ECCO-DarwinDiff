@@ -20,14 +20,17 @@ can learn parameters that Carroll's Green's-functions calibration tunes one-at-a
 1. **Parameter learner** — replaces ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes a global 6-parameter vector via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
 2. **Emulator** — neural-network stand-in for ECCO-Darwin for long-timescale climate runs. Not started yet.
 
-## Status (v3.1 — 2026-05-20)
+## Status — Track 1 v3.1
 
-Two distinct **5/6 Cal-grade seeds** in 3-AOI joint training (Eq Pac + N Atl Subpolar + Southern Ocean Pacific), out of **757 seeds across 76 configs**:
+3-AOI joint training (Eq Pac + N Atl Subpolar + Southern Ocean Pacific) across **837 seeds in 84 configs**:
 
-- `w2e_peraoi_lam0.1` seed 3: PER_AOI_DINN + CONSISTENCY_LAMBDA=0.1. Recovers alpfe (Excellent) + scav_rat + Smallgrow + Biggrow + diatomgraz; misses R_PICPOC.
-- `c_chl40_posi15` seed 9: CHL1_W_EXTRA=4.0 + POSI_W=1.5. Recovers alpfe + scav_rat (Excellent) + Smallgrow + Biggrow + R_PICPOC; misses diatomgraz.
+- **Basin C iron-pair recovery: 38/40 (95%) at n=40** across four independent 10-seed batches.
+- **Two 5/6 Cal-grade single-seed events** (unreproduced at scale, 2/837 = 0.24% break rate):
+  - `w2e_peraoi_lam0.1` seed 3: PER_AOI_DINN + low CONSISTENCY_LAMBDA. Recovers iron pair + 3 phyto/grazing; misses R_PICPOC. Wave 5 dose-response + n=20 extension produced 0 additional 5/6.
+  - `c_chl40_posi15` seed 9: CHL1_W + POSI_W combo. Recovers iron pair + Smallgrow + Biggrow + R_PICPOC; misses diatomgraz. Not yet retested at n=20.
+- **Binary mutex confirmed at low PIC dose**: any `PIC_ABS_W ≥ 0.02` wipes iron pair regardless of magnitude or POC pairing.
 
-Iron-pair Basin C baseline is **38/40 reproducible across n=40**. The 5/6 ceiling holds at 2/757 (0.3% break rate). Cluster path via MIT ORCD AICR (B200) opening — Engaging cluster experience is the prerequisite.
+The structural 5/6 ceiling holds. Both 5/6 events recover complementary param subsets, suggesting combining their interventions is the natural 6/6 candidate. Cluster path via MIT ORCD AICR (B200) is opening; Engaging cluster experience is the prerequisite.
 
 See [STATUS.md][status_url] for live state and per-version findings.
 
