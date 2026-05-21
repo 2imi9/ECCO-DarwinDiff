@@ -145,34 +145,14 @@ Raw data files live outside the repo. Loaders respect `DARWIN_DATA_ROOT` / `GLOD
 
 ## Acknowledgements
 
-This project is built on the shoulders of an extraordinary lineage of ocean biogeochemistry and machine-learning research. The author is grateful to the collaborators, data providers, and method authors who made DarwinDiff possible.
+DarwinDiff builds on a substantial lineage of ocean biogeochemistry, ECCO-Darwin model development, and machine-learning-for-physics research. Specific individual credits will be added in the published manuscript; for the in-development repository, the following institutional acknowledgements apply.
 
-### Research collaborators
+- **MIT Department of Earth, Atmospheric, and Planetary Sciences (EAPS)** — research collaboration on ECCO-Darwin and the differentiable-physics-for-parameter-learning approach.
+- **MIT Office of Research Computing and Data (ORCD)** — Engaging cluster and AICR (B200) beta program for the cluster-scale phase of this work.
+- **JPL ECCO Group** and the **NASA Advanced Supercomputing (NAS)** division — ECCO-Darwin v05 outputs (`bin_average` 1° NetCDF + native LLC270 monthly tracer tree).
+- **GLODAP**, **GEOTRACES**, and the **NASA GHG Center** — observational data products that are active recovery targets in v3.1.
 
-- **[Dr. Jonathan Lauderdale](https://eapsweb.mit.edu/people/jml1)** — Research Scientist, MIT EAPS. Project advisor, scientific direction, ECCO-Darwin domain expertise, cluster onboarding sponsor.
-- **[Prof. Mick Follows](https://eapsweb.mit.edu/people/mick)** — Professor, MIT EAPS. Darwin co-author whose endorsement validated the differentiable-physics-for-parameter-learning approach. The carbonate solver in `src/darwindiff/carbonate.py` directly implements his iterative pH algorithm (Follows, Ito & Dutkiewicz 2006).
-- **Dr. AW Omta** — MIT EAPS. Project consultation and discussion of Darwin biogeochemistry.
-
-### Infrastructure & cluster compute
-
-- **MIT Office of Research Computing and Data (ORCD)** — Engaging cluster + AICR (B200) beta access. Particular thanks to **Lauren** (AICR beta coordinator) and **Dr. Chris Hill** (MIT ORCD leadership) for opening the cluster route.
-
-### Data providers
-
-- **[JPL ECCO Group](https://ecco.jpl.nasa.gov/)** — ECCO-Darwin v05 outputs (`bin_average` 1° NetCDF + native LLC270 monthly tracer tree); canonical hosting at `ecco.jpl.nasa.gov/drive`.
-- **NASA NAS (Advanced Supercomputing)** — public mirror of the LLC270 monthly tracer tree used for bulk download.
-- **[GLODAP](https://glodap.info)** — Global Ocean Data Analysis Project v2.2016b mapped climatology (Olsen et al. 2016, *ESSD*). Active recovery target for DIC + alkalinity.
-- **[GEOTRACES](https://www.geotraces.org/idp2025/)** — Intermediate Data Product 2025 (Schlitzer et al. 2018, *Chemical Geology*). Active recovery target for dissolved iron, biogenic silica, and subsurface POC.
-- **[NASA GHG Center](https://earth.gov/ghgcenter)** — ECCO-Darwin v5 air-sea CO₂ flux GeoTIFFs for validation.
-
-### Method inspirations
-
-- **[Dr. Maziar Raissi](https://maziarraissi.github.io/)** *et al.* — Physics-Informed Neural Networks framework (Raissi, Perdikaris & Karniadakis 2019, *J. Comput. Phys.*) defined the conceptual space within which DarwinDiff operates.
-- **[Prof. Dustin Carroll](https://gcoe.unh.edu/people/dustin-carroll)** & **Dr. Dimitris Menemenlis** — ECCO-Darwin (Carroll 2020 + 2022) and the Green's-functions calibration method (Menemenlis et al. 2005) that DarwinDiff replaces with autograd.
-- **Prof. Stephanie Dutkiewicz** *et al.* — Core Darwin biogeochemistry formulation (Dutkiewicz et al. 2009).
-- **[Dr. Yibin Xu](https://www.princeton.edu/~yibinxu/)** *et al.* — BINN (Xu et al. 2025) provided the closest method template for differentiable physics with per-location parameter networks.
-- **[Dr. Dmitrii Kochkov](https://research.google/people/dmitriikochkov/)** *et al.* — Neural GCM (Kochkov et al. 2024, *Nature*) as design reference for hybrid physics + ML emulators.
-- **Dr. Said Ouala & Dr. Zouhair Lachkar** — Neural-BGC (Ouala & Lachkar 2026) as the closest extant ocean-BGC ML system; DarwinDiff differentiates itself by being mechanistic and parameter-aware.
+Method-inspiration citations (PINN, BINN, Neural GCM, Neural-BGC, the full ECCO-Darwin lineage) are listed in the [Background reading](#background-reading) section above with verified DOIs.
 
 ### Affiliation
 
@@ -180,22 +160,22 @@ Lucas (Ziming) Qi — Khoury College of Computer Sciences, Northeastern Universi
 
 ## License
 
-Released under the **MIT License**. See [LICENSE](LICENSE) for the full text. Copyright © 2026 ECCO-DarwinDiff contributors.
+Released under the **MIT License**. See [LICENSE](LICENSE) for full text. Copyright © 2026 ECCO-DarwinDiff contributors.
 
-The underlying ECCO-Darwin model is the work of the ECCO and Darwin teams cited above and should be credited independently in any downstream work.
+The underlying ECCO-Darwin model is the work of the ECCO and Darwin teams and should be credited independently in any downstream work; see citation block below.
 
 ## How to cite
 
-DarwinDiff is under active development; a formal manuscript and Zenodo DOI will be issued upon publication of the proof-of-concept paper. In the interim, you may cite the repository directly:
+DarwinDiff is under active development; a formal manuscript and Zenodo DOI will be issued upon publication. In the interim, you may cite the repository directly:
 
 ```bibtex
 @software{darwindiff_2026,
-  author       = {Qi, Lucas (Ziming) and Lauderdale, Jonathan M.},
-  title        = {{ECCO-DarwinDiff}: Differentiable Ocean Biogeochemistry
-                  for Per-Cell Parameter Recovery},
-  year         = {2026},
-  publisher    = {GitHub},
-  url          = {https://github.com/2imi9/ECCO-DarwinDiff}
+  author    = {Qi, Lucas (Ziming) and {ECCO-DarwinDiff contributors}},
+  title     = {{ECCO-DarwinDiff}: Differentiable Ocean Biogeochemistry
+               for Per-Cell Parameter Recovery},
+  year      = {2026},
+  publisher = {GitHub},
+  url       = {https://github.com/2imi9/ECCO-DarwinDiff}
 }
 ```
 
