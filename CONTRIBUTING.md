@@ -2,16 +2,16 @@
 
 ## Branch naming
 
-All work branches use the **`2imi9/<scope>-<short-description>`** form. Examples:
+All work branches use the **`<github-username>/<scope>-<short-description>`** form. For this repository, the maintainer's GitHub handle is **`2imi9`** ([github.com/2imi9](https://github.com/2imi9)), so all branches authored by the maintainer take the form `2imi9/<scope>-<short-description>`. Examples:
 
 - `2imi9/v3.1-doc-cleanup`
 - `2imi9/v2.8-darwin-ic-poc-sub`
 - `2imi9/demo-colab`
 - `2imi9/fixups-pr45-54-bot-comments`
 
-The `2imi9/` prefix is the GitHub user namespace. The scope (e.g. `v3.1`, `v2.8`, `docs`, `demo`, `fixups`) groups the change. The short description is hyphenated.
+The username prefix is the GitHub user namespace — it scopes the branch to its author and prevents accidental collisions on shared repositories. The scope (e.g. `v3.1`, `v2.8`, `docs`, `demo`, `fixups`) groups the change. The short description is hyphenated. Contributors using a different GitHub account (e.g. for forks or external PRs) should substitute their own handle in place of `2imi9/`.
 
-Avoid generic prefixes like `claude/`, `feature/`, or `dev/`. They lose information and produce inconsistent histories.
+Avoid generic prefixes like `claude/`, `feature/`, or `dev/`. They lose authorship information and produce inconsistent histories that are harder to audit.
 
 ## Pull-request titles
 
