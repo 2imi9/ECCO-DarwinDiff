@@ -102,16 +102,39 @@ Raw data files live outside the repo. Loaders respect `DARWIN_DATA_ROOT` / `GLOD
 </details>
 
 <details>
-<summary><b>Background reading</b></summary>
+<summary><b>Background reading</b> (all DOIs verified via OpenAlex)</summary>
+
+**ECCO-Darwin lineage (active recovery target):**
 
 | Reference | Why it matters |
 |---|---|
-| [Carroll et al. 2020](https://doi.org/10.1029/2019MS001888) (*JAMES*) | Original ECCO-Darwin paper; the 6-parameter calibration we differentiate against. |
-| [Carroll et al. 2022](https://doi.org/10.1029/2021GB007162) (*GBC*) | ECCO-Darwin v05; active recovery target. |
-| [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) | The Green's-functions calibration method DarwinDiff replaces. |
-| [Dutkiewicz et al. 2009](https://doi.org/10.1029/2008GB003405) | Core Darwin biogeochemistry formulation. |
-| [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Method template — differentiable physics + per-location parameter network. |
-| [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM) | Hybrid physics + ML emulator design reference. |
+| [Carroll et al. 2020](https://doi.org/10.1029/2019MS001888) (*JAMES*) | Original ECCO-Darwin paper; the 6-parameter Green's-functions calibration we differentiate against. |
+| [Carroll et al. 2022](https://doi.org/10.1029/2021GB007162) (*GBC*) | ECCO-Darwin v05; the publicly-accessible Darwin output is our active recovery target. |
+| [Brix et al. 2015](https://doi.org/10.1016/j.ocemod.2015.07.008) (*Ocean Modelling*) | Earlier ECCO-Darwin BGC, using Green's-functions to initialize/adjust the model. Co-authored by Chris Hill (MIT ORCD). |
+| [Savelli et al. 2026](https://doi.org/10.5194/gmd-19-867-2026) (*GMD*) | Most recent ECCO-Darwin update; riverine biogeochemical inputs. |
+
+**Box-model physics & chemistry (in `src/darwindiff/`):**
+
+| Reference | Used in |
+|---|---|
+| [Dutkiewicz et al. 2009](https://doi.org/10.1029/2008GB003405) (*GBC*) | Core Darwin biogeochemistry equations (`carroll6.py`, `carroll6_5pft.py`). |
+| [Follows, Ito, Dutkiewicz 2006](https://doi.org/10.1016/j.ocemod.2005.05.004) (*Ocean Modelling*) | Iterative carbonate-system solver in `carbonate.py`. First author is the same Mick Follows currently endorsing DarwinDiff. |
+| [Wanninkhof 2014](https://doi.org/10.4319/lom.2014.12.351) (*L&O Methods*) | Wind-speed–gas-exchange coefficient for air-sea CO₂ flux in `carbonate.py`. |
+| [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) (*MWR*) | The Green's-functions calibration method DarwinDiff replaces. |
+
+**Observational data (loaders + losses):**
+
+| Reference | Used in |
+|---|---|
+| [Olsen et al. 2016](https://doi.org/10.5194/essd-8-297-2016) (*ESSD*) | GLODAPv2 mapped DIC/ALK in `glodap_loader.py` (v2.1, PR #41). |
+| [Schlitzer et al. 2018](https://doi.org/10.1016/j.chemgeo.2018.05.040) (*Chemical Geology*) | GEOTRACES IDP iron observations (v2.6, PR #40). |
+
+**Method templates (differentiable physics + ML for Earth science):**
+
+| Reference | Why it matters |
+|---|---|
+| [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Differentiable physics + per-location parameter network — closest method template. |
+| [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM, *Nature*) | Hybrid physics + ML emulator design reference for Track 2. |
 | [Ouala & Lachkar 2026](https://doi.org/10.22541/essoar.15002003/v1) (Neural-BGC) | Closest existing ocean-BGC ML; DarwinDiff differs by being mechanistic + parameter-aware. |
 
 </details>
