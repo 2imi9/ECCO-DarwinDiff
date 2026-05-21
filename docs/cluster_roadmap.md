@@ -72,23 +72,9 @@ Candidate extensions in order of recovery payoff:
 
 #### C. Observation channel additions
 
-The three highest-EV candidates. Each adds independent information channels that directly attack the structural ceiling.
+Each adds independent information channels that directly attack the structural ceiling. Note: POSi (biogenic silica) is **already integrated** as an active constraint throughout v3.1 — the `POSI_W` env var in the production runner (`scripts/run_v3.0_with_modis_pic.py`) is the absolute-units MSE loss against GEOTRACES IDP2025 surface bSi, computed via the steady-state silica diagnostic in `src/darwindiff/silica.py` (no integrator extension required; bSi is diagnosed from existing diatom dynamics). Every Basin C config has `POSI_W=1.0`; `c_chl40_posi15` uses `POSI_W=1.5`. The structural 5/6 ceiling holds with bSi active.
 
-##### C.1 POSi (biogenic silica) from GEOTRACES IDP2025
-
-**Hypothesis.** Silicate is a diatom-specific budget. bSi constrains `diatomgraz` directly without competing with the iron budget. ~1280 finite bSi values in IDP2025 globally.
-
-**What it unlocks.** Directly constrains `diatomgraz`, which Wave 6 showed is the most fragile recovery under lever composition. Doesn't compete with iron pair.
-
-**Compute cost.** Minimal incremental. The observation loss term adds 1 z-scored MSE per training step.
-
-**Code lift.** ~2–4 hours. Extend the box-model state to track bSi (15→16 tracers); add z-score loss. Loader already exists.
-
-**Risk.** Low. The diatom Si:C uptake stoichiometry is well-constrained.
-
-**Success criterion.** `diatomgraz` Cal+ rate increases from current ~0.3% to ≥ 30% at PER_AOI_DINN base.
-
-##### C.2 Ocean color PFT-resolved Chl (OB.DAAC / OC-CCI)
+##### C.1 Ocean color PFT-resolved Chl (OB.DAAC / OC-CCI) — leapfrog-phase per Jon's directive
 
 **Hypothesis.** Remote-sensing PFT decomposition gives Pro-HL-specific, Syn-specific, and diatom-specific Chl independently of Carroll's group-mean target. Constrains `Smallgrow` (Pro-HL specific), `Biggrow` (Syn / large-euk), and `diatomgraz` simultaneously.
 
@@ -102,7 +88,7 @@ The three highest-EV candidates. Each adds independent information channels that
 
 **Success criterion.** Independent PFT-Chl constraints unlock `Smallgrow` Cal+ rate from current ~70% to ≥ 90% at Basin C base.
 
-##### C.3 BGC-Argo depth-resolved profiles
+##### C.2 BGC-Argo depth-resolved profiles
 
 **Hypothesis.** Currently we have surface + subsurface (50–1000 m) anchors via GEOTRACES; BGC-Argo gives much higher density of depth-resolved nitrate, oxygen, chl, particle backscatter, and DFe profiles. Time-resolved by construction.
 
@@ -174,11 +160,14 @@ Train a neural-network stand-in for Darwin for long climate runs. Different prob
 
 ### Phase 0 — laptop work, while waiting for cluster access
 
+The proof-of-concept Carroll-6 v05 laptop work is **substantially done**: 85 single-lever configs, 847 seeds, all major observation channels (bSi via POSI_W, GEOTRACES surface + subsurface DFe + POC, Darwin POC/PIC absolute anchors, per-AOI Chl1–5, carbonate via DIC/ALK/CO2_flux) already active. Strict Phase-0 work that fits the proof-of-concept paper framing is essentially complete.
+
 | Step | Direction | Cost | Notes |
 |---|---|---|---|
-| Add POSi loader + box-model state extension | C.1 | 2–4 hr | Doesn't need cluster; adds 16th tracer to the box; unlocks one direct path to `diatomgraz` |
-| Reproduce `c_chl40_posi15` at n=20 | — | ~7 min | Closes the open hypothesis on the second 5/6 path |
-| Optionally: small zooplankton extension | B (start) | 1–2 weeks | Decouples grazing-rate identifiability |
+| Reproduce `c_chl40_posi15` at n=20 (seeds 10-19) | — | ~7 min | Closes the only open reproducibility check from Wave 5 |
+| Optionally: small zooplankton extension to box model | B (start) | 1–2 weeks | Decouples grazing-rate identifiability; useful for paper-2 but Carroll-6 v05 proof-of-concept doesn't need it |
+
+Other potentially useful laptop work falls into **leapfrog territory** (different observation channels) per Jon's strategic directive: ocean color PFT-Chl, MODIS-Aqua PIC, PACE carbon_phyto. Shelved for paper-2.
 
 ### Phase 1 — Engaging onboarding + first cluster jobs (1–4 weeks)
 
@@ -201,12 +190,12 @@ Train a neural-network stand-in for Darwin for long climate runs. Different prob
 
 ### Phase 3 — Paper #2 experiments (8–20 weeks total)
 
-The paper-#2 experiments combine 3 directions:
+The paper-#2 experiments combine three cluster-gated directions:
 1. **Time-resolved fitting** (Direction A) — 5–10 configs at ~50–100 GPU-hours each
-2. **POSi observation channel** (Direction C.1) — laptop work done by Phase 1
-3. **Native resolution** (Direction D) at 3 AOIs — 1–2 configs at ~500 GPU-hours
+2. **Native resolution** (Direction D) at 3 AOIs — 1–2 configs at ~500 GPU-hours
+3. **Box-model extension toward Darwin 3** (Direction B) — incremental tracer additions (zooplankton, DOM) ship between configs
 
-Total: ~1000–5000 GPU-hours on AICR. Substantial but fits comfortably in a beta-period allocation.
+Total: ~1000–5000 GPU-hours on AICR. Substantial but fits comfortably in a beta-period allocation. The bSi (POSi) channel and per-AOI carbonate channels are already active and persist into paper #2; the leapfrog observation channels (ocean color PFT-Chl, BGC-Argo, satellite PIC) come in paper #3.
 
 ### Phase 4 — Global, full Darwin-3 box extension, Track 2
 
@@ -230,9 +219,9 @@ After Paper #2 ships. Each is a follow-on paper:
 |---|---|---|---|---|---|
 | A. Time-resolved | High | 30–100 | 1–2 wk | Low | **Tier 1 #1** |
 | B. Box-model extension | High | 1.5–3× current | 2–4 wk per | Medium | **Tier 1 #2** |
-| C.1 POSi | High | negligible | 2–4 hr | Low | **Tier 1 #3** (do first) |
-| C.2 PFT-Chl | Medium-High | negligible | 1 d | Medium | Tier 1 #4 |
-| C.3 BGC-Argo | Medium-High | medium | 3–5 d | Medium | Tier 1 #5 |
+| C.1 Ocean color PFT-Chl (leapfrog) | Medium-High | negligible | 1 d | Medium | Tier 1, paper-3 |
+| C.2 BGC-Argo (leapfrog) | Medium-High | medium | 3–5 d | Medium | Tier 1, paper-3 |
+| POSi (bSi) — already integrated | — | — | done | — | Active in v3.1 sweep set |
 | D. Native resolution | Medium | 100–500 | 1 wk | Low | Tier 2 |
 | E. Global coverage | Medium | 500–5000 | 1 wk | Medium | Tier 2 |
 | F. Multi-seed scale | Low | linear in n | negligible | Low | Tier 3 |
