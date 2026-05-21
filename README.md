@@ -145,11 +145,92 @@ Raw data files live outside the repo. Loaders respect `DARWIN_DATA_ROOT` / `GLOD
 
 ## Acknowledgements
 
-Collaboration with [Jonathan Lauderdale](https://eapsweb.mit.edu/people/jml1) (MIT EAPS); Darwin co-author [Mick Follows](https://eapsweb.mit.edu/people/mick) endorsed the approach. Cluster work in progress with MIT ORCD. Data from JPL ECCO, NASA NAS, GLODAP, GEOTRACES.
+This project is built on the shoulders of an extraordinary lineage of ocean biogeochemistry and machine-learning research. The author is grateful to the collaborators, data providers, and method authors who made DarwinDiff possible.
 
-## License & Citation
+### Research collaborators
 
-MIT — see [LICENSE](LICENSE). © 2026 ECCO-DarwinDiff contributors. If your work depends on the underlying ECCO-Darwin model, cite [Carroll et al. 2020](https://doi.org/10.1029/2019MS001888) and [Carroll et al. 2022](https://doi.org/10.1029/2021GB007162).
+- **[Dr. Jonathan Lauderdale](https://eapsweb.mit.edu/people/jml1)** — Research Scientist, MIT EAPS. Project advisor, scientific direction, ECCO-Darwin domain expertise, cluster onboarding sponsor.
+- **[Prof. Mick Follows](https://eapsweb.mit.edu/people/mick)** — Professor, MIT EAPS. Darwin co-author whose endorsement validated the differentiable-physics-for-parameter-learning approach. The carbonate solver in `src/darwindiff/carbonate.py` directly implements his iterative pH algorithm (Follows, Ito & Dutkiewicz 2006).
+- **Dr. AW Omta** — MIT EAPS. Project consultation and discussion of Darwin biogeochemistry.
+
+### Infrastructure & cluster compute
+
+- **MIT Office of Research Computing and Data (ORCD)** — Engaging cluster + AICR (B200) beta access. Particular thanks to **Lauren** (AICR beta coordinator) and **Dr. Chris Hill** (MIT ORCD leadership) for opening the cluster route.
+
+### Data providers
+
+- **[JPL ECCO Group](https://ecco.jpl.nasa.gov/)** — ECCO-Darwin v05 outputs (`bin_average` 1° NetCDF + native LLC270 monthly tracer tree); canonical hosting at `ecco.jpl.nasa.gov/drive`.
+- **NASA NAS (Advanced Supercomputing)** — public mirror of the LLC270 monthly tracer tree used for bulk download.
+- **[GLODAP](https://glodap.info)** — Global Ocean Data Analysis Project v2.2016b mapped climatology (Olsen et al. 2016, *ESSD*). Active recovery target for DIC + alkalinity.
+- **[GEOTRACES](https://www.geotraces.org/idp2025/)** — Intermediate Data Product 2025 (Schlitzer et al. 2018, *Chemical Geology*). Active recovery target for dissolved iron, biogenic silica, and subsurface POC.
+- **[NASA GHG Center](https://earth.gov/ghgcenter)** — ECCO-Darwin v5 air-sea CO₂ flux GeoTIFFs for validation.
+
+### Method inspirations
+
+- **[Dr. Maziar Raissi](https://maziarraissi.github.io/)** *et al.* — Physics-Informed Neural Networks framework (Raissi, Perdikaris & Karniadakis 2019, *J. Comput. Phys.*) defined the conceptual space within which DarwinDiff operates.
+- **[Prof. Dustin Carroll](https://gcoe.unh.edu/people/dustin-carroll)** & **Dr. Dimitris Menemenlis** — ECCO-Darwin (Carroll 2020 + 2022) and the Green's-functions calibration method (Menemenlis et al. 2005) that DarwinDiff replaces with autograd.
+- **Prof. Stephanie Dutkiewicz** *et al.* — Core Darwin biogeochemistry formulation (Dutkiewicz et al. 2009).
+- **[Dr. Yibin Xu](https://www.princeton.edu/~yibinxu/)** *et al.* — BINN (Xu et al. 2025) provided the closest method template for differentiable physics with per-location parameter networks.
+- **[Dr. Dmitrii Kochkov](https://research.google/people/dmitriikochkov/)** *et al.* — Neural GCM (Kochkov et al. 2024, *Nature*) as design reference for hybrid physics + ML emulators.
+- **Dr. Said Ouala & Dr. Zouhair Lachkar** — Neural-BGC (Ouala & Lachkar 2026) as the closest extant ocean-BGC ML system; DarwinDiff differentiates itself by being mechanistic and parameter-aware.
+
+### Affiliation
+
+Lucas (Ziming) Qi — Khoury College of Computer Sciences, Northeastern University.
+
+## License
+
+Released under the **MIT License**. See [LICENSE](LICENSE) for the full text. Copyright © 2026 ECCO-DarwinDiff contributors.
+
+The underlying ECCO-Darwin model is the work of the ECCO and Darwin teams cited above and should be credited independently in any downstream work.
+
+## How to cite
+
+DarwinDiff is under active development; a formal manuscript and Zenodo DOI will be issued upon publication of the proof-of-concept paper. In the interim, you may cite the repository directly:
+
+```bibtex
+@software{darwindiff_2026,
+  author       = {Qi, Lucas (Ziming) and Lauderdale, Jonathan M.},
+  title        = {{ECCO-DarwinDiff}: Differentiable Ocean Biogeochemistry
+                  for Per-Cell Parameter Recovery},
+  year         = {2026},
+  publisher    = {GitHub},
+  url          = {https://github.com/2imi9/ECCO-DarwinDiff}
+}
+```
+
+If your work depends on the underlying ECCO-Darwin model, please also cite:
+
+```bibtex
+@article{carroll2020eccoDarwin,
+  title   = {The {ECCO}-{Darwin} data-assimilative global ocean
+             biogeochemistry model: Estimates of seasonal to multidecadal
+             surface ocean p{CO}$_2$ and air-sea {CO}$_2$ flux},
+  author  = {Carroll, Dustin and Menemenlis, Dimitris and Adkins, Jess F.
+             and Bowman, Kevin W. and Brix, Holger and Dutkiewicz,
+             Stephanie and others},
+  journal = {Journal of Advances in Modeling Earth Systems},
+  volume  = {12},
+  number  = {10},
+  pages   = {e2019MS001888},
+  year    = {2020},
+  doi     = {10.1029/2019MS001888}
+}
+
+@article{carroll2022eccoDarwinDIC,
+  title   = {Attribution of space-time variability in global-ocean
+             dissolved inorganic carbon},
+  author  = {Carroll, Dustin and Menemenlis, Dimitris and Dutkiewicz,
+             Stephanie and Lauderdale, Jonathan M. and Adkins, Jess F.
+             and Bowman, Kevin W. and others},
+  journal = {Global Biogeochemical Cycles},
+  volume  = {36},
+  number  = {4},
+  pages   = {e2021GB007162},
+  year    = {2022},
+  doi     = {10.1029/2021GB007162}
+}
+```
 
 <!-- Reference links -->
 [py_img]: https://img.shields.io/badge/python-3.11%2B-blue.svg
