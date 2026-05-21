@@ -82,8 +82,13 @@ desktop.ini
 .env.local
 *.env
 
-# Agent worktree settings (per-machine, not project content)
-.claude/
+# Agent worktree settings (per-machine, not project content) — but keep
+# the project-scoped skill bundle, which ships with the repo. Note: parent
+# dir cannot be excluded with `.claude/` if we want to re-include
+# `.claude/skills/`; use `.claude/*` instead.
+.claude/*
+!.claude/skills/
+!.claude/skills/**
 
 # Overnight automation logs
 scripts/overnight_log.txt

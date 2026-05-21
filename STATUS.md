@@ -2,7 +2,48 @@
 
 *Living doc. Update as things ship.*
 
-**Last updated:** 2026-05-18 (Track 1 **v3.0 multi-AOI arc closed at the 5/6 plateau; parameter conservation is the structural ceiling**. v2.8 + v3.0 implementation arc landed across PRs #45-#57 (all merged); PR #58 (per-AOI DINNs + consistency penalty) ready for review; PR #59 (PIC_ABS + POC_ABS paired anchors + `notebooks/32_v3_0_param_learner_ceiling.ipynb` arc analysis) draft. **5/6 ceiling diagnosis (corrected)**: the actual baseline binding parameter is `diatomgraz` (2/15 Cal in baseline; 6/7 5/6-miss seeds drop diatomgraz). R_PICPOC is Cal-grade in 11/15 baseline seeds. PR #58 falsified the architectural-ceiling hypothesis (per-AOI DINNs 0/40 at 6/6, best λ=0.1 only 3/10 at 5/6, below baseline). PR #59 three sweeps (PIC alone; paired heavy; paired light) all confirm parameter conservation: **across 17 distinct configurations, no anchored config beats baseline on aggregate `mean_cal`**. The observations provide ~5 effective constraints on 6 parameters; the 6th is always the residual sink, and loss weighting decides which. Different interventions shift WHICH parameter is binding: baseline → diatomgraz; per-AOI DINN → R_PICPOC; PIC/POC anchors → alpfe + scav_rat. The laptop-tractable break path is **action #2 from the original v3.0 next-action stack: POSi (biogenic silica)** — diatom-specific tracer (~1280 finite GEOTRACES values) that directly constrains `diatomgraz` without competing with the iron-pair budget. Full deliverable: [`notebooks/32_v3_0_param_learner_ceiling.ipynb`](notebooks/32_v3_0_param_learner_ceiling.ipynb) on PR #59 branch with three plots + summary tables.)
+**Last updated:** 2026-05-20 — see [today's section](#2026-05-20--basin-c-first-56-in-3-aoi--aicr-meeting-tomorrow) below for the active state. Prior 2026-05-18 narrative preserved underneath.
+
+## 2026-05-20 — Basin C n=40 + two 5/6 configs in 3-AOI + AICR meeting tomorrow
+
+**Verified counts (cross-checked against `D:\runs\bcr_*\` JSONs):**
+
+- **76 configs / 757 seeds completed** across waves V2 + W2 + W3 + W4 (W4 partial; W5 not yet started)
+- **39 configs preserve iron pair at 9-10/10**; 26 configs at exactly 10/10
+- **2 configs broke 5/6** (1/10 seeds each); 0 at 6/6
+- Wave 4 had 1 timeout (`a_nsteps_1000` got 6/10 seeds before timeout); Wave 5 has not started
+
+**Three headline results:**
+
+1. **Basin C iron-pair recovery extends to n=40, 38/40 (95%).** Four independent batches (seeds 0-9, 10-19, 20-29, 30-39) at the F2 Basin C config (3-AOI + POSI_W=1.0 + AOI_W_NATLSUBPOLAR=2.0 + AOI_W_SOUTHERNOCEANPAC=2.0 + CHL1_W_EXTRA=3.0). Per-batch iron-pair: 10/10, 10/10, 10/10, **8/10** (Wave 3 `e_basinC_seeds30-39`). The 5% drop in the 4th batch is honest — not a 100% claim.
+2. **Two distinct 5/6 paths in 3-AOI joint training:**
+   - `w2e_peraoi_lam0.1` (Wave 2; PER_AOI_DINN=1 + CONSISTENCY_LAMBDA=0.1, otherwise Basin C base): seed 3 recovered alpfe (Excellent) + scav_rat + Smallgrow + Biggrow + diatomgraz; missed R_PICPOC.
+   - `c_chl40_posi15` (Wave 3; CHL1_W_EXTRA=4.0 + POSI_W=1.5, otherwise Basin C base): seed 9 recovered alpfe + scav_rat (Excellent) + Smallgrow + Biggrow + R_PICPOC; missed diatomgraz.
+   - These are DIFFERENT param recoveries — one path lands diatomgraz, the other lands R_PICPOC. Both lose 1 param, both retain the iron pair. PER_AOI was falsified at 2-AOI per PR #58; both paths are unique to 3-AOI training.
+3. **Binary mutex confirmed at low PIC doses.** Any nonzero PIC_ABS_W (tested down to 0.02) wipes iron-pair recovery → 0/10. POC_ABS_W alone also kills iron pair but with different downstream basin geometry (mean_cal grows with POC dose; opposite of PIC+POC paired which degrades).
+
+**Best 5 configs by paper-relevance** (across all 95+ tested tonight):
+
+| Rank | Config | Iron-pair | 5+/n | 4+/n | mean_cal | What it tells us |
+|---|---|---|---|---|---|---|
+| 1 | `w2e_peraoi_lam0.1` | 10/10 | **1/10** | 1/10 | 2.40 | First 5/6 + diatomgraz unlock |
+| 2 | `w2a_geoW0.1` | 8/10 | 0/10 | **4/10** | 2.90 | Lower surface DFe weight |
+| 3 | `a5_ep2000` | 10/10 | 0/10 | 3/10 | 2.90 | NB23_N_EPOCHS=2000 (2500/3000 worse) |
+| 4 | `w2c_pinnW1.0` | 10/10 | 0/10 | 3/10 | 2.90 | Weaker PINN drift |
+| 5 | `w2d_fetW5.0` | 10/10 | 0/10 | 2/10 | **3.10** | High FeT z-score |
+
+**Cluster path opening:** Jon emailed 2026-05-20 with AICR (B200) news from MIT ORCD. ~10-user beta starting end-of-May / start-of-June. **Engaging cluster experience is the prerequisite** for AICR access. Meeting with Jon **11am EDT 2026-05-21** to confirm Engaging onboarding plan + MIT Sponsored Account sponsorship via Jon. See [`docs/research_notes/2026-05-20_basinC_refine_sweep.md`](docs/research_notes/2026-05-20_basinC_refine_sweep.md) for the sweep design, and `auto-memory project_darwindiff_collab.md` for the collaboration state.
+
+**Skill bundle shipped** at [`.claude/skills/`](.claude/skills/): 2 project-original (`darwin_v05_loader`, `darwin_dinn_sweep_orchestrator`) + 4 lit-search vendored from `google-deepmind/science-skills` (arxiv, biorxiv, openalex, europepmc). Future roadmap at [`docs/research_notes/skills_future_agenda.md`](docs/research_notes/skills_future_agenda.md).
+
+**Tonight's engineering lessons** (captured to skill bodies + memory):
+- Windows MAX_PATH=260 killed Arc 7 JSON writes after training succeeded. Recovery via `scripts/recover_failed_config_log.py` (parses `.log` files into compatible JSONs). Fix: short OUTPUT_DIR prefixes (`D:\runs\bcr_<stamp>\`).
+- Laptop sleep on Windows suspends background Python processes. `powercfg /change standby-timeout-ac 0` for AC=never-sleep on overnight runs.
+- Thermal cooldown injected into Wave 2/3/4/5: 60s base + 4min deep every 5 configs + nvidia-smi-aware extension if GPU > 75°C.
+
+---
+
+## Historical: 2026-05-18 (Track 1 **v3.0 multi-AOI arc closed at the 5/6 plateau; parameter conservation is the structural ceiling**. v2.8 + v3.0 implementation arc landed across PRs #45-#57 (all merged); PR #58 (per-AOI DINNs + consistency penalty) ready for review; PR #59 (PIC_ABS + POC_ABS paired anchors + `notebooks/32_v3_0_param_learner_ceiling.ipynb` arc analysis) draft. **5/6 ceiling diagnosis (corrected)**: the actual baseline binding parameter is `diatomgraz` (2/15 Cal in baseline; 6/7 5/6-miss seeds drop diatomgraz). R_PICPOC is Cal-grade in 11/15 baseline seeds. PR #58 falsified the architectural-ceiling hypothesis (per-AOI DINNs 0/40 at 6/6, best λ=0.1 only 3/10 at 5/6, below baseline). PR #59 three sweeps (PIC alone; paired heavy; paired light) all confirm parameter conservation: **across 17 distinct configurations, no anchored config beats baseline on aggregate `mean_cal`**. The observations provide ~5 effective constraints on 6 parameters; the 6th is always the residual sink, and loss weighting decides which. Different interventions shift WHICH parameter is binding: baseline → diatomgraz; per-AOI DINN → R_PICPOC; PIC/POC anchors → alpfe + scav_rat. The laptop-tractable break path is **action #2 from the original v3.0 next-action stack: POSi (biogenic silica)** — diatom-specific tracer (~1280 finite GEOTRACES values) that directly constrains `diatomgraz` without competing with the iron-pair budget. Full deliverable: [`notebooks/32_v3_0_param_learner_ceiling.ipynb`](notebooks/32_v3_0_param_learner_ceiling.ipynb) on PR #59 branch with three plots + summary tables.)
 
 ## Where we are in one line
 

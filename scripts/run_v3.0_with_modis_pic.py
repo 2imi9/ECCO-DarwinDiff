@@ -199,6 +199,7 @@ CACHE_DIR = DATA_ROOT / "cache"
 IC_CACHE_NAME = {
     "eqpac": "darwin_ic_cache.npz",
     "natlsubpolar": "darwin_ic_cache_natlsubpolar.npz",
+    "southernoceanpac": "darwin_ic_cache_southernoceanpac.npz",
 }
 
 AOIS_KEYS = [s.strip() for s in os.environ.get("AOIS", "eqpac,natlsubpolar").split(",") if s.strip()]
@@ -293,12 +294,30 @@ POSI_W = float(os.environ.get("POSI_W", "0.0"))
 # so this is the orthogonal anchor for the R_PICPOC + carbonate cluster.
 # Default 0 = off.
 F_CO2_ABS_W = float(os.environ.get("F_CO2_ABS_W", "0.0"))
+# MODIS_PIC_ABS_W: absolute-units MSE loss on surface PIC against the MODIS-Aqua
+# observed PIC climatology (D:\modis_aqua_pic\modis_pic_clim_2017_2019.npz, built
+# by src/darwindiff/modis_pic_loader.py). Replaces PIC_ABS_W's Darwin v05 target
+# with an INDEPENDENT satellite observation -- PR #63's paired anchor used Darwin
+# v05 PIC, which is circular against Carroll-6 calibration AND is ~20x lower in
+# eqpac than MODIS-Aqua reports. See docs/findings/pace_arc/phase2a_modis_pic_integration.md.
+# Default 0 = off.
+MODIS_PIC_ABS_W = float(os.environ.get("MODIS_PIC_ABS_W", "0.0"))
+MODIS_PIC_CACHE_PATH = Path(os.environ.get(
+    "MODIS_PIC_CACHE_PATH",
+    r"D:\modis_aqua_pic\modis_pic_clim_2017_2019.npz",
+))
+# Two-stage curriculum support: optionally load network weights from a previous
+# run's checkpoint dir as initialization. Pair with LR_MULTIPLIER < 1.0 for the
+# "fine-tune" Stage 2 of a curriculum.
+LOAD_CHECKPOINT_DIR = os.environ.get("LOAD_CHECKPOINT_DIR", "").strip()
+SAVE_CHECKPOINTS = os.environ.get("SAVE_CHECKPOINTS", "0") == "1"
+LR_MULTIPLIER = float(os.environ.get("LR_MULTIPLIER", "1.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
 
 DT = 0.25
-N_STEPS = 200
+N_STEPS = int(os.environ.get("N_STEPS", "200"))
 
 print(f"AOIS: {AOIS_KEYS}  (joint training across {N_AOIS} AOIs)")
 print(f"Per-AOI weights: {AOI_W}")
@@ -482,6 +501,45 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                   f"mean={float(f_co2_abs_target_t[f_co2_abs_mask_t].mean()):.4e} mmol C/m^2/s")
         else:
             print(f"  [warn] F_CO2_ABS_W={F_CO2_ABS_W} but no finite F_CO2 cells in AOI; loss term will be skipped")
+
+    # MODIS-Aqua observed PIC absolute target (MODIS_PIC_ABS_W). Independent of
+    # the Darwin v05 PIC field used by PIC_ABS_W. Loaded from the precomputed
+    # 2017-2019 climatology cache; converts mol/m^3 -> mmol C/m^3.
+    if MODIS_PIC_ABS_W > 0:
+        modis_cache = np.load(MODIS_PIC_CACHE_PATH)
+        pic_key = f"pic_{aoi_key}"
+        mask_key = f"mask_{aoi_key}"
+        if pic_key not in modis_cache.files:
+            raise KeyError(
+                f"MODIS PIC cache {MODIS_PIC_CACHE_PATH} has no entry for AOI "
+                f"'{aoi_key}'; available: {list(modis_cache.files)}"
+            )
+        modis_pic_mmol_c = modis_cache[pic_key].astype(np.float32) * 1000.0
+        modis_pic_mask_np = (
+            ocean_mask
+            & modis_cache[mask_key]
+            & np.isfinite(modis_pic_mmol_c)
+            & (modis_pic_mmol_c > 0)
+        )
+        modis_pic_target_np = np.where(modis_pic_mask_np, modis_pic_mmol_c, 0.0).astype(np.float32)
+        modis_pic_target_t = torch.tensor(modis_pic_target_np).to(device)
+        modis_pic_mask_t = torch.tensor(modis_pic_mask_np, dtype=torch.bool).to(device)
+        modis_pic_mask_f = modis_pic_mask_t.to(torch.float32)
+        n_modis_pic = int(modis_pic_mask_np.sum())
+        n_modis_pic_f = modis_pic_mask_f.sum().clamp(min=1.0)
+        if n_modis_pic > 0:
+            print(f"  MODIS-Aqua PIC target: {n_modis_pic} cells, "
+                  f"mean={float(modis_pic_target_t[modis_pic_mask_t].mean()):.4f} mmol C/m^3 "
+                  f"(observed; cf. Darwin {float(pic_abs_target_t[pic_abs_mask_t].mean()):.4f})")
+        else:
+            print(f"  [warn] MODIS_PIC_ABS_W={MODIS_PIC_ABS_W} but no finite MODIS PIC cells in AOI; loss term will be skipped")
+    else:
+        # Zero tensors -- shape doesn't matter since loss path is gated.
+        modis_pic_target_t = torch.zeros_like(pic_abs_target_t)
+        modis_pic_mask_t = torch.zeros_like(pic_abs_mask_t)
+        modis_pic_mask_f = torch.zeros_like(pic_abs_mask_f)
+        n_modis_pic = 0
+        n_modis_pic_f = torch.tensor(1.0, device=device)
 
     # GEOTRACES per-AOI (surface + subsurface).
     print(f"  loading GEOTRACES IDP2025 (Eq Pac stations slice)...")
@@ -751,6 +809,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "f_co2_abs_target_t": f_co2_abs_target_t, "f_co2_abs_mask_t": f_co2_abs_mask_t,
         "f_co2_abs_mask_f": f_co2_abs_mask_f, "n_f_co2_abs_f": n_f_co2_abs_f,
         "n_f_co2_abs": n_f_co2_abs,
+        "modis_pic_target_t": modis_pic_target_t, "modis_pic_mask_t": modis_pic_mask_t,
+        "modis_pic_mask_f": modis_pic_mask_f, "n_modis_pic_f": n_modis_pic_f,
+        "n_modis_pic": n_modis_pic,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -854,6 +915,33 @@ else:
 print(f"  DINN: n_input_channels={n_input_channels}  hidden_dim={DINN_HIDDEN_DIM}  "
       f"(AOI_ID={USE_AOI_ID_CHANNEL}, MLD={USE_MLD_CHANNEL})")
 
+# Optionally load checkpoint weights as initialization (Stage 2 of curriculum).
+# Looks for {LOAD_CHECKPOINT_DIR}/seed{s}.pt per seed; missing files leave the
+# random init in place for that seed (print a warning so it surfaces).
+if LOAD_CHECKPOINT_DIR:
+    ckpt_dir = Path(LOAD_CHECKPOINT_DIR)
+    loaded = 0
+    for s_idx, s in enumerate(SEEDS):
+        ckpt_path = ckpt_dir / f"seed{s}.pt"
+        if not ckpt_path.is_file():
+            print(f"  [warn] no checkpoint at {ckpt_path}; seed {s} keeps random init")
+            continue
+        state = torch.load(ckpt_path, map_location=device, weights_only=True)
+        # In shared mode every AOI's net for this seed is the same object; load
+        # once. In per-AOI mode, load each AOI's net separately if its state is
+        # in the file; fallback: load same state into all (init from shared).
+        if USE_PER_AOI_DINN:
+            if isinstance(state, dict) and all(k in state for k in AOIS_KEYS):
+                for k in AOIS_KEYS:
+                    nets_per_aoi[k][s_idx].load_state_dict(state[k])
+            else:
+                for k in AOIS_KEYS:
+                    nets_per_aoi[k][s_idx].load_state_dict(state)
+        else:
+            nets_per_aoi[AOIS_KEYS[0]][s_idx].load_state_dict(state)
+        loaded += 1
+    print(f"  Loaded {loaded}/{N_SEEDS} checkpoint(s) from {ckpt_dir}")
+
 all_params = []
 seen_param_ids: set[int] = set()
 for k in AOIS_KEYS:
@@ -862,7 +950,11 @@ for k in AOIS_KEYS:
             if id(p) not in seen_param_ids:
                 seen_param_ids.add(id(p))
                 all_params.append(p)
-optimizer = torch.optim.Adam(all_params, lr=5e-3)
+_base_lr = 5e-3
+_effective_lr = _base_lr * LR_MULTIPLIER
+optimizer = torch.optim.Adam(all_params, lr=_effective_lr)
+if LR_MULTIPLIER != 1.0:
+    print(f"  LR_MULTIPLIER={LR_MULTIPLIER}  effective_lr={_effective_lr:.3e} (base 5e-3)")
 
 _COMPILE_STEP = os.environ.get("TORCH_COMPILE_BATCHED", "1") == "1"
 if _COMPILE_STEP:
@@ -992,6 +1084,14 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_pic_abs_f"] / scale
         z = z + PIC_ABS_W * l
 
+    # MODIS-Aqua observed PIC absolute MSE. Independent of PIC_ABS_W (Darwin
+    # v05 PIC target). Typical use: MODIS_PIC_ABS_W > 0 AND PIC_ABS_W == 0.
+    if MODIS_PIC_ABS_W > 0 and bundle["n_modis_pic"] > 0:
+        residual = (pic - bundle["modis_pic_target_t"][None]) * bundle["modis_pic_mask_f"][None]
+        scale = (bundle["modis_pic_target_t"][bundle["modis_pic_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_modis_pic_f"] / scale
+        z = z + MODIS_PIC_ABS_W * l
+
     # POC absolute-units MSE on surface POC -- paired anchor for PIC_ABS_W.
     # Anchors mort_total via POC_1 ~ mort_total / W_SINK; together with PIC
     # absolute, R_PICPOC ~ obs(PIC) / obs(POC) per cell.
@@ -1092,6 +1192,18 @@ if device == "cuda":
     torch.cuda.synchronize()
 elapsed = time.time() - t0
 print(f"\nDone in {elapsed:.0f}s ({elapsed/N_SEEDS:.1f}s amortized per seed)")
+
+# Optionally save network weights as Stage 1 checkpoints for a Stage 2 reload.
+if SAVE_CHECKPOINTS:
+    ckpt_dir = Path(os.environ.get("OUTPUT_DIR", str(Path(__file__).resolve().parent))) / "checkpoints"
+    ckpt_dir.mkdir(parents=True, exist_ok=True)
+    for s_idx, s in enumerate(SEEDS):
+        if USE_PER_AOI_DINN:
+            state = {k: nets_per_aoi[k][s_idx].state_dict() for k in AOIS_KEYS}
+        else:
+            state = nets_per_aoi[AOIS_KEYS[0]][s_idx].state_dict()
+        torch.save(state, ckpt_dir / f"seed{s}.pt")
+    print(f"  Saved {N_SEEDS} checkpoint(s) to {ckpt_dir}")
 
 
 # ============================== Recovery report ===========================
@@ -1209,6 +1321,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
         "f_co2_abs_w": F_CO2_ABS_W,
         "n_f_co2_abs_cells_per_aoi": {b["key"]: b["n_f_co2_abs"] for b in bundles},
+        "modis_pic_abs_w": MODIS_PIC_ABS_W,
+        "n_modis_pic_cells_per_aoi": {b["key"]: b["n_modis_pic"] for b in bundles},
         "use_mehrbach_k1k2": _carbonate.USE_MEHRBACH_K1K2,
         "k_wanninkhof": _carbonate.K_WANNINKHOF,
         "use_coccolith_only_calcite": _layer2.USE_COCCOLITH_ONLY_CALCITE,
@@ -1253,6 +1367,7 @@ else:
     poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
     fco2_abs_tag = f"_fco2absW{F_CO2_ABS_W}" if F_CO2_ABS_W > 0 else ""
+    modis_pic_tag = f"_modispicW{MODIS_PIC_ABS_W}" if MODIS_PIC_ABS_W > 0 else ""
     mehrbach_tag = "_mehrbach" if _carbonate.USE_MEHRBACH_K1K2 else ""
     kw_tag = f"_kw{_carbonate.K_WANNINKHOF}" if _K_WANNINKHOF_OVERRIDE is not None else ""
     cocco_tag = "_cocco" if _layer2.USE_COCCOLITH_ONLY_CALCITE else ""
@@ -1275,6 +1390,7 @@ else:
             f"{poc_abs_tag}"
             f"{posi_tag}"
             f"{fco2_abs_tag}"
+            f"{modis_pic_tag}"
             f"{mehrbach_tag}"
             f"{kw_tag}"
             f"{cocco_tag}.json"
