@@ -14,7 +14,7 @@ DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with g
   - `c_chl40_posi15` seed 9: CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C base. Recovers alpfe + scav_rat (Excellent) + Smallgrow + Biggrow + R_PICPOC; diatomgraz drifts. Not yet n=20 retested.
 - **Binary mutex confirmed at low PIC dose.** Any nonzero `PIC_ABS_W` (tested down to 0.02) wipes iron-pair recovery → 0/10, regardless of POC pair. `POC_ABS_W` alone also kills iron pair, with different downstream basin geometry (mean_cal grows with POC dose; opposite of paired PIC+POC).
 
-The structural 5/6 ceiling holds at 2/837 across all v3.1 work. Both 5/6 events recover complementary param subsets (one lands diatomgraz, the other R_PICPOC) which suggests combining their interventions is the natural test for a 6/6 candidate, but the unreproducibility of either at n=20 means the headline finding is **the ceiling itself, not the break**.
+The structural 5/6 ceiling holds at 2/837 across all v3.1 work. The two 5/6 events recover complementary param subsets (one lands diatomgraz, the other R_PICPOC) — combining their interventions is a *testable hypothesis* for 6/6, not a prediction. Two plausible outcomes: (a) interventions act on orthogonal axes (PER_AOI architecture + CHL1/POSI loss reweighting) and 6/6 unlocks; (b) interventions interfere or just redistribute the residual to a new binding param. v3.0's parameter-conservation framing (~5 effective constraints on 6 params) leans toward (b). Either outcome is publishable; the headline finding is **the ceiling itself, not the break**.
 
 ## Headline results
 
