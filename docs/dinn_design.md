@@ -127,40 +127,52 @@ In every fit (notebooks 09–14), the answer is yes: the global-scalar class pro
 
 This is the cleanest restatement of the DarwinDiff scientific claim: **per-cell parameters can express what global-scalar parameters cannot, and Carroll's published calibration is bounded by the global-scalar ceiling**, no matter how well the 6 numbers themselves are tuned.
 
-See `docs/findings/2026_05_09.md` for quantitative results across three basins.
+Quantitative results live in [STATUS.md](../STATUS.md) and [`docs/findings/`](findings/).
 
-## Variants and when to use them
+## Network variants
+
+All three networks live in [`src/darwindiff/networks.py`](../src/darwindiff/networks.py).
 
 | Network | Inputs | Params | When to use |
 |---|---|---|---|
-| `DINN` (baseline) | SST only (1 channel) | ~454 | Structural-argument fits where the cleanest comparison to global-scalar matters more than absolute fit quality. Default for cross-basin claims (notebook 11, 13, 14) — less interpolation slack to mask extrapolation failure (see notebook 16 finding). |
-| `DINNDeep` (production) | SST + MLD + wind + lat (4 channels) | ~9.4K | Within-AOI fits where you want maximum r. Notebook 15. **Don't extrapolate across spatial blocks** — notebook 16 cross-validation showed DINNDeep's r=1.000 is interpolation only (held-out r drops to 0.301 on block hold-out). |
-| `DINNRegional` | Region-level scalar features | ~166 | Region-level (not per-cell) fits. Notebook 06's two-regime synthetic benchmark. Largely superseded by DINN per-cell variants for current work. |
+| `DINN` (baseline) | SST only (1 channel) | ~454 | Structural-argument fits where the comparison to global-scalar matters more than absolute fit quality. Default for cross-basin claims — less interpolation slack to mask extrapolation failure. |
+| `DINNDeep` | SST + MLD + wind + lat (4 channels) | ~9.4K | Within-AOI fits where r is the goal. Saturates on biomass tracers (r → 1.0) but recovers fewer calibration-grade Carroll-6 params than the baseline; from v2.2.x onward, the project trains DINN baseline only by default. **Does not extrapolate across spatial blocks.** |
+| `DINNRegional` | Region-level scalar features | ~166 | Region-level (not per-cell) fits. Superseded by DINN per-cell variants for current work. |
+
+## Multi-AOI and PER_AOI variants
+
+From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Pacific + N Atlantic Subpolar; v3.1 adds Southern Ocean Pacific). Two architectural patterns:
+
+- **Shared DINN, AOI-ID channel** (`AOI_ID_CHANNEL=1`, default for v3.0+): one DINN shared across AOIs, with a per-AOI identity scalar appended to the environmental input so the shared MLP can produce regime-specific parameter mappings.
+- **Per-AOI DINN with consistency penalty** (`PER_AOI_DINN=1` + `CONSISTENCY_LAMBDA=λ`): each AOI gets its own DINN, with a soft penalty on parameter divergence across AOIs. Falsified at 2-AOI in PR #58 (0/40 at 6/6, best λ=0.1 at 3/10 at 5/6 below baseline). Unlocks one 5/6 path at 3-AOI with low λ (v3.1 `w2e_peraoi_lam0.1`).
 
 ## Scope and honest caveats
 
-- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed here into Ps + Pl) + 2 zooplankton + DOM + carbonate chemistry + more. **This proxy is the dominant recovery-bias source** (notebook 15: more network capacity does not reduce the systematic offsets vs Carroll's published parameter values). Closing the gap to Carroll's actual values requires extending the box model — currently the highest-priority follow-up.
-- **DINN is per-cell, not spatially-coupled.** Real ocean BGC has advection / diffusion connecting cells. The current setup ignores that because the truth structure for parameter values is per-cell — each cell has its own Carroll-6 vector. Track 2 (emulator) will use different architectures with explicit spatial coupling.
-- **DINNDeep doesn't extrapolate spatially** (notebook 16). For within-AOI fits, fine. For applying a network trained on AOI A to AOI B, it'll fail — train per-AOI or use the smaller DINN baseline.
-- **Single-target loss per fit** so far. Multi-tracer joint loss (NO₃ + Chl + DIC + FeT simultaneously) is a future direction; should reduce parameter degeneracy that DINNDeep exposes.
-- **Climatology only, not time-resolved.** All current fits use the time-mean over 23 years of monthly Darwin output. Time-resolved fitting opens Track 2 emulator territory and needs cluster compute.
+- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap; the 5/6 ceiling on Carroll-6 recovery still has the box-model proxy as a contributing factor alongside parameter conservation under the observational constraint set.
+- **DINN is per-cell, not spatially-coupled.** The current setup ignores advection/diffusion between cells because the truth structure for parameter values is per-cell — each cell has its own Carroll-6 vector. Track 2 (emulator) will use different architectures with explicit spatial coupling.
+- **DINNDeep does not extrapolate spatially.** Block cross-validation gives held-out r=0.301 on FeT (vs r=1.000 in-distribution). For applying a network trained on AOI A to AOI B, train per-AOI or use the smaller DINN baseline.
+- **Climatology, not time-resolved.** All current fits use the time-mean over 23 years of monthly Darwin output. Time-resolved fitting opens Track 2 emulator territory and needs cluster compute.
 
 ## Where in code
 
 | Concept | File |
 |---|---|
 | Box-model dynamics + Carroll's optima + parameter bounds | [`src/darwindiff/carroll6.py`](../src/darwindiff/carroll6.py) |
-| `DINN` and `DINNDeep` networks | [`src/darwindiff/networks.py`](../src/darwindiff/networks.py) |
+| 5-PFT box matching Darwin v05 | [`src/darwindiff/carroll6_5pft.py`](../src/darwindiff/carroll6_5pft.py) |
+| 2-layer extension (v2.7+) | [`src/darwindiff/carroll6_5pft_2layer.py`](../src/darwindiff/carroll6_5pft_2layer.py) |
+| Carbonate chemistry (Follows 2006 + Wanninkhof 2014) | [`src/darwindiff/carbonate.py`](../src/darwindiff/carbonate.py) |
+| `DINN`, `DINNDeep`, `DINNRegional` networks | [`src/darwindiff/networks.py`](../src/darwindiff/networks.py) |
 | Sigmoid bounding (`bounded_params`) | [`src/darwindiff/carroll6.py`](../src/darwindiff/carroll6.py) |
-| NaN-safe Pearson r diagnostic for evaluation | [`src/darwindiff/diagnostics.py`](../src/darwindiff/diagnostics.py) |
-| Loaders for ECCO-Darwin v05 outputs | [`src/darwindiff/ecco_darwin_loader.py`](../src/darwindiff/ecco_darwin_loader.py), [`src/darwindiff/llc270_loader.py`](../src/darwindiff/llc270_loader.py) |
-| Training loops + per-AOI experiments | [`notebooks/`](../notebooks/) (10–16) |
-| Tests | [`tests/`](../tests/) (104 passing as of Track 1 v1.5) |
+| NaN-safe Pearson r diagnostic | [`src/darwindiff/diagnostics.py`](../src/darwindiff/diagnostics.py) |
+| Darwin v05 loaders + AOI presets | [`src/darwindiff/ecco_darwin_loader.py`](../src/darwindiff/ecco_darwin_loader.py), [`src/darwindiff/llc270_loader.py`](../src/darwindiff/llc270_loader.py) |
+| Training loops + per-AOI experiments | [`notebooks/`](../notebooks/), [`scripts/run_v3.0_*.py`](../scripts/) |
+| Overnight sweep orchestration | [`scripts/overnight_v3.0_basinC_*.py`](../scripts/) |
+| Tests | [`tests/`](../tests/) (run via `uv run pytest -q`) |
 
 ## See also
 
-- [README.md](../README.md) — project overview and headline results
-- [STATUS.md](../STATUS.md) — live status and checklists
-- [docs/findings/2026_05_09.md](findings/2026_05_09.md) — quantitative findings from notebooks 10–16
-- [docs/research_log.md](research_log.md) — chronological decision log (Section F covers Track 1 v1.0–v1.5)
+- [README.md](../README.md) — project overview
+- [STATUS.md](../STATUS.md) — live state and findings
+- [docs/cluster_setup.md](cluster_setup.md) — running on MIT ORCD
+- [docs/findings/](findings/) — per-version technical writeups
 - [docs/ecco_darwin_parameter_inventory.md](ecco_darwin_parameter_inventory.md) — verified Carroll-6 parameter list
