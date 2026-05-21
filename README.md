@@ -114,7 +114,7 @@ Raw data files live outside the repo. Loaders respect `DARWIN_DATA_ROOT` / `GLOD
 |---|---|
 | [Carroll et al. 2020](https://doi.org/10.1029/2019MS001888) (*JAMES*) | Original ECCO-Darwin paper; the 6-parameter Green's-functions calibration we differentiate against. |
 | [Carroll et al. 2022](https://doi.org/10.1029/2021GB007162) (*GBC*) | ECCO-Darwin v05; the publicly-accessible Darwin output is our active recovery target. |
-| [Brix et al. 2015](https://doi.org/10.1016/j.ocemod.2015.07.008) (*Ocean Modelling*) | Earlier ECCO-Darwin BGC, using Green's-functions to initialize/adjust the model. Co-authored by Chris Hill (MIT ORCD). |
+| [Brix et al. 2015](https://doi.org/10.1016/j.ocemod.2015.07.008) (*Ocean Modelling*) | Earlier ECCO-Darwin BGC, using Green's-functions to initialize/adjust the model. |
 | [Savelli et al. 2026](https://doi.org/10.5194/gmd-19-867-2026) (*GMD*) | Most recent ECCO-Darwin update; riverine biogeochemical inputs. |
 
 **Box-model physics & chemistry (in `src/darwindiff/`):**
@@ -122,7 +122,7 @@ Raw data files live outside the repo. Loaders respect `DARWIN_DATA_ROOT` / `GLOD
 | Reference | Used in |
 |---|---|
 | [Dutkiewicz et al. 2009](https://doi.org/10.1029/2008GB003405) (*GBC*) | Core Darwin biogeochemistry equations (`carroll6.py`, `carroll6_5pft.py`). |
-| [Follows, Ito, Dutkiewicz 2006](https://doi.org/10.1016/j.ocemod.2005.05.004) (*Ocean Modelling*) | Iterative carbonate-system solver in `carbonate.py`. First author is the same Mick Follows currently endorsing DarwinDiff. |
+| [Follows, Ito, Dutkiewicz 2006](https://doi.org/10.1016/j.ocemod.2005.05.004) (*Ocean Modelling*) | Iterative carbonate-system solver implemented in `carbonate.py`. |
 | [Wanninkhof 2014](https://doi.org/10.4319/lom.2014.12.351) (*L&O Methods*) | Wind-speed–gas-exchange coefficient for air-sea CO₂ flux in `carbonate.py`. |
 | [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) (*MWR*) | The Green's-functions calibration method DarwinDiff replaces. |
 
@@ -154,9 +154,7 @@ DarwinDiff builds on a substantial lineage of ocean biogeochemistry, ECCO-Darwin
 
 Method-inspiration citations (PINN, BINN, Neural GCM, Neural-BGC, the full ECCO-Darwin lineage) are listed in the [Background reading](#background-reading) section above with verified DOIs.
 
-### Affiliation
-
-Lucas (Ziming) Qi — Khoury College of Computer Sciences, Northeastern University.
+Author and affiliation details to be added in the published manuscript.
 
 ## License
 
@@ -170,7 +168,7 @@ DarwinDiff is under active development; a formal manuscript and Zenodo DOI will 
 
 ```bibtex
 @software{darwindiff_2026,
-  author    = {Qi, Lucas (Ziming) and {ECCO-DarwinDiff contributors}},
+  author    = {{ECCO-DarwinDiff contributors}},
   title     = {{ECCO-DarwinDiff}: Differentiable Ocean Biogeochemistry
                for Per-Cell Parameter Recovery},
   year      = {2026},

@@ -154,7 +154,7 @@ Workloads that are infeasible or marginal locally and become routine on cluster:
 
 After confirming a successful Engaging run:
 
-1. Reply to the ORCD beta-coordinator (Lauren at MIT ORCD) confirming Engaging usage + acknowledgment of the AICR storage policy (no backup, scratch purged).
+1. Reply to the ORCD beta-coordinator confirming Engaging usage + acknowledgment of the AICR storage policy (no backup, scratch purged).
 2. Receive the AICR access form.
 3. Once granted, port the workload from Engaging-partition SLURM to AICR-partition SLURM (typically a one-line `#SBATCH --partition` change + module path adjustment).
 
