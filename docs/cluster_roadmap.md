@@ -74,7 +74,7 @@ Candidate extensions in order of recovery payoff:
 
 Each adds independent information channels that directly attack the structural ceiling. Note: POSi (biogenic silica) is **already integrated** as an active constraint throughout v3.1 — the `POSI_W` env var in the production runner (`scripts/run_v3.0_with_modis_pic.py`) is the absolute-units MSE loss against GEOTRACES IDP2025 surface bSi, computed via the steady-state silica diagnostic in `src/darwindiff/silica.py` (no integrator extension required; bSi is diagnosed from existing diatom dynamics). Every Basin C config has `POSI_W=1.0`; `c_chl40_posi15` uses `POSI_W=1.5`. The structural 5/6 ceiling holds with bSi active.
 
-##### C.1 Ocean color PFT-resolved Chl (OB.DAAC / OC-CCI) — leapfrog-phase per Jon's directive
+##### C.1 Ocean color PFT-resolved Chl (OB.DAAC / OC-CCI) — leapfrog-phase per project directive
 
 **Hypothesis.** Remote-sensing PFT decomposition gives Pro-HL-specific, Syn-specific, and diatom-specific Chl independently of Carroll's group-mean target. Constrains `Smallgrow` (Pro-HL specific), `Biggrow` (Syn / large-euk), and `diatomgraz` simultaneously.
 
@@ -167,17 +167,17 @@ The proof-of-concept Carroll-6 v05 laptop work is **substantially done**: 85 sin
 | Reproduce `c_chl40_posi15` at n=20 (seeds 10-19) | — | ~7 min | Closes the only open reproducibility check from Wave 5 |
 | Optionally: small zooplankton extension to box model | B (start) | 1–2 weeks | Decouples grazing-rate identifiability; useful for paper-2 but Carroll-6 v05 proof-of-concept doesn't need it |
 
-Other potentially useful laptop work falls into **leapfrog territory** (different observation channels) per Jon's strategic directive: ocean color PFT-Chl, MODIS-Aqua PIC, PACE carbon_phyto. Shelved for paper-2.
+Other potentially useful laptop work falls into **leapfrog territory** (different observation channels) per the project's "proof-of-concept first, leapfrog later" directive: ocean color PFT-Chl, MODIS-Aqua PIC, PACE carbon_phyto. Shelved for paper-2.
 
 ### Phase 1 — Engaging onboarding + first cluster jobs (1–4 weeks)
 
 | Step | Notes |
 |---|---|
-| MIT Sponsored Account via Jon | Critical-path step |
+| MIT Sponsored Account via MIT host | Critical-path step for non-MIT collaborators |
 | Kerberos + Duo + OnDemand login | Auto-activates Engaging |
 | Port one Basin C config to SLURM | `scripts/slurm/run_notebook.sbatch` template |
 | First Engaging fit at 3-AOI Basin C base | "Code ran on Engaging" proof for AICR application |
-| Reply to Lauren confirming Engaging usage | Per the AICR onboarding email |
+| Reply to ORCD beta-coordinator confirming Engaging usage | Per the AICR onboarding email |
 
 ### Phase 2 — AICR onboarding + first B200 jobs (likely 2–8 weeks after Phase 1)
 
