@@ -109,6 +109,18 @@ NORTH_ATLANTIC_SUBPOLAR_AOI: AOI = AOI(
     lon_min=-40.0,
     lon_max=-10.0,
 )
+# v3.0 multi-AOI scoping — see docs/findings/v3.0_multi_aoi_scoping.md §2.
+# High-particle-flux, carbonate-rich, seasonal-bloom regime. Third AOI for
+# breaking the eqpac/natlsubpolar 2-basin degeneracy via spatial diversity.
+# Bounded inside the antimeridian (-180 to -100) so subset_aoi works without
+# crossing the dateline.
+SOUTHERN_OCEAN_PACIFIC_AOI: AOI = AOI(
+    name="Southern Ocean Pacific",
+    lat_min=-65.0,
+    lat_max=-50.0,
+    lon_min=-180.0,
+    lon_max=-100.0,
+)
 
 
 # Canonical AOI lookup table for env-var-driven scripts. The runners
@@ -119,6 +131,7 @@ NORTH_ATLANTIC_SUBPOLAR_AOI: AOI = AOI(
 AOI_BY_KEY: dict[str, AOI] = {
     "eqpac": EQUATORIAL_PACIFIC_AOI,
     "natlsubpolar": NORTH_ATLANTIC_SUBPOLAR_AOI,
+    "southernoceanpac": SOUTHERN_OCEAN_PACIFIC_AOI,
     "midatl": MID_ATLANTIC_AOI,
     "npac": NORTH_PACIFIC_AOI,
 }

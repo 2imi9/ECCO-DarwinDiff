@@ -5,9 +5,24 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model that l
 1. **Parameter learner** — a faster, richer replacement for ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes one global vector of 6 biogeochemical parameters via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
 2. **Emulator** — a neural-network stand-in for ECCO-Darwin trained on the same Darwin output, for long-timescale climate runs the full model is too slow for. Not started yet — Track 2.
 
-## Status — Track 1 v3.0 multi-AOI arc closed at the 5/6 ceiling (2026-05-18)
+## Status — Track 1 v3.1 two 5/6 paths in 3-AOI training (2026-05-20)
 
-Track 1 (parameter recovery) at **v3.0 multi-AOI close-out**. The 5/6 ceiling is now characterized structurally: **parameter conservation** — the observations support ~5 effective constraints on 6 parameters; the 6th is always the "residual sink", and loss weighting decides which.
+Track 1 advanced past the v3.0 5/6 plateau. **Two distinct 5/6 Cal-grade seeds in 3-AOI joint training** (Eq Pac + N Atl Subpolar + Southern Ocean Pacific), out of 757 seeds across 76 configs:
+
+- `w2e_peraoi_lam0.1` seed 3: PER_AOI_DINN=1 + CONSISTENCY_LAMBDA=0.1 at Basin C base. Recovers alpfe (Excellent) + scav_rat + Smallgrow + Biggrow + diatomgraz; R_PICPOC drifts.
+- `c_chl40_posi15` seed 9: CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C base. Recovers alpfe + scav_rat (Excellent) + Smallgrow + Biggrow + R_PICPOC; diatomgraz drifts.
+
+Different param recoveries; both retain the iron pair and lose one of {diatomgraz, R_PICPOC}. PER_AOI_DINN was falsified at 2-AOI per PR #58; the 3-AOI behavior is new and material.
+
+Iron-pair Basin C baseline (F2 config) is **38/40 reproducible across n=40** (four independent 10-seed batches: 10/10, 10/10, 10/10, 8/10). The 5% drop in the 4th batch is reported honestly.
+
+The structural 5/6 ceiling from v3.0 still holds at 2/757 break rate. The parameter-conservation framing is right; the marginal breaks show the architecture matters as much as the loss surface. Wave 5 dose-response on CONSISTENCY_LAMBDA + best-lever combos is queued to test reproducibility.
+
+Cluster path opening: Jon Lauderdale relayed MIT ORCD AICR (B200) beta news. Meeting 2026-05-21 11am EDT to confirm Engaging cluster onboarding (MIT Sponsored Account via Jon as host).
+
+### v3.0 narrative (preserved for context)
+
+Earlier v3.0 multi-AOI close-out: the 5/6 ceiling is characterized structurally as **parameter conservation** — the observations support ~5 effective constraints on 6 parameters; the 6th is always the "residual sink", and loss weighting decides which.
 
 **Project state:**
 
@@ -41,8 +56,9 @@ Track 1 (parameter recovery) at **v3.0 multi-AOI close-out**. The 5/6 ceiling is
 - v2.7 (2-layer box, PR #42): vetted 2-layer integrator; subsurface DFe alone doesn't unblock scav_rat.
 - v2.8 (Darwin v5 ICs + L2 POC obs, PR #45): project-first reproducible scav_rat recovery (7/10 Cal-grade, 4/10 Excellent).
 - v3.0 (multi-AOI joint training, PRs #46-#59): 5/6 plateau established across 50+ seeds; architectural and observational-anchor break attempts all empirically falsified; the structural ceiling is parameter conservation. The deliverable is the arc analysis notebook nb32.
+- v3.1 (3-AOI Basin C + PER_AOI_DINN, 2026-05-19→20, on `claude/musing-gauss-962009` worktree): Southern Ocean Pacific added as 3rd AOI; Basin C iron-pair recovery 20/20 at n=20; first 5/6 in 3-AOI training via PER_AOI_DINN + low CONSISTENCY_LAMBDA. ~950 seeds across 5 chained waves; first seed to recover alpfe + scav_rat + diatomgraz together. Wave 5 reproducibility check in flight.
 
-See [STATUS.md](STATUS.md) for full live state and [`notebooks/32_v3_0_param_learner_ceiling.ipynb`](notebooks/32_v3_0_param_learner_ceiling.ipynb) for the v3.0 close-out analysis.
+See [STATUS.md](STATUS.md) for full live state, [`docs/research_notes/2026-05-20_basinC_refine_sweep.md`](docs/research_notes/2026-05-20_basinC_refine_sweep.md) for tonight's sweep design, and [`notebooks/32_v3_0_param_learner_ceiling.ipynb`](notebooks/32_v3_0_param_learner_ceiling.ipynb) for the v3.0 close-out analysis.
 
 ## Why this exists
 
