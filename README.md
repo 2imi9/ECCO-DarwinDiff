@@ -6,6 +6,7 @@
 [![python][py_img]][py_url]
 [![license][lic_img]][lic_url]
 [![status][status_img]][status_url]
+[![Open in Colab][colab_img]][colab_url]
 
 A differentiable PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry
 model. Gradients flow through every step of the simulation, so the same loss surface
@@ -221,3 +222,5 @@ If your work depends on the underlying ECCO-Darwin model, please also cite:
 [cluster_url]: docs/cluster_setup.md
 [data_url]: data/README.md
 [skills_url]: .claude/skills/README.md
+[colab_img]: https://colab.research.google.com/assets/colab-badge.svg
+[colab_url]: https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb
