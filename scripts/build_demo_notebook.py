@@ -60,15 +60,20 @@ synthetic demo — only `torch`, `numpy`, and `matplotlib`, all pre-installed.
 """),
     code(r"""
 import subprocess, sys, os
-if not os.path.exists("ECCO-DarwinDiff"):
-    subprocess.run(
-        ["git", "clone", "-q", "https://github.com/2imi9/ECCO-DarwinDiff.git"],
-        check=True,
-    )
-src_path = os.path.abspath("ECCO-DarwinDiff/src")
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
-print("DarwinDiff src added to sys.path:", src_path)
+try:
+    import darwindiff  # already on PYTHONPATH (local Jupyter / editable install)
+    print("darwindiff already importable; skipping clone.")
+except ImportError:
+    if not os.path.exists("ECCO-DarwinDiff"):
+        subprocess.run(
+            ["git", "clone", "-q", "https://github.com/2imi9/ECCO-DarwinDiff.git"],
+            check=True,
+        )
+    src_path = os.path.abspath("ECCO-DarwinDiff/src")
+    if src_path not in sys.path:
+        sys.path.insert(0, src_path)
+    import darwindiff  # verify
+    print("DarwinDiff src added to sys.path:", src_path)
 """),
     md(r"""
 ## 2. Imports + Carroll-6 published optima

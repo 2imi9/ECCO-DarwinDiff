@@ -86,7 +86,7 @@ src/darwindiff/            Python package (importable as `darwindiff`)
   modis_pic_loader.py        MODIS-Aqua PIC (shelved for leapfrog)
   pace_loader.py             PACE carbon_phyto (shelved for leapfrog)
 scripts/                   runners, overnight sweeps, analysis, SLURM templates
-notebooks/                 numbered notebooks 05–32, in arc order
+notebooks/                 numbered notebooks 05–32, in arc order; demo_colab.ipynb is the synthetic-recovery walkthrough
 tests/                     pytest suite
 docs/                      findings, research_notes, dinn_design.md, cluster_setup.md
 .claude/skills/            project-scoped skill bundle
