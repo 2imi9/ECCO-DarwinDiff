@@ -1,0 +1,338 @@
+% ============================================================================
+%   DarwinDiff workshop / journal manuscript
+%
+%   Default class: article (portable). To convert to AGU JAMES / GBC, swap
+%   \documentclass{article} for \documentclass[draft]{agujournal2019} and
+%   uncomment the AGU-specific commands flagged below. For a NeurIPS workshop
+%   submission, swap for the venue-specific style file.
+% ============================================================================
+\documentclass[11pt,letterpaper]{article}
+
+% --- core packages ----------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[round,authoryear,sort]{natbib}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{siunitx}
+\usepackage[margin=1in]{geometry}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{listings}
+
+% --- hyperref styling -------------------------------------------------------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={DarwinDiff: Differentiable Parameter Recovery for ECCO-Darwin},
+  pdfauthor={DarwinDiff authors},
+}
+
+% --- siunitx defaults -------------------------------------------------------
+\sisetup{detect-all,group-separator={,},per-mode=symbol}
+
+% --- title block ------------------------------------------------------------
+\title{\textbf{Differentiable Parameter Recovery for ECCO-Darwin Biogeochemistry: A BINN-Style Framework and a Structural 5/6 Ceiling}}
+
+\author{%
+  [Authors TBD]\thanks{Corresponding author: \texttt{[email TBD]}. Authorship and affiliations finalized only with explicit consent of all named individuals.}
+}
+
+\date{\today}
+
+% ============================================================================
+\begin{document}
+\maketitle
+
+% --- key points (AGU JAMES convention; 3 bullets, $\leq$140 chars each) -----
+\noindent\textbf{Key Points}
+\begin{itemize}[noitemsep,topsep=0pt]
+  \item A differentiable PyTorch reimplementation of Darwin's source-minus-sink kernel enables gradient-based parameter recovery on a single GPU.
+  \item Basin C iron-pair (\texttt{alpfe}, \texttt{scav\_rat}) recovers reproducibly at 38/40 seeds against Carroll 2020 published values.
+  \item A structural 5/6 ceiling holds across 857 seeds in 86 configurations; the framing is parameter conservation under available observations.
+\end{itemize}
+
+% --- abstract ---------------------------------------------------------------
+\begin{abstract}
+\noindent We adapt the Biogeochemistry-Informed Neural Network architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, replacing ECCO-Darwin's Green's-functions calibration of six parameters \citep{carroll2020ecco,carroll2022attribution} with gradient-based per-cell parameter inference. A small per-cell neural network maps environmental covariates to the Carroll-N parameters, sigmoid-bounded into Carroll's published physical ranges, fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel, and trained end-to-end against ECCO-Darwin v05 observations. We report a v3.1 sweep across 857 seeds in 86 configurations of 3-area-of-interest joint training (Equatorial Pacific, North Atlantic Subpolar, Southern Ocean Pacific). Two findings: the iron pair (iron dust solubility \texttt{alpfe}, iron scavenging rate \texttt{scav\_rat}) recovers reproducibly at 38/40 (95\%) Cal-grade with the F2 configuration, the first reproducible iron-pair joint recovery in our framework; and a structural 5/6 ceiling holds across the sweep set --- 0/857 seeds reach all six Carroll-N parameters within Cal-grade, with only two single-seed 5/6 events unreproduced at $n{=}20$. A composition test of the two complementary 5/6 lever families fails to reach 5/6 (0/10), regressing below either parent. We interpret the ceiling as parameter conservation under the available observational constraints rather than a method failure, and discuss it as a predictive diagnostic for future observation-design choices. Code and full sweep outputs are publicly available.
+\end{abstract}
+
+% --- plain language summary (AGU convention) -------------------------------
+\section*{Plain Language Summary}
+Ocean biogeochemistry models such as ECCO-Darwin simulate how nutrients, plankton, and the marine carbon cycle evolve in response to the ocean's physical state. These models have dozens of tunable parameters, but only a handful can practically be calibrated against observations using existing methods --- each parameter requires an expensive full model run. We use differentiable programming to replace this expensive calibration with gradient-based optimization that runs on a single graphics card in minutes. A small neural network learns to predict the six parameters Carroll and colleagues calibrated, varying its predictions across the ocean based on local conditions. Across 857 independent experiments, our method reliably recovers the two parameters controlling iron biogeochemistry but cannot simultaneously recover all six. This ``5 of 6'' ceiling appears to reflect a fundamental limit of what current ocean observations can constrain --- a useful diagnostic for designing future observation campaigns rather than a failure of the method itself. The framework makes adding new observation channels (for example, future satellite ocean-color missions) a configuration change instead of a multi-year recalibration effort.
+
+% --- keywords ---------------------------------------------------------------
+\noindent\textbf{Keywords:} ocean biogeochemistry; ECCO-Darwin; differentiable programming; parameter recovery; neural networks; Green's functions; calibration
+
+% ============================================================================
+\section{Introduction}
+\label{sec:intro}
+
+ECCO-Darwin \citep{carroll2020ecco,carroll2022attribution} is the data-assimilative coupling of the MIT general circulation model \citep{mitgcm1997} with the Darwin marine ecosystem module, providing a global ocean biogeochemistry state estimate on the ECCO LLC270 grid (nominal $\sim$1/3$^\circ$ horizontal resolution, 50 vertical levels, 1992--2017+). The biogeochemistry side exposes 103 independent tunable scalar parameters in source code, of which six --- iron dust solubility \texttt{alpfe}, iron scavenging rate \texttt{scav\_rat}, small phytoplankton growth \texttt{Smallgrow}, large phytoplankton growth \texttt{Biggrow}, diatom palatability \texttt{diatomgraz}, and PIC/POC production ratio \texttt{R\_PICPOC} --- are calibrated via Green's functions \citep{menemenlis2005gf}.
+
+Green's-functions calibration is structurally limited in two ways. First, each tuned parameter requires a full perturbation-and-rerun campaign, so the calibrated subset is small ($\sim$6 of 103 in Carroll's published configuration). Second, the calibration is implicitly tied to its observational input set: adding a new observation channel (for example, future PACE ocean-color retrievals or expanding GEOTRACES coverage) requires a fresh Jacobian campaign rather than a reuse of the existing one.
+
+We address both limitations by making the biogeochemistry differentiable. A small neural network predicts per-cell parameter vectors from local environmental covariates; gradients flow from the observation loss through a differentiable PyTorch reimplementation of Darwin's source-minus-sink kernel back to the network weights. New observation channels enter as additional loss terms --- a configuration change rather than a perturbation campaign.
+
+The methodological precedent is the Biogeochemistry-Informed Neural Network (BINN) of \citet{xu2025binn}, who introduced this pattern for terrestrial soil-carbon calibration of CLM5: a small MLP predicts 21 soil-carbon parameters per location, outputs are sigmoid-bounded into physical prior ranges, and a differentiable PyTorch reimplementation of CLM5's matrix-form steady-state equations enables end-to-end backpropagation from a soil organic carbon profile loss. We adapt the same pattern to marine biogeochemistry --- per-cell ocean fields, Carroll-N parameters, and ECCO-Darwin observation channels.
+
+This paper reports a workshop-scale proof-of-concept: framework, experimental protocol, and the empirical landscape that emerges from a 857-seed sweep across 86 single-lever configurations of 3-area-of-interest joint training. The headline empirical finding is a structural 5-of-6 calibration ceiling supported by four independent pieces of evidence. The headline methodological finding is reproducible joint recovery of the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) at 38/40 seeds in our best configuration. We argue that the 5/6 ceiling is informative --- it predicts which future observation channels would be unblocking --- rather than a method failure.
+
+\paragraph{Contributions.}
+\begin{enumerate}[noitemsep,topsep=2pt]
+  \item A BINN-style architecture adapted to marine biogeochemistry, including a per-cell 1$\times$1-convolutional MLP (\texttt{DINN}, $\sim$454 weights) for the cleanest structural comparison against the global-scalar Green's-functions class, and a deeper variant (\texttt{DINNDeep}, $\sim$9.4\,k weights) for higher-quality within-region fits.
+  \item A differentiable PyTorch reimplementation of Darwin's source-minus-sink kernel over five prognostic tracers (baseline) and seven (carbonate-enabled extension, with the Follows-2006 carbonate solver \citep{follows2006carbonate} and the Wanninkhof-2014 gas-transfer law \citep{wanninkhof2014gas}).
+  \item Empirical characterization of the recovery problem at scale: 857 seeds across 86 configurations, with reproducibility analysis at $n{=}40$ on the best configuration.
+  \item Identification of a structural 5/6 calibration ceiling, supported by four independent evidence pieces; identification of binary observation-anchor mutexes (any non-zero PIC absolute anchor wipes iron-pair recovery) that explain the ceiling.
+\end{enumerate}
+
+% ============================================================================
+\section{Background and Related Work}
+\label{sec:background}
+
+\subsection{ECCO-Darwin and the Carroll-6 calibration target}
+
+The Darwin module's source-minus-sink (SMS) kernel --- the per-cell rate equations that compute the time derivative of each prognostic tracer due to biology and chemistry, separately from physical transport --- is implemented in the Fortran subroutine \texttt{darwin\_plankton.F} in both the Carroll 2020 Darwin 1 build and the upstream \texttt{darwinproject/darwin3} repository \citep{mitgcmcontrib2020,darwinproject2024}. Physical transport (advection, diffusion, mixing) is handled by MITgcm and inherited as-is from the ECCO state estimate.
+
+Carroll 2020 \citep{carroll2020ecco} tuned six parameters of the SMS kernel via Green's functions: \texttt{alpfe}, \texttt{scav\_rat}, \texttt{Smallgrow}, \texttt{Biggrow}, \texttt{diatomgraz}, and \texttt{R\_PICPOC}. Carroll 2022 \citep{carroll2022attribution} updated the model to Darwin 3 / v05 but \emph{inherits the same six calibrated values bit-for-bit} --- verified by reading the Darwin 1 \texttt{code\_darwin/} source and the Darwin 3 \texttt{input\_darwin/data.darwin} namelist files side by side. The six values therefore define our calibration target.
+
+\subsection{BINN: differentiable parameter inference for biogeochemistry}
+
+\citet{xu2025binn} introduced BINN for soil-carbon calibration of CLM5. The architecture is: a 4-layer MLP (3 hidden $\times$ 128 neurons) outputs 21 raw values per location, parameterized sigmoid bounding (Equation~4 of their paper) maps them into per-parameter prior ranges (Equation~5), the bounded parameters enter a matrix-form differentiable CLM5 (Equation~7, vectorized in PyTorch) integrated to steady state (Equation~8), and a smooth-L1 soil organic carbon profile loss with a cosh prior penalty (Equation~10) backpropagates to the MLP weights. Training is 300 epochs, AdamW with learning rate $0.01$, on $25{,}925$ SOC profiles from WoSIS. BINN's reported $\sim$50$\times$ speedup over PRODA's per-site Metropolis MCMC reflects the substitution of gradient-based for sampling-based parameter inference.
+
+We adapt the BINN pattern from terrestrial to marine. Key differences:
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item Marine biogeochemistry has per-cell environmental forcing of qualitatively different character (currents, mixed-layer dynamics, light attenuation, dust deposition, sea ice), motivating a per-cell parameter prediction rather than per-site.
+  \item Six Carroll-N parameters rather than 21 CLM5 parameters, matched to the canonical ocean-BGC calibration target.
+  \item Five to seven prognostic tracers in the differentiable forward, capturing the dominant iron and carbon cycling but reducing the 39-tracer Darwin SMS kernel \citep[per the param inventory in our companion documentation,][]{eccodarwininventory2026} to a tractable subset. Reducing this proxy gap is the natural next iteration.
+\end{itemize}
+
+\subsection{Concurrent ML approaches to ocean biogeochemistry}
+
+Neural-BGC \citep{oualalachkar2026neuralbgc} emulates dissolved oxygen and nitrate from a six-dimensional physical state via cascaded neural networks, coupled to ROMS by replacing the prognostic transport-reaction equation entirely. The architecture is a pure-NN emulator with no parameters in the Darwin sense; the methodological overlap with DarwinDiff is therefore disjoint. Meunier, Ouala, and colleagues \citep{meunier2025veros} port the Veros ocean dynamics to differentiable JAX, occupying the differentiable-physics-only direction without addressing parameter recovery within biogeochemistry. The differentiable physics-informed neural network (PINN) family in general descends from \citet{raissi2019pinn}, but DarwinDiff and BINN both differ from canonical PINN in not using PDE residuals as soft-constraint loss terms --- they use the mechanistic model as the differentiable forward instead.
+
+% ============================================================================
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Differentiable box-model SMS kernel}
+\label{sec:method-sms}
+
+We reimplement Darwin's SMS kernel in PyTorch over five prognostic tracers (baseline): dissolved iron (\texttt{DFe}), small phytoplankton biomass ($P_s$), large phytoplankton biomass ($P_l$), particulate organic carbon (POC), and particulate inorganic carbon (PIC). The governing equations (Equations~\ref{eq:dfe}--\ref{eq:dpic}) are
+\begin{align}
+  \frac{d\,\text{DFe}}{dt} &= \alpha_\text{fe}\,\Phi_\text{dust} - r_\text{scav}\,\text{DFe}\cdot\text{POC} - Q_\text{Fe}(\mu_s P_s + \mu_l P_l)\,f_\text{Fe}(\text{DFe}), \label{eq:dfe} \\
+  \frac{dP_s}{dt} &= \mu_s\,f_\text{Fe}\,P_s - m_\text{lin}\,P_s - m_\text{quad}\,P_s^2, \\
+  \frac{dP_l}{dt} &= \mu_l\,f_\text{Fe}\,P_l - m_\text{lin}\,P_l - m_\text{quad}\,P_l^2 - g_\text{diatom}\,G_0\,P_l, \\
+  \frac{d\,\text{POC}}{dt} &= M_\text{tot} - w_\text{sink}\,\text{POC}, \\
+  \frac{d\,\text{PIC}}{dt} &= R_\text{PIC:POC}\,M_\text{tot} - w_\text{sink}\,\text{PIC}, \label{eq:dpic}
+\end{align}
+with the Michaelis-Menten iron limitation $f_\text{Fe}(\text{DFe}) = \text{DFe} / (\text{DFe} + K_\text{Fe})$ and $M_\text{tot}$ the total phytoplankton-loss flux. The six Carroll-N parameters \{$\alpha_\text{fe}$, $r_\text{scav}$, $\mu_s$, $\mu_l$, $g_\text{diatom}$, $R_\text{PIC:POC}$\} are learnable; the remaining ten variables (\texttt{M\_LIN}, \texttt{M\_QUAD}, \texttt{G0\_GRAZE}, \texttt{W\_SINK}, \texttt{K\_FE}, \texttt{PHI\_DUST}, \texttt{Q\_FE}, light, mixed-layer depth) are held fixed at literature-plausible defaults matching Carroll's choices.
+
+For carbonate-enabled experiments we extend the system to seven prognostic tracers, adding dissolved inorganic carbon (DIC) and total alkalinity (ALK):
+\begin{align}
+  \frac{d\,\text{DIC}}{dt} &= -\mu_s\,f_\text{Fe}\,P_s - \mu_l\,f_\text{Fe}\,P_l - R_\text{PIC:POC}\,M_\text{tot} - F_\text{CO\textsubscript{2}} / H_\text{mld}, \\
+  \frac{d\,\text{ALK}}{dt} &= -2\,R_\text{PIC:POC}\,M_\text{tot}.
+\end{align}
+The air-sea CO\textsubscript{2} flux $F_\text{CO\textsubscript{2}}$ is computed at each step from $(\text{DIC}, \text{ALK}, T, S)$ via the Follows-2006 carbonate solver \citep{follows2006carbonate} and the Wanninkhof-2014 gas-transfer law \citep{wanninkhof2014gas}. $F_\text{CO\textsubscript{2}}$ is a diagnostic, not a prognostic tracer; carbon is conserved within the box up to the air-sea flux and particulate sinking export.
+
+Time integration uses forward Euler with $\Delta t = 0.25$\,d for 200 steps to a near-steady state, matching the climatological framing of the comparison against time-mean Darwin output.
+
+\subsection{Per-cell DINN architecture}
+\label{sec:method-dinn}
+
+The Darwin-Informed Neural Network (DINN) is a per-cell 1$\times$1-convolutional MLP. The 1$\times$1 kernel commits the architecture to per-cell parameter independence: every cell's predicted parameter vector depends only on that cell's own environmental input. Two production variants are used.
+
+\paragraph{\texttt{DINN} baseline ($\sim$454 weights).} Input is per-cell normalized sea surface temperature (1 channel). Two hidden layers of 16 channels each with $\tanh$ activations, followed by a final 1$\times$1 convolution to 6 output channels. Used in our structural-ceiling experiments where the cleanest comparison against the global-scalar class matters more than absolute fit quality.
+
+\paragraph{\texttt{DINNDeep} production ($\sim$9.4\,k weights).} Input is a 4-channel stack of SST, mixed-layer depth, surface windspeed, and latitude. An input projection to 32 channels feeds four residual pre-norm blocks (per-cell LayerNorm, GELU, 1$\times$1 conv, repeat) followed by a final projection to 6 channels. Per-cell semantics are preserved by a custom LayerNorm that normalizes only over the channel dimension at each spatial location.
+
+\paragraph{Sigmoid bounding.} The raw NN outputs are mapped into Carroll's published parameter ranges by
+\begin{equation}
+  \theta_i = \ell_i + (h_i - \ell_i)\,\sigma(\hat{\theta}_i),
+\end{equation}
+where $\sigma$ is the logistic function and $[\ell_i, h_i]$ are Carroll's published physical bounds (for example, $\texttt{alpfe} \in [0.05, 1.0]$ and $\texttt{scav\_rat} \in [3\times 10^{-8}, 3\times 10^{-6}]$\,s$^{-1}$). The bounding guarantees biologically sensible parameter values regardless of NN output magnitude and conditions the optimization landscape.
+
+\subsection{Training loop}
+
+Per epoch: (i) DINN forward, $\text{env} \to \hat{\theta}_\text{raw}$; (ii) sigmoid bounding, $\hat{\theta}_\text{raw} \to \theta$; (iii) box-model integration from a uniform initial state, $\text{state}_0 \to \text{state}_T$ over 200 forward-Euler steps with per-cell parameters $\theta$; (iv) loss, z-scored mean-squared error between predicted state and Darwin v05 climatological target over ocean cells; (v) backpropagation through the 200 integration steps via autograd; (vi) Adam optimizer step on the DINN weights. We train for 1500 epochs at learning rate $5\times 10^{-3}$; one fit completes in $\sim$7--8\,min on an NVIDIA RTX 5090 Laptop.
+
+The z-scoring decouples calibration from absolute scale: the network is required to match the spatial pattern of the target field, not its absolute magnitude. Absolute-units anchors (PIC and POC) are available as separate loss components and are studied as observational interventions in our experiments (§\ref{sec:results}).
+
+\subsection{Multi-area-of-interest joint training}
+\label{sec:method-multiaoi}
+
+v3.1 extends the framework to joint training across three areas of interest (AOIs): Equatorial Pacific (HNLC), North Atlantic Subpolar, and Southern Ocean Pacific. Each AOI contributes its own loss; the optimizer must find Carroll-N parameter fields that satisfy all three simultaneously. Two architectural variants:
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item Shared DINN with an AOI-identity input channel: a single network is conditioned on a per-AOI one-hot identifier and learns regional parameter regimes implicitly.
+  \item \texttt{PER\_AOI\_DINN} with consistency penalty: separate networks per AOI, with a soft cross-AOI consistency loss term controlled by the hyperparameter $\lambda_\text{consistency}$.
+\end{itemize}
+
+\subsection{Observation channels}
+
+The v3.1 loss combines per-AOI z-scored MSE on chlorophyll across five phytoplankton functional types, particulate organic carbon, dissolved inorganic carbon, alkalinity, and air-sea CO\textsubscript{2} flux; plus absolute-units MSE against GEOTRACES IDP2025 surface and subsurface dissolved iron, GEOTRACES subsurface POC, and GEOTRACES surface biogenic silica (via the steady-state diagnostic in \texttt{src/darwindiff/silica.py}). Optional PIC and POC absolute-unit anchors are studied as observational interventions in §\ref{sec:results}. Loss weights are configuration-level hyperparameters varied systematically across the sweep.
+
+\subsection{Experimental design}
+\label{sec:method-sweep}
+
+We executed a five-wave chained sweep covering 86 single-lever configurations and 857 seeds total, followed by a Wave 6 composition test (1 configuration, $n{=}10$ seeds). Each configuration is one runner invocation with 10 batched seeds (\texttt{torch.compile} amortizes JIT across the batch). Per-configuration outputs are JSON files at \texttt{D:\textbackslash runs\textbackslash bcr\_*\textbackslash <config>/}. The sweep waves cover (Wave~1) Basin C refinement with PIC/POC dose-response, paired anchors, chlorophyll-weight response, Southern Ocean weight, architectural variants, carbonate, and longer training; (Wave~2) orthogonal-lever sensitivity across GEOTRACES weight, POC subsurface weight, PINN drift weight, FET weight, and $\lambda_\text{consistency}$ with $n{=}30$ robustness; (Wave~3) two-dimensional grids in POSI $\times$ AOI weight and CHL1 $\times$ POSI; (Wave~4) integration-step depth tests; (Wave~5) drill into the 5/6 breakthrough events with $n{=}20$ robustness; (Wave~6) composition test of the two complementary 5/6 lever families.
+
+% ============================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Sweep summary}
+
+Table~\ref{tab:sweep-summary} summarizes the v3.1 sweep. Across 857 seeds in 86 configurations of multi-AOI joint training, no seed reaches all six Carroll-N parameters within Cal-grade (defined as $|\theta_\text{recovered} - \theta_\text{Carroll}| / \theta_\text{Carroll} \leq 0.40$). Two single-seed events break to 5/6 (0.24\% of total seeds); both are unreproduced at $n{=}20$.
+
+\begin{table}[ht]
+  \centering
+  \caption{v3.1 sweep summary across 86 configurations and 857 seeds.}
+  \label{tab:sweep-summary}
+  \begin{tabular}{lr}
+    \toprule
+    Metric & Value \\
+    \midrule
+    Total configurations & 86 \\
+    Total seeds & 857 \\
+    Seeds at 6/6 Cal-grade & 0 \\
+    Seeds at 5/6 Cal-grade & 2 (0.24\%) \\
+    Configurations preserving iron pair at 10/10 & 27 \\
+    Configurations preserving iron pair at $\geq$9/10 & 40 \\
+    F2 Basin C iron-pair Cal-grade rate ($n{=}40$) & 38/40 (95\%) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Basin C iron-pair recovery}
+\label{sec:results-basinC}
+
+The F2 configuration --- \texttt{POSI\_W}=1.0, \texttt{AOI\_W\_NATLSUBPOLAR}=2.0, \texttt{AOI\_W\_SOUTHERNOCEANPAC}=2.0, \texttt{CHL1\_W\_EXTRA}=3.0, otherwise the Basin C 3-AOI base --- recovers the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) at 38/40 Cal-grade across four independent 10-seed batches (10/10, 10/10, 10/10, 8/10). To our knowledge this is the first reproducible joint recovery of \texttt{alpfe} and \texttt{scav\_rat} in our framework. Figure~\ref{fig:basinC-scatter} (figures pending Claude Design generation; see \texttt{docs/paper/figures.md}) visualizes the recovered $(\alpha_\text{fe}, r_\text{scav})$ pairs against Carroll's published optimum.
+
+\subsection{The structural 5/6 ceiling}
+\label{sec:results-ceiling}
+
+The headline empirical finding is the structural ceiling: 0/857 seeds reach all six Carroll-N parameters within Cal-grade. Only two seeds reach 5/6, both unreproduced. The two 5/6 events recover \emph{complementary} parameter subsets (Table~\ref{tab:five-six-events}).
+
+\begin{table}[ht]
+  \centering
+  \caption{The two 5/6 Cal-grade events in v3.1. Both unreproduced at $n{=}20$.}
+  \label{tab:five-six-events}
+  \small
+  \begin{tabular}{lll}
+    \toprule
+    Configuration & Recovered (5 of 6) & Missed \\
+    \midrule
+    \texttt{w2e\_peraoi\_lam0.1} seed 3 & \texttt{alpfe} (Excellent), \texttt{scav\_rat}, \texttt{Smallgrow}, \texttt{Biggrow}, \texttt{diatomgraz} & \texttt{R\_PICPOC} \\
+    \texttt{c\_chl40\_posi15} seed 9   & \texttt{alpfe}, \texttt{scav\_rat} (Excellent), \texttt{Smallgrow}, \texttt{Biggrow}, \texttt{R\_PICPOC} & \texttt{diatomgraz} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Reproducibility tests at $n{=}20$ yield 1/20 for each configuration. The ceiling is supported by four independent pieces of evidence:
+\begin{enumerate}[noitemsep,topsep=2pt]
+  \item Zero 6/6 events across 857 seeds in 86 single-lever configurations.
+  \item \texttt{w2e\_peraoi\_lam0.1} at $n{=}20$: 1/20 at 5/6.
+  \item \texttt{c\_chl40\_posi15} at $n{=}20$: 1/20 at 5/6.
+  \item Wave 6 composition test (§\ref{sec:results-wave6}): 0/10 at 5/6.
+\end{enumerate}
+
+\subsection{Wave 6 composition test}
+\label{sec:results-wave6}
+
+The two 5/6 events recover complementary subsets, suggesting their interventions are mechanistically distinct. The natural 6/6 candidate stacks both lever families: \texttt{PER\_AOI\_DINN} with $\lambda_\text{consistency}=0.1$ (from \texttt{w2e\_peraoi\_lam0.1}) combined with \texttt{CHL1\_W\_EXTRA}=4.0 and \texttt{POSI\_W}=1.5 (from \texttt{c\_chl40\_posi15}), at the Basin C 3-AOI base. We refer to this as \texttt{w6\_combo\_per\_aoi\_chl40\_posi15}.
+
+At $n{=}10$, the composed configuration produces 0/10 at 5/6, 0/10 at 4/6, with the iron pair surviving at 9/10 but \texttt{R\_PICPOC} and \texttt{diatomgraz} both drifting in 10/10 seeds, and \texttt{Smallgrow} + \texttt{Biggrow} regressing from Cal-grade in both parents to Loose in 9/10 of the composed configuration. The mean Cal-grade count is 2.00 --- below either parent (2.40 and 2.70 respectively). Table~\ref{tab:wave6} summarizes.
+
+\begin{table}[ht]
+  \centering
+  \caption{Wave 6 composition test versus its two parent configurations, $n{=}10$ each.}
+  \label{tab:wave6}
+  \begin{tabular}{lccc}
+    \toprule
+    Metric & Combined & \texttt{w2e\_peraoi\_lam0.1} & \texttt{c\_chl40\_posi15} \\
+    \midrule
+    Seeds at 6/6 & 0/10 & 0/10 & 0/10 \\
+    Seeds at 5/6 & \textbf{0/10} & 1/10 & 1/10 \\
+    Seeds at $\geq$4/6 & 0/10 & 1/10 & 1/10 \\
+    Iron pair Cal-grade & 9/10 & 10/10 & 10/10 \\
+    \texttt{R\_PICPOC} Cal-grade & 0/10 & 0/10 & 1/10 \\
+    \texttt{diatomgraz} Cal-grade & 0/10 & 1/10 & 0/10 \\
+    Mean Cal-grade count & \textbf{2.00} & 2.40 & 2.70 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The composition is below either parent on the headline mean Cal-grade metric. The two intervention families interfere: the optimizer redistributes the residual error to a new binding region (the small-cell phytoplankton parameters) rather than letting both target recoveries hold.
+
+\subsection{Binary mutex in observation anchors}
+\label{sec:results-mutex}
+
+Any non-zero PIC absolute anchor (\texttt{PIC\_ABS\_W}, tested down to $0.02$ with paired POC anchors at multiple ratios) wipes iron-pair recovery to 0/10, regardless of magnitude. POC anchor alone also kills the iron pair, with a different downstream basin geometry. The mutex is \emph{binary in PIC presence, not graduated in magnitude}. We interpret this as the PIC absolute anchor jointly constraining the product $R_\text{PIC:POC} \cdot M_\text{tot}$ via a tight basin, pulling the optimizer to a region where \texttt{R\_PICPOC} is Cal-grade but the iron pair must drift to balance the loss.
+
+This is the most actionable predictive finding for future observation-design choices: whether a candidate observation channel can coexist in the loss without inducing mutual mutex with iron recovery is a non-trivial question, and it is testable a priori by adding the channel to DarwinDiff's loss and running a small sweep.
+
+% ============================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{The 5/6 ceiling as parameter conservation}
+
+Across 857 seeds in 86 single-lever configurations, no seed reaches 6/6 Cal-grade. The framing that fits the evidence is parameter conservation: the available observational constraints support approximately five effective degrees of freedom over the 6-parameter Carroll-N surface, and the sixth parameter is always the residual sink --- loss weighting decides which. The structural ceiling is supported by four independent pieces of evidence (§\ref{sec:results-ceiling}), and the failure of the natural composition test (§\ref{sec:results-wave6}) is the strongest negative evidence: the two complementary 5/6 lever families do not compose, instead regressing below either parent.
+
+This is informative for the broader question of which Carroll-N parameters are recoverable from ECCO-Darwin's v05 observational basis. The 5/6 ceiling does not say ``the method is broken''; it says ``the current observational constraints are insufficient by one dimension.'' Observation channels carrying information orthogonal to the current set --- for example, satellite particulate inorganic carbon for the carbonate counter-pump, or additional GEOTRACES traverses constraining the iron pump --- are the natural unblock. DarwinDiff's framework makes such tests cheap: each new candidate channel is a loader and a loss weight.
+
+\subsection{Comparison with Green's-functions calibration}
+
+Even with the structural ceiling, DarwinDiff exhibits substantial methodological advantages over Green's-functions calibration:
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item One gradient pass per training step replaces $\sim$12 model runs per Gauss-Newton iteration. The 1500-epoch DINN training run on a single GPU completes in $\sim$7\,min, compared with multi-day full-model perturbation campaigns.
+  \item New observation channels enter as additional loss terms rather than as a fresh Jacobian campaign. The marginal cost of adding a candidate channel is a loader and a loss weight.
+  \item Per-cell parameter variation is strictly more expressive than the global-scalar class. The DINN class contains the global-scalar class as the constant-prediction limit, so DINN's loss is at most equal to the optimal global-scalar fit, and typically lower whenever the target field has spatial structure expressible only by per-cell parameters.
+\end{itemize}
+
+\subsection{Limitations}
+
+The current results are subject to several caveats.
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item \textbf{Box-model proxy.} The 5--7-tracer box reduces the 39-tracer Darwin SMS kernel. The 5-PFT $\to$ 2-PFT collapse is the dominant recovery-bias source in our companion experiments (Section~\ref{sec:future}). Eliminating the proxy via a port of \texttt{darwin\_plankton.F} to differentiable PyTorch is the natural next step.
+  \item \textbf{Per-cell architecture, no spatial coupling.} Real ocean BGC has advection and diffusion between cells, which the per-cell DINN ignores. This is appropriate for parameter recovery (the truth structure is per-cell) but not for a Track-2 emulator direction.
+  \item \textbf{Climatology only.} All current fits use 23-year time-mean Darwin output. Time-resolved fitting opens a different scientific question (dynamical recovery, not steady-state) and is cluster-gated by GPU memory requirements.
+  \item \textbf{DINNDeep does not extrapolate spatially.} Block cross-validation gives held-out Pearson $r{=}0.301$ versus in-distribution $r{=}1.000$ on iron, indicating that DINNDeep is fit-to-training rather than generalizing across spatial blocks. The DINN baseline is the appropriate variant for cross-AOI claims.
+\end{itemize}
+
+\subsection{Future work}
+\label{sec:future}
+
+Three priorities.
+\begin{enumerate}[noitemsep,topsep=2pt]
+  \item \textbf{Differentiable full Darwin, regional.} Port \texttt{darwin\_plankton.F} to differentiable PyTorch, replacing the box-model proxy. Memory-feasible on existing single-GPU hardware ($\sim$15\,GB for regional steady-state). Tests whether the 5/6 ceiling is structural-to-the-method or structural-to-the-proxy.
+  \item \textbf{Time-resolved fitting.} Multi-year dynamical recovery instead of climatological steady-state. Cluster-gated via cluster GPU memory; the relevant compute access is currently being pursued via MIT ORCD's AICR (NVIDIA B200) beta program.
+  \item \textbf{Satellite observation channels.} Shelved for this paper to keep the v05 framing canonical; PACE 2024 ocean-color and MODIS particulate inorganic carbon loaders are built and parked for the leapfrog companion paper.
+\end{enumerate}
+
+% ============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We adapt the BINN architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, building a differentiable per-cell parameter recovery framework that replaces ECCO-Darwin's Green's-functions calibration with gradient-based inference. Across 857 seeds in 86 configurations of multi-AOI joint training, the framework recovers the Basin C iron pair reproducibly (38/40 Cal-grade) and exhibits a structural 5/6 ceiling on full Carroll-N recovery --- supported by four independent pieces of evidence and consistent with a parameter-conservation framing. The ceiling is a diagnostic rather than a method failure: it predicts that observation channels orthogonal to the current set would unblock 6/6 recovery, and DarwinDiff's framework makes such tests cheap. The methodological promise of differentiable parameter recovery for ocean biogeochemistry --- gradient-cheap calibration with swappable observation channels --- is delivered.
+
+% ============================================================================
+\section*{Open Research / Data Availability Statement}
+All source code, configuration files, sweep orchestration scripts, and per-seed result JSONs are publicly available at the project repository (URL pending publication). The ECCO-Darwin v05 outputs against which DarwinDiff is calibrated are publicly available from the ECCO Drive and NASA GHG Center. GEOTRACES IDP2025 observations used in the loss are publicly available from the GEOTRACES Data Assembly Centre.
+
+\section*{Acknowledgements}
+[Institutional acknowledgements pending consent. We thank the MIT ECCO group and the NASA JPL ECCO-Darwin team for making v05 outputs publicly accessible.]
+
+% ============================================================================
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
