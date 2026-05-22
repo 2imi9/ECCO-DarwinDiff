@@ -32,45 +32,30 @@
   linkcolor=blue!50!black,
   citecolor=blue!50!black,
   urlcolor=blue!50!black,
-  pdftitle={DarwinDiff: Differentiable Parameter Recovery for ECCO-Darwin},
-  pdfauthor={DarwinDiff authors},
+  pdftitle={DarwinDiff: Differentiable Parameter Recovery for ECCO-Darwin (Internal White Paper)},
 }
 
 % --- siunitx defaults -------------------------------------------------------
 \sisetup{detect-all,group-separator={,},per-mode=symbol}
 
 % --- title block ------------------------------------------------------------
-\title{\textbf{Differentiable Parameter Recovery for ECCO-Darwin Biogeochemistry: A BINN-Style Framework and a Structural 5/6 Ceiling}}
+\title{\textbf{Differentiable Parameter Recovery for ECCO-Darwin Biogeochemistry: A BINN-Style Framework and a Structural 5/6 Ceiling}\\[0.4em]
+\large\textit{Internal white paper --- DarwinDiff project}}
 
-\author{%
-  [Authors TBD]\thanks{Corresponding author: \texttt{[email TBD]}. Authorship and affiliations finalized only with explicit consent of all named individuals.}
-}
-
+\author{}
 \date{\today}
 
 % ============================================================================
 \begin{document}
 \maketitle
 
-% --- key points (AGU JAMES convention; 3 bullets, $\leq$140 chars each) -----
-\noindent\textbf{Key Points}
-\begin{itemize}[noitemsep,topsep=0pt]
-  \item A differentiable PyTorch reimplementation of Darwin's source-minus-sink kernel enables gradient-based parameter recovery on a single GPU.
-  \item Basin C iron-pair (\texttt{alpfe}, \texttt{scav\_rat}) recovers reproducibly at 38/40 seeds against Carroll 2020 published values.
-  \item A structural 5/6 ceiling holds across 857 seeds in 86 configurations; the framing is parameter conservation under available observations.
-\end{itemize}
-
 % --- abstract ---------------------------------------------------------------
 \begin{abstract}
 \noindent We adapt the Biogeochemistry-Informed Neural Network architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, replacing ECCO-Darwin's Green's-functions calibration of six parameters \citep{carroll2020ecco,carroll2022attribution} with gradient-based per-cell parameter inference. A small per-cell neural network maps environmental covariates to the Carroll-N parameters, sigmoid-bounded into Carroll's published physical ranges, fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel, and trained end-to-end against ECCO-Darwin v05 observations. We report a v3.1 sweep across 857 seeds in 86 configurations of 3-area-of-interest joint training (Equatorial Pacific, North Atlantic Subpolar, Southern Ocean Pacific). Two findings: the iron pair (iron dust solubility \texttt{alpfe}, iron scavenging rate \texttt{scav\_rat}) recovers reproducibly at 38/40 (95\%) Cal-grade with the F2 configuration, the first reproducible iron-pair joint recovery in our framework; and a structural 5/6 ceiling holds across the sweep set --- 0/857 seeds reach all six Carroll-N parameters within Cal-grade, with only two single-seed 5/6 events unreproduced at $n{=}20$. A composition test of the two complementary 5/6 lever families fails to reach 5/6 (0/10), regressing below either parent. We interpret the ceiling as parameter conservation under the available observational constraints rather than a method failure, and discuss it as a predictive diagnostic for future observation-design choices. Code and full sweep outputs are publicly available.
 \end{abstract}
 
-% --- plain language summary (AGU convention) -------------------------------
-\section*{Plain Language Summary}
-Ocean biogeochemistry models such as ECCO-Darwin simulate how nutrients, plankton, and the marine carbon cycle evolve in response to the ocean's physical state. These models have dozens of tunable parameters, but only a handful can practically be calibrated against observations using existing methods --- each parameter requires an expensive full model run. We use differentiable programming to replace this expensive calibration with gradient-based optimization that runs on a single graphics card in minutes. A small neural network learns to predict the six parameters Carroll and colleagues calibrated, varying its predictions across the ocean based on local conditions. Across 857 independent experiments, our method reliably recovers the two parameters controlling iron biogeochemistry but cannot simultaneously recover all six. This ``5 of 6'' ceiling appears to reflect a fundamental limit of what current ocean observations can constrain --- a useful diagnostic for designing future observation campaigns rather than a failure of the method itself. The framework makes adding new observation channels (for example, future satellite ocean-color missions) a configuration change instead of a multi-year recalibration effort.
-
-% --- keywords ---------------------------------------------------------------
-\noindent\textbf{Keywords:} ocean biogeochemistry; ECCO-Darwin; differentiable programming; parameter recovery; neural networks; Green's functions; calibration
+% --- keywords (internal tagging only) ---------------------------------------
+\noindent\textbf{Topics:} ocean biogeochemistry; ECCO-Darwin; differentiable programming; parameter recovery; neural networks; Green's functions; calibration.
 
 % ============================================================================
 \section{Introduction}
@@ -325,11 +310,12 @@ Three priorities.
 We adapt the BINN architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, building a differentiable per-cell parameter recovery framework that replaces ECCO-Darwin's Green's-functions calibration with gradient-based inference. Across 857 seeds in 86 configurations of multi-AOI joint training, the framework recovers the Basin C iron pair reproducibly (38/40 Cal-grade) and exhibits a structural 5/6 ceiling on full Carroll-N recovery --- supported by four independent pieces of evidence and consistent with a parameter-conservation framing. The ceiling is a diagnostic rather than a method failure: it predicts that observation channels orthogonal to the current set would unblock 6/6 recovery, and DarwinDiff's framework makes such tests cheap. The methodological promise of differentiable parameter recovery for ocean biogeochemistry --- gradient-cheap calibration with swappable observation channels --- is delivered.
 
 % ============================================================================
-\section*{Open Research / Data Availability Statement}
-All source code, configuration files, sweep orchestration scripts, and per-seed result JSONs are publicly available at the project repository (URL pending publication). The ECCO-Darwin v05 outputs against which DarwinDiff is calibrated are publicly available from the ECCO Drive and NASA GHG Center. GEOTRACES IDP2025 observations used in the loss are publicly available from the GEOTRACES Data Assembly Centre.
-
-\section*{Acknowledgements}
-[Institutional acknowledgements pending consent. We thank the MIT ECCO group and the NASA JPL ECCO-Darwin team for making v05 outputs publicly accessible.]
+\section*{Code and data references}
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item Source code, sweep orchestration scripts, and per-seed result JSONs live in the project repository alongside this white paper (\texttt{src/darwindiff/}, \texttt{scripts/}, \texttt{D:\textbackslash runs\textbackslash bcr\_*\textbackslash}).
+  \item ECCO-Darwin v05 outputs (the calibration target) are public via the ECCO Drive and the NASA GHG Center.
+  \item GEOTRACES IDP2025 observations used in the loss are public via the GEOTRACES Data Assembly Centre.
+\end{itemize}
 
 % ============================================================================
 \bibliographystyle{plainnat}
