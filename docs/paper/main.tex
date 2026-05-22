@@ -151,6 +151,13 @@ Per epoch: (i) DINN forward, $\text{env} \to \hat{\theta}_\text{raw}$; (ii) sigm
 
 The z-scoring decouples calibration from absolute scale: the network is required to match the spatial pattern of the target field, not its absolute magnitude. Absolute-units anchors (PIC and POC) are available as separate loss components and are studied as observational interventions in our experiments (§\ref{sec:results}).
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/fig1_pipeline}
+  \caption{DarwinDiff training pipeline. A per-cell neural network predicts Carroll-N parameters from local environmental covariates; sigmoid bounding maps them into Carroll's published physical ranges; a differentiable PyTorch reimplementation of Darwin's source-minus-sink kernel advances the BGC state via forward-Euler integration; the z-scored MSE loss against ECCO-Darwin v05 outputs backpropagates through the entire chain to the network weights via autograd.}
+  \label{fig:pipeline}
+\end{figure}
+
 \subsection{Multi-area-of-interest joint training}
 \label{sec:method-multiaoi}
 
@@ -199,12 +206,33 @@ Table~\ref{tab:sweep-summary} summarizes the v3.1 sweep. Across 857 seeds in 86 
 \subsection{Basin C iron-pair recovery}
 \label{sec:results-basinC}
 
-The F2 configuration --- \texttt{POSI\_W}=1.0, \texttt{AOI\_W\_NATLSUBPOLAR}=2.0, \texttt{AOI\_W\_SOUTHERNOCEANPAC}=2.0, \texttt{CHL1\_W\_EXTRA}=3.0, otherwise the Basin C 3-AOI base --- recovers the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) at 38/40 Cal-grade across four independent 10-seed batches (10/10, 10/10, 10/10, 8/10). To our knowledge this is the first reproducible joint recovery of \texttt{alpfe} and \texttt{scav\_rat} in our framework. Figure~\ref{fig:basinC-scatter} (figures pending Claude Design generation; see \texttt{docs/paper/figures.md}) visualizes the recovered $(\alpha_\text{fe}, r_\text{scav})$ pairs against Carroll's published optimum.
+The F2 configuration --- \texttt{POSI\_W}=1.0, \texttt{AOI\_W\_NATLSUBPOLAR}=2.0, \texttt{AOI\_W\_SOUTHERNOCEANPAC}=2.0, \texttt{CHL1\_W\_EXTRA}=3.0, otherwise the Basin C 3-AOI base --- recovers the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) at 38/40 Cal-grade across four independent 10-seed batches (10/10, 10/10, 10/10, 8/10). To our knowledge this is the first reproducible joint recovery of \texttt{alpfe} and \texttt{scav\_rat} in our framework. Figure~\ref{fig:basinC-scatter} visualizes the recovered $(\alpha_\text{fe}, r_\text{scav})$ pairs against Carroll's published optimum.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.7\linewidth]{figures/fig3_basinC_scatter}
+  \caption{Iron-pair recovery at the F2 configuration (\texttt{POSI\_W}=1.0, \texttt{AOI\_W\_NATLSUBPOLAR}=2.0, \texttt{AOI\_W\_SOUTHERNOCEANPAC}=2.0, \texttt{CHL1\_W\_EXTRA}=3.0) across $n{=}40$ seeds in four independent 10-seed batches. The red star marks Carroll 2020's published optimum; shaded regions show $\pm 10\%$ (Excellent) and $\pm 40\%$ (Cal-grade) bounds. 38 of 40 seeds (95\%) fall within the Cal-grade region for both \texttt{alpfe} and \texttt{scav\_rat}.}
+  \label{fig:basinC-scatter}
+\end{figure}
 
 \subsection{The structural 5/6 ceiling}
 \label{sec:results-ceiling}
 
-The headline empirical finding is the structural ceiling: 0/857 seeds reach all six Carroll-N parameters within Cal-grade. Only two seeds reach 5/6, both unreproduced. The two 5/6 events recover \emph{complementary} parameter subsets (Table~\ref{tab:five-six-events}).
+The headline empirical finding is the structural ceiling: 0/857 seeds reach all six Carroll-N parameters within Cal-grade. Only two seeds reach 5/6, both unreproduced. The two 5/6 events recover \emph{complementary} parameter subsets (Table~\ref{tab:five-six-events}). Figure~\ref{fig:ceiling} shows the Cal-grade count distribution across all seeds; Figure~\ref{fig:per-param-dist} shows per-parameter recovery distributions.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/fig2_ceiling}
+  \caption{Distribution of Carroll-N parameters recovered at Cal-grade per seed, across 857 seeds in 86 single-lever configurations. Zero seeds reach all six (the structural 5/6 ceiling); only two seeds (0.24\%) reach five, both unreproduced at $n{=}20$.}
+  \label{fig:ceiling}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/fig4_per_param_box}
+  \caption{Distribution of recovered Carroll-N parameters across the v3.1 sweep, normalized by Carroll 2020's published optima. Box plots show the IQR and whiskers at 1.5$\times$IQR across 857 seeds; the shaded bands indicate Cal-grade ($\pm 40\%$) and Excellent ($\pm 10\%$). The iron pair (\texttt{alpfe}, \texttt{scav\_rat}) clusters near unity; the other four parameters span broader distributions consistent with the parameter-conservation framing of the 5/6 ceiling.}
+  \label{fig:per-param-dist}
+\end{figure}
 
 \begin{table}[ht]
   \centering

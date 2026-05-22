@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1545 600" font-family="'EB Garamond', 'Latin Modern Roman', 'Times New Roman', Times, serif" font-size="16" style="width: 100%; height: auto; display: block;">
+  <defs>
+    <marker id="arrowFwd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111111"/>
+    </marker>
+    <marker id="arrowBack" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#D55E00"/>
+    </marker>
+  </defs>
+
+  <!-- Backprop arrow (dashed red, top) -->
+  <path d="M 1415 140 L 1415 50 L 385 50 L 385 170" fill="none" stroke="#D55E00" stroke-width="2" stroke-dasharray="8 5" marker-end="url(#arrowBack)"/>
+  <text x="900" y="40" text-anchor="middle" font-size="15" font-style="italic" fill="#D55E00" style="paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;">backpropagation through SMS via autograd</text>
+
+  <!-- Input box: covariates -->
+  <g>
+    <rect x="15" y="170" width="180" height="160" rx="3" ry="3" fill="#EDEDED" stroke="#333333" stroke-width="1.5"/>
+    <text x="105" y="200" text-anchor="middle" font-weight="700" font-size="17">Per-cell environmental</text>
+    <text x="105" y="222" text-anchor="middle" font-weight="700" font-size="17">covariates</text>
+    <line x1="45" y1="238" x2="165" y2="238" stroke="#555555" stroke-width="0.8"/>
+    <text x="105" y="260" text-anchor="middle" font-size="15">SST</text>
+    <text x="105" y="280" text-anchor="middle" font-size="15">mixed-layer depth</text>
+    <text x="105" y="300" text-anchor="middle" font-size="15">windspeed</text>
+    <text x="105" y="320" text-anchor="middle" font-size="15">latitude</text>
+  </g>
+
+  <line x1="197" y1="250" x2="289" y2="250" stroke="#111111" stroke-width="2" marker-end="url(#arrowFwd)"/>
+
+  <!-- DINN box -->
+  <g>
+    <rect x="295" y="170" width="180" height="160" rx="3" ry="3" fill="#E6F0F7" stroke="#0072B2" stroke-width="2"/>
+    <text x="385" y="200" text-anchor="middle" font-weight="700" font-size="18" fill="#0072B2">DINN</text>
+    <line x1="325" y1="216" x2="445" y2="216" stroke="#0072B2" stroke-width="0.8"/>
+    <text x="385" y="238" text-anchor="middle" font-size="15">per-cell 1×1-conv MLP</text>
+    <text x="385" y="258" text-anchor="middle" font-size="15">~454 weights (baseline)</text>
+    <text x="385" y="278" text-anchor="middle" font-size="15">or ~9.4 K (DINNDeep)</text>
+  </g>
+
+  <line x1="477" y1="250" x2="569" y2="250" stroke="#111111" stroke-width="2" marker-end="url(#arrowFwd)"/>
+
+  <text x="525" y="238" text-anchor="middle" font-style="italic" font-size="15" fill="#1a1a1a" style="paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;">6 raw values</text>
+  <text x="525" y="255" text-anchor="middle" font-style="italic" font-size="15" fill="#1a1a1a" style="paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;">per cell</text>
+
+  <!-- Sigmoid bounding box -->
+  <g>
+    <rect x="575" y="170" width="170" height="160" rx="3" ry="3" fill="#EDEDED" stroke="#333333" stroke-width="1.5"/>
+    <text x="660" y="200" text-anchor="middle" font-weight="700" font-size="17">Sigmoid bounding</text>
+    <line x1="605" y1="216" x2="715" y2="216" stroke="#555555" stroke-width="0.8"/>
+    <text x="660" y="238" text-anchor="middle" font-size="15">into Carroll</text>
+    <text x="660" y="258" text-anchor="middle" font-size="15" font-style="italic">PARAM_BOUNDS</text>
+  </g>
+
+  <line x1="747" y1="250" x2="839" y2="250" stroke="#111111" stroke-width="2" marker-end="url(#arrowFwd)"/>
+
+  <text x="795" y="238" text-anchor="middle" font-style="italic" font-size="15" fill="#1a1a1a" style="paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;">θ ∈ Carroll-6</text>
+  <text x="795" y="255" text-anchor="middle" font-style="italic" font-size="15" fill="#1a1a1a" style="paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;">per cell</text>
+
+  <!-- SMS kernel box (larger, orange) -->
+  <g>
+    <rect x="845" y="120" width="360" height="260" rx="3" ry="3" fill="#FBEFD6" stroke="#E69F00" stroke-width="2"/>
+    <text x="1025" y="150" text-anchor="middle" font-weight="700" font-size="18" fill="#9A6A00">Differentiable PyTorch SMS kernel</text>
+    <line x1="875" y1="166" x2="1175" y2="166" stroke="#E69F00" stroke-width="0.8"/>
+    <text x="1025" y="188" text-anchor="middle" font-size="15" font-style="italic">carroll6_step  /  carroll6_carbonate_step</text>
+    <text x="1025" y="228" text-anchor="middle" font-size="15">200 forward-Euler steps</text>
+    <text x="1025" y="268" text-anchor="middle" font-size="15">5–7 prognostic tracers:</text>
+    <text x="1025" y="288" text-anchor="middle" font-size="15">DFe,  P_s,  P_l,  POC,  PIC</text>
+    <text x="1025" y="328" text-anchor="middle" font-size="14" font-style="italic">(+ DIC, ALK in carbonate extension)</text>
+  </g>
+
+  <line x1="1207" y1="250" x2="1301" y2="250" stroke="#111111" stroke-width="2" marker-end="url(#arrowFwd)"/>
+
+  <text x="1255" y="238" text-anchor="middle" font-style="italic" font-size="15" fill="#1a1a1a" style="paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;">predicted</text>
+  <text x="1255" y="255" text-anchor="middle" font-style="italic" font-size="15" fill="#1a1a1a" style="paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;">tracer fields</text>
+
+  <!-- Loss diamond -->
+  <polygon points="1415,140 1525,250 1415,360 1305,250" fill="#FFFFFF" stroke="#333333" stroke-width="1.8"/>
+  <text x="1415" y="245" text-anchor="middle" font-weight="700" font-size="16">z-scored</text>
+  <text x="1415" y="268" text-anchor="middle" font-weight="700" font-size="16">MSE loss</text>
+
+  <!-- Target box (bottom) -->
+  <rect x="1295" y="450" width="240" height="90" rx="3" ry="3" fill="#EDEDED" stroke="#333333" stroke-width="1.5"/>
+  <text x="1415" y="482" text-anchor="middle" font-weight="700" font-size="16">ECCO-Darwin v05</text>
+  <text x="1415" y="506" text-anchor="middle" font-size="15">target fields</text>
+  <line x1="1415" y1="448" x2="1415" y2="362" stroke="#111111" stroke-width="2" marker-end="url(#arrowFwd)"/>
+</svg>
