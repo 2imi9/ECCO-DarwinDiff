@@ -51,7 +51,7 @@
 
 % --- abstract ---------------------------------------------------------------
 \begin{abstract}
-\noindent We adapt the Biogeochemistry-Informed Neural Network architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, replacing ECCO-Darwin's Green's-functions calibration of six parameters \citep{carroll2020ecco,carroll2022attribution} with gradient-based per-cell parameter inference. A small per-cell neural network maps environmental covariates to the Carroll-N parameters, sigmoid-bounded into Carroll's published physical ranges, fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel, and trained end-to-end against ECCO-Darwin v05 observations. We report a v3.1 sweep across 857 seeds in 86 configurations of 3-area-of-interest joint training (Equatorial Pacific, North Atlantic Subpolar, Southern Ocean Pacific). Two findings: the iron pair (iron dust solubility \texttt{alpfe}, iron scavenging rate \texttt{scav\_rat}) recovers reproducibly at 38/40 (95\%) Cal-grade with the F2 configuration, the first reproducible iron-pair joint recovery in our framework; and a structural 5/6 ceiling holds across the sweep set --- 0/857 seeds reach all six Carroll-N parameters within Cal-grade, with only two single-seed 5/6 events unreproduced at $n{=}20$. A composition test of the two complementary 5/6 lever families fails to reach 5/6 (0/10), regressing below either parent. We interpret the ceiling as parameter conservation under the available observational constraints rather than a method failure, and discuss it as a predictive diagnostic for future observation-design choices. Code and full sweep outputs are publicly available.
+\noindent We adapt the Biogeochemistry-Informed Neural Network architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, replacing ECCO-Darwin's Green's-functions calibration of six parameters \citep{carroll2020ecco,carroll2022attribution} with gradient-based per-cell parameter inference. A small per-cell neural network maps environmental covariates to the Carroll-N parameters, sigmoid-bounded into Carroll's published physical ranges, fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel, and trained end-to-end against ECCO-Darwin v05 observations. We report a v3.1 sweep across 856 seeds in 86 configurations of 3-area-of-interest joint training (Equatorial Pacific, North Atlantic Subpolar, Southern Ocean Pacific). Two findings: the iron pair (iron dust solubility \texttt{alpfe}, iron scavenging rate \texttt{scav\_rat}) recovers reproducibly at 38/40 (95\%) Cal-grade with the F2 configuration, the first reproducible iron-pair joint recovery in our framework; and a structural 5/6 ceiling holds across the sweep set --- 0/856 seeds reach all six Carroll-N parameters within Cal-grade, with only two single-seed 5/6 events unreproduced at $n{=}20$. A composition test of the two complementary 5/6 lever families fails to reach 5/6 (0/10), regressing below either parent. We interpret the ceiling as parameter conservation under the available observational constraints rather than a method failure, and discuss it as a predictive diagnostic for future observation-design choices. Code and full sweep outputs are publicly available.
 \end{abstract}
 
 % --- keywords (internal tagging only) ---------------------------------------
@@ -69,13 +69,13 @@ We address both limitations by making the biogeochemistry differentiable. A smal
 
 The methodological precedent is the Biogeochemistry-Informed Neural Network (BINN) of \citet{xu2025binn}, who introduced this pattern for terrestrial soil-carbon calibration of CLM5: a small MLP predicts 21 soil-carbon parameters per location, outputs are sigmoid-bounded into physical prior ranges, and a differentiable PyTorch reimplementation of CLM5's matrix-form steady-state equations enables end-to-end backpropagation from a soil organic carbon profile loss. We adapt the same pattern to marine biogeochemistry --- per-cell ocean fields, Carroll-N parameters, and ECCO-Darwin observation channels.
 
-This paper reports a workshop-scale proof-of-concept: framework, experimental protocol, and the empirical landscape that emerges from a 857-seed sweep across 86 single-lever configurations of 3-area-of-interest joint training. The headline empirical finding is a structural 5-of-6 calibration ceiling supported by four independent pieces of evidence. The headline methodological finding is reproducible joint recovery of the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) at 38/40 seeds in our best configuration. We argue that the 5/6 ceiling is informative --- it predicts which future observation channels would be unblocking --- rather than a method failure.
+This paper reports a workshop-scale proof-of-concept: framework, experimental protocol, and the empirical landscape that emerges from an 856-seed sweep across 86 single-lever configurations of 3-area-of-interest joint training. The headline empirical finding is a structural 5-of-6 calibration ceiling supported by four independent pieces of evidence. The headline methodological finding is reproducible joint recovery of the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) at 38/40 seeds in our best configuration. We argue that the 5/6 ceiling is informative --- it predicts which future observation channels would be unblocking --- rather than a method failure.
 
 \paragraph{Contributions.}
 \begin{enumerate}[noitemsep,topsep=2pt]
   \item A BINN-style architecture adapted to marine biogeochemistry, including a per-cell 1$\times$1-convolutional MLP (\texttt{DINN}, $\sim$454 weights) for the cleanest structural comparison against the global-scalar Green's-functions class, and a deeper variant (\texttt{DINNDeep}, $\sim$9.4\,k weights) for higher-quality within-region fits.
   \item A differentiable PyTorch reimplementation of Darwin's source-minus-sink kernel over five prognostic tracers (baseline) and seven (carbonate-enabled extension, with the Follows-2006 carbonate solver \citep{follows2006carbonate} and the Wanninkhof-2014 gas-transfer law \citep{wanninkhof2014gas}).
-  \item Empirical characterization of the recovery problem at scale: 857 seeds across 86 configurations, with reproducibility analysis at $n{=}40$ on the best configuration.
+  \item Empirical characterization of the recovery problem at scale: 856 seeds across 86 configurations, with reproducibility analysis at $n{=}40$ on the best configuration.
   \item Identification of a structural 5/6 calibration ceiling, supported by four independent evidence pieces; identification of binary observation-anchor mutexes (any non-zero PIC absolute anchor wipes iron-pair recovery) that explain the ceiling.
 \end{enumerate}
 
@@ -174,7 +174,7 @@ The v3.1 loss combines per-AOI z-scored MSE on chlorophyll across five phytoplan
 \subsection{Experimental design}
 \label{sec:method-sweep}
 
-We executed a five-wave chained sweep covering 86 single-lever configurations and 857 seeds total, followed by a Wave 6 composition test (1 configuration, $n{=}10$ seeds). Each configuration is one runner invocation with 10 batched seeds (\texttt{torch.compile} amortizes JIT across the batch). Per-configuration outputs are JSON files at \texttt{D:\textbackslash runs\textbackslash bcr\_*\textbackslash <config>/}. The sweep waves cover (Wave~1) Basin C refinement with PIC/POC dose-response, paired anchors, chlorophyll-weight response, Southern Ocean weight, architectural variants, carbonate, and longer training; (Wave~2) orthogonal-lever sensitivity across GEOTRACES weight, POC subsurface weight, PINN drift weight, FET weight, and $\lambda_\text{consistency}$ with $n{=}30$ robustness; (Wave~3) two-dimensional grids in POSI $\times$ AOI weight and CHL1 $\times$ POSI; (Wave~4) integration-step depth tests; (Wave~5) drill into the 5/6 breakthrough events with $n{=}20$ robustness; (Wave~6) composition test of the two complementary 5/6 lever families.
+We executed a five-wave chained sweep covering 86 single-lever configurations and 856 seeds total, followed by a Wave 6 composition test (1 configuration, $n{=}10$ seeds). Each configuration is one runner invocation with 10 batched seeds (\texttt{torch.compile} amortizes JIT across the batch). Per-configuration outputs are JSON files at \texttt{D:\textbackslash runs\textbackslash bcr\_*\textbackslash <config>/}. The sweep waves cover (Wave~1) Basin C refinement with PIC/POC dose-response, paired anchors, chlorophyll-weight response, Southern Ocean weight, architectural variants, carbonate, and longer training; (Wave~2) orthogonal-lever sensitivity across GEOTRACES weight, POC subsurface weight, PINN drift weight, FET weight, and $\lambda_\text{consistency}$ with $n{=}30$ robustness; (Wave~3) two-dimensional grids in POSI $\times$ AOI weight and CHL1 $\times$ POSI; (Wave~4) integration-step depth tests; (Wave~5) drill into the 5/6 breakthrough events with $n{=}20$ robustness; (Wave~6) composition test of the two complementary 5/6 lever families.
 
 % ============================================================================
 \section{Results}
@@ -182,18 +182,18 @@ We executed a five-wave chained sweep covering 86 single-lever configurations an
 
 \subsection{Sweep summary}
 
-Table~\ref{tab:sweep-summary} summarizes the v3.1 sweep. Across 857 seeds in 86 configurations of multi-AOI joint training, no seed reaches all six Carroll-N parameters within Cal-grade (defined as $|\theta_\text{recovered} - \theta_\text{Carroll}| / \theta_\text{Carroll} \leq 0.40$). Two single-seed events break to 5/6 (0.24\% of total seeds); both are unreproduced at $n{=}20$.
+Table~\ref{tab:sweep-summary} summarizes the v3.1 sweep. Across 856 seeds in 86 configurations of multi-AOI joint training, no seed reaches all six Carroll-N parameters within Cal-grade (defined as $|\theta_\text{recovered} - \theta_\text{Carroll}| / \theta_\text{Carroll} \leq 0.40$). Two single-seed events break to 5/6 (0.24\% of total seeds); both are unreproduced at $n{=}20$.
 
 \begin{table}[ht]
   \centering
-  \caption{v3.1 sweep summary across 86 configurations and 857 seeds.}
+  \caption{v3.1 sweep summary across 86 configurations and 856 seeds.}
   \label{tab:sweep-summary}
   \begin{tabular}{lr}
     \toprule
     Metric & Value \\
     \midrule
     Total configurations & 86 \\
-    Total seeds & 857 \\
+    Total seeds & 856 \\
     Seeds at 6/6 Cal-grade & 0 \\
     Seeds at 5/6 Cal-grade & 2 (0.24\%) \\
     Configurations preserving iron pair at 10/10 & 27 \\
@@ -218,19 +218,19 @@ The F2 configuration --- \texttt{POSI\_W}=1.0, \texttt{AOI\_W\_NATLSUBPOLAR}=2.0
 \subsection{The structural 5/6 ceiling}
 \label{sec:results-ceiling}
 
-The headline empirical finding is the structural ceiling: 0/857 seeds reach all six Carroll-N parameters within Cal-grade. Only two seeds reach 5/6, both unreproduced. The two 5/6 events recover \emph{complementary} parameter subsets (Table~\ref{tab:five-six-events}). Figure~\ref{fig:ceiling} shows the Cal-grade count distribution across all seeds; Figure~\ref{fig:per-param-dist} shows per-parameter recovery distributions.
+The headline empirical finding is the structural ceiling: 0/856 seeds reach all six Carroll-N parameters within Cal-grade. Only two seeds reach 5/6, both unreproduced. The two 5/6 events recover \emph{complementary} parameter subsets (Table~\ref{tab:five-six-events}). Figure~\ref{fig:ceiling} shows the Cal-grade count distribution across all seeds; Figure~\ref{fig:per-param-dist} shows per-parameter recovery distributions.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.85\linewidth]{figures/fig2_ceiling}
-  \caption{Distribution of Carroll-N parameters recovered at Cal-grade per seed, across 857 seeds in 86 single-lever configurations. Zero seeds reach all six (the structural 5/6 ceiling); only two seeds (0.24\%) reach five, both unreproduced at $n{=}20$.}
+  \caption{Distribution of Carroll-N parameters recovered at Cal-grade per seed, across 856 seeds in 86 single-lever configurations. Zero seeds reach all six (the structural 5/6 ceiling); only two seeds (0.24\%) reach five, both unreproduced at $n{=}20$.}
   \label{fig:ceiling}
 \end{figure}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.95\linewidth]{figures/fig4_per_param_box}
-  \caption{Distribution of recovered Carroll-N parameters across the v3.1 sweep, normalized by Carroll 2020's published optima. Box plots show the IQR and whiskers at 1.5$\times$IQR across 857 seeds; the shaded bands indicate Cal-grade ($\pm 40\%$) and Excellent ($\pm 10\%$). The iron pair (\texttt{alpfe}, \texttt{scav\_rat}) clusters near unity; the other four parameters span broader distributions consistent with the parameter-conservation framing of the 5/6 ceiling.}
+  \caption{Distribution of recovered Carroll-N parameters across the v3.1 sweep, normalized by Carroll 2020's published optima. Box plots show the IQR and whiskers at 1.5$\times$IQR across 856 seeds; the shaded bands indicate Cal-grade ($\pm 40\%$) and Excellent ($\pm 10\%$). The iron pair (\texttt{alpfe}, \texttt{scav\_rat}) clusters near unity; the other four parameters span broader distributions consistent with the parameter-conservation framing of the 5/6 ceiling.}
   \label{fig:per-param-dist}
 \end{figure}
 
@@ -251,7 +251,7 @@ The headline empirical finding is the structural ceiling: 0/857 seeds reach all 
 
 Reproducibility tests at $n{=}20$ yield 1/20 for each configuration. The ceiling is supported by four independent pieces of evidence:
 \begin{enumerate}[noitemsep,topsep=2pt]
-  \item Zero 6/6 events across 857 seeds in 86 single-lever configurations.
+  \item Zero 6/6 events across 856 seeds in 86 single-lever configurations.
   \item \texttt{w2e\_peraoi\_lam0.1} at $n{=}20$: 1/20 at 5/6.
   \item \texttt{c\_chl40\_posi15} at $n{=}20$: 1/20 at 5/6.
   \item Wave 6 composition test (§\ref{sec:results-wave6}): 0/10 at 5/6.
@@ -298,7 +298,7 @@ This is the most actionable predictive finding for future observation-design cho
 
 \subsection{The 5/6 ceiling as parameter conservation}
 
-Across 857 seeds in 86 single-lever configurations, no seed reaches 6/6 Cal-grade. The framing that fits the evidence is parameter conservation: the available observational constraints support approximately five effective degrees of freedom over the 6-parameter Carroll-N surface, and the sixth parameter is always the residual sink --- loss weighting decides which. The structural ceiling is supported by four independent pieces of evidence (§\ref{sec:results-ceiling}), and the failure of the natural composition test (§\ref{sec:results-wave6}) is the strongest negative evidence: the two complementary 5/6 lever families do not compose, instead regressing below either parent.
+Across 856 seeds in 86 single-lever configurations, no seed reaches 6/6 Cal-grade. The framing that fits the evidence is parameter conservation: the available observational constraints support approximately five effective degrees of freedom over the 6-parameter Carroll-N surface, and the sixth parameter is always the residual sink --- loss weighting decides which. The structural ceiling is supported by four independent pieces of evidence (§\ref{sec:results-ceiling}), and the failure of the natural composition test (§\ref{sec:results-wave6}) is the strongest negative evidence: the two complementary 5/6 lever families do not compose, instead regressing below either parent.
 
 This is informative for the broader question of which Carroll-N parameters are recoverable from ECCO-Darwin's v05 observational basis. The 5/6 ceiling does not say ``the method is broken''; it says ``the current observational constraints are insufficient by one dimension.'' Observation channels carrying information orthogonal to the current set --- for example, satellite particulate inorganic carbon for the carbonate counter-pump, or additional GEOTRACES traverses constraining the iron pump --- are the natural unblock. DarwinDiff's framework makes such tests cheap: each new candidate channel is a loader and a loss weight.
 
@@ -335,7 +335,7 @@ Three priorities.
 \section{Conclusion}
 \label{sec:conclusion}
 
-We adapt the BINN architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, building a differentiable per-cell parameter recovery framework that replaces ECCO-Darwin's Green's-functions calibration with gradient-based inference. Across 857 seeds in 86 configurations of multi-AOI joint training, the framework recovers the Basin C iron pair reproducibly (38/40 Cal-grade) and exhibits a structural 5/6 ceiling on full Carroll-N recovery --- supported by four independent pieces of evidence and consistent with a parameter-conservation framing. The ceiling is a diagnostic rather than a method failure: it predicts that observation channels orthogonal to the current set would unblock 6/6 recovery, and DarwinDiff's framework makes such tests cheap. The methodological promise of differentiable parameter recovery for ocean biogeochemistry --- gradient-cheap calibration with swappable observation channels --- is delivered.
+We adapt the BINN architecture \citep{xu2025binn} from terrestrial soil carbon to marine biogeochemistry, building a differentiable per-cell parameter recovery framework that replaces ECCO-Darwin's Green's-functions calibration with gradient-based inference. Across 856 seeds in 86 configurations of multi-AOI joint training, the framework recovers the Basin C iron pair reproducibly (38/40 Cal-grade) and exhibits a structural 5/6 ceiling on full Carroll-N recovery --- supported by four independent pieces of evidence and consistent with a parameter-conservation framing. The ceiling is a diagnostic rather than a method failure: it predicts that observation channels orthogonal to the current set would unblock 6/6 recovery, and DarwinDiff's framework makes such tests cheap. The methodological promise of differentiable parameter recovery for ocean biogeochemistry --- gradient-cheap calibration with swappable observation channels --- is delivered.
 
 % ============================================================================
 \section*{Code and data references}

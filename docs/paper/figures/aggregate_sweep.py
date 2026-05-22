@@ -74,36 +74,126 @@ CAL_GRADE_TOL = 0.40
 # ----------------------------------------------------------------------------
 # JSON scanning
 # ----------------------------------------------------------------------------
-def find_carroll6_in_json(obj: Any) -> dict[str, float] | None:
-    """Recursively search a parsed JSON tree for a Carroll-6 dict.
-
-    Returns the first dict (depth-first) whose keys include all six Carroll-6
-    param names. Values are coerced to float.
-    """
+def _find_params_dict(obj: Any) -> dict | None:
+    """Depth-first search for any dict whose keys include all six Carroll-6
+    param names. Returns the dict itself (not its values)."""
     if isinstance(obj, dict):
         if all(k in obj for k in PARAM_NAMES):
-            try:
-                return {k: float(obj[k]) for k in PARAM_NAMES}
-            except (TypeError, ValueError):
-                pass  # fall through and continue searching children
+            return obj
         for v in obj.values():
-            found = find_carroll6_in_json(v)
+            found = _find_params_dict(v)
             if found is not None:
                 return found
     elif isinstance(obj, list):
         for v in obj:
-            found = find_carroll6_in_json(v)
+            found = _find_params_dict(v)
             if found is not None:
                 return found
     return None
 
 
-def compute_cal_grade(recovered: dict[str, float]) -> dict[str, bool]:
-    """Apply the ±40% Cal-grade definition from STATUS.md."""
+# Candidate sub-keys for the recovered value when the params dict uses a
+# nested-per-param layout. v3.x JSONs use ``joint_recovered`` as the
+# canonical aggregated recovery; older waves may use ``recovered`` or
+# ``value``.
+_RECOVERED_SUBKEYS = (
+    "joint_recovered",
+    "joint_cellweighted_recovered",
+    "joint_aoiweighted_recovered",
+    "recovered",
+    "value",
+)
+
+# Candidate sub-keys for the recovery-band classification string.
+_BAND_SUBKEYS = (
+    "joint_band",
+    "joint_cellweighted_band",
+    "joint_aoiweighted_band",
+    "band",
+    "cal_grade_band",
+)
+
+# Bands that count as Cal-grade per STATUS.md ``Recovery scoring`` block.
+_CAL_GRADE_BANDS = {"Excellent", "Cal-grade"}
+
+
+def compute_cal_grade_from_threshold(recovered: dict[str, float]) -> dict[str, bool]:
+    """Apply the ±40% threshold definition when no band is present."""
     return {
         k: abs(recovered[k] - CARROLL_OPTIMA[k]) / CARROLL_OPTIMA[k] <= CAL_GRADE_TOL
         for k in PARAM_NAMES
     }
+
+
+def extract_carroll6(obj: Any) -> tuple[dict[str, float], dict[str, bool]] | None:
+    """Find a Carroll-6 params dict and return (recovered_values, cal_grade).
+
+    Handles two common layouts:
+    - flat:   {alpfe: 0.92, scav_rat: 6e-7, ...}
+    - nested: {alpfe: {joint_recovered: 0.92, joint_band: "Cal-grade", ...}, ...}
+
+    For nested layouts, Cal-grade is taken from the band field if present,
+    otherwise computed from the ±40% threshold.
+    """
+    params_dict = _find_params_dict(obj)
+    if params_dict is None:
+        return None
+
+    recovered: dict[str, float] = {}
+    cal_grade: dict[str, bool] = {}
+    for p in PARAM_NAMES:
+        val = params_dict[p]
+
+        # flat layout — value is a number
+        if isinstance(val, (int, float)):
+            recovered[p] = float(val)
+            cal_grade[p] = (
+                abs(val - CARROLL_OPTIMA[p]) / CARROLL_OPTIMA[p] <= CAL_GRADE_TOL
+            )
+            continue
+
+        # nested layout — value is a sub-dict with joint_recovered / joint_band
+        if isinstance(val, dict):
+            rec_val: float | None = None
+            for key in _RECOVERED_SUBKEYS:
+                if key in val:
+                    try:
+                        rec_val = float(val[key])
+                        break
+                    except (TypeError, ValueError):
+                        continue
+            if rec_val is None:
+                return None  # unsupported nested layout
+            recovered[p] = rec_val
+
+            band: str | None = None
+            for key in _BAND_SUBKEYS:
+                if key in val and isinstance(val[key], str):
+                    band = val[key]
+                    break
+            if band is not None:
+                cal_grade[p] = band in _CAL_GRADE_BANDS
+            else:
+                cal_grade[p] = (
+                    abs(rec_val - CARROLL_OPTIMA[p]) / CARROLL_OPTIMA[p] <= CAL_GRADE_TOL
+                )
+            continue
+
+        # something else — unsupported
+        return None
+
+    return recovered, cal_grade
+
+
+# legacy alias kept for callers that imported the old name
+def find_carroll6_in_json(obj: Any) -> dict[str, float] | None:
+    result = extract_carroll6(obj)
+    return result[0] if result is not None else None
+
+
+def compute_cal_grade(recovered: dict[str, float]) -> dict[str, bool]:
+    """Apply the ±40% Cal-grade definition from STATUS.md."""
+    return compute_cal_grade_from_threshold(recovered)
 
 
 # ----------------------------------------------------------------------------
@@ -139,13 +229,14 @@ def extract_config(path: Path, runs_root: Path) -> str:
     Layout assumption::
 
         runs_root/
-            bcr_<wave>_<stamp>/
-                <config_name>/
-                    (optional batch dir like seeds10-19/)
+            <top_level>/           # e.g. bcr_<wave>_<stamp> or sweep_d4_F2_*
+                [<config_name>/]   # optional intermediate config dir
+                    [<batch>/]     # optional seedsN-M batch dir
                     <seed>.json
 
-    We walk up the path skipping any ``seedsN-M`` style batch directories
-    until we land on the config name (one level under bcr_*).
+    We prefer the intermediate config dir if present (skipping any
+    ``seedsN-M`` batch dirs). Otherwise we fall back to the top-level dir
+    name itself (e.g. for sweeps where each top-level dir IS the config).
     """
     try:
         rel = path.relative_to(runs_root)
@@ -153,31 +244,56 @@ def extract_config(path: Path, runs_root: Path) -> str:
         return path.parent.name
 
     parts = rel.parts
-    if len(parts) < 2:
+    if not parts:
         return "unknown"
 
-    # parts[0] = bcr_<...>
-    # parts[1] onwards = config / optional batch / file
-    # walk from the immediate parent upward, skipping batch dirs
-    parents = list(parts[1:-1])
-    while parents and _SEED_BATCH_RE.match(parents[-1]):
-        parents.pop()
-    if parents:
-        return parents[-1]
-    # if we ate everything, use parts[1] (the direct child of bcr_*)
-    return parts[1] if len(parts) > 1 else "unknown"
+    # parts[0] = top-level dir; parts[1:-1] = intermediate dirs; parts[-1] = file
+    intermediates = list(parts[1:-1])
+    while intermediates and _SEED_BATCH_RE.match(intermediates[-1]):
+        intermediates.pop()
+    if intermediates:
+        return intermediates[-1]
+    # no intermediate config dir — the top-level dir IS the config scope
+    return parts[0]
 
 
 # ----------------------------------------------------------------------------
 # Aggregation
 # ----------------------------------------------------------------------------
-def aggregate(runs_root: Path, output: Path, verbose: bool = False) -> None:
+def aggregate(
+    runs_root: Path,
+    output: Path,
+    verbose: bool = False,
+    top_level_pattern: str = "*",
+) -> None:
     seeds: list[dict[str, Any]] = []
     skipped: list[tuple[str, str]] = []
     total_files = 0
 
-    json_paths = sorted(runs_root.rglob("*.json"))
-    print(f"Scanning {len(json_paths)} JSON files under {runs_root} ...")
+    # Accept comma-separated patterns so callers can scope to multiple
+    # top-level dirs (e.g. ``bcr_*,sweep_d4_F2_*``).
+    patterns = [p.strip() for p in top_level_pattern.split(",") if p.strip()]
+    seen: set[Path] = set()
+    top_dirs: list[Path] = []
+    for pat in patterns:
+        for p in runs_root.glob(pat):
+            if p.is_dir() and p not in seen:
+                seen.add(p)
+                top_dirs.append(p)
+    top_dirs.sort()
+    if not top_dirs:
+        print(f"WARN: no top-level dirs matching {top_level_pattern!r} under {runs_root}")
+        return
+
+    print(f"Scanning {len(top_dirs)} top-level dirs matching {top_level_pattern!r}:")
+    for d in top_dirs:
+        print(f"  - {d.name}")
+
+    json_paths: list[Path] = []
+    for top in top_dirs:
+        json_paths.extend(top.rglob("*.json"))
+    json_paths.sort()
+    print(f"Scanning {len(json_paths)} JSON files ...")
 
     for json_path in json_paths:
         total_files += 1
@@ -188,10 +304,11 @@ def aggregate(runs_root: Path, output: Path, verbose: bool = False) -> None:
             skipped.append((str(json_path), f"unreadable: {exc}"))
             continue
 
-        recovered = find_carroll6_in_json(content)
-        if recovered is None:
+        extracted = extract_carroll6(content)
+        if extracted is None:
             skipped.append((str(json_path), "no Carroll-6 dict found"))
             continue
+        recovered, cal_grade = extracted
 
         seed = extract_seed(json_path, content)
         if seed is None:
@@ -199,12 +316,6 @@ def aggregate(runs_root: Path, output: Path, verbose: bool = False) -> None:
             continue
 
         config = extract_config(json_path, runs_root)
-
-        try:
-            cal_grade = compute_cal_grade(recovered)
-        except (ZeroDivisionError, KeyError) as exc:
-            skipped.append((str(json_path), f"cal_grade compute failed: {exc}"))
-            continue
 
         seeds.append({
             "config": config,
@@ -294,12 +405,17 @@ def main() -> None:
         "--verbose", action="store_true",
         help="Print first 20 skipped files and first 15 config names",
     )
+    parser.add_argument(
+        "--include", default="bcr_*",
+        help="Top-level dir glob pattern to include under runs-root "
+             "(default: 'bcr_*' which restricts to v3.1 sweep waves; use '*' for everything)",
+    )
     args = parser.parse_args()
 
     if not args.runs_root.exists():
         sys.exit(f"ERROR: runs-root does not exist: {args.runs_root}")
 
-    aggregate(args.runs_root, args.output, args.verbose)
+    aggregate(args.runs_root, args.output, args.verbose, args.include)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1545 600" font-family="'EB Garamond', 'Latin Modern Roman', 'Times New Roman', Times, serif" font-size="16" style="width: 100%; height: auto; display: block;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1545 600" width="1545" height="600" font-family="'EB Garamond', 'Latin Modern Roman', 'Times New Roman', Times, serif" font-size="16">
   <defs>
     <marker id="arrowFwd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#111111"/>

@@ -199,11 +199,28 @@ def fig3_basinC_scatter(out_dir: Path, data: dict | None = None) -> None:
         scav = np.concatenate([scav_cluster, scav_out])
         illustrative = True
     else:
+        # The F2 / Basin C iron-pair n=40 spans four 10-seed batches across
+        # the v3.1 sweep, in dirs whose canonical config names are:
+        #   sweep_d4_F2_chl1W_20260519_1934   (seeds 0-9)
+        #   arc6_basinC_seeds10-19            (seeds 10-19)
+        #   w2f_basinC_seeds20-29             (seeds 20-29)
+        #   e_basinC_seeds30-39               (seeds 30-39)
+        # Match either by 'basinC' substring or the seed-0-9 F2 batch dir name.
+        f2_batch_markers = ("basinc",
+                            "sweep_d4_f2",
+                            "f2_chl1w",
+                            "f2_seeds")
         F2_seeds = [s for s in data["seeds"]
-                    if s["config"].lower().startswith("f2")]
-        F2_seeds = F2_seeds[:40]
+                    if any(m in s["config"].lower() for m in f2_batch_markers)]
         alpfe = np.array([s["recovered"]["alpfe"] for s in F2_seeds])
         scav = np.array([s["recovered"]["scav_rat"] for s in F2_seeds])
+        # Iron-pair Cal-grade count uses the aggregator's per-param flags,
+        # which already apply the project ±40% definition consistently.
+        n_iron_pair_cal = sum(
+            1 for s in F2_seeds
+            if s["cal_grade"]["alpfe"] and s["cal_grade"]["scav_rat"]
+        )
+        n_total_F2 = len(F2_seeds)
         illustrative = False
 
     carroll_alpfe = CARROLL_OPTIMA["alpfe"]
@@ -251,10 +268,17 @@ def fig3_basinC_scatter(out_dir: Path, data: dict | None = None) -> None:
     ax.set_title(title)
     ax.legend(loc="upper left", framealpha=0.95)
 
-    ax.text(0.97, 0.03,
-            f"F2 config, n={len(alpfe)}\n"
-            "38/40 (95%) in Cal-grade\n"
-            "4 batches of 10 seeds",
+    if not illustrative:
+        pct = (n_iron_pair_cal / n_total_F2 * 100) if n_total_F2 > 0 else 0
+        annotation = (f"F2 / Basin C config, n={n_total_F2}\n"
+                      f"{n_iron_pair_cal}/{n_total_F2} ({pct:.0f}%) "
+                      "iron-pair Cal-grade\n"
+                      "across four 10-seed batches")
+    else:
+        annotation = ("F2 / Basin C config, n=40\n"
+                      "38/40 (95%) iron-pair Cal-grade\n"
+                      "across four 10-seed batches")
+    ax.text(0.97, 0.03, annotation,
             transform=ax.transAxes, ha="right", va="bottom",
             fontsize=9,
             bbox=dict(facecolor="white", edgecolor=PALETTE["light_gray"],
