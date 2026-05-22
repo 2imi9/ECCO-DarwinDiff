@@ -79,7 +79,23 @@ The script accepts an aggregated sweep JSON with this shape:
 
 The `cal_grade` flags can be omitted if the script should compute them from `recovered / CARROLL_OPTIMA` against the ±40% Cal-grade band; the script handles both layouts.
 
-To produce this JSON from the raw per-seed JSONs in `D:\runs\bcr_*\`, write a small aggregator (left as a project-side task — paths and exact JSON field names vary across sweep waves).
+To produce this JSON from the raw per-seed JSONs in `D:\runs\bcr_*\`, use `aggregate_sweep.py` in this directory:
+
+```bash
+cd docs/paper/figures
+python aggregate_sweep.py                          # defaults to D:/runs
+python aggregate_sweep.py --runs-root D:/runs --verbose
+```
+
+The script:
+1. Walks every JSON under `D:\runs\bcr_*\`.
+2. Recursively searches each parsed JSON for a Carroll-6-shaped dict — defensive against varying field layouts across the five sweep waves.
+3. Identifies seed (from JSON content or filename) and config (from path, skipping `seedsN-M` batch dirs).
+4. Computes Cal-grade flags using the project's ±40% definition from `STATUS.md`.
+5. Dedupes by `(config, seed)`.
+6. Writes `aggregated_v3.1.json` with sanity-check fields (`total_seeds`, `total_configs`, the cal-grade distribution histogram).
+
+**Sanity expectation:** After running on a complete v3.1 tree you should see roughly `857 seeds / 86 configs / 2 at 5/6 / 0 at 6/6` echoed back. If the numbers are off, run with `--verbose` to inspect the skipped-file log — the script prints a reason per skip, and the most common cause is a per-seed JSON layout the recursive search doesn't recognise. Extend `find_carroll6_in_json` in that case.
 
 ### What's "illustrative" vs real
 
