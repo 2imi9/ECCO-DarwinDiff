@@ -15,7 +15,7 @@ from collections import Counter
 from statistics import median
 
 PARAMS = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
-BASE_PREFIX = "scripts/run_v3.0_joint_eqpac-natlsubpolar_seed"
+BASE_PREFIX = "data/legacy/scripts_json_archive/run_v3.0_joint_eqpac-natlsubpolar_seed"
 BASE_MIDDLE = "_surf0.3_sub1.0_pinn3.0_pocsubW3.0_geopocW0.5_aoiid_hd32_w-natlsubpolar2.0_posiW1.0"
 
 def load_runs(suffix: str) -> list[dict]:

@@ -10,7 +10,7 @@ from __future__ import annotations
 import glob, json, sys
 import numpy as np
 
-PATTERN = "scripts/run_v3.0_joint_eqpac-natlsubpolar_seed*_surf0.3_sub1.0_pinn3.0_pocsubW3.0_geopocW0.5_aoiid_hd32_w-natlsubpolar2.0_posiW1.0.json"
+PATTERN = "data/legacy/scripts_json_archive/run_v3.0_joint_eqpac-natlsubpolar_seed*_surf0.3_sub1.0_pinn3.0_pocsubW3.0_geopocW0.5_aoiid_hd32_w-natlsubpolar2.0_posiW1.0.json"
 
 def main() -> None:
     files = sorted(glob.glob(PATTERN), key=lambda f: int(f.rsplit('seed', 1)[1].split('_', 1)[0]))

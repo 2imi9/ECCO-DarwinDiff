@@ -62,4 +62,4 @@ Remove-Item Env:GEOTRACES_W -ErrorAction SilentlyContinue
 Remove-Item Env:NB23_RAW_FET_WEIGHT -ErrorAction SilentlyContinue
 Remove-Item Env:NB23_PINN_WEIGHT -ErrorAction SilentlyContinue
 Remove-Item Env:NB23_SEED -ErrorAction SilentlyContinue
-Write-Log "=== Wave 5 done. JSONs in scripts/run_geotraces_hybrid_result_*.json ==="
+Write-Log "=== Wave 5 done. JSONs in data/legacy/scripts_json_archive/run_geotraces_hybrid_result_*.json ==="

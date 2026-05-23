@@ -161,7 +161,7 @@ def pattern_for(env: dict[str, str]) -> str:
     natl = env.get("AOI_W_NATLSUBPOLAR",BASE_ENV.get("AOI_W_NATLSUBPOLAR", "1.0"))
     chl1 = env.get("CHL1_W_EXTRA",      BASE_ENV.get("CHL1_W_EXTRA", "0.0"))
 
-    base = ("scripts/run_v3.0_joint_eqpac-natlsubpolar_seed*_"
+    base = ("data/legacy/scripts_json_archive/run_v3.0_joint_eqpac-natlsubpolar_seed*_"
             f"surf{surf}_sub{sub}_pinn{pinn}_pocsubW{pocs}_geopocW{geop}_aoiid")
     if hd != "16":
         base += f"_hd{hd}"

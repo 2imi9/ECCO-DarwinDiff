@@ -17,7 +17,7 @@ CELLS: list[tuple[str, str]] = [
 # v2.8 — Bimodal Degeneracy in Carroll-6 Recovery (PR #45 analysis)
 
 **Companion to** [`docs/findings/v2.8_darwin_ic_poc_sub.md`](../docs/findings/v2.8_darwin_ic_poc_sub.md).
-**Loads** the result JSONs already in `scripts/run_v2.7_multilayer_result_*.json` (no new training runs).
+**Loads** the result JSONs already in `data/legacy/scripts_json_archive/run_v2.7_multilayer_result_*.json` (no new training runs).
 
 ## Headline
 
