@@ -15,12 +15,25 @@ DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with g
 - **Composition test of the two 5/6 recipes fails (Wave 6).** Combining PER_AOI_DINN + CONSISTENCY_LAMBDA=0.1 + CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C 3-AOI base yields 0/10 at 5/6, 0/10 at 4/6, mean_cal 2.00 — worse than either parent (2.40 / 2.70). Iron pair survives (9/10) but R_PICPOC and diatomgraz both drift; small-cell phyto params (Smallgrow, Biggrow) also regress. The two intervention families interfere.
 - **Binary mutex confirmed at low PIC dose.** Any nonzero `PIC_ABS_W` (tested down to 0.02) wipes iron-pair recovery → 0/10, regardless of POC pair. `POC_ABS_W` alone also kills iron pair, with different downstream basin geometry.
 
-The structural 5/6 ceiling holds at 2/857 across all v3.1 work. Four independent pieces of evidence now support parameter conservation as the binding limit: (1) 0 at 6/6 across 857 seeds and 86 configs of single-lever variation, (2) `w2e_peraoi_lam0.1` n=20 → 1/20 at 5/6, (3) `c_chl40_posi15` n=20 → 1/20 at 5/6 (both 5/6 events unreproduced), (4) the composition test of the two complementary 5/6 lever families produces 0/10 at 5/6. The 5/6 ceiling is the headline finding.
+The structural 5/6 ceiling holds at 2/857 across all v3.1 work. Five independent pieces of evidence now support parameter conservation as the binding limit: (1) 0 at 6/6 across 857 seeds and 86 configs of single-lever 3-AOI variation, (2) `w2e_peraoi_lam0.1` n=20 → 1/20 at 5/6, (3) `c_chl40_posi15` n=20 → 1/20 at 5/6 (both 5/6 events unreproduced), (4) the composition test of the two complementary 5/6 lever families produces 0/10 at 5/6, (5) the v3.1.1 AOI ablation (n=200) produces 0/80 at 5/6 in the best-mean-cal 2-AOI `eqp+natl` configuration despite 19/80 at 4/6 via a recovery route v3.1 never observed (R_PICPOC + diatomgraz both Cal+, iron pair drops). The 5/6 ceiling is the headline finding; AOI mix decides WHICH 4--5 params recover but never lifts the cap to 6.
+
+**v3.1.1 — AOI ablation** (PR #89 / paper §4.7, 200 fresh seeds). At the F2 Basin C lever set, four AOI configurations:
+
+| Config | n | iron-pair | diatomgraz | R_PICPOC | k≥4/n | mean_cal |
+|---|---|---|---|---|---|---|
+| 1-AOI eqpac | 40 | 0% | 100% | 8% | 0% | 2.08 |
+| 2-AOI eqp+natl (no SO) | 80 | 1% | 85% | 20% | **24%** | **3.20** |
+| 2-AOI eqp+SO (no natl) | 40 | 75% | 15% | 0% | 12% | 2.30 |
+| 3-AOI baseline (matched n=40) | 40 | 95% | 0% | 0% | 5% | 2.52 |
+
+Per-AOI attribution: eqpac carries `alpfe` + `diatomgraz`; natl carries `Biggrow` + `R_PICPOC`; SO carries `scav_rat`. The 3-AOI configuration is one of several Pareto-equivalent points; it trades `diatomgraz` + `R_PICPOC` recovery for `scav_rat` recovery. 16/80 seeds in `eqp+natl` recover R_PICPOC + diatomgraz Cal+ simultaneously --- a basin v3.1's 856-seed sweep never produced.
 
 ## Headline results
 
 | Version | AOI | Config | Best result | Source |
 |---|---|---|---|---|
+| v3.1.1 (AOI ablation, PR #89) | 2-AOI eqp+natl | F2 base, no SO | 19/80 at 4/6 (24%, best 4+ rate in project); 16/80 with R_PICPOC + diatomgraz Cal+ together (v3.1 had 0 of 856) | bcr_5pft_eqp_natl_20260523_1058/ |
+| v3.1.1 (AOI ablation, PR #89) | 1-AOI eqpac | F2 base | 40/40 alpfe Cal+ (44 Excellent); 40/40 diatomgraz Cal+; iron pair 0/40 | bcr_eqp5_20260523_0242/ |
 | v3.1 (Wave 2) | 3-AOI | `w2e_peraoi_lam0.1` | 1/10 seeds at 5/6; alpfe Excellent + scav_rat + Smallgrow + Biggrow + diatomgraz Cal | bcr_w2_/w2e_peraoi_lam0.1/ |
 | v3.1 (Wave 3) | 3-AOI | `c_chl40_posi15` | 1/10 seeds at 5/6; alpfe + scav_rat Excellent + Smallgrow + Biggrow + R_PICPOC Cal | bcr_w3_/c_chl40_posi15/ |
 | v3.1 (n=40 extension) | 3-AOI | F2 Basin C base | 38/40 iron-pair Cal+ across four 10-seed batches | bcr_*/arc6_basinC_seeds10-19/, /w2f_basinC_seeds20-29/, /e_basinC_seeds30-39/ |
@@ -43,6 +56,7 @@ The structural 5/6 ceiling holds at 2/857 across all v3.1 work. Four independent
 - **v2.8** (PR #45): Darwin v5 pickup ICs + L2 POC z-score loss. Project-first reproducible scav_rat recovery (7/10 Cal-grade, 4/10 Excellent). Reveals bimodal degeneracy in (alpfe, scav_rat) selected by `POC_SUB_W`.
 - **v3.0** (PRs #46–#59): joint multi-AOI training across Eq Pac + N Atl Subpolar with a shared Carroll-6. Establishes the 5/6 plateau across 50+ seeds. Architectural (PR #58: per-AOI DINNs falsified at 2-AOI) and observational-anchor (PR #59: PIC_ABS + POC_ABS paired anchors underperform baseline) break attempts all empirically falsified. 5/6 ceiling characterized as **parameter conservation**: the observations support ~5 effective constraints on 6 parameters; the 6th is always the residual sink, and loss weighting decides which.
 - **v3.1** (PR #64+): Southern Ocean Pacific added as 3rd AOI; Basin C iron-pair 38/40 at n=40; two complementary 5/6 paths via PER_AOI_DINN at low CONSISTENCY_LAMBDA and via CHL1_W + POSI_W combo tuning. PER_AOI_DINN was falsified at 2-AOI; 3-AOI behavior is new and material.
+- **v3.1.1** (PR #89): AOI ablation (4 configs × n=40-80 = n=200) decomposes the v3.1 recoverability gradient into per-AOI attribution. Dropping SO recovers `diatomgraz` (0→85%) and `R_PICPOC` (0→20%) at the cost of `scav_rat` (95→1%). Architecture-level Carroll-6 tradeoff: no single AOI mix reaches 6/6. Paper §4.7 in the same PR. 5/6 ceiling holds (0/80 at 5+ in `eqp+natl`).
 - **Cluster-gated**: full-ocean parameter recovery, time-resolved multi-year fitting, Track 2 emulator, forward Darwin validation. See [docs/cluster_setup.md](docs/cluster_setup.md).
 
 ## Architecture
@@ -68,6 +82,7 @@ Across 757 seeds in v3.1, only 2 broke the 5/6 ceiling. Different interventions 
 | Paired POC+PIC (PR #59) | `alpfe + scav_rat` | Both anchors disturb iron budget |
 | PER_AOI + low λ at 3-AOI (v3.1 w2e) | `R_PICPOC` | Same family as PR #58 but the 3rd AOI breaks the basin lock |
 | CHL1 + POSI combo at 3-AOI (v3.1 c_chl40_posi15) | `diatomgraz` | Loss reweighting lands R_PICPOC while losing diatomgraz |
+| 2-AOI eqp+natl ablation (v3.1.1) | `scav_rat` + `Smallgrow` | Dropping SO recovers diatomgraz + R_PICPOC + Biggrow but iron pair collapses (no surface↔subsurface DFe contrast) |
 
 The two v3.1 5/6 paths recover complementary param subsets (one lands diatomgraz, the other lands R_PICPOC). Combining their interventions in a single config is the obvious next test for a 6/6 candidate.
 
