@@ -31,7 +31,9 @@ can learn parameters that Carroll's Green's-functions calibration tunes one-at-a
 - **Composition test of the two 5/6 recipes fails (Wave 6).** Stacking both intervention families → 0/10 at 5/6, mean_cal 2.00 (worse than either parent 2.40 / 2.70). Iron pair survives (9/10) but R_PICPOC and diatomgraz both drift, Smallgrow + Biggrow regress. Interventions interfere.
 - **Binary mutex confirmed at low PIC dose**: any `PIC_ABS_W ≥ 0.02` wipes iron pair regardless of magnitude or POC pairing.
 
-The structural 5/6 ceiling is the headline finding, now supported by four independent pieces of evidence: 0/857 at 6/6 across 86 single-lever configs, both 5/6 events independently confirmed unreproduced at n=20 (each 1/20), and the composition test of the two complementary 5/6 lever families fails. v3.0's parameter-conservation framing is fully strengthened. Cluster path via MIT ORCD AICR (B200) is opening; Engaging cluster experience is the prerequisite.
+The structural 5/6 ceiling is the headline finding, now supported by five independent pieces of evidence: 0/857 at 6/6 across 86 single-lever 3-AOI configs, both 5/6 events unreproduced at n=20 (each 1/20), the composition test of the two complementary 5/6 lever families fails, and the v3.1.1 AOI ablation produces 19/80 at 4/6 in `eqp+natl` (best 4+ rate observed in the project) but 0/80 at 5/6 — confirming the ceiling holds under regime-restriction too.
+
+**v3.1.1 AOI ablation (PR #89 / paper §4.7)**: 200 seeds across four AOI configurations at the F2 lever set. The v3.1 "Hard" tier dissolves under regime restriction — `diatomgraz` recovers at 85% and `R_PICPOC` at 20% in `eqp+natl` (no Southern Ocean), with `R_PICPOC` median landing on Carroll's 0.043 to within 3%. The Southern Ocean is load-bearing for `scav_rat` but actively destroys `diatomgraz` and `R_PICPOC` via inter-regime tension. Four of six Carroll-6 params are recoverable from existing v05 observations under at least one AOI configuration tested; only `Smallgrow` stays below 25% Cal-grade in every configuration.
 
 See [STATUS.md][status_url] for live state and per-version findings.
 
@@ -66,6 +68,7 @@ ECCO-Darwin (Carroll et al. 2020, *JAMES*; Carroll et al. 2022, *GBC*) is calibr
 - **v2.8** (PR #45): Darwin v5 ICs + L2 POC obs; project-first reproducible scav_rat recovery.
 - **v3.0** (PRs #46-#59): multi-AOI joint training; 5/6 plateau as parameter conservation.
 - **v3.1** (PR #64): 3-AOI Basin C + PER_AOI_DINN; two complementary 5/6 paths.
+- **v3.1.1** (PR #89): AOI ablation (n=200) reveals `eqp+natl` recovers `diatomgraz` + `R_PICPOC` at the cost of the iron pair — architecture-level Carroll-6 tradeoff, 5/6 ceiling holds.
 - **Gated on cluster:** full-ocean recovery, time-resolved fitting, Track 2 emulator.
 
 </details>
