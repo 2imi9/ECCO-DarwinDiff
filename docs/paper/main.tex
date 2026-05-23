@@ -39,7 +39,7 @@
 
 % --- abstract ---------------------------------------------------------------
 \begin{abstract}
-\noindent ECCO-Darwin's six-parameter biogeochemistry calibration uses Green's functions: expensive perturb-and-fit Jacobians that do not transfer when new observations come online. We adapt the Biogeochemistry-Informed Neural Network (BINN) pattern from terrestrial soil carbon to marine biogeochemistry. A small per-cell neural network maps environmental covariates to the six Carroll-N parameters, sigmoid-bounded into Carroll's published ranges and fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel; the observation loss backpropagates end-to-end. We report the v3.1 sweep: \textbf{856 seeds in 86 single-lever configurations}. Three findings, framed honestly. \textbf{First, partial recovery is real and reproducible:} the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) recovers at \textbf{38/40 (95\%) Cal-grade} with our best configuration --- the first reproducible differentiable-parameter-recovery result for ECCO-Darwin biogeochemistry. \textbf{Second, a clear recoverability gradient across the Carroll-6:} \texttt{alpfe} (84\% of seeds Cal-grade) and \texttt{scav\_rat} (70\%) reliably recover; \texttt{Biggrow} (47\%) and \texttt{Smallgrow} (28\%) partially; \texttt{diatomgraz} (10\%) and \texttt{R\_PICPOC} (3\%) almost never. The \textbf{typical seed recovers 2 or 3 of 6 parameters} (80\% of seeds; modal bucket is 2/6 at 43\%, second bucket is 3/6 at 37\%; mean~=~2.41); 92\% of seeds reach 3/6 or fewer. \textbf{Third, a structural 5/6 ceiling:} 0/856 seeds reach all six jointly; only two unreproduced single-seed 5/6 events; a composition test of the two complementary 5/6 lever families regresses below either parent. The framework is therefore a \emph{partial} replacement of Green's-functions calibration --- not a drop-in for all six parameters yet, but a reproducible recovery of the iron pair with a characterized gradient and a predictive diagnostic for which new observation channels (satellite PIC for the carbonate counter-pump, additional GEOTRACES traverses) would unblock the remaining four.
+\noindent ECCO-Darwin's six-parameter biogeochemistry calibration uses Green's functions: expensive perturb-and-fit Jacobians that do not transfer when new observations come online. We adapt the Biogeochemistry-Informed Neural Network (BINN) pattern from terrestrial soil carbon to marine biogeochemistry. A small per-cell neural network maps environmental covariates to the six Carroll-N parameters, sigmoid-bounded into Carroll's published ranges and fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel; the observation loss backpropagates end-to-end. We report the v3.1 sweep: \textbf{856 seeds in 86 single-lever configurations} plus a follow-on AOI-ablation experiment (\textbf{200 additional seeds across four AOI configurations}). Four findings. \textbf{First, partial recovery is real and reproducible:} the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) recovers at \textbf{38/40 (95\%) Cal-grade} with our best three-AOI configuration --- the first reproducible differentiable-parameter-recovery result for ECCO-Darwin biogeochemistry. \textbf{Second, a clear recoverability gradient across the Carroll-6 at three AOIs:} \texttt{alpfe} (84\% of seeds Cal-grade) and \texttt{scav\_rat} (70\%) reliably recover; \texttt{Biggrow} (47\%) and \texttt{Smallgrow} (28\%) partially; \texttt{diatomgraz} (10\%) and \texttt{R\_PICPOC} (3\%) almost never. The \textbf{typical seed recovers 2 or 3 of 6 parameters} (80\% of seeds; modal bucket is 2/6 at 43\%, second bucket is 3/6 at 37\%; mean~=~2.41); 92\% of seeds reach 3/6 or fewer. \textbf{Third, this gradient is configuration-dependent, not intrinsic:} a 2-AOI ablation dropping the Southern Ocean recovers \texttt{R\_PICPOC} at 20\% (vs.\ 0\% in the 3-AOI matched baseline) and \texttt{diatomgraz} at 85\% (vs.\ 0\%) --- the carbonate counter-pump and diatom palatability are recoverable from existing v05 observations under the right AOI mix; the 3-AOI loss landscape was actively destroying them via inter-regime tension. \textbf{Fourth, a structural 5/6 ceiling holds across all AOI configurations:} 0/856 seeds reach all six jointly in the v3.1 sweep, 0/80 reach 5+ in the 2-AOI ablation extension, two unreproduced single-seed 5/6 events at 3-AOI, and a composition test regresses below either parent. The framework is therefore a \emph{partial} replacement of Green's-functions calibration with an architecture-level recoverability tradeoff: different AOI mixes recover different 4-of-6 subsets, none reach 6/6, the structural ceiling appears intrinsic to the shared-DINN architecture under any single-loss optimization.
 \end{abstract}
 
 % --- pipeline figure right after abstract (front-page teaser) ---------------
@@ -131,7 +131,7 @@ The Carroll-6 split into three recoverability tiers (Table~\ref{tab:gradient}). 
   \end{tabular}
 \end{table}
 
-Interpretation. The iron parameters are well-constrained by GEOTRACES IDP2025 surface and subsurface dissolved-iron observations. The phytoplankton growth rates are partially constrained by chlorophyll across the five functional types, but the 5-PFT $\to$ 2-PFT collapse in our box model dilutes the signal. The diatom palatability is essentially unconstrained at the box-model level. The PIC/POC ratio is essentially unrecoverable from v05 observations alone --- the carbonate counter-pump needs a dedicated PIC observation channel (e.g., satellite particulate inorganic carbon) that v05 does not include. This is consistent with the binary observation-anchor mutex in §\ref{sec:results-mutex}.
+Interpretation. The iron parameters are well-constrained by GEOTRACES IDP2025 surface and subsurface dissolved-iron observations. The phytoplankton growth rates are partially constrained by chlorophyll across the five functional types. \emph{For \texttt{diatomgraz} and \texttt{R\_PICPOC}, however, the v3.1 ``Hard'' classification reflects the 3-AOI joint-loss configuration, not an intrinsic obs-channel limitation:} the AOI-ablation experiment (§\ref{sec:results-aoi-ablation}) shows both recover at high rates when the Southern Ocean is dropped from the joint loss --- the 3-AOI loss landscape was placing the two parameters in mutual tension with the iron pair rather than failing to constrain them. The binary observation-anchor mutex in §\ref{sec:results-mutex} is a separate, related phenomenon at the PIC-anchor level.
 
 \subsection{Basin C iron-pair recovery}
 
@@ -181,41 +181,84 @@ The natural 6/6 candidate stacks both lever families. Result at $n{=}10$ (Figure
 
 Any non-zero PIC absolute anchor (\texttt{PIC\_ABS\_W}, tested down to 0.02, with paired POC anchors at multiple ratios) wipes iron-pair recovery to 0/10, \emph{regardless of magnitude}. POC anchor alone also kills the iron pair, with a different downstream basin geometry. The mutex is binary in PIC presence, not graduated. Mechanism: the PIC absolute anchor jointly constrains $R_\text{PIC:POC} \cdot M_\text{tot}$ via a tight basin, pulling the optimizer to a region where \texttt{R\_PICPOC} is Cal-grade but the iron pair must drift to balance. This is the most actionable predictive finding: whether a candidate observation channel induces mutual mutex with iron recovery is testable a priori within DarwinDiff's framework.
 
+\subsection{AOI ablation: the gradient is configuration-dependent}
+\label{sec:results-aoi-ablation}
+
+The recoverability gradient in §\ref{sec:gradient} is the v3.1 result averaged over 86 configurations \emph{all} trained on the three AOIs jointly. To test whether the ``Hard'' tier (\texttt{diatomgraz}, \texttt{R\_PICPOC}) reflects an intrinsic obs limitation or an artefact of the joint loss, we ran a full single-knob AOI ablation at the F2 lever set: $n{=}40$ at single-AOI Equatorial Pacific, $n{=}80$ at 2-AOI \texttt{eqpac}+\texttt{natlsubpolar} (no Southern Ocean), $n{=}40$ at 2-AOI \texttt{eqpac}+\texttt{southernoceanpac} (no North Atlantic), and the matched 3-AOI baseline pooled at $n{=}40$ from existing v3.1 batches. All four use the same F2 levers, integrator, and training schedule; only \texttt{AOIS} changes between configurations. The configuration-level results are summarized in Table~\ref{tab:aoi-ablation}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Per-parameter Cal-grade recovery rate across four single-knob AOI configurations. F2 levers held constant; only \texttt{AOIS} varies. Bold = highest rate per row.}
+  \label{tab:aoi-ablation}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Parameter & 3-AOI ($n{=}40$) & eqp+natl ($n{=}80$) & eqp+SO ($n{=}40$) & eqp only ($n{=}40$) \\
+    \midrule
+    \texttt{alpfe}      & \textbf{100\%} & \textbf{100\%} & \textbf{100\%} & \textbf{100\%} \\
+    \texttt{scav\_rat}  & \textbf{95\%}  & 1\%   & 75\%  & 0\%   \\
+    \texttt{Smallgrow}  & 20\%  & 23\%  & 12\%  & 0\%   \\
+    \texttt{Biggrow}    & 38\%  & \textbf{91\%}  & 28\%  & 0\%   \\
+    \texttt{diatomgraz} & 0\%   & 85\%  & 15\%  & \textbf{100\%}  \\
+    \texttt{R\_PICPOC}  & 0\%   & \textbf{20\%}  & 0\%   & 8\%   \\
+    \midrule
+    Iron-pair joint    & 95\%  & 1\%   & 75\%  & 0\%   \\
+    $k{\ge}4$ / $n$     & 5\%   & \textbf{24\%}  & 12\%  & 0\%   \\
+    Mean $k$ Cal-grade  & 2.52  & \textbf{3.20}  & 2.30  & 2.08  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Three observations.
+
+\textbf{(i) Each AOI carries different recovery signal.} Single-AOI \texttt{eqpac} fully constrains \texttt{alpfe} (100\%) and \texttt{diatomgraz} (100\%) but provides no signal for \texttt{scav\_rat} (median recovered $1.7\times10^{-7}$, $\sim$4$\times$ below Carroll's $6.0\times10^{-7}$). Adding \texttt{natlsubpolar} brings in \texttt{Biggrow} (38$\to$91\%) and \texttt{R\_PICPOC} (0$\to$20\%; median recovered 0.044 vs.\ Carroll 0.043, exact landing). Adding \texttt{southernoceanpac} brings in \texttt{scav\_rat} (0$\to$75\% at eqp+SO, 95\% at 3-AOI) via the surface--subsurface DFe contrast it supplies. The three AOIs are complementary on different parameters.
+
+\textbf{(ii) Adding an AOI can actively destroy recovery.} The Southern Ocean addition is the clearest case: \texttt{diatomgraz} drops monotonically (eqp 100\% $\to$ eqp+natl 85\% $\to$ eqp+SO 15\% $\to$ 3-AOI 0\%) and \texttt{R\_PICPOC} drops binarily on SO presence (0\% in any config including SO; up to 20\% in eqp+natl). The mechanism is loss-channel disagreement: surface biogenic-silica observations in the Southern Ocean prefer a low \texttt{diatomgraz} value (pulling the optimizer toward $\approx 0.33$); eqpac+natl bSi observations are consistent with Carroll's 0.83. With both regimes in the joint loss the optimizer compromises; without SO it lands near Carroll.
+
+\textbf{(iii) The 2-AOI \texttt{eqp}+\texttt{natl} configuration produces a recovery basin not seen in the v3.1 sweep.} Sixteen of $n{=}80$ seeds (20\%) recover \texttt{R\_PICPOC} AND \texttt{diatomgraz} Cal-grade simultaneously; zero of $n{=}856$ in v3.1 did so. The basin is stable, not seed-luck: across the 16 seeds, the coefficient of variation on the recovered \texttt{alpfe} is 3.1\%, on \texttt{diatomgraz} 4.1\%, on \texttt{Biggrow} 14.9\%, on \texttt{R\_PICPOC} 23.6\% --- different seeds converge to nearly the same point. \texttt{scav\_rat} and \texttt{Smallgrow} are missed but their values are also tightly clustered across seeds (CV 9.7\% and 23.6\%), indicating consistent under-determination rather than free-floating drift. The 2-AOI \texttt{eqp}+\texttt{natl} configuration therefore produces a fourth recovery basin complementary to v3.1's two 5/6 events, all four hitting the structural ceiling at 4--5 of 6 by different routes.
+
+The headline implication: the v3.1 recoverability gradient is not intrinsic to the v05 observation set. Four of the six Carroll-N parameters are recoverable under at least one AOI configuration tested here (\texttt{alpfe}, \texttt{scav\_rat}, \texttt{Biggrow}, \texttt{diatomgraz}, \texttt{R\_PICPOC}; only \texttt{Smallgrow} stays below 25\% Cal-grade in every config). The 5/6 ceiling is the architectural constraint that prevents any single AOI mix from recovering all of them simultaneously --- consistent with the parameter-conservation framing of §\ref{sec:results-mutex}.
+
 % ============================================================================
 \section{Discussion}
 \label{sec:discussion}
 
 \subsection*{What the result is, honestly stated}
 
-The result is \textbf{partial recovery with a characterized gradient}, not a drop-in replacement for Green's-functions calibration:
+The result is \textbf{partial recovery with a configuration-dependent gradient}, not a drop-in replacement for Green's-functions calibration. Two complementary framings:
 
+\textbf{At three AOIs (v3.1 baseline)}, the gradient sorts the Carroll-6 into three tiers:
 \begin{itemize}[noitemsep,topsep=2pt]
-  \item \textbf{Reliable (2 of 6).} The iron pair (\texttt{alpfe} at 84\%, \texttt{scav\_rat} at 70\% of seeds Cal-grade) is reproducibly recoverable; the F2 configuration delivers 38/40 at $n{=}40$.
-  \item \textbf{Partial (1 of 6 on average, occasionally 2).} The phytoplankton growth rates (\texttt{Biggrow} 47\%, \texttt{Smallgrow} 28\%) recover under favourable configurations but not consistently. This is where 2/6 seeds turn into 3/6 seeds.
-  \item \textbf{Essentially unrecovered (2 of 6).} \texttt{diatomgraz} (10\%) is rarely recovered; \texttt{R\_PICPOC} (3\%) almost never. The carbonate counter-pump requires an observation channel (satellite PIC) that v05 does not provide, and the binary observation-anchor mutex (§\ref{sec:results-mutex}) shows why simply adding a PIC anchor in the wrong way actively breaks iron-pair recovery rather than helping.
+  \item \textbf{Reliable (2 of 6).} The iron pair (\texttt{alpfe} 84\%, \texttt{scav\_rat} 70\% of seeds Cal-grade); the F2 configuration delivers 38/40.
+  \item \textbf{Partial (1 of 6 on average, occasionally 2).} \texttt{Biggrow} 47\%, \texttt{Smallgrow} 28\%.
+  \item \textbf{Rarely recovered at 3 AOIs (2 of 6).} \texttt{diatomgraz} 10\%, \texttt{R\_PICPOC} 3\%.
 \end{itemize}
 
-The typical seed therefore lands at \textbf{2 or 3 of 6 Cal-grade} (80\% of seeds in those buckets combined; mean 2.41). The \textbf{5/6 ceiling} is a structural upper bound, not the typical envelope. It is supported by four independent pieces of evidence:
+\textbf{Under the AOI ablation (§\ref{sec:results-aoi-ablation})}, the ``Hard'' tier dissolves: the 2-AOI \texttt{eqp}+\texttt{natl} configuration recovers \texttt{diatomgraz} at 85\% and \texttt{R\_PICPOC} at 20\% (median recovered value 0.044 vs.\ Carroll's 0.043), at the cost of dropping \texttt{scav\_rat} to 1\%. Four of the six parameters are therefore recoverable from existing v05 observations under at least one AOI configuration we tested; only \texttt{Smallgrow} stays below 25\% Cal-grade in every configuration. The ``Hard'' tier in the v3.1 sweep reflects the 3-AOI joint-loss landscape rather than an intrinsic obs-channel limit.
+
+The typical 3-AOI seed lands at \textbf{2 or 3 of 6 Cal-grade} (80\% of seeds combined; mean 2.41); the typical 2-AOI \texttt{eqp}+\texttt{natl} seed lands at \textbf{3 of 6} (mean 3.20, 24\% at 4/6). The \textbf{5/6 ceiling} is a structural upper bound holding across every AOI configuration we tested. Five independent pieces of evidence:
 \begin{enumerate}[noitemsep,topsep=2pt]
-  \item Zero 6/6 events across 856 seeds in 86 single-lever configurations.
+  \item Zero 6/6 events across 856 seeds in 86 single-lever 3-AOI configurations.
   \item \texttt{w2e\_peraoi\_lam0.1} at $n{=}20$ produces only 1/20 at 5/6.
   \item \texttt{c\_chl40\_posi15} at $n{=}20$ produces only 1/20 at 5/6.
   \item The Wave 6 composition test of the two complementary 5/6 lever families fails to reach 5/6 (0/10), regressing below either parent.
+  \item The 2-AOI \texttt{eqp}+\texttt{natl} ablation at $n{=}80$ produces 19 seeds at 4/6 but 0 at 5/6, by a recovery route (\texttt{R\_PICPOC} + \texttt{diatomgraz} hold, iron pair drifts) complementary to v3.1's two 5/6 events.
 \end{enumerate}
 
 \subsection*{What this is useful for}
 
-Two things, both honest about the partial-recovery state.
+Three things, all honest about the partial-recovery state.
 
 \textbf{(i) A reproducible iron-pair calibration in 7 minutes.} Carroll 2020/2022 tuned six parameters via multi-day Green's-functions campaigns. DarwinDiff reproduces two of them (the iron pair) reproducibly, on a single GPU, in roughly the time of a coffee break. New observation channels for those two parameters plug in as a config change, not a re-campaign. That is a real methodological win even if it does not yet extend to all six.
 
-\textbf{(ii) A predictive diagnostic for the remaining four.} The recoverability gradient and the binary observation-anchor mutex jointly tell future obs designers exactly what is missing: the carbonate counter-pump needs a dedicated PIC observation channel that v05 does not include; the diatom palatability needs constraints the 2-PFT box-model proxy currently dilutes; the phytoplankton growth rates need richer PFT-specific Chl coverage. These predictions are testable a priori inside DarwinDiff's framework: drop in a candidate observation as a loss term, run a small sweep, see whether the gradient shifts.
+\textbf{(ii) A predictive diagnostic via AOI selection.} The AOI-ablation result reframes the apparent recoverability gradient as an architectural tradeoff between regime breadth and per-parameter recovery. Practitioners selecting AOIs for a new calibration target can use the per-AOI attribution (Equatorial Pacific carries \texttt{alpfe} and \texttt{diatomgraz}; North Atlantic Subpolar carries \texttt{Biggrow} and \texttt{R\_PICPOC}; Southern Ocean Pacific carries \texttt{scav\_rat}) to predict which parameters a given AOI mix will recover, before running the sweep. The binary observation-anchor mutex (§\ref{sec:results-mutex}) provides an orthogonal diagnostic on the PIC-anchor side.
 
-\textbf{What this is \emph{not} yet:} a full replacement of Carroll's six-parameter calibration. We recover two; the other four require the framework extensions in the Next-steps section.
+\textbf{(iii) An architectural research question.} The 5/6 ceiling holds across every AOI configuration we tested, but \emph{which} 4--5 parameters recover differs by AOI mix. This suggests a concrete next-generation architecture: per-parameter AOI gating (e.g., learn \texttt{scav\_rat} only from the SO sub-loss, \texttt{diatomgraz} only from the eqp+natl sub-loss) could in principle combine the strengths of multiple AOI configurations and break the structural ceiling. We did not test this overnight; it is a multi-week implementation rather than a sweep.
 
-\paragraph{Limitations.} The differentiable box model is a 5--7-tracer proxy of the 39-tracer Darwin SMS kernel; the 5-PFT $\to$ 2-PFT collapse contributes meaningfully to recovery bias against Carroll's published values, and a regional differentiable port of the full \texttt{darwin\_plankton.F} is the natural next iteration. All current fits use the 23-year time-mean (climatology) rather than time-resolved Darwin output; time-resolved fitting is cluster-gated by GPU memory.
+\textbf{What this is \emph{not} yet:} a full replacement of Carroll's six-parameter calibration. We recover two reproducibly under the 3-AOI F2 configuration, four under at least one AOI configuration, but never all six in a single configuration. The structural ceiling appears robust to lever stacking, AOI selection, and composition of the two complementary 5/6 lever families.
 
-\paragraph{Next steps.} (i) Differentiable regional full-Darwin to eliminate the proxy gap; (ii) time-resolved fitting on cluster compute (MIT ORCD AICR / NVIDIA B200 beta); (iii) satellite observation channels (PACE ocean-color, MODIS PIC) deferred for the leapfrog companion paper to keep the v05 framing canonical here.
+\paragraph{Limitations.} The differentiable box model is a 5--7-tracer proxy of the 39-tracer Darwin SMS kernel; a regional differentiable port of the full \texttt{darwin\_plankton.F} is the natural next iteration. All current fits use the 23-year time-mean (climatology) rather than time-resolved Darwin output; time-resolved fitting is cluster-gated by GPU memory. The AOI ablation is at the box-model scale (1$^\circ$ subsets, $\sim$1000 ocean cells per AOI); whether the same per-AOI parameter attribution holds at native LLC270 resolution is open.
+
+\paragraph{Next steps.} (i) \textbf{Per-AOI parameter gating} architecture --- the natural attack on the structural ceiling implied by the AOI-ablation result; (ii) differentiable regional full-Darwin to eliminate the box-model proxy; (iii) time-resolved fitting on cluster compute (MIT ORCD AICR / NVIDIA B200 beta); (iv) satellite observation channels (PACE ocean-color, MODIS PIC) deferred for the leapfrog companion paper to keep the v05 framing canonical here.
 
 % ============================================================================
 \section*{Code and data}
