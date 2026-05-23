@@ -40,4 +40,4 @@ foreach ($w in @("0.05", "0.1", "0.3", "0.5", "1.0")) {
 }
 
 Remove-Item Env:GEOTRACES_W -ErrorAction SilentlyContinue
-Write-Log "=== Sweep complete. Results JSONs in scripts/run_geotraces_hybrid_result_seed0_w*.json ==="
+Write-Log "=== Sweep complete. Results JSONs in data/legacy/scripts_json_archive/run_geotraces_hybrid_result_seed0_w*.json ==="

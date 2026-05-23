@@ -106,7 +106,7 @@ def pattern_for_lambda(lam: str) -> str:
     # fixed BASE_ENV config. Tags appear in this exact order: surf, sub, pinn,
     # pocsubW, geopocW, aoiid, hd, w-natlsubpolar, peraoi_lam.
     return (
-        "scripts/run_v3.0_joint_eqpac-natlsubpolar_seed*"
+        "data/legacy/scripts_json_archive/run_v3.0_joint_eqpac-natlsubpolar_seed*"
         "_surf0.3_sub1.0_pinn3.0"
         "_pocsubW3.0_geopocW0.5"
         "_aoiid_hd32"

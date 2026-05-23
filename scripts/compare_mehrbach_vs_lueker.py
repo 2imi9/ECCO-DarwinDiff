@@ -19,7 +19,7 @@ PARAMS = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
 BASE_TAG = "_pocsubW3.0_geopocW0.5_aoiid_hd32_w-natlsubpolar2.0_posiW1.0"
 
 def load_runs(suffix_tag: str) -> list[dict]:
-    pattern = f"scripts/run_v3.0_joint_eqpac-natlsubpolar_seed*_surf0.3_sub1.0_pinn3.0{BASE_TAG}{suffix_tag}.json"
+    pattern = f"data/legacy/scripts_json_archive/run_v3.0_joint_eqpac-natlsubpolar_seed*_surf0.3_sub1.0_pinn3.0{BASE_TAG}{suffix_tag}.json"
     paths = sorted(glob.glob(pattern))
     return [json.load(open(p, encoding="utf-8")) for p in paths]
 

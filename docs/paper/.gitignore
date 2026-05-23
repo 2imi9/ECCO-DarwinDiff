@@ -1,0 +1,13 @@
+# LaTeX build artifacts — regenerated on every compile, not source
+*.aux
+*.log
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.out
+*.toc
+*.synctex.gz
+
+# Keep the rendered PDF (main.pdf) and the figures (figures/*) in git
+# so collaborators can read the paper without a local LaTeX install.
