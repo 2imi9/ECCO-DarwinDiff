@@ -39,7 +39,7 @@
 
 % --- abstract ---------------------------------------------------------------
 \begin{abstract}
-\noindent ECCO-Darwin's six-parameter biogeochemistry calibration uses Green's functions: expensive perturb-and-fit Jacobians that don't transfer when new observations come online. We replace it with a Biogeochemistry-Informed Neural Network (BINN) style framework adapted to marine biogeochemistry. A small per-cell neural network maps environmental covariates to the six Carroll-N parameters, sigmoid-bounded into Carroll's published ranges and fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel; the observation loss backpropagates end-to-end. We report the v3.1 sweep: \textbf{856 seeds in 86 single-lever configurations}. Two findings. First, the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) recovers reproducibly at \textbf{38/40 (95\%) Cal-grade} with our best configuration. Second, a structural \textbf{5/6 ceiling}: 0/856 seeds reach all six Carroll-N parameters jointly, with only two unreproduced single-seed 5/6 events; a composition test of the two complementary 5/6 lever families regresses below either parent. The ceiling is consistent with parameter conservation under the available observations and predicts which new observation channels would unblock 6/6. Source code and full sweep outputs accompany this paper.
+\noindent ECCO-Darwin's six-parameter biogeochemistry calibration uses Green's functions: expensive perturb-and-fit Jacobians that do not transfer when new observations come online. We adapt the Biogeochemistry-Informed Neural Network (BINN) pattern from terrestrial soil carbon to marine biogeochemistry. A small per-cell neural network maps environmental covariates to the six Carroll-N parameters, sigmoid-bounded into Carroll's published ranges and fed through a differentiable PyTorch reimplementation of Darwin's source-minus-sink (SMS) kernel; the observation loss backpropagates end-to-end. We report the v3.1 sweep: \textbf{856 seeds in 86 single-lever configurations}. Three findings, framed honestly. \textbf{First, partial recovery is real and reproducible:} the iron pair (\texttt{alpfe}, \texttt{scav\_rat}) recovers at \textbf{38/40 (95\%) Cal-grade} with our best configuration --- the first reproducible differentiable-parameter-recovery result for ECCO-Darwin biogeochemistry. \textbf{Second, a clear recoverability gradient across the Carroll-6:} \texttt{alpfe} (84\% of seeds Cal-grade) and \texttt{scav\_rat} (70\%) reliably recover; \texttt{Biggrow} (47\%) and \texttt{Smallgrow} (28\%) partially; \texttt{diatomgraz} (10\%) and \texttt{R\_PICPOC} (3\%) almost never. The \textbf{typical seed recovers 2 or 3 of 6 parameters} (80\% of seeds; modal bucket is 2/6 at 43\%, second bucket is 3/6 at 37\%; mean~=~2.41); 92\% of seeds reach 3/6 or fewer. \textbf{Third, a structural 5/6 ceiling:} 0/856 seeds reach all six jointly; only two unreproduced single-seed 5/6 events; a composition test of the two complementary 5/6 lever families regresses below either parent. The framework is therefore a \emph{partial} replacement of Green's-functions calibration --- not a drop-in for all six parameters yet, but a reproducible recovery of the iron pair with a characterized gradient and a predictive diagnostic for which new observation channels (satellite PIC for the carbonate counter-pump, additional GEOTRACES traverses) would unblock the remaining four.
 \end{abstract}
 
 % --- pipeline figure right after abstract (front-page teaser) ---------------
@@ -82,9 +82,9 @@ The full data flow is shown in Figure~\ref{fig:pipeline}. Three components:
 \section{Results}
 \label{sec:results}
 
-\subsection{Sweep summary}
+\subsection{Sweep summary and typical recovery}
 
-Five chained waves of single-lever sweeps plus a Wave 6 composition test. \textbf{856 seeds across 86 configurations} after aggregation; Table~\ref{tab:summary} reports the headline counts.
+Five chained waves of single-lever sweeps plus a Wave 6 composition test. \textbf{856 seeds across 86 configurations} after aggregation. Table~\ref{tab:summary} reports the headline counts; the central observation is that the \textbf{typical seed recovers 2 or 3 of the 6 Carroll-N parameters} (80\% of seeds combined; modal bucket 2/6 at 43\%, runner-up 3/6 at 37\%), with 92\% at 3/6 or fewer.
 
 \begin{table}[ht]
   \centering
@@ -96,13 +96,42 @@ Five chained waves of single-lever sweeps plus a Wave 6 composition test. \textb
     \midrule
     Single-lever configurations & 86 \\
     Total seeds & 856 \\
-    Seeds at 6/6 Cal-grade & \textbf{0} \\
+    \textbf{Modal seeds at 2/6 Cal-grade} & \textbf{364 (42.5\%)} \\
+    Seeds at 3/6 Cal-grade & 318 (37.1\%) \\
+    Cumulative at 3/6 or fewer & 92\% \\
+    Seeds at 4/6 Cal-grade & 69 (8.1\%) \\
     Seeds at 5/6 Cal-grade & 2 (0.23\%) \\
-    Configurations preserving the iron pair at $\geq$9/10 seeds & 40 \\
+    Seeds at 6/6 Cal-grade & \textbf{0} \\
+    Mean Cal-grade count per seed & 2.41 of 6 \\
     F2 Basin C iron-pair Cal-grade rate, $n{=}40$ & \textbf{38/40 (95\%)} \\
     \bottomrule
   \end{tabular}
 \end{table}
+
+\subsection{Per-parameter recoverability gradient}
+\label{sec:gradient}
+
+The Carroll-6 split into three recoverability tiers (Table~\ref{tab:gradient}). The iron pair (\texttt{alpfe}, \texttt{scav\_rat}) is reliably recoverable; the phytoplankton growth rates partially; the diatom palatability and PIC/POC ratio are almost never recovered. This gradient is the central scientific output of the sweep: it tells future observation-design which Carroll-N parameters are constrained by the current v05 observation set and which are not.
+
+\begin{table}[ht]
+  \centering
+  \caption{Per-parameter Cal-grade recovery rate across all 856 seeds.}
+  \label{tab:gradient}
+  \begin{tabular}{llrl}
+    \toprule
+    Parameter & Physical meaning & Rate & Tier \\
+    \midrule
+    \texttt{alpfe}      & Iron dust solubility           & 84\% & Reliable \\
+    \texttt{scav\_rat}  & Iron scavenging rate           & 70\% & Reliable \\
+    \texttt{Biggrow}    & Large phytoplankton growth     & 47\% & Partial \\
+    \texttt{Smallgrow}  & Small phytoplankton growth     & 28\% & Partial \\
+    \texttt{diatomgraz} & Diatom palatability (grazing)  & 10\% & Hard \\
+    \texttt{R\_PICPOC}  & PIC/POC carbonate ratio        & ~3\% & Essentially unrecovered \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Interpretation. The iron parameters are well-constrained by GEOTRACES IDP2025 surface and subsurface dissolved-iron observations. The phytoplankton growth rates are partially constrained by chlorophyll across the five functional types, but the 5-PFT $\to$ 2-PFT collapse in our box model dilutes the signal. The diatom palatability is essentially unconstrained at the box-model level. The PIC/POC ratio is essentially unrecoverable from v05 observations alone --- the carbonate counter-pump needs a dedicated PIC observation channel (e.g., satellite particulate inorganic carbon) that v05 does not include. This is consistent with the binary observation-anchor mutex in §\ref{sec:results-mutex}.
 
 \subsection{Basin C iron-pair recovery}
 
@@ -132,7 +161,7 @@ The two 5/6 events recover \emph{complementary} parameter subsets:
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.92\linewidth]{figures/fig4_per_param_box}
-  \caption{Per-parameter recovery distributions across 856 seeds, normalized by Carroll 2020's optima. The iron pair clusters near unity; the other four spread far broader.}
+  \caption{Per-parameter recovery distributions across 856 seeds, normalized by Carroll 2020's optima. The recoverability gradient (Table~\ref{tab:gradient}) is visible: the iron pair clusters tightly near unity (84\% / 70\% Cal-grade); the phytoplankton growth rates spread wider (47\% / 28\%); \texttt{diatomgraz} skews low (10\%) and \texttt{R\_PICPOC} sits far above unity in most seeds (3\% Cal-grade) --- effectively unconstrained by v05 observations.}
   \label{fig:per-param-dist}
 \end{figure}
 
@@ -148,6 +177,7 @@ The natural 6/6 candidate stacks both lever families. Result at $n{=}10$ (Figure
 \end{figure}
 
 \subsection{Binary observation-anchor mutex}
+\label{sec:results-mutex}
 
 Any non-zero PIC absolute anchor (\texttt{PIC\_ABS\_W}, tested down to 0.02, with paired POC anchors at multiple ratios) wipes iron-pair recovery to 0/10, \emph{regardless of magnitude}. POC anchor alone also kills the iron pair, with a different downstream basin geometry. The mutex is binary in PIC presence, not graduated. Mechanism: the PIC absolute anchor jointly constrains $R_\text{PIC:POC} \cdot M_\text{tot}$ via a tight basin, pulling the optimizer to a region where \texttt{R\_PICPOC} is Cal-grade but the iron pair must drift to balance. This is the most actionable predictive finding: whether a candidate observation channel induces mutual mutex with iron recovery is testable a priori within DarwinDiff's framework.
 
@@ -155,7 +185,17 @@ Any non-zero PIC absolute anchor (\texttt{PIC\_ABS\_W}, tested down to 0.02, wit
 \section{Discussion}
 \label{sec:discussion}
 
-The 5/6 ceiling is supported by four independent pieces of evidence:
+\subsection*{What the result is, honestly stated}
+
+The result is \textbf{partial recovery with a characterized gradient}, not a drop-in replacement for Green's-functions calibration:
+
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item \textbf{Reliable (2 of 6).} The iron pair (\texttt{alpfe} at 84\%, \texttt{scav\_rat} at 70\% of seeds Cal-grade) is reproducibly recoverable; the F2 configuration delivers 38/40 at $n{=}40$.
+  \item \textbf{Partial (1 of 6 on average, occasionally 2).} The phytoplankton growth rates (\texttt{Biggrow} 47\%, \texttt{Smallgrow} 28\%) recover under favourable configurations but not consistently. This is where 2/6 seeds turn into 3/6 seeds.
+  \item \textbf{Essentially unrecovered (2 of 6).} \texttt{diatomgraz} (10\%) is rarely recovered; \texttt{R\_PICPOC} (3\%) almost never. The carbonate counter-pump requires an observation channel (satellite PIC) that v05 does not provide, and the binary observation-anchor mutex (§\ref{sec:results-mutex}) shows why simply adding a PIC anchor in the wrong way actively breaks iron-pair recovery rather than helping.
+\end{itemize}
+
+The typical seed therefore lands at \textbf{2 or 3 of 6 Cal-grade} (80\% of seeds in those buckets combined; mean 2.41). The \textbf{5/6 ceiling} is a structural upper bound, not the typical envelope. It is supported by four independent pieces of evidence:
 \begin{enumerate}[noitemsep,topsep=2pt]
   \item Zero 6/6 events across 856 seeds in 86 single-lever configurations.
   \item \texttt{w2e\_peraoi\_lam0.1} at $n{=}20$ produces only 1/20 at 5/6.
@@ -163,9 +203,15 @@ The 5/6 ceiling is supported by four independent pieces of evidence:
   \item The Wave 6 composition test of the two complementary 5/6 lever families fails to reach 5/6 (0/10), regressing below either parent.
 \end{enumerate}
 
-The framing that fits the evidence is \textbf{parameter conservation}: the available observational constraints support approximately five effective degrees of freedom over the 6-parameter Carroll-N surface, and the sixth is always the residual sink --- loss weighting decides which. This is not a method failure but a diagnostic. The framework predicts what would unblock 6/6: observation channels orthogonal to the current set (satellite PIC, additional GEOTRACES traverses, etc.) --- each new candidate enters as a loss term and is testable a priori, no Jacobian campaign required.
+\subsection*{What this is useful for}
 
-Even with the ceiling in place, DarwinDiff already buys substantial advantages over Green's functions: a single 7-minute GPU training run replaces ~12 model runs per Gauss-Newton iteration; new observation channels are a configuration change rather than a fresh perturbation campaign; per-cell parameter variation strictly contains the global-scalar class as the constant-prediction limit.
+Two things, both honest about the partial-recovery state.
+
+\textbf{(i) A reproducible iron-pair calibration in 7 minutes.} Carroll 2020/2022 tuned six parameters via multi-day Green's-functions campaigns. DarwinDiff reproduces two of them (the iron pair) reproducibly, on a single GPU, in roughly the time of a coffee break. New observation channels for those two parameters plug in as a config change, not a re-campaign. That is a real methodological win even if it does not yet extend to all six.
+
+\textbf{(ii) A predictive diagnostic for the remaining four.} The recoverability gradient and the binary observation-anchor mutex jointly tell future obs designers exactly what is missing: the carbonate counter-pump needs a dedicated PIC observation channel that v05 does not include; the diatom palatability needs constraints the 2-PFT box-model proxy currently dilutes; the phytoplankton growth rates need richer PFT-specific Chl coverage. These predictions are testable a priori inside DarwinDiff's framework: drop in a candidate observation as a loss term, run a small sweep, see whether the gradient shifts.
+
+\textbf{What this is \emph{not} yet:} a full replacement of Carroll's six-parameter calibration. We recover two; the other four require the framework extensions in the Next-steps section.
 
 \paragraph{Limitations.} The differentiable box model is a 5--7-tracer proxy of the 39-tracer Darwin SMS kernel; the 5-PFT $\to$ 2-PFT collapse contributes meaningfully to recovery bias against Carroll's published values, and a regional differentiable port of the full \texttt{darwin\_plankton.F} is the natural next iteration. All current fits use the 23-year time-mean (climatology) rather than time-resolved Darwin output; time-resolved fitting is cluster-gated by GPU memory.
 
