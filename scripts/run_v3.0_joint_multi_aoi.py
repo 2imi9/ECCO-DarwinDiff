@@ -179,6 +179,13 @@ from darwindiff.geotraces_loader import (
 from darwindiff.diagnostics import band_of
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
 from darwindiff.networks import DINN
+from darwindiff.gating import (
+    GATING_POLICIES,
+    apply_gate,
+    build_gate_vectors,
+    resolve_policy,
+    validate_policy,
+)
 from darwindiff.silica import diagnostic_bsi_steady, R_SI_C, R_SI_DISSOL
 
 # ============================== Config ====================================
@@ -296,6 +303,28 @@ F_CO2_ABS_W = float(os.environ.get("F_CO2_ABS_W", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
+
+# Per-AOI parameter gating (Stage 1). GATING_POLICY selects which Carroll-6
+# parameters learn from which AOI's loss (see darwindiff.gating). Default
+# "ungated" reproduces pre-gating behaviour bitwise. Mutually exclusive with
+# PER_AOI_DINN: gating routes per-parameter gradients within the ONE shared
+# DINN, while PER_AOI_DINN gives each AOI its own network.
+GATING_POLICY_SPEC = os.environ.get("GATING_POLICY", "ungated")
+_gating_policy = resolve_policy(GATING_POLICY_SPEC)
+validate_policy(_gating_policy, AOIS_KEYS)
+USE_GATING = bool(_gating_policy)
+if USE_GATING and USE_PER_AOI_DINN:
+    raise ValueError(
+        "GATING_POLICY and PER_AOI_DINN are mutually exclusive: gating routes "
+        "per-parameter gradients within one shared DINN, while PER_AOI_DINN "
+        "gives each AOI its own network. Pick one."
+    )
+gate_vectors = build_gate_vectors(_gating_policy, AOIS_KEYS, device=device)
+if USE_GATING:
+    print(f"Per-AOI gating ENABLED ({GATING_POLICY_SPEC}): "
+          + "; ".join(f"{k}->{_gating_policy.get(k, [])}" for k in AOIS_KEYS))
+else:
+    print("Per-AOI gating: OFF (ungated baseline)")
 
 DT = 0.25
 N_STEPS = 200
@@ -1055,7 +1084,14 @@ for epoch in range(N_EPOCHS):
         aoi_nets = nets_per_aoi[bundle["key"]]
         per_seed_params = [bounded_params(net(env), bounds_dev) for net in aoi_nets]
         params_b = torch.stack(per_seed_params, dim=1)  # [6, N_seeds, H, W]
-        aoi_l, state_final = aoi_loss(bundle, params_b)
+        # Stage 1 gating: route each parameter's gradient to only its AOI
+        # loss(es). Straight-through, so forward values (hence the per-AOI
+        # losses + the consistency penalty below) are bitwise identical to
+        # ungated; only the backward pass is masked.
+        params_for_loss = (
+            apply_gate(params_b, gate_vectors[bundle["key"]]) if USE_GATING else params_b
+        )
+        aoi_l, state_final = aoi_loss(bundle, params_for_loss)
         total_loss_per_seed = total_loss_per_seed + bundle["weight"] * aoi_l
         per_aoi_history[bundle["key"]][epoch] = aoi_l.detach()
         last_states_per_aoi[bundle["key"]] = state_final.detach()
@@ -1201,6 +1237,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "chl1_w_extra": CHL1_W_EXTRA,
         "per_aoi_dinn": USE_PER_AOI_DINN,
         "consistency_lambda": CONSISTENCY_LAMBDA,
+        "gating_policy": GATING_POLICY_SPEC if USE_GATING else "ungated",
+        "gating_map": {k: _gating_policy.get(k, []) for k in AOIS_KEYS} if USE_GATING else {},
         "pic_abs_w": PIC_ABS_W,
         "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
         "poc_abs_w": POC_ABS_W,
@@ -1249,6 +1287,8 @@ else:
     jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
     chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
     peraoi_tag = f"_peraoi_lam{CONSISTENCY_LAMBDA}" if USE_PER_AOI_DINN else ""
+    _gate_preset = GATING_POLICY_SPEC if GATING_POLICY_SPEC in GATING_POLICIES else "custom"
+    gate_tag = f"_gate-{_gate_preset}" if USE_GATING else ""
     pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
     poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
@@ -1271,6 +1311,7 @@ else:
             f"{jrm_tag}"
             f"{chl1_extra_tag}"
             f"{peraoi_tag}"
+            f"{gate_tag}"
             f"{pic_abs_tag}"
             f"{poc_abs_tag}"
             f"{posi_tag}"
