@@ -11,35 +11,34 @@
 
 [Status][status_url] · [Setup](#setup) · [Reproduce](#reproduce) · [Cite](#how-to-cite) · [Acknowledgements](#acknowledgements)
 
-A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in which gradients
-flow through every step of the simulation, so a single loss surface can learn the parameters that
-Carroll's Green's-functions calibration tunes one-at-a-time — and let those parameters vary
-per grid cell, predicted from local environmental conditions. Manuscript in preparation.
+A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in which gradients flow through every step of the simulation, so a single loss surface can learn the parameters that Carroll's Green's-functions calibration tunes one-at-a-time — predicted per grid cell from local environmental conditions. Manuscript in preparation.
 
 </div>
 
-## Status & scope
-
-- **Active target:** Carroll-6 parameter recovery on ECCO-Darwin v05 (Carroll 2020/2022), a single-method recovery pipeline. Pre-publication; the science moves fast — [STATUS.md][status_url] is canonical for live state.
-- **What works today:** four of six Carroll parameters are recoverable from existing v05 observations under at least one AOI configuration; the synthetic per-cell recovery demo runs end-to-end on a laptop / free Colab T4.
-- **Known-blocked:** a structural **5/6 ceiling** on joint Carroll-6 recovery from the box model (`R_PICPOC` and `diatomgraz` are the near-unrecoverable params, at 3% and 10% Cal-grade across the sweep), plus the scav_rat–alpfe degeneracy and the 2-basin mutex. Detail and full evidence table in [STATUS.md][status_url].
-- **Caveat:** single-GPU (RTX 5090) prototype. Full-ocean recovery, time-resolved fitting, and the Track-2 emulator are gated on cluster access.
-
 ## Two tracks
 
-1. **Parameter learner** — replaces ECCO-Darwin's Green's-functions calibration. Where Carroll 2020 / 2022 tunes a global 6-parameter vector via expensive multi-decadal forward runs, DarwinDiff learns a *function* mapping local environmental conditions to a per-cell parameter vector via gradient descent through a differentiable box model.
-2. **Emulator** — neural-network stand-in for ECCO-Darwin for long-timescale climate runs. Not started yet.
+1. **Parameter learner** *(active)* — learns a per-cell function from local environment to the six Carroll parameters by gradient descent through the differentiable box model, replacing Green's-functions calibration.
+2. **Emulator** *(not started)* — a neural stand-in for ECCO-Darwin for long-timescale climate runs.
+
+## What works · what's blocked
+
+**Works**
+- The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config; one fit runs in ~7 min on a single GPU.
+- Four of six Carroll parameters recover under at least one AOI configuration; the synthetic demo runs end-to-end on a laptop / free Colab T4.
+
+**Known limits**
+- A **structural 5/6 ceiling**: 0/856 seeds recover all six jointly, and the two 5/6 events don't reproduce (1/20). The typical seed recovers **2–3 of 6**.
+- `R_PICPOC` (3%) and `diatomgraz` (10%) are the near-unrecoverable params.
+- 1° box-model proxy; 23-year climatology, not time-resolved; single-method (no forward-Darwin held-out validation yet); single-GPU prototype. Full evidence → [STATUS.md][status_url].
 
 ## Reproduce
 
-The headline finding (the **structural 5/6 ceiling**: 856 seeds across 86 configs, 3-AOI joint
-training, 0/856 at 6/6) and its full evidence table live in [STATUS.md][status_url]. To reproduce
-the cluster-scale sweep, see [docs/cluster_setup.md][cluster_url].
+The headline finding (the structural 5/6 ceiling: 0/856 at 6/6 across **856 seeds / 86 configs**) and the full evidence table live in [STATUS.md][status_url]; the cluster-scale sweep is in [docs/cluster_setup.md][cluster_url].
 
-To see the method itself work end-to-end in a few minutes on a laptop or free Colab T4, the snippet
-below recovers a known per-cell parameter field by gradient descent *through* the differentiable
-box model — the synthetic analog of the v05 recovery pipeline. Public API verified against
-[`src/darwindiff/carroll6.py`][carroll6_url] and [`notebooks/demo_colab.ipynb`][demo_url].
+<details>
+<summary><b>Runnable demo</b> — recover a per-cell parameter field by backprop through the box model (~5 min, laptop / Colab T4)</summary>
+
+Public API verified against [`src/darwindiff/carroll6.py`][carroll6_url] and [`notebooks/demo_colab.ipynb`][demo_url].
 
 ```python
 import torch
@@ -81,33 +80,25 @@ for _ in range(800):
 print(f"final loss = {loss.item():.5g}")   # -> ~5e-6; alpfe field recovered per cell
 ```
 
-Run it from a clone with `src/` on the path (`uv run python your_script.py`). The full annotated
-walkthrough (synthetic AOI construction, recovery scatter vs. Carroll's optima) is
-[`notebooks/demo_colab.ipynb`][demo_url].
+Run it from a clone with `src/` on the path (`uv run python your_script.py`). The full annotated walkthrough is [`notebooks/demo_colab.ipynb`][demo_url].
+
+</details>
 
 ## Setup
 
 ```bash
-git clone https://github.com/2imi9/ECCO-DarwinDiff.git
-cd ECCO-DarwinDiff
-uv sync
-uv run pytest -q          # smoke test
+git clone https://github.com/2imi9/ECCO-DarwinDiff.git && cd ECCO-DarwinDiff
+uv sync && uv run pytest -q          # smoke test
 ```
 
-For cluster runs, point the loaders at the LLC270 tree via `DARWIN_DATA_ROOT` (and
-`GLODAP_DATA_ROOT` for GLODAP):
+For cluster runs, point the loaders at the LLC270 tree via `DARWIN_DATA_ROOT` (and `GLODAP_DATA_ROOT`). Raw data lives outside the repo; operational detail (Windows `MAX_PATH`, IC caches, per-loader layout) is in [docs/cluster_setup.md][cluster_url] and [data/README.md][data_url].
 
-```bash
-export DARWIN_DATA_ROOT=/scratch/$USER/ecco_darwin_v5
-```
+<details>
+<summary><b>Why this exists</b></summary>
 
-Raw data lives outside the repo. Full operational detail — Windows `MAX_PATH` gotchas, the
-no-multi-process-CUDA caveat, IC caches, and per-loader data layout — is in
-[docs/cluster_setup.md][cluster_url] and [data/README.md][data_url].
+ECCO-Darwin (Carroll et al. 2020, *JAMES*; 2022, *GBC*) is calibrated via **Green's functions** (Menemenlis et al. 2005), which scale badly: each tuned parameter needs a fresh full forward run, so the published calibration handles only **6 parameters**. DarwinDiff replaces the biogeochemistry side with **PyTorch autograd** — gradients for all parameters in one backward pass, with the parameter values varying across space, predicted by a small per-cell network (DINN).
 
-## Why this exists
-
-ECCO-Darwin (Carroll et al. 2020, *JAMES*; Carroll et al. 2022, *GBC*) is calibrated via **Green's functions** (Menemenlis et al. 2005), which scales linearly badly: each tuned parameter needs a fresh full forward run, so Carroll's published calibration handles only **6 parameters**. DarwinDiff replaces the biogeochemistry side with **PyTorch autograd**: gradients for all parameters in one backward pass, and the parameter values themselves vary across space — predicted by a small per-cell network (DINN) from local environmental conditions.
+</details>
 
 <details>
 <summary><b>Result history (v2.x → v3.1)</b> — one line per version; STATUS.md is canonical</summary>
@@ -199,6 +190,7 @@ Raw data files live outside the repo. Loaders respect `DARWIN_DATA_ROOT` / `GLOD
 |---|---|
 | [Xu et al. 2025](https://arxiv.org/abs/2502.00672) (BINN) | Differentiable physics + per-location parameter network — closest method template. |
 | [Kochkov et al. 2024](https://arxiv.org/abs/2311.07222) (Neural GCM, *Nature*) | Hybrid physics + ML emulator design reference for Track 2. |
+| [Clark et al. 2026](https://arxiv.org/abs/2606.07928) (ACE2S) | State-of-the-art neural Earth-system emulator (Ai2 / NOAA-GFDL); benchmark for the Track-2 emulator. |
 | [Ouala & Lachkar 2026](https://doi.org/10.22541/essoar.15002003/v1) (Neural-BGC) | Closest existing ocean-BGC ML; DarwinDiff differs by being mechanistic + parameter-aware. |
 
 </details>
@@ -212,7 +204,7 @@ Institutional acknowledgements for the in-development repository (individual cre
 - **JPL ECCO Group** and the **NASA Advanced Supercomputing (NAS)** division — ECCO-Darwin v05 outputs.
 - **GLODAP**, **GEOTRACES**, and the **NASA GHG Center** — observational data products that are active recovery targets in v3.1.
 
-Method-inspiration citations (PINN, BINN, Neural GCM, Neural-BGC, the full ECCO-Darwin lineage) are listed in the [Background reading](#background-reading) section above with verified DOIs.
+Method-inspiration citations (PINN, BINN, Neural GCM, ACE2S, Neural-BGC, the full ECCO-Darwin lineage) are listed in the [Background reading](#background-reading) section above with verified DOIs.
 
 ## License
 
