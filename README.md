@@ -22,20 +22,9 @@ can learn parameters that Carroll's Green's-functions calibration tunes one-at-a
 
 ## Status — Track 1 v3.1
 
-3-AOI joint training (Eq Pac + N Atl Subpolar + Southern Ocean Pacific) across **857 seeds in 86 configs**:
+3-AOI joint training (Eq Pac + N Atl Subpolar + Southern Ocean Pacific), **857 seeds across 86 configs**. The headline finding is a **structural 5/6 ceiling** on Carroll-6 parameter recovery from the box model, supported by five independent lines of evidence: 0/857 at 6/6, both single-seed 5/6 events unreproduced at n=20, the composition test of the two complementary 5/6 lever families fails, and the v3.1.1 AOI ablation (n=200, PR #89) holds the ceiling under regime restriction. Four of six parameters are recoverable from existing v05 observations under at least one AOI configuration; only `Smallgrow` stays below 25% Cal-grade everywhere.
 
-- **Basin C iron-pair recovery: 38/40 (95%) at n=40** across four independent 10-seed batches.
-- **Two 5/6 Cal-grade single-seed events** (unreproduced at scale, 2/857 = 0.23% break rate):
-  - `w2e_peraoi_lam0.1` seed 3: PER_AOI_DINN + low CONSISTENCY_LAMBDA. Recovers iron pair + 3 phyto/grazing; misses R_PICPOC. Wave 5 dose-response + n=20 extension produced 0 additional 5/6.
-  - `c_chl40_posi15` seed 9: CHL1_W + POSI_W combo. Recovers iron pair + Smallgrow + Biggrow + R_PICPOC; misses diatomgraz. n=20 retest at seeds 10-19 produced 0 additional 5/6 (combined: 1/20).
-- **Composition test of the two 5/6 recipes fails (Wave 6).** Stacking both intervention families → 0/10 at 5/6, mean_cal 2.00 (worse than either parent 2.40 / 2.70). Iron pair survives (9/10) but R_PICPOC and diatomgraz both drift, Smallgrow + Biggrow regress. Interventions interfere.
-- **Binary mutex confirmed at low PIC dose**: any `PIC_ABS_W ≥ 0.02` wipes iron pair regardless of magnitude or POC pairing.
-
-The structural 5/6 ceiling is the headline finding, now supported by five independent pieces of evidence: 0/857 at 6/6 across 86 single-lever 3-AOI configs, both 5/6 events unreproduced at n=20 (each 1/20), the composition test of the two complementary 5/6 lever families fails, and the v3.1.1 AOI ablation produces 19/80 at 4/6 in `eqp+natl` (best 4+ rate observed in the project) but 0/80 at 5/6 — confirming the ceiling holds under regime-restriction too.
-
-**v3.1.1 AOI ablation (PR #89 / paper §4.7)**: 200 seeds across four AOI configurations at the F2 lever set. The v3.1 "Hard" tier dissolves under regime restriction — `diatomgraz` recovers at 85% and `R_PICPOC` at 20% in `eqp+natl` (no Southern Ocean), with `R_PICPOC` median landing on Carroll's 0.043 to within 3%. The Southern Ocean is load-bearing for `scav_rat` but actively destroys `diatomgraz` and `R_PICPOC` via inter-regime tension. Four of six Carroll-6 params are recoverable from existing v05 observations under at least one AOI configuration tested; only `Smallgrow` stays below 25% Cal-grade in every configuration.
-
-See [STATUS.md][status_url] for live state and per-version findings.
+See [STATUS.md][status_url] for live state, per-version findings, and the full evidence table.
 
 ## Quick start
 
