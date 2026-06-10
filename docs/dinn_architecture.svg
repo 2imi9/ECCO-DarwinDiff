@@ -7,6 +7,7 @@
 </defs>
 <style>
 text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+.bg{fill:#ffffff;stroke:#d0d7de;stroke-width:1;}
 .ttl{fill:#1f2328;font-size:22px;font-family:ui-serif,Georgia,"Times New Roman",serif;}
 .sub{fill:#59636e;font-size:13px;}
 .hd{fill:#1f2328;font-size:13px;font-weight:600;}
@@ -26,6 +27,7 @@ text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-se
 .mkf{fill:#59636e;}
 .mkg{fill:#0969da;}
 @media (prefers-color-scheme:dark){
+.bg{fill:#0d1117;stroke:#3d444d;}
 .ttl,.hd,.io,.mono{fill:#e6edf3;}
 .sub,.hs,.cap{fill:#9198a1;}
 .acc{fill:#4493f8;}
@@ -37,6 +39,8 @@ text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-se
 .mkg{fill:#4493f8;}
 }
 </style>
+
+<rect class="bg" x="1" y="1" width="938" height="648" rx="14"/>
 
 <text class="ttl" x="470" y="34" text-anchor="middle">DINN — Darwin-Informed Neural Network</text>
 <text class="sub" x="470" y="56" text-anchor="middle">Per-cell parameter recovery: the loss flows through the differentiable box model</text>
