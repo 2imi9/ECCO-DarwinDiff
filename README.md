@@ -22,7 +22,7 @@ per grid cell, predicted from local environmental conditions. Manuscript in prep
 
 - **Active target:** Carroll-6 parameter recovery on ECCO-Darwin v05 (Carroll 2020/2022), a single-method recovery pipeline. Pre-publication; the science moves fast — [STATUS.md][status_url] is canonical for live state.
 - **What works today:** four of six Carroll parameters are recoverable from existing v05 observations under at least one AOI configuration; the synthetic per-cell recovery demo runs end-to-end on a laptop / free Colab T4.
-- **Known-blocked:** a structural **5/6 ceiling** on joint Carroll-6 recovery from the box model (`Smallgrow` stays below 25% Cal-grade everywhere), plus the scav_rat–alpfe degeneracy and the 2-basin mutex. Detail and full evidence table in [STATUS.md][status_url].
+- **Known-blocked:** a structural **5/6 ceiling** on joint Carroll-6 recovery from the box model (`R_PICPOC` and `diatomgraz` are the near-unrecoverable params, at 3% and 10% Cal-grade across the sweep), plus the scav_rat–alpfe degeneracy and the 2-basin mutex. Detail and full evidence table in [STATUS.md][status_url].
 - **Caveat:** single-GPU (RTX 5090) prototype. Full-ocean recovery, time-resolved fitting, and the Track-2 emulator are gated on cluster access.
 
 ## Two tracks
@@ -32,8 +32,8 @@ per grid cell, predicted from local environmental conditions. Manuscript in prep
 
 ## Reproduce
 
-The headline finding (the **structural 5/6 ceiling**: 857 seeds across 86 configs, 3-AOI joint
-training, 0/857 at 6/6) and its full evidence table live in [STATUS.md][status_url]. To reproduce
+The headline finding (the **structural 5/6 ceiling**: 856 seeds across 86 configs, 3-AOI joint
+training, 0/856 at 6/6) and its full evidence table live in [STATUS.md][status_url]. To reproduce
 the cluster-scale sweep, see [docs/cluster_setup.md][cluster_url].
 
 To see the method itself work end-to-end in a few minutes on a laptop or free Colab T4, the snippet
