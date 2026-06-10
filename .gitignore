@@ -92,3 +92,15 @@ desktop.ini
 
 # Overnight automation logs
 scripts/overnight_log.txt
+
+# Local-only working notes and scratch (kept on disk, not part of the public repo)
+/compute_envelope.py
+/docs/CLAUDE_PROJECT_CONTEXT.md
+/docs/briefs/
+/docs/research_notes/2026-05-03_overnight.md
+/docs/research_notes/2026-05-21_jon_meeting_brief.md
+/docs/research_notes/2026-05-23_cleanup_audit.md
+/docs/research_notes/2026-05-23_compute_ladder.md
+/docs/research_notes/2026-05-23_overnight_diff_full_darwin.md
+/docs/research_notes/2026-05-23_overnight_executed.md
+/docs/research_notes/2026-06-06_daily_data_defer.md
