@@ -5,6 +5,10 @@
 
 **Differentiable ECCO-Darwin for ocean-biogeochemistry parameter recovery via gradient descent through the box model.**
 
+<img src="docs/paper/figures/fig2_ceiling.png" alt="v3.1 parameter-recovery sweep: histogram of how many of the six Carroll parameters each seed recovers at Cal-grade across 856 seeds; the distribution peaks at 2-3 and 0 seeds reach all six, the structural 5/6 ceiling" width="680">
+
+<sub>The headline finding — a structural 5/6 ceiling: across the v3.1 sweep, 0 of 856 seeds recover all six Carroll parameters.</sub>
+
 [Status][status_url] · [Setup](#setup) · [Reproduce](#reproduce) · [Cite](#how-to-cite) · [Acknowledgements](#acknowledgements)
 
 A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in which gradients
