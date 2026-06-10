@@ -5,9 +5,9 @@
 
 **Differentiable ECCO-Darwin for ocean-biogeochemistry parameter recovery via gradient descent through the box model.**
 
-<img src="docs/paper/figures/fig2_ceiling.png" alt="v3.1 parameter-recovery sweep: histogram of how many of the six Carroll parameters each seed recovers at Cal-grade across 856 seeds; the distribution peaks at 2-3 and 0 seeds reach all six, the structural 5/6 ceiling" width="680">
+<img src="docs/dinn_architecture.svg" alt="DINN architecture: three environmental covariates (SST, dust flux, MLD) feed two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights" width="820">
 
-<sub>The headline finding — a structural 5/6 ceiling: across the v3.1 sweep, 0 of 856 seeds recover all six Carroll parameters.</sub>
+<sub>DarwinDiff's per-cell network (DINN): the loss flows through the differentiable box model, so a single backward pass recovers the six Carroll parameters.</sub>
 
 [Status][status_url] · [Setup](#setup) · [Reproduce](#reproduce) · [Cite](#how-to-cite) · [Acknowledgements](#acknowledgements)
 

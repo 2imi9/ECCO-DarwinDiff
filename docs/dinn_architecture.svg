@@ -1,0 +1,113 @@
+<svg viewBox="0 0 940 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
+<title id="t">DINN — Darwin-Informed Neural Network architecture</title>
+<desc id="d">A per-cell network maps three environmental covariates (SST, dust flux, MLD) through two 16-wide 1x1 convolutional layers with Tanh to six Carroll parameters. Those parameters feed bounded_params, then the differentiable carroll6_step box model, then an MSE loss versus ECCO-Darwin v05; gradients flow back through the box model to update the network weights.</desc>
+<defs>
+<marker id="af" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path class="mkf" d="M0,0 L7,3 L0,6 Z"/></marker>
+<marker id="ag" markerWidth="10" markerHeight="10" refX="6.5" refY="3" orient="auto"><path class="mkg" d="M0,0 L7,3 L0,6 Z"/></marker>
+</defs>
+<style>
+text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+.ttl{fill:#1f2328;font-size:22px;font-family:ui-serif,Georgia,"Times New Roman",serif;}
+.sub{fill:#59636e;font-size:13px;}
+.hd{fill:#1f2328;font-size:13px;font-weight:600;}
+.hs{fill:#59636e;font-size:11px;}
+.io{fill:#1f2328;font-size:12px;}
+.mono{fill:#1f2328;font-size:12px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+.cap{fill:#59636e;font-size:11.5px;}
+.acc{fill:#0969da;font-size:11px;}
+.node{fill:#ffffff;stroke:#d0d7de;stroke-width:1.5;}
+.nin{fill:#ffffff;stroke:#59636e;stroke-width:1.5;}
+.nout{fill:#ffffff;stroke:#0969da;stroke-width:2;}
+.edge{stroke:#d0d7de;stroke-width:1;opacity:.65;}
+.box{fill:#ffffff;stroke:#d0d7de;stroke-width:1.5;}
+.boxA{fill:#ffffff;stroke:#0969da;stroke-width:2;}
+.flow{stroke:#59636e;stroke-width:1.6;fill:none;}
+.grad{stroke:#0969da;stroke-width:1.8;fill:none;stroke-dasharray:6 5;}
+.mkf{fill:#59636e;}
+.mkg{fill:#0969da;}
+@media (prefers-color-scheme:dark){
+.ttl,.hd,.io,.mono{fill:#e6edf3;}
+.sub,.hs,.cap{fill:#9198a1;}
+.acc{fill:#4493f8;}
+.node,.nin,.nout,.box,.boxA{fill:#0d1117;}
+.node,.box,.edge{stroke:#3d444d;}
+.nin,.flow{stroke:#9198a1;}
+.nout,.boxA,.grad{stroke:#4493f8;}
+.mkf{fill:#9198a1;}
+.mkg{fill:#4493f8;}
+}
+</style>
+
+<text class="ttl" x="470" y="34" text-anchor="middle">DINN — Darwin-Informed Neural Network</text>
+<text class="sub" x="470" y="56" text-anchor="middle">Per-cell parameter recovery: the loss flows through the differentiable box model</text>
+
+<text class="hd" x="150" y="100" text-anchor="middle">Inputs</text>
+<text class="hs" x="150" y="116" text-anchor="middle">env. covariates [3]</text>
+<text class="hd" x="360" y="100" text-anchor="middle">Hidden ×16</text>
+<text class="hs" x="360" y="116" text-anchor="middle">1×1 conv · Tanh</text>
+<text class="hd" x="560" y="100" text-anchor="middle">Hidden ×16</text>
+<text class="hs" x="560" y="116" text-anchor="middle">1×1 conv · Tanh</text>
+<text class="hd" x="770" y="100" text-anchor="middle">Outputs</text>
+<text class="hs" x="770" y="116" text-anchor="middle">6 Carroll params</text>
+
+<g class="edge">
+<line x1="164" y1="175" x2="348" y2="150"/><line x1="164" y1="175" x2="348" y2="200"/><line x1="164" y1="175" x2="348" y2="250"/><line x1="164" y1="175" x2="348" y2="300"/>
+<line x1="164" y1="235" x2="348" y2="150"/><line x1="164" y1="235" x2="348" y2="200"/><line x1="164" y1="235" x2="348" y2="250"/><line x1="164" y1="235" x2="348" y2="300"/>
+<line x1="164" y1="295" x2="348" y2="150"/><line x1="164" y1="295" x2="348" y2="200"/><line x1="164" y1="295" x2="348" y2="250"/><line x1="164" y1="295" x2="348" y2="300"/>
+<line x1="372" y1="150" x2="548" y2="150"/><line x1="372" y1="150" x2="548" y2="200"/><line x1="372" y1="150" x2="548" y2="250"/><line x1="372" y1="150" x2="548" y2="300"/>
+<line x1="372" y1="200" x2="548" y2="150"/><line x1="372" y1="200" x2="548" y2="200"/><line x1="372" y1="200" x2="548" y2="250"/><line x1="372" y1="200" x2="548" y2="300"/>
+<line x1="372" y1="250" x2="548" y2="150"/><line x1="372" y1="250" x2="548" y2="200"/><line x1="372" y1="250" x2="548" y2="250"/><line x1="372" y1="250" x2="548" y2="300"/>
+<line x1="372" y1="300" x2="548" y2="150"/><line x1="372" y1="300" x2="548" y2="200"/><line x1="372" y1="300" x2="548" y2="250"/><line x1="372" y1="300" x2="548" y2="300"/>
+<line x1="572" y1="150" x2="757" y2="150"/><line x1="572" y1="150" x2="757" y2="185"/><line x1="572" y1="150" x2="757" y2="220"/><line x1="572" y1="150" x2="757" y2="255"/><line x1="572" y1="150" x2="757" y2="290"/><line x1="572" y1="150" x2="757" y2="325"/>
+<line x1="572" y1="200" x2="757" y2="150"/><line x1="572" y1="200" x2="757" y2="185"/><line x1="572" y1="200" x2="757" y2="220"/><line x1="572" y1="200" x2="757" y2="255"/><line x1="572" y1="200" x2="757" y2="290"/><line x1="572" y1="200" x2="757" y2="325"/>
+<line x1="572" y1="250" x2="757" y2="150"/><line x1="572" y1="250" x2="757" y2="185"/><line x1="572" y1="250" x2="757" y2="220"/><line x1="572" y1="250" x2="757" y2="255"/><line x1="572" y1="250" x2="757" y2="290"/><line x1="572" y1="250" x2="757" y2="325"/>
+<line x1="572" y1="300" x2="757" y2="150"/><line x1="572" y1="300" x2="757" y2="185"/><line x1="572" y1="300" x2="757" y2="220"/><line x1="572" y1="300" x2="757" y2="255"/><line x1="572" y1="300" x2="757" y2="290"/><line x1="572" y1="300" x2="757" y2="325"/>
+</g>
+
+<circle class="nin" cx="150" cy="175" r="14"/><circle class="nin" cx="150" cy="235" r="14"/><circle class="nin" cx="150" cy="295" r="14"/>
+<text class="io" x="128" y="179" text-anchor="end">SST</text>
+<text class="io" x="128" y="239" text-anchor="end">dust flux</text>
+<text class="io" x="128" y="299" text-anchor="end">MLD</text>
+
+<circle class="node" cx="360" cy="150" r="12"/><circle class="node" cx="360" cy="200" r="12"/><circle class="node" cx="360" cy="250" r="12"/><circle class="node" cx="360" cy="300" r="12"/>
+<text class="hs" x="360" y="333" text-anchor="middle">⋮ 16</text>
+<circle class="node" cx="560" cy="150" r="12"/><circle class="node" cx="560" cy="200" r="12"/><circle class="node" cx="560" cy="250" r="12"/><circle class="node" cx="560" cy="300" r="12"/>
+<text class="hs" x="560" y="333" text-anchor="middle">⋮ 16</text>
+
+<circle class="nout" cx="770" cy="150" r="13"/><circle class="nout" cx="770" cy="185" r="13"/><circle class="nout" cx="770" cy="220" r="13"/><circle class="nout" cx="770" cy="255" r="13"/><circle class="nout" cx="770" cy="290" r="13"/><circle class="nout" cx="770" cy="325" r="13"/>
+<text class="mono" x="790" y="154">alpfe</text>
+<text class="mono" x="790" y="189">scav_rat</text>
+<text class="mono" x="790" y="224">Smallgrow</text>
+<text class="mono" x="790" y="259">Biggrow</text>
+<text class="mono" x="790" y="294">diatomgraz</text>
+<text class="mono" x="790" y="329">R_PICPOC</text>
+
+<text class="cap" x="460" y="360" text-anchor="middle">1×1 convolutions = a per-cell MLP (no spatial mixing) · ~438 weights</text>
+
+<path class="flow" d="M 770 340 L 770 456" marker-end="url(#af)"/>
+<text class="hs" x="756" y="402" text-anchor="end">6 params</text>
+
+<rect class="box" x="660" y="458" width="220" height="58" rx="8"/>
+<text class="mono" x="770" y="483" text-anchor="middle">bounded_params</text>
+<text class="hs" x="770" y="501" text-anchor="middle">σ → physical ranges</text>
+
+<rect class="boxA" x="350" y="458" width="220" height="58" rx="8"/>
+<text class="mono" x="460" y="483" text-anchor="middle">carroll6_step ×N</text>
+<text class="hs" x="460" y="501" text-anchor="middle">differentiable box model</text>
+
+<rect class="box" x="40" y="458" width="220" height="58" rx="8"/>
+<text class="hd" x="150" y="482" text-anchor="middle">MSE loss</text>
+<text class="hs" x="150" y="501" text-anchor="middle">vs ECCO-Darwin v05</text>
+
+<line class="flow" x1="658" y1="487" x2="572" y2="487" marker-end="url(#af)"/>
+<line class="flow" x1="348" y1="487" x2="262" y2="487" marker-end="url(#af)"/>
+<text class="hs" x="305" y="474" text-anchor="middle" font-size="8">predicted tracers</text>
+
+<path class="grad" d="M 40 480 C 14 472 14 262 136 248" marker-end="url(#ag)"/>
+<text class="acc" x="44" y="380">gradient → updates weights</text>
+
+<line class="flow" x1="349" y1="596" x2="373" y2="596" marker-end="url(#af)"/>
+<text class="hs" x="380" y="600">forward pass</text>
+<line class="grad" x1="349" y1="615" x2="373" y2="615" marker-end="url(#ag)"/>
+<text class="hs" x="380" y="619">gradient — backprop through the box model</text>
+</svg>
