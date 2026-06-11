@@ -1,6 +1,6 @@
 """Build the v3.1 per-(config, seed) recovery manifest from the committed aggregation.
 
-Reads docs/paper/figures/aggregated_v3.1.json (the canonical aggregation of the
+Reads docs/findings/aggregated_v3.1.json (the canonical aggregation of the
 v3.1 sweep: total_seeds=856, total_configs=86) and writes a flat CSV manifest so
 every rate cited in STATUS.md / README / findings is a filterable column rather
 than a prose count. Run from the repo root:
@@ -17,7 +17,7 @@ from pathlib import Path
 
 PARAMS = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "docs" / "paper" / "figures" / "aggregated_v3.1.json"
+SRC = ROOT / "docs" / "findings" / "aggregated_v3.1.json"
 OUT = ROOT / "docs" / "findings" / "v3.1_seed_manifest.csv"
 
 

@@ -104,3 +104,6 @@ scripts/overnight_log.txt
 /docs/research_notes/2026-05-23_overnight_diff_full_darwin.md
 /docs/research_notes/2026-05-23_overnight_executed.md
 /docs/research_notes/2026-06-06_daily_data_defer.md
+
+# Draft manuscript — kept local + in git history, not in the public default tree
+/docs/paper/

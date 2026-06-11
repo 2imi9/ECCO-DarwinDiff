@@ -1,6 +1,6 @@
 <svg viewBox="0 0 940 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
 <title id="t">DINN — Darwin-Informed Neural Network architecture</title>
-<desc id="d">A per-cell network maps three environmental covariates (SST, dust flux, MLD) through two 16-wide 1x1 convolutional layers with Tanh to six Carroll parameters. Those parameters feed bounded_params, then the differentiable carroll6_step box model, then an MSE loss versus ECCO-Darwin v05; gradients flow back through the box model to update the network weights.</desc>
+<desc id="d">A per-cell network maps three environmental covariates (SST, wind speed, MLD) through two 16-wide 1x1 convolutional layers with Tanh to six Carroll parameters. Those parameters feed bounded_params, then the differentiable carroll6_step box model, then an MSE loss versus ECCO-Darwin v05; gradients flow back through the box model to update the network weights.</desc>
 <defs>
 <marker id="af" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path class="mkf" d="M0,0 L7,3 L0,6 Z"/></marker>
 <marker id="ag" markerWidth="10" markerHeight="10" refX="6.5" refY="3" orient="auto"><path class="mkg" d="M0,0 L7,3 L0,6 Z"/></marker>
@@ -70,7 +70,7 @@ text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-se
 
 <circle class="nin" cx="150" cy="175" r="14"/><circle class="nin" cx="150" cy="235" r="14"/><circle class="nin" cx="150" cy="295" r="14"/>
 <text class="io" x="128" y="179" text-anchor="end">SST</text>
-<text class="io" x="128" y="239" text-anchor="end">dust flux</text>
+<text class="io" x="128" y="239" text-anchor="end">wind speed</text>
 <text class="io" x="128" y="299" text-anchor="end">MLD</text>
 
 <circle class="node" cx="360" cy="150" r="12"/><circle class="node" cx="360" cy="200" r="12"/><circle class="node" cx="360" cy="250" r="12"/><circle class="node" cx="360" cy="300" r="12"/>
