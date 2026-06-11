@@ -37,7 +37,7 @@ real results.
 
 Outputs (in this directory)
 ---------------------------
-    fig2_ceiling.{pdf,png}         — Cal-grade distribution across 857 seeds
+    fig2_ceiling.{pdf,png}         — Cal-grade distribution across 856 seeds
     fig3_basinC_scatter.{pdf,png}  — Iron-pair recovery scatter, F2, n=40
     fig4_per_param_box.{pdf,png}   — Per-parameter recovery distributions
     fig5_wave6.{pdf,png}           — Wave 6 composition test
@@ -131,12 +131,12 @@ def _save_figure(fig, out_dir: Path, basename: str) -> None:
 
 
 # ----------------------------------------------------------------------------
-# Figure 2 — Cal-grade distribution across 857 seeds (the 5/6 ceiling)
+# Figure 2 — Cal-grade distribution across 856 seeds (the 5/6 ceiling)
 # ----------------------------------------------------------------------------
 def fig2_ceiling(out_dir: Path, data: dict | None = None) -> None:
     if data is None:
-        # Illustrative bucket counts; total = 857
-        counts = [50, 150, 250, 250, 155, 2, 0]
+        # Real v3.1 distribution (fallback when no JSON passed); total = 856
+        counts = [7, 96, 364, 318, 69, 2, 0]
         illustrative = True
     else:
         per_seed_count = [sum(s["cal_grade"].values()) for s in data["seeds"]]
@@ -290,12 +290,12 @@ def fig3_basinC_scatter(out_dir: Path, data: dict | None = None) -> None:
 
 
 # ----------------------------------------------------------------------------
-# Figure 4 — Per-parameter recovery distributions across 857 seeds
+# Figure 4 — Per-parameter recovery distributions across 856 seeds
 # ----------------------------------------------------------------------------
 def fig4_per_param_box(out_dir: Path, data: dict | None = None) -> None:
     if data is None:
         rng = np.random.default_rng(7)
-        n = 857
+        n = 856
         recovered_ratio = {
             "alpfe": rng.normal(1.0, 0.18, n).clip(0.3, 2.0),
             "scav_rat": rng.lognormal(0.0, 0.25, n).clip(0.2, 5.0),
@@ -348,7 +348,8 @@ def fig4_per_param_box(out_dir: Path, data: dict | None = None) -> None:
     ax.set_yscale("log")
     ax.set_ylim(0.1, 10.0)
     ax.set_ylabel("Recovered value / Carroll 2020 optimum (log scale)")
-    title = "Carroll-N recovery distributions across 857 seeds"
+    n_seeds = len(recovered_ratio["alpfe"])
+    title = f"Carroll-6 recovery distributions across {n_seeds} seeds"
     if illustrative:
         title += "  [Illustrative]"
     ax.set_title(title)
