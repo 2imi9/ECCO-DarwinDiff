@@ -44,7 +44,7 @@ class DINNRegional(nn.Module):
 
     Args:
         n_features: number of environmental input features (default 3 for
-            SST, dust flux, MLD).
+            SST, wind speed, MLD).
         hidden_dim: width of the single hidden layer (default 16).
         n_outputs: number of Carroll parameters to predict (default 6, matching
             Carroll's tuned set).
@@ -91,7 +91,7 @@ class DINN(nn.Module):
 
     Args:
         n_input_channels: number of environmental covariates per cell (default
-            3 for SST, dust flux, MLD).
+            3 for SST, wind speed, MLD).
         hidden_dim: number of channels in the hidden layer(s) (default 16).
         n_outputs: number of Carroll parameters per cell (default 6).
         n_hidden_layers: how many 1×1 hidden layers (default 2).
