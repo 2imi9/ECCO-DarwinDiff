@@ -167,6 +167,85 @@ finds a degenerate (R_PICPOC, mort_lge) pair that satisfies the z-scored PIC
 loss at any scale."""
 
 
+# --- Forward-model fidelity levers (added 2026-06-11; all default OFF/identity
+#     so legacy behaviour reproduces bitwise; resolved at torch.compile trace
+#     time, so set BEFORE compile). Grounded in Carroll 2020/2022 + the
+#     2026-06-11 utilization audit; targets the stuck R_PICPOC / growth params. ---
+
+W_SINK_PIC: float = W_SINK
+"""Calcite (PIC) sinking rate (1/day), SEPARATE from the organic POC rate.
+Darwin v05 carries a distinct ``wPIC_sink`` (one of six sinking velocities; see
+docs/ecco_darwin_parameter_inventory.md:97) -- calcite is ballasted and typically
+sinks faster than organic detritus. Default equals :data:`W_SINK` so legacy
+behaviour reproduces bitwise. Targets ``R_PICPOC`` by decoupling the calcite
+export length scale from organic remineralization (the binary-PIC-anchor mutex
+forbids the absolute-anchor route, so this is the sanctioned forward-model path).
+Best paired with USE_COCCOLITH_ONLY_CALCITE."""
+
+R_PIC_DISSOL: float = R_REMIN
+"""Subsurface calcite (PIC) dissolution rate (1/day), SEPARATE from organic
+remineralization. Default equals :data:`R_REMIN`. NOTE: when set this overrides
+the per-call ``r_remin`` argument for the PIC dissolution term ONLY (POC
+remineralization still follows the ``r_remin`` argument). No current caller
+overrides ``r_remin``, so the default is bitwise-identical."""
+
+USE_EPPLEY_T: bool = False
+"""Apply a temperature limitation multiplier to phytoplankton growth.
+
+Darwin parameterizes growth temperature dependence via an Arrhenius coefficient
+(``a_phytoTempAe``; docs/ecco_darwin_parameter_inventory.md:245). This is an
+**Eppley-style approximation** of that form (exponential in degrees C), NOT the
+verbatim v05 namelist value -- :data:`A_E_EPPLEY` is env-overridable and should
+be pinned against the v05 ``data.darwin`` before any paper-grounded claim. The
+multiplier is **mean-neutralized** over the input T field, so it imposes a pure
+warm-vs-cold growth STRUCTURE tied to SST (the DINN's only input channel) rather
+than a global magnitude shift the learned mu would re-absorb. Requires T passed
+as a field tensor (the production path). Default ``False`` -> bitwise legacy.
+Targets Smallgrow / Biggrow (and diatomgraz indirectly via diatom biomass)."""
+
+T_REF_EPPLEY: float = 15.0
+"""Reference temperature (degC) for the Eppley growth multiplier."""
+
+A_E_EPPLEY: float = 0.0633
+"""Eppley exponential coefficient (1/degC), ~Q10 of 1.88. Textbook Eppley value;
+NOT yet pinned to Darwin v05 ``a_phytoTempAe`` -- env-overridable for sweeps."""
+
+
+def npp_from_state(
+    state: torch.Tensor,
+    params: torch.Tensor,
+    T: torch.Tensor | float = 15.0,
+) -> torch.Tensor:
+    """Diagnose gross primary production (NPP proxy) from a (converged) box state.
+
+    Returns ``growth_total`` per cell -- the sum of per-PFT growth fluxes,
+    computed IDENTICALLY to the growth block in
+    :func:`carroll6_5pft_2layer_step` (same ``USE_EPPLEY_T`` gate). This is the
+    model side of the ``PRIMPROD_W`` loss against Darwin's diagnosed primary
+    production (``PP``). Pure diagnostic -- no state update; inert unless the
+    runner adds a PRIMPROD term.
+    """
+    DFe_1 = state[I_DFE_1]
+    P_diatom = state[I_DIATOM]; P_lge = state[I_LGE]; P_syn = state[I_SYN]
+    P_proLL = state[I_PROLL]; P_proHL = state[I_PROHL]
+    mu_proHL = params[I_SMALLGROW]
+    mu_lge = params[I_BIGGROW]
+    f_fe = DFe_1 / (DFe_1 + K_FE)
+    if USE_EPPLEY_T:
+        gamma_T = torch.exp(A_E_EPPLEY * (T - T_REF_EPPLEY))
+        gamma_T = gamma_T / gamma_T.mean()
+    else:
+        gamma_T = 1.0
+    growth_total = (
+        MU_DEFAULT_DIATOM * P_diatom
+        + mu_lge * P_lge
+        + MU_DEFAULT_SYN * P_syn
+        + MU_DEFAULT_PROLL * P_proLL
+        + mu_proHL * P_proHL
+    ) * f_fe * LIGHT * gamma_T
+    return growth_total
+
+
 def carroll6_5pft_2layer_step(
     state: torch.Tensor,
     params: torch.Tensor,
@@ -238,12 +317,23 @@ def carroll6_5pft_2layer_step(
     # multi-layer effect isolated.)
     f_fe = DFe_1 / (DFe_1 + K_FE)
 
+    # Optional Eppley temperature limitation (USE_EPPLEY_T, default OFF). Uses the
+    # T forcing already threaded in for the carbonate solve. Mean-neutralized so it
+    # imposes warm-vs-cold growth STRUCTURE without a global magnitude shift the
+    # learned mu would simply re-absorb. gamma_T depends only on forcing (not on
+    # params), so it does not alter the parameter gradients' direction.
+    if USE_EPPLEY_T:
+        gamma_T = torch.exp(A_E_EPPLEY * (T - T_REF_EPPLEY))
+        gamma_T = gamma_T / gamma_T.mean()
+    else:
+        gamma_T = 1.0
+
     # Per-PFT growth (default: specific mapping per Carroll-6 → PFT spec).
-    growth_diatom = MU_DEFAULT_DIATOM * f_fe * LIGHT * P_diatom
-    growth_lge    = mu_lge            * f_fe * LIGHT * P_lge
-    growth_syn    = MU_DEFAULT_SYN    * f_fe * LIGHT * P_syn
-    growth_proLL  = MU_DEFAULT_PROLL  * f_fe * LIGHT * P_proLL
-    growth_proHL  = mu_proHL          * f_fe * LIGHT * P_proHL
+    growth_diatom = MU_DEFAULT_DIATOM * f_fe * LIGHT * gamma_T * P_diatom
+    growth_lge    = mu_lge            * f_fe * LIGHT * gamma_T * P_lge
+    growth_syn    = MU_DEFAULT_SYN    * f_fe * LIGHT * gamma_T * P_syn
+    growth_proLL  = MU_DEFAULT_PROLL  * f_fe * LIGHT * gamma_T * P_proLL
+    growth_proHL  = mu_proHL          * f_fe * LIGHT * gamma_T * P_proHL
     growth_total = (
         growth_diatom + growth_lge + growth_syn + growth_proLL + growth_proHL
     )
@@ -289,13 +379,13 @@ def carroll6_5pft_2layer_step(
     poc_sink_out_L1 = W_SINK * POC_1                                 # mmol C/m^3/d in L1
     poc_sink_in_L2  = poc_sink_out_L1 * (h1 / h2)                    # into L2
 
-    pic_sink_out_L1 = W_SINK * PIC_1
+    pic_sink_out_L1 = W_SINK_PIC * PIC_1                             # separate calcite sinking rate
     pic_sink_in_L2  = pic_sink_out_L1 * (h1 / h2)
 
     # (c) Subsurface remineralization releases bound iron + carbon. This is
     #     the SOLE iron path back to dissolved phase in L2.
     poc_remin = r_remin * POC_2                                       # mmol C/m^3/d
-    pic_dissolve = r_remin * PIC_2                                    # symmetric for PIC
+    pic_dissolve = R_PIC_DISSOL * PIC_2                               # separate calcite dissolution rate
     fe_remin_L2 = Q_FE_REMIN * poc_remin                              # mmol Fe/m^3/d
 
     # =========================================================================
@@ -355,7 +445,7 @@ def carroll6_5pft_2layer_step(
     )
 
     dPOC_2 = poc_sink_in_L2 - poc_remin - W_SINK * POC_2  # sink to deep (lost)
-    dPIC_2 = pic_sink_in_L2 - pic_dissolve - W_SINK * PIC_2
+    dPIC_2 = pic_sink_in_L2 - pic_dissolve - W_SINK_PIC * PIC_2
 
     # L2 carbonate: respiration restores DIC, PIC dissolution restores ALK.
     # No air-sea flux at depth. (Carbonate-system closure is for consistency;
