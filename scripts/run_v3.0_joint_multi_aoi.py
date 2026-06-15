@@ -53,6 +53,14 @@ Env vars (same defaults as the v2.7 batched runner unless noted):
                           the R_PICPOC * mort_total scale degeneracy that
                           PR #59's PIC_ABS_W-alone sweep showed PIC alone
                           can't fix.
+    ALK_ABS_W             absolute-units MSE loss on surface ALK vs REAL GLODAP
+                          TAlk (regridded to the AOI grid). The box's surface ALK
+                          is calcite-only (dALK_1 = -2*R_PICPOC*mort_total), the
+                          SAME product as PIC -- tests whether a real
+                          out-of-sample ALK observable gives R_PICPOC an
+                          independent handle (co-recovery with the iron pair) or
+                          re-triggers the binary PIC-anchor mutex. Needs the
+                          GLODAP file (GLODAP_DATA_ROOT). Default 0 = off.
     POSI_W                absolute-units MSE loss on a steady-state biogenic
                           silica diagnostic vs GEOTRACES IDP2025 bSi (default 0
                           = off; see PR #60).
@@ -147,6 +155,13 @@ from darwindiff import carroll6_5pft_2layer as _layer2
 # integrator resolves this via a module-level bool at torch.compile trace time,
 # so we set it HERE before any integrator import / compile.
 _layer2.USE_COCCOLITH_ONLY_CALCITE = os.environ.get("COCCOLITH_ONLY", "0") == "1"
+# Forward-model fidelity levers (added 2026-06-11; default OFF/identity reproduces
+# legacy bitwise). Also resolved at torch.compile trace time -> set BEFORE compile.
+_layer2.W_SINK_PIC = float(os.environ.get("W_SINK_PIC", str(_layer2.W_SINK)))
+_layer2.R_PIC_DISSOL = float(os.environ.get("R_PIC_DISSOL", str(_layer2.R_REMIN)))
+_layer2.USE_EPPLEY_T = os.environ.get("USE_EPPLEY_T", "0") == "1"
+_layer2.A_E_EPPLEY = float(os.environ.get("A_E_EPPLEY", str(_layer2.A_E_EPPLEY)))
+_layer2.T_REF_EPPLEY = float(os.environ.get("T_REF_EPPLEY", str(_layer2.T_REF_EPPLEY)))
 from darwindiff.carroll6_5pft_2layer import (
     I_ALK_1,
     I_ALK_2,
@@ -165,6 +180,7 @@ from darwindiff.carroll6_5pft_2layer import (
     I_SYN,
     N_TRACERS_2LAYER,
     carroll6_5pft_2layer_step,
+    npp_from_state,
 )
 from darwindiff.ecco_darwin_loader import (
     AOI_BY_KEY,
@@ -177,6 +193,11 @@ from darwindiff.geotraces_loader import (
     subset_aoi_geotraces,
 )
 from darwindiff.diagnostics import band_of
+from darwindiff.glodap_loader import (
+    open_glodap_variable,
+    surface_layer_glodap,
+    to_mmol_per_m3,
+)
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
 from darwindiff.networks import DINN
 from darwindiff.gating import (
@@ -201,11 +222,20 @@ MONTHLY_ROOT = DATA_ROOT / "output" / "monthly"
 GRID_DIR = DATA_ROOT / "grid"
 GEOTRACES_ROOT = Path(os.environ.get("GEOTRACES_DATA_ROOT", r"D:\geotraces"))
 GEOTRACES_NC = GEOTRACES_ROOT / "GEOTRACES_IDP2025_Seawater.nc"
+# GLODAP mapped-climatology root (real ship-CTD obs). Used ONLY when ALK_ABS_W>0
+# (the GLODAP TAlk anchor). Default follows the notebook convention
+# (data/glodap/...); override with GLODAP_DATA_ROOT for the on-disk copy.
+GLODAP_ROOT = Path(os.environ.get(
+    "GLODAP_DATA_ROOT",
+    str(Path(__file__).resolve().parents[1] / "data" / "glodap"
+        / "GLODAPv2.2016b_MappedClimatologies"),
+))
 CACHE_DIR = DATA_ROOT / "cache"
 
 IC_CACHE_NAME = {
     "eqpac": "darwin_ic_cache.npz",
     "natlsubpolar": "darwin_ic_cache_natlsubpolar.npz",
+    "southernoceanpac": "darwin_ic_cache_southernoceanpac.npz",
 }
 
 AOIS_KEYS = [s.strip() for s in os.environ.get("AOIS", "eqpac,natlsubpolar").split(",") if s.strip()]
@@ -281,6 +311,22 @@ PIC_ABS_W = float(os.environ.get("PIC_ABS_W", "0.0"))
 # POC_1 ~ mort_total / W_SINK), so the pair forces R_PICPOC ~ obs(PIC)/obs(POC)
 # per cell. Default 0 = off.
 POC_ABS_W = float(os.environ.get("POC_ABS_W", "0.0"))
+# ALK_ABS_W: absolute-units MSE on surface ALK vs REAL GLODAP TAlk (regridded to
+# the AOI grid, mmol/m^3). The box's surface ALK is driven ONLY by calcite
+# (dALK_1 = -2*R_PICPOC*mort_total), the SAME product PIC is driven by -- so this
+# is the carbonate-counter-pump test: does a real out-of-sample ALK observable
+# (with the 2:1 stoichiometry + the ALK->pCO2->F_CO2 coupling) give R_PICPOC an
+# INDEPENDENT handle that co-recovers with the iron pair (hypothesis), or does the
+# R_PICPOC*mort_total factorization mutex re-appear as it does for the Darwin-PIC
+# anchor (prediction)? Requires the GLODAP file; default 0 = off (legacy
+# reproduces bitwise). See docs/findings/alk_anchor_rpicpoc_mutex.md.
+ALK_ABS_W = float(os.environ.get("ALK_ABS_W", "0.0"))
+# ALK_ABS_SOURCE: target for the ALK absolute anchor. "glodap" (default) = real
+# GLODAP TAlk; "darwin" = Darwin's OWN surface ALK (the alk_binned field already
+# loaded) -- a control that tests whether any R_PICPOC recovery is specific to
+# real observations or to the absolute-ALK constraint per se. Only consulted when
+# ALK_ABS_W > 0; default "glodap" preserves the GLODAP path.
+ALK_ABS_SOURCE = os.environ.get("ALK_ABS_SOURCE", "glodap").strip().lower()
 # POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
 # diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
 # observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
@@ -290,6 +336,19 @@ POC_ABS_W = float(os.environ.get("POC_ABS_W", "0.0"))
 # diagnosis (diatomgraz binding) from `notebooks/32_*`. Default 0 = off
 # (legacy reproduces).
 POSI_W = float(os.environ.get("POSI_W", "0.0"))
+# POSI_DARWIN_W: same biogenic-silica diagnostic loss as POSI_W, but against
+# Darwin's OWN dense gridded surface POSi field (TRAC16, mmol Si / m^3, binned
+# to the AOI 1deg grid) instead of the sparse GEOTRACES bottle proxy. A dense,
+# model-consistent, diatom-specific target -- the cheapest forward-model lever
+# at the box scale for the stuck `diatomgraz` parameter (utilization audit
+# 2026-06-11, item 5). Additive and independent of POSI_W. Default 0 = off.
+POSI_DARWIN_W = float(os.environ.get("POSI_DARWIN_W", "0.0"))
+# PRIMPROD_W: z-scored spatial-pattern MSE on the box's diagnosed NPP
+# (npp_from_state = growth_total) vs Darwin's own primary-production field (`PP`,
+# binned to the AOI 1deg grid). A growth-FLUX target -- adds the growth-rate
+# spatial constraint the z-scored Chl (biomass) loss can't pin, aimed at the
+# stuck `Biggrow`. Native `PP` diagnostic is loaded only when > 0. Default 0 = off.
+PRIMPROD_W = float(os.environ.get("PRIMPROD_W", "0.0"))
 # F_CO2_ABS_W: absolute-units MSE loss on surface air-sea CO2 flux against the
 # Darwin CO2_flux output (mmol C / m^2 / s). The existing co2_flux term in `z`
 # uses tb(co2_pred, co2_flux_z), which z-scores per AOI and cancels any uniform
@@ -365,7 +424,12 @@ def _build_aoi_targets(aoi) -> dict:
             for i in range(1, 6)
         },
     }
-    for var in ["FeT", "POC", "PIC", "DIC", "ALK"]:
+    # POSi (TRAC16) = Darwin's own dense gridded surface biogenic silica, the
+    # diatom-specific target for diatomgraz (vs the sparse GEOTRACES-bottle proxy
+    # used by POSI_W). bin_native_tracer_to_1deg takes the surface level, so it
+    # aligns with the box's surface bsi_1 diagnostic (silica.diagnostic_bsi_steady).
+    for var in (["FeT", "POC", "PIC", "DIC", "ALK", "POSi"]
+                + (["primProd"] if PRIMPROD_W > 0 else [])):
         out[f"{var.lower()}_binned"] = bin_native_tracer_to_1deg(
             monthly_root=MONTHLY_ROOT, grid_dir=GRID_DIR, variable=var,
             lat_min=aoi.lat_min, lat_max=aoi.lat_max,
@@ -383,6 +447,32 @@ def _load_or_build_target_cache(aoi) -> dict:
             cached = torch.load(cache_path, map_location="cpu", weights_only=False)
             if (cached.get("aoi_name") == aoi.name
                     and cached.get("aoi_bounds") == expected_bounds):
+                # Augment older caches that predate POSi without re-binning the
+                # five existing tracers (each a full 289-iter native sweep).
+                if "posi_binned" not in cached:
+                    print("  target cache missing posi_binned; binning POSi (TRAC16)...")
+                    cached["posi_binned"] = bin_native_tracer_to_1deg(
+                        monthly_root=MONTHLY_ROOT, grid_dir=GRID_DIR, variable="POSi",
+                        lat_min=aoi.lat_min, lat_max=aoi.lat_max,
+                        lon_min=aoi.lon_min, lon_max=aoi.lon_max, iters="all",
+                    )
+                    try:
+                        torch.save(cached, cache_path)
+                        print(f"  re-saved target cache with POSi to {cache_path}")
+                    except Exception as e:
+                        print(f"  [warn] could not re-save cache: {e}")
+                if PRIMPROD_W > 0 and "primprod_binned" not in cached:
+                    print("  target cache missing primprod_binned; binning primProd (PP)...")
+                    cached["primprod_binned"] = bin_native_tracer_to_1deg(
+                        monthly_root=MONTHLY_ROOT, grid_dir=GRID_DIR, variable="primProd",
+                        lat_min=aoi.lat_min, lat_max=aoi.lat_max,
+                        lon_min=aoi.lon_min, lon_max=aoi.lon_max, iters="all",
+                    )
+                    try:
+                        torch.save(cached, cache_path)
+                        print(f"  re-saved target cache with primProd to {cache_path}")
+                    except Exception as e:
+                        print(f"  [warn] could not re-save cache: {e}")
                 print(f"  loaded target cache from {cache_path}")
                 return cached
         except Exception as e:
@@ -414,6 +504,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     dic_binned = targets["dic_binned"]
     alk_binned = targets["alk_binned"]
     co2_flux_obs = targets["co2_flux_obs"]
+    primprod_binned = targets.get("primprod_binned")  # present only when PRIMPROD_W > 0
 
     H, W = sst.shape
     # ocean_mask: finite SST AND finite tracers (matching v2.7 runner logic).
@@ -461,6 +552,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     alk_z = to_z_target(alk_binned)
     co2_flux_z = to_z_target(co2_flux_obs)
     chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
+    primprod_z = to_z_target(primprod_binned) if (PRIMPROD_W > 0 and primprod_binned is not None) else None
 
     # Absolute-units surface PIC target (PIC_ABS_W). Masks to ocean cells with
     # finite, positive PIC. Always prepared (negligible memory) so the loss
@@ -494,6 +586,73 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                   f"mean={float(poc_abs_target_t[poc_abs_mask_t].mean()):.4f} mmol C/m^3")
         else:
             print(f"  [warn] POC_ABS_W={POC_ABS_W} but no finite-positive POC cells in AOI; loss term will be skipped")
+
+    # Absolute-units surface ALK target (ALK_ABS_W) against REAL GLODAP TAlk.
+    # The box's surface ALK_1 is driven ONLY by calcite: dALK_1 = -2*R_PICPOC*
+    # mort_total -- the SAME product as dPIC_1 -- so this anchors the same
+    # R_PICPOC*mort_total the PIC anchor does, but via a real out-of-sample
+    # observable (ship-CTD alkalinity) with the 2:1 carbonate stoichiometry, and
+    # couples through solve_carbonate (ALK -> pCO2 -> F_CO2). GLODAP TAlk
+    # (umol/kg) is regridded (nearest) onto the AOI's Darwin 1deg grid and
+    # converted to mmol/m^3. Only loaded when ALK_ABS_W > 0 (needs the external
+    # GLODAP file); a NaN target + empty mask reproduces legacy bitwise when off.
+    # Same scale-normalized MSE prep as pic_abs/poc_abs.
+    alk_abs_binned = np.full_like(sst, np.nan, dtype=np.float32)
+    if ALK_ABS_W > 0 and ALK_ABS_SOURCE == "darwin":
+        # Control: anchor to Darwin's OWN surface ALK (already binned to the AOI
+        # grid), not real GLODAP. Distinguishes real-obs identifiability from the
+        # generic absolute-ALK constraint.
+        alk_abs_binned = np.asarray(alk_binned, dtype=np.float32)
+    elif ALK_ABS_W > 0:  # "glodap" (default)
+        try:
+            _g_ds = surface_layer_glodap(open_glodap_variable(str(GLODAP_ROOT), "ALK"))
+            _g_talk = to_mmol_per_m3(_g_ds["TAlk"])
+            _g_on_aoi = _g_talk.interp(
+                lat=targets["darwin_lats"], lon=targets["darwin_lons"],
+                method="nearest",
+            )
+            _g_vals = np.asarray(_g_on_aoi.values, dtype=np.float32)
+            if _g_vals.shape == sst.shape:
+                alk_abs_binned = _g_vals
+            else:
+                print(f"  [warn] GLODAP ALK regrid shape {_g_vals.shape} != AOI {sst.shape}; skipping")
+        except Exception as e:
+            print(f"  [warn] ALK_ABS_W={ALK_ABS_W} but GLODAP TAlk load failed ({e}); loss term will be skipped")
+    alk_abs_mask_np = ocean_mask & np.isfinite(alk_abs_binned) & (alk_abs_binned > 0)
+    alk_abs_target_np = np.where(alk_abs_mask_np, alk_abs_binned, 0.0).astype(np.float32)
+    alk_abs_target_t = torch.tensor(alk_abs_target_np).to(device)
+    alk_abs_mask_t = torch.tensor(alk_abs_mask_np, dtype=torch.bool).to(device)
+    alk_abs_mask_f = alk_abs_mask_t.to(torch.float32)
+    n_alk_abs = int(alk_abs_mask_np.sum())
+    n_alk_abs_f = alk_abs_mask_f.sum().clamp(min=1.0)
+    if ALK_ABS_W > 0:
+        if n_alk_abs > 0:
+            print(f"  ALK absolute target [{ALK_ABS_SOURCE}]: {n_alk_abs} cells, "
+                  f"mean={float(alk_abs_target_t[alk_abs_mask_t].mean()):.2f} mmol/m^3")
+        else:
+            print(f"  [warn] ALK_ABS_W={ALK_ABS_W} (src={ALK_ABS_SOURCE}) but no finite-positive ALK cells in AOI; loss term will be skipped")
+
+    # Dense Darwin POSi target (POSI_DARWIN_W). Darwin's own surface biogenic
+    # silica (TRAC16, mmol Si/m^3) binned to the AOI 1deg grid -- a dense,
+    # model-consistent, diatom-specific target for `diatomgraz`. Same absolute-
+    # units prep as pic_abs/poc_abs; the loss is gated on POSI_DARWIN_W > 0 and
+    # compares it to the box's surface bsi_1 diagnostic (silica.py).
+    posi_dw_binned = targets.get("posi_binned")
+    if posi_dw_binned is None:
+        posi_dw_binned = np.full_like(sst, np.nan, dtype=np.float32)
+    posi_dw_mask_np = ocean_mask & np.isfinite(posi_dw_binned) & (posi_dw_binned > 0)
+    posi_dw_target_np = np.where(posi_dw_mask_np, posi_dw_binned, 0.0).astype(np.float32)
+    posi_dw_target_t = torch.tensor(posi_dw_target_np).to(device)
+    posi_dw_mask_t = torch.tensor(posi_dw_mask_np, dtype=torch.bool).to(device)
+    posi_dw_mask_f = posi_dw_mask_t.to(torch.float32)
+    n_posi_dw = int(posi_dw_mask_np.sum())
+    n_posi_dw_f = posi_dw_mask_f.sum().clamp(min=1.0)
+    if POSI_DARWIN_W > 0:
+        if n_posi_dw > 0:
+            print(f"  Darwin POSi target: {n_posi_dw} cells, "
+                  f"mean={float(posi_dw_target_t[posi_dw_mask_t].mean()):.4f} mmol Si/m^3")
+        else:
+            print(f"  [warn] POSI_DARWIN_W={POSI_DARWIN_W} but no finite-positive POSi cells in AOI; loss term will be skipped")
 
     # Absolute-units surface F_CO2 target (F_CO2_ABS_W). Unlike PIC/POC, F_CO2
     # can be either sign (ocean source = positive, sink = negative), so the mask
@@ -757,7 +916,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "env_1ch_dev": env_1ch_dev,
         "mld_raw_for_env": mld_raw_for_env,
         "T_dev": T_dev, "S_dev": S_dev, "wind_dev": wind_dev, "pco2_atm_dev": pco2_atm_dev,
-        "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z,
+        "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z, "primprod_z": primprod_z,
         "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
         "geo_surf_target_t": geo_surf_target_t, "geo_surf_mask_t": geo_surf_mask_t,
         "geo_surf_mask_f": geo_surf_mask_f, "n_geo_surf_f": n_geo_surf_f,
@@ -774,9 +933,15 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "poc_abs_target_t": poc_abs_target_t, "poc_abs_mask_t": poc_abs_mask_t,
         "poc_abs_mask_f": poc_abs_mask_f, "n_poc_abs_f": n_poc_abs_f,
         "n_poc_abs": n_poc_abs,
+        "alk_abs_target_t": alk_abs_target_t, "alk_abs_mask_t": alk_abs_mask_t,
+        "alk_abs_mask_f": alk_abs_mask_f, "n_alk_abs_f": n_alk_abs_f,
+        "n_alk_abs": n_alk_abs,
         "posi_target_t": posi_target_t, "posi_mask_t": posi_mask_t,
         "posi_mask_f": posi_mask_f, "n_posi_f": n_posi_f,
         "n_posi": n_posi_in_ocean,
+        "posi_dw_target_t": posi_dw_target_t, "posi_dw_mask_t": posi_dw_mask_t,
+        "posi_dw_mask_f": posi_dw_mask_f, "n_posi_dw_f": n_posi_dw_f,
+        "n_posi_dw": n_posi_dw,
         "f_co2_abs_target_t": f_co2_abs_target_t, "f_co2_abs_mask_t": f_co2_abs_mask_t,
         "f_co2_abs_mask_f": f_co2_abs_mask_f, "n_f_co2_abs_f": n_f_co2_abs_f,
         "n_f_co2_abs": n_f_co2_abs,
@@ -1030,19 +1195,52 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_poc_abs_f"] / scale
         z = z + POC_ABS_W * l
 
+    # ALK absolute-units MSE on surface ALK vs REAL GLODAP TAlk. The box's
+    # surface ALK is calcite-only (dALK_1 = -2*R_PICPOC*mort_total), so this
+    # anchors the SAME R_PICPOC*mort_total product as PIC but via a real
+    # out-of-sample observable + the 2:1 carbonate stoichiometry, and couples
+    # through solve_carbonate (ALK -> pCO2 -> F_CO2 already in `z` above). Tests
+    # whether ALK gives R_PICPOC an independent handle (co-recovery with the iron
+    # pair) or re-triggers the binary PIC-anchor mutex. Gated on ALK_ABS_W > 0
+    # and finite GLODAP cells; `alk` is the integrated surface ALK from above.
+    if ALK_ABS_W > 0 and bundle["n_alk_abs"] > 0:
+        residual = (alk - bundle["alk_abs_target_t"][None]) * bundle["alk_abs_mask_f"][None]
+        scale = (bundle["alk_abs_target_t"][bundle["alk_abs_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_alk_abs_f"] / scale
+        z = z + ALK_ABS_W * l
+
     # POSi absolute-units MSE on a steady-state biogenic-silica diagnostic.
     # Compute bsi_1 = R_SI_C * (mort_diatom + graze_diatom) / W_SINK from the
     # integrated state's diatom biomass and the seed's per-cell diatomgraz
     # prediction. Only diatoms produce bSi, so g_diatom enters this term
     # directly via graze_diatom = g_diatom * G0_GRAZE * P_diatom. Compares to
     # surface GEOTRACES bSi obs (bSi_LPT + bSi_SPT, QC 49/50, depth <= 50 m).
-    if POSI_W > 0 and bundle["n_posi"] > 0:
+    # bsi_1_pred is shared by the GEOTRACES-bottle term (POSI_W) and the dense
+    # Darwin-POSi term (POSI_DARWIN_W); compute it once if either is active.
+    use_posi_geo = POSI_W > 0 and bundle["n_posi"] > 0
+    use_posi_dw = POSI_DARWIN_W > 0 and bundle["n_posi_dw"] > 0
+    if use_posi_geo or use_posi_dw:
         g_diatom_b = params_b[4]   # params order: [alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC]
         bsi_1_pred, _ = diagnostic_bsi_steady(p_diatom, g_diatom_b)
-        residual = (bsi_1_pred - bundle["posi_target_t"][None]) * bundle["posi_mask_f"][None]
-        scale = (bundle["posi_target_t"][bundle["posi_mask_t"]] ** 2).mean().clamp(min=1e-30)
-        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_posi_f"] / scale
-        z = z + POSI_W * l
+        if use_posi_geo:
+            residual = (bsi_1_pred - bundle["posi_target_t"][None]) * bundle["posi_mask_f"][None]
+            scale = (bundle["posi_target_t"][bundle["posi_mask_t"]] ** 2).mean().clamp(min=1e-30)
+            l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_posi_f"] / scale
+            z = z + POSI_W * l
+        if use_posi_dw:
+            residual = (bsi_1_pred - bundle["posi_dw_target_t"][None]) * bundle["posi_dw_mask_f"][None]
+            scale = (bundle["posi_dw_target_t"][bundle["posi_dw_mask_t"]] ** 2).mean().clamp(min=1e-30)
+            l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_posi_dw_f"] / scale
+            z = z + POSI_DARWIN_W * l
+
+    # primProd (PP): z-scored MSE of the box's diagnosed NPP (growth_total, via
+    # npp_from_state) vs Darwin's primary production. A growth-FLUX target adds the
+    # growth-rate spatial constraint the z-scored Chl (biomass) loss can't pin --
+    # aimed at the stuck `Biggrow`. gamma_T is mean-neutralized exactly as in the
+    # step, so it stays consistent under USE_EPPLEY_T. Default off (PRIMPROD_W=0).
+    if PRIMPROD_W > 0 and bundle.get("primprod_z") is not None:
+        npp_pred = npp_from_state(state, params_b, bundle["T_dev"][None])
+        z = z + PRIMPROD_W * tb(npp_pred, bundle["primprod_z"])
 
     # F_CO2 absolute-units MSE on surface air-sea CO2 flux. The z-scored term
     # tb(co2_pred, co2_flux_z) above constrains spatial pattern only and cancels
@@ -1243,8 +1441,19 @@ for seed_idx, seed in enumerate(SEEDS):
         "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
         "poc_abs_w": POC_ABS_W,
         "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
+        "alk_abs_w": ALK_ABS_W,
+        "alk_abs_source": ALK_ABS_SOURCE if ALK_ABS_W > 0 else None,
+        "n_alk_abs_cells_per_aoi": {b["key"]: b["n_alk_abs"] for b in bundles},
         "posi_w": POSI_W,
         "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
+        "posi_darwin_w": POSI_DARWIN_W,
+        "primprod_w": PRIMPROD_W,
+        "n_posi_dw_cells_per_aoi": {b["key"]: b["n_posi_dw"] for b in bundles},
+        "w_sink_pic": _layer2.W_SINK_PIC,
+        "r_pic_dissol": _layer2.R_PIC_DISSOL,
+        "use_eppley_t": _layer2.USE_EPPLEY_T,
+        "a_e_eppley": _layer2.A_E_EPPLEY,
+        "t_ref_eppley": _layer2.T_REF_EPPLEY,
         "f_co2_abs_w": F_CO2_ABS_W,
         "n_f_co2_abs_cells_per_aoi": {b["key"]: b["n_f_co2_abs"] for b in bundles},
         "use_mehrbach_k1k2": _carbonate.USE_MEHRBACH_K1K2,
@@ -1291,7 +1500,12 @@ else:
     gate_tag = f"_gate-{_gate_preset}" if USE_GATING else ""
     pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
     poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
+    alk_abs_tag = (f"_alkabsW{ALK_ABS_W}" + (f"-{ALK_ABS_SOURCE}" if ALK_ABS_SOURCE != "glodap" else "")) if ALK_ABS_W > 0 else ""
     posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
+    posi_dw_tag = f"_posidwW{POSI_DARWIN_W}" if POSI_DARWIN_W > 0 else ""
+    wpic_tag = f"_wpic{_layer2.W_SINK_PIC}" if _layer2.W_SINK_PIC != _layer2.W_SINK else ""
+    rpicd_tag = f"_rpicd{_layer2.R_PIC_DISSOL}" if _layer2.R_PIC_DISSOL != _layer2.R_REMIN else ""
+    eppley_tag = f"_eppleyT{_layer2.A_E_EPPLEY}" if _layer2.USE_EPPLEY_T else ""
     fco2_abs_tag = f"_fco2absW{F_CO2_ABS_W}" if F_CO2_ABS_W > 0 else ""
     mehrbach_tag = "_mehrbach" if _carbonate.USE_MEHRBACH_K1K2 else ""
     kw_tag = f"_kw{_carbonate.K_WANNINKHOF}" if _K_WANNINKHOF_OVERRIDE is not None else ""
@@ -1314,7 +1528,12 @@ else:
             f"{gate_tag}"
             f"{pic_abs_tag}"
             f"{poc_abs_tag}"
+            f"{alk_abs_tag}"
             f"{posi_tag}"
+            f"{posi_dw_tag}"
+            f"{wpic_tag}"
+            f"{rpicd_tag}"
+            f"{eppley_tag}"
             f"{fco2_abs_tag}"
             f"{mehrbach_tag}"
             f"{kw_tag}"

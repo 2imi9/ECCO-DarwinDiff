@@ -70,8 +70,10 @@ TRAC_MAPPING: dict[str, str] = {
     "O2": "TRAC23",
     "PIC": "TRAC17",
     "POC": "TRAC12",
+    "POSi": "TRAC16",
     "PO4": "TRAC05",
     "SiO2": "TRAC07",
+    "primProd": "PP",
 }
 
 # Friendly attribute metadata per tracer for xmitgcm's extra_variables. Units
@@ -99,6 +101,8 @@ _TRACER_ATTRS: dict[str, dict[str, str]] = {
     "TRAC31": {"long_name": "Chl group 5", "units": "mg Chl a / m^3"},
     "TRAC17": {"long_name": "Particulate inorganic carbon", "units": "mmol C / m^3"},
     "TRAC12": {"long_name": "Particulate organic carbon", "units": "mmol C / m^3"},
+    "TRAC16": {"long_name": "Particulate biogenic silica", "units": "mmol Si / m^3"},
+    "PP": {"long_name": "Primary production", "units": "mmol C / m^3 / s"},
 }
 
 
