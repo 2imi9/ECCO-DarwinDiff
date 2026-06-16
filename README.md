@@ -24,16 +24,16 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in whi
 
 **Works**
 - The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config; one fit runs in ~7 min on a single GPU.
-- Four of six Carroll parameters recover under at least one AOI configuration; the synthetic demo runs end-to-end on a laptop / free Colab T4.
+- A **reproducible 5/6** at 3-AOI (v3.2): dense-Darwin `POSi` + Eppley temperature limitation recover `diatomgraz` alongside the iron pair — mean **2.0 → 3.85/6**, 70% of seeds ≥4/6 (n=20), the first gain from forward-model physics rather than loss-weight/architecture levers. The synthetic demo runs end-to-end on a laptop / free Colab T4.
 
 **Known limits**
-- A **structural 5/6 ceiling**: 0/856 seeds recover all six jointly, and the two 5/6 events don't reproduce (1/20). The typical seed recovers **2–3 of 6**.
-- `R_PICPOC` (3%) and `diatomgraz` (10%) are the near-unrecoverable params.
+- A **structural 6/6 wall**: 0/856 seeds recover all six jointly — `R_PICPOC` (3%) is the lone unrecovered parameter. 5/6 now reproduces (above); breaking to 6/6 is the open problem.
+- `R_PICPOC` needs **richer calcite physics**: the box's rigid-ratio calcite can't match Darwin's ~23× coccolithophore-driven spatial PIC/POC variation. A PIC:POC ratio loss recovers it per-cell where the box matches Darwin (eqpac), but ≥2-AOI recovery needs the differentiable Darwin calcite port + native resolution — not a box-scale estimator or seasonal lever. (`diatomgraz`, the former second holdout, now recovers under v3.2.)
 - 1° box-model proxy; 23-year climatology, not time-resolved; single-method (no forward-Darwin held-out validation yet); single-GPU prototype. Full evidence → [STATUS.md][status_url].
 
 ## Reproduce
 
-The headline finding (the structural 5/6 ceiling: 0/856 at 6/6 across **856 seeds / 86 configs**) and the full evidence table live in [STATUS.md][status_url]; the cluster-scale sweep is in [docs/cluster_setup.md][cluster_url].
+The headline finding (the structural 6/6 wall: 0/856 at 6/6 across **856 seeds / 86 configs**, with `R_PICPOC` the lone holdout) and the full evidence table live in [STATUS.md][status_url]; the cluster-scale sweep is in [docs/cluster_setup.md][cluster_url].
 
 <details>
 <summary><b>Runnable demo</b> — recover a per-cell parameter field by backprop through the box model (~5 min, laptop / Colab T4)</summary>
@@ -115,6 +115,7 @@ ECCO-Darwin (Carroll et al. 2020, *JAMES*; 2022, *GBC*) is calibrated via **Gree
 | v3.0 (PRs #46-#59) | multi-AOI joint training | 5/6 plateau as parameter conservation |
 | v3.1 (PR #64) | 3-AOI Basin C + PER_AOI_DINN | two complementary 5/6 paths |
 | v3.1.1 (PR #89) | AOI ablation (n=200) | `eqp+natl` recovers `diatomgraz` + `R_PICPOC` at the cost of the iron pair — architecture-level tradeoff; 5/6 ceiling holds |
+| v3.2 (PR #100 +) | forward-model fidelity (Eppley + dense `POSi`); PIC:POC ratio loss | first reproducible 5/6 at 3-AOI; `R_PICPOC` localized as the lone 6/6 wall — a calcite forward-model-fidelity gap (needs the Darwin port + native resolution) |
 | Gated on cluster | full-ocean recovery, time-resolved fitting, Track 2 emulator | pending |
 
 Per-phase detail: `docs/findings/`. Live state: [STATUS.md][status_url].
