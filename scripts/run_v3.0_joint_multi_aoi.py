@@ -327,6 +327,17 @@ ALK_ABS_W = float(os.environ.get("ALK_ABS_W", "0.0"))
 # real observations or to the absolute-ALK constraint per se. Only consulted when
 # ALK_ABS_W > 0; default "glodap" preserves the GLODAP path.
 ALK_ABS_SOURCE = os.environ.get("ALK_ABS_SOURCE", "glodap").strip().lower()
+# RATIO_W: scale-normalized MSE on the box's surface PIC:POC RATIO vs Darwin's own
+# per-cell PIC/POC (pic_binned / poc_binned). Unlike the separate PIC/POC magnitude
+# anchors -- each of which pins mort_total and triggers the iron-pair mutex -- the
+# ratio is mort_total-INDEPENDENT at steady state (PIC_1/POC_1 = R_PICPOC*W_SINK/
+# W_SINK_PIC), so it constrains R_PICPOC ORTHOGONALLY to the iron pair (confirmed
+# by a forward-model orthogonality probe 2026-06-15). Tests whether the R_PICPOC
+# mutex is a fixable estimator-design error (separate anchors were the wrong
+# observable) rather than a fundamental box-scale information limit. Best paired
+# with USE_COCCOLITH_ONLY_CALCITE so a single R_PICPOC reproduces the ~23x cross-AOI
+# realized-ratio variation via biomass composition. Default 0 = off.
+RATIO_W = float(os.environ.get("RATIO_W", "0.0"))
 # POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
 # diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
 # observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
@@ -632,6 +643,27 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         else:
             print(f"  [warn] ALK_ABS_W={ALK_ABS_W} (src={ALK_ABS_SOURCE}) but no finite-positive ALK cells in AOI; loss term will be skipped")
 
+    # PIC:POC RATIO target (RATIO_W): Darwin's own per-cell PIC/POC. Orthogonal
+    # handle on R_PICPOC (mort_total cancels in the ratio), so it pins R_PICPOC
+    # WITHOUT pinning mort_total (the iron pair's variable). Same scale-normalized
+    # MSE prep as pic_abs; masked to cells with finite-positive PIC AND POC.
+    ratio_mask_np = (ocean_mask & np.isfinite(pic_binned) & (pic_binned > 0)
+                     & np.isfinite(poc_binned) & (poc_binned > 0))
+    ratio_target_np = np.zeros_like(sst, dtype=np.float32)
+    ratio_target_np[ratio_mask_np] = (pic_binned[ratio_mask_np]
+                                      / poc_binned[ratio_mask_np]).astype(np.float32)
+    ratio_target_t = torch.tensor(ratio_target_np).to(device)
+    ratio_mask_t = torch.tensor(ratio_mask_np, dtype=torch.bool).to(device)
+    ratio_mask_f = ratio_mask_t.to(torch.float32)
+    n_ratio = int(ratio_mask_np.sum())
+    n_ratio_f = ratio_mask_f.sum().clamp(min=1.0)
+    if RATIO_W > 0:
+        if n_ratio > 0:
+            print(f"  PIC:POC ratio target: {n_ratio} cells, "
+                  f"mean={float(ratio_target_t[ratio_mask_t].mean()):.4f} (Carroll R_PICPOC=0.04245)")
+        else:
+            print(f"  [warn] RATIO_W={RATIO_W} but no finite-positive PIC&POC cells in AOI; loss term will be skipped")
+
     # Dense Darwin POSi target (POSI_DARWIN_W). Darwin's own surface biogenic
     # silica (TRAC16, mmol Si/m^3) binned to the AOI 1deg grid -- a dense,
     # model-consistent, diatom-specific target for `diatomgraz`. Same absolute-
@@ -936,6 +968,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "alk_abs_target_t": alk_abs_target_t, "alk_abs_mask_t": alk_abs_mask_t,
         "alk_abs_mask_f": alk_abs_mask_f, "n_alk_abs_f": n_alk_abs_f,
         "n_alk_abs": n_alk_abs,
+        "ratio_target_t": ratio_target_t, "ratio_mask_t": ratio_mask_t,
+        "ratio_mask_f": ratio_mask_f, "n_ratio_f": n_ratio_f,
+        "n_ratio": n_ratio,
         "posi_target_t": posi_target_t, "posi_mask_t": posi_mask_t,
         "posi_mask_f": posi_mask_f, "n_posi_f": n_posi_f,
         "n_posi": n_posi_in_ocean,
@@ -1209,6 +1244,18 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_alk_abs_f"] / scale
         z = z + ALK_ABS_W * l
 
+    # PIC:POC RATIO term (RATIO_W). Box PIC_1/POC_1 = R_PICPOC*(W_SINK/W_SINK_PIC)
+    # at steady state -- mort_total CANCELS -- so this pins R_PICPOC orthogonally to
+    # the iron pair (unlike the separate PIC/POC magnitude anchors, which each pin
+    # mort_total and trigger the mutex). Target = Darwin per-cell PIC/POC. `pic`,
+    # `poc` are the integrated surface fields from above. Gated on RATIO_W > 0.
+    if RATIO_W > 0 and bundle["n_ratio"] > 0:
+        ratio_pred = pic / poc.clamp(min=1e-9)
+        residual = (ratio_pred - bundle["ratio_target_t"][None]) * bundle["ratio_mask_f"][None]
+        scale = (bundle["ratio_target_t"][bundle["ratio_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_ratio_f"] / scale
+        z = z + RATIO_W * l
+
     # POSi absolute-units MSE on a steady-state biogenic-silica diagnostic.
     # Compute bsi_1 = R_SI_C * (mort_diatom + graze_diatom) / W_SINK from the
     # integrated state's diatom biomass and the seed's per-cell diatomgraz
@@ -1444,6 +1491,8 @@ for seed_idx, seed in enumerate(SEEDS):
         "alk_abs_w": ALK_ABS_W,
         "alk_abs_source": ALK_ABS_SOURCE if ALK_ABS_W > 0 else None,
         "n_alk_abs_cells_per_aoi": {b["key"]: b["n_alk_abs"] for b in bundles},
+        "ratio_w": RATIO_W,
+        "n_ratio_cells_per_aoi": {b["key"]: b["n_ratio"] for b in bundles},
         "posi_w": POSI_W,
         "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
         "posi_darwin_w": POSI_DARWIN_W,
@@ -1501,6 +1550,7 @@ else:
     pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
     poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
     alk_abs_tag = (f"_alkabsW{ALK_ABS_W}" + (f"-{ALK_ABS_SOURCE}" if ALK_ABS_SOURCE != "glodap" else "")) if ALK_ABS_W > 0 else ""
+    ratio_tag = f"_ratioW{RATIO_W}" if RATIO_W > 0 else ""
     posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
     posi_dw_tag = f"_posidwW{POSI_DARWIN_W}" if POSI_DARWIN_W > 0 else ""
     wpic_tag = f"_wpic{_layer2.W_SINK_PIC}" if _layer2.W_SINK_PIC != _layer2.W_SINK else ""
@@ -1529,6 +1579,7 @@ else:
             f"{pic_abs_tag}"
             f"{poc_abs_tag}"
             f"{alk_abs_tag}"
+            f"{ratio_tag}"
             f"{posi_tag}"
             f"{posi_dw_tag}"
             f"{wpic_tag}"
