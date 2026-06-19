@@ -14,6 +14,13 @@ automatically by Claude Code when this worktree is the active project.
   OUTPUT_DIR pattern with STOP sentinel, resume logic, per-arc aggregation,
   Wave chaining. Distills the v3.0 overnight pattern. Wraps
   `scripts/overnight_v3.0_basinC_refine_v2.py` and friends.
+- **paper_reviewer_panel** — Adversarial reviewer-panel red-team for the
+  DarwinDiff manuscript (or any inverse / parameter-recovery paper): eight
+  domain-adapted reviewer lenses + a grounding contract (every objection cites
+  a line; recompute, don't invent) + a completeness critic + an adversarial
+  verify pass, returning objections ranked by how hard they are to rebut.
+  Single agent for a quick ranked pass; run as a Workflow fan-out for an
+  exhaustive pre-submission review.
 
 ### Literature search (vendored from google-deepmind/science-skills, Apache 2.0)
 
