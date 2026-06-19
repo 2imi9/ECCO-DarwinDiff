@@ -62,9 +62,26 @@ default, so one R_PICPOC scalar must fit the 23× eqpac↔natl PIC/POC spread.
   anchor). This does **not** shrink the B200 ask; it strengthens the
   native-resolution case. Untested laptop lever remaining: a PIC:POC **ratio** loss
   (vs the absolute PIC anchor) — the "estimator-side is laptop-fixable" claim.
-- **Box-vs-Darwin forward fidelity** (box at Carroll values vs Darwin v05 1°):
-  _planned._ If the box can't reproduce Darwin even at the true params, native-res
-  recovery is precise-but-wrong (physics gap, not resolution).
+- **Box-vs-Darwin forward fidelity** (`scripts/box_vs_darwin_fidelity.py`; box at
+  `CARROLL_VALUES`, 3-AOI, 200 steps): **the box pins surface PIC:POC to a single
+  scalar.** At Carroll's R_PICPOC=0.042 the box's steady-state PIC:POC is
+  **0.0424 / 0.0425 / 0.0424** (eqpac / natl / SO) — essentially constant — while
+  **Darwin's actual ratio spans ~100×: 0.033 / 0.676 / 0.0067**. The box matches
+  eqpac (1.28×) but is 16× too low in natl and 6× too high in SO. So R_PICPOC is
+  structurally unidentifiable *jointly* — not for lack of resolution, but because
+  the box's PIC production (R_PICPOC × mortality) cannot represent Darwin's
+  spatially-varying calcite:organic ratio. (The box relaxed *off* the Darwin-field
+  IC to its own R_PICPOC steady state, so this is robust; per-field z-scored r is
+  confounded by that IC and not reported.)
+
+### Synthesis — the two probes complete the B200 argument
+The 1° box **cannot hold** Darwin's 100× PIC:POC spread with one R_PICPOC scalar
+(fidelity), and coccolith-only calcite at 1° **fails the mutex** (coccolith probe).
+Together these say the fix is **coccolithophore-resolved calcite at native
+resolution** — where Chl2 (coccolithophore) bloom structure supplies the spatial PIC
+variation a single 1° scalar cannot. That is precisely the mechanism the native-res
+B200 run targets, now empirically grounded by two laptop experiments rather than
+asserted.
 
 ## Cluster-gated — do on the FREE Explorer H200 before paid B200
 
