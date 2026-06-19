@@ -17,10 +17,12 @@ NOT constrained here** -- it only enters PIC/DIC/ALK, and ``bin_average`` carrie
 PIC. The R_PICPOC seasonal test needs a monthly PIC target (PIC is in the native
 ``output/monthly/`` tree, not ``bin_average``) -- the immediate follow-on.
 
-Run::
+Run with the project environment (``uv run``, or the repo ``.venv`` python). A bare
+``python`` on PATH may resolve an editable ``darwindiff`` install from a stale
+worktree and ImportError or run old code, so prefer::
 
-    python scripts/run_seasonal_recovery.py --aoi eqpac --epochs 600
-    python scripts/run_seasonal_recovery.py --aoi natlsubpolar --mode time-mean --epochs 600
+    uv run python scripts/run_seasonal_recovery.py --aoi eqpac --epochs 600
+    uv run python scripts/run_seasonal_recovery.py --aoi natlsubpolar --mode time-mean --epochs 600
 """
 
 from __future__ import annotations

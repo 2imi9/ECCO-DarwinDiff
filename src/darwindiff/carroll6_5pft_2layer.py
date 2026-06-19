@@ -363,7 +363,7 @@ def carroll6_5pft_2layer_step(
     dDIC_2 = +poc_remin + pic_dissolve           # respiration + carbonate dissolution
     dALK_2 = +2.0 * pic_dissolve                 # carbonate dissolution stoichiometry
 
-    return torch.stack([
+    new_state = torch.stack([
         DFe_1 + dt * dDFe_1,
         P_diatom + dt * dP_diatom,
         P_lge    + dt * dP_lge,
@@ -380,6 +380,16 @@ def carroll6_5pft_2layer_step(
         DIC_2 + dt * dDIC_2,
         ALK_2 + dt * dALK_2,
     ])
+    # Non-negativity floor: tracer concentrations are physically >= 0. This is a
+    # no-op for well-behaved trajectories (Carroll-range params, short spin-up),
+    # so v2.7/v2.8/v3.x recovery and the reduce-to-plain-integrate equivalence are
+    # unchanged. It guards the carbonate budget (dDIC_1/dALK_1 have no floor and
+    # forward-Euler has no clamp) from running away monotonically negative at the
+    # PARAM_BOUNDS extremes the DINN can emit under multi-cycle seasonal spin-up
+    # (a latent NaN-at-native-resolution; pre-scale-up audit 2026-06-18). The
+    # carbonate solver only guards its own discriminant, not upstream negative
+    # DIC/ALK, so the floor must live here.
+    return new_state.clamp(min=0.0)
 
 
 def carroll6_5pft_2layer_integrate(

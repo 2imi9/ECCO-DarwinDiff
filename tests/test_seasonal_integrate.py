@@ -111,6 +111,27 @@ def test_spinup_changes_the_recorded_year():
     assert not torch.allclose(no_spin, one_spin)
 
 
+def test_param_bound_extremes_stay_nonnegative_under_spinup():
+    # Regression (pre-scale-up audit 2026-06-18): at the upper PARAM_BOUNDS the
+    # surface carbonate budget (dDIC_1 / dALK_1 have no analytic floor) used to run
+    # away monotonically negative under multi-cycle seasonal spin-up -- e.g. DIC_1
+    # reached -2.3e4 by 8 cycles -- while staying torch.isfinite, so an
+    # isfinite-only assert missed it and it could NaN the loss at native
+    # resolution. The non-negativity floor in carroll6_5pft_2layer_step must keep
+    # every tracer >= 0 regardless of params or spin-up depth.
+    from darwindiff.carroll6 import PARAM_BOUNDS
+
+    pmax = PARAM_BOUNDS[:, 1].clone()
+    t_m = torch.linspace(5.0, 28.0, 12)
+    s_m, w_m = torch.full((12,), 35.0), torch.full((12,), 7.0)
+    for spin in (0, 3):
+        snaps = carroll6_5pft_2layer_integrate_seasonal(
+            _state0(), pmax, DT, t_m, s_m, w_m, steps_per_month=122, n_spinup_cycles=spin
+        )
+        assert torch.isfinite(snaps).all()
+        assert float(snaps.min()) >= 0.0, f"negative tracer at spin={spin}: {float(snaps.min())}"
+
+
 def test_deterministic():
     args = (_state0(), _params(), DT, *_const_forcing())
     a = carroll6_5pft_2layer_integrate_seasonal(*args, steps_per_month=3)
