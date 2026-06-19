@@ -26,18 +26,24 @@ import torch
 from darwindiff.carroll6 import CARROLL_VALUES
 from darwindiff.carroll6_5pft_2layer import (
     I_ALK_1,
+    I_ALK_2,
     I_DFE_1,
+    I_DFE_2,
     I_DIATOM,
     I_DIC_1,
+    I_DIC_2,
     I_LGE,
     I_PIC_1,
+    I_PIC_2,
     I_POC_1,
+    I_POC_2,
     I_PROHL,
     I_PROLL,
     I_SYN,
     N_TRACERS_2LAYER,
     carroll6_5pft_2layer_integrate,
 )
+from darwindiff.diagnostics import safe_pearson_r
 
 DT = 0.25
 N_STEPS = 200
@@ -47,7 +53,11 @@ CACHES = {
     "natlsubpolar": "eqpac_targets_north_atlantic_subpolar.pt",
     "southernoceanpac": "eqpac_targets_southern_ocean_pacific.pt",
 }
-# Darwin field name -> box state index (surface layer).
+# Darwin field name -> box state index (surface layer). NOTE the per-field r below is
+# a pattern diagnostic only and is NOT reported as a result: the Chl rows correlate
+# Darwin chlorophyll (mg Chl a/m^3) against box phyto BIOMASS (mmol C/m^3) with no
+# Chl:C conversion, and the DIC/ALK/FeT rows are confounded by the Darwin-field IC.
+# The load-bearing result is the PIC:POC ratio (see docs/findings/pre_scaleup_verification.md).
 FIELD_TO_IDX = {
     "Chl1": I_DIATOM, "Chl2": I_LGE, "Chl3": I_SYN, "Chl4": I_PROLL, "Chl5": I_PROHL,
     "POC": I_POC_1, "PIC": I_PIC_1, "FeT": I_DFE_1, "DIC": I_DIC_1, "ALK": I_ALK_1,
@@ -55,11 +65,10 @@ FIELD_TO_IDX = {
 
 
 def _zr(box: np.ndarray, dar: np.ndarray, mask: np.ndarray) -> float:
-    """Pearson r of two fields over ocean cells (pattern, after mean-removal)."""
-    b, d = box[mask], dar[mask]
-    if b.std() < 1e-12 or d.std() < 1e-12:
-        return float("nan")
-    return float(np.corrcoef(b, d)[0, 1])
+    """Pattern r over ocean cells via the audited safe_pearson_r, which drops any
+    NaN-inside-mask pairs and flags constant inputs (vs np.corrcoef silently
+    returning NaN when a per-field NaN survives the shared mask)."""
+    return safe_pearson_r(box[mask], dar[mask]).r
 
 
 def _fid_for_aoi(key: str, fname: str) -> dict:
@@ -88,11 +97,11 @@ def _fid_for_aoi(key: str, fname: str) -> dict:
     state0[I_PIC_1] = fill(darwin["PIC"], 0.05)
     state0[I_DIC_1] = fill(darwin["DIC"], 2000.0)
     state0[I_ALK_1] = fill(darwin["ALK"], 2300.0)
-    state0[10] = fill(darwin["FeT"], 1e-4)        # DFe_2
-    state0[11] = fill(darwin["POC"], 1.0)         # POC_2
-    state0[12] = fill(darwin["PIC"], 0.05)        # PIC_2
-    state0[13] = fill(darwin["DIC"], 2000.0)      # DIC_2
-    state0[14] = fill(darwin["ALK"], 2300.0)      # ALK_2
+    state0[I_DFE_2] = fill(darwin["FeT"], 1e-4)
+    state0[I_POC_2] = fill(darwin["POC"], 1.0)
+    state0[I_PIC_2] = fill(darwin["PIC"], 0.05)
+    state0[I_DIC_2] = fill(darwin["DIC"], 2000.0)
+    state0[I_ALK_2] = fill(darwin["ALK"], 2300.0)
 
     final = carroll6_5pft_2layer_integrate(
         state0, CARROLL_VALUES, DT, N_STEPS,
@@ -100,8 +109,10 @@ def _fid_for_aoi(key: str, fname: str) -> dict:
     ).numpy()
 
     rs = {f: _zr(final[idx], darwin[f].astype(np.float32), mask) for f, idx in FIELD_TO_IDX.items()}
-    box_ratio = float(np.nanmean(final[I_PIC_1][mask]) / np.nanmean(final[I_POC_1][mask]))
-    dar_ratio = float(np.nanmean(darwin["PIC"][mask]) / np.nanmean(darwin["POC"][mask]))
+    box_poc = float(np.nanmean(final[I_POC_1][mask]))
+    dar_poc = float(np.nanmean(darwin["POC"][mask]))
+    box_ratio = float(np.nanmean(final[I_PIC_1][mask]) / box_poc) if box_poc > 0 else float("nan")
+    dar_ratio = float(np.nanmean(darwin["PIC"][mask]) / dar_poc) if dar_poc > 0 else float("nan")
     return {"key": key, "rs": rs, "box_picpoc": box_ratio, "darwin_picpoc": dar_ratio}
 
 
@@ -114,7 +125,7 @@ def main() -> int:
     print(hdr)
     for r in rows:
         print(r["key"].ljust(17) + "".join(f"{r['rs'][f]:7.2f}" for f in fields))
-    print("\nSurface PIC:POC ratio (box at Carroll vs Darwin) — what one R_PICPOC must fit:")
+    print("\nSurface PIC:POC ratio-of-means (box at Carroll vs Darwin) — one scalar vs the spread:")
     for r in rows:
         fit = "OK" if 0.5 < r["box_picpoc"] / r["darwin_picpoc"] < 2.0 else "MISMATCH"
         print(f"  {r['key']:<17} box={r['box_picpoc']:.4f}  darwin={r['darwin_picpoc']:.4f}"

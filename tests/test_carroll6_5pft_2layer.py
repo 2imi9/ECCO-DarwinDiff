@@ -76,9 +76,21 @@ def test_2layer_step_is_finite_and_nonneg() -> None:
     s_next = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25)
     assert s_next.shape == (N_TRACERS_2LAYER,)
     assert torch.isfinite(s_next).all()
-    # Allow small negative float noise (carbonate solver introduces tiny
-    # negatives on extremes); just check magnitudes are sane.
-    assert (s_next >= -1e-3).all()
+    # The non-negativity floor (clamp(min=0.0)) in carroll6_5pft_2layer_step makes
+    # this exact: no tracer can be negative after a step (was -1e-3 pre-clamp).
+    assert (s_next >= 0.0).all()
+
+
+def test_clamp_inert_on_carroll_trajectory() -> None:
+    """The non-negativity floor never binds on a Carroll-range trajectory: every
+    tracer stays strictly positive over 200 steps, so the clamp is a no-op in the
+    operating regime and only guards the param-bound extremes (cf.
+    test_param_bound_extremes_stay_nonnegative_under_spinup, where it fires)."""
+    final = carroll6_5pft_2layer_integrate(
+        _state0(), CARROLL_VALUES, dt=0.25, n_steps=200, T=27.0, S=35.0, wind=7.0,
+    )
+    assert torch.isfinite(final).all()
+    assert (final > 0.0).all()
 
 
 def test_2layer_dfe_profile_qualitative() -> None:

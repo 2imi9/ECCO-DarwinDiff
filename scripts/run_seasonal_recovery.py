@@ -17,6 +17,13 @@ NOT constrained here** -- it only enters PIC/DIC/ALK, and ``bin_average`` carrie
 PIC. The R_PICPOC seasonal test needs a monthly PIC target (PIC is in the native
 ``output/monthly/`` tree, not ``bin_average``) -- the immediate follow-on.
 
+**Prototype caveats (vs the Darwin-IC v3.0 trainer):** this driver uses a single
+constant initial state (not per-cell Darwin pickup ICs) and constant carbonate
+forcing (``PCO2_ATM_DEFAULT``, not Darwin ``apCO2``); time-mean mode integrates at
+mean-over-months forcing (a nonlinear-Jensen approximation of the annual mean). So
+DIC/ALK/PIC and absolute recovery numbers here are a lower bound, not directly
+comparable to the trainer.
+
 Run with the project environment (``uv run``, or the repo ``.venv`` python). A bare
 ``python`` on PATH may resolve an editable ``darwindiff`` install from a stale
 worktree and ImportError or run old code, so prefer::
@@ -93,6 +100,7 @@ def _load_aoi(aoi_key: str, device: torch.device):
     sst_mean = time_mean(ds)["SST"].values.astype(np.float32)
     sst_t = torch.tensor(np.nan_to_num(sst_mean, nan=15.0), device=device)
     env = _zscore_masked(sst_t, mask)[None]  # [1, H, W]
+    assert env.ndim == 3 and env.shape[0] == 1, f"env must be [1,H,W], got {tuple(env.shape)}"
 
     # Monthly forcing for the transient cycle (land NaNs -> finite fill, masked out).
     mc = monthly_climatology(ds)

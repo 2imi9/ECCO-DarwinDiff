@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=darwindiff-aicr
-#SBATCH --partition=b200-batch           # NU AICR B200 (192 GB), 24 h walltime, multi-GPU.
+#SBATCH --partition=b200-batch           # NU AICR B200 (192 GB), up to 24 h cap (this
+                                          # template requests 8 h, see --time); multi-GPU.
                                           # Use b200-devel (4 h) for interactive/OOD work.
 #SBATCH --gres=gpu:1                      # ONE B200. See "multi-GPU" note below before raising.
 #SBATCH --nodes=1
@@ -44,7 +45,7 @@
 # Usage:
 #   sbatch scripts/slurm/run_aicr_b200.sbatch                       # default workload below
 #   sbatch scripts/slurm/run_aicr_b200.sbatch python scripts/run_seasonal_recovery.py --aoi natlsubpolar
-#   sbatch --array=0-9 scripts/slurm/run_aicr_b200.sbatch python scripts/run_seasonal_recovery.py --seed '$SLURM_ARRAY_TASK_ID'
+#   sbatch --array=0-9 scripts/slurm/run_aicr_b200.sbatch python scripts/run_seasonal_recovery.py --seed "$SLURM_ARRAY_TASK_ID"
 
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:-$(pwd)}"

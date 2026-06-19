@@ -447,7 +447,8 @@ def carroll6_5pft_2layer_integrate(
 
 # Mean Gregorian month (365.25 / 12 ≈ 30.44 d). At DT=0.25 d that is ~122
 # steps/month, ~1461 steps/yr — the seasonal trajectory length behind the
-# seasonal memory estimate in docs/findings/memory_scaling.md.
+# seasonal memory estimate (measured fit in scripts/measure_memory_scaling.py +
+# docs/findings/memory_scaling.md on the unmerged PR #102 branch).
 DAYS_PER_MONTH: float = 365.25 / 12.0
 
 
@@ -479,8 +480,9 @@ def carroll6_5pft_2layer_integrate_seasonal(
 
     The whole trajectory stays on the autograd graph, so the gradient w.r.t.
     ``params`` flows through every step exactly as in the single-block integrator;
-    peak memory scales with ``(n_spinup_cycles + 1) * 12 * steps_per_month`` (see
-    the measured scaling in ``scripts/measure_memory_scaling.py``).
+    peak memory scales with ``(n_spinup_cycles + 1) * 12 * steps_per_month``
+    (measured ~356 B per cell-step, pre-checkpointing; harness on the unmerged
+    PR #102 branch, ``scripts/measure_memory_scaling.py``).
 
     Args:
         state0: initial 15-tracer state, shape ``[15, ...]``.

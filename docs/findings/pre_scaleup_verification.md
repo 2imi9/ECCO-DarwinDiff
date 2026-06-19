@@ -31,7 +31,7 @@ execution of the cheap items. Hardware: RTX 5090 **Laptop, 23.9 GB** (not 32 GB)
    `DIC_1` → −2.3e4 by 8 cycles — while staying `torch.isfinite`, so the one-step
    finiteness test missed it; a latent NaN-at-native-resolution. Added a `>= 0`
    floor in `carroll6_5pft_2layer_step`. **Provably result-neutral:** an eqpac
-   time-mean recovery (250 ep) is bit-identical pre/post; all 20 2-layer + seasonal
+   time-mean recovery (250 ep) is bit-identical pre/post; all 21 2-layer + seasonal
    tests pass; new `test_param_bound_extremes_stay_nonnegative_under_spinup` fails
    pre-fix.
 
@@ -40,7 +40,8 @@ execution of the cheap items. Hardware: RTX 5090 **Laptop, 23.9 GB** (not 32 GB)
 - **Memory scaling holds at 5×.** Measured **21.24 GB at 64M cell·step** vs **21.25
   GB predicted** by the 356 B/(cell·step) fit — the linear law does not bend at 5×
   beyond the prior max measured point. Shrinks the LLC270 time-mean extrapolation
-  gap 14.8× → 2.96×. NB `torch.compile` cannot run on this Windows laptop (Inductor
+  gap 14.8× → 2.96×. (The harness + fit live on the unmerged PR #102 branch.) NB
+  `torch.compile` cannot run on this Windows laptop (Inductor
   needs MSVC; silently falls back to eager), so the *compiled* memory constant and
   the seasonal speed-up remain Explorer/AICR checks.
 
