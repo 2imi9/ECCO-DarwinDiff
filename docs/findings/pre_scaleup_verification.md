@@ -52,8 +52,16 @@ surface PIC/POC to exactly R_PICPOC) and coccolithophore-only calcite is OFF by
 default, so one R_PICPOC scalar must fit the 23× eqpac↔natl PIC/POC spread.
 
 - **Coccolith-only calcite + light PIC anchor** (`COCCOLITH_ONLY=1`, `PIC_ABS_W=0.02`,
-  3-AOI, n=10): *running.* Success = R_PICPOC recovered **and** the iron pair
-  intact (the documented binary PIC-anchor mutex). _Result: TBD._
+  3-AOI, n=10): **NEGATIVE — the mutex holds.** Mean **0.30/6** (max 1/6). The iron
+  pair is wiped (`alpfe` 0/10, recovered 0.10–0.39 vs Carroll 0.93; `scav_rat`
+  0/10) and R_PICPOC is **not** recovered (1/10 — a single fluke at 0.041; the rest
+  drift *high* to 0.13–0.24 vs Carroll 0.042). Even the lightest PIC anchor the
+  mutex was probed at (0.02) still triggers the binary PIC-anchor mutex *with*
+  coccolith-only calcite — an **8th independent box-scale exclusion of R_PICPOC**
+  (joining loss weight, AOI mix, architecture, IC, Eppley physics, PIC anchor, ALK
+  anchor). This does **not** shrink the B200 ask; it strengthens the
+  native-resolution case. Untested laptop lever remaining: a PIC:POC **ratio** loss
+  (vs the absolute PIC anchor) — the "estimator-side is laptop-fixable" claim.
 - **Box-vs-Darwin forward fidelity** (box at Carroll values vs Darwin v05 1°):
   _planned._ If the box can't reproduce Darwin even at the true params, native-res
   recovery is precise-but-wrong (physics gap, not resolution).
