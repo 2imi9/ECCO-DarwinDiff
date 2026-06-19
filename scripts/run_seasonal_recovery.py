@@ -43,15 +43,10 @@ import torch
 
 from darwindiff.carroll6 import CARROLL_VALUES, PARAM_BOUNDS, PARAM_NAMES, bounded_params
 from darwindiff.carroll6_5pft_2layer import (
-    I_DIATOM,
-    I_LGE,
-    I_PROHL,
-    I_PROLL,
-    I_SYN,
-    N_TRACERS_2LAYER,
     carroll6_5pft_2layer_integrate,
     carroll6_5pft_2layer_integrate_seasonal,
 )
+from darwindiff.diagnostics import band_of
 from darwindiff.ecco_darwin_loader import (
     AOI_BY_KEY,
     monthly_climatology,
@@ -61,31 +56,20 @@ from darwindiff.ecco_darwin_loader import (
     time_mean,
 )
 from darwindiff.networks import DINN
+from darwindiff.seasonal import (
+    constant_state0,
+    seasonal_chl_loss,
+    timemean_chl_loss,
+    zscore_masked,
+)
 
 DT = 0.25
 DATA_ROOT = Path(os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5"))
 BIN_AVG = DATA_ROOT / "bin_average" / "v05_ECCO-Darwin_bin_average_1x1_deg.nc"
 
-# Box phyto-tracer index for each Darwin Chl PFT (Chl1..Chl5).
-PFT_TO_STATE_IDX = [I_DIATOM, I_LGE, I_SYN, I_PROLL, I_PROHL]
-
-# Plausible-magnitude constant initial state (15-tracer layout); the box relaxes
-# from it and the seasonal spin-up cycle damps the transient. Land cells use the
-# same finite values (they are masked out of the loss).
-_STATE0 = (0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 2000.0, 2300.0,
-           0.6, 0.5, 0.05, 2100.0, 2350.0)
-
-
-def _zscore_masked(field: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-    """Z-score ``field`` [H,W] using only masked (ocean) cells. Land left as-is."""
-    vals = field[mask]
-    mean = vals.mean()
-    std = vals.std(unbiased=False).clamp(min=1e-6)
-    return (field - mean) / std
-
 
 def _load_aoi(aoi_key: str, device: torch.device):
-    """Return (env, forcing_monthly, chl_target_z, mask, shape) for one AOI."""
+    """Return (env, forcing_monthly, chl_target_z, mask) for one AOI."""
     if not BIN_AVG.exists():
         raise FileNotFoundError(f"bin_average product not found at {BIN_AVG} "
                                 "(set DARWIN_DATA_ROOT)")
@@ -99,7 +83,7 @@ def _load_aoi(aoi_key: str, device: torch.device):
     # DINN input: annual-mean SST, z-scored over ocean (static -> static params).
     sst_mean = time_mean(ds)["SST"].values.astype(np.float32)
     sst_t = torch.tensor(np.nan_to_num(sst_mean, nan=15.0), device=device)
-    env = _zscore_masked(sst_t, mask)[None]  # [1, H, W]
+    env = zscore_masked(sst_t, mask)[None]  # [1, H, W]
     assert env.ndim == 3 and env.shape[0] == 1, f"env must be [1,H,W], got {tuple(env.shape)}"
 
     # Monthly forcing for the transient cycle (land NaNs -> finite fill, masked out).
@@ -123,33 +107,8 @@ def _load_aoi(aoi_key: str, device: torch.device):
             device=device,
         )  # [12, H, W]
         for m in range(12):
-            chl_z[m, p] = _zscore_masked(chl_m[m], mask)
+            chl_z[m, p] = zscore_masked(chl_m[m], mask)
     return env, forcing, chl_z, mask
-
-
-def _state0(shape: tuple[int, int], device: torch.device) -> torch.Tensor:
-    vals = torch.tensor(_STATE0, device=device).reshape(N_TRACERS_2LAYER, 1, 1)
-    return vals.expand(N_TRACERS_2LAYER, *shape).contiguous()
-
-
-def _seasonal_loss(snaps: torch.Tensor, chl_z: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-    """Mean over 12 months of summed z-scored Chl1-5 MSE. snaps: [12, 15, H, W]."""
-    total = snaps.new_zeros(())
-    for m in range(12):
-        for p, idx in enumerate(PFT_TO_STATE_IDX):
-            pred_z = _zscore_masked(snaps[m, idx], mask)
-            total = total + ((pred_z - chl_z[m, p])[mask] ** 2).mean()
-    return total / 12.0
-
-
-def _timemean_loss(state: torch.Tensor, chl_z: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-    """Single-block baseline: fit the annual-mean Chl pattern. state: [15, H, W]."""
-    target = chl_z.mean(dim=0)  # [5, H, W] -- annual-mean of the monthly z-targets
-    total = state.new_zeros(())
-    for p, idx in enumerate(PFT_TO_STATE_IDX):
-        pred_z = _zscore_masked(state[idx], mask)
-        total = total + ((pred_z - target[p])[mask] ** 2).mean()
-    return total
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -173,7 +132,7 @@ def main(argv: list[str] | None = None) -> int:
 
     dinn = DINN(n_input_channels=1, hidden_dim=16, n_outputs=6).to(device)
     bounds = PARAM_BOUNDS.to(device)
-    state0 = _state0(shape, device)
+    state0 = constant_state0(shape, device)
     opt = torch.optim.Adam(dinn.parameters(), lr=args.lr)
 
     for epoch in range(args.epochs):
@@ -185,14 +144,14 @@ def main(argv: list[str] | None = None) -> int:
                 forcing["wind_monthly"], steps_per_month=args.steps_per_month,
                 n_spinup_cycles=args.spinup_cycles,
             )
-            loss = _seasonal_loss(snaps, chl_z, mask)
+            loss = seasonal_chl_loss(snaps, chl_z, mask)
         else:
             state = carroll6_5pft_2layer_integrate(
                 state0, params, DT, args.n_steps,
                 T=forcing["T_monthly"].mean(0), S=forcing["S_monthly"].mean(0),
                 wind=forcing["wind_monthly"].mean(0),
             )
-            loss = _timemean_loss(state, chl_z, mask)
+            loss = timemean_chl_loss(state, chl_z, mask)
         loss.backward()
         opt.step()
         if (epoch + 1) % 100 == 0 or epoch == 0:
@@ -208,8 +167,8 @@ def main(argv: list[str] | None = None) -> int:
     n_cal = 0
     for i, name in enumerate(PARAM_NAMES):
         rel = abs(float(rec[i]) - float(carroll[i])) / abs(float(carroll[i]))
-        grade = "Excellent" if rel <= 0.10 else "Cal" if rel <= 0.40 else "drift"
-        n_cal += grade != "drift"
+        grade = band_of(rel)  # canonical bands: Excellent<=0.05, Cal-grade<=0.40, ...
+        n_cal += grade in ("Excellent", "Cal-grade")
         note = "  (unconstrained: Chl-only)" if name == "R_PICPOC" else ""
         print(f"{name:<11}{float(rec[i]):>13.4g}{float(carroll[i]):>13.4g}"
               f"{rel:>8.0%}  {grade}{note}")
