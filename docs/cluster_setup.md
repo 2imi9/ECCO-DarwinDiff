@@ -1,17 +1,76 @@
-# Cluster setup — DarwinDiff on MIT ORCD
+# Cluster setup — DarwinDiff on Northeastern RC + MIT ORCD
 
-Operational guide for running DarwinDiff on MIT ORCD clusters. Companion to [README](../README.md) (project overview) and [STATUS](../STATUS.md) (live results).
+Operational guide for running DarwinDiff on Northeastern RC (Explorer / AICR) and MIT ORCD clusters. Companion to [README](../README.md) (project overview) and [STATUS](../STATUS.md) (live results).
 
 ## Target clusters
 
-DarwinDiff has two MIT ORCD targets:
+DarwinDiff has compute paths across **two institutions** — Northeastern RC (Lucas's home institution, Cristina-sponsored) and MIT ORCD (Jon's). Three distinct clusters are in play; do not conflate them:
 
-| Cluster | Status | When to use |
+| Cluster | Institution | Hardware | Status / when to use |
+|---|---|---|---|
+| **Explorer** | Northeastern RC | H200 144 GB (×32 RC-owned), A100 80 GB (×8), V100, L40S | **Active near-term path.** General HPC, free to NU faculty/students, Cristina-sponsored. The first native-resolution prototype runs here. |
+| **AICR** | Northeastern RC | 248× B200 + 152× RTX Pro | Future path. NU's dedicated AI cluster; access via a PI **project proposal** (the `AICR_proposal.docx` in prep). Target for the global-native / seasonal sweep. |
+| **Engaging** | MIT ORCD | A100, L40S, H100 80 GB, H200 140 GB | Jon-side option. Open to MIT users. |
+
+> **Naming note.** "AICR" here is **Northeastern's** AI Compute Resource (B200 + RTX Pro). Earlier project notes framed AICR as an MIT ORCD follow-on to Engaging — that conflated two things. The B200 proposal Cristina and Jon are reviewing is NU's AICR; MIT Engaging is a separate, Jon-side path.
+
+Explorer is the de-facto near-term path (access granted June 2026, Cristina-sponsored). The Engaging section below is retained for the MIT-side option.
+
+## Northeastern Explorer
+
+Explorer is Northeastern RC's general HPC cluster (<https://rc.northeastern.edu>), free to all NU faculty and students. Access for a sponsored user is a ServiceNow "Research Computing Access Request" with a PI sponsor.
+
+### Access
+
+1. Submit the [Research Computing Access Request](https://rc.northeastern.edu/getting-access/) (ServiceNow), listing your PI as **University Sponsor** and their storage space (e.g. `schultz`).
+2. The sponsor approves via the emailed link; the account provisions within ~24 h.
+3. Current NU students already have credentials — no separate "external user" step.
+
+> **MGHPCC shutdown.** All RC services are down for the annual MGHPCC shutdown **June 15–19 2026**; Explorer returns Friday June 19. Submit access during the downtime; first login after it returns.
+
+### Hardware (RC-owned, generally schedulable)
+
+| GPU | VRAM | Count | Notes |
+|---|---|---|---|
+| H200 | 144 GB | 4 nodes × 8 = 32 | Ideal tier; holds a native-resolution fit (LLC270 time-mean ~63 GB, measured in [`memory_scaling.md`](findings/memory_scaling.md)) on one card |
+| A100 | 80 GB | 2 nodes × 4 = 8 | Workable fallback |
+| V100 | 16–32 GB | many | Too small for native-resolution reverse-mode AD |
+
+H100 / L40S exist but are PI-owned (need that PI's permission). Cluster totals: 45k+ CPU cores, 525+ GPUs, 6 PB storage, InfiniBand (200/100 Gbps).
+
+### Partitions & GPU request
+
+- Batch: `--partition=gpu`; interactive: `--partition=gpu-interactive`.
+- Type-pinned request: `--gres=gpu:<type>:<n>`, e.g. `--gres=gpu:h200:1`. **Confirm the exact type token on first login** (`sinfo -o "%P %l %G"`); the docs spell out only `v100-sxm2` / `v100-pcie` verbatim.
+- The `gpu` partition caps at **1 GPU per request** — fine for one native fit (1× H200 = 144 GB ≥ the ~63 GB LLC270 time-mean peak); the later multi-GPU seasonal sweep needs a different partition (ask `rchelp@northeastern.edu`).
+
+### Storage
+
+| Path | Use | Policy |
 |---|---|---|
-| **Engaging** (production) | Open access, Slurm scheduler, mixed CPU + GPU (A100, RTX6000, L40S, H100, H200) | Active path. Required as the AICR prerequisite ("code must run on Engaging before AICR access"). |
-| **AICR** (B200 beta) | Closed beta (~10 users, expanding); B200 GPUs with fast InfiniBand | Future path. Open application process; prior Engaging usage required. |
+| `/projects/<group>` (e.g. `/projects/schultz`) | Performant group storage; put the repo + data here | PI-requested; Schultz group ~35 TB total (<10 TB free, June 2026) |
+| `/scratch/$USER` | Temp / intermediate | **Purged monthly**, not backed up |
+| `/home/$USER` | Configs, small files | Fixed quota, cannot increase — do **not** build envs or caches here |
 
-Engaging is the de-facto cluster path for v3.1 onward. AICR is a follow-on once a DarwinDiff workload has run successfully on Engaging.
+The LLC270 monthly tracer tree (~1.5 TB, the only large input) fits comfortably under the Schultz allocation; per-run JSON outputs are small. If space is tight, `/scratch` + a local master copy also works — the project's disk-temporary workflow already matches this.
+
+### Setup & run
+
+```bash
+# Clone UNDER group storage to avoid the small /home quota:
+cd /projects/schultz && git clone https://github.com/2imi9/ECCO-DarwinDiff.git
+cd ECCO-DarwinDiff
+bash scripts/explorer_quickstart.sh                       # module load anaconda3 + uv sync + pytest
+
+export DARWIN_DATA_ROOT=/projects/schultz/ecco_darwin_v5  # LLC270 tree
+sbatch scripts/slurm/run_explorer_gpu.sbatch              # H200 job (defaults to the multi-AOI trainer)
+```
+
+### Data transfer (~1.5 TB tree → Explorer)
+
+- **Globus** is the practical path for the full tree (NU has a Globus endpoint; confirm the collection name with RC). Destination: `/projects/schultz/ecco_darwin_v5`.
+- `scp` / `rsync` works for subsets; impractical for the full tree.
+- Transfers cannot run during the June 15–19 shutdown — stage the job for Friday.
 
 ## Engaging — access path
 
