@@ -523,3 +523,99 @@ def carroll6_5pft_2layer_integrate(
         if step in snapshot_set:
             snaps.append(state)
     return torch.stack(snaps)
+
+
+# Mean Gregorian month (365.25 / 12 ≈ 30.44 d). At DT=0.25 d that is ~122
+# steps/month, ~1461 steps/yr — the seasonal trajectory length behind the
+# seasonal memory estimate in docs/findings/memory_scaling.md.
+DAYS_PER_MONTH: float = 365.25 / 12.0
+
+
+def carroll6_5pft_2layer_integrate_seasonal(
+    state0: torch.Tensor,
+    params: torch.Tensor,
+    dt: float,
+    T_monthly: torch.Tensor,
+    S_monthly: torch.Tensor,
+    wind_monthly: torch.Tensor,
+    *,
+    steps_per_month: int | None = None,
+    n_spinup_cycles: int = 0,
+    pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
+    h1: float = H1,
+    h2: float = H2,
+    kz_m2_per_day: float = KZ_M2_PER_DAY,
+    r_remin: float = R_REMIN,
+) -> torch.Tensor:
+    """Integrate a transient annual cycle with month-varying forcing.
+
+    Where :func:`carroll6_5pft_2layer_integrate` runs ONE constant-forcing block
+    to quasi-steady-state (the time-mean / climatology fit), this threads 12
+    monthly forcing fields through a single continuous forward-Euler trajectory
+    and records the state at each month-end. Those 12 model snapshots are the
+    seasonal-fit prediction — they carry the bloom *timing* (e.g. coccolithophore
+    PIC phenology distinct from diatom POC) that an annual mean averages away, and
+    are the basis for the seasonal R_PICPOC degeneracy test.
+
+    The whole trajectory stays on the autograd graph, so the gradient w.r.t.
+    ``params`` flows through every step exactly as in the single-block integrator;
+    peak memory scales with ``(n_spinup_cycles + 1) * 12 * steps_per_month`` (see
+    the measured scaling in ``scripts/measure_memory_scaling.py``).
+
+    Args:
+        state0: initial 15-tracer state, shape ``[15, ...]``.
+        params: Carroll-6 parameters, shape ``[6, ...]``.
+        dt: time step in days.
+        T_monthly, S_monthly, wind_monthly: monthly forcing fields, each with a
+            **leading length-12 month axis** (``[12, ...]``, broadcasting over the
+            state's spatial shape). Month ``m`` uses ``T_monthly[m]`` etc.
+        steps_per_month: forward-Euler steps per month. Defaults to
+            ``round(DAYS_PER_MONTH / dt)`` (~122 at dt=0.25).
+        n_spinup_cycles: full 12-month cycles to run BEFORE the recorded year, to
+            damp the initial-condition transient. ``0`` records the first year.
+        pco2_atm, h1, h2, kz_m2_per_day, r_remin: see
+            :func:`carroll6_5pft_2layer_step`.
+
+    Returns:
+        End-of-month states from the final (recorded) cycle, shape ``[12, 15, ...]``.
+        With constant forcing across all months and ``n_spinup_cycles=0``, the last
+        snapshot equals ``carroll6_5pft_2layer_integrate`` run for
+        ``12 * steps_per_month`` steps (the seasonal loop reduces to the plain one).
+
+    Raises:
+        ValueError: if any forcing field's leading axis is not length 12, or
+            ``steps_per_month < 1``.
+    """
+    for name, field in (
+        ("T_monthly", T_monthly),
+        ("S_monthly", S_monthly),
+        ("wind_monthly", wind_monthly),
+    ):
+        if field.shape[0] != 12:
+            raise ValueError(
+                f"{name} must have a leading length-12 month axis, "
+                f"got shape {tuple(field.shape)}"
+            )
+    spm = steps_per_month if steps_per_month is not None else round(DAYS_PER_MONTH / dt)
+    if spm < 1:
+        raise ValueError(f"steps_per_month must be >= 1, got {spm}")
+
+    state = state0
+    recorded: list[torch.Tensor] = []
+    for cycle in range(n_spinup_cycles + 1):
+        is_recorded_cycle = cycle == n_spinup_cycles
+        month_ends: list[torch.Tensor] = []
+        for month in range(12):
+            t_m = T_monthly[month]
+            s_m = S_monthly[month]
+            w_m = wind_monthly[month]
+            for _ in range(spm):
+                state = carroll6_5pft_2layer_step(
+                    state, params, dt, t_m, s_m, w_m, pco2_atm, h1, h2,
+                    kz_m2_per_day, r_remin,
+                )
+            if is_recorded_cycle:
+                month_ends.append(state)
+        if is_recorded_cycle:
+            recorded = month_ends
+    return torch.stack(recorded)
