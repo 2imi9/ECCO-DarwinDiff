@@ -80,7 +80,7 @@ DarwinDiff is a per-cell neural network `env → 6 Carroll-6 params` trained by 
 - **Multi-AOI joint training (v3.0+)**: shared DINN with optional per-AOI identity channel (`AOI_ID_CHANNEL=1`), per-AOI loss weights (`AOI_W_<KEY>`), optional per-AOI DINN architecture (`PER_AOI_DINN=1` + `CONSISTENCY_LAMBDA=λ`).
 - **Loss components**: z-scored MSE per-AOI per-tracer (`GEOTRACES_W`, `POC_SUB_W`, `NB23_PINN_WEIGHT`, `NB23_FET_WEIGHT`), absolute-units anchors (`PIC_ABS_W`, `POC_ABS_W`, `F_CO2_ABS_W`), biogenic silica MSE against GEOTRACES IDP2025 bSi observations (`POSI_W`, via the steady-state diagnostic in `src/darwindiff/silica.py`), extra diatom-chl weight (`CHL1_W_EXTRA`).
 - **Optimization**: Adam at lr=5e-3, 1500 epochs (extendable via `NB23_N_EPOCHS`). Forward-Euler integrator (`DT=0.25`, `N_STEPS=200`).
-- **Recovery scoring**: Cal-grade if `|recovered − Carroll| / Carroll ≤ 0.40`; Excellent if `≤ 0.10`; Loose / Drifted otherwise. Six Carroll-6 params: `alpfe`, `scav_rat`, `Smallgrow`, `Biggrow`, `diatomgraz`, `R_PICPOC`. Carroll's published values bit-identical between v04 (JAMES) and v05 (GBC).
+- **Recovery scoring** (canonical `diagnostics.band_of`): Excellent if `|recovered − Carroll| / Carroll ≤ 0.05`; Cal-grade if `≤ 0.40`; Loose if `≤ 0.80`; Drifted otherwise. Six Carroll-6 params: `alpfe`, `scav_rat`, `Smallgrow`, `Biggrow`, `diatomgraz`, `R_PICPOC`. Carroll's published values bit-identical between v04 (JAMES) and v05 (GBC).
 
 ## 5/6 ceiling — structural diagnosis
 
