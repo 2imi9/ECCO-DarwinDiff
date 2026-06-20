@@ -4,7 +4,49 @@
 measured constant are sound and verified; the headline per-fit GPU number needs the
 reframing in §3 before it goes on the AICR form, and several inputs (§5) are
 unmeasured until Explorer. Derived 2026-06-19 (multi-agent extraction + two adversarial
-verifiers; arithmetic independently re-checked).
+verifiers; arithmetic independently re-checked). **Scope correction added 2026-06-20
+(§0): the §2–§3 tables are global-scale; the near-term AICR experiments are 3 regional
+AOIs, ~30× smaller.**
+
+## 0. Scope — AOI (near-term) vs global (paper #3) — read first
+
+**The §2–§3 tables are GLOBAL-scale.** The actual near-term AICR experiments are **3
+regional AOIs**, not the whole ocean: `cluster_roadmap.md` puts native 3-AOI and
+time-resolved 3-AOI in paper #2, and **global ocean coverage in Direction E / Tier 2 /
+paper #3**. At AOI scale the per-fit memory is ~30× smaller, and the headline conclusion
+flips: **a single native 3-AOI seasonal fit ≈ 20 GiB — one GPU.** The memory-based
+"needs 4–8 GPU" case appears only at global scale.
+
+**Definitions.** `b1`/`b10` = batch = seeds trained together (batched so torch.compile
+amortizes JIT; a 10-seed batch ≈ 7 min vs ~70 min serial). `time-mean` = the 23-year
+(1992–2017) monthly v05 output averaged to **one annual field** (200 integration steps);
+`seasonal` = a **12-month climatology** (~2000 steps, ~12 phase constraints/param);
+`time-resolved` (Direction A) = **~300 monthly snapshots** — same memory per snapshot via
+gradient accumulation, but ~300× the wall-clock (a throughput cost, not a memory one).
+
+**All-compositions matrix** (peak GiB, pre-checkpoint, ocean-cell basis; checkpointing
+÷5–15 shifts each ~1–2 GPU tiers lower; cell counts are estimates, so read the values as
+~2 sig figs). Figure: `figures/compute_budget_matrix.svg`.
+
+| Scope (ocean cells) | time-mean ×1 | ×10 | seasonal ×1 | ×10 |
+|---|---|---|---|---|
+| 1-AOI @ 1° (1.1k) | 0.07 | 0.7 | 0.7 | 7 |
+| 3-AOI @ 1° — *current* (2.9k) | 0.2 | 1.9 | 1.9 | 19 |
+| 1-AOI @ native LLC270 (9.8k) | 0.6 | 6.5 | 6.5 | 65 |
+| **3-AOI @ native — *the ask* (~30k)** | 2 | 20 | **20** | 199 |
+| global @ LLC90 (~60k wet) | 4 | 40 | 40 | 398 |
+| global @ LLC270 — *paper #3* (~550k wet) | 37 | 365 | 365 | 3650 |
+
+GPU tiers: ≤24 laptop · 24–192 one GPU · 192–768 multi-GPU (needs sharding, not built) ·
+>768 waves. Cell counts: AOI-native ≈ ~9–12× the 1° count (measured eqpac 9.1×; `research_log.md` cites 11.7×); global-wet is
+estimated (LLC90 isn't loaded by the repo; LLC270 surface ocean measured = 546,695).
+
+**Reframed conclusion.** Near-term (3-AOI native) is **one-GPU memory-wise**; the cluster
+is justified by **throughput** — time-resolved is ~300× the wall-clock and sweeps are
+serial on the laptop (a 21-arm sweep ≈ 4 h) — **not** single-fit memory. The deck's global
+~100 GB / 4–8-GPU figure is **paper-#3 (global) scope** and should not anchor the AOI-scale
+paper-#2 ask. Memory forces multi-GPU only at global, or at 3-AOI native with batched seeds
+(×10 ≈ 199 GiB).
 
 ## 1. Memory model
 
@@ -25,7 +67,7 @@ peak_activation_GiB  =  356 B × horizontal_cells × steps × batch  /  2^30
 - The deck/email say "~11 tracers" — a harmless verbal undercount (the empirical 356
   fit already reflects all 15); correct it to "15 (10 surface + 5 subsurface)."
 
-## 2. Table (all-cell grid basis — the committed, reproducible figures)
+## 2. Table — GLOBAL scale (all-cell grid basis; the near-term AOI scope is in §0)
 
 Grid horizontal cells: LLC90 = 13×90² = **105,300**; LLC270 = 13×270² = **947,700**
 (standard LLC geometry). Steps: time-mean = 200; **seasonal = 2000** (12 mo × ~122 +
@@ -70,8 +112,9 @@ per fit."* That does **not** hold as written:
   (→ 4 B200), not "~100 GB at 200 steps."** That makes the ask internally consistent and
   defensible. Batching (×seeds) is the other legitimate multi-GPU driver.
 
-Net: the ask size is right; the *justification* should cite the seasonal trajectory
-length (and batching), not a single time-mean fit.
+Net (global scale): the seasonal trajectory length and batching — not a single time-mean
+fit — drive the multi-GPU need. **At the near-term AOI scale (§0) a single seasonal fit is
+~20 GiB, one GPU**; the multi-GPU/memory case is a global (paper-#3) phenomenon.
 
 ## 4. GPU-hours
 
@@ -95,7 +138,10 @@ wall-clock + util.**
 ## 5. Before this goes in the proposal
 
 Fixes:
-1. Restate per-fit memory as the **seasonal** number (~630 GiB → 4 B200), per §3.
+1. **Scope correctly (§0):** near-term ask = 3-AOI native (~20 GiB/fit, one GPU,
+   throughput-justified). Restate per-fit memory at the *right scope* — AOI ~20 GiB → 1 GPU;
+   global ~630 GiB → 4 B200 is paper #3 — and stop anchoring the AOI ask on the deck's
+   global ~100 GB number.
 2. Use **all-cell** grid counts as the committed basis; label wet-cell rows as pending
    `ocean_mask.sum()`; present estimates as ranges, not 3 sig figs.
 3. Label **checkpoint-on** rows estimate-pending (factor ~5–15×, unmeasured; not a flat 10×).
