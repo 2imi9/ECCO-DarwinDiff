@@ -14,7 +14,8 @@ AOIs, ~30× smaller.**
 regional AOIs**, not the whole ocean: `cluster_roadmap.md` puts native 3-AOI and
 time-resolved 3-AOI in paper #2, and **global ocean coverage in Direction E / Tier 2 /
 paper #3**. At AOI scale the per-fit memory is ~30× smaller, and the headline conclusion
-flips: **a single native 3-AOI seasonal fit ≈ 20 GiB — one GPU.** The memory-based
+flips: **a single native 3-AOI seasonal fit ≈ 20 GiB — fits the free Explorer H200 (or the
+5090, tight).** The memory-based
 "needs 4–8 GPU" case appears only at global scale.
 
 **Definitions.** `b1`/`b10` = batch = seeds trained together (batched so torch.compile
@@ -37,8 +38,13 @@ gradient accumulation, but ~300× the wall-clock (a throughput cost, not a memor
 | global @ LLC90 (~60k wet) | 4 | 40 | 40 | 398 |
 | global @ LLC270 — *paper #3* (~550k wet) | 37 | 365 | 365 | 3650 |
 
-GPU tiers: ≤24 laptop · 24–192 one GPU · 192–768 multi-GPU (needs sharding, not built) ·
->768 waves. Cell counts: AOI-native ≈ ~9–12× the 1° count (measured eqpac 9.1×; `research_log.md` cites 11.7×); global-wet is
+Smallest real machine per fit: **≤24 GiB → RTX 5090** (now) · **≤144 → Explorer H200**
+(144 GB, ×32, free) · **≤192 → 1× AICR B200** · **>192 → ≥2 GPU** (sharding, not built) ·
+**>768 → waves**. Per `cluster_setup.md`, Explorer H200 is the active near-term path and
+holds a native fit on one card; AICR B200 is the target for the global-native + seasonal
+**sweep**. No single fit lands in the 144–192 GiB band, so B200's value over the *free*
+H200 is the **number of cards** for the sweep, not single-fit headroom. (The ~19–20 GiB
+cells sit at the 5090's 24 GB edge once CUDA context is added — comfortable on Explorer H200.) Cell counts: AOI-native ≈ ~9–12× the 1° count (measured eqpac 9.1×; `research_log.md` cites 11.7×); global-wet is
 estimated (LLC90 isn't loaded by the repo; LLC270 surface ocean measured = 546,695).
 
 **Reframed conclusion.** Near-term (3-AOI native) is **one-GPU memory-wise**; the cluster
