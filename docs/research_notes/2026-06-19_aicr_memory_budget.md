@@ -22,7 +22,8 @@ over the 5090's 24 GB).** The memory-based
 
 **Definitions.** `b1`/`b10` = batch = seeds trained together (batched so torch.compile
 amortizes JIT; a 10-seed batch ≈ 7 min vs ~70 min serial). `time-mean` = the 23-year
-(1992–2017) monthly v05 output averaged to **one annual field** (200 integration steps);
+(Jan 1995–Dec 2017) monthly v05 output averaged to **one annual field** (200 integration
+steps);
 `seasonal` = a **12-month climatology** (~2000 steps, ~12 phase constraints/param);
 `time-resolved` (Direction A) = **~300 monthly snapshots** — same memory per snapshot via
 gradient accumulation, but ~300× the wall-clock (a throughput cost, not a memory one).
