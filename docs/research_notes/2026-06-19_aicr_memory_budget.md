@@ -2,11 +2,13 @@
 
 **Status: DRAFT — grounded estimates, NOT yet proposal-ready.** The formula and the
 measured constant are sound and verified; the headline per-fit GPU number needs the
-reframing in §3 before it goes on the AICR form, and several inputs (§5) are
+reframing in §3 before it goes on the AICR form, and a few inputs (§5) remain
 unmeasured until Explorer. Derived 2026-06-19 (multi-agent extraction + two adversarial
 verifiers; arithmetic independently re-checked). **Scope correction added 2026-06-20
 (§0): the §2–§3 tables are global-scale; the near-term AICR experiments are 3 regional
-AOIs, ~30× smaller.**
+AOIs, ~30× smaller. Wall-clock per composition now MEASURED (§3.5,
+`scripts/measure_compute_time.py`): time is flat in cells (native ≈ 1°) and linear in
+steps — every fit is launch-bound, so a B200 buys throughput, not single-fit speed.**
 
 ## 0. Scope — AOI (near-term) vs global (paper #3) — read first
 
@@ -52,12 +54,15 @@ The high-latitude AOIs are ~16× their 1° count (denser than eqpac's 9.1×), so
 38,809 is ~50% above the prior 9.1× estimate. Only LLC90 wet stays estimated (the repo never
 loads LLC90). Full provenance in §6.
 
-**Reframed conclusion.** Near-term (3-AOI native) is **one-GPU memory-wise**; the cluster
-is justified by **throughput** — time-resolved is ~300× the wall-clock and sweeps are
-serial on the laptop (a 21-arm sweep ≈ 4 h) — **not** single-fit memory. The deck's global
-~100 GB / 4–8-GPU figure is **paper-#3 (global) scope** and should not anchor the AOI-scale
-paper-#2 ask. Memory forces multi-GPU only at global, or at 3-AOI native with batched seeds
-(×10 ≈ 199 GiB).
+**Reframed conclusion.** Near-term (3-AOI native) is **one-GPU memory-wise** *and*
+**one-GPU speed-wise**: wall-clock is now **measured** flat in cells (§3.5 — native ≈ 1° to
+1.04×, every fit launch-bound), so a single native fit is **~7 min** (time-mean) to **~½–1 h**
+(seasonal) on the **free** Explorer H200, and a B200 does **not** make it faster. The cluster
+is justified purely by **throughput** — time-resolved is ~300× the wall-clock and sweeps are
+serial on the laptop (a 21-arm sweep ≈ 4 h) — **not** single-fit memory or single-fit speed.
+The deck's global ~100 GB / 4–8-GPU figure is **paper-#3 (global) scope** and should not
+anchor the AOI-scale paper-#2 ask. Memory forces multi-GPU only at global, or at 3-AOI native
+with batched seeds (×10 ≈ 257 GiB → 2× B200, same wall-clock, 10× throughput).
 
 ## 1. Memory model
 
@@ -128,6 +133,50 @@ fit — drive the multi-GPU need. **At the near-term AOI scale (§0) a single se
 ~26 GiB — the free Explorer H200**; the multi-GPU/B200 case is the batched native sweep
 (≥2× B200) and global (paper #3).
 
+## 3.5 Wall-clock per composition — MEASURED (time ⊥ cells, time ∝ steps)
+
+The other half of "how long does each cost." Previously **assumed** ("~1 h/run, ~0 % GPU
+util"); now **measured** on the 5090 with `scripts/measure_compute_time.py` — it times one
+full `DINN → integrate → loss → backward` epoch (the same value-independent graph the memory
+harness uses) across cell counts and step counts. Two clean laws fall out:
+
+- **Wall-clock is flat in cells.** 2,853 → 105,300 cells (**37×**) moves a 200-step epoch
+  only **1.82 → 1.90 s = 1.04×**. Per-step holds at **~9.2 ms eager** regardless of grid
+  size; per-cell·step *drops* 35× (3,182 → 90 ns) as the fixed step cost amortizes over more
+  cells. The linear fit `t = 1.83 s + 576 ns/cell·cells @ 200 steps` puts the
+  compute-vs-fixed crossover at **~3.2 M cells** — so everything through LLC90 *and* LLC270
+  (947 k) is **launch / Python-loop bound (~0 % GPU util, now confirmed)**, not compute-bound.
+- **Wall-clock is exactly linear in steps.** 50 → 1,600 steps scales 0.46 → 14.75 s, per-step
+  pinned at ~9.2–9.5 ms (R²≈1). So seasonal (2000 steps) = **10× the integration** of
+  time-mean (200), and time-resolved (~300 monthly snapshots) ≈ **300×** — a pure throughput
+  cost, matching `cluster_setup.md`'s ~25 h time-resolved figure.
+
+**Anchor (compiled, production, 5090):** a 3-AOI 1° time-mean fit = 1500 epochs × 200 steps
+≈ **7 min** (`cluster_setup.md:197`, `torch.compile` batched; a 10-seed batch and a single
+seed both ≈ 7 min — compile/JIT amortization makes batching ~free). Compiled per-step ≈
+1.4 ms, ~6.6× under the 9.2 ms eager I measured. Scaling the anchor by the **measured** laws
+(×1.0 for cells, ×(epochs·steps)/(1500·200) for trajectory):
+
+| Composition | epochs × steps | 5090-class wall-clock | smallest machine · why |
+|---|---|---|---|
+| 3-AOI @ 1° · time-mean ×1 | 1500 × 200 | **~7 min** | 5090 — measured anchor |
+| 3-AOI @ native · time-mean ×1 | 1500 × 200 | **~7 min** | 5090 — native ≈ 1° (×1.04 measured) |
+| **3-AOI @ native · seasonal ×1 — the ask** | 600–1500 × 2000 | **~0.5–1.2 h** | **free Explorer H200** (26 GiB); *not faster on a B200* |
+| 3-AOI @ native · seasonal ×10 (batch) | 600–1500 × 2000, b10 | **~0.5–1.2 h** | 2× B200 *for memory* (257 GiB); 10× throughput, same wall-clock |
+| 1-AOI · time-resolved (~300 mo) ×1 | ~300 snapshots | **~25 h** | the genuine throughput wall (Track 2) |
+| global LLC270 · seasonal ×1 | 600–1500 × 2000 | **~0.5–1.5 h / fit** | 2× B200 *for memory* (363 GiB); a sweep = many such fits |
+
+**The conclusion — a B200 buys throughput, not single-fit speed.** Because every fit is
+launch-bound, one fit takes ~the same wall-clock on the 5090, the free H200, *and* a B200 —
+minutes for time-mean, ~½–1 h for seasonal, at any resolution. The cluster's wall-clock value
+is (1) **memory** to hold batched/global graphs (§2) and (2) **concurrency** to run a sweep's
+hundreds of fits — and the 300×-longer time-resolved trajectories — in parallel rather than
+serially. This is the time-domain twin of the memory finding: the near-term science is fast
+and cheap per fit; the cluster scales the *program* (sweep × seeds × time-resolved), not the
+*fit*. (Caveat: per-step is measured **eager**; on the cluster `torch.compile` runs and the
+production anchor is already compiled — the one thing left to confirm on Explorer is whether
+compile reintroduces any cell-sensitivity at native ×10, where effective width is ~400 k.)
+
 ## 4. GPU-hours
 
 ```
@@ -138,14 +187,20 @@ where `#fits = #configs × #seeds` if seeds run as separate jobs, or `#configs` 
 are batched into one fit. Concurrency only shortens how long the program takes on the
 calendar — it does not change the GPU-hours consumed.
 
-**Wall-clock per native fit is UNMEASURED** — the "~1 h/run" is assumed
-(`pre_scaleup_verification.md:90–94`), and native GPU util ("~0 %", Python-loop-bound)
-is assumed too (and risks the AICR idle-GPU reaper). Measured wall-clock exists only at
-1° box (10-seed batch ~7 min). Documented planning ranges (`cluster_roadmap.md`, all
-estimates): native LLC270 100–500 GPU-hr/fit; Paper-#2 program total **1,000–5,000
-GPU-hr**. The headline **~8,000 GPU-hr** ask is an explicit order-of-magnitude, not yet
-decomposed into fits × wall-clock. **Do not firm this up until Explorer measures
-wall-clock + util.**
+**Per-fit wall-clock is now MEASURED at the per-step level** (§3.5,
+`scripts/measure_compute_time.py`): ~9.2 ms/step eager, flat in cells to 1.04× across 37×,
+linear in steps — so native ≈ 1° and a native time-mean fit ≈ **7 min**, native seasonal ≈
+**½–1.2 h**, time-resolved (~300 mo) ≈ **25 h**, all launch-bound (~0 % GPU util **confirmed**
+— this *does* flag AICR idle-GPU-reaper risk, now a measured fact not a guess). What remains
+unmeasured is only the **end-to-end native fit on the cluster under `torch.compile`** (eager
+per-step measured here; compiled production anchor is the 1° 7-min number). With per-fit time
+pinned, **GPU-hours = #configs × #seeds × per-fit-time** is now decomposable instead of an
+order-of-magnitude guess: e.g. 100 configs × 10 seeds batched = 100 native-seasonal jobs ×
+~½–1.2 h ≈ **50–120 GPU-hr** of B200 (batched), vs the headline ~8,000 that conflated global
+scope + serial seeds. Documented planning ranges (`cluster_roadmap.md`): native LLC270
+100–500 GPU-hr/fit (now look high — that assumed compute-bound scaling the measurement
+refutes); Paper-#2 program total **1,000–5,000 GPU-hr**. **Recompute the ask from the
+measured per-fit time + the actual sweep design before it goes on the form.**
 
 ## 5. Before this goes in the proposal
 
@@ -162,7 +217,10 @@ Fixes:
    vs 847/85 vs 1056.
 
 Inputs to measure on Explorer (Fri) / at runtime:
-- **wall-clock per native fit + GPU util** → sets GPU-hours and reaper risk.
+- ✓ **wall-clock + GPU util** now MEASURED (§3.5): per-step ~9.2 ms eager, flat in cells,
+  linear in steps, ~0 % util confirmed. Only the **end-to-end native fit under
+  `torch.compile`** (Linux) is left to time — and to check compile doesn't reintroduce
+  cell-sensitivity at native ×10.
 - **compiled** memory constant (only eager 356 measured; torch.compile can't run on the
   Windows laptop) → likely lower, so 356 is a conservative upper bound.
 - **LLC90 wet count** — the only cell count still estimated (the repo never loads LLC90).
@@ -186,19 +244,23 @@ Inputs to measure on Explorer (Fri) / at runtime:
 | LLC90 grid / wet | 105,300 / ≈61k | geometry / 57.7% fraction | DERIVED / ESTIMATE (LLC90 not loaded) |
 | LLC270 grid / ocean cols | 947,700 / **546,695** | `nb13:165`; `measure_compute_budget.py` | MEASURED (ocean columns = the box's cells) |
 | checkpoint factor | 5× measured; ~10× planned; 14–38× (√N) | `research_log.md:140`; `compute_ladder.md:100` | 1 MEASURED point; rest PLANNED / THEORY |
-| wall-clock/fit (1°) | 7–8 min (10-seed ≈ 7 min) | `cluster_setup.md:138`; `dinn_design.md:113` | MEASURED (1° box) |
-| wall-clock/fit (native) | "~1 h" | `pre_scaleup_verification.md:90` | ASSUMED, UNMEASURED |
-| GPU util (native) | "~0 %" (Python-loop-bound) | `pre_scaleup_verification.md:90–94` | ASSUMED, UNMEASURED |
+| wall-clock/fit (1°) | 7–8 min (10-seed ≈ 7 min, compiled) | `cluster_setup.md:197` | MEASURED (1° box, production) |
+| per-step time | ~9.2 ms eager (~1.4 ms compiled) | `measure_compute_time.py` | MEASURED (5090, eager) |
+| time vs cells | flat: 1.04× over 2,853→105,300 (37×) | `measure_compute_time.py` | MEASURED (launch-bound; native ≈ 1°) |
+| time vs steps | linear, per-step const (R²≈1) | `measure_compute_time.py` | MEASURED (seasonal=10×, time-resolved≈300×) |
+| wall-clock/fit (native) | ~7 min time-mean / ~½–1.2 h seasonal | derived from measured per-step × epochs×steps | DERIVED from MEASURED (eager; compile speeds it) |
+| GPU util (native) | ~0 % (Python-loop-bound) | `measure_compute_time.py` (1.04× over 37× cells) | MEASURED — confirms reaper risk |
 | compiled constant | ≤356 (eager only measured) | `pre_scaleup_verification.md:44` | UNMEASURED (compile can't run on Windows) |
 | RTX 5090 | 24 GB (laptop; STATUS says 32 — drift) | `budget.py:35` | MEASURED (drift flagged) |
 | Explorer H200 | 144 GB ×32, free | `cluster_setup.md:11,35` | MEASURED (spec) |
 | AICR B200 | 192 GB ×248 | `cluster_setup.md:12`; `budget.py:37` | MEASURED (spec) |
 | GPU-hours total | ~8,000 (o.o.m.); 1,000–5,000 planned | `AICR_email_to_Jon.md:24`; `cluster_roadmap.md:194` | ESTIMATE (needs wall-clock) |
 
-**Still unmeasured — the only things blocking a firm budget:** native wall-clock + GPU util,
-the compiled memory constant, the checkpoint factor, and the LLC90 wet count (the repo never
-loads LLC90). The cell counts are now measured (`scripts/measure_compute_budget.py`); the
-rest are single Explorer-H200 measurements.
+**Still unmeasured — the only things blocking a firm budget:** the compiled memory constant,
+the checkpoint factor, the LLC90 wet count (the repo never loads LLC90), and the end-to-end
+native fit *under compile* on the cluster. Cell counts (`measure_compute_budget.py`) and the
+per-step wall-clock / cell-flatness / step-linearity (`measure_compute_time.py`) are now
+**measured**; the rest are single Explorer-H200 measurements.
 
 See [[aicr-compute-ask]] (memory). LLC90-vs-LLC270 is Jon's "start at LLC90, go to LLC270
 if it fits" (2026-06-16).
