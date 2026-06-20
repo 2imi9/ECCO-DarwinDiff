@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 420" font-family="sans-serif">
   <rect x="0" y="0" width="780" height="420" rx="10" fill="#ffffff" stroke="#E3E2DC" stroke-width="1"/>
   <text x="20" y="28" font-size="15" fill="#2C2C2A">Peak GPU memory per composition — which machine runs one fit</text>
-  <text x="20" y="46" font-size="11" fill="#6B6A65">GiB · pre-checkpoint · ocean-cell estimate · color = smallest real machine for one fit · outlined = the near-term ask</text>
+  <text x="20" y="46" font-size="11" fill="#6B6A65">GiB · pre-checkpoint · cell counts measured (LLC90 wet est.) · color = smallest real machine for one fit · outlined = the near-term ask</text>
 
   <text x="304" y="64" font-size="11" fill="#6B6A65" text-anchor="middle">time-mean</text>
   <text x="304" y="78" font-size="11" fill="#6B6A65" text-anchor="middle">×1   ×10</text>
@@ -30,29 +30,28 @@
   <rect x="636" y="188" width="128" height="40" rx="6" fill="#9FE1CB"/><text x="700" y="213" font-size="13" fill="#04342C" text-anchor="middle">65</text>
 
   <text x="20" y="254" font-size="13" fill="#2C2C2A">3-AOI @ native</text>
-  <text x="20" y="269" font-size="10.5" fill="#8B8A84">~26k est · LLC270 · the ask</text>
-  <rect x="240" y="236" width="128" height="40" rx="6" fill="#C0DD97"/><text x="304" y="261" font-size="13" fill="#173404" text-anchor="middle">1.7</text>
-  <rect x="372" y="236" width="128" height="40" rx="6" fill="#C0DD97"/><text x="436" y="261" font-size="13" fill="#173404" text-anchor="middle">17</text>
-  <rect x="504" y="236" width="128" height="40" rx="6" fill="#C0DD97" stroke="#185FA5" stroke-width="2"/><text x="568" y="261" font-size="13" fill="#173404" text-anchor="middle">17</text>
-  <rect x="636" y="236" width="128" height="40" rx="6" fill="#B5D4F4"/><text x="700" y="261" font-size="13" fill="#042C53" text-anchor="middle">170</text>
+  <text x="20" y="269" font-size="10.5" fill="#8B8A84">38,809 measured · the ask</text>
+  <rect x="240" y="236" width="128" height="40" rx="6" fill="#C0DD97"/><text x="304" y="261" font-size="13" fill="#173404" text-anchor="middle">2.6</text>
+  <rect x="372" y="236" width="128" height="40" rx="6" fill="#9FE1CB"/><text x="436" y="261" font-size="13" fill="#04342C" text-anchor="middle">26</text>
+  <rect x="504" y="236" width="128" height="40" rx="6" fill="#9FE1CB" stroke="#185FA5" stroke-width="2"/><text x="568" y="261" font-size="13" fill="#04342C" text-anchor="middle">26</text>
+  <rect x="636" y="236" width="128" height="40" rx="6" fill="#FAC775"/><text x="700" y="261" font-size="13" fill="#412402" text-anchor="middle">257</text>
 
   <text x="20" y="302" font-size="13" fill="#2C2C2A">global @ LLC90</text>
   <text x="20" y="317" font-size="10.5" fill="#8B8A84">~61k est · ~1° · stretch</text>
   <rect x="240" y="284" width="128" height="40" rx="6" fill="#C0DD97"/><text x="304" y="309" font-size="13" fill="#173404" text-anchor="middle">4.0</text>
   <rect x="372" y="284" width="128" height="40" rx="6" fill="#9FE1CB"/><text x="436" y="309" font-size="13" fill="#04342C" text-anchor="middle">40</text>
   <rect x="504" y="284" width="128" height="40" rx="6" fill="#9FE1CB"/><text x="568" y="309" font-size="13" fill="#04342C" text-anchor="middle">40</text>
-  <rect x="636" y="284" width="128" height="40" rx="6" fill="#FAC775"/><text x="700" y="309" font-size="13" fill="#412402" text-anchor="middle">400</text>
+  <rect x="636" y="284" width="128" height="40" rx="6" fill="#FAC775"/><text x="700" y="309" font-size="13" fill="#412402" text-anchor="middle">403</text>
 
   <text x="20" y="350" font-size="13" fill="#2C2C2A">global @ LLC270</text>
-  <text x="20" y="365" font-size="10.5" fill="#8B8A84">547k surf · ~⅓° · paper #3</text>
+  <text x="20" y="365" font-size="10.5" fill="#8B8A84">546,695 meas · ~⅓° · paper #3</text>
   <rect x="240" y="332" width="128" height="40" rx="6" fill="#9FE1CB"/><text x="304" y="357" font-size="13" fill="#04342C" text-anchor="middle">36</text>
-  <rect x="372" y="332" width="128" height="40" rx="6" fill="#FAC775"/><text x="436" y="357" font-size="13" fill="#412402" text-anchor="middle">360</text>
-  <rect x="504" y="332" width="128" height="40" rx="6" fill="#FAC775"/><text x="568" y="357" font-size="13" fill="#412402" text-anchor="middle">360</text>
-  <rect x="636" y="332" width="128" height="40" rx="6" fill="#F7C1C1"/><text x="700" y="357" font-size="13" fill="#501313" text-anchor="middle">3600</text>
+  <rect x="372" y="332" width="128" height="40" rx="6" fill="#FAC775"/><text x="436" y="357" font-size="13" fill="#412402" text-anchor="middle">363</text>
+  <rect x="504" y="332" width="128" height="40" rx="6" fill="#FAC775"/><text x="568" y="357" font-size="13" fill="#412402" text-anchor="middle">363</text>
+  <rect x="636" y="332" width="128" height="40" rx="6" fill="#F7C1C1"/><text x="700" y="357" font-size="13" fill="#501313" text-anchor="middle">3625</text>
 
   <rect x="20" y="392" width="11" height="11" rx="2" fill="#C0DD97"/><text x="36" y="401" font-size="11" fill="#6B6A65">RTX 5090 · 24 GB · now</text>
   <rect x="180" y="392" width="11" height="11" rx="2" fill="#9FE1CB"/><text x="196" y="401" font-size="11" fill="#6B6A65">Explorer H200 · 144 GB · free</text>
-  <rect x="372" y="392" width="11" height="11" rx="2" fill="#B5D4F4"/><text x="388" y="401" font-size="11" fill="#6B6A65">AICR B200 · 192 GB · ask</text>
-  <rect x="540" y="392" width="11" height="11" rx="2" fill="#FAC775"/><text x="556" y="401" font-size="11" fill="#6B6A65">≥2 GPU · shard</text>
-  <rect x="648" y="392" width="11" height="11" rx="2" fill="#F7C1C1"/><text x="664" y="401" font-size="11" fill="#6B6A65">many · waves</text>
+  <rect x="372" y="392" width="11" height="11" rx="2" fill="#FAC775"/><text x="388" y="401" font-size="11" fill="#6B6A65">≥2× AICR B200 · shard</text>
+  <rect x="560" y="392" width="11" height="11" rx="2" fill="#F7C1C1"/><text x="576" y="401" font-size="11" fill="#6B6A65">many B200 · waves</text>
 </svg>
