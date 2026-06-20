@@ -41,8 +41,8 @@ not vibes.
    (recover from git if untracked — it was dropped from tracking in `f2add47`;
    `git show <rev>:docs/paper/main.tex`). Also read `references.bib` (for
    related-work / missing-citation attacks) and any canonical data artifact the
-   draft cites (e.g. `docs/paper/figures/aggregated_v3.1.json`) so numeric
-   claims are checkable.
+   draft cites (the committed canonical aggregate is
+   `docs/findings/aggregated_v3.1.json`) so numeric claims are checkable.
 2. **Every objection cites a location** — section, `\label`, table, or line.
    An objection with no citation is dropped in the verify pass.
 3. **Recompute, never invent.** If an objection is numeric (a ratio, a rate, a
@@ -138,7 +138,7 @@ For each surviving objection, produce:
 
 ```
 id            short slug
-reviewer      R1..R5
+reviewer      R1..R8
 claim         one or two sentences, the attack as a referee would phrase it
 grounding     section / label / table / line it attacks (REQUIRED)
 recompute     arithmetic, if numeric (else "n/a")
@@ -180,7 +180,7 @@ paper's central claim survives the panel.
 
 ## Scaling up (optional, for a thorough pass)
 
-For a high-stakes review, run as a `Workflow`: one agent per reviewer (R1–R5) in
+For a high-stakes review, run as a `Workflow`: one agent per reviewer (R1–R8) in
 parallel, each returning objections under the schema; then a verify stage
 (`pipeline`) that grounds/merges; then a synthesis agent that ranks. This buys
 independence between lenses (no single context blending them) and a genuine
