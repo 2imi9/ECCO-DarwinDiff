@@ -49,6 +49,12 @@ required spin-up). All peaks pre-checkpointing.
   Only the surface ocean count is measured (validNO3 = **546,695** ≈ 58 % of LLC270 grid,
   `nb13`); a true 2-layer ocean-column count needs `ocean_mask.sum()` at runtime. Wet
   scaling (~0.58–0.85×) lowers the LLC270 seasonal b1 fit to ~365–535 GiB → still 2–3 B200.
+- **Multi-GPU rows mark work-to-build, not current capacity.** A ">192 GiB → N× B200"
+  entry is *not* a runnable placement today: `scripts/slurm/run_aicr_b200.sbatch` notes
+  multi-GPU is not automatic (needs torchrun/DDP/NCCL cell-sharding). Until that exists,
+  an oversized fit OOMs on a 1-GPU job and reserving N B200 just idles the extras — so the
+  realistic single-GPU path for a large fit is **checkpointing onto one GPU**, and the N×
+  B200 rows are a sharding target, not a capability that works now.
 
 ## 3. The key finding — the per-fit GPU justification needs reframing
 
@@ -70,8 +76,12 @@ length (and batching), not a single time-mean fit.
 ## 4. GPU-hours
 
 ```
-total_GPU_hours  =  (#configs × #seeds × wall_clock_per_fit)  /  concurrency
+total_GPU_hours  =  #fits × GPUs_per_fit × wall_clock_per_fit
+                    (concurrency sets calendar/wall-clock time, NOT total GPU-hours)
 ```
+where `#fits = #configs × #seeds` if seeds run as separate jobs, or `#configs` if seeds
+are batched into one fit. Concurrency only shortens how long the program takes on the
+calendar — it does not change the GPU-hours consumed.
 
 **Wall-clock per native fit is UNMEASURED** — the "~1 h/run" is assumed
 (`pre_scaleup_verification.md:90–94`), and native GPU util ("~0 %", Python-loop-bound)
