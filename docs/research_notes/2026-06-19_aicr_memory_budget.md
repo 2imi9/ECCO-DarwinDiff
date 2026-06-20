@@ -14,7 +14,7 @@ AOIs, ~30× smaller.**
 regional AOIs**, not the whole ocean: `cluster_roadmap.md` puts native 3-AOI and
 time-resolved 3-AOI in paper #2, and **global ocean coverage in Direction E / Tier 2 /
 paper #3**. At AOI scale the per-fit memory is ~30× smaller, and the headline conclusion
-flips: **a single native 3-AOI seasonal fit ≈ 20 GiB — fits the free Explorer H200 (or the
+flips: **a single native 3-AOI seasonal fit ≈ 17 GiB — fits the free Explorer H200 (or the
 5090, tight).** The memory-based
 "needs 4–8 GPU" case appears only at global scale.
 
@@ -34,18 +34,22 @@ gradient accumulation, but ~300× the wall-clock (a throughput cost, not a memor
 | 1-AOI @ 1° (1.1k) | 0.07 | 0.7 | 0.7 | 7 |
 | 3-AOI @ 1° — *current* (2.9k) | 0.2 | 1.9 | 1.9 | 19 |
 | 1-AOI @ native LLC270 (9.8k) | 0.6 | 6.5 | 6.5 | 65 |
-| **3-AOI @ native — *the ask* (~30k)** | 2 | 20 | **20** | 199 |
-| global @ LLC90 (~60k wet) | 4 | 40 | 40 | 398 |
-| global @ LLC270 — *paper #3* (~550k wet) | 37 | 365 | 365 | 3650 |
+| **3-AOI @ native — *the ask* (~26k est)** | 1.7 | 17 | **17** | 170 |
+| global @ LLC90 (61k est) | 4.0 | 40 | 40 | 400 |
+| global @ LLC270 — *paper #3* (547k surf-meas) | 36 | 360 | 360 | 3600 |
 
 Smallest real machine per fit: **≤24 GiB → RTX 5090** (now) · **≤144 → Explorer H200**
 (144 GB, ×32, free) · **≤192 → 1× AICR B200** · **>192 → ≥2 GPU** (sharding, not built) ·
 **>768 → waves**. Per `cluster_setup.md`, Explorer H200 is the active near-term path and
 holds a native fit on one card; AICR B200 is the target for the global-native + seasonal
-**sweep**. No single fit lands in the 144–192 GiB band, so B200's value over the *free*
-H200 is the **number of cards** for the sweep, not single-fit headroom. (The ~19–20 GiB
-cells sit at the 5090's 24 GB edge once CUDA context is added — comfortable on Explorer H200.) Cell counts: AOI-native ≈ ~9–12× the 1° count (measured eqpac 9.1×; `research_log.md` cites 11.7×); global-wet is
-estimated (LLC90 isn't loaded by the repo; LLC270 surface ocean measured = 546,695).
+**sweep**. The one cell in the 144–192 GiB band is the **batched native seasonal fit**
+(3-AOI native · seasonal · ×10 ≈ 170 GiB): it exceeds the free H200's 144 GB, so it is
+**B200's concrete single-card role** — and it sits right at the line (~170 GiB at the
+measured-eqpac 9.1× basis; ~220 → 2 B200 if the high-latitude AOIs are denser). Every
+single-seed fit runs on the 5090 or the free H200. Cell-count bases: AOI-native = eqpac
+**measured** (9,750 = 9.1× its 1,071); 3-AOI native ≈ 26k (9.1× applied to all three — a
+lower bound); global = LLC270 surface ocean **measured 546,695** (LLC90 wet est. 61k via the
+same 57.7% fraction; the repo never loads LLC90). Full provenance in §6.
 
 **Reframed conclusion.** Near-term (3-AOI native) is **one-GPU memory-wise**; the cluster
 is justified by **throughput** — time-resolved is ~300× the wall-clock and sweeps are
@@ -120,7 +124,7 @@ per fit."* That does **not** hold as written:
 
 Net (global scale): the seasonal trajectory length and batching — not a single time-mean
 fit — drive the multi-GPU need. **At the near-term AOI scale (§0) a single seasonal fit is
-~20 GiB, one GPU**; the multi-GPU/memory case is a global (paper-#3) phenomenon.
+~17 GiB, one GPU**; the multi-GPU/memory case is a global (paper-#3) phenomenon.
 
 ## 4. GPU-hours
 
@@ -144,8 +148,8 @@ wall-clock + util.**
 ## 5. Before this goes in the proposal
 
 Fixes:
-1. **Scope correctly (§0):** near-term ask = 3-AOI native (~20 GiB/fit, one GPU,
-   throughput-justified). Restate per-fit memory at the *right scope* — AOI ~20 GiB → 1 GPU;
+1. **Scope correctly (§0):** near-term ask = 3-AOI native (~17 GiB/fit, one GPU,
+   throughput-justified). Restate per-fit memory at the *right scope* — AOI ~17 GiB → 1 GPU;
    global ~630 GiB → 4 B200 is paper #3 — and stop anchoring the AOI ask on the deck's
    global ~100 GB number.
 2. Use **all-cell** grid counts as the committed basis; label wet-cell rows as pending
@@ -161,6 +165,37 @@ Inputs to measure on Explorer (Fri) / at runtime:
   Windows laptop) → likely lower, so 356 is a conservative upper bound.
 - **global wet-cell counts** via `ocean_mask.sum()` (only surface validNO3 measured).
 - **checkpoint reduction factor** + its ~2× wall-clock trade.
+
+## 6. Every input — value · source · status
+
+| Input | Value | Source | Status |
+|---|---|---|---|
+| Memory constant | 356 B/(cell·step) | `carroll6_5pft_2layer.py:484`; `pre_scaleup_verification.md:41` | MEASURED (eager, 5090; harness on PR #102) |
+| Linear-scaling anchor | 21.24 GiB @ 64 M cell·step | `pre_scaleup_verification.md:40–41` | MEASURED |
+| State / dtype | 15 tracers, 2 layers, float32 | `carroll6_5pft_2layer.py:117,96–115` | MEASURED (code) |
+| time-mean steps | 200 | `dinn_design.md:96,111` | config constant |
+| seasonal steps | 1,464 bare (12×122); 2,000 used (w/ spin-up) | `carroll6_5pft_2layer.py:483`; `pre_scaleup_verification.md:16` | DERIVED; spin-up cycle count UNMEASURED |
+| batch | 1 / 10 seeds (batched ≡ sequential) | `pre_scaleup_verification.md:15` | MEASURED |
+| eqpac cells | 1,071 (1°) → 9,750 (native) = 9.1× | `nb14:172,236` | MEASURED |
+| natlsubpolar cells | 486 (1°) | `obs_pic_poc_per_aoi.csv:3` | MEASURED (1°); native UNMEASURED |
+| southernoceanpac cells | 1,296 grid (1°) | `ecco_darwin_loader.py:117` | DERIVED (grid bins); ocean count UNMEASURED |
+| 3-AOI @ 1° | 2,853 | sum of the three | MEASURED + DERIVED |
+| 3-AOI @ native | ≈26k (9.1×) … 33k (11.7×) | `research_log.md:249` | ESTIMATE; pin via `ocean_mask.sum()` |
+| LLC90 grid / wet | 105,300 / ≈61k | geometry / 57.7% fraction | DERIVED / ESTIMATE (LLC90 not loaded) |
+| LLC270 grid / surf-ocean | 947,700 / **546,695** | `llc270_loader.py:117` / `nb13:165` | DERIVED / MEASURED (surface); column-wet UNMEASURED |
+| checkpoint factor | 5× measured; ~10× planned; 14–38× (√N) | `research_log.md:140`; `compute_ladder.md:100` | 1 MEASURED point; rest PLANNED / THEORY |
+| wall-clock/fit (1°) | 7–8 min (10-seed ≈ 7 min) | `cluster_setup.md:138`; `dinn_design.md:113` | MEASURED (1° box) |
+| wall-clock/fit (native) | "~1 h" | `pre_scaleup_verification.md:90` | ASSUMED, UNMEASURED |
+| GPU util (native) | "~0 %" (Python-loop-bound) | `pre_scaleup_verification.md:90–94` | ASSUMED, UNMEASURED |
+| compiled constant | ≤356 (eager only measured) | `pre_scaleup_verification.md:44` | UNMEASURED (compile can't run on Windows) |
+| RTX 5090 | 24 GB (laptop; STATUS says 32 — drift) | `budget.py:35` | MEASURED (drift flagged) |
+| Explorer H200 | 144 GB ×32, free | `cluster_setup.md:11,35` | MEASURED (spec) |
+| AICR B200 | 192 GB ×248 | `cluster_setup.md:12`; `budget.py:37` | MEASURED (spec) |
+| GPU-hours total | ~8,000 (o.o.m.); 1,000–5,000 planned | `AICR_email_to_Jon.md:24`; `cluster_roadmap.md:194` | ESTIMATE (needs wall-clock) |
+
+**Still unmeasured — the only things blocking a firm budget:** native wall-clock + GPU util,
+the compiled memory constant, the true ocean-column counts (natl/SO native, LLC90 wet,
+LLC270 column-wet), and the checkpoint factor. Each is a single Explorer-H200 measurement.
 
 See [[aicr-compute-ask]] (memory). LLC90-vs-LLC270 is Jon's "start at LLC90, go to LLC270
 if it fits" (2026-06-16).
