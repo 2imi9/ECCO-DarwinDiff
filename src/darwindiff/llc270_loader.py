@@ -74,7 +74,21 @@ TRAC_MAPPING: dict[str, str] = {
     "PO4": "TRAC05",
     "SiO2": "TRAC07",
     "primProd": "PP",
+    # 2-D surface physics / flux diagnostics (NATIVE_RES covariates). These are
+    # NOT Darwin TRAC tracers — the value is the .meta fldList name. They are
+    # single-level (nDims=[2]); see _2D_VARS for the dim handling in
+    # open_llc270_tracer. fldList names verified against the on-disk .meta files.
+    "SST": "THETA",
+    "mldDepth": "MXLDEPTH",
+    "wspeed": "EXFwspee",
+    "apCO2": "EXFapco2",
+    "CO2_flux": "fluxCO2",
 }
+
+# Friendly names whose on-disk field is 2-D (single level, nDims=[2]). For these
+# open_llc270_tracer registers xmitgcm extra_variables with dims ["j","i"]
+# instead of ["k","j","i"]; surface_layer() then no-ops (no "k" dim to pick).
+_2D_VARS: set[str] = {"SST", "mldDepth", "wspeed", "apCO2", "CO2_flux"}
 
 # Friendly attribute metadata per tracer for xmitgcm's extra_variables. Units
 # follow Darwin's mmol/m^3 convention for nutrients (alkalinity in
@@ -103,6 +117,12 @@ _TRACER_ATTRS: dict[str, dict[str, str]] = {
     "TRAC12": {"long_name": "Particulate organic carbon", "units": "mmol C / m^3"},
     "TRAC16": {"long_name": "Particulate biogenic silica", "units": "mmol Si / m^3"},
     "PP": {"long_name": "Primary production", "units": "mmol C / m^3 / s"},
+    # 2-D surface physics / flux diagnostics (NATIVE_RES covariates).
+    "THETA": {"long_name": "Sea surface temperature (potential)", "units": "degC"},
+    "MXLDEPTH": {"long_name": "Mixed-layer depth", "units": "m"},
+    "EXFwspee": {"long_name": "10 m wind speed", "units": "m / s"},
+    "EXFapco2": {"long_name": "Atmospheric pCO2", "units": "uatm"},
+    "fluxCO2": {"long_name": "Air-sea CO2 flux", "units": "mol C / m^2 / s"},
 }
 
 
@@ -247,9 +267,12 @@ def open_llc270_tracer(
     # for variable FeT" if it isn't registered too. Registering both is harmless
     # for single-iter and required for multi-iter.
     attrs = _TRACER_ATTRS.get(trac_name, {"long_name": variable})
+    # 2-D diagnostics (SST/MLD/wind/apCO2/CO2_flux) are single-level: register
+    # with ["j","i"] so xmitgcm matches the .meta nDims=[2]; 3-D tracers use k.
+    var_dims = ["j", "i"] if variable in _2D_VARS else ["k", "j", "i"]
     extra_vars = {
-        trac_name: dict(dims=["k", "j", "i"], attrs=attrs),
-        variable: dict(dims=["k", "j", "i"], attrs=attrs),
+        trac_name: dict(dims=var_dims, attrs=attrs),
+        variable: dict(dims=var_dims, attrs=attrs),
     }
 
     ds = xmitgcm.open_mdsdataset(
@@ -448,6 +471,75 @@ def bin_native_tracer_to_1deg(
     return bin_to_1deg_grid(
         xc[aoi_good], yc[aoi_good], mean_field[aoi_good],
         lat_min, lat_max, lon_min, lon_max,
+    )
+
+
+def native_tracer_cells(
+    monthly_root: str | Path,
+    grid_dir: str | Path,
+    variable: str,
+    lat_min: float,
+    lat_max: float,
+    lon_min: float,
+    lon_max: float,
+    iters: int | list[int] | str = "all",
+    config: LLC270Config = DEFAULT_CONFIG,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Like :func:`bin_native_tracer_to_1deg` but KEEP native cells (no 1° bin).
+
+    The building block for the native-resolution (``NATIVE_RES=1``) recovery
+    path. Identical load → surface → time-mean → AOI/finite/non-zero mask as
+    :func:`bin_native_tracer_to_1deg`, but instead of bin-averaging onto the 1°
+    grid it returns the surviving native surface cells directly.
+
+    ``flat_idx`` is each kept cell's index into the *raveled* native field. It
+    is the **canonical alignment key**: because every monthly variable shares
+    the identical LLC270 geometry, a cell with a given ``flat_idx`` is the same
+    physical location in every variable. Callers reindex targets, covariates,
+    and the IC onto one reference variable's ``flat_idx`` so all per-cell arrays
+    line up cell-for-cell (a cell missing/non-finite in some variable becomes
+    NaN there and is dropped by the combined mask).
+
+    Args:
+        monthly_root, grid_dir, variable, lat_min, lat_max, lon_min, lon_max,
+        iters, config: as in :func:`bin_native_tracer_to_1deg`.
+
+    Returns:
+        ``(values, xc, yc, flat_idx)`` — four 1-D arrays of equal length
+        ``n_cells`` (in-AOI, finite, non-zero surface cells): the time-mean
+        tracer value, cell-center longitude, cell-center latitude, and the
+        raveled-grid flat index of each cell.
+
+    Raises:
+        FileNotFoundError: if ``iters="all"`` and no iterations are on disk.
+    """
+    if iters == "all":
+        iters = list_available_iterations(monthly_root, variable)
+        if not iters:
+            raise FileNotFoundError(
+                f"no iterations available for {variable!r} under {monthly_root}"
+            )
+
+    ds = open_llc270_tracer(
+        monthly_root, grid_dir, variable, iters=iters, config=config,
+    )
+    surf = surface_layer(ds)
+    mean_field = surf[variable].mean(dim="time", skipna=True).values
+    xc = surf.XC.values
+    yc = surf.YC.values
+    flat_idx = np.arange(mean_field.size).reshape(mean_field.shape)
+
+    aoi_good = (
+        aoi_mask_from_xc_yc(xc, yc, lat_min, lat_max, lon_min, lon_max)
+        & np.isfinite(mean_field)
+        & (mean_field != 0)
+    )
+
+    return (
+        mean_field[aoi_good],
+        xc[aoi_good],
+        yc[aoi_good],
+        flat_idx[aoi_good],
     )
 
 
