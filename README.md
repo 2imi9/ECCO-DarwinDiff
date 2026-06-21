@@ -33,7 +33,7 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in whi
 
 ## Reproduce
 
-The headline finding (the structural 6/6 wall: 0/856 at 6/6 across **856 seeds / 86 configs**, with `R_PICPOC` the lone holdout) and the full evidence table live in [STATUS.md][status_url]; the cluster-scale sweep is in [docs/cluster_setup.md][cluster_url].
+The headline finding (the structural 6/6 wall: 0/856 at 6/6 across **856 seeds / 86 configs**, with `R_PICPOC` the lone holdout) and the full evidence table live in [STATUS.md][status_url]; the cluster-scale sweep is in [docs/cluster_setup.md][cluster_url]. The per-task GPU / memory / wall-clock budget — which tier (5090 / Explorer H200 / AICR B200) runs each task and how long it takes — is in [the compute-budget note][budget_url].
 
 <details>
 <summary><b>Runnable demo</b> — recover a per-cell parameter field by backprop through the box model (~5 min, laptop / Colab T4)</summary>
@@ -267,6 +267,7 @@ DarwinDiff is under active development; a formal manuscript and Zenodo DOI will 
 <!-- Reference links -->
 [status_url]: STATUS.md
 [cluster_url]: docs/cluster_setup.md
+[budget_url]: docs/research_notes/2026-06-21_full_compute_budget.md
 [data_url]: data/README.md
 [carroll6_url]: src/darwindiff/carroll6.py
 [demo_url]: notebooks/demo_colab.ipynb
