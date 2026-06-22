@@ -299,7 +299,7 @@ F_CO2_ABS_W = float(os.environ.get("F_CO2_ABS_W", "0.0"))
 # by src/darwindiff/modis_pic_loader.py). Replaces PIC_ABS_W's Darwin v05 target
 # with an INDEPENDENT satellite observation -- PR #63's paired anchor used Darwin
 # v05 PIC, which is circular against Carroll-6 calibration AND is ~20x lower in
-# eqpac than MODIS-Aqua reports. See docs/findings/pace_arc/phase2a_modis_pic_integration.md.
+# eqpac than MODIS-Aqua reports. See docs/findings/modis_arc/phase2a_modis_pic_integration.md.
 # Default 0 = off.
 MODIS_PIC_ABS_W = float(os.environ.get("MODIS_PIC_ABS_W", "0.0"))
 MODIS_PIC_CACHE_PATH = Path(os.environ.get(

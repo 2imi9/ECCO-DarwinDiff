@@ -71,7 +71,7 @@ README (origin/main), Status & scope, verbatim: "a structural **5/6 ceiling** �
 
 ### 1E. v3.0 baseline "7/15" vs "5/15" (HIGH)
 
-STATUS.md L40 and `docs/findings/pace_arc/meeting_deck` (L37, "7/15 … 47%") say **7/15 at 5/6**; `docs/findings/pace_arc/overnight_2026_05_19.md` L145 says **5/15** for "the project's best joint recovery". 7/15 is corroborated in ≥6 places (STATUS L40, deck L37, closeout L74, two notebooks, two scripts) and matches the "47%" cross-check (7/15 = 46.7%; 5/15 = 33.3%). **Standardize on 7/15; fix the lone 5/15 at overnight L145.** Caveat: L40 (PR #57) and L145 (PR #63 paired-anchor) may be *different configs* both labeled "best joint recovery" — disambiguate which is "best," and (see §2) attach the known v05-PIC-coincidence caveat to the PR #63 paired-anchor result.
+STATUS.md L40 and `docs/findings/modis_arc/meeting_deck` (L37, "7/15 … 47%") say **7/15 at 5/6**; `docs/findings/modis_arc/overnight_2026_05_19.md` L145 says **5/15** for "the project's best joint recovery". 7/15 is corroborated in ≥6 places (STATUS L40, deck L37, closeout L74, two notebooks, two scripts) and matches the "47%" cross-check (7/15 = 46.7%; 5/15 = 33.3%). **Standardize on 7/15; fix the lone 5/15 at overnight L145.** Caveat: L40 (PR #57) and L145 (PR #63 paired-anchor) may be *different configs* both labeled "best joint recovery" — disambiguate which is "best," and (see §2) attach the known v05-PIC-coincidence caveat to the PR #63 paired-anchor result.
 
 ### 1F. Cross-doc completeness gaps (MEDIUM/LOW)
 

@@ -107,3 +107,16 @@ scripts/overnight_log.txt
 
 # Draft manuscript — kept local + in git history, not in the public default tree
 /docs/paper/
+
+# Talks: working presentation bundle (decks/scripts), never upload
+/docs/talks/
+
+# Decorative project art (rendered figures + build scaffold)
+/docs/research_notes/art/
+
+# Binary IC caches — regenerable via build_darwin_ic_cache.py; runtime-loaded
+# from disk by exact name, so kept locally but never tracked
+scripts/*.npz
+
+# Repo-local gitignored working-notes home (non-core material lives here)
+/notes/

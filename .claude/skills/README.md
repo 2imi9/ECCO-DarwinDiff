@@ -67,7 +67,7 @@ work.
 DarwinDiff skills depend on:
 - The repo layout (`src/darwindiff/`, `scripts/`, `D:\runs\`)
 - The Darwin v05 data on `D:\ecco_darwin_v5\`
-- The DINN architecture in `src/darwindiff/dinn.py`
+- The DINN architecture in `src/darwindiff/networks.py`
 
 User-scoping (`~/.claude/skills/`) would surface these in unrelated projects.
 Once a skill stabilizes and generalizes (e.g. a generic

@@ -1,0 +1,117 @@
+{
+  "device": "NVIDIA GeForce RTX 5090 Laptop GPU",
+  "total_mem_gb": 23.88922119140625,
+  "records": [
+    {
+      "n_cells": 2853,
+      "n_steps": 200,
+      "train_median_s": 1.8154258000013215,
+      "train_min_s": 1.7667077999994945,
+      "forward_median_s": 0.7640995999990992,
+      "oom": false
+    },
+    {
+      "n_cells": 5000,
+      "n_steps": 200,
+      "train_median_s": 1.8143091000001732,
+      "train_min_s": 1.7975780999986455,
+      "forward_median_s": 0.7631331000011414,
+      "oom": false
+    },
+    {
+      "n_cells": 10000,
+      "n_steps": 200,
+      "train_median_s": 1.8342007999999623,
+      "train_min_s": 1.8180793999999878,
+      "forward_median_s": 0.7795385999997961,
+      "oom": false
+    },
+    {
+      "n_cells": 20000,
+      "n_steps": 200,
+      "train_median_s": 1.8291386000000784,
+      "train_min_s": 1.7991660999996384,
+      "forward_median_s": 0.7829523000000336,
+      "oom": false
+    },
+    {
+      "n_cells": 38809,
+      "n_steps": 200,
+      "train_median_s": 1.84060369999861,
+      "train_min_s": 1.81634860000122,
+      "forward_median_s": 0.769561999999496,
+      "oom": false
+    },
+    {
+      "n_cells": 70000,
+      "n_steps": 200,
+      "train_median_s": 1.8524412999995548,
+      "train_min_s": 1.8430321999985608,
+      "forward_median_s": 0.785515800000212,
+      "oom": false
+    },
+    {
+      "n_cells": 105300,
+      "n_steps": 200,
+      "train_median_s": 1.9000302999993437,
+      "train_min_s": 1.8446800999990955,
+      "forward_median_s": 0.7747932000002038,
+      "oom": false
+    },
+    {
+      "n_cells": 10000,
+      "n_steps": 50,
+      "train_median_s": 0.46123389999957,
+      "train_min_s": 0.44375249999939115,
+      "forward_median_s": 0.19539089999852877,
+      "oom": false
+    },
+    {
+      "n_cells": 10000,
+      "n_steps": 100,
+      "train_median_s": 0.9431953000002977,
+      "train_min_s": 0.9169196000002557,
+      "forward_median_s": 0.39535350000005565,
+      "oom": false
+    },
+    {
+      "n_cells": 10000,
+      "n_steps": 200,
+      "train_median_s": 1.8856283999994048,
+      "train_min_s": 1.8644985999999335,
+      "forward_median_s": 0.7778108000002248,
+      "oom": false
+    },
+    {
+      "n_cells": 10000,
+      "n_steps": 400,
+      "train_median_s": 3.745178899998791,
+      "train_min_s": 3.6767703000004985,
+      "forward_median_s": 1.56086040000082,
+      "oom": false
+    },
+    {
+      "n_cells": 10000,
+      "n_steps": 800,
+      "train_median_s": 7.626941199998328,
+      "train_min_s": 7.540808700001435,
+      "forward_median_s": 3.106336000000738,
+      "oom": false
+    },
+    {
+      "n_cells": 10000,
+      "n_steps": 1600,
+      "train_median_s": 14.745879699999932,
+      "train_min_s": 14.39678559999993,
+      "forward_median_s": 6.168261300001177,
+      "oom": false
+    }
+  ],
+  "cell_fit": {
+    "a_s": 1.8276037961117948,
+    "b_s_per_cell": 5.7621957041132e-07,
+    "r2": 0.45811337915025263,
+    "n": 8.0,
+    "at_steps": 200.0
+  }
+}

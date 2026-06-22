@@ -13,7 +13,7 @@ variations across waves). Produces:
   - Mutex-binarity verdict
   - 6/6 surface (if any)
 
-Output: docs/findings/pace_arc/all_waves_<now>/
+Output: docs/findings/modis_arc/all_waves_<now>/
 """
 from __future__ import annotations
 
@@ -203,7 +203,7 @@ def main():
         sys.exit(1)
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M")
-    out_dir = ROOT / "docs" / "findings" / "pace_arc" / f"all_waves_{stamp}"
+    out_dir = ROOT / "docs" / "findings" / "modis_arc" / f"all_waves_{stamp}"
     out_dir.mkdir(parents=True, exist_ok=True)
     fig_dir = out_dir / "figures"
     fig_dir.mkdir(exist_ok=True)
