@@ -17,6 +17,9 @@ theme:
   name: material
   icon:
     repo: fontawesome/brands/github
+    logo: material/waves
+  # Use the system font stack (like Furo) instead of loading Google's Roboto.
+  font: false
   features:
     - navigation.tracking
     - navigation.sections
@@ -31,15 +34,15 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: teal
-      accent: teal
+      primary: white
+      accent: pink
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: teal
-      accent: teal
+      primary: black
+      accent: pink
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
