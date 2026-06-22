@@ -9,7 +9,7 @@ Reads per-config JSONs from D:\\runs\\v3.0_basinC_refine_<stamp>\\, produces:
 Run with: python scripts/analyze_basinC_refine.py [--stamp YYYYMMDD_HHMM]
 If --stamp omitted, picks the most recent v3.0_basinC_refine_* on D:\\runs\\.
 
-Output: docs/findings/pace_arc/basinC_refine_<stamp>/  with summary.md +
+Output: docs/findings/modis_arc/basinC_refine_<stamp>/  with summary.md +
   figures/*.png.
 """
 from __future__ import annotations
@@ -188,7 +188,7 @@ def main():
         stamp, sweep_root = find_latest_stamp()
     print(f"Analyzing sweep at {sweep_root}")
 
-    out_dir = ROOT / "docs" / "findings" / "pace_arc" / f"basinC_refine_{stamp}"
+    out_dir = ROOT / "docs" / "findings" / "modis_arc" / f"basinC_refine_{stamp}"
     out_dir.mkdir(parents=True, exist_ok=True)
     fig_dir = out_dir / "figures"
     fig_dir.mkdir(exist_ok=True)

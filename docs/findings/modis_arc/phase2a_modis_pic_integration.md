@@ -71,7 +71,7 @@ The patch adds `MODIS_PIC_ABS_W` as a parallel knob to `PIC_ABS_W`. Both can be 
 # MODIS-Aqua observed PIC absolute-units MSE loss weight. Uses the cache built
 # by src/darwindiff/modis_pic_loader (D:\modis_aqua_pic\modis_pic_clim_2017_2019.npz)
 # instead of Darwin v05's internal PIC. The 2017-2019 climatology aligns with
-# Carroll 2022's calibration window. See docs/findings/pace_arc/phase2a_modis_pic_integration.md
+# Carroll 2022's calibration window. See docs/findings/modis_arc/phase2a_modis_pic_integration.md
 # for the rationale: Darwin v05 PIC is 20x lower than MODIS-Aqua observed PIC
 # in eqpac, making the existing PIC_ABS_W anchor circular against Carroll's
 # Green's-functions calibration.

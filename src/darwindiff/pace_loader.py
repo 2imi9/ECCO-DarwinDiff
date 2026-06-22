@@ -2,7 +2,7 @@
 
 PACE OCI launched 2024-02-08; v3.1 reprocessing complete August 2025. The
 publicly available L3m products in 2026-05 are listed in
-``docs/findings/pace_arc/phase1_data_scouting.md``. Most relevant for
+``docs/findings/modis_arc/phase1_data_scouting.md``. Most relevant for
 DarwinDiff:
 
   - **carbon_phyto** (OC_BGC suite, Provisional, mg m^-3): total phytoplankton
