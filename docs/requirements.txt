@@ -1,0 +1,4 @@
+# Documentation-only toolchain (MkDocs + Material).
+# Pinned to majors for reproducible Read the Docs builds; bump deliberately.
+mkdocs-material>=9.5,<10
+mkdocs-include-markdown-plugin>=6.2,<7

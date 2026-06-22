@@ -39,19 +39,21 @@ The repo retains the GitHub defaults (`bug`, `documentation`, `enhancement`, `go
 ## How to file a new issue
 
 1. **Title prefix.** Short scope marker that matches the type:
-   - `infra: <description>`
-   - `v3.2: <description>` (or whatever the version is)
-   - `paper #1: <description>`
-   - `demo: <description>`
-   - For research questions, prefer a question form: `Mass conservation at decadal rollouts?`
 
-   Keep titles under ~70 characters; use the body for detail.
+    - `infra: <description>`
+    - `v3.2: <description>` (or whatever the version is)
+    - `paper #1: <description>`
+    - `demo: <description>`
+    - For research questions, prefer a question form: `Mass conservation at decadal rollouts?`
+
+    Keep titles under ~70 characters; use the body for detail.
 
 2. **Body.** Cover:
-   - **Goal** — what we want to be true when the issue closes.
-   - **Success criterion** — concrete, checkable. Numbers if possible.
-   - **Dependencies** — link blockers; explicitly call out if `gated`.
-   - **Context** — link to `STATUS.md`, `docs/findings/*`, prior PRs, or external papers as relevant.
+
+    - **Goal** — what we want to be true when the issue closes.
+    - **Success criterion** — concrete, checkable. Numbers if possible.
+    - **Dependencies** — link blockers; explicitly call out if `gated`.
+    - **Context** — link to `STATUS.md`, `docs/findings/*`, prior PRs, or external papers as relevant.
 
 3. **Labels.** At minimum one `type:*`. Add tier and status if appropriate. Don't stack labels for the sake of it — every label should change how someone triaging the issue would treat it.
 

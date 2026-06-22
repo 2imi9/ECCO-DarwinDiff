@@ -1,0 +1,125 @@
+site_name: ECCO-DarwinDiff
+site_description: >-
+  Differentiable ECCO-Darwin for ocean-biogeochemistry parameter recovery
+  via gradient descent through the box model.
+site_author: ECCO-DarwinDiff contributors
+
+repo_url: https://github.com/2imi9/ECCO-DarwinDiff
+repo_name: 2imi9/ECCO-DarwinDiff
+edit_uri: edit/main/docs/
+
+# Documentation source lives in docs/. Canonical files that must stay at the
+# repo root (STATUS.md, CONTRIBUTING.md, data/README.md) are surfaced via the
+# include-markdown plugin from thin stub pages — single source of truth, no copy.
+docs_dir: docs
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  - include-markdown
+
+# Rewrites links that escape docs/ (to source, notebooks, root README/STATUS)
+# into GitHub or in-site URLs at build time. See mkdocs_hooks.py.
+hooks:
+  - mkdocs_hooks.py
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.magiclink
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+# Keep internal / in-flight / sensitive material out of the public build.
+# These remain in the repo (and on GitHub) — they're just not published to the site.
+exclude_docs: |
+  briefs/
+  talks/
+  paper/
+  research_notes/
+  CLAUDE_PROJECT_CONTEXT.md
+  pr_v2.2_5pft_box.md
+  findings/modis_arc/
+  findings/v3.0_arc/
+  *.json
+  *.csv
+  *.tex
+
+# Markdown that lives in docs/ but isn't in the nav (e.g. extra findings) is
+# still built and searchable; don't warn about it. Keep link-not-found at warn
+# so genuine in-site breakage still surfaces during local builds.
+validation:
+  nav:
+    omitted_files: ignore
+  links:
+    not_found: warn
+    absolute_links: ignore
+    unrecognized_links: ignore
+
+nav:
+  - Home: index.md
+  - Project Status: status.md
+  - Design & method:
+      - DINN design: dinn_design.md
+      - ECCO-Darwin relationship: ecco_darwin_relationship.md
+      - Parameter inventory: ecco_darwin_parameter_inventory.md
+  - Findings:
+      - findings/index.md
+      - "v2.1 — GLODAP DIC/ALK hybrid": findings/v2.1_phase1_glodap.md
+      - "v2.2 — 5-PFT box": findings/v2.2_phase2.md
+      - "v2.8 — Darwin ICs + POC loss": findings/v2.8_darwin_ic_poc_sub.md
+      - "v3.0 — multi-AOI scoping": findings/v3.0_multi_aoi_scoping.md
+      - "v3.1 — closeout": findings/v3.1_closeout.md
+      - "v3.2 — dense POSi + Eppley": findings/posi_dense_diatomgraz.md
+      - "R_PICPOC — ratio loss (structural)": findings/rpicpoc_ratio_structural.md
+      - "R_PICPOC — ALK anchor mutex test": findings/alk_anchor_rpicpoc_mutex.md
+  - Operations:
+      - Cluster setup: cluster_setup.md
+      - Cluster roadmap: cluster_roadmap.md
+      - Data sources: data.md
+  - Project:
+      - Research log: research_log.md
+      - Known issues: issues.md
+      - Contributing: contributing.md

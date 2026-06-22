@@ -1,0 +1,22 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Build environment
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.13"
+
+# Build the MkDocs (Material) site defined in mkdocs.yml at the repo root.
+# This project's docs are 100% Markdown, so MkDocs renders them as-is.
+mkdocs:
+  configuration: mkdocs.yml
+
+# Install the (small) doc-only toolchain. Kept separate from the package's
+# runtime deps so RTD never has to build torch/xarray just to render Markdown.
+python:
+  install:
+    - requirements: docs/requirements.txt

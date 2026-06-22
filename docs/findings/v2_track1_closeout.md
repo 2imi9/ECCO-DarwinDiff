@@ -223,6 +223,7 @@ After the v2.0 result landed, audited our carbonate-constant choices in `src/dar
 ### Day-9+ follow-up for any cluster paper
 
 If a v2.1 / cluster paper wants absolute-magnitude CO₂ flux comparisons:
+
 1. Set `K_WANNINKHOF = 0.337` and re-run nb20/nb21 (~80 min × 2 on RTX 5090)
 2. Refactor `K1_K2_carbonic` to optionally use Mehrbach 1973 parameterization for full alignment
 3. Verify against `references/ecco_darwin/v05/llc270/input/data.gchem` (not data.darwin — the gchem package config carries the carbonate-system options)

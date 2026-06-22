@@ -120,3 +120,6 @@ scripts/*.npz
 
 # Repo-local gitignored working-notes home (non-core material lives here)
 /notes/
+
+# MkDocs local build output (the published site is built by Read the Docs)
+/site/

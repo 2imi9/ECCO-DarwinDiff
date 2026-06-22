@@ -65,6 +65,7 @@ compute for the *same* box.
 
 The audit floated "seasonal-1°" as the cheap decisive test. A forward-model probe
 (synthetic seasonal forcing, Eppley on) rules it out structurally:
+
 - z-scored seasonal PIC cycle is **exactly invariant** to R_PICPOC's level
   (`max|Δ| = 0.000`) — seasonal *pattern* fitting is null-space-blind too;
 - the box's seasonal PIC amplitude is ≈ 0 — Eppley is mean-neutralized and `LIGHT`
@@ -87,8 +88,8 @@ all 0/10**. Patterns:
 |---|---|---|---|---|
 | ratio, cocco off (r0.5–r30) | 10/10 | survives (5–10/10) | 0/10 | recovers eqpac, no mutex, dose-robust — 1 AOI only |
 | ratio + coccolith | 0/10 | 0–5/10 | 0/10 | backfires (re-entangles, breaks iron) |
-| ratio + W_SINK_PIC {0.2,0.3} | 0/10 | survives | 0/10 | sink decoupling breaks even eqpac (ratio ≠ R_PICPOC) |
-| paired PIC+POC (per-AOI) {0.02–0.1} | joint 9/10 | **0/10 (wiped)** | 0/10 | the classic magnitude-anchor mutex |
+| ratio + W_SINK_PIC `{0.2,0.3}` | 0/10 | survives | 0/10 | sink decoupling breaks even eqpac (ratio ≠ R_PICPOC) |
+| paired PIC+POC (per-AOI) `{0.02–0.1}` | joint 9/10 | **0/10 (wiped)** | 0/10 | the classic magnitude-anchor mutex |
 | PIC + `signal_3aoi` gating | joint 1/10 | 0/10 | 0/10 | routing doesn't protect the iron pair |
 | PIC / ratio × PER_AOI_DINN | joint 0–10 | 0/10 (PIC) | 0/10 | architecture doesn't break it |
 
@@ -100,6 +101,7 @@ the iron pair. The ≥2-AOI block is the calcite forward-model gap, not the esti
 ## Conclusion + deck/roadmap implication
 
 R_PICPOC at the box scale decomposes cleanly:
+
 1. **Estimator/info side — SOLVED:** the ratio observable identifies R_PICPOC per
    cell without the iron-pair mutex (eqpac 10/10). It was never fundamentally
    unidentifiable; the prior anchors were the wrong observable.

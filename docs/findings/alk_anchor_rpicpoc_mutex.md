@@ -63,6 +63,7 @@ Two facts make a clean co-recovery *a-priori unlikely*:
 
 **Registered prediction:** NULL (mutex not broken). Two candidate mechanisms,
 distinguished by the run:
+
 - **(a) Signal-weakness / IC-dominance:** `R_PICPOC` stays ~unrecovered and the
   iron pair is ~preserved (the anchor is too weak to perturb anything).
 - **(b) Factorization mutex (PIC-like):** at large enough weight `R_PICPOC`
@@ -141,6 +142,7 @@ Eppley ON, 1071 ocean cells):
 | **scale-normalized signal PIC** `|∂/∂Rpp|/target` | **2340** |
 
 **Two things the probe establishes (both point to a null):**
+
 1. **The absolute ALK anchor carries ~60,000× less R_PICPOC signal than PIC**
    (0.039 vs 2340) — because the box's surface ALK is **IC-dominated** (calcite
    moves it only ~0.17%), while box PIC is **calcite-defined** (`PIC_1` runs
@@ -224,6 +226,7 @@ control), which is exactly why its joint metric is the one vulnerable to
 straddling.
 
 **Three independent corroborations:**
+
 1. **Darwin-ALK source (a100d):** anchoring to Darwin's *own* ALK reproduces the
    identical straddle (eqpac 0.011, natl/SO 0.12) and artifactual co-recovery.
    So the effect is **generic absolute-ALK-magnitude deflation, not real-GLODAP
