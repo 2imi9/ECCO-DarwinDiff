@@ -1,6 +1,6 @@
 """MODIS-Aqua PIC anchor sweep -- the Phase 2.A integration test.
 
-Hypothesis (from docs/findings/pace_arc/phase2a_modis_pic_integration.md):
+Hypothesis (from docs/findings/modis_arc/phase2a_modis_pic_integration.md):
 Darwin v05 PIC is ~20x lower than MODIS-Aqua observed PIC in eqpac. PR #63's
 paired-anchor sweep used Darwin v05 PIC, which pulled R_PICPOC toward a wrong
 magnitude AND dragged alpfe + diatomgraz out of basin A. Switching to MODIS PIC
