@@ -198,7 +198,7 @@ from darwindiff.glodap_loader import (
     surface_layer_glodap,
     to_mmol_per_m3,
 )
-from darwindiff.llc270_loader import bin_native_tracer_to_1deg
+from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
 from darwindiff.networks import DINN
 from darwindiff.gating import (
     GATING_POLICIES,
@@ -257,6 +257,11 @@ SUB_DEPTH_MIN = float(os.environ.get("GEOTRACES_SUB_DEPTH_MIN", "50.0"))
 SUB_DEPTH_MAX = float(os.environ.get("GEOTRACES_SUB_DEPTH_MAX", "1000.0"))
 N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
 USE_DARWIN_IC = os.environ.get("DARWIN_IC", "1") == "1"   # default ON for v3.0
+# O7: NATIVE_RES=1 fits at full LLC270 native resolution (~9.8k cells/AOI) instead
+# of the 1deg box (~1k). Cells become a degenerate [1, N_cells] grid so the entire
+# [H,W] pipeline + box model run unchanged. The 1deg-grid GEOTRACES/GLODAP-interp
+# losses are not available natively (gate them off); default OFF preserves 1deg.
+NATIVE_RES = os.environ.get("NATIVE_RES", "0") == "1"
 POC_SUB_W = float(os.environ.get("POC_SUB_W", "3.0"))      # default v2.8 anchor
 # GEOTRACES_POC_SUB_W: weight on absolute-units MSE against real GEOTRACES
 # POC observations (POC_LPT_CONC + POC_SPT_CONC) at subsurface depths,
@@ -410,7 +415,59 @@ print()
 
 # ============================== Per-AOI loader ============================
 
+def _build_aoi_targets_native(aoi) -> dict:
+    """O7 native target builder: every covariate AND tracer at LLC270 native
+    cells, aligned to one reference flat_idx, returned as ``[1, N_cells]`` fields
+    so the 1deg ``[H, W]`` downstream code runs unchanged (H=1, W=N_cells).
+
+    Unlike the 1deg builder (covariates from the bin_average NetCDF, tracers
+    bin-averaged to 1deg), here SST/MLD/wind/apCO2/CO2_flux/Chl1-5 also come from
+    the native monthly tree via :func:`native_tracer_cells`. ``darwin_lats/lons``
+    become the per-cell lat/lon (1-D, length N_cells)."""
+    b = (aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
+    # "all" = true time-mean (production); "first"/N = fast smoke build.
+    _iters = os.environ.get("NATIVE_BUILD_ITERS", "all")
+    print(f"  [NATIVE_RES] building native target cache for {aoi.name} "
+          f"(iters={_iters}; one-time, then cached)...")
+    # Reference cell set + canonical alignment key from FeT (a core tracer).
+    ref_v, ref_xc, ref_yc, ref_idx = native_tracer_cells(
+        MONTHLY_ROOT, GRID_DIR, "FeT", *b, iters=_iters)
+    ref_list = ref_idx.tolist()
+    n = len(ref_list)
+    print(f"  [NATIVE_RES] {aoi.name}: {n} native reference cells (FeT)")
+
+    def aligned(var, _cache={"FeT": (ref_v, ref_idx)}):
+        if var in _cache:
+            v, idx = _cache[var]
+        else:
+            v, _xc, _yc, idx = native_tracer_cells(MONTHLY_ROOT, GRID_DIR, var, *b, iters=_iters)
+        lut = dict(zip(idx.tolist(), v.tolist()))
+        return np.array([lut.get(i, np.nan) for i in ref_list], dtype=np.float32)[None]  # [1, n]
+
+    out = {
+        "aoi_name": aoi.name,
+        "aoi_bounds": b,
+        "resolution": "native",
+        "native_flat_idx": ref_idx.astype(np.int64),
+        "darwin_lats": ref_yc.astype(np.float64),   # per-cell latitude  (1-D, n)
+        "darwin_lons": ref_xc.astype(np.float64),   # per-cell longitude (1-D, n)
+        "sst": aligned("SST"),
+        "mld": aligned("mldDepth"),
+        "wind": aligned("wspeed"),
+        "sss": np.full((1, n), 35.0, dtype=np.float32),   # no native SSS; box default
+        "pco2_atm_field": aligned("apCO2"),
+        "co2_flux_obs": aligned("CO2_flux"),
+        "chl_per_pft": {f"Chl{i}": aligned(f"Chl{i}") for i in range(1, 6)},
+    }
+    for var in (["FeT", "POC", "PIC", "DIC", "ALK", "POSi"]
+                + (["primProd"] if PRIMPROD_W > 0 else [])):
+        out[f"{var.lower()}_binned"] = aligned(var)
+    return out
+
+
 def _build_aoi_targets(aoi) -> dict:
+    if NATIVE_RES:
+        return _build_aoi_targets_native(aoi)
     print(f"  building target cache from Darwin bin_average + LLC270 native for {aoi.name}...")
     ds_bin = open_bin_average(BIN_AVG_PATH)
     ds_aoi = subset_aoi(ds_bin, aoi)
@@ -451,13 +508,16 @@ def _build_aoi_targets(aoi) -> dict:
 
 
 def _load_or_build_target_cache(aoi) -> dict:
-    cache_path = CACHE_DIR / f"eqpac_targets_{aoi.name.replace(' ', '_').lower()}.pt"
+    _res = "native" if NATIVE_RES else "1deg"
+    _prefix = "native_targets" if NATIVE_RES else "eqpac_targets"
+    cache_path = CACHE_DIR / f"{_prefix}_{aoi.name.replace(' ', '_').lower()}.pt"
     expected_bounds = (aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
     if cache_path.is_file():
         try:
             cached = torch.load(cache_path, map_location="cpu", weights_only=False)
             if (cached.get("aoi_name") == aoi.name
-                    and cached.get("aoi_bounds") == expected_bounds):
+                    and cached.get("aoi_bounds") == expected_bounds
+                    and cached.get("resolution", "1deg") == _res):
                 # Augment older caches that predate POSi without re-binning the
                 # five existing tracers (each a full 289-iter native sweep).
                 if "posi_binned" not in cached:
@@ -498,9 +558,122 @@ def _load_or_build_target_cache(aoi) -> dict:
     return data
 
 
+def _load_aoi_bundle_native(aoi_key: str) -> dict:
+    """O7 native-resolution bundle (NATIVE_RES=1): core z-scored recovery on
+    LLC270 native cells (degenerate [1, N_cells] grid). The 1deg-grid GEOTRACES /
+    GLODAP-interp losses, the absolute-units anchors, and Darwin-IC override are
+    NOT wired natively yet, so they must be OFF (clear error otherwise). Supported:
+    core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + AOI weights/identity/MLD."""
+    _unsupported = {
+        "GEOTRACES_W": GEOTRACES_W, "GEOTRACES_SUB_W": GEOTRACES_SUB_W,
+        "GEOTRACES_POC_SUB_W": GEOTRACES_POC_SUB_W, "POSI_W": POSI_W,
+        "PIC_ABS_W": PIC_ABS_W, "POC_ABS_W": POC_ABS_W, "ALK_ABS_W": ALK_ABS_W,
+        "RATIO_W": RATIO_W, "POSI_DARWIN_W": POSI_DARWIN_W, "F_CO2_ABS_W": F_CO2_ABS_W,
+        "POC_SUB_W": POC_SUB_W,
+    }
+    _on = {k: v for k, v in _unsupported.items() if v and v > 0}
+    if _on:
+        raise NotImplementedError(
+            f"NATIVE_RES=1 does not yet support these loss terms: {_on}. Set them to 0 "
+            f"(they need native GEOTRACES nearest-cell binning / native Darwin IC). "
+            f"Supported: core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + AOI levers.")
+    if USE_DARWIN_IC:
+        raise NotImplementedError(
+            "NATIVE_RES=1 uses literature IC for now; re-run with DARWIN_IC=0 "
+            "(native Darwin IC override is a follow-up).")
+
+    aoi = AOI_BY_KEY[aoi_key]
+    print(f"\n=== Loading AOI bundle [NATIVE_RES]: {aoi_key} ({aoi.name}) ===")
+    targets = _load_or_build_target_cache(aoi)
+
+    sst = targets["sst"]; sss = targets["sss"]; wind = targets["wind"]; mld = targets["mld"]
+    pco2_atm_field = targets["pco2_atm_field"]; chl_per_pft = targets["chl_per_pft"]
+    fet_binned = targets["fet_binned"]; poc_binned = targets["poc_binned"]
+    pic_binned = targets["pic_binned"]; dic_binned = targets["dic_binned"]
+    alk_binned = targets["alk_binned"]; co2_flux_obs = targets["co2_flux_obs"]
+
+    H, W = sst.shape  # (1, N_cells)
+    ocean_mask = (
+        np.isfinite(sst) & np.isfinite(sss) & np.isfinite(wind)
+        & np.isfinite(fet_binned) & np.isfinite(poc_binned) & np.isfinite(pic_binned)
+        & np.isfinite(dic_binned) & np.isfinite(alk_binned)
+    )
+    n_ocean = int(ocean_mask.sum())
+    print(f"  native grid: ({H}, {W}); ocean cells (all-finite): {n_ocean}")
+
+    sst_raw_for_env = np.where(ocean_mask, sst, 15.0).astype(np.float32)
+    env_1ch = sst_raw_for_env[None]
+    mld_raw_for_env = np.where(ocean_mask & np.isfinite(mld), mld, 30.0).astype(np.float32)
+
+    mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
+    mask_f = mask_dev.to(torch.float32); n_ocean_f = mask_f.sum()
+    env_1ch_dev = torch.tensor(env_1ch, dtype=torch.float32).to(device)
+    T_dev = torch.tensor(np.where(np.isfinite(sst), sst, 15.0).astype(np.float32)).to(device)
+    S_dev = torch.tensor(np.where(np.isfinite(sss), sss, 35.0).astype(np.float32)).to(device)
+    wind_dev = torch.tensor(np.where(np.isfinite(wind), wind, 7.0).astype(np.float32)).to(device)
+    pco2_atm_dev = torch.tensor(
+        np.where(np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)).to(device)
+
+    def to_z_target(field):
+        clean = np.where(ocean_mask, field, 1.0).astype(np.float32)
+        t = torch.tensor(clean, dtype=torch.float32).to(device)
+        o = t[mask_dev]; m = o.mean(); s = o.std().clamp(min=1e-6)
+        return (t - m) / s
+    fet_z = to_z_target(fet_binned); poc_z = to_z_target(poc_binned)
+    pic_z = to_z_target(pic_binned); dic_z = to_z_target(dic_binned)
+    alk_z = to_z_target(alk_binned); co2_flux_z = to_z_target(co2_flux_obs)
+    chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
+
+    LIT_IC = [
+        5.0e-4, 0.4, 0.3, 0.02, 0.001, 0.65,
+        0.5, 0.025, 2050.0 * 1.025, 2350.0 * 1.025,
+        5.0e-4, 0.05, 0.003, 2150.0 * 1.025, 2400.0 * 1.025,
+    ]
+    state0_hw = torch.tensor(LIT_IC, dtype=torch.float32).reshape(
+        N_TRACERS_2LAYER, 1, 1).expand(N_TRACERS_2LAYER, H, W).clone()
+    state0_per_seed = state0_hw.unsqueeze(1).expand(
+        N_TRACERS_2LAYER, N_SEEDS, H, W).contiguous().to(device)
+
+    _z = torch.zeros((H, W), dtype=torch.float32, device=device)
+    _zb = torch.zeros((H, W), dtype=torch.bool, device=device)
+    _one = torch.tensor(1.0, device=device)
+    def _e():
+        return _z.clone(), _zb.clone(), _zb.to(torch.float32), _one.clone()
+    g_st, g_smk, g_smf, g_snf = _e(); g_bt, g_bmk, g_bmf, g_bnf = _e()
+    gp_t, gp_mk, gp_mf, gp_nf = _e(); pa_t, pa_mk, pa_mf, pa_nf = _e()
+    oa_t, oa_mk, oa_mf, oa_nf = _e(); aa_t, aa_mk, aa_mf, aa_nf = _e()
+    rt_, rmk, rmf, rnf = _e(); ps_t, ps_mk, ps_mf, ps_nf = _e()
+    pd_t, pd_mk, pd_mf, pd_nf = _e(); fc_t, fc_mk, fc_mf, fc_nf = _e()
+
+    return {
+        "key": aoi_key, "aoi": aoi, "H": H, "W": W,
+        "ocean_mask": ocean_mask, "n_ocean": n_ocean,
+        "mask_dev": mask_dev, "mask_f": mask_f, "n_ocean_f": n_ocean_f,
+        "env_1ch_dev": env_1ch_dev, "mld_raw_for_env": mld_raw_for_env,
+        "T_dev": T_dev, "S_dev": S_dev, "wind_dev": wind_dev, "pco2_atm_dev": pco2_atm_dev,
+        "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z,
+        "primprod_z": None, "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": None,
+        "geo_surf_target_t": g_st, "geo_surf_mask_t": g_smk, "geo_surf_mask_f": g_smf, "n_geo_surf_f": g_snf,
+        "geo_sub_target_t": g_bt, "geo_sub_mask_t": g_bmk, "geo_sub_mask_f": g_bmf, "n_geo_sub_f": g_bnf,
+        "n_geo_surf": 0, "n_geo_sub": 0,
+        "geo_poc_target_t": gp_t, "geo_poc_mask_t": gp_mk, "geo_poc_mask_f": gp_mf, "n_geo_poc_f": gp_nf, "n_geo_poc": 0,
+        "pic_abs_target_t": pa_t, "pic_abs_mask_t": pa_mk, "pic_abs_mask_f": pa_mf, "n_pic_abs_f": pa_nf, "n_pic_abs": 0,
+        "poc_abs_target_t": oa_t, "poc_abs_mask_t": oa_mk, "poc_abs_mask_f": oa_mf, "n_poc_abs_f": oa_nf, "n_poc_abs": 0,
+        "alk_abs_target_t": aa_t, "alk_abs_mask_t": aa_mk, "alk_abs_mask_f": aa_mf, "n_alk_abs_f": aa_nf, "n_alk_abs": 0,
+        "ratio_target_t": rt_, "ratio_mask_t": rmk, "ratio_mask_f": rmf, "n_ratio_f": rnf, "n_ratio": 0,
+        "posi_target_t": ps_t, "posi_mask_t": ps_mk, "posi_mask_f": ps_mf, "n_posi_f": ps_nf, "n_posi": 0,
+        "posi_dw_target_t": pd_t, "posi_dw_mask_t": pd_mk, "posi_dw_mask_f": pd_mf, "n_posi_dw_f": pd_nf, "n_posi_dw": 0,
+        "f_co2_abs_target_t": fc_t, "f_co2_abs_mask_t": fc_mk, "f_co2_abs_mask_f": fc_mf, "n_f_co2_abs_f": fc_nf, "n_f_co2_abs": 0,
+        "state0_per_seed": state0_per_seed,
+        "weight": AOI_W[aoi_key],
+    }
+
+
 def load_aoi_bundle(aoi_key: str) -> dict:
     """Build everything per-AOI: tensors, masks, target z-scores, GEOTRACES,
     initial conditions. Returns a dict suitable for hot use in the training loop."""
+    if NATIVE_RES:
+        return _load_aoi_bundle_native(aoi_key)
     aoi = AOI_BY_KEY[aoi_key]
     print(f"\n=== Loading AOI bundle: {aoi_key} ({aoi.name}) ===")
     targets = _load_or_build_target_cache(aoi)
