@@ -568,19 +568,15 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         "GEOTRACES_W": GEOTRACES_W, "GEOTRACES_SUB_W": GEOTRACES_SUB_W,
         "GEOTRACES_POC_SUB_W": GEOTRACES_POC_SUB_W, "POSI_W": POSI_W,
         "PIC_ABS_W": PIC_ABS_W, "POC_ABS_W": POC_ABS_W, "ALK_ABS_W": ALK_ABS_W,
-        "RATIO_W": RATIO_W, "POSI_DARWIN_W": POSI_DARWIN_W, "F_CO2_ABS_W": F_CO2_ABS_W,
-        "POC_SUB_W": POC_SUB_W,
+        "RATIO_W": RATIO_W, "F_CO2_ABS_W": F_CO2_ABS_W, "POSI_DARWIN_W": POSI_DARWIN_W,
     }
     _on = {k: v for k, v in _unsupported.items() if v and v > 0}
     if _on:
         raise NotImplementedError(
             f"NATIVE_RES=1 does not yet support these loss terms: {_on}. Set them to 0 "
-            f"(they need native GEOTRACES nearest-cell binning / native Darwin IC). "
-            f"Supported: core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + AOI levers.")
-    if USE_DARWIN_IC:
-        raise NotImplementedError(
-            "NATIVE_RES=1 uses literature IC for now; re-run with DARWIN_IC=0 "
-            "(native Darwin IC override is a follow-up).")
+            f"(GEOTRACES/GLODAP-grid + abs anchors need native nearest-cell binning). "
+            f"Supported: core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + POC_SUB_W "
+            f"+ Darwin IC + AOI levers.")
 
     aoi = AOI_BY_KEY[aoi_key]
     print(f"\n=== Loading AOI bundle [NATIVE_RES]: {aoi_key} ({aoi.name}) ===")
@@ -631,6 +627,43 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     ]
     state0_hw = torch.tensor(LIT_IC, dtype=torch.float32).reshape(
         N_TRACERS_2LAYER, 1, 1).expand(N_TRACERS_2LAYER, H, W).clone()
+    poc_l2_z = None
+    if USE_DARWIN_IC:
+        ic_path = _HERE / f"darwin_ic_cache_native_{aoi_key}.npz"
+        if not ic_path.is_file():
+            raise FileNotFoundError(
+                f"native IC cache not found: {ic_path}. Build it with "
+                f"`NATIVE_RES=1 CACHE_NAME=darwin_ic_cache_native_{aoi_key}.npz "
+                f"DARWIN_AOI={aoi_key} python scripts/build_darwin_ic_cache.py` "
+                f"(or run with DARWIN_IC=0 for literature IC).")
+        _ic = np.load(ic_path, allow_pickle=True)
+        if "resolution" not in _ic.files or str(_ic["resolution"]) != "native":
+            raise ValueError(f"{ic_path} is not a native IC cache (resolution!=native).")
+        # Reindex IC native cells onto the target's native-cell ORDER by (xc,yc).
+        tg_xc = np.asarray(targets["darwin_lons"]); tg_yc = np.asarray(targets["darwin_lats"])
+        lut = {(round(float(x), 4), round(float(y), 4)): i
+               for i, (x, y) in enumerate(zip(_ic["native_xc"], _ic["native_yc"]))}
+        try:
+            order = np.array([lut[(round(float(x), 4), round(float(y), 4))]
+                              for x, y in zip(tg_xc, tg_yc)], dtype=np.int64)
+        except KeyError as e:
+            raise ValueError(f"native IC missing target cell {e}; IC/target AOI mismatch.")
+        ic_overrides = [
+            (I_DFE_1, "FeT_L1"), (I_POC_1, "POC_L1"), (I_PIC_1, "PIC_L1"),
+            (I_DIC_1, "DIC_L1"), (I_ALK_1, "ALK_L1"),
+            (I_DFE_2, "FeT_L2"), (I_POC_2, "POC_L2"), (I_PIC_2, "PIC_L2"),
+            (I_DIC_2, "DIC_L2"), (I_ALK_2, "ALK_L2"),
+        ]
+        for state_idx, key in ic_overrides:
+            field = _ic[key][order].astype(np.float32)[None]   # [1, N_cells], target order
+            field = np.where(np.isfinite(field), field, LIT_IC[state_idx]).astype(np.float32)
+            if state_idx in (I_DFE_1, I_DFE_2, I_POC_1, I_POC_2, I_PIC_1, I_PIC_2):
+                field = np.clip(field, a_min=1e-10, a_max=None)
+            state0_hw[state_idx] = torch.tensor(field, dtype=torch.float32)
+        print(f"  loaded native Darwin IC ({ic_path.name}); {order.size} cells reindexed by coord")
+        if POC_SUB_W > 0:
+            _pl2 = _ic["POC_L2"][order].astype(np.float32)[None]
+            poc_l2_z = to_z_target(np.where(np.isfinite(_pl2), _pl2, np.nanmean(_pl2)).astype(np.float32))
     state0_per_seed = state0_hw.unsqueeze(1).expand(
         N_TRACERS_2LAYER, N_SEEDS, H, W).contiguous().to(device)
 
@@ -652,7 +685,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         "env_1ch_dev": env_1ch_dev, "mld_raw_for_env": mld_raw_for_env,
         "T_dev": T_dev, "S_dev": S_dev, "wind_dev": wind_dev, "pco2_atm_dev": pco2_atm_dev,
         "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z,
-        "primprod_z": None, "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": None,
+        "primprod_z": None, "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
         "geo_surf_target_t": g_st, "geo_surf_mask_t": g_smk, "geo_surf_mask_f": g_smf, "n_geo_surf_f": g_snf,
         "geo_sub_target_t": g_bt, "geo_sub_mask_t": g_bmk, "geo_sub_mask_f": g_bmf, "n_geo_sub_f": g_bnf,
         "n_geo_surf": 0, "n_geo_sub": 0,

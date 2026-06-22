@@ -45,6 +45,9 @@ GRID_DIR = DARWIN_ROOT / "grid"
 import os as _os
 _CACHE_NAME = _os.environ.get("CACHE_NAME", "darwin_ic_cache.npz")
 CACHE_PATH = _HERE / _CACHE_NAME
+# O7: NATIVE_RES=1 keeps native cells (no 1deg binning) + stores per-cell xc/yc
+# so the runner can reindex the IC onto its native target cells by coordinate.
+_NATIVE = _os.environ.get("NATIVE_RES", "0") == "1"
 
 # --- Pickup file layout (from .meta) ------------------------------------------
 
@@ -156,6 +159,8 @@ def main():
     )
     n_aoi = int(aoi_mask_native.sum())
     print(f"  AOI native cells: {n_aoi}")
+    native_xc = xc[aoi_mask_native].astype(np.float64)
+    native_yc = yc[aoi_mask_native].astype(np.float64)
 
     print(f"\nOpening pickup as memmap ({pickup_size / 1024**3:.2f} GB)...")
     mm = np.memmap(PICKUP_PATH, dtype=DTYPE, mode="r")
@@ -170,22 +175,38 @@ def main():
 
         for layer_name, levels in (("L1", L1_LEVELS), ("L2", L2_LEVELS)):
             depth_mean = depth_weighted_mean(vol, drf, levels)
-            aoi_good = aoi_mask_native & np.isfinite(depth_mean) & (depth_mean != 0)
-            n_good = int(aoi_good.sum())
-            binned = bin_to_1deg_grid(
-                xc[aoi_good], yc[aoi_good], depth_mean[aoi_good],
-                aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max,
-            )
             key = f"{tracer_name}_{layer_name}"
-            fields[key] = binned
-            nan_frac = float(np.isnan(binned).mean())
-            print(f"  {layer_name}: native_cells={n_good}  binned shape={binned.shape}  "
-                  f"mean={np.nanmean(binned):.4g}  nan_frac={nan_frac:.2%}")
+            if _NATIVE:
+                # Keep native cells (no 1deg bin); same cell set (aoi_mask_native)
+                # for every tracer so all fields share native_xc/native_yc.
+                vals = depth_mean[aoi_mask_native].astype(np.float64)
+                vals = np.where(np.isfinite(vals) & (vals != 0), vals, np.nan)
+                fields[key] = vals
+                print(f"  {layer_name}: native_cells={vals.size}  "
+                      f"mean={np.nanmean(vals):.4g}  nan_frac={np.isnan(vals).mean():.2%}")
+            else:
+                aoi_good = aoi_mask_native & np.isfinite(depth_mean) & (depth_mean != 0)
+                n_good = int(aoi_good.sum())
+                binned = bin_to_1deg_grid(
+                    xc[aoi_good], yc[aoi_good], depth_mean[aoi_good],
+                    aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max,
+                )
+                fields[key] = binned
+                nan_frac = float(np.isnan(binned).mean())
+                print(f"  {layer_name}: native_cells={n_good}  binned shape={binned.shape}  "
+                      f"mean={np.nanmean(binned):.4g}  nan_frac={nan_frac:.2%}")
         print(f"  elapsed: {time.time() - t0:.1f}s")
 
     print(f"\nTotal extraction time: {time.time() - overall_start:.1f}s")
 
     print(f"\nSaving cache to {CACHE_PATH}")
+    _extra = {}
+    if _NATIVE:
+        _extra = {
+            "resolution": np.str_("native"),
+            "native_xc": native_xc,
+            "native_yc": native_yc,
+        }
     np.savez_compressed(
         CACHE_PATH,
         lat_min=np.float64(aoi.lat_min),
@@ -197,6 +218,7 @@ def main():
         l1_levels_stop=np.int32(L1_LEVELS.stop),
         l2_levels_start=np.int32(L2_LEVELS.start),
         l2_levels_stop=np.int32(L2_LEVELS.stop),
+        **_extra,
         **{k: v.astype(np.float64) for k, v in fields.items()},
     )
     print(f"  saved {len(fields)} fields ({CACHE_PATH.stat().st_size / 1024:.1f} KiB)")
