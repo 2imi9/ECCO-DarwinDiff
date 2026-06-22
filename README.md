@@ -9,9 +9,9 @@
 
 <sub>DarwinDiff's per-cell network (DINN): the loss flows through the differentiable box model, so a single backward pass recovers the six Carroll parameters.</sub>
 
-[Status][status_url] · [Setup](#setup) · [Reproduce](#reproduce) · [Cite](#how-to-cite) · [Acknowledgements](#acknowledgements)
+[Docs][docs_url] · [Status][status_url] · [Setup](#setup) · [Reproduce](#reproduce) · [Cite](#how-to-cite)
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb)
+[![Docs](https://readthedocs.org/projects/ecco-darwindiff/badge/?version=latest)](https://ecco-darwindiff.readthedocs.io/en/latest/) [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb)
 
 A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in which gradients flow through every step of the simulation, so a single loss surface can learn the parameters that Carroll's Green's-functions calibration tunes one-at-a-time — predicted per grid cell from local environmental conditions. Manuscript in preparation.
 
@@ -33,58 +33,20 @@ A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in whi
 - `R_PICPOC` needs **richer calcite physics**: the box's rigid-ratio calcite can't match Darwin's ~23× coccolithophore-driven spatial PIC/POC variation. A PIC:POC ratio loss recovers it per-cell where the box matches Darwin (eqpac), but ≥2-AOI recovery needs the differentiable Darwin calcite port + native resolution — not a box-scale estimator or seasonal lever. (`diatomgraz`, the former second holdout, now recovers under v3.2.)
 - 1° box-model proxy; 23-year climatology, not time-resolved; single-method (no forward-Darwin held-out validation yet); single-GPU prototype. Full evidence → [STATUS.md][status_url].
 
+## Documentation
+
+📖 **[ecco-darwindiff.readthedocs.io][docs_url]** — the full documentation site. Quick links:
+
+- [Project status][status_url] — canonical live results, the 5/6 ceiling, known limits
+- [Findings](https://ecco-darwindiff.readthedocs.io/en/latest/findings/) — per-version technical writeups (v2.1 → v3.2)
+- [DINN design](https://ecco-darwindiff.readthedocs.io/en/latest/dinn_design/) · [ECCO-Darwin relationship](https://ecco-darwindiff.readthedocs.io/en/latest/ecco_darwin_relationship/)
+- [Cluster setup](https://ecco-darwindiff.readthedocs.io/en/latest/cluster_setup/) · [Data sources](https://ecco-darwindiff.readthedocs.io/en/latest/data/)
+
 ## Reproduce
 
 The headline finding (the structural 6/6 wall: 0/856 at 6/6 across **856 seeds / 86 configs**, with `R_PICPOC` the lone holdout) and the full evidence table live in [STATUS.md][status_url]; the cluster-scale sweep is in [docs/cluster_setup.md][cluster_url]. The per-task GPU / memory / wall-clock budget — which tier (5090 / Explorer H200 / AICR B200) runs each task and how long it takes — is in [the compute-budget note][budget_url].
 
-<details>
-<summary><b>Runnable demo</b> — recover a per-cell parameter field by backprop through the box model (~5 min, laptop / Colab T4)</summary>
-
-Public API verified against [`src/darwindiff/carroll6.py`][carroll6_url] and [`notebooks/demo_colab.ipynb`][demo_url].
-
-```python
-import torch
-from darwindiff.carroll6 import (
-    CARROLL_VALUES, PARAM_BOUNDS, bounded_params, carroll6_step,
-)
-from darwindiff.networks import DINN
-
-H, W, N_STEPS, DT = 8, 16, 200, 0.25
-
-# 1. One environmental channel (a z-scored SST gradient) over an 8x16 grid.
-sst = torch.linspace(-2.0, 2.0, H).unsqueeze(1) * torch.ones(1, W)
-env = ((sst - sst.mean()) / sst.std()).unsqueeze(0)        # [1, H, W]
-
-# 2. Differentiable 5-tracer box model, integrated per cell, returns Ps + Pl biomass.
-def forward_box(params):                                    # params: [6, H, W]
-    state = torch.stack([
-        torch.full((H, W), 0.5e-3), torch.full((H, W), 0.05),
-        torch.full((H, W), 0.05),   torch.full((H, W), 0.1),
-        torch.full((H, W), 0.001),
-    ])
-    for _ in range(N_STEPS):
-        state = carroll6_step(state, params, DT)
-    return state[1] + state[2]
-
-# 3. A truth field where alpfe varies with SST; the rest sit at Carroll's optima.
-truth = CARROLL_VALUES.view(6, 1, 1).expand(6, H, W).clone()
-truth[0] = 0.30 + (env.squeeze(0) - env.min()) / (env.max() - env.min()) * 0.65
-target = forward_box(truth).detach()
-
-# 4. Train a per-cell DINN to recover the truth by backprop THROUGH the box model.
-net = DINN(n_input_channels=1, n_outputs=6)
-optim = torch.optim.Adam(net.parameters(), lr=5e-3)
-for _ in range(800):
-    params = bounded_params(net(env), PARAM_BOUNDS, param_axis=0)   # [6, H, W]
-    loss = ((forward_box(params) - target) ** 2).mean()
-    loss.backward(); optim.step(); optim.zero_grad()
-
-print(f"final loss = {loss.item():.5g}")   # -> ~5e-6; alpfe field recovered per cell
-```
-
-Run it from a clone with `src/` on the path (`uv run python your_script.py`). The full annotated walkthrough is [`notebooks/demo_colab.ipynb`][demo_url].
-
-</details>
+Run the synthetic recovery demo in ~5 min on a laptop or a free Colab T4 — the annotated walkthrough is [`notebooks/demo_colab.ipynb`][demo_url] (or click the Colab badge above). It backprops through the differentiable box model using the `darwindiff.carroll6` + `darwindiff.networks` public API.
 
 ## Setup
 
@@ -99,28 +61,6 @@ For cluster runs, point the loaders at the LLC270 tree via `DARWIN_DATA_ROOT` (a
 <summary><b>Why this exists</b></summary>
 
 ECCO-Darwin (Carroll et al. 2020, *JAMES*; 2022, *GBC*) is calibrated via **Green's functions** (Menemenlis et al. 2005), which scale badly: each tuned parameter needs a fresh full forward run, so the published calibration handles only **6 parameters**. DarwinDiff replaces the biogeochemistry side with **PyTorch autograd** — gradients for all parameters in one backward pass, with the parameter values varying across space, predicted by a small per-cell network (DINN).
-
-</details>
-
-<details>
-<summary><b>Result history (v2.x → v3.1)</b> — one line per version; STATUS.md is canonical</summary>
-
-| Version | What changed | Outcome |
-|---|---|---|
-| v0.x → v1.8 (nb 05–19) | methodology validation, real-data demos, multi-tracer joint loss | foundation |
-| v2.0 (nb20-21) | carbonate cycle | iron pair to 1.1% / 40% off Carroll |
-| v2.1 (nb22, PR #41) | GLODAP real-obs hybrid | `R_PICPOC` 360% → 74% off |
-| v2.2 (nb23-29, PR #37) | full 5-PFT box matching Darwin v05 | project-first 4/6 Cal-grade |
-| v2.6 (PR #40) | GEOTRACES IDP2025 iron loss | 4/6 reproducibly across n=10 |
-| v2.7 (PR #42) | vetted 2-layer integrator | — |
-| v2.8 (PR #45) | Darwin v5 ICs + L2 POC obs | project-first reproducible scav_rat recovery |
-| v3.0 (PRs #46-#59) | multi-AOI joint training | 5/6 plateau as parameter conservation |
-| v3.1 (PR #64) | 3-AOI Basin C + PER_AOI_DINN | two complementary 5/6 paths |
-| v3.1.1 (PR #89) | AOI ablation (n=200) | `eqp+natl` recovers `diatomgraz` + `R_PICPOC` at the cost of the iron pair — architecture-level tradeoff; 5/6 ceiling holds |
-| v3.2 (PR #100 +) | forward-model fidelity (Eppley + dense `POSi`); PIC:POC ratio loss | first reproducible 5/6 at 3-AOI; `R_PICPOC` localized as the lone 6/6 wall — a calcite forward-model-fidelity gap (needs the Darwin port + native resolution) |
-| Gated on cluster | full-ocean recovery, time-resolved fitting, Track 2 emulator | pending |
-
-Per-phase detail: `docs/findings/`. Live state: [STATUS.md][status_url].
 
 </details>
 
@@ -145,17 +85,6 @@ tests/                     pytest suite
 docs/                      findings, research_notes, dinn_design.md, cluster_setup.md
 .claude/skills/            project-scoped skill bundle
 ```
-
-</details>
-
-<details>
-<summary><b>Data sources</b></summary>
-
-**In active use:** ECCO-Darwin v05 (`bin_average` 1° NetCDF + native LLC270 monthly), GLODAPv2.2016b, NASA GHG Center CO₂ flux, GEOTRACES IDP2025.
-
-**Shelved for the leapfrog phase:** GLODAPv2.2023, ocean color (OB.DAAC / OC-CCI), BGC-Argo, SOCAT 2025, WOD / WOA, MODIS-Aqua PIC, PACE carbon_phyto.
-
-Raw data files live outside the repo. Loaders respect `DARWIN_DATA_ROOT` / `GLODAP_DATA_ROOT` env vars. See [data/README.md][data_url] for canonical URLs.
 
 </details>
 
@@ -267,9 +196,9 @@ DarwinDiff is under active development; a formal manuscript and Zenodo DOI will 
 </details>
 
 <!-- Reference links -->
+[docs_url]: https://ecco-darwindiff.readthedocs.io/en/latest/
 [status_url]: STATUS.md
 [cluster_url]: docs/cluster_setup.md
 [budget_url]: docs/research_notes/2026-06-21_full_compute_budget.md
 [data_url]: data/README.md
-[carroll6_url]: src/darwindiff/carroll6.py
 [demo_url]: notebooks/demo_colab.ipynb
