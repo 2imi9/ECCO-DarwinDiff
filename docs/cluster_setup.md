@@ -167,6 +167,7 @@ Three pre-filled scripts in [`scripts/slurm/`](../scripts/slurm/):
 | [`run_array.sbatch`](../scripts/slurm/run_array.sbatch) | `--partition=mit_normal_gpu`, array `0-9%1`, miniforge | 30 min per array task |
 
 All three:
+
 - Use `${DARWIN_DATA_ROOT:-$HOME/orcd/scratch/ecco_darwin_v5}` so users override with `export` instead of editing the script.
 - Auto-install `uv` if missing.
 - Auto-run `uv sync --all-extras` to materialize the venv.
@@ -218,6 +219,7 @@ After confirming a successful Engaging run:
 3. Once granted, port the workload from Engaging-partition SLURM to AICR-partition SLURM (typically a one-line `#SBATCH --partition` change + module path adjustment).
 
 AICR storage caveats:
+
 - Scratch is purged regularly.
 - Project/group storage is temporary.
 - Copy any data you need to keep off AICR after computation completes.

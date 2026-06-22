@@ -29,6 +29,7 @@ Compute alone does NOT solve this. The bottleneck is observation-information con
 #### A. Time-resolved fitting
 
 **Hypothesis.** The 23-year time-mean target integrates away the temporal information that decorrelates the binding parameter set. Switching to ~300 monthly snapshots gives ~300× more quasi-independent constraint sets, with different parameters driving different time scales:
+
 - `scav_rat` — iron scavenging acts on days–weeks
 - `Smallgrow`, `Biggrow`, `diatomgraz` — bloom timing, weeks–months
 - `R_PICPOC` — coccolithophore phenology, seasonal
@@ -53,6 +54,7 @@ Effective constraint count could jump from ~5 to ~20–30.
 **Hypothesis.** The current 5-PFT 2-layer integrator (~10 tracers, `carroll6_5pft_2layer.py`) is a fraction of Darwin 3's state vector. Each new tracer adds ~1 effective constraint AND a corresponding new loss channel. The box-model proxy is a co-binding constraint on the 5/6 ceiling alongside parameter conservation; extending the box dissolves part of the ceiling structurally.
 
 Candidate extensions in order of recovery payoff:
+
 1. **Zooplankton** (Z_micro, Z_meso) — currently absorbed into grazing-rate parameters; explicit zooplankton would decouple `Biggrow` from `diatomgraz` at the structural level.
 2. **DOM** (DOC, DON, DOP, DOFe) — improves POC export and remineralization fidelity; constrains `R_PICPOC` indirectly via the C:N:P:Fe ratios.
 3. **Full Darwin 3 carbonate** — currently `carbonate.py` has Follows 2006 + Wanninkhof 2014 but Darwin 3 has additional alkalinity sources/sinks; extending fixes the alkalinity drift seen under GLODAP hybrid targets.
@@ -191,6 +193,7 @@ Other potentially useful laptop work falls into **leapfrog territory** (differen
 ### Phase 3 — Paper #2 experiments (8–20 weeks total)
 
 The paper-#2 experiments combine three cluster-gated directions:
+
 1. **Time-resolved fitting** (Direction A) — 5–10 configs at ~50–100 GPU-hours each
 2. **Native resolution** (Direction D) at 3 AOIs — 1–2 configs at ~500 GPU-hours
 3. **Box-model extension toward Darwin 3** (Direction B) — incremental tracer additions (zooplankton, DOM) ship between configs
@@ -200,6 +203,7 @@ Total: ~1000–5000 GPU-hours on AICR. Substantial but fits comfortably in a bet
 ### Phase 4 — Global, full Darwin-3 box extension, Track 2
 
 After Paper #2 ships. Each is a follow-on paper:
+
 - Global recovery → paper #3 (parameter maps + forward Darwin validation)
 - Track 2 emulator → paper #4 (long-timescale climate emulator)
 - Full Darwin-3 box → paper #5 or method-paper companion

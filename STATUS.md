@@ -1,6 +1,6 @@
 # DarwinDiff — Project Status
 
-Live status doc. Headlines reflect verified results at the current project version. Per-version technical detail lives in [`docs/findings/`](docs/findings/) and individual PR threads.
+Live status doc. Headlines reflect verified results at the current project version. Per-version technical detail lives in [`docs/findings/`](docs/findings/index.md) and individual PR threads.
 
 ## Current state — Track 1 v3.1
 
@@ -128,4 +128,4 @@ The cluster path unlocks: native LLC270-resolution recovery (vs the 1° box-mode
 - [docs/cluster_setup.md](docs/cluster_setup.md) — MIT ORCD Engaging + AICR setup
 - [data/README.md](data/README.md) — dataset provenance and download mechanics
 - [.claude/skills/README.md](.claude/skills/README.md) — project-scoped Claude Code skill bundle
-- [docs/findings/](docs/findings/) — per-version technical writeups
+- [docs/findings/](docs/findings/index.md) — per-version technical writeups

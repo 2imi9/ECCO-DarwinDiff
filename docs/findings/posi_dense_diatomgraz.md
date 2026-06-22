@@ -113,21 +113,22 @@ interrupted by laptop sleep at ~epoch 750; not rerun, since wPIC is inert here.)
 7. **`R_PICPOC` is the entire 6/6 wall, and it is cluster-gated.** 0/20 under
    Eppley, the *sole* miss in all four 5/6 seeds. Two box-scale attempts to crack
    it both fail by the *same* mutex:
-   - Separate calcite sinking (`W_SINK_PIC=0.30`) alone did **not** move it
-     (0/10) and slightly degraded the iron pair.
-   - A **PIC magnitude anchor on the Eppley config** (`PIC_ABS_W ∈ {0.02, 0.1}`,
-     n=10 each) **does** recover it (0→8/10) — so R_PICPOC is identifiable in
-     principle — **but wipes the entire iron pair (18→0/10, 20→0/10) *and*
-     `diatomgraz` (20→1/10)**, even with Eppley's stabilization. Net mean *drops*
-     3.85→2.5. You get {iron pair + diatomgraz} **or** {R_PICPOC}, never both.
 
-   This is the **binary PIC-anchor mutex** (STATUS: "any nonzero `PIC_ABS_W`
-   wipes the iron pair") — and it is now shown **robust even to the forward-model
-   temperature physics** that broke the *other* mutex. R_PICPOC under pattern-only
-   z-loss is genuinely degenerate with the iron budget at the box scale; breaking
-   it needs the information the box does not have (seasonal cycle, native
-   resolution), not another laptop lever. **This is the AICR case, backed by an
-   exhaustive box-scale exclusion.**
+    - Separate calcite sinking (`W_SINK_PIC=0.30`) alone did **not** move it
+      (0/10) and slightly degraded the iron pair.
+    - A **PIC magnitude anchor on the Eppley config** (`PIC_ABS_W ∈ {0.02, 0.1}`,
+      n=10 each) **does** recover it (0→8/10) — so R_PICPOC is identifiable in
+      principle — **but wipes the entire iron pair (18→0/10, 20→0/10) *and*
+      `diatomgraz` (20→1/10)**, even with Eppley's stabilization. Net mean *drops*
+      3.85→2.5. You get {iron pair + diatomgraz} **or** {R_PICPOC}, never both.
+
+    This is the **binary PIC-anchor mutex** (STATUS: "any nonzero `PIC_ABS_W`
+    wipes the iron pair") — and it is now shown **robust even to the forward-model
+    temperature physics** that broke the *other* mutex. R_PICPOC under pattern-only
+    z-loss is genuinely degenerate with the iron budget at the box scale; breaking
+    it needs the information the box does not have (seasonal cycle, native
+    resolution), not another laptop lever. **This is the AICR case, backed by an
+    exhaustive box-scale exclusion.**
 
 **Thesis (revised).** "Parameter conservation" is *not* a fixed effective count:
 forward-model fidelity injects genuine identifying information and raises the
