@@ -25,6 +25,7 @@ theme:
     - toc.follow
     - content.code.copy
     - content.action.edit
+    - content.tooltips
     - search.suggest
     - search.highlight
   palette:
@@ -42,6 +43,10 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
+
+# Site-only readability/density polish (no content change). See docs/stylesheets/extra.css.
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search
