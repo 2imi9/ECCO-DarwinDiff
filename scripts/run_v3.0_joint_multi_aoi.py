@@ -565,18 +565,17 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     NOT wired natively yet, so they must be OFF (clear error otherwise). Supported:
     core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + AOI weights/identity/MLD."""
     _unsupported = {
-        "GEOTRACES_W": GEOTRACES_W, "GEOTRACES_SUB_W": GEOTRACES_SUB_W,
         "GEOTRACES_POC_SUB_W": GEOTRACES_POC_SUB_W, "POSI_W": POSI_W,
         "PIC_ABS_W": PIC_ABS_W, "POC_ABS_W": POC_ABS_W, "ALK_ABS_W": ALK_ABS_W,
-        "RATIO_W": RATIO_W, "F_CO2_ABS_W": F_CO2_ABS_W, "POSI_DARWIN_W": POSI_DARWIN_W,
+        "RATIO_W": RATIO_W, "F_CO2_ABS_W": F_CO2_ABS_W,
     }
     _on = {k: v for k, v in _unsupported.items() if v and v > 0}
     if _on:
         raise NotImplementedError(
             f"NATIVE_RES=1 does not yet support these loss terms: {_on}. Set them to 0 "
-            f"(GEOTRACES/GLODAP-grid + abs anchors need native nearest-cell binning). "
+            f"(GEOTRACES-bSi/POC + GLODAP-grid + abs anchors need more native binning). "
             f"Supported: core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + POC_SUB_W "
-            f"+ Darwin IC + AOI levers.")
+            f"+ Darwin IC + GEOTRACES iron (surf/sub) + POSI_DARWIN_W + AOI levers.")
 
     aoi = AOI_BY_KEY[aoi_key]
     print(f"\n=== Loading AOI bundle [NATIVE_RES]: {aoi_key} ({aoi.name}) ===")
@@ -667,16 +666,62 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     state0_per_seed = state0_hw.unsqueeze(1).expand(
         N_TRACERS_2LAYER, N_SEEDS, H, W).contiguous().to(device)
 
-    _z = torch.zeros((H, W), dtype=torch.float32, device=device)
-    _zb = torch.zeros((H, W), dtype=torch.bool, device=device)
-    _one = torch.tensor(1.0, device=device)
-    def _e():
-        return _z.clone(), _zb.clone(), _zb.to(torch.float32), _one.clone()
-    g_st, g_smk, g_smf, g_snf = _e(); g_bt, g_bmk, g_bmf, g_bnf = _e()
-    gp_t, gp_mk, gp_mf, gp_nf = _e(); pa_t, pa_mk, pa_mf, pa_nf = _e()
-    oa_t, oa_mk, oa_mf, oa_nf = _e(); aa_t, aa_mk, aa_mf, aa_nf = _e()
-    rt_, rmk, rmf, rnf = _e(); ps_t, ps_mk, ps_mf, ps_nf = _e()
-    pd_t, pd_mk, pd_mf, pd_nf = _e(); fc_t, fc_mk, fc_mf, fc_nf = _e()
+    # ---- per-cell targets (1-D over N_cells, wrapped to [1, N_cells]) ----
+    om = ocean_mask.ravel()
+    cxc = np.asarray(targets["darwin_lons"]); cyc = np.asarray(targets["darwin_lats"])
+    def _wrap(vals_N, mask_N):
+        t = torch.tensor(np.where(mask_N, vals_N, 0.0).astype(np.float32)[None], device=device)
+        mk = torch.tensor(mask_N[None], dtype=torch.bool, device=device)
+        mf = mk.to(torch.float32)
+        return t, mk, mf, mf.sum().clamp(min=1.0)
+    def _empty():
+        return _wrap(np.zeros(om.size, np.float32), np.zeros(om.size, bool))
+
+    # Dense Darwin POSi (POSI_DARWIN_W) — shape-generic, from native posi_binned.
+    _posi = np.asarray(targets.get("posi_binned", np.full((1, om.size), np.nan))).ravel()
+    _pd_mask = om & np.isfinite(_posi) & (_posi > 0)
+    pd_t, pd_mk, pd_mf, pd_nf = _wrap(_posi, _pd_mask)
+    n_posi_dw = int(_pd_mask.sum())
+
+    # GEOTRACES dissolved iron (surface <=50 m, subsurface 50–1000 m) → nearest
+    # native cell (KDTree on per-cell xc/yc), accumulate mean per cell.
+    n_geo_surf = n_geo_sub = 0
+    g_st, g_smk, g_smf, g_snf = _empty(); g_bt, g_bmk, g_bmf, g_bnf = _empty()
+    if GEOTRACES_W > 0 or GEOTRACES_SUB_W > 0:
+        from scipy.spatial import cKDTree
+        geo_aoi = subset_aoi_geotraces(open_geotraces_bottle(GEOTRACES_NC), aoi)
+        n_st = geo_aoi.sizes["N_STATIONS"]; n_sa = geo_aoi.sizes["N_SAMPLES"]
+        g_lats = np.broadcast_to(geo_aoi.latitude.values[:, None], (n_st, n_sa)).ravel()
+        g_lons = np.broadcast_to(geo_aoi.longitude.values[:, None], (n_st, n_sa)).ravel()
+        g_dep = geo_aoi.DEPTH.values.ravel()
+        g_fe = geo_aoi.Fe_D_CONC.values.ravel()
+        g_qc = geo_aoi.Fe_D_CONC_qc.values.ravel()
+        _qc = np.array((49, 50))
+        finite = (np.isfinite(g_fe) & np.isfinite(g_lats) & np.isfinite(g_lons)
+                  & np.isfinite(g_dep) & np.isin(g_qc, _qc.astype(g_qc.dtype)))
+        tree = cKDTree(np.column_stack([cxc, cyc]))
+        def _bin_obs(keep):
+            if int(keep.sum()) == 0:
+                return np.zeros(om.size, np.float32), np.zeros(om.size, bool)
+            _, idx = tree.query(np.column_stack([g_lons[keep], g_lats[keep]]))
+            fe = g_fe[keep] * 1025.0 * 1.0e-6   # nmol/kg -> mmol/m^3
+            s = np.zeros(om.size); c = np.zeros(om.size)
+            np.add.at(s, idx, fe); np.add.at(c, idx, 1.0)
+            nz = c > 0
+            out = np.zeros(om.size, np.float32); out[nz] = (s[nz] / c[nz]).astype(np.float32)
+            return out, (nz & om)
+        _sv, _sm = _bin_obs(finite & (g_dep <= 50.0))
+        _bv, _bm = _bin_obs(finite & (g_dep >= SUB_DEPTH_MIN) & (g_dep <= SUB_DEPTH_MAX))
+        g_st, g_smk, g_smf, g_snf = _wrap(_sv, _sm)
+        g_bt, g_bmk, g_bmf, g_bnf = _wrap(_bv, _bm)
+        n_geo_surf = int(_sm.sum()); n_geo_sub = int(_bm.sum())
+        print(f"  [native] GEOTRACES iron cells: surf={n_geo_surf}, sub={n_geo_sub}")
+
+    # Still-gated terms → empty placeholders.
+    gp_t, gp_mk, gp_mf, gp_nf = _empty(); pa_t, pa_mk, pa_mf, pa_nf = _empty()
+    oa_t, oa_mk, oa_mf, oa_nf = _empty(); aa_t, aa_mk, aa_mf, aa_nf = _empty()
+    rt_, rmk, rmf, rnf = _empty(); ps_t, ps_mk, ps_mf, ps_nf = _empty()
+    fc_t, fc_mk, fc_mf, fc_nf = _empty()
 
     return {
         "key": aoi_key, "aoi": aoi, "H": H, "W": W,
@@ -688,14 +733,14 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         "primprod_z": None, "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
         "geo_surf_target_t": g_st, "geo_surf_mask_t": g_smk, "geo_surf_mask_f": g_smf, "n_geo_surf_f": g_snf,
         "geo_sub_target_t": g_bt, "geo_sub_mask_t": g_bmk, "geo_sub_mask_f": g_bmf, "n_geo_sub_f": g_bnf,
-        "n_geo_surf": 0, "n_geo_sub": 0,
+        "n_geo_surf": n_geo_surf, "n_geo_sub": n_geo_sub,
         "geo_poc_target_t": gp_t, "geo_poc_mask_t": gp_mk, "geo_poc_mask_f": gp_mf, "n_geo_poc_f": gp_nf, "n_geo_poc": 0,
         "pic_abs_target_t": pa_t, "pic_abs_mask_t": pa_mk, "pic_abs_mask_f": pa_mf, "n_pic_abs_f": pa_nf, "n_pic_abs": 0,
         "poc_abs_target_t": oa_t, "poc_abs_mask_t": oa_mk, "poc_abs_mask_f": oa_mf, "n_poc_abs_f": oa_nf, "n_poc_abs": 0,
         "alk_abs_target_t": aa_t, "alk_abs_mask_t": aa_mk, "alk_abs_mask_f": aa_mf, "n_alk_abs_f": aa_nf, "n_alk_abs": 0,
         "ratio_target_t": rt_, "ratio_mask_t": rmk, "ratio_mask_f": rmf, "n_ratio_f": rnf, "n_ratio": 0,
         "posi_target_t": ps_t, "posi_mask_t": ps_mk, "posi_mask_f": ps_mf, "n_posi_f": ps_nf, "n_posi": 0,
-        "posi_dw_target_t": pd_t, "posi_dw_mask_t": pd_mk, "posi_dw_mask_f": pd_mf, "n_posi_dw_f": pd_nf, "n_posi_dw": 0,
+        "posi_dw_target_t": pd_t, "posi_dw_mask_t": pd_mk, "posi_dw_mask_f": pd_mf, "n_posi_dw_f": pd_nf, "n_posi_dw": n_posi_dw,
         "f_co2_abs_target_t": fc_t, "f_co2_abs_mask_t": fc_mk, "f_co2_abs_mask_f": fc_mf, "n_f_co2_abs_f": fc_nf, "n_f_co2_abs": 0,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
