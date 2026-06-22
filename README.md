@@ -11,6 +11,8 @@
 
 [Status][status_url] · [Setup](#setup) · [Reproduce](#reproduce) · [Cite](#how-to-cite) · [Acknowledgements](#acknowledgements)
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb)
+
 A PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in which gradients flow through every step of the simulation, so a single loss surface can learn the parameters that Carroll's Green's-functions calibration tunes one-at-a-time — predicted per grid cell from local environmental conditions. Manuscript in preparation.
 
 </div>
