@@ -77,7 +77,8 @@ peak_GiB = 356 B/(cell·step) × horizontal_cells × steps × batch / 2^30
 
 - The **356 B/(cell·step)** constant already folds in all **15 tracers**, **2 layers** (one 15-vector 2-layer column *is* the "cell" — do not ×2 for layers), and the full reverse-mode autograd intermediate set (≈5.9× the bare 60-B state). Anchor: 356 × 64e6 / 2³⁰ = 21.22 GiB ✓.
 - Units are **GiB (÷2³⁰)**. **Batch (seeds) is a separate multiplier** — batched ≡ sequential, exact 0.0 diff.
-- The constant is **eager-only** (`torch.compile` can't run on the Windows laptop), so **356 is a conservative upper bound** — compiled is likely lower (UNMEASURED). Every "fits / doesn't fit" verdict near a tier ceiling is an upper-bound verdict.
+- The constant is **eager-only** on the Windows laptop, so **356 is the conservative upper bound**.
+- **MEASURED 2026-06-23 — compiled constant (Explorer H200).** Under `torch.compile`, `peak = 13.1 MB + **82.9 B/(cell·step)**` (R²=0.99485, n=20; `docs/findings/memory_scaling_compiled.md`). That is **4.3× below the eager 356**, confirming the standing "compiled is lower" caveat. **Production runs compiled, so 82.9 is the planning constant**; 356 stays as the safe upper bound. The §3 master table is still computed on 356 and is therefore an **eager upper bound pending full re-derivation** (paired with the native/seasonal wall-clock-under-compile measurement — the rest of #119). Headline tier shifts at 82.9: **T3 native seasonal ×1 → ~6.0 GiB (fits the owned 5090, not just an H200)**; **T4 native seasonal ×10 (~60 GiB) and T7 global LLC270 seasonal ×1 (~84 GiB, ocean basis) both fit one H200 with no checkpointing** (eager put them on a B200 + ckpt). Materially **de-risks the AICR/B200 dependency** for the seasonal ladder.
 
 **Wall-clock laws (MEASURED):**
 
@@ -233,7 +234,7 @@ Runnable path; oversized = checkpoint-onto-one or decompose (sharding not built)
 - **B200 not onboarded until ~July 2026** (sourced to project memory, not the cluster docs). Keep separate from the technical (sharding) blocker. AICR is **Northeastern's** AI Compute Resource, **not** an MIT-ORCD / Engaging follow-on (`cluster_setup.md:15`).
 
 **Measurement gaps making verdicts upper-bounds:**
-- **Compiled memory constant UNMEASURED** (eager 356 only). 356 is a conservative upper bound; compiled likely lower. Bites near-boundary rows: T2/T3 (25.7 vs 24), T9-×10 / T10-×1 (30.9 vs 24) — compiled may drop some back onto the 5090.
+- **Compiled memory constant MEASURED 2026-06-23 (Explorer H200): 82.9 B/(cell·step)**, R²=0.99485 — **4.3× below eager 356** (`docs/findings/memory_scaling_compiled.md`). Confirms compiled is far lower; the §3 table's 356-based numbers are eager upper bounds pending re-derivation. Drops the near-boundary rows well under their ceilings — T2/T3 native ×1 → ~6 GiB (onto the 5090), T4/T7 seasonal → one H200 with no ckpt. **Still open (rest of #119):** native + seasonal **wall-clock** under compile (the eager 9.2 ms/step → ~46 min T1 claim), and the checkpoint factor beyond the single 5× datapoint.
 - **Native-×10-under-compile cell-sensitivity UNMEASURED.** All flat-in-cells data is *eager*; at native ×10 effective width ~400 k — unconfirmed whether compile reintroduces cell-sensitivity. Named thing-to-measure-on-Explorer.
 - **End-to-end native fit under `torch.compile` on Linux UNMEASURED** (eager 9.2 ms/step would make T1 ~46 min not 7 min).
 - **LLC90 wet count (~61 k) is the one ESTIMATE** among cell counts (repo never loads LLC90). 1°/native/LLC270-ocean(546,695) are all MEASURED.
