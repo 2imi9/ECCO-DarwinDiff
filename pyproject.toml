@@ -3,7 +3,11 @@ name = "darwindiff"
 version = "0.0.1"
 description = "Differentiable PyTorch reimplementation of ECCO-Darwin ocean biogeochemistry for emulation and parameter learning."
 readme = "README.md"
-requires-python = ">=3.11"
+# Upper bound: aiohttp (pulled in via argopy) has no cp314 wheel and its sdist
+# build fails on 3.14; a bare ">=3.11" lets a fresh `uv sync` pick 3.14 and break.
+# The committed .python-version pins 3.12 (known-good); this cap keeps the
+# constraint explicit and tooling-agnostic. See docs/cluster_setup.md.
+requires-python = ">=3.11,<3.14"
 license = { text = "MIT" }
 authors = [{ name = "Ziming Qi" }]
 keywords = [

@@ -66,6 +66,15 @@ export DARWIN_DATA_ROOT=/projects/schultz/ecco_darwin_v5  # LLC270 tree
 sbatch scripts/slurm/run_explorer_gpu.sbatch              # H200 job (defaults to the multi-AOI trainer)
 ```
 
+> **Python pin (required).** The repo commits `.python-version` = `3.12`, which `uv`
+> honors for both `uv sync` and `uv run`. Do **not** remove it: with only
+> `requires-python = ">=3.11"`, a fresh `uv sync` selects Python 3.14, where
+> `aiohttp` (pulled in transitively by `argopy`) has no cp314 wheel and its sdist
+> build fails — this is what broke the first Explorer build (unblocked by
+> `uv python pin 3.12`, now committed). Under 3.12, `uv sync --all-extras` resolves
+> to all-binary wheels (no source builds). `pyproject.toml` also caps
+> `requires-python` at `<3.14` so the constraint holds even without the pin file.
+
 ### Data transfer (~1.5 TB tree → Explorer)
 
 - **Globus** is the practical path for the full tree (NU has a Globus endpoint; confirm the collection name with RC). Destination: `/projects/schultz/ecco_darwin_v5`.
