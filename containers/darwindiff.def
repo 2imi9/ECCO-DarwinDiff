@@ -1,0 +1,59 @@
+Bootstrap: docker
+From: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+# DarwinDiff portable environment (Apptainer/Singularity).
+# Bakes the Python 3.12 + PyTorch-cu128 env (uv sync --frozen against the
+# committed uv.lock), so the same image runs on Explorer H200 (sm_90) and
+# AICR B200 (sm_100) — cu128 wheels carry both. Code/data are bind-mounted at
+# run time; only the env + the darwindiff package are baked in.
+#
+# Build (inside a Slurm job — the login node's watchdog kills the uv sync, and
+# NFS /projects can't host the build temp; use node-local $TMPDIR):
+#   sbatch containers/build_sif.sbatch
+# Run a GPU job (bind the repo over /work):
+#   apptainer exec --nv --bind $PWD:/work containers/darwindiff.sif \
+#       python /work/scripts/measure_memory_scaling.py --compile
+
+%files
+    pyproject.toml /opt/darwindiff/pyproject.toml
+    uv.lock /opt/darwindiff/uv.lock
+    .python-version /opt/darwindiff/.python-version
+    README.md /opt/darwindiff/README.md
+    src /opt/darwindiff/src
+
+%post
+    set -eux
+    # torch.compile (inductor/triton) JIT-compiles a CUDA kernel launcher at run
+    # time and needs a host C/C++ compiler; the uv slim base omits it. Without
+    # this, `--compile` runs fail with "Failed to find C compiler".
+    apt-get update
+    apt-get install -y --no-install-recommends build-essential
+    rm -rf /var/lib/apt/lists/*
+
+    cd /opt/darwindiff
+    export UV_CACHE_DIR=/tmp/uvcache
+    export UV_PROJECT_ENVIRONMENT=/opt/darwindiff/.venv
+    export UV_LINK_MODE=copy
+    # Deterministic: resolve exactly to the committed lock (no re-resolution).
+    uv sync --frozen --all-extras
+    rm -rf /tmp/uvcache
+    # Sanity: the package imports (CPU-only at build time; CUDA checked at run).
+    /opt/darwindiff/.venv/bin/python -c "import torch, darwindiff; print('torch', torch.__version__)"
+
+%environment
+    export PATH=/opt/darwindiff/.venv/bin:$PATH
+    export PYTHONUNBUFFERED=1
+    export UV_PROJECT_ENVIRONMENT=/opt/darwindiff/.venv
+
+%runscript
+    exec /opt/darwindiff/.venv/bin/python "$@"
+
+%labels
+    org.darwindiff.python 3.12
+    org.darwindiff.torch cu128
+    org.darwindiff.purpose "DarwinDiff differentiable box env (Explorer H200 / AICR B200)"
+
+%help
+    DarwinDiff env image. Run with --nv for GPU and bind the repo:
+      apptainer exec --nv --bind /projects/schultz/qi.zim/ecco-darwindiff:/work \
+        darwindiff.sif python /work/scripts/<script>.py

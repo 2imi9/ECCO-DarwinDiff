@@ -6,3 +6,6 @@
 
 # Lockfile: stable LF, no autocrlf churn.
 uv.lock    text eol=lf
+
+# Apptainer definition files (shell-like; keep LF).
+*.def      text eol=lf
