@@ -41,7 +41,7 @@ H100 / L40S exist but are PI-owned (need that PI's permission). Cluster totals: 
 ### Partitions & GPU request
 
 - Batch: `--partition=gpu`; interactive: `--partition=gpu-interactive`.
-- Type-pinned request: `--gres=gpu:<type>:<n>`, e.g. `--gres=gpu:h200:1`. **Confirm the exact type token on first login** (`sinfo -o "%P %l %G"`); the docs spell out only `v100-sxm2` / `v100-pcie` verbatim.
+- Type-pinned request: `--gres=gpu:h200:1` — documented **verbatim** in the [H200 quick-start guide](https://rc-docs.northeastern.edu/en/explorer-main/gpus/quickstart-h200.html) (verified 2026-06-23), which also confirms the `gpu` (batch) / `gpu-interactive` (srun) partitions. Still confirm on first login: the A100 fallback token (`gpu:a100:1`) and the partition wall-time cap (`sinfo -o "%P %l %G"`).
 - The `gpu` partition caps at **1 GPU per request** — fine for one native fit (1× H200 = 144 GB ≥ the ~63 GB LLC270 time-mean peak); the later multi-GPU seasonal sweep needs a different partition (ask `rchelp@northeastern.edu`).
 
 ### Storage

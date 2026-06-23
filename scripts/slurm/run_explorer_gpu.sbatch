@@ -10,9 +10,10 @@
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 #
-# CONFIRM-ON-FIRST-LOGIN: the NU docs spell out only the v100-sxm2 / v100-pcie
-# gres tokens verbatim. Verify the H200/A100 token and the partition wall-time
-# cap with:  sinfo -o "%P %l %G"   (then fix the two lines above if needed).
+# VERIFIED 2026-06-23 against rc-docs gpus/quickstart-h200.html: the `gpu:h200:1`
+# token and the `gpu` (batch) / `gpu-interactive` (srun) partitions are documented
+# verbatim. STILL confirm on first login: the A100 fallback token (gpu:a100:1) and
+# the partition wall-time cap, with:  sinfo -o "%P %l %G"
 #
 # The `gpu` partition caps at 1 GPU/request — fine for a single native-resolution
 # fit (1x H200 = 144GB >= the ~63 GB LLC270 time-mean peak measured in
@@ -20,9 +21,16 @@
 # different partition — ask RC (rchelp@northeastern.edu).
 #
 # Run one DarwinDiff entry point on an Explorer GPU node (default: the multi-AOI
-# trainer). Pass env-var levers through your environment, e.g.:
+# trainer). Pass env-var levers through your environment, and/or CLI flags as
+# trailing args (forwarded verbatim to the script), e.g.:
 #   AOIS=eqpac,natlsubpolar,southernoceanpac NB23_SEEDS="0-9" \
 #     sbatch scripts/slurm/run_explorer_gpu.sbatch scripts/run_v3.0_joint_multi_aoi.py
+#   # issue #119 — compiled memory constant + scaling:
+#   sbatch scripts/slurm/run_explorer_gpu.sbatch scripts/measure_memory_scaling.py \
+#     --compile --md docs/findings/memory_scaling_compiled.md
+#   # native-resolution fit under compile (wall-clock for #119):
+#   sbatch scripts/slurm/run_explorer_gpu.sbatch scripts/run_seasonal_recovery.py \
+#     --mode time-mean --compile
 #
 # Explorer = Northeastern RC general HPC. NOT MIT ORCD (run_notebook.sbatch);
 # NOT NU AICR/B200. See docs/cluster_setup.md.
@@ -30,6 +38,7 @@
 set -euo pipefail
 
 SCRIPT="${1:-scripts/run_v3.0_joint_multi_aoi.py}"
+shift 2>/dev/null || true   # remaining args (e.g. --compile) pass through to the script
 cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 
 if [[ ! -f "$SCRIPT" ]]; then
@@ -56,5 +65,5 @@ uv sync --all-extras
 # Sanity: GPU visible to torch?
 uv run python -c "import torch; assert torch.cuda.is_available(), 'no CUDA'; print('GPU:', torch.cuda.get_device_name(0))"
 
-uv run python "$SCRIPT"
+uv run python "$SCRIPT" "$@"
 echo "Done: $SCRIPT"
