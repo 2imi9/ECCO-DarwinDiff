@@ -23,9 +23,11 @@ launch bound, ~0 % GPU util)** or **rising (compute bound)**. That single fact d
 whether a B200 shortens a *single* fit (compute-bound) or only the *sweep* via
 concurrency (launch-bound) — the core of the throughput-vs-memory framing.
 
-**Eager mode**, like the 356 B/(cell·step) memory constant: ``torch.compile`` can't run
-on the Windows laptop, so these are an eager upper bound; the production 10-seed batched
-path uses compile (≈7 min for 10 seeds vs ~70 min serial) and is faster.
+**Eager by default; ``--compile`` for the production constant.** Like the 356 B/(cell·step)
+memory constant, the default sweep is an eager upper bound (``torch.compile`` needs
+Linux). Pass ``--compile`` (on WSL / the cluster) to ``torch.compile`` the per-step and
+measure the *compiled* per-epoch cost the production 10-seed batched path actually pays —
+the number the AICR throughput ask should quote, not the eager upper bound.
 
 Run::
 
@@ -54,7 +56,10 @@ from measure_memory_scaling import (  # type: ignore[import-not-found]
     _build_inputs,
 )
 
-from darwindiff.carroll6_5pft_2layer import carroll6_5pft_2layer_integrate
+from darwindiff.carroll6_5pft_2layer import (
+    carroll6_5pft_2layer_integrate,
+    carroll6_5pft_2layer_step,
+)
 
 # --- Anchors that tie the synthetic sweep back to real measured fits ---------
 # Measured 1° wall-clock (cluster_setup.md:194,197, RTX 5090):
@@ -94,19 +99,23 @@ def _sync(device: torch.device) -> None:
         torch.cuda.synchronize(device)
 
 
-def _time_once(dinn, env, state0, forcing, n_steps, device, *, backward: bool) -> float:
+def _time_once(
+    dinn, env, state0, forcing, n_steps, device, *, backward: bool, step_fn=None,
+) -> float:
     """One timed forward (+backward) pass. Caller handles warmup + sync fencing."""
     _sync(device)
     t0 = time.perf_counter()
     if backward:
         params = _bounded(dinn(env), device, env.dtype)
-        final = carroll6_5pft_2layer_integrate(state0, params, DT_DAYS, n_steps, **forcing)
+        final = carroll6_5pft_2layer_integrate(state0, params, DT_DAYS, n_steps,
+                                               step_fn=step_fn, **forcing)
         loss = final.pow(2).mean()
         loss.backward()
     else:
         with torch.no_grad():
             params = _bounded(dinn(env), device, env.dtype)
-            carroll6_5pft_2layer_integrate(state0, params, DT_DAYS, n_steps, **forcing)
+            carroll6_5pft_2layer_integrate(state0, params, DT_DAYS, n_steps,
+                                           step_fn=step_fn, **forcing)
     _sync(device)
     return time.perf_counter() - t0
 
@@ -121,26 +130,33 @@ def measure_time(
     hidden_dim: int = 16,
     device: torch.device | str = "cuda",
     dtype: torch.dtype = torch.float32,
+    use_compile: bool = False,
 ) -> TimeRecord:
     """Time one train epoch (fwd+bwd) and a forward-only pass at this size.
 
-    Warmup passes absorb CUDA context init, allocator growth, and cuDNN autotune so the
-    timed repeats reflect steady-state per-epoch cost. OOM is recorded, not raised.
+    Warmup passes absorb CUDA context init, allocator growth, cuDNN autotune, AND (with
+    ``use_compile``) the first-call ``torch.compile`` trace/inductor build, so the timed
+    repeats reflect steady-state per-epoch cost. OOM is recorded, not raised.
     """
     device = torch.device(device)
+    # Compile the per-step (the production batched path, #119); the warmup passes below
+    # absorb the one-time compile cost so the timed repeats are the compiled steady state.
+    step_fn = torch.compile(carroll6_5pft_2layer_step, mode="default") if use_compile else None
     try:
         dinn, env, state0, forcing = _build_inputs(n_cells, n_channels, hidden_dim, device, dtype)
 
         for _ in range(warmup):
-            _time_once(dinn, env, state0, forcing, n_steps, device, backward=True)
+            _time_once(dinn, env, state0, forcing, n_steps, device, backward=True, step_fn=step_fn)
             dinn.zero_grad(set_to_none=True)
 
         train = []
         for _ in range(repeats):
-            train.append(_time_once(dinn, env, state0, forcing, n_steps, device, backward=True))
+            train.append(_time_once(dinn, env, state0, forcing, n_steps, device,
+                                    backward=True, step_fn=step_fn))
             dinn.zero_grad(set_to_none=True)
 
-        fwd = [_time_once(dinn, env, state0, forcing, n_steps, device, backward=False)
+        fwd = [_time_once(dinn, env, state0, forcing, n_steps, device,
+                          backward=False, step_fn=step_fn)
                for _ in range(repeats)]
 
         del dinn, env, state0, forcing
@@ -179,7 +195,11 @@ def fit_per_step_vs_cells(records: list[TimeRecord], at_steps: int) -> dict[str,
     sx, sy = sum(xs), sum(ys)
     sxx = sum(x * x for x in xs)
     sxy = sum(x * y for x, y in zip(xs, ys, strict=True))
-    b = (n * sxy - sx * sy) / (n * sxx - sx * sx)
+    denom = n * sxx - sx * sx
+    if denom == 0:  # all cell counts identical (e.g. a single---cells smoke) -> slope undefined
+        return {"a_s": float("nan"), "b_s_per_cell": float("nan"), "r2": float("nan"),
+                "n": float(n), "at_steps": float(at_steps)}
+    b = (n * sxy - sx * sy) / denom
     a = (sy - b * sx) / n
     mean_y = sy / n
     ss_tot = sum((y - mean_y) ** 2 for y in ys)
@@ -198,12 +218,13 @@ def _fmt(s: float | None) -> str:
     return f"{s / 60:.1f} min"
 
 
-def _render_markdown(records, cellfit, device_name, total_mem_gb) -> str:
+def _render_markdown(records, cellfit, device_name, total_mem_gb, compiled=False) -> str:
+    mode = "torch.compile'd per-step" if compiled else "eager autograd"
     lines: list[str] = []
     lines.append("# Measured wall-clock scaling — native / seasonal compute timing\n")
     lines.append(
         "Generated by `scripts/measure_compute_time.py`. Median wall-clock of one "
-        "`DINN → integrate → loss → backward` epoch (eager autograd) vs problem size. "
+        f"`DINN → integrate → loss → backward` epoch ({mode}) vs problem size. "
         "Timing of a fixed graph is value-independent, so synthetic inputs reproduce a "
         "real fit's per-epoch cost at matched shapes.\n"
     )
@@ -250,6 +271,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--channels", type=int, default=3)
     p.add_argument("--out", type=Path, default=None)
     p.add_argument("--md", type=Path, default=None)
+    p.add_argument("--compile", action="store_true",
+                   help="torch.compile the per-step -> measure the COMPILED per-epoch cost "
+                        "(production path, #119; Linux/WSL only, eager otherwise)")
     args = p.parse_args(argv)
 
     device = torch.device(args.device)
@@ -257,7 +281,8 @@ def main(argv: list[str] | None = None) -> int:
                    else f"CPU ({platform.processor() or platform.machine()})")
     total_mem_gb = (torch.cuda.get_device_properties(device).total_memory / 1024**3
                     if device.type == "cuda" else None)
-    print(f"device: {device_name}" + (f" — {total_mem_gb:.1f} GB" if total_mem_gb else " (CPU)"))
+    print(f"device: {device_name}" + (f" — {total_mem_gb:.1f} GB" if total_mem_gb else " (CPU)")
+          + f"  [{'compiled' if args.compile else 'eager'}]")
 
     records: list[TimeRecord] = []
 
@@ -265,7 +290,8 @@ def main(argv: list[str] | None = None) -> int:
     for n_steps in args.steps:
         for n_cells in args.cells:
             r = measure_time(n_cells, n_steps, repeats=args.repeats, warmup=args.warmup,
-                             n_channels=args.channels, hidden_dim=args.hidden_dim, device=device)
+                             n_channels=args.channels, hidden_dim=args.hidden_dim, device=device,
+                             use_compile=args.compile)
             records.append(r)
             print(f"  cells={n_cells:>7,} steps={n_steps:>4}  train={_fmt(r.train_median_s):>9}"
                   f"  per-step={'—' if r.per_step_ms is None else f'{r.per_step_ms:.3f}ms'}"
@@ -274,7 +300,8 @@ def main(argv: list[str] | None = None) -> int:
     print("step-scaling sweep (fixed cells):")
     for n_steps in args.step_sweep:
         r = measure_time(args.step_sweep_cells, n_steps, repeats=args.repeats, warmup=args.warmup,
-                         n_channels=args.channels, hidden_dim=args.hidden_dim, device=device)
+                         n_channels=args.channels, hidden_dim=args.hidden_dim, device=device,
+                         use_compile=args.compile)
         records.append(r)
         per_step = "—" if r.per_step_ms is None else f"{r.per_step_ms:.3f}ms"
         print(f"  cells={args.step_sweep_cells:>7,} steps={n_steps:>4}  "
@@ -293,14 +320,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps({
-            "device": device_name, "total_mem_gb": total_mem_gb,
+            "device": device_name, "total_mem_gb": total_mem_gb, "compiled": args.compile,
             "records": [asdict(r) for r in records], "cell_fit": cellfit,
         }, indent=2), encoding="utf-8")
         print(f"wrote {args.out}")
     if args.md:
         args.md.parent.mkdir(parents=True, exist_ok=True)
-        args.md.write_text(_render_markdown(records, cellfit, device_name, total_mem_gb),
-                           encoding="utf-8")
+        args.md.write_text(
+            _render_markdown(records, cellfit, device_name, total_mem_gb, args.compile),
+            encoding="utf-8")
         print(f"wrote {args.md}")
     return 0
 

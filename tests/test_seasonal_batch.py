@@ -74,3 +74,37 @@ def test_integrator_seed_batch_is_independent() -> None:
             constant_state0((H, W)), params[:, s], DT, T, Sal, wind, steps_per_month=2,
         )
         assert torch.allclose(snaps_batched[:, :, s], snaps_s, atol=1e-5), s
+
+
+def test_step_fn_injection_is_bit_identical() -> None:
+    """Injecting ``step_fn=<the module step>`` must reproduce the default path exactly.
+
+    This is the contract that lets the batched/compiled runner thread a
+    ``torch.compile``'d per-step through the integrators (#115/#119): a custom
+    ``step_fn`` only swaps the kernel, never the numerics.
+    """
+    from darwindiff.carroll6_5pft_2layer import (
+        carroll6_5pft_2layer_integrate,
+        carroll6_5pft_2layer_step,
+    )
+
+    torch.manual_seed(3)
+    T = 15.0 + torch.randn(12, H, W)
+    Sal = 35.0 + 0.1 * torch.randn(12, H, W)
+    wind = 5.0 + torch.rand(12, H, W)
+    params = bounded_params(torch.randn(6, S, H, W), PARAM_BOUNDS)
+    st0 = constant_state0((S, H, W))
+
+    seasonal_default = carroll6_5pft_2layer_integrate_seasonal(
+        st0, params, DT, T, Sal, wind, steps_per_month=2,
+    )
+    seasonal_injected = carroll6_5pft_2layer_integrate_seasonal(
+        st0, params, DT, T, Sal, wind, steps_per_month=2, step_fn=carroll6_5pft_2layer_step,
+    )
+    assert torch.equal(seasonal_default, seasonal_injected)
+
+    tm_default = carroll6_5pft_2layer_integrate(st0, params, DT, 5, T=T[0], S=Sal[0], wind=wind[0])
+    tm_injected = carroll6_5pft_2layer_integrate(
+        st0, params, DT, 5, T=T[0], S=Sal[0], wind=wind[0], step_fn=carroll6_5pft_2layer_step,
+    )
+    assert torch.equal(tm_default, tm_injected)

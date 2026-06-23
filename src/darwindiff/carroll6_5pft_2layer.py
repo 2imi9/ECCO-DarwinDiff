@@ -67,6 +67,8 @@ Used by ``scripts/run_v2.7_multilayer_quick.py``.
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import torch
 
 from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
@@ -496,6 +498,7 @@ def carroll6_5pft_2layer_integrate(
     h2: float = H2,
     kz_m2_per_day: float = KZ_M2_PER_DAY,
     r_remin: float = R_REMIN,
+    step_fn: Callable[..., torch.Tensor] | None = None,
 ) -> torch.Tensor:
     """Forward-Euler integration of the 15-tracer 2-layer Carroll-6 + carbonate box.
 
@@ -517,17 +520,20 @@ def carroll6_5pft_2layer_integrate(
         Final state shape ``[15, ...]`` when ``snapshot_indices is None``,
         else stacked snapshots.
     """
+    # ``step_fn`` lets a caller inject a torch.compile'd per-step (the batched/
+    # compiled runner path, #115/#119); default is the eager module step.
+    _step = step_fn if step_fn is not None else carroll6_5pft_2layer_step
     state = state0
     if snapshot_indices is None:
         for _ in range(n_steps):
-            state = carroll6_5pft_2layer_step(
+            state = _step(
                 state, params, dt, T, S, wind, pco2_atm, h1, h2, kz_m2_per_day, r_remin,
             )
         return state
     snapshot_set = set(snapshot_indices)
     snaps: list[torch.Tensor] = []
     for step in range(1, n_steps + 1):
-        state = carroll6_5pft_2layer_step(
+        state = _step(
             state, params, dt, T, S, wind, pco2_atm, h1, h2, kz_m2_per_day, r_remin,
         )
         if step in snapshot_set:
@@ -557,6 +563,7 @@ def carroll6_5pft_2layer_integrate_seasonal(
     h2: float = H2,
     kz_m2_per_day: float = KZ_M2_PER_DAY,
     r_remin: float = R_REMIN,
+    step_fn: Callable[..., torch.Tensor] | None = None,
 ) -> torch.Tensor:
     """Integrate a transient annual cycle with month-varying forcing.
 
@@ -612,6 +619,9 @@ def carroll6_5pft_2layer_integrate_seasonal(
     if spm < 1:
         raise ValueError(f"steps_per_month must be >= 1, got {spm}")
 
+    # ``step_fn`` lets a caller inject a torch.compile'd per-step (the batched/
+    # compiled seasonal runner, #115/#119); default is the eager module step.
+    _step = step_fn if step_fn is not None else carroll6_5pft_2layer_step
     state = state0
     recorded: list[torch.Tensor] = []
     for cycle in range(n_spinup_cycles + 1):
@@ -622,7 +632,7 @@ def carroll6_5pft_2layer_integrate_seasonal(
             s_m = S_monthly[month]
             w_m = wind_monthly[month]
             for _ in range(spm):
-                state = carroll6_5pft_2layer_step(
+                state = _step(
                     state, params, dt, t_m, s_m, w_m, pco2_atm, h1, h2,
                     kz_m2_per_day, r_remin,
                 )
