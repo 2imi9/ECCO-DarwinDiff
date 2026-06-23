@@ -123,3 +123,9 @@ scripts/*.npz
 
 # MkDocs local build output (the published site is built by Read the Docs)
 /site/
+
+# Apptainer/Singularity images + build artifacts (images are multi-GB and are
+# built on the cluster; rebuild from containers/darwindiff.def)
+containers/*.sif
+containers/build_*.out
+containers/.sif_jobid
