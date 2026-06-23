@@ -45,6 +45,9 @@ fi
 uv --version
 
 echo "[3/4] Syncing DarwinDiff dependencies (PyTorch cu128 wheels)..."
+# The committed .python-version pins Python 3.12 (uv honors it for sync + run).
+# Required: a bare ">=3.11" lets uv pick 3.14, where aiohttp (via argopy) has no
+# cp314 wheel and its sdist build fails. 3.12 resolves to all-binary wheels.
 uv sync --all-extras
 
 echo "[4/4] Running test suite..."

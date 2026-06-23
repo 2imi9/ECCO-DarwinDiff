@@ -1,0 +1,8 @@
+# Keep shell / SLURM scripts LF so they run on the Linux cluster.
+# (sbatch rejects DOS line breaks; the first Explorer job failed on a CRLF .sbatch.)
+*.sh       text eol=lf
+*.bash     text eol=lf
+*.sbatch   text eol=lf
+
+# Lockfile: stable LF, no autocrlf churn.
+uv.lock    text eol=lf
