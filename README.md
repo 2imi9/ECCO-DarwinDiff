@@ -225,7 +225,7 @@ Contributions are welcome. Please read **[CONTRIBUTING.md](CONTRIBUTING.md)** fi
 Institutional acknowledgements for the in-development repository (individual credits to follow in the manuscript):
 
 - **MIT Department of Earth, Atmospheric, and Planetary Sciences (EAPS)** — research collaboration on ECCO-Darwin and the differentiable-physics parameter-learning approach.
-- **Northeastern Research Computing** (Explorer H200) and the **MIT Office of Research Computing and Data (ORCD)** — cluster compute for native-resolution recovery.
+- **Northeastern Research Computing** — the **Explorer** (H200) and **AICR** (B200) clusters for native-resolution and throughput parameter-recovery runs.
 - **JPL ECCO Group** and the **NASA Advanced Supercomputing (NAS)** division — ECCO-Darwin v05 outputs.
 - **GLODAP**, **GEOTRACES**, and the **NASA GHG Center** — observational data products that are active recovery targets.
 
