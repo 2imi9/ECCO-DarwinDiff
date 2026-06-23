@@ -22,10 +22,11 @@
 #  1. DEV ON EXPLORER FIRST. AICR policy is: develop + test on Explorer, then use
 #     AICR for production runs only (shared MGHPCC resource).
 #
-#  2. IDLE-GPU REAPER. A monitor cancels jobs whose GPU sits idle. The seasonal
-#     integrator is currently Python-loop-bound (GPU ~0% util), so it WILL be
-#     killed here until it is batched + torch.compile'd. Do not run the seasonal
-#     runner on AICR before that fix lands; the time-mean / batched paths are fine.
+#  2. IDLE-GPU REAPER. A monitor cancels jobs whose GPU sits idle. run_seasonal_recovery.py
+#     now batches seeds + torch.compile's the per-step (#115/#119), so ALWAYS pass
+#     --n-seeds >1 and --compile (as the default workload and the examples below do):
+#     that saturates the GPU. A bare single-seed eager run is Python-loop-bound
+#     (~0% util) and WILL be reaped.
 #
 #  3. MULTI-GPU IS NOT AUTOMATIC. DarwinDiff is per-cell (embarrassingly parallel),
 #     so prefer MANY single-GPU array jobs (--gres=gpu:1 + --array) over one DDP
@@ -44,8 +45,9 @@
 #
 # Usage:
 #   sbatch scripts/slurm/run_aicr_b200.sbatch                       # default workload below
-#   sbatch scripts/slurm/run_aicr_b200.sbatch python scripts/run_seasonal_recovery.py --aoi natlsubpolar
-#   sbatch --array=0-9 scripts/slurm/run_aicr_b200.sbatch python scripts/run_seasonal_recovery.py --seed "$SLURM_ARRAY_TASK_ID"
+#   sbatch scripts/slurm/run_aicr_b200.sbatch python scripts/run_seasonal_recovery.py --aoi natlsubpolar --n-seeds 10 --compile --out-dir runs/seasonal/natl
+#   # throughput: 10 array jobs x 10 seeds = 100 non-overlapping seeds
+#   sbatch --array=0-9 scripts/slurm/run_aicr_b200.sbatch python scripts/run_seasonal_recovery.py --seed "$((SLURM_ARRAY_TASK_ID*10))" --n-seeds 10 --compile --out-dir "runs/seasonal/arr_$SLURM_ARRAY_TASK_ID"
 
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
@@ -70,11 +72,16 @@ uv run python -c "import torch; assert torch.cuda.is_available(), 'no CUDA'; \
 print('GPU:', torch.cuda.get_device_name(0)); \
 print('matmul ok:', bool((torch.randn(8,8,device='cuda') @ torch.randn(8,8,device='cuda')).sum().isfinite()))"
 
-# Default workload: a full-length single-AOI fit. Pass any command to override.
+# Default workload: a full-length 10-seed batched + compiled single-AOI fit, then
+# gate the artifacts through the verified loop (exit nonzero => no trustworthy result).
+# Pass any command to override.
 if [[ $# -gt 0 ]]; then
     uv run "$@"
 else
-    uv run python scripts/run_seasonal_recovery.py --aoi eqpac --mode time-mean --epochs 1500
+    OUT="runs/seasonal/eqpac_timemean_${SLURM_JOB_ID:-local}"
+    uv run python scripts/run_seasonal_recovery.py --aoi eqpac --mode time-mean \
+        --epochs 1500 --n-seeds 10 --compile --out-dir "$OUT"
+    uv run python scripts/verify_run.py "$OUT"
 fi
 
 echo "Done."

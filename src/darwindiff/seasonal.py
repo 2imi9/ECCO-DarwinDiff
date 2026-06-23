@@ -11,6 +11,8 @@ cancel), per the PFT→state-index mapping in :data:`PFT_TO_STATE_IDX`.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import torch
 
 from darwindiff.carroll6_5pft_2layer import (
@@ -21,6 +23,7 @@ from darwindiff.carroll6_5pft_2layer import (
     I_SYN,
     N_TRACERS_2LAYER,
 )
+from darwindiff.diagnostics import band_of
 
 # Box phyto-tracer index for each Darwin Chl PFT (Chl1..Chl5).
 PFT_TO_STATE_IDX: tuple[int, ...] = (I_DIATOM, I_LGE, I_SYN, I_PROLL, I_PROHL)
@@ -144,3 +147,69 @@ def timemean_chl_loss_batched(
         pred_z = zscore_masked_batched(state[idx], mask)    # [S, *spatial]
         total = total + ((pred_z - target[p])[:, mask] ** 2).mean(dim=1)
     return total
+
+
+# --- verify_run.py-compatible recovery record --------------------------------
+#
+# The seasonal runner must emit per-seed JSON in the exact schema
+# ``scripts/verify_run.py`` recomputes against, or the first cluster fit produces
+# nothing the verified loop can gate (it would read CRASHED_NO_JSON). This builder
+# is the single source of that schema, kept pure (no I/O) so it is unit-testable.
+
+
+def seed_recovery_json(
+    seed: int,
+    recovered: Sequence[float],
+    *,
+    aoi: str,
+    carroll: Sequence[float],
+    param_names: Sequence[str],
+    n_seeds_in_batch: int,
+    loss_final: float,
+    extra: dict | None = None,
+) -> dict:
+    """Build one seed's recovery record in the schema ``verify_run.py`` reads.
+
+    ``recovered`` and ``carroll`` are length-6 (this seed's ocean-mean per
+    Carroll-6 param, and the published optimum). Each param block stores
+    ``joint_recovered`` / ``joint_carroll_published`` / ``joint_band`` (re-derived
+    here with the canonical :func:`~darwindiff.diagnostics.band_of`, the same band
+    the verifier recomputes) plus ``per_aoi_recovered`` carrying this single AOI —
+    so the verifier's multi-AOI R_PICPOC straddle guard (which needs >=2 AOIs)
+    correctly does not fire on a 1-AOI run. ``n_cal_grade`` is the count of Cal+
+    params, cross-checked by the verifier. Pure: returns a JSON-serialisable dict,
+    performs no I/O. ``extra`` shallow-merges run metadata into the top level.
+    """
+    params: dict[str, dict] = {}
+    n_cal = 0
+    n_exc = 0
+    for i, name in enumerate(param_names):
+        rec = float(recovered[i])
+        pub = float(carroll[i])
+        rel = abs(rec - pub) / abs(pub) if pub != 0 else float("inf")
+        band = band_of(rel)
+        if band == "Excellent":
+            n_cal += 1
+            n_exc += 1
+        elif band == "Cal-grade":
+            n_cal += 1
+        params[name] = {
+            "joint_recovered": rec,
+            "joint_carroll_published": pub,
+            "joint_abs_rel_offset": rel,
+            "joint_band": band,
+            "per_aoi_recovered": {aoi: rec},
+        }
+    record = {
+        "seed": int(seed),
+        "aoi": aoi,
+        "aois": [aoi],
+        "n_seeds_in_batch": int(n_seeds_in_batch),
+        "loss_final": float(loss_final),
+        "params": params,
+        "n_cal_grade": n_cal,
+        "n_excellent": n_exc,
+    }
+    if extra:
+        record.update(extra)
+    return record
