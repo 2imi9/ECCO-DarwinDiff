@@ -1,0 +1,190 @@
+{
+  "device": "NVIDIA H200",
+  "total_mem_gb": 139.81158447265625,
+  "compiled": true,
+  "records": [
+    {
+      "n_cells": 2000,
+      "n_steps": 50,
+      "train_peak_bytes": 72223744,
+      "forward_peak_bytes": 63376896,
+      "oom": false
+    },
+    {
+      "n_cells": 2000,
+      "n_steps": 100,
+      "train_peak_bytes": 17870336,
+      "forward_peak_bytes": 582656,
+      "oom": false
+    },
+    {
+      "n_cells": 2000,
+      "n_steps": 200,
+      "train_peak_bytes": 34612736,
+      "forward_peak_bytes": 582656,
+      "oom": false
+    },
+    {
+      "n_cells": 2000,
+      "n_steps": 400,
+      "train_peak_bytes": 68097536,
+      "forward_peak_bytes": 582656,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 50,
+      "train_peak_bytes": 81624064,
+      "forward_peak_bytes": 63832064,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 100,
+      "train_peak_bytes": 35578880,
+      "forward_peak_bytes": 1157632,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 200,
+      "train_peak_bytes": 68910080,
+      "forward_peak_bytes": 1157632,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 400,
+      "train_peak_bytes": 135572480,
+      "forward_peak_bytes": 1157632,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 50,
+      "train_peak_bytes": 37742080,
+      "forward_peak_bytes": 2309632,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 100,
+      "train_peak_bytes": 70996480,
+      "forward_peak_bytes": 2309632,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 200,
+      "train_peak_bytes": 137505280,
+      "forward_peak_bytes": 2309632,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 400,
+      "train_peak_bytes": 270522880,
+      "forward_peak_bytes": 2309632,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 50,
+      "train_peak_bytes": 75371520,
+      "forward_peak_bytes": 4611584,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 100,
+      "train_peak_bytes": 141777920,
+      "forward_peak_bytes": 4611584,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 200,
+      "train_peak_bytes": 274590720,
+      "forward_peak_bytes": 4611584,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 400,
+      "train_peak_bytes": 540216320,
+      "forward_peak_bytes": 4611584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 50,
+      "train_peak_bytes": 150737920,
+      "forward_peak_bytes": 9219584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 100,
+      "train_peak_bytes": 283550720,
+      "forward_peak_bytes": 9219584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 200,
+      "train_peak_bytes": 549176320,
+      "forward_peak_bytes": 9219584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 400,
+      "train_peak_bytes": 1080427520,
+      "forward_peak_bytes": 9219584,
+      "oom": false
+    }
+  ],
+  "fit": {
+    "a_bytes": 13693414.236247325,
+    "b_bytes_per_cellstep": 82.86531723172158,
+    "r2": 0.9948500329552811,
+    "n": 20.0
+  },
+  "extrapolation": [
+    {
+      "label": "LLC90 global  \u00b7 time-mean",
+      "cells": 105300.0,
+      "steps": 200.0,
+      "pred_bytes": 1758836995.1363037,
+      "pred_gb": 1.6380445986392942
+    },
+    {
+      "label": "LLC90 global  \u00b7 seasonal",
+      "cells": 105300.0,
+      "steps": 2000.0,
+      "pred_bytes": 17465129223.236813,
+      "pred_gb": 16.26566911417694
+    },
+    {
+      "label": "LLC270 global \u00b7 time-mean",
+      "cells": 947700.0,
+      "steps": 200.0,
+      "pred_bytes": 15719985642.336756,
+      "pred_gb": 14.640377501339424
+    },
+    {
+      "label": "LLC270 global \u00b7 seasonal",
+      "cells": 947700.0,
+      "steps": 2000.0,
+      "pred_bytes": 157076615695.2413,
+      "pred_gb": 146.2889981411782
+    },
+    {
+      "label": "3-AOI native  \u00b7 seasonal (~20k cells)",
+      "cells": 20000.0,
+      "steps": 2000.0,
+      "pred_bytes": 3328306103.5051107,
+      "pred_gb": 3.099726609424791
+    }
+  ]
+}

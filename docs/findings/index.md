@@ -21,7 +21,8 @@ Per-version technical writeups behind the headline results. [Project Status](../
 ## Scaling & verification
 
 - [Compute-time scaling](compute_time_scaling.md)
-- [Memory scaling](memory_scaling.md)
+- [Memory scaling — eager (RTX 5090)](memory_scaling.md)
+- [Memory scaling — compiled (Explorer H200)](memory_scaling_compiled.md) — measured 82.9 B/(cell·step), 4.3× below eager
 - [Pre-scaleup verification](pre_scaleup_verification.md)
 - [Stage-1 per-AOI gating (2-AOI)](stage1_per_aoi_gating_2aoi.md)
 
