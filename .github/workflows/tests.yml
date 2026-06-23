@@ -1,0 +1,32 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv + Python 3.11
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (CPU torch)
+        # UV_TORCH_BACKEND=cpu pulls the CPU torch wheel instead of the multi-GB CUDA
+        # build; the suite is CPU-only (the LLC270/data tests self-skip without
+        # DARWINDIFF_TEST_LLC270, so no datasets are needed in CI).
+        run: uv sync --all-extras
+        env:
+          UV_TORCH_BACKEND: cpu
+
+      - name: Run tests
+        run: uv run pytest tests/ -q
