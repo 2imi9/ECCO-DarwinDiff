@@ -27,7 +27,11 @@ Each of those four candidate axes has been independently falsified:
    adds no constraint on R_PICPOC.
 
 3. **Forward-model fidelity — THE WALL.** Ratio loss works **only** in eqpac. Darwin's
-   realized PIC:POC varies ~**23×** across AOIs (eqpac ~0.033, N Atl ~0.9, SO ~1.4),
+   realized PIC:POC varies ~**100×** across AOIs (eqpac ~0.033, N Atl ~0.68, SO ~0.0067;
+   **corrected 2026-06-24** by direct recompute from the v05 target caches — the earlier
+   "N Atl 0.9 / SO 1.4" was `rpicpoc_ratio_structural.md` prose mislabeling a *recovered
+   degenerate* R_PICPOC as Darwin's realized ratio; all true values sit *below* the 0.8
+   cocco rain-ratio ceiling, so this is plain cocco-rain-ratio variability, not standing-stock),
    driven by coccolithophore blooms. The box has a single rigid scalar ratio at one
    R_PICPOC and therefore cannot reproduce that spatial spread. The "coccolith-only"
    mitigation (`USE_COCCOLITH_ONLY_CALCITE=True`) backfires — it breaks the iron pair
@@ -226,8 +230,8 @@ and the DIC/ALK stoichiometry. What is genuinely **NEW** is: (i) the per-PFT
 ### Part 3 — Success criterion
 
 The port **succeeds** iff it recovers R_PICPOC in **≥2 AOIs** simultaneously —
-specifically reproducing the coccolithophore-driven realized PIC:POC of **~0.9 (N Atl)**
-and **~1.4 (SO)** (alongside the already-solved eqpac ~0.033) — **WITHOUT collapsing the
+specifically reproducing the coccolithophore-driven realized PIC:POC of **~0.68 (N Atl)**
+and **~0.0067 (SO)** (alongside eqpac ~0.033; corrected 2026-06-24 — see Context) — **WITHOUT collapsing the
 iron pair** (`alpfe` / `scav_rat`).
 
 Concretely, an accepted run must show, at n≥10 seeds with reported seed variance and
