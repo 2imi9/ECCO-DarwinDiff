@@ -1,6 +1,18 @@
 # ADR 0001 — Differentiable Darwin calcite port (R_PICPOC / iPIC)
 
-- **Status:** Proposed
+> 🛑 **VALIDATION RESULT 2026-06-24 — this design is BLOCKED; do not implement as-is.**
+> A forward probe (`scripts/box_vs_darwin_fidelity.py` + `USE_COCCOLITH_ONLY_CALCITE`, box at
+> Carroll params across eqpac/natl/SO) shows per-PFT cocco gating **does NOT reproduce the spatial
+> PIC:POC spread**: the box's cocco-proxy (large-eukaryote) biomass fraction is ~flat (~12%) across
+> all three AOIs, so gating only *uniformly* lowers the ratio (0.0424 → 0.0049 **everywhere**) —
+> zero spatial variation, and the wrong direction for N Atl (needs 0.68). So the port specified
+> below will **not** recover R_PICPOC. The real spread is cocco-*bloom-biomass*-driven (Oliver 2024:
+> growth-vs-grazing T-divergence + dFe), which this 2-layer box does not resolve. **Decision pending:**
+> (a) explicit cocco-biomass dynamics [major change], (b) observational unlock [satellite PIC / TA*,
+> per Jon's leapfrog], or (c) accept the 5/6 box ceiling. The Darwin→box *mechanism mapping* below
+> remains correct as a port of Darwin; it is simply **insufficient in this reduced box**.
+
+- **Status:** Proposed → **BLOCKED 2026-06-24** (forward probe: per-PFT gating insufficient — see banner above)
 - **Issue:** [#118](https://github.com/2imi9/ECCO-DarwinDiff/issues/118) (design); implementation gated to [#122](https://github.com/2imi9/ECCO-DarwinDiff/issues/122)
 - **Spine:** D — R_PICPOC / Darwin calcite port (6-of-6), under epic [#124](https://github.com/2imi9/ECCO-DarwinDiff/issues/124)
 - **Date:** 2026-06-24
