@@ -47,7 +47,15 @@ the wrong observable.
 The ratio loss recovers R_PICPOC **only in eqpac**, because the box's calcite is a
 *rigid* readout (`PIC_1/POC_1 = R_PICPOC` everywhere), while **Darwin's realized
 PIC/POC ratio varies ~23×** (eqpac ~0.033 ≈ Carroll 0.0425; natl ~0.9, SO ~1.4 —
-coccolithophore bloom zones). A single-`mort_total` box matches each AOI's realized
+coccolithophore bloom zones).
+<!-- ⚠️ CORRECTION 2026-06-24: "natl ~0.9, SO ~1.4" is WRONG — those are the box's RECOVERED
+     (degenerate) R_PICPOC in the failing arms (the natl/SO table columns above), NOT Darwin's
+     realized ratio. Direct recompute from the v05 target caches (box_vs_darwin_fidelity.py +
+     fresh check) gives Darwin's actual surface PIC:POC = eqpac 0.033 / natl 0.68 / SO 0.0067
+     (SO is the LOWEST, not highest; max natl 0.68 < the 0.8 cocco rain-ratio ceiling). The
+     forward-fidelity conclusion (rigid box can't span the spread) still holds; only the SO/natl
+     target magnitudes here are misstated. -->
+A single-`mort_total` box matches each AOI's realized
 ratio by setting R_PICPOC = that local ratio → eqpac lands (realized ≈ production),
 natl/SO don't. **Coccolith-only calcite** — the proposed cross-AOI fix — backfires:
 R_PICPOC drifts high in all AOIs *and* the iron pair collapses to 0/10, because it
