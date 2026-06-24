@@ -51,20 +51,32 @@ which carries coccolithophore-PFT-specific production and ballasted PIC sinking 
 with native resolution can reproduce the coccolithophore-driven spatial PIC:POC
 variation required for 6-of-6 recovery.
 
-The Darwin 3 mechanics #118 specifies have been **source-verified** against
-`github.com/darwinproject/darwin3`, branch `darwin`, `pkg/darwin/` (the `master` branch
-has no darwin pkg). No "verify with Jon" is needed on the mechanics; only a small set of
-**v05 config-level numeric values** (not in the public repo) remain Jon-gated — see
-[Review with Jon](#part-5--review-with-jon-gate-before-122).
+The calcite mechanics were verified against the **actual v05 source**, not the current
+GitHub HEAD. Per v05's `readme.txt` build recipe, ECCO-Darwin v05 (Carroll 2022) pins
+`darwinproject/darwin3` at commit **`24885b71`** and **overrides `darwin_plankton.F`** with
+its own `v05/llc270/code_darwin/` copy. The authoritative calcite code is therefore that
+override — *not* branch HEAD (an earlier verification against HEAD was the wrong version;
+the Naviaux-2019 Ω-dissolution mode in HEAD post-dates v05). Verified directly in v05's
+`code_darwin/darwin_plankton.F` (2026-06-24): per-PFT `R_PICPOC(j)` production, a single
+prognostic `iPIC` tracer, **constant-rate `disscPIC = Kdissc*PIC`**, and the
+`gTr(iALK) -= 2*(consumDIC_PIC - disscPIC)` coupling are all present — so the port design
+below holds. **Three deltas vs the generic-HEAD wording that follows:**
 
-> **Spot-check (2026-06-24).** The mechanics were independently re-confirmed via WebFetch
-> of `darwin_plankton.F` (branch `darwin`): the constant-rate `disscPIC = Kdissc*PIC`
-> default/`ELSE` branch, `consumDIC_PIC += growth*R_PICPOC(j)`, the `disscSelect` 3-mode
-> switch (Naviaux Ω / Keir Ω / constant-rate else), per-PFT `R_PICPOC(j)` in
-> production+grazing+mortality, and the `−2·(consumDIC_PIC − disscPIC)` ALK coupling.
-> **Cited line numbers are approximate and branch/version-dependent** (e.g. `consumDIC_PIC`
-> resolves ~1050 vs the ~1243 cited) — trust the mechanics, verify exact lines against the
-> pinned source before implementation.
+> 1. **Production couples to DIC uptake, not a growth *rate*.** v05 has
+>    `consumDIC_PIC += uptakeDIC*R_PICPOC(j)` (the carbon-fixation flux). Read every
+>    `growth[j]*R_PICPOC[j]` below as *carbon-uptake* × ratio; the box must tie production
+>    to its DIC/carbon-uptake term, not a bare growth rate.
+> 2. **v05 has NO `disscSelect` switch — constant-rate ONLY.** The Ω-dependent
+>    Naviaux-2019 / Keir modes are a *post-v05* darwin3 addition and do not exist in v05's
+>    code. This **resolves Part-5 item 5** (no need to ask Jon to confirm `disscSelect=0` —
+>    v05 has no other mode) and makes the port strictly *simpler*: there is no branch to
+>    hard-select; the chemistry is constant-rate by construction.
+> 3. **`DARWIN_NINE_SPECIES_SETUP` is enabled** (v05 `DARWIN_OPTIONS.h`), so `has_pic[j]`
+>    must be assigned within v05's 9-species trait layout — sharpens Part-5 item 4.
+
+The only items still genuinely Jon-gated are the **v05 config numeric values** (not in the
+public repo): `Kdissc`, `wPIC_sink`, the calibrated cocco `R_PICPOC`, and which 9-species
+index calcifies — see [Review with Jon](#part-5--review-with-jon-gate-before-122).
 
 ---
 
