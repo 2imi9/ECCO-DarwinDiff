@@ -13,8 +13,11 @@ forward-model behavior.
 
 from __future__ import annotations
 
+import contextlib
+
 import torch
 
+import darwindiff.carroll6_5pft_2layer as c2l
 from darwindiff.carroll6 import CARROLL_VALUES, PHI_DUST, Q_FE
 from darwindiff.carroll6_5pft_2layer import (
     H1,
@@ -204,3 +207,96 @@ def test_2layer_q_fe_stoichiometry_carbon_path() -> None:
     """Sinking-POC iron stoichiometry uses Q_FE (phyto-derived detritus)."""
     assert Q_FE_SINK == Q_FE
     assert Q_FE_REMIN == Q_FE
+
+
+# --- Environment-dependent rain ratio (USE_ENV_RAIN_RATIO, 2026-06-24) -------------
+
+
+@contextlib.contextmanager
+def _env_rain_ratio(**overrides):
+    """Set the module-level env-rain-ratio flags, restoring them on exit."""
+    keys = ["USE_ENV_RAIN_RATIO", "RPP_T_OPT", "RPP_T_WIDTH",
+            "RPP_OMEGA_K", "RPP_OMEGA_P", "RPP_G_NORM"]
+    saved = {k: getattr(c2l, k) for k in keys}
+    try:
+        for k, v in overrides.items():
+            setattr(c2l, k, v)
+        yield
+    finally:
+        for k, v in saved.items():
+            setattr(c2l, k, v)
+
+
+def _two_cell_state(T_a: float, T_b: float):
+    """A 2-cell state ([15, 2]) with a per-cell temperature field, for testing the
+    spatially-varying rain-ratio gate."""
+    s0 = _state0().unsqueeze(-1).repeat(1, 2)
+    T = torch.tensor([T_a, T_b])
+    return s0, T
+
+
+def test_env_rain_ratio_off_is_inert() -> None:
+    """With the flag OFF (default), the gating constants have NO effect: the step is
+    bitwise-identical regardless of RPP_* — i.e. legacy behaviour reproduces exactly."""
+    s0 = _state0()
+    base = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=20.0)
+    # Mutate every gating constant while the flag stays OFF; output must not move.
+    with _env_rain_ratio(USE_ENV_RAIN_RATIO=False, RPP_T_OPT=5.0, RPP_T_WIDTH=1.0,
+                         RPP_G_NORM=0.01, RPP_OMEGA_P=2.0):
+        same = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=20.0)
+    assert torch.equal(base, same)
+
+
+def test_env_rain_ratio_on_reduces_to_bare_when_flat() -> None:
+    """A degenerate gate (very wide window so g~1 everywhere, G_NORM=1) makes
+    R_PICPOC_eff ~ R_PICPOC, so the ON step matches the OFF step. This pins the
+    normalization convention: R_PICPOC is the realized rain ratio when the gate is
+    flat and unit-normalized."""
+    s0 = _state0()
+    off = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=18.0)
+    with _env_rain_ratio(USE_ENV_RAIN_RATIO=True, RPP_T_OPT=18.0, RPP_T_WIDTH=1.0e6,
+                         RPP_G_NORM=1.0, RPP_OMEGA_P=0.0):
+        on = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=18.0)
+    assert torch.allclose(off, on, atol=1e-6, rtol=1e-5)
+
+
+def test_env_rain_ratio_on_makes_pic_vary_with_temperature() -> None:
+    """With the thermal window ON, a cell AT the optimum produces more PIC than a cell
+    far from it — the regional spread the bare scalar cannot make. PIC at t=1 is
+    R_PICPOC_eff * calcite_mort_src - sink; with equal state/mort across the two cells,
+    a higher gate at T_opt yields strictly higher PIC."""
+    s0, T = _two_cell_state(T_a=17.46, T_b=2.0)   # at-optimum vs cold tail
+    with _env_rain_ratio(USE_ENV_RAIN_RATIO=True, RPP_T_OPT=17.46, RPP_T_WIDTH=2.33,
+                         RPP_G_NORM=0.00373, RPP_OMEGA_P=0.0):
+        nxt = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=T, S=35.0)
+    pic_opt, pic_cold = float(nxt[I_PIC_1, 0]), float(nxt[I_PIC_1, 1])
+    assert pic_opt > pic_cold, f"PIC at T_opt ({pic_opt:.4f}) should exceed cold-tail ({pic_cold:.4f})"
+
+
+def test_env_rain_ratio_autograd_to_rpicpoc_via_pic() -> None:
+    """Under the gate, a PIC loss back-propagates a non-zero gradient to R_PICPOC[5]
+    (the calcite path). Confirms the gating is autograd-clean to the base rate."""
+    params = CARROLL_VALUES.clone().requires_grad_(True)
+    s0, T = _two_cell_state(T_a=17.46, T_b=12.0)
+    with _env_rain_ratio(USE_ENV_RAIN_RATIO=True, RPP_T_OPT=17.46, RPP_T_WIDTH=2.33,
+                         RPP_G_NORM=0.00373, RPP_OMEGA_P=0.0):
+        final = carroll6_5pft_2layer_integrate(
+            s0, params, dt=0.25, n_steps=30, T=T, S=35.0, wind=7.0,
+        )
+        loss = (final[I_PIC_1] ** 2).sum()
+        loss.backward()
+    assert params.grad is not None
+    assert params.grad[5] != 0.0, f"R_PICPOC should get a PIC-path grad, got {params.grad[5]:.3e}"
+
+
+def test_env_rain_ratio_omega_term_engages() -> None:
+    """Enabling the optional Omega_c saturation term (RPP_OMEGA_P > 0) changes the
+    result vs temperature-only — i.e. the carbonate-saturation path is wired in."""
+    s0, T = _two_cell_state(T_a=17.46, T_b=6.0)
+    with _env_rain_ratio(USE_ENV_RAIN_RATIO=True, RPP_T_OPT=17.46, RPP_T_WIDTH=2.33,
+                         RPP_G_NORM=0.00373, RPP_OMEGA_P=0.0):
+        t_only = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=T, S=35.0)
+    with _env_rain_ratio(USE_ENV_RAIN_RATIO=True, RPP_T_OPT=17.46, RPP_T_WIDTH=2.33,
+                         RPP_G_NORM=0.00373, RPP_OMEGA_K=0.5, RPP_OMEGA_P=2.0):
+        t_omega = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=T, S=35.0)
+    assert not torch.allclose(t_only[I_PIC_1], t_omega[I_PIC_1])

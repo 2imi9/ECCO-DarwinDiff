@@ -162,6 +162,17 @@ _layer2.R_PIC_DISSOL = float(os.environ.get("R_PIC_DISSOL", str(_layer2.R_REMIN)
 _layer2.USE_EPPLEY_T = os.environ.get("USE_EPPLEY_T", "0") == "1"
 _layer2.A_E_EPPLEY = float(os.environ.get("A_E_EPPLEY", str(_layer2.A_E_EPPLEY)))
 _layer2.T_REF_EPPLEY = float(os.environ.get("T_REF_EPPLEY", str(_layer2.T_REF_EPPLEY)))
+# Environment-dependent rain ratio (added 2026-06-24; default OFF reproduces legacy
+# bitwise). Gates R_PICPOC by a coccolithophore thermal window so a single base rate
+# yields Darwin's ~100x regional PIC:POC spread (deep-research option 3; shape
+# constants from scripts/probe_env_rain_ratio.py). Resolved at trace time -> set BEFORE
+# compile. Pair with RATIO_W > 0 and COCCOLITH_ONLY=0.
+_layer2.USE_ENV_RAIN_RATIO = os.environ.get("RPP_ENV", "0") == "1"
+_layer2.RPP_T_OPT = float(os.environ.get("RPP_T_OPT", str(_layer2.RPP_T_OPT)))
+_layer2.RPP_T_WIDTH = float(os.environ.get("RPP_T_WIDTH", str(_layer2.RPP_T_WIDTH)))
+_layer2.RPP_OMEGA_K = float(os.environ.get("RPP_OMEGA_K", str(_layer2.RPP_OMEGA_K)))
+_layer2.RPP_OMEGA_P = float(os.environ.get("RPP_OMEGA_P", str(_layer2.RPP_OMEGA_P)))
+_layer2.RPP_G_NORM = float(os.environ.get("RPP_G_NORM", str(_layer2.RPP_G_NORM)))
 from darwindiff.carroll6_5pft_2layer import (
     I_ALK_1,
     I_ALK_2,
@@ -343,6 +354,24 @@ ALK_ABS_SOURCE = os.environ.get("ALK_ABS_SOURCE", "glodap").strip().lower()
 # with USE_COCCOLITH_ONLY_CALCITE so a single R_PICPOC reproduces the ~23x cross-AOI
 # realized-ratio variation via biomass composition. Default 0 = off.
 RATIO_W = float(os.environ.get("RATIO_W", "0.0"))
+# RATIO_MAX: physical cap on the per-cell PIC:POC ratio TARGET. Cells where Darwin's
+# pic_binned/poc_binned exceeds this are excluded from the ratio mask. Low-POC cells
+# (POC -> 0, common in the Southern Ocean) produce non-physical per-cell ratios up to
+# ~1e8 that dominate the scale normalizer (mean of squared targets), collapsing the
+# whole AOI's ratio term to ~0 and leaving R_PICPOC under-constrained there (observed
+# 2026-06-24: SO ratio target mean=4.7e7). Real rain ratios are < ~2 (Darwin AOI
+# ratio-of-means: eqpac 0.033 / natl 0.68 / SO 0.0067), so a cap removes the artifact
+# without touching genuine cells. Default inf = legacy reproduces bitwise.
+RATIO_MAX = float(os.environ.get("RATIO_MAX", "inf"))
+# RATIO_SCHED_START: warmup schedule for the ratio loss. The ratio loss (which
+# recovers R_PICPOC) competes with the growth/iron terms (which the 5/6 relied on),
+# so a single weight can't satisfy both (verified sweep, 2026-06-24). Annealing
+# separates them in TIME: the ratio term is held at 0 for the first
+# RATIO_SCHED_START fraction of epochs (let alpfe/scav_rat/Biggrow converge), then
+# ramps linearly to full RATIO_W by the end (lock in R_PICPOC without disturbing the
+# settled params). Default 0.0 = ratio loss on from epoch 0 (constant = legacy).
+RATIO_SCHED_START = float(os.environ.get("RATIO_SCHED_START", "0.0"))
+_RATIO_W_NOW = RATIO_W  # mutable per-epoch effective ratio weight (updated in the loop)
 # POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
 # diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
 # observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
@@ -378,6 +407,15 @@ F_CO2_ABS_W = float(os.environ.get("F_CO2_ABS_W", "0.0"))
 
 # Per-AOI loss weights (default 1.0 each, mean-reduced per-AOI losses).
 AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
+
+# Per-AOI multiplier on the RATIO_W term ONLY (unlike AOI_W, which scales the whole
+# AOI loss). Lets the PIC:POC ratio loss act where it identifies R_PICPOC cleanly
+# (eqpac/SO recover R_PICPOC per-AOI 10/10) and back off where it is futile and
+# harmful: in natlsubpolar the flat-ratio box cannot reach Darwin's ~0.68, so the
+# natl ratio loss never recovers R_PICPOC there (4/10) yet competes with the
+# Biggrow/iron terms the documented 5/6 relied on (verified ratio-weight sweep,
+# 2026-06-24). Set RATIO_AOI_W_NATLSUBPOLAR=0 to drop it. Default 1.0 = uniform.
+RATIO_AOI_W = {k: float(os.environ.get(f"RATIO_AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
 
 # Per-AOI parameter gating (Stage 1). GATING_POLICY selects which Carroll-6
 # parameters learn from which AOI's loss (see darwindiff.gating). Default
@@ -900,6 +938,20 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     # MSE prep as pic_abs; masked to cells with finite-positive PIC AND POC.
     ratio_mask_np = (ocean_mask & np.isfinite(pic_binned) & (pic_binned > 0)
                      & np.isfinite(poc_binned) & (poc_binned > 0))
+    # Exclude non-physical per-cell ratios (RATIO_MAX, default inf = no-op). Low-POC
+    # cells inflate the scale normalizer and collapse the AOI ratio term; capping at a
+    # physical rain ratio (~2) removes the artifact. Compute the ratio on the POC>0
+    # mask first, then drop cells above the cap.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        _ratio_all = np.where(ratio_mask_np,
+                              pic_binned / np.where(poc_binned > 0, poc_binned, 1.0),
+                              0.0).astype(np.float32)
+    if np.isfinite(RATIO_MAX):
+        n_capped = int((ratio_mask_np & (_ratio_all > RATIO_MAX)).sum())
+        ratio_mask_np = ratio_mask_np & (_ratio_all <= RATIO_MAX)
+        if RATIO_W > 0 and n_capped > 0:
+            print(f"  RATIO_MAX={RATIO_MAX}: excluded {n_capped} non-physical "
+                  f"(low-POC) ratio cells from the ratio mask")
     ratio_target_np = np.zeros_like(sst, dtype=np.float32)
     ratio_target_np[ratio_mask_np] = (pic_binned[ratio_mask_np]
                                       / poc_binned[ratio_mask_np]).astype(np.float32)
@@ -1505,7 +1557,7 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         residual = (ratio_pred - bundle["ratio_target_t"][None]) * bundle["ratio_mask_f"][None]
         scale = (bundle["ratio_target_t"][bundle["ratio_mask_t"]] ** 2).mean().clamp(min=1e-30)
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_ratio_f"] / scale
-        z = z + RATIO_W * l
+        z = z + _RATIO_W_NOW * RATIO_AOI_W[bundle["key"]] * l
 
     # POSi absolute-units MSE on a steady-state biogenic-silica diagnostic.
     # Compute bsi_1 = R_SI_C * (mort_diatom + graze_diatom) / W_SINK from the
@@ -1567,6 +1619,15 @@ _apply_consistency_penalty = USE_PER_AOI_DINN and CONSISTENCY_LAMBDA > 0
 for epoch in range(N_EPOCHS):
     optimizer.zero_grad()
     total_loss_per_seed = torch.zeros(N_SEEDS, device=device)
+
+    # Ratio-loss warmup schedule (RATIO_SCHED_START > 0): hold the ratio term at 0
+    # until that fraction of epochs, then ramp linearly to full RATIO_W -- lets the
+    # growth/iron params settle before R_PICPOC's ratio constraint engages. Default
+    # 0.0 leaves _RATIO_W_NOW == RATIO_W (constant) so legacy reproduces bitwise.
+    if RATIO_SCHED_START > 0.0:
+        _frac = epoch / max(1, N_EPOCHS - 1)
+        _ramp = min(1.0, max(0.0, (_frac - RATIO_SCHED_START) / max(1e-9, 1.0 - RATIO_SCHED_START)))
+        _RATIO_W_NOW = RATIO_W * _ramp
 
     # For each AOI, forward that AOI's nets (per seed) on its env input,
     # integrate, compute loss, accumulate weighted. In shared mode the

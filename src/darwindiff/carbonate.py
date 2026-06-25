@@ -289,6 +289,89 @@ def solve_carbonate(
     }
 
 
+def ksp_calcite(T: torch.Tensor, S: torch.Tensor) -> torch.Tensor:
+    """Stoichiometric solubility product of calcite (Mucci 1983), (mol/kg)².
+
+    ``Ksp = [Ca²⁺][CO₃²⁻]`` at saturation. Mucci (1983) Table 7, valid over the
+    surface-ocean T/S range. Used to form the calcite saturation state Ω_c.
+    """
+    Tk = _temp_kelvin(T)
+    log10_ksp = (
+        -171.9065
+        - 0.077993 * Tk
+        + 2839.319 / Tk
+        + 71.595 * torch.log10(Tk)
+        + (-0.77712 + 0.0028426 * Tk + 178.34 / Tk) * torch.sqrt(S)
+        - 0.07711 * S
+        + 0.0041249 * S**1.5
+    )
+    return 10.0**log10_ksp
+
+
+def calcite_saturation(
+    DIC: torch.Tensor,
+    ALK: torch.Tensor,
+    T: torch.Tensor,
+    S: torch.Tensor,
+    n_iter: int = 5,
+) -> dict[str, torch.Tensor]:
+    """Calcite saturation state Ω_c and carbonate-ion concentration.
+
+    ``Ω_c = [Ca²⁺][CO₃²⁻] / Ksp_calcite``. Ω_c > 1 is supersaturated (favours
+    precipitation / calcification), Ω_c < 1 undersaturated (dissolution). It is the
+    literature-standard environmental driver of the rain ratio (Ridgwell et al.
+    2007; CESM/PISCES use a CO₂/Ω/T form), so it is the second gating field — beside
+    temperature — for the environment-dependent ``R_PICPOC`` parameterization.
+
+    The [H⁺] solve replicates :func:`solve_carbonate`'s Follows (2006) iteration
+    (kept standalone so ``solve_carbonate`` stays bitwise-unchanged), then forms
+    ``[CO₃²⁻] = K1·K2·DIC / ([H⁺]² + K1·[H⁺] + K1·K2)``. Calcium tracks salinity:
+    ``[Ca²⁺] = 0.01028·(S/35)`` mol/kg (Riley & Tongudai 1967). Autograd-clean and
+    shape-agnostic, exactly like the rest of this module.
+
+    Args:
+        DIC: dissolved inorganic carbon, mmol C/m³.
+        ALK: total alkalinity, mmol Eq/m³.
+        T: temperature, °C.
+        S: salinity, PSU.
+        n_iter: Follows iterations (default 5; matches :func:`solve_carbonate`).
+
+    Returns:
+        Dictionary with keys:
+            - "omega_c": calcite saturation state (dimensionless).
+            - "CO3": carbonate-ion concentration (mmol C/m³).
+    """
+    DIC = torch.as_tensor(DIC, dtype=torch.float32)
+    ALK = torch.as_tensor(ALK, dtype=torch.float32)
+    T = torch.as_tensor(T, dtype=torch.float32)
+    S = torch.as_tensor(S, dtype=torch.float32)
+    DIC_mk = DIC * _MMOL_PER_M3_TO_MOL_PER_KG
+    ALK_mk = ALK * _MMOL_PER_M3_TO_MOL_PER_KG
+
+    K1, K2 = K1_K2_carbonic(T, S)
+    KB = KB_boric(T, S)
+    BT = BT_total_boron(S)
+
+    H = torch.full_like(DIC_mk, 1.0e-8)
+    for _ in range(n_iter):
+        borate_alk = BT * KB / (H + KB)
+        ALK_c = ALK_mk - borate_alk
+        aa = ALK_c
+        bb = K1 * (ALK_c - DIC_mk)
+        cc = K1 * K2 * (ALK_c - 2.0 * DIC_mk)
+        disc = torch.clamp(bb * bb - 4.0 * aa * cc, min=1.0e-30)
+        H = (-bb + torch.sqrt(disc)) / (2.0 * aa)
+
+    D = H * H + K1 * H + K1 * K2
+    CO3_mk = K1 * K2 * DIC_mk / D
+    Ca_mk = 0.01028 * (S / 35.0)
+    omega_c = Ca_mk * CO3_mk / ksp_calcite(T, S)
+    return {
+        "omega_c": omega_c,
+        "CO3": CO3_mk * _MOL_PER_KG_TO_MMOL_PER_M3,
+    }
+
+
 def co2_flux(
     pCO2_ocean: torch.Tensor,
     pCO2_atm: torch.Tensor | float,

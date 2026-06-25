@@ -71,7 +71,12 @@ from collections.abc import Callable
 
 import torch
 
-from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
+from darwindiff.carbonate import (
+    PCO2_ATM_DEFAULT,
+    calcite_saturation,
+    co2_flux,
+    solve_carbonate,
+)
 from darwindiff.carroll6 import (
     G0_GRAZE,
     H_MLD,
@@ -211,6 +216,56 @@ T_REF_EPPLEY: float = 15.0
 A_E_EPPLEY: float = 0.0633
 """Eppley exponential coefficient (1/degC), ~Q10 of 1.88. Textbook Eppley value;
 NOT yet pinned to Darwin v05 ``a_phytoTempAe`` -- env-overridable for sweeps."""
+
+
+# --- Environment-dependent rain ratio (added 2026-06-24; default OFF reproduces
+#     legacy bitwise; resolved at torch.compile trace time, so set BEFORE compile).
+#     The 2026-06-24 deep-research synthesis (option 3) + the feasibility probe
+#     scripts/probe_env_rain_ratio.py established that the box's flat realized
+#     PIC:POC (a single R_PICPOC scalar) cannot reproduce Darwin's ~100x regional
+#     spread (eqpac 0.033 / natl 0.68 / SO 0.0067), but a smooth gating of R_PICPOC
+#     by a coccolithophore THERMAL WINDOW does (probe: log-MSE 0.000, 3/3 AOIs in
+#     the Cal band, with the base rate ~Carroll 0.05). Standard practice in
+#     CESM/PISCES/CMIP (Krumhardt; Ridgwell 2007). ----------------------------------
+
+USE_ENV_RAIN_RATIO: bool = False
+"""Gate R_PICPOC by environment: ``R_PICPOC_eff = R_PICPOC * g(T, Omega_c) / G_NORM``.
+
+When ``True`` the per-cell calcite production / DIC / ALK terms use the gated
+``R_PICPOC_eff`` instead of the bare ``R_PICPOC`` scalar, so a SINGLE learnable
+base rate produces a regionally-varying realized PIC:POC. ``g`` is a Gaussian
+coccolithophore thermal window (peak 1 at :data:`RPP_T_OPT`), optionally times a
+Michaelis-Menten calcite-saturation term (enabled only when :data:`RPP_OMEGA_P` >
+0; the probe found it adds ~nothing over temperature alone, so it is OFF by
+default to avoid the per-step carbonate-saturation solve). Normalizing by
+:data:`RPP_G_NORM` (the POC-weighted field-mean of ``g``) makes ``R_PICPOC`` the
+field-mean rain ratio, keeping it inside the learnable bound [0.005, 1.5] and
+~comparable to Carroll's 0.0425. Default ``False`` -> bare R_PICPOC reproduces
+bitwise. Best paired with the ``RATIO_W`` PIC:POC ratio loss (which identifies
+R_PICPOC orthogonally to the iron pair; see docs/findings/rpicpoc_ratio_structural.md)
+and ``USE_COCCOLITH_ONLY_CALCITE = False``."""
+
+RPP_T_OPT: float = 17.46
+"""Coccolithophore thermal-window optimum (degC). Probe-fit to the corrected
+Darwin targets; env-overridable. A future refinement is to co-learn it."""
+
+RPP_T_WIDTH: float = 2.33
+"""Coccolithophore thermal-window width (degC, Gaussian sigma). Probe-fit value."""
+
+RPP_OMEGA_K: float = 0.5
+"""Half-saturation of the optional calcite-saturation (Omega_c) term. Only used
+when :data:`RPP_OMEGA_P` > 0."""
+
+RPP_OMEGA_P: float = 0.0
+"""Exponent of the optional Omega_c saturation term ``(Om/(Om+K))**p``. Default 0
+(term inert = 1, no carbonate-saturation solve in the gate). Set > 0 to enable the
+Ridgwell-style saturation dependence (probe: marginal over temperature alone)."""
+
+RPP_G_NORM: float = 0.00373
+"""Normalization constant: POC-weighted field-mean of ``g`` at the default shape
+(from scripts/probe_env_rain_ratio.py). Divides the gate so ``R_PICPOC`` is the
+field-mean realized rain ratio (in-bound, ~Carroll). Re-derive with the probe if
+the shape constants change."""
 
 
 def npp_from_state(
@@ -422,7 +477,26 @@ def carroll6_5pft_2layer_step(
     # reproduces). Needs to be PAIRED with PIC_ABS_W > 0 to anchor PIC magnitude,
     # otherwise the optimizer finds a degenerate (R_PICPOC, mort_lge) pair.
     calcite_mort_src = mort_lge if USE_COCCOLITH_ONLY_CALCITE else mort_total_1
-    dPIC_1 = R_PICPOC * calcite_mort_src - pic_sink_out_L1
+
+    # Environment-dependent rain ratio (USE_ENV_RAIN_RATIO, default OFF). Gates the
+    # bare R_PICPOC scalar by a coccolithophore thermal window g(T) (peak 1 at
+    # RPP_T_OPT), optionally x a calcite-saturation term, normalized by RPP_G_NORM so
+    # the base rate stays the field-mean rain ratio. A single learnable R_PICPOC then
+    # yields a regionally-varying realized PIC:POC (the box's flat-ratio wall; see the
+    # 2026-06-24 deep-research note + scripts/probe_env_rain_ratio.py). Depends only on
+    # forcing T (and, if enabled, the current carbonate state) -> no new parameter
+    # gradient direction; legacy reproduces bitwise when the flag is OFF.
+    if USE_ENV_RAIN_RATIO:
+        T_t = torch.as_tensor(T, dtype=torch.float32)
+        g_env = torch.exp(-0.5 * ((T_t - RPP_T_OPT) / RPP_T_WIDTH) ** 2)
+        if RPP_OMEGA_P > 0.0:
+            omega_c = calcite_saturation(DIC_1, ALK_1, T, S)["omega_c"]
+            g_env = g_env * (omega_c / (omega_c + RPP_OMEGA_K)) ** RPP_OMEGA_P
+        R_PICPOC_eff = R_PICPOC * g_env / RPP_G_NORM
+    else:
+        R_PICPOC_eff = R_PICPOC
+
+    dPIC_1 = R_PICPOC_eff * calcite_mort_src - pic_sink_out_L1
 
     # L1 carbonate (same surface air-sea CO2 flux as v2.6).
     carb_1 = solve_carbonate(DIC_1, ALK_1, T, S)
@@ -431,10 +505,10 @@ def carroll6_5pft_2layer_step(
 
     dDIC_1 = (
         -growth_total                       # phyto C fixation across all 5 PFTs
-        - R_PICPOC * calcite_mort_src       # CaCO3 formation
+        - R_PICPOC_eff * calcite_mort_src   # CaCO3 formation
         - F_per_m3_per_day                  # air-sea export
     )
-    dALK_1 = -2.0 * R_PICPOC * calcite_mort_src
+    dALK_1 = -2.0 * R_PICPOC_eff * calcite_mort_src
 
     # =========================================================================
     # L2 tendencies (no biology — iron, POC/PIC dynamics + carbonate dissolution)
