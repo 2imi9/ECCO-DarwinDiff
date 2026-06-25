@@ -33,7 +33,7 @@ DarwinDiff is organized into two tracks:
 1. **Parameter learner** *(active)* — learns a per-cell function from local environment to the six Carroll-6 parameters by gradient descent through the differentiable box model, replacing Green's-functions calibration.
 2. **Emulator** *(not started)* — a neural stand-in for ECCO-Darwin for long-timescale climate runs.
 
-The differentiable box model (`darwindiff.carroll6`), the per-cell networks (`darwindiff.networks`), and the ECCO-Darwin / GLODAP / GEOTRACES data loaders are all importable as the `darwindiff` package. The canonical results, the structural 5/6 ceiling, and the known limits live in **[STATUS.md][status_url]**.
+The differentiable box model (`darwindiff.carroll6`), the per-cell networks (`darwindiff.networks`), and the ECCO-Darwin / GLODAP / GEOTRACES data loaders are all importable as the `darwindiff` package. The canonical results — including the recovered R_PICPOC (the `RATIO_MAX` ratio-target fix) and the residual growth-pair identifiability ceiling — and the known limits live in **[STATUS.md][status_url]** and `docs/findings/`.
 
 ## Installation
 
