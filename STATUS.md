@@ -21,7 +21,7 @@ The recovery limit is **not one problem** — it is four separable causes, isola
 
 **Superseded framing.** Earlier status text framed `R_PICPOC` as "the 6/6 wall needing the differentiable Darwin calcite port + native resolution." The differentiable calcite port is **refuted at the box scale** (per-PFT cocco gating gives a flat PIC:POC; native resolution does not unblock it) and `R_PICPOC` is now **recovered via a real, Darwin-independent observation** instead. The v3.x box-science record below (the 5/6 plateau, mutexes, AOI ablation) stands as accurate history of the *Darwin-graded* recovery; the *real-data* validation above is the current frontier.
 
-**v3.3 cluster bridge** (merged): the transient-seasonal integrator and runner are seed-batched, `torch.compile`-ready, and emit `verify_run.py`-gateable per-seed JSON. The Daniels recovery above runs on the NU **Explorer H200** (active path), ~16–57 s/seed.
+**v3.3 cluster bridge** (merged): the transient-seasonal integrator and runner are seed-batched, `torch.compile`-ready, and emit `verify_run.py`-gateable per-seed JSON. The Daniels recovery above runs on the NU **Explorer H200** (active path), ~16–57 s/seed (n=40 / n=10 batch-amortized, from the run logs).
 
 **Verified results from the v3.1 sweep set** (856 seeds across 86 configs, outputs in `D:\runs\bcr_*\`):
 
@@ -57,7 +57,7 @@ Per-AOI attribution: eqpac carries `alpfe` + `diatomgraz`; natl carries `Biggrow
 
 | Version | AOI | Config | Best result | Source |
 |---|---|---|---|---|
-| v3.2 (Eppley + dense POSi) | 3-AOI Basin C | `USE_EPPLEY_T` + `POSI_DARWIN_W=0.5` | mean 3.85/6; 14/20 at 4/6 (70%); 4/20 at 5/6 (reproducible); iron pair + diatomgraz recover together; R_PICPOC the sole 6/6 wall (0/20) | docs/findings/posi_dense_diatomgraz.md |
+| v3.2 (Eppley + dense POSi) | 3-AOI Basin C | `USE_EPPLEY_T` + `POSI_DARWIN_W=0.5` | mean 3.85/6; 14/20 at 4/6 (70%); 4/20 at 5/6 (reproducible); iron pair + diatomgraz recover together; R_PICPOC the sole 6/6 wall (0/20) — *box scale; superseded, see Current state* | docs/findings/posi_dense_diatomgraz.md |
 | v3.1.1 (AOI ablation, PR #89) | 2-AOI eqp+natl | F2 base, no SO | 19/80 at 4/6 (24%, best 4+ rate in project); 16/80 with R_PICPOC + diatomgraz Cal+ together (v3.1 had 0 of 856) | bcr_5pft_eqp_natl_20260523_1058/ |
 | v3.1.1 (AOI ablation, PR #89) | 1-AOI eqpac | F2 base | 40/40 alpfe Cal+ (7 Excellent); 40/40 diatomgraz Cal+; iron pair 0/40 | bcr_eqp5_20260523_0242/ |
 | v3.1 (Wave 2) | 3-AOI | `w2e_peraoi_lam0.1` | 1/10 seeds at 5/6; alpfe Excellent + scav_rat + Smallgrow + Biggrow + diatomgraz Cal | bcr_w2_/w2e_peraoi_lam0.1/ |

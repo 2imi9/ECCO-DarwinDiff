@@ -181,6 +181,8 @@ Other potentially useful laptop work falls into **leapfrog territory** (differen
 
 ### Phase 1 — Engaging onboarding + first cluster jobs (1–4 weeks)
 
+> **Note (2026-06-26):** this Engaging→AICR sequencing is the dated, AICR-gated plan. In practice **NU Explorer (H200) is already the active cluster** — the real-data recoveries (iron pair, Daniels `R_PICPOC`) run there now. Treat Engaging/AICR as additional/future capacity, not the first "code ran on a cluster" milestone.
+
 | Step | Notes |
 |---|---|
 | MIT Sponsored Account via MIT host | Critical-path step for non-MIT collaborators |
