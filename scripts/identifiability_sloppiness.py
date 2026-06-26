@@ -90,10 +90,12 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--param", default="alpfe", choices=PARAM_NAMES,
                     help="parameter to profile (default alpfe)")
-    ap.add_argument("--loss", default="full", choices=["full", "realiron"],
+    ap.add_argument("--loss", default="full", choices=["full", "realiron", "realbsi", "realpic"],
                     help="'full' = exact runner joint loss; 'realiron' = ONLY the REAL "
-                         "GEOTRACES dissolved-iron residual (surf+sub) -- answers 'what alpfe "
-                         "does real iron data prefer?' (real-world-relevance check, issue #143/#116)")
+                         "GEOTRACES dissolved-iron residual (surf+sub, for alpfe/scav_rat); "
+                         "'realbsi' = ONLY the REAL GEOTRACES biogenic-silica residual (for "
+                         "diatomgraz). Real-world-relevance audit: 'does real data prefer Carroll?' "
+                         "(issue #143/#116). Needs the corresponding weight on (GEOTRACES_W / POSI_W).")
     ap.add_argument("--grid", type=int, default=9, help="profile grid points")
     ap.add_argument("--opt-steps", type=int, default=400,
                     help="Adam steps to find theta* (profile re-opt uses opt-steps//2)")
@@ -165,10 +167,70 @@ def main() -> int:
                 z = z + R.GEOTRACES_SUB_W * (resid ** 2).flatten(1).sum(dim=1) / b["n_geo_sub_f"] / scale
         return z
 
+    def real_bsi_loss_vec(theta: torch.Tensor) -> torch.Tensor:
+        """ONLY the REAL GEOTRACES biogenic-silica residual, summed over AOIs. Replicates
+        the runner's POSI_W bSi block (only diatoms make bSi, so it pins diatomgraz)."""
+        S = theta.shape[1]
+        set_seeds(S)
+        z = theta.new_zeros(S)
+        for b in bundles:
+            if not (R.POSI_W > 0 and b["n_posi"] > 0):
+                continue
+            H, W = b["mask_f"].shape
+            pb = theta.reshape(6, S, 1, 1).expand(6, S, H, W)
+            _, state = aoi_loss(b, pb)
+            bsi_pred, _ = R.diagnostic_bsi_steady(state[R.I_DIATOM], pb[4])  # pb[4]=diatomgraz
+            resid = (bsi_pred - b["posi_target_t"][None]) * b["posi_mask_f"][None]
+            scale = (b["posi_target_t"][b["posi_mask_t"]] ** 2).mean().clamp(min=1e-30)
+            z = z + R.POSI_W * (resid ** 2).flatten(1).sum(dim=1) / b["n_posi_f"] / scale
+        return z
+
     # Select which loss the optimum/Hessian/profile operate on (late-bound by the helpers).
     if args.loss == "realiron":
         loss_vec = real_iron_loss_vec
         print("    LOSS = realiron (GEOTRACES dissolved-iron residual ONLY)")
+    elif args.loss == "realbsi":
+        loss_vec = real_bsi_loss_vec
+        print("    LOSS = realbsi (GEOTRACES biogenic-silica residual ONLY)")
+    elif args.loss == "realpic":
+        # REAL MODIS-Aqua surface PIC residual (for R_PICPOC) -- the literal calcite quantity,
+        # INDEPENDENT of Darwin v05 (breaks circularity). Cache built by modis_pic_loader.py
+        # (keys pic_<aoi>/mask_<aoi>, mol/m^3). Only AOIs present in the cache contribute.
+        import numpy as np
+        cache_path = os.environ.get("MODIS_PIC_CACHE_PATH",
+                                    "/projects/schultz/qi.zim/runs/modis_pic_clim_2017_2019.npz")
+        mc = np.load(cache_path)
+        modis_tgt = {}
+        for b in bundles:
+            k = b["key"]
+            if f"pic_{k}" not in mc.files:
+                continue
+            pic_mmol = mc[f"pic_{k}"].astype("float32") * 1000.0   # mol/m^3 -> mmol C/m^3
+            ocean = (b["mask_f"] > 0).detach().cpu().numpy()
+            m = ocean & mc[f"mask_{k}"] & np.isfinite(pic_mmol) & (pic_mmol > 0)
+            tgt = torch.tensor(np.where(m, pic_mmol, 0.0), device=dev)
+            mf = torch.tensor(m.astype("float32"), device=dev)
+            modis_tgt[k] = (tgt, mf, mf.sum().clamp(min=1.0),
+                            (tgt[mf > 0] ** 2).mean().clamp(min=1e-30))
+        if not modis_tgt:
+            raise SystemExit(f"realpic: no AOI in {aois} has MODIS PIC in {cache_path} "
+                             f"(cache: {[f for f in mc.files if f.startswith('pic_')]})")
+
+        def real_pic_loss_vec(theta):
+            S = theta.shape[1]; set_seeds(S)
+            z = theta.new_zeros(S)
+            for b in bundles:
+                if b["key"] not in modis_tgt:
+                    continue
+                H, W = b["mask_f"].shape
+                pb = theta.reshape(6, S, 1, 1).expand(6, S, H, W)
+                _, state = aoi_loss(b, pb)
+                tgt, mf, nf, sc = modis_tgt[b["key"]]
+                resid = (state[R.I_PIC_1] - tgt[None]) * mf[None]
+                z = z + (resid ** 2).flatten(1).sum(dim=1) / nf / sc
+            return z
+        loss_vec = real_pic_loss_vec
+        print(f"    LOSS = realpic (MODIS-Aqua PIC residual ONLY; AOIs: {list(modis_tgt)})")
 
     def to_phys(u):   # u [6,S] -> physical [6,S]
         return lo + (hi - lo) * torch.sigmoid(u)
