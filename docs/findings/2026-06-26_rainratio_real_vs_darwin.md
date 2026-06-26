@@ -21,10 +21,15 @@ surface MODIS PIC (a standing stock) cannot. Best real-ocean **global-mean expor
 **Honest band: ≈0.06 (0.03–0.09), factor-of-2 uncertainty.** The legacy 0.20–0.25 (Li 1969) is a
 remineralization-ratio misinterpretation, not part of the modern envelope.
 
-## 2. Does ECCO-Darwin's 0.042 match? Within-uncertainty but biased LOW; regionally wrong
+## 2. Does ECCO-Darwin's 0.042 match? Yes — consistent with real calcite; the open issue is that the constant is GLOBAL, not regional
 
-- **0.042 is BELOW every verified global-mean central estimate** (0.056–0.09) — ~0.6σ low vs
-  Sarmiento, inside the 1σ envelope but ~25–30% below center.
+- **0.042 sits inside the real-ocean uncertainty envelope** (global-mean estimates span ~0.02–0.14
+  across methods; Daniels 2018 ¹⁴C *production* geomean ~0.02–0.039, Sarmiento 2002 *export* ~0.06±0.03).
+  The converged surface-calcite diagnostic (real MODIS-Aqua) is **consistent with Carroll's 0.042**
+  (optimum ~0.028; 0.042 in the acceptable low-ratio basin). The earlier "~25–30% below center / ~0.6σ
+  low" read was under-converged and compared only against the inverse/*export* estimates, which
+  measure a different quantity from the surface *production* ratio the box computes
+  (`dPIC = R_PICPOC·mort_total`) — so do **not** headline a magnitude disagreement.
 - **Carroll never tuned R_PICPOC to rain-ratio data.** Carroll 2020 (10.1029/2019MS001888) optimized
   6 BGC params by Green's functions against pCO2 / CO2-flux / alkalinity / nitrate / oxygen — NO
   rain-ratio dataset. So 0.042 is tuned for CO2/DIC closure; grading our recovery against Darwin's
@@ -33,18 +38,24 @@ remineralization-ratio misinterpretation, not part of the modern envelope.
 
 ## 3. Two discrepancies the surface-MODIS test was blind to
 
-(a) **Low-side magnitude tension.** Surface PIC is a standing stock; it can only reject HIGH values
-(our flat MODIS profile over [0.005,0.05]). The direct export inversions pull the center UP to
-0.06–0.09 — a real low-side model-vs-obs tension the stock test masked.
+(a) **Export-inversion magnitude spread (a different quantity).** Surface PIC is a standing stock; it
+can only reject HIGH values (our flat MODIS profile over [0.005,0.05]). The direct *export* inversions
+center at 0.06–0.09 — higher than 0.042 — but they measure the EXPORT ratio, not the surface
+PRODUCTION ratio the box computes. Against the in-kind data (surface MODIS calcite; Daniels production
+ratio) Carroll's 0.042 is consistent (§2), so this is a quantity mismatch, not a model error.
 
 (b) **THE LOAD-BEARING FINDING — R_PICPOC should be REGIONAL, not a global constant.** Sarmiento
 2002 Table 3: rain ratio peaks EQUATORIALLY (Indian 0.099 / Pacific 0.087 / Atlantic 0.084),
 minimum in Southern Ocean/gyres (0.003–0.02) — >20–30× regional range, and the equatorial-max is
 OPPOSITE the high-latitude coccolithophore-bloom pattern. **eqpac is DarwinDiff's constraining AOI,
-and the true eqpac rain ratio is ~0.087 (Sarmiento) to 0.13–0.22 (Wanninkhof) — 2–5× ABOVE the
-global 0.042.** So ECCO-Darwin's single global constant is wrong for the very region we constrain it
-in, and a global scalar cannot be uniquely identified against a regional AOI. **This structural
-mismatch — not the global magnitude — is the real scientific result for spine D.**
+and the rain ratio is regionally variable.** The export/alkalinity inversions (Sarmiento ~0.087 eqpac;
+Wanninkhof 0.13–0.22) imply an equatorial enhancement, but those are EXPORT-ratio inversions, not the
+surface PRODUCTION ratio the box computes. The Darwin-INDEPENDENT production-ratio anchor (Daniels 2018
+CP:PP, PR #146) puts eqpac surface geomean at ~0.039 — about **1.6× the global ~0.025**, which supports
+"the global constant is mis-specified / should be regional" but does **not** reproduce the 2–5×
+equatorial excess the export inversions imply (production-ratio ≠ export-ratio). So a global scalar
+cannot be uniquely identified against a regional AOI. **This structural global-vs-regional mismatch —
+not a magnitude disagreement — is the real scientific result for spine D.**
 
 **Non-discrepancy (don't over-read):** deep sediment-trap PIC:POC of 0.5–1.7 (Wynn-Edwards 2020) is
 12–40× higher but is the depth/ballast gradient (POC remineralizes, CaCO3 survives) — apples/oranges
@@ -68,9 +79,12 @@ regional signal may be noisier than Sarmiento's inverse pattern.
 
 ## Bottom line
 
-ECCO-Darwin's R_PICPOC is under-constrained, ~25–30% low vs the best inverse estimates, and — the
-real result — **structurally mis-specified as a single global constant when the true rain ratio is
-2–5× higher in eqpac (our constraining AOI).** This is a finding ABOUT ECCO-Darwin (the field's
+ECCO-Darwin's R_PICPOC is under-constrained, but its value is **consistent with real surface calcite**
+(real MODIS-Aqua optimum ~0.028; Carroll's 0.042 in the acceptable low-ratio basin). The real result is
+structural, not a magnitude error — **a single GLOBAL constant is mis-specified when the rain ratio is
+regionally variable**: the Darwin-independent Daniels 2018 production-ratio anchor puts eqpac surface at
+~1.6× the global mean (export inversions imply more, but production-ratio ≠ export-ratio). This is a
+finding ABOUT ECCO-Darwin (the field's
 best model still carries an under-constrained, globally-constant rain ratio), surfaced by the
 differentiable tool — not a failure of our recovery. Recovery = ours (works); real-world validity =
 ECCO-Darwin's (here it's weak + regional).

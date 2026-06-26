@@ -21,7 +21,10 @@ legacy reproduces bitwise when unset. Uncommitted; runs in
 3. **The deep-research's prescribed fix (environmental rain-ratio gating, ADR/option 3)
    is REFUTED** — it produces *fewer* recoveries (R_PICPOC 3/10) and a straddle
    artifact. The simple data fix beats the elaborate mechanism.
-4. **6/6 achieved for the first time** (3/10 seeds, verified) — but **NOT robust**.
+4. **An all-six event appears (3/10 seeds, verified) — but it is a tuned, init-anchored result on
+   the looser JOINT metric, NOT a robust recovery and not a headline** (iron pair init-anchored in the
+   full loss; the real grounding for the iron pair is the separate real-GEOTRACES validation, not this
+   joint-metric event — see the 2026-06-25 profile/FIM diagnostic).
    Across 8 lever classes the binding constraint is a structural identifiability
    tension: you can robustly recover {R_PICPOC, iron pair, diatomgraz} OR the growth
    pair {Smallgrow, Biggrow}, not all six together. **Longer training does not help**
@@ -92,7 +95,10 @@ six are robustly per-AOI; the **growth pair {Smallgrow, Biggrow}** is the residu
 
 The headline is verified and durable: **R_PICPOC was never fundamentally
 unidentifiable — the box-scale wall was a contaminated observation in the loss.**
-Fixing it cracks the long-standing blocker and yields the first 6/6 events. Robust 6/6
+Fixing it removes the contaminated-target blocker and lets R_PICPOC recover ≈Carroll's scalar
+(consistent with real MODIS-Aqua calcite, optimum ~0.028 — Carroll's 0.042 in the acceptable low-ratio
+basin). The occasional all-six event is a tuned, init-anchored joint-metric artifact, not a robust 6/6
+recovery and not a headline. Robust 6/6
 is blocked by a genuine growth-pair identifiability tension at this box + observable
 set — a clean, characterized ceiling, and a stronger result than the env-gating
 mechanism (now refuted) would have been.

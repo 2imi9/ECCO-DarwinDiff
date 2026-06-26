@@ -5,7 +5,7 @@ identifiability diagnostic built + first results in.
 
 ## TL;DR
 
-With the first 6/6 unblocked (R_PICPOC via RATIO_MAX, [2026-06-24 note](2026-06-24_rpicpoc_ratio_target_fix.md)),
+With the R_PICPOC contaminated-target blocker removed (R_PICPOC recovers ≈Carroll, consistent with real MODIS calcite; the all-six event in the [2026-06-24 note](2026-06-24_rpicpoc_ratio_target_fix.md) is a tuned, init-anchored joint-metric artifact, not a robust 6/6),
 robust per-AOI 6/6 is blocked by a **two-cluster compromise** under one shared Carroll-6 vector:
 
 - **3 AOIs** {eqpac HNLC, natl bloom, SO bloom} cleanly recover 4 params (alpfe, scav_rat,
@@ -232,9 +232,11 @@ GEOTRACES iron, per-AOI Cal (≥2 AOI):
 | diatomgraz | 4/10 | **10/10** | 10/10 |
 | R_PICPOC | 10/10 | **10/10** | 10/10 |
 
-**`ironboost_10x` → strict per-AOI 6/6 in 3/10 seeds** (cal-counts `[6,6,6,5,5,5,5,4,4,3]`) — the
-first 6/6 on the *per-AOI* metric (the earlier 6/6 was the looser joint metric with init-anchored
-alpfe), in the harder 4-AOI config, **with the iron pair driven by REAL observations.** `33×`
+**`ironboost_10x` → all six per-AOI Cal in 3/10 seeds only** (cal-counts `[6,6,6,5,5,5,5,4,4,3]`) — a
+tuned, non-robust event on the per-AOI metric, NOT a headline 6/6 recovery (the earlier all-six event
+was the looser joint metric with init-anchored alpfe). The durable, real-data result is narrower and
+stronger: **the iron pair (`alpfe`, `scav_rat`) is driven by REAL GEOTRACES iron and agrees with
+Carroll's calibrated values**; the growth pair stays the residual wall. `33×`
 over-boosts (alpfe 9/10 but scav_rat/Biggrow crash → 0/10 6/6); `10×` is near the sweet spot.
 
 **Headline:** the alpfe collapse was the Darwin z-scored pattern terms drowning the real-iron

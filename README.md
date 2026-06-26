@@ -33,7 +33,7 @@ DarwinDiff is organized into two tracks:
 1. **Parameter learner** *(active)* — learns a per-cell function from local environment to the six Carroll-6 parameters by gradient descent through the differentiable box model, replacing Green's-functions calibration.
 2. **Emulator** *(not started)* — a neural stand-in for ECCO-Darwin for long-timescale climate runs.
 
-The differentiable box model (`darwindiff.carroll6`), the per-cell networks (`darwindiff.networks`), and the ECCO-Darwin / GLODAP / GEOTRACES data loaders are all importable as the `darwindiff` package. The canonical results — including the first full six-parameter (6/6) recovery, with R_PICPOC unblocked by the `RATIO_MAX` ratio-target fix — and the known limits live in **[STATUS.md][status_url]** and `docs/findings/`.
+The differentiable box model (`darwindiff.carroll6`), the per-cell networks (`darwindiff.networks`), and the ECCO-Darwin / GLODAP / GEOTRACES data loaders are all importable as the `darwindiff` package. The canonical results — framed as a **surrogate-to-model identifiability study**: the iron pair (`alpfe`, `scav_rat`) is independently validated against real GEOTRACES IDP2025 dissolved iron; the growth pair (`Smallgrow`, `Biggrow`) is unobservable (growth rates are not measured); and `R_PICPOC` is ECCO-Darwin's own under-constrained, globally-constant rain ratio (real MODIS-Aqua calcite is consistent with Carroll's value — optimum ~0.028, Carroll's 0.042 in the acceptable low-ratio basin) — and the known limits live in **[STATUS.md][status_url]** and `docs/findings/`.
 
 ## Installation
 
@@ -87,8 +87,8 @@ uv run python scripts/verify_run.py runs/eqpac
 
 **Known limits**
 
-- A **structural 6/6 wall**: 0/856 seeds recover all six jointly across **856 seeds / 86 configs** — `R_PICPOC` (3%) is the lone unrecovered parameter. 5/6 now reproduces (above); breaking to 6/6 is the open problem.
-- `R_PICPOC` needs **richer calcite physics**: the box's rigid-ratio calcite can't match Darwin's ~23× coccolithophore-driven spatial PIC/POC variation. A PIC:POC ratio loss recovers it per-cell where the box matches Darwin (eqpac), but ≥2-AOI recovery needs the differentiable Darwin calcite port + native resolution — not a box-scale estimator or seasonal lever.
+- **Not a 6/6 recovery — an identifiability ceiling.** No single-loss config robustly recovers all six jointly (0/856 seeds across 86 configs historically; a later tuned config produces an all-six event in only 3/10 seeds, with the iron pair init-anchored in the full loss — not robust, not a headline). The residual non-recovery is the **growth pair** (`Smallgrow`, `Biggrow`), which is **unobservable** — growth rates are not measured, so there is no real anchor to break their degeneracy.
+- `R_PICPOC` is **ECCO-Darwin's own under-constrained, globally-constant rain ratio**, not a recovery failure. It recovers ≈Carroll on the in-kind data (real MODIS-Aqua surface calcite is consistent with Carroll — optimum ~0.028, 0.042 in the acceptable low-ratio basin; Daniels 2018 CP:PP eqpac geomean 0.039). The differentiable calcite port + native resolution were **tested and refuted** at box scale; the real gap was a direct calcite *observation*, now supplied by the Darwin-independent Daniels anchor ([PR #146](https://github.com/2imi9/ECCO-DarwinDiff/pull/146)). The defensible structural point is that a single global constant is mis-specified when the rain ratio is regionally variable.
 - 1° box-model proxy; 23-year climatology, not time-resolved; single-method (no forward-Darwin held-out validation yet); single-GPU prototype.
 
 The full evidence table, per-version findings, and the cluster-scale sweep plan are in **[STATUS.md][status_url]**; the per-task GPU / memory / wall-clock budget is in [the compute-budget note][budget_url].
