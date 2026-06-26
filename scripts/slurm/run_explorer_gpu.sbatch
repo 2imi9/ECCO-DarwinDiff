@@ -48,6 +48,10 @@ fi
 
 # Base Python from the Explorer module; uv manages the project env.
 module load anaconda3/2024.06
+# uv installs to ~/.local/bin (pip install --user); that dir is NOT on the batch
+# PATH by default, so `uv` was "command not found" after a fresh bootstrap. Prepend
+# it (matches run_identifiability.sbatch) so `command -v uv` and `uv run` resolve.
+export PATH="$HOME/.local/bin:$PATH"
 export UV_CACHE_DIR="${UV_CACHE_DIR:-$PWD/.uv-cache}"
 
 # Group storage (performant). Scratch (/scratch/$USER) is purged monthly; /home
