@@ -34,7 +34,7 @@ export RPP_ENV="${RPP_ENV:-1}"          # 1 = thermal-window gate ON (treatment)
 # (RPP_T_OPT=17.46, RPP_T_WIDTH=2.33, RPP_G_NORM=0.00373); override here to sweep.
 
 # --- v3.2 Eppley 3-AOI operating point (the reproducible-5/6 config) ---
-export AOIS=eqpac,natlsubpolar,southernoceanpac
+export AOIS="${AOIS:-eqpac,natlsubpolar,southernoceanpac}"
 export RATIO_W="${RATIO_W:-2}"          # PIC:POC ratio loss -> identifies R_PICPOC orthogonally to iron pair
 export RATIO_MAX="${RATIO_MAX:-2.0}"    # cap non-physical low-POC ratio cells (else SO term collapses)
 export COCCOLITH_ONLY=0                  # cocco-only calcite OFF (per research note)

@@ -121,6 +121,19 @@ SOUTHERN_OCEAN_PACIFIC_AOI: AOI = AOI(
     lon_min=-180.0,
     lon_max=-100.0,
 )
+# Growth-pair lever (2026-06-25; see docs/research_notes/2026-06-25_growth_pair_
+# identifiability_deep_research.md). Oligotrophic, warm, stratified North Pacific
+# Subtropical Gyre (ALOHA-region) where SMALL phytoplankton (Prochlorococcus/Syn)
+# dominate and large eukaryotes/diatoms are near-absent. The contrasting biome the
+# 3-AOI set lacks: it constrains Smallgrow where the bloom AOIs constrain Biggrow,
+# the verified literature lever for separating the co-varying growth pair.
+SUBTROPICAL_PACIFIC_GYRE_AOI: AOI = AOI(
+    name="Subtropical Pacific Gyre",
+    lat_min=15.0,
+    lat_max=30.0,
+    lon_min=-170.0,
+    lon_max=-135.0,
+)
 
 
 # Canonical AOI lookup table for env-var-driven scripts. The runners
@@ -134,6 +147,7 @@ AOI_BY_KEY: dict[str, AOI] = {
     "southernoceanpac": SOUTHERN_OCEAN_PACIFIC_AOI,
     "midatl": MID_ATLANTIC_AOI,
     "npac": NORTH_PACIFIC_AOI,
+    "npsg": SUBTROPICAL_PACIFIC_GYRE_AOI,
 }
 
 
