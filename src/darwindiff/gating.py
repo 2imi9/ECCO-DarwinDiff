@@ -40,9 +40,11 @@ import json
 
 import torch
 
-from darwindiff.carroll6 import PARAM_NAMES
+from darwindiff.carroll6 import PARAM_INDEX, PARAM_NAMES
 
-_PARAM_INDEX: dict[str, int] = {name: i for i, name in enumerate(PARAM_NAMES)}
+# Registry-derived name -> index map. carroll6.PARAMS is the single source of
+# truth; aliased here so the rest of this module keeps its private name.
+_PARAM_INDEX: dict[str, int] = PARAM_INDEX
 
 # Named presets. Keys are AOI keys from ecco_darwin_loader.AOI_BY_KEY; values are
 # the Carroll-6 parameters routed to that AOI's loss. Each preset covers all six

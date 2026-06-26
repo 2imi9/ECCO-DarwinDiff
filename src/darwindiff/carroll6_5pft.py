@@ -65,6 +65,7 @@ from darwindiff.carroll6 import (
     LIGHT,
     M_LIN,
     M_QUAD,
+    PARAM_INDEX,
     PHI_DUST,
     Q_FE,
     W_SINK,
@@ -86,14 +87,17 @@ I_ALK = 9
 N_TRACERS = 10
 N_PHYTO = 5
 
-# --- Carroll-6 parameter layout (unchanged from carroll6.py) ------------------
+# --- Carroll-6 parameter layout (derived from the carroll6.py registry) -------
+# Named param-vector indices, looked up by name from carroll6.PARAMS (the single
+# source of truth) so they track the registry order automatically and a reader
+# never counts positions. The PFT each learned rate governs is noted alongside.
 
-I_ALPFE = 0
-I_SCAV_RAT = 1
-I_SMALLGROW = 2   # learned on Pro-HL
-I_BIGGROW = 3     # learned on other large euks
-I_DIATOMGRAZ = 4  # learned on diatoms
-I_R_PICPOC = 5
+I_ALPFE = PARAM_INDEX["alpfe"]
+I_SCAV_RAT = PARAM_INDEX["scav_rat"]
+I_SMALLGROW = PARAM_INDEX["Smallgrow"]    # learned on Pro-HL
+I_BIGGROW = PARAM_INDEX["Biggrow"]        # learned on other large euks
+I_DIATOMGRAZ = PARAM_INDEX["diatomgraz"]  # learned on diatoms
+I_R_PICPOC = PARAM_INDEX["R_PICPOC"]
 
 # --- Default growth rates for the 4 non-learned PFTs --------------------------
 # Placeholders matching the Carroll-2020 published optima for the lumped

@@ -34,6 +34,80 @@ The scope-prefix lets the merge history read as a project changelog without per-
 
 Use **non-squash merges** (`gh pr merge --merge`). Per-commit history is preserved on `main`, which is useful for debugging multi-commit PRs and for the project's "what shipped when" narrative. Squash merges collapse this signal.
 
+## Adding or removing a Carroll-N parameter
+
+The learnable-parameter layout lives in **one** place: the `PARAMS` registry in
+[`src/darwindiff/carroll6.py`](src/darwindiff/carroll6.py). It is an ordered tuple
+of frozen `Param(name, bounds, carroll_value, units, description, learned)`
+dataclasses, and everything else is **derived** from it so the views never drift:
+
+| Derived object | What it is | Used by |
+| --- | --- | --- |
+| `PARAM_NAMES` | `[p.name for p in PARAMS]` | recovery report, gating validation |
+| `CARROLL_VALUES` | float32 tensor of `p.carroll_value` | recovery target / synthetic truth |
+| `PARAM_BOUNDS` | `[n, 2]` float32 `(lo, hi)` tensor | `bounded_params` sigmoid map |
+| `PARAM_INDEX` | `{name: position}` | `gating._PARAM_INDEX`, `carroll6_5pft.I_*` |
+| `P` | `SimpleNamespace` of named indices (`P.alpfe`, …) | box steps + runner loss terms |
+
+**Read positions by name, never by number.** Box steps and loss terms index the
+params vector through `P.<name>` (e.g. `params[P.alpfe]`) or the `I_<NAME>`
+constants in `carroll6_5pft.py` (themselves `PARAM_INDEX["<name>"]`). Do not
+reintroduce bare `params[3]`-style positional unpacking.
+
+### To add a parameter
+
+1. **Append** a `Param(...)` entry to `PARAMS`. *Append at the end* — see
+   reproducibility below. One entry updates all five derived views automatically.
+2. **Wire the physics.** Read it in the box step(s) that use it via
+   `params[P.<name>]` (`carroll6.py`, `carroll6_5pft.py`,
+   `carroll6_5pft_2layer.py`) and add its tendency terms. Add an `I_<NAME>`
+   alias in `carroll6_5pft.py` only if a step there needs it.
+3. **Wire the loss term** that identifies it in
+   [`scripts/run_v3.0_joint_multi_aoi.py`](scripts/run_v3.0_joint_multi_aoi.py),
+   reading the seed prediction as `params_b[P.<name>]`.
+4. **Gating (if used):** route the new name in the relevant
+   `GATING_POLICIES` presets in [`src/darwindiff/gating.py`](src/darwindiff/gating.py).
+   `validate_policy` *requires every* parameter to be routed to ≥1 AOI, so an
+   unrouted new parameter will raise at run start rather than silently freeze at
+   its initialisation.
+5. **Update the golden test** `tests/test_param_registry.py`: extend
+   `GOLDEN_NAMES` / `GOLDEN_CARROLL_VALUES` / `GOLDEN_BOUNDS`. The forward-output
+   goldens (`GOLDEN_STEP1`, `GOLDEN_INTEG_FINAL`) legitimately change when the
+   model gains a tracer/parameter — recapture them and note why in the commit.
+
+### To remove a parameter
+
+Reverse the steps: delete the `Param` entry, delete its physics tendency terms
+and any `I_<NAME>` alias, delete the loss term that targeted it, drop the name
+from every `GATING_POLICIES` preset, and update the goldens. The registry makes
+the *layout* bookkeeping a one-line delete, but physics/loss code that consumed
+the parameter must still be removed by hand — a leftover `P.<name>` reference
+will raise `AttributeError` at import, which is the intended loud failure.
+
+### What must stay fixed for reproducibility
+
+- **Order is load-bearing.** Existing runs, IC caches, and recovered-value JSONs
+  index parameters positionally (`params[0]..params[5]`). Appending a new entry
+  is safe; **reordering or inserting** changes the on-disk layout and breaks
+  bitwise reproduction of every prior result.
+- **Values are frozen.** Do not edit an existing entry's `carroll_value` or
+  `bounds` as part of an unrelated change — `test_param_registry.py` locks the
+  current six against their pre-registry float32 values. Changing a target is a
+  deliberate, separately-justified science change, not a refactor.
+
+### Naming conventions that key off parameter names
+
+- **Named indices:** `P.<name>`, `PARAM_INDEX["<name>"]`, and the
+  `I_<NAME>` constants all resolve a parameter's position from its registry
+  `name`. Keep `name` a valid Python identifier (it becomes a `P` attribute).
+- **Gating policies** (`GATING_POLICIES`, `GATING_POLICY` env / JSON) reference
+  parameters **by name** (e.g. `{"eqpac": ["alpfe", "diatomgraz"]}`).
+- **Not param-keyed:** the runner's `AOI_W_<AOI>` and `RATIO_AOI_W_<AOI>` env
+  levers key off **AOI** keys (`eqpac`, `natlsubpolar`, …), not parameter names,
+  so they are unaffected by a registry change. Per-term loss weights
+  (`GEOTRACES_W`, `POSI_W`, `RATIO_W`, …) are per-loss-term, not per-parameter;
+  each term reads the specific parameter(s) it identifies via `P.<name>`.
+
 ## Documentation discipline
 
 For substantive changes:
