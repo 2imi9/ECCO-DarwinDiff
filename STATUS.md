@@ -2,11 +2,26 @@
 
 Live status doc. Headlines reflect verified results at the current project version. Per-version technical detail lives in [`docs/findings/`](docs/findings/index.md) and individual PR threads.
 
-## Current state — Track 1 v3.3
+## Current state — 2026-06-26 (surrogate-to-model identifiability + first real-data R_PICPOC recovery)
 
-DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with gradient descent through a differentiable box model, predicted by a per-cell neural network. Active at **3-AOI multi-AOI joint training** (Equatorial Pacific + N Atlantic Subpolar + Southern Ocean Pacific) on a single workstation (NVIDIA RTX 5090 32 GB).
+DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with gradient descent through a differentiable box model, predicted by a per-cell neural network. The project is framed honestly as a **surrogate-to-model identifiability study**, not a "six-of-six recovery": we characterise *which* of the six Carroll parameters are recoverable, *why*, and validate the recoverable ones against **real ocean data** (NU Explorer H200; verified, `verify_run.py`-gated).
 
-**Box-science headline is v3.2** (mean 3.85/6, R_PICPOC the sole 6/6 wall — below). **v3.3 is the seasonal / native-resolution bridge infrastructure** (merged): the transient-seasonal integrator and runner are now seed-batched, `torch.compile`-ready, and emit `verify_run.py`-gateable per-seed JSON, so the first cluster seasonal fit is push-button and verifiable. Seasonal *recovery results* remain cluster-gated.
+The recovery limit is **not one problem** — it is four separable causes, isolated with controls (see the *Why recovery is imperfect* diagram and `docs/findings/`):
+
+1. **Surrogate gap** — the 0-D box is not ECCO-Darwin's full coupled physics (3-D circulation + ecosystem), so parameters fit to match Darwin's fields can drift.
+2. **Loss-weighting** — z-scored Darwin-pattern terms drown the absolute-iron signal. The converged FIM/profile spine (`docs/findings/2026-06-26_fim_alpfe_contrast.md`) shows `alpfe` lands at **0.103 (init floor) under the full loss vs 0.9997 (≈Carroll 0.928) under real GEOTRACES iron** — opposite-sloped profiles, so the apparent "collapse" is loss-weighting, **not** structural non-identifiability.
+3. **Intrinsic identifiability** — the growth pair (`Smallgrow`, `Biggrow`) has no real anchor (growth rates are unobserved); Fisher sloppiness ranks `R_PICPOC` the least-stiff direction.
+4. **Optimization** — the **self-twin** (targets generated from the box at known θ, zero surrogate gap) recovers θ to **loss 5.5e-10** with `--start-at-truth`; a naive single-start fit stalls *above* that — an optimization/initialisation artifact, not a method failure. So the method itself works.
+
+**Verified real-data results (2026-06-26, H200):**
+
+- **Iron pair (`alpfe`, `scav_rat`): real-data validated** — real GEOTRACES IDP2025 dissolved iron independently prefers ≈Carroll's calibrated values (FIM `realiron` profile above). The collapse is fixable loss-weighting, broken by up-weighting the real-iron term.
+- **`R_PICPOC`: first real-data-anchored recovery — `≥2-AOI co-recovery 50/50 seeds, Wilson 95% CI [0.93, 1.00]`, `verify_run.py` exit 0** (`docs/findings/2026-06-26_daniels_realdata_rpicpoc_recovery.md`). Graded against the **Darwin-independent Daniels 2018 CP:PP** anchor — *not* Darwin's own PIC — so it **breaks the circularity** of grading R_PICPOC against the model whose calibration we are recovering. Per-AOI mean ≈ 0.05 vs Carroll 0.0425 (Cal-grade, slightly above — consistent with the real rain ratio running a touch higher than Carroll's low global constant; `docs/findings/2026-06-26_rainratio_real_vs_darwin.md`).
+- **Honest scope — this is NOT a 6/6.** The minimal Daniels+ironboost config co-recovers `R_PICPOC` + `scav_rat` + the growth pair but **drops `alpfe` (4/50) and `diatomgraz` (1/50)** — the tight CIs confirm those are genuinely not held in that config (`6/6 = 0/50`). Holding the iron pair *and* `diatomgraz` *and* the real R_PICPOC anchor together is the next experiment (full Eppley/POSi operating point + Daniels).
+
+**Superseded framing.** Earlier status text framed `R_PICPOC` as "the 6/6 wall needing the differentiable Darwin calcite port + native resolution." The differentiable calcite port is **refuted at the box scale** (per-PFT cocco gating gives a flat PIC:POC; native resolution does not unblock it) and `R_PICPOC` is now **recovered via a real, Darwin-independent observation** instead. The v3.x box-science record below (the 5/6 plateau, mutexes, AOI ablation) stands as accurate history of the *Darwin-graded* recovery; the *real-data* validation above is the current frontier.
+
+**v3.3 cluster bridge** (merged): the transient-seasonal integrator and runner are seed-batched, `torch.compile`-ready, and emit `verify_run.py`-gateable per-seed JSON. The Daniels recovery above runs on the NU **Explorer H200** (active path), ~16–57 s/seed.
 
 **Verified results from the v3.1 sweep set** (856 seeds across 86 configs, outputs in `D:\runs\bcr_*\`):
 

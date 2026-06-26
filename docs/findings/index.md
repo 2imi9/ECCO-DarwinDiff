@@ -13,9 +13,16 @@ Per-version technical writeups behind the headline results. [Project Status](../
 - [v3.1 — closeout](v3.1_closeout.md) — 3-AOI Basin C; 38/40 iron-pair recovery; two complementary 5/6 paths.
 - [v3.2 — dense POSi + Eppley](posi_dense_diatomgraz.md) — first reproducible 5/6 at 3-AOI via forward-model fidelity.
 
-## R_PICPOC structural campaign
+## Real-data validation + identifiability (2026-06) — current frontier
 
-- [Ratio loss (structural)](rpicpoc_ratio_structural.md) — the PIC:POC ratio observable recovers `R_PICPOC` in eqpac without the iron-pair mutex; the ≥2-AOI wall is calcite forward-model fidelity.
+- [Daniels CP:PP — first real-data R_PICPOC recovery](2026-06-26_daniels_realdata_rpicpoc_recovery.md) — graded against the Darwin-independent Daniels 2018 CP:PP anchor (not Darwin's own PIC): `R_PICPOC` ≥2-AOI co-recovery **50/50, Wilson 95% CI [0.93, 1.00]**, `verify_run.py` exit 0. Breaks the circularity. Honest scope: drops `alpfe` + `diatomgraz` (not a 6/6).
+- [FIM/profile identifiability spine](2026-06-26_fim_alpfe_contrast.md) — `alpfe` 0.103 (full loss) vs 0.9997 (real GEOTRACES iron); the iron-pair "collapse" is loss-weighting, not structural.
+- [Rain ratio: real vs Darwin](2026-06-26_rainratio_real_vs_darwin.md) — ECCO-Darwin's `R_PICPOC` global constant is consistent with real surface calcite but mis-specified as a single global value (the real rain ratio is regional).
+- Self-twin diagnostic (`scripts/self_twin_recovery.py`, PR #148) — with zero surrogate gap the method recovers θ to loss 5e-10, isolating method-correctness from surrogate fidelity.
+
+## R_PICPOC structural campaign (Darwin-graded history — superseded by the real-data validation above)
+
+- [Ratio loss (structural)](rpicpoc_ratio_structural.md) — the PIC:POC ratio observable recovers `R_PICPOC` in eqpac without the iron-pair mutex. *(The "≥2-AOI wall is calcite forward-model fidelity / needs the calcite port" conclusion is superseded: the calcite port was refuted at box scale, and `R_PICPOC` now recovers ≥2-AOI via real Daniels data.)*
 - [ALK anchor mutex test](alk_anchor_rpicpoc_mutex.md) — pre-registered null; an apparent co-recovery falsified as a cell-weighted averaging artifact.
 
 ## Scaling & verification

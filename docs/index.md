@@ -17,18 +17,23 @@ DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistr
 1. **Parameter learner** *(active)* — learns a per-cell function from local environment to the six Carroll parameters by gradient descent through the differentiable box model, replacing Green's-functions calibration.
 2. **Emulator** *(not started)* — a neural stand-in for ECCO-Darwin for long-timescale climate runs.
 
-## What works · what's blocked
+## What's identifiable · what's not
 
-=== "Works"
+This is a **surrogate-to-model identifiability study**: we recover what the data can constrain, validate it against real ocean observations, and state the rest honestly. (See the *Why recovery is imperfect, and how we fixed it* diagram.)
 
-    - The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config; one fit runs in ~7 min on a single GPU.
-    - A **reproducible 5/6** at 3-AOI (v3.2): dense-Darwin `POSi` + Eppley temperature limitation recover `diatomgraz` alongside the iron pair — mean **2.0 → 3.85/6**, 70% of seeds ≥4/6 (n=20). The synthetic demo runs end-to-end on a laptop / free Colab T4.
+=== "Recovered + real-data validated"
 
-=== "Blocked"
+    - **Iron pair (`alpfe`, `scav_rat`)** — reproducible (38/40 Darwin-graded) *and* independently preferred by **real GEOTRACES dissolved iron**: the converged FIM/profile spine puts `alpfe` at 0.103 under the full loss vs **0.9997 (≈Carroll) under real iron**, so the earlier "collapse" was loss-weighting, not a fundamental limit.
+    - **`R_PICPOC` — first real-data-anchored recovery**: graded against the Darwin-**independent** Daniels 2018 CP:PP data (not Darwin's own PIC, which would be circular), it recovers **≥2-AOI in 50/50 seeds, Wilson 95% CI [0.93, 1.00]** (`verify_run.py` exit 0). One fit runs in ~16–57 s/seed on an H200.
 
-    - A **structural 6/6 wall**: 0/856 seeds recover all six jointly — `R_PICPOC` (3%) is the lone unrecovered parameter.
-    - `R_PICPOC` needs **richer calcite physics**: the box's rigid-ratio calcite can't match Darwin's ~23× coccolithophore-driven spatial PIC/POC variation. Resolving it needs the differentiable Darwin calcite port + native resolution — not a box-scale estimator or seasonal lever.
-    - 1° box-model proxy; 23-year climatology, not time-resolved; single-GPU prototype. Full evidence → **[Project Status](status.md)**.
+=== "Not (yet) recoverable"
+
+    - **Growth pair (`Smallgrow`, `Biggrow`)** — unobservable: growth rates are not measured, so no real anchor breaks their degeneracy.
+    - **Not a 6/6.** The minimal real-R_PICPOC config trades away `alpfe` + `diatomgraz`; holding all of them together is the next experiment. The **self-twin** (zero surrogate gap) recovers θ to loss 5e-10, so the limits are surrogate-fidelity + loss-design + optimization — not a broken method.
+    - 1° box-model proxy; 23-year climatology, not time-resolved. Full evidence → **[Project Status](status.md)**.
+
+!!! note "Superseded"
+    Earlier text called `R_PICPOC` "a 6/6 wall needing the differentiable Darwin calcite port + native resolution." The calcite port is **refuted at the box scale**, and `R_PICPOC` is now recovered via a real, Darwin-independent observation instead.
 
 ## Documentation map
 
@@ -52,17 +57,17 @@ DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistr
 
     How the box model maps onto full ECCO-Darwin, and the [parameter inventory](ecco_darwin_parameter_inventory.md) of what is and isn't being recovered.
 
--   :material-flask: **[Findings](findings/v3.1_closeout.md)**
+-   :material-flask: **[Findings](findings/index.md)**
 
     ---
 
-    Per-version technical writeups, v2.1 → v3.2 — the experimental record behind each result, including the `R_PICPOC` structural campaign.
+    Per-version technical writeups, v2.1 → the 2026-06 real-data validation — the experimental record behind each result, including the FIM identifiability spine and the Daniels `R_PICPOC` recovery.
 
 -   :material-server: **[Cluster setup](cluster_setup.md)**
 
     ---
 
-    MIT ORCD Engaging + AICR (B200) setup, partitions, storage, and SLURM templates. See also the [cluster roadmap](cluster_roadmap.md).
+    NU Explorer (H200, **active path** — the real-data recoveries run here) + AICR (B200) + MIT ORCD Engaging setup, partitions, storage, and SLURM templates. See also the [cluster roadmap](cluster_roadmap.md).
 
 -   :material-database: **[Data sources](data.md)**
 
