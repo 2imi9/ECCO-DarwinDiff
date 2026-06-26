@@ -11,22 +11,29 @@ H200. Operating point: **`DANIELS_RPICPOC_W=1.0`** (the real Daniels 2018 CP:PP 
 graded against **real calcite-production observations, not Darwin's own PIC** — this breaks
 the circularity that made every prior R_PICPOC "recovery" self-referential.
 
-## Result (canonical metric: per-AOI ≥2-AOI co-recovery, n=10)
+## Result (canonical metric: per-AOI ≥2-AOI co-recovery, n=50)
 
 | param | ≥2-AOI co-rec | per-AOI Cal tally (eqpac/natl/SO/npsg) |
 |---|---|---|
-| **R_PICPOC** | **10/10** | 9 / 10 / 5 / 10 |
-| scav_rat | 9/10 | 9 / 9 / 1 / 9 |
-| Smallgrow | 9/10 | 9 / 9 / 9 / 10 |
-| Biggrow | 9/10 | 9 / 8 / 8 / 9 |
-| alpfe | 1/10 | 1 / 1 / 1 / 1 |
-| diatomgraz | 1/10 | 1 / 1 / 0 / 1 |
+Verified at **n=50** (B.3 n=10 + B.4 n=40 ensemble; `verify_run.py --expect-seeds 50` → exit 0).
+The metric is per-AOI ≥2-AOI co-recovery; the Wilson 95% CI makes each rate referee-proof.
 
-R_PICPOC per-AOI **mean recovered**: eqpac 0.0516, natl 0.0509, SO 0.0604, npsg 0.0482 (vs
+| param | ≥2-AOI co-rec (n=50) | Wilson 95% CI | per-AOI Cal tally (eqpac/natl/SO/npsg) |
+|---|---|---|---|
+| **R_PICPOC** | **50/50** | **[0.93, 1.00]** | 49 / 50 / 15 / 50 |
+| scav_rat | 49/50 | [0.90, 1.00] | 49 / 49 / 5 / 49 |
+| Smallgrow | 49/50 | [0.90, 1.00] | — |
+| Biggrow | 43/50 | [0.74, 0.93] | — |
+| alpfe | 4/50 | [0.03, 0.19] | 4 / 4 / 4 / 4 |
+| diatomgraz | 1/50 | [0.00, 0.10] | — |
+
+R_PICPOC per-AOI **mean recovered** (n=50): eqpac 0.0502, natl 0.0520, SO 0.0619, npsg 0.0487 (vs
 Carroll 0.0425). Cal-grade and slightly above Carroll's low global constant — consistent with
 `2026-06-26_rainratio_real_vs_darwin.md` (the real rain ratio runs a touch higher than 0.0425).
 
-`verify_run.py`: mean_cal 3.9, ≥4/6 in 9/10 seeds, **6/6 = 0/10**, iron_pair_joint 0/10.
+`verify_run.py` (n=50): mean_cal 3.9, ≥4/6 in 42/50 seeds, **6/6 = 0/50**, 5/6 = 3/50,
+iron_pair_joint 3/50. The tight alpfe [0.03,0.19] + diatomgraz [0.00,0.10] CIs confirm these are
+genuinely NOT recovered in this config (not seed noise).
 
 ## Honest scope
 
@@ -39,8 +46,9 @@ point (Eppley + dense POSi) layered on — the next config. The durable, defensi
 narrow and real: **real CP:PP data recovers R_PICPOC (≥2-AOI in 10/10 seeds), breaking the
 circularity**, with the recovered value Cal-grade vs Carroll.
 
-## Pending
+## Next
 
-n=50 ensemble (job 7886431, same operating point) for a Wilson CI on the R_PICPOC rate
-(10/10 at n=10 → 95% Wilson CI [0.72, 1.0]; n=50 tightens it). Aggregator:
-`scripts/aggregate_daniels_recovery.py`.
+The n=50 Wilson CIs above are done (B.4). The next config is the **full v3.2 operating point
+(Eppley + dense POSi) layered on the Daniels anchor** — to test whether the iron pair (alpfe)
+and diatomgraz can be held *simultaneously* with the real R_PICPOC recovery, rather than traded
+away as in this minimal config. Aggregator: `scripts/aggregate_daniels_recovery.py`.
