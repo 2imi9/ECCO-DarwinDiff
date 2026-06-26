@@ -2,6 +2,15 @@
 
 A pause before notebook 09 (real-data fit) to capture the decisions that have shaped the project so far. Organised by category, not chronology. Each entry: the decision, the rationale, and the consequences for downstream work. Updated as the project evolves.
 
+!!! warning "2026-06-26 update — the forward-looking conclusions below are superseded"
+    This is a **dated log** (Track 1 v1.5 close, 2026-05-09); its design-decision *history* is accurate, but its *forward-looking* conclusions (sections F4–F6 and "next priority") have since been overturned:
+
+    - **`R_PICPOC` was recovered** at the box scale by anchoring to a real, Darwin-independent CP:PP ratio (Daniels 2018, ≥2-AOI 50/50). The "needs the DIC+ALK / calcite port + native resolution" thesis is **refuted** — the port gives a flat box-scale PIC:POC and native resolution does not unblock it.
+    - **The iron pair is real-data validated** vs GEOTRACES IDP2025; the (`alpfe`, `scav_rat`) "degeneracy" is a **loss-weighting artifact**, not structural (FIM/profile: `alpfe` 0.103 full-loss vs 0.9997 ≈Carroll under real iron).
+    - The **active** cluster is **NU Explorer (H200)**, not MIT ORCD.
+
+    Read the original entries below as 2026-05 history. Current state: [Project Status](status.md).
+
 ---
 
 ## A. Scientific scope

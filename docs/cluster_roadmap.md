@@ -1,6 +1,14 @@
-# Cluster compute roadmap — directions ranked by EV against the 5/6 bottleneck
+# Cluster compute roadmap
 
-Planning companion to [docs/cluster_setup.md](cluster_setup.md) (operational how-to). This doc covers WHAT to do with cluster compute once Engaging + AICR access is online. Ordered by expected value against the v3.1 structural 5/6 ceiling.
+!!! warning "Superseded framing (2026-06-26)"
+    This roadmap was written around a **"5/6 structural ceiling"** treated as the live frontier, and an Engaging + AICR-gated cluster path. Both are now out of date:
+
+    - The work is a **surrogate-to-model identifiability study**. The iron pair is **real-data validated** vs GEOTRACES (the "collapse" was loss-weighting, not structural — FIM: `alpfe` 0.103 full-loss vs 0.9997 ≈Carroll under real iron), and **`R_PICPOC` has a first real-data-anchored recovery** (Daniels 2018 CP:PP, ≥2-AOI co-recovery 50/50). The residual unobserved gap is the **growth pair** (`Smallgrow`, `Biggrow`), not a generic 5/6 ceiling.
+    - The **active** cluster is **NU Explorer (H200)**, where the real-data recoveries already run; AICR (B200) is future capacity and MIT Engaging is a Jon-side option.
+
+    The dated direction-rankings + seed/config history below are kept as planning context — but read "break the 5/6 ceiling" as "give the growth pair a real anchor / tighten the real-data fits," and score success by **per-AOI ≥2-AOI co-recovery (n≥10, `verify_run.py`-gated)**, not a robust 6/6. See [Project Status](status.md).
+
+Planning companion to [docs/cluster_setup.md](cluster_setup.md) (operational how-to). This doc covers WHAT to do with additional cluster compute (NU Explorer is already active; Engaging + AICR add future capacity).
 
 ## The bottleneck recap
 

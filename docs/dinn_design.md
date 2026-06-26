@@ -148,7 +148,7 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 
 ## Scope and honest caveats
 
-- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap; the 5/6 ceiling on Carroll-6 recovery still has the box-model proxy as a contributing factor alongside parameter conservation under the observational constraint set.
+- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap. **(Updated 2026-06-26):** the Darwin-graded box sweeps historically ceilinged at 5/6, with the box-model proxy a contributing factor — but this has since been revised. With real-data anchors the iron pair (vs GEOTRACES) and `R_PICPOC` (vs the Darwin-independent Daniels 2018 CP:PP, ≥2-AOI co-recovery 50/50) recover, the iron-pair "collapse" is now diagnosed as loss-weighting (not structural), and the residual unobservable gap is the growth pair (`Smallgrow`, `Biggrow`). This is a surrogate-to-model identifiability study, not a robust 6/6.
 - **DINN is per-cell, not spatially-coupled.** The current setup ignores advection/diffusion between cells because the truth structure for parameter values is per-cell — each cell has its own Carroll-6 vector. Track 2 (emulator) will use different architectures with explicit spatial coupling.
 - **DINNDeep does not extrapolate spatially.** Block cross-validation gives held-out r=0.301 on FeT (vs r=1.000 in-distribution). For applying a network trained on AOI A to AOI B, train per-AOI or use the smaller DINN baseline.
 - **Climatology, not time-resolved.** All current fits use the time-mean over 23 years of monthly Darwin output. Time-resolved fitting opens Track 2 emulator territory and needs cluster compute.
@@ -173,6 +173,6 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 
 - [README.md](../README.md) — project overview
 - [STATUS.md](../STATUS.md) — live state and findings
-- [docs/cluster_setup.md](cluster_setup.md) — running on MIT ORCD
+- [docs/cluster_setup.md](cluster_setup.md) — running on NU Explorer (H200, active path) + MIT ORCD (Jon-side option)
 - [docs/findings/](findings/) — per-version technical writeups
 - [docs/ecco_darwin_parameter_inventory.md](ecco_darwin_parameter_inventory.md) — verified Carroll-6 parameter list
