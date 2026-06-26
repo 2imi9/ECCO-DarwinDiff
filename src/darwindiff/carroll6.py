@@ -12,6 +12,11 @@ llc270_JAMES_paper):
     5. diatomgraz  — diatom palatability (–)
     6. R_PICPOC    — PIC/POC ratio (–)
 
+These six are declared once in the ``PARAMS`` registry below — the single source
+of truth from which ``PARAM_NAMES``, ``CARROLL_VALUES``, ``PARAM_BOUNDS``,
+``PARAM_INDEX`` and the ``P`` named-index namespace are derived. Adding or
+dropping a parameter is a one-entry edit to that tuple; see CONTRIBUTING.md.
+
 Equations (5-tracer baseline, ``carroll6_step`` / ``carroll6_integrate``):
     dDFe/dt   = alpfe*Φ_dust - scav_rat*DFe*POC - Q_Fe*(μ_s P_s + μ_l P_l)*f_Fe(DFe)
     dPs/dt    = μ_s f_Fe Ps - m_lin Ps - m_quad Ps²
@@ -45,6 +50,9 @@ reference_darwin3.md.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from types import SimpleNamespace
+
 import torch
 
 from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
@@ -64,34 +72,111 @@ H_MLD: float = 50.0         # m, surface mixed-layer depth for the carbonate ext
                             # in the loader (see Day 3 of the v2.0 closeout).
 
 
-# Carroll 2020 published optimum (JAMES paper Table 1). Values verified directly against
-# the v04/llc270_JAMES_paper source build; see docs/ecco_darwin_parameter_inventory.md.
-CARROLL_VALUES: torch.Tensor = torch.tensor([
-    0.92831,                     # alpfe
-    10.41124 * 0.005 / 86400.0,  # scav_rat (per second) = 6.026e-7
-    0.66098,                     # Smallgrow (per day)
-    0.43148,                     # Biggrow (per day)
-    0.83003,                     # diatomgraz
-    0.04245,                     # R_PICPOC
-])
+@dataclass(frozen=True)
+class Param:
+    """One learnable Carroll-N parameter — a single declarative registry entry.
 
-PARAM_NAMES: list[str] = [
-    "alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC",
-]
+    Attributes:
+        name: identifier used everywhere a parameter is referenced by name —
+            the ``P`` index namespace (``P.<name>``), the ``I_<NAME>`` aliases in
+            :mod:`darwindiff.carroll6_5pft`, and the gating policies in
+            :mod:`darwindiff.gating`. Must be a valid Python identifier.
+        bounds: ``(lo, hi)`` physical range for :func:`bounded_params`' sigmoid map.
+        carroll_value: Carroll-2020 published Green's-functions optimum.
+        units: physical units (documentation only).
+        description: one-line physical meaning (documentation only).
+        learned: whether the parameter is fit by gradient descent. All six are
+            currently learned; the flag lets a future fixed/derived parameter
+            live in the registry without being optimised.
+    """
 
-PARAM_BOUNDS: torch.Tensor = torch.tensor([
-    [0.05, 1.0],     # alpfe
-    [3e-8, 3e-6],    # scav_rat (per second), 100x window around Carroll's 6e-7
-    [0.10, 2.0],     # Smallgrow (1/d)
-    [0.10, 2.0],     # Biggrow (1/d)
-    [0.05, 1.0],     # diatomgraz
-    [0.005, 1.5],    # R_PICPOC -- bound raised from 0.20 (session 2026-05-18 diagnostic).
-                     #   Empirical Darwin v05 PIC/POC ratio: eqpac median 0.031, natl
-                     #   median 0.722 (23x AOI variance). Original bound 0.20 capped at
-                     #   3.6x below natl's true ratio. Diagnostic: does the learner
-                     #   push above 0.20 when allowed? If not, the binding constraint
-                     #   is the inter-AOI tension, not the bound.
-])
+    name: str
+    bounds: tuple[float, float]
+    carroll_value: float
+    units: str
+    description: str
+    learned: bool = True
+
+
+# ============================ Carroll-N parameter registry ====================
+# THE SINGLE SOURCE OF TRUTH for the learnable-parameter layout. Add or drop a
+# parameter by editing exactly this tuple: PARAM_NAMES, CARROLL_VALUES,
+# PARAM_BOUNDS, PARAM_INDEX and the P.<name> index namespace below are all
+# DERIVED from it, so they never drift out of sync. See CONTRIBUTING.md →
+# "Adding or removing a Carroll-N parameter".
+#
+# Carroll-2020 optima (JAMES paper Table 1) verified directly against the
+# v04/llc270_JAMES_paper source build; see docs/ecco_darwin_parameter_inventory.md.
+#
+# ORDER IS LOAD-BEARING. Existing runs, IC caches and recovered-value JSONs index
+# parameters positionally (params[0]..params[5]); appending a new entry is safe,
+# but reordering or inserting changes the on-disk layout and breaks bitwise
+# reproduction of every prior result.
+PARAMS: tuple[Param, ...] = (
+    Param(
+        name="alpfe",
+        bounds=(0.05, 1.0),
+        carroll_value=0.92831,
+        units="-",
+        description="iron dust solubility",
+    ),
+    Param(
+        name="scav_rat",
+        # per-second, following the Carroll source convention; a 100x window
+        # around Carroll's 6e-7 (= 10.41124 * 0.005 / 86400).
+        bounds=(3e-8, 3e-6),
+        carroll_value=10.41124 * 0.005 / 86400.0,
+        units="s^-1",
+        description="iron scavenging rate",
+    ),
+    Param(
+        name="Smallgrow",
+        bounds=(0.10, 2.0),
+        carroll_value=0.66098,
+        units="d^-1",
+        description="small phytoplankton growth rate",
+    ),
+    Param(
+        name="Biggrow",
+        bounds=(0.10, 2.0),
+        carroll_value=0.43148,
+        units="d^-1",
+        description="large phytoplankton growth rate",
+    ),
+    Param(
+        name="diatomgraz",
+        bounds=(0.05, 1.0),
+        carroll_value=0.83003,
+        units="-",
+        description="diatom palatability",
+    ),
+    Param(
+        name="R_PICPOC",
+        # Bound raised from 0.20 (session 2026-05-18 diagnostic). Empirical Darwin
+        # v05 PIC/POC ratio: eqpac median 0.031, natl median 0.722 (23x AOI
+        # variance). The original 0.20 bound capped 3.6x below natl's true ratio.
+        # Diagnostic: does the learner push above 0.20 when allowed? If not, the
+        # binding constraint is the inter-AOI tension, not the bound.
+        bounds=(0.005, 1.5),
+        carroll_value=0.04245,
+        units="-",
+        description="PIC/POC rain ratio",
+    ),
+)
+
+
+# ---- Derived layout — regenerated from PARAMS; do not edit by hand. -----------
+# CARROLL_VALUES / PARAM_BOUNDS reproduce the exact float32 values of the
+# pre-registry hardcoded tensors (locked by tests/test_param_registry.py).
+PARAM_NAMES: list[str] = [p.name for p in PARAMS]
+CARROLL_VALUES: torch.Tensor = torch.tensor([p.carroll_value for p in PARAMS])
+PARAM_BOUNDS: torch.Tensor = torch.tensor([list(p.bounds) for p in PARAMS])
+PARAM_INDEX: dict[str, int] = {p.name: i for i, p in enumerate(PARAMS)}
+
+# Named positional indices, so call sites read ``params[P.alpfe]`` instead of the
+# position-counted ``params[0]``. Attributes are the registry names, e.g.
+# ``P.alpfe``, ``P.Smallgrow``, ``P.R_PICPOC``.
+P = SimpleNamespace(**PARAM_INDEX)
 
 
 def carroll6_step(
@@ -112,9 +197,12 @@ def carroll6_step(
         next state, shape [5].
     """
     DFe, Ps, Pl, POC, PIC = state[0], state[1], state[2], state[3], state[4]
-    alpfe, scav_rat, mu_s, mu_l, g_diatom, R_PICPOC = (
-        params[0], params[1], params[2], params[3], params[4], params[5]
-    )
+    alpfe = params[P.alpfe]
+    scav_rat = params[P.scav_rat]
+    mu_s = params[P.Smallgrow]
+    mu_l = params[P.Biggrow]
+    g_diatom = params[P.diatomgraz]
+    R_PICPOC = params[P.R_PICPOC]
     scav_rat_per_day = scav_rat * 86400.0
 
     f_fe = DFe / (DFe + K_FE)
@@ -208,9 +296,12 @@ def carroll6_carbonate_step(
     """
     DFe, Ps, Pl, POC, PIC = state[0], state[1], state[2], state[3], state[4]
     DIC, ALK = state[5], state[6]
-    alpfe, scav_rat, mu_s, mu_l, g_diatom, R_PICPOC = (
-        params[0], params[1], params[2], params[3], params[4], params[5]
-    )
+    alpfe = params[P.alpfe]
+    scav_rat = params[P.scav_rat]
+    mu_s = params[P.Smallgrow]
+    mu_l = params[P.Biggrow]
+    g_diatom = params[P.diatomgraz]
+    R_PICPOC = params[P.R_PICPOC]
     scav_rat_per_day = scav_rat * 86400.0
 
     # --- 5-tracer base, identical to carroll6_step -------------------------------

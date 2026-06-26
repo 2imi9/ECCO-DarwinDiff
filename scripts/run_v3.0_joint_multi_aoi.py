@@ -139,7 +139,9 @@ if _K_WANNINKHOF_OVERRIDE is not None:
 from darwindiff.carroll6 import (
     CARROLL_VALUES,
     K_FE,
+    P,
     PARAM_BOUNDS,
+    PARAM_NAMES,
     PHI_DUST,
     Q_FE,
     bounded_params,
@@ -1469,8 +1471,8 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
     ) / (FET_W + 10.0)
 
     if PINN_W > 0:
-        alpfe_b = params_b[0]; scav_rat_b = params_b[1]
-        mu_proHL_b = params_b[2]; mu_lge_b = params_b[3]
+        alpfe_b = params_b[P.alpfe]; scav_rat_b = params_b[P.scav_rat]
+        mu_proHL_b = params_b[P.Smallgrow]; mu_lge_b = params_b[P.Biggrow]
         f_fe = state[I_DFE_1] / (state[I_DFE_1] + K_FE)
         growth_total = (
             MU_DEFAULT_DIATOM * f_fe * state[I_DIATOM]
@@ -1570,7 +1572,7 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
     use_posi_geo = POSI_W > 0 and bundle["n_posi"] > 0
     use_posi_dw = POSI_DARWIN_W > 0 and bundle["n_posi_dw"] > 0
     if use_posi_geo or use_posi_dw:
-        g_diatom_b = params_b[4]   # params order: [alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC]
+        g_diatom_b = params_b[P.diatomgraz]
         bsi_1_pred, _ = diagnostic_bsi_steady(p_diatom, g_diatom_b)
         if use_posi_geo:
             residual = (bsi_1_pred - bundle["posi_target_t"][None]) * bundle["posi_mask_f"][None]
@@ -1689,7 +1691,8 @@ print(f"\nDone in {elapsed:.0f}s ({elapsed/N_SEEDS:.1f}s amortized per seed)")
 
 # ============================== Recovery report ===========================
 
-PARAM_NAMES = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
+# PARAM_NAMES + CARROLL_VALUES come from the carroll6.PARAMS registry (imported
+# above) — the single source of truth for the parameter layout + Carroll optima.
 carroll_published = CARROLL_VALUES  # tensor of length 6
 
 all_results = []
