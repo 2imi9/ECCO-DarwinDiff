@@ -211,6 +211,10 @@ from darwindiff.glodap_loader import (
     surface_layer_glodap,
     to_mmol_per_m3,
 )
+from darwindiff.daniels_loader import (
+    bin_to_grid as bin_daniels_to_grid,
+    load_daniels_points,
+)
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
 from darwindiff.networks import DINN
 from darwindiff.gating import (
@@ -242,6 +246,15 @@ GLODAP_ROOT = Path(os.environ.get(
     "GLODAP_DATA_ROOT",
     str(Path(__file__).resolve().parents[1] / "data" / "glodap"
         / "GLODAPv2.2016b_MappedClimatologies"),
+))
+# Daniels et al. 2018 CP:PP compilation (PANGAEA 888182) — the real,
+# Darwin-INDEPENDENT R_PICPOC (rain-ratio) anchor. Used ONLY when
+# DANIELS_RPICPOC_W>0. Default follows the repo data/ convention; override with
+# DANIELS_DATA_PATH for the on-disk / cluster copy (/projects/schultz/qi.zim).
+DANIELS_PATH = Path(os.environ.get(
+    "DANIELS_DATA_PATH",
+    str(Path(__file__).resolve().parents[1] / "data" / "daniels"
+        / "Daniels_etal_2018_PANGAEA_888182.tab"),
 ))
 CACHE_DIR = DATA_ROOT / "cache"
 
@@ -389,6 +402,32 @@ RATIO_MAX = float(os.environ.get("RATIO_MAX", "inf"))
 # settled params). Default 0.0 = ratio loss on from epoch 0 (constant = legacy).
 RATIO_SCHED_START = float(os.environ.get("RATIO_SCHED_START", "0.0"))
 _RATIO_W_NOW = RATIO_W  # mutable per-epoch effective ratio weight (updated in the loop)
+# DANIELS_RPICPOC_W: scale-normalized MSE on the box's surface PIC:POC ratio vs
+# the REAL, Darwin-INDEPENDENT rain ratio from the Daniels et al. 2018 CP:PP
+# incubation compilation (PANGAEA 888182). Unlike RATIO_W -- whose target is
+# Darwin's OWN per-cell PIC/POC, making any R_PICPOC recovery graded against it
+# circular (Carroll never tuned R_PICPOC to rain-ratio data) -- this target is
+# direct calcite:primary-production observations binned per-AOI to a geometric-
+# mean rain ratio (CP/PP is log-normal). It breaks the circularity and tests the
+# regional-variability hypothesis: the real eqpac surface rain ratio (~0.04
+# geomean, 1.6x the global ~0.025) exceeds the global mean, so a single global
+# constant is mis-specified in our constraining AOI. Same orthogonal handle on
+# R_PICPOC as RATIO_W (mort_total cancels in the box ratio). Coverage is sparse;
+# AOIs with no Daniels samples (e.g. southernoceanpac, npsg) get an empty mask
+# and the term auto-gates off there. Default 0 = off (legacy reproduces bitwise).
+DANIELS_RPICPOC_W = float(os.environ.get("DANIELS_RPICPOC_W", "0.0"))
+# DANIELS_DEPTH_MAX: surface depth cut (m) for Daniels samples. The box is a
+# surface mixed-layer model and the rain ratio shoals with light, so a surface
+# cut keeps the target comparable to the box's surface PIC:POC. Default 50 m
+# (matches the box H_MLD and the GEOTRACES surface cut). Only used when
+# DANIELS_RPICPOC_W>0; cached Daniels points are loaded once when first needed.
+DANIELS_DEPTH_MAX = float(os.environ.get("DANIELS_DEPTH_MAX", "50.0"))
+# Per-AOI multiplier on the DANIELS term ONLY (parity with RATIO_AOI_W). Lets the
+# Daniels anchor act where it has coverage and be tuned per-region. Default 1.0.
+DANIELS_AOI_W = {k: float(os.environ.get(f"DANIELS_AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
+# Lazily-loaded global Daniels point cloud (parsed once, binned per-AOI). None
+# until the first AOI bundle that needs it; stays None when the term is off.
+_DANIELS_POINTS = None
 # POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
 # diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
 # observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
@@ -465,6 +504,9 @@ print(f"Seeds: {SEEDS} (N={N_SEEDS})")
 print(f"Config: fet_w={FET_W}, pinn_w={PINN_W}, geo_surf_w={GEOTRACES_W}, "
       f"geo_sub_w={GEOTRACES_SUB_W}, poc_sub_w={POC_SUB_W}, darwin_ic={USE_DARWIN_IC}")
 print(f"        epochs={N_EPOCHS}, subsurface depth: [{SUB_DEPTH_MIN}, {SUB_DEPTH_MAX}] m")
+if DANIELS_RPICPOC_W > 0:
+    print(f"        daniels_rpicpoc_w={DANIELS_RPICPOC_W} (real CP:PP anchor, "
+          f"depth<={DANIELS_DEPTH_MAX}m), per-AOI mult={DANIELS_AOI_W}")
 print()
 
 
@@ -794,6 +836,9 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         "poc_abs_target_t": oa_t, "poc_abs_mask_t": oa_mk, "poc_abs_mask_f": oa_mf, "n_poc_abs_f": oa_nf, "n_poc_abs": 0,
         "alk_abs_target_t": aa_t, "alk_abs_mask_t": aa_mk, "alk_abs_mask_f": aa_mf, "n_alk_abs_f": aa_nf, "n_alk_abs": 0,
         "ratio_target_t": rt_, "ratio_mask_t": rmk, "ratio_mask_f": rmf, "n_ratio_f": rnf, "n_ratio": 0,
+        # Native path builds no Daniels target (1deg-only); reuse the ratio zero
+        # stub since n_daniels=0 gates the term off (tensors never read).
+        "daniels_target_t": rt_, "daniels_mask_t": rmk, "daniels_mask_f": rmf, "n_daniels_f": rnf, "n_daniels": 0,
         "posi_target_t": ps_t, "posi_mask_t": ps_mk, "posi_mask_f": ps_mf, "n_posi_f": ps_nf, "n_posi": 0,
         "posi_dw_target_t": pd_t, "posi_dw_mask_t": pd_mk, "posi_dw_mask_f": pd_mf, "n_posi_dw_f": pd_nf, "n_posi_dw": n_posi_dw,
         "f_co2_abs_target_t": fc_t, "f_co2_abs_mask_t": fc_mk, "f_co2_abs_mask_f": fc_mf, "n_f_co2_abs_f": fc_nf, "n_f_co2_abs": 0,
@@ -983,6 +1028,51 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                   f"mean={float(ratio_target_t[ratio_mask_t].mean()):.4f} (Carroll R_PICPOC=0.04245)")
         else:
             print(f"  [warn] RATIO_W={RATIO_W} but no finite-positive PIC&POC cells in AOI; loss term will be skipped")
+
+    # REAL R_PICPOC rain-ratio target (DANIELS_RPICPOC_W): the Daniels et al.
+    # 2018 CP:PP incubation compilation (PANGAEA 888182) binned to this AOI's
+    # 1deg grid as a per-cell GEOMETRIC-MEAN rain ratio (CP/PP is log-normal).
+    # Unlike RATIO_W (whose target is Darwin's OWN PIC/POC -> circular), this is
+    # a direct, Darwin-INDEPENDENT observation of calcite:primary production, so
+    # it breaks the circularity in grading R_PICPOC. Same scale-normalized MSE
+    # prep + bin convention as the GEOTRACES surface iron term (point cloud ->
+    # darwin_lats/lons cells). Built only when DANIELS_RPICPOC_W>0 (needs the
+    # external .tab); a zero target + empty mask reproduces legacy bitwise when
+    # off, and AOIs with no Daniels coverage get an empty mask (term gates off).
+    daniels_target_np = np.zeros_like(sst, dtype=np.float32)
+    daniels_mask_np = np.zeros_like(ocean_mask, dtype=bool)
+    n_daniels_pts = 0
+    if DANIELS_RPICPOC_W > 0:
+        global _DANIELS_POINTS
+        try:
+            if _DANIELS_POINTS is None:
+                _DANIELS_POINTS = load_daniels_points(DANIELS_PATH)
+            d_vals, d_mask, d_counts = bin_daniels_to_grid(
+                _DANIELS_POINTS,
+                np.asarray(targets["darwin_lats"]),
+                np.asarray(targets["darwin_lons"]),
+                depth_max=DANIELS_DEPTH_MAX,
+            )
+            if d_vals.shape == sst.shape:
+                daniels_mask_np = ocean_mask & d_mask & np.isfinite(d_vals) & (d_vals > 0)
+                daniels_target_np = np.where(daniels_mask_np, d_vals, 0.0).astype(np.float32)
+                n_daniels_pts = int(d_counts[daniels_mask_np].sum())
+            else:
+                print(f"  [warn] Daniels bin shape {d_vals.shape} != AOI {sst.shape}; skipping")
+        except Exception as e:
+            print(f"  [warn] DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} but Daniels load failed ({e}); loss term will be skipped")
+    daniels_target_t = torch.tensor(daniels_target_np).to(device)
+    daniels_mask_t = torch.tensor(daniels_mask_np, dtype=torch.bool).to(device)
+    daniels_mask_f = daniels_mask_t.to(torch.float32)
+    n_daniels = int(daniels_mask_np.sum())
+    n_daniels_f = daniels_mask_f.sum().clamp(min=1.0)
+    if DANIELS_RPICPOC_W > 0:
+        if n_daniels > 0:
+            print(f"  Daniels R_PICPOC target: {n_daniels} cells ({n_daniels_pts} samples), "
+                  f"geomean={float(np.exp(np.log(daniels_target_np[daniels_mask_np]).mean())):.4f} "
+                  f"(Darwin R_PICPOC=0.04245)")
+        else:
+            print(f"  [warn] DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} but no Daniels coverage in AOI; loss term will be skipped")
 
     # Dense Darwin POSi target (POSI_DARWIN_W). Darwin's own surface biogenic
     # silica (TRAC16, mmol Si/m^3) binned to the AOI 1deg grid -- a dense,
@@ -1291,6 +1381,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "ratio_target_t": ratio_target_t, "ratio_mask_t": ratio_mask_t,
         "ratio_mask_f": ratio_mask_f, "n_ratio_f": n_ratio_f,
         "n_ratio": n_ratio,
+        "daniels_target_t": daniels_target_t, "daniels_mask_t": daniels_mask_t,
+        "daniels_mask_f": daniels_mask_f, "n_daniels_f": n_daniels_f,
+        "n_daniels": n_daniels,
         "posi_target_t": posi_target_t, "posi_mask_t": posi_mask_t,
         "posi_mask_f": posi_mask_f, "n_posi_f": n_posi_f,
         "n_posi": n_posi_in_ocean,
@@ -1576,6 +1669,22 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_ratio_f"] / scale
         z = z + _RATIO_W_NOW * RATIO_AOI_W[bundle["key"]] * l
 
+    # REAL R_PICPOC rain-ratio term (DANIELS_RPICPOC_W). Identical estimator to
+    # RATIO_W -- the box's per-cell surface PIC:POC ratio against a scale-
+    # normalized MSE target -- but the target is the Darwin-INDEPENDENT Daniels
+    # 2018 CP:PP observation (geometric-mean rain ratio per cell), not Darwin's
+    # own PIC/POC. This is the term that breaks the circularity: it asks the box
+    # to match REAL calcite-production data, per AOI, rather than the model whose
+    # calibration we are trying to recover. mort_total cancels in the box ratio,
+    # so it pins R_PICPOC orthogonally to the iron pair, exactly like RATIO_W.
+    # Gated on DANIELS_RPICPOC_W>0 AND in-AOI Daniels coverage (n_daniels>0).
+    if DANIELS_RPICPOC_W > 0 and bundle["n_daniels"] > 0:
+        daniels_pred = pic / poc.clamp(min=1e-9)
+        residual = (daniels_pred - bundle["daniels_target_t"][None]) * bundle["daniels_mask_f"][None]
+        scale = (bundle["daniels_target_t"][bundle["daniels_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_daniels_f"] / scale
+        z = z + DANIELS_RPICPOC_W * DANIELS_AOI_W[bundle["key"]] * l
+
     # POSi absolute-units MSE on a steady-state biogenic-silica diagnostic.
     # Compute bsi_1 = R_SI_C * (mort_diatom + graze_diatom) / W_SINK from the
     # integrated state's diatom biomass and the seed's per-cell diatomgraz
@@ -1833,6 +1942,9 @@ if __name__ == "__main__":
             "n_alk_abs_cells_per_aoi": {b["key"]: b["n_alk_abs"] for b in bundles},
             "ratio_w": RATIO_W,
             "n_ratio_cells_per_aoi": {b["key"]: b["n_ratio"] for b in bundles},
+            "daniels_rpicpoc_w": DANIELS_RPICPOC_W,
+            "daniels_depth_max": DANIELS_DEPTH_MAX if DANIELS_RPICPOC_W > 0 else None,
+            "n_daniels_cells_per_aoi": {b["key"]: b["n_daniels"] for b in bundles},
             "posi_w": POSI_W,
             "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
             "posi_darwin_w": POSI_DARWIN_W,
@@ -1891,6 +2003,7 @@ if __name__ == "__main__":
         poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
         alk_abs_tag = (f"_alkabsW{ALK_ABS_W}" + (f"-{ALK_ABS_SOURCE}" if ALK_ABS_SOURCE != "glodap" else "")) if ALK_ABS_W > 0 else ""
         ratio_tag = f"_ratioW{RATIO_W}" if RATIO_W > 0 else ""
+        daniels_tag = f"_danielsW{DANIELS_RPICPOC_W}" if DANIELS_RPICPOC_W > 0 else ""
         posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
         posi_dw_tag = f"_posidwW{POSI_DARWIN_W}" if POSI_DARWIN_W > 0 else ""
         wpic_tag = f"_wpic{_layer2.W_SINK_PIC}" if _layer2.W_SINK_PIC != _layer2.W_SINK else ""
@@ -1920,6 +2033,7 @@ if __name__ == "__main__":
                 f"{poc_abs_tag}"
                 f"{alk_abs_tag}"
                 f"{ratio_tag}"
+                f"{daniels_tag}"
                 f"{posi_tag}"
                 f"{posi_dw_tag}"
                 f"{wpic_tag}"

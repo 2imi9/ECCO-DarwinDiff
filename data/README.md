@@ -52,6 +52,26 @@ Depth-resolved bottle data including dissolved iron, nutrients, DIC, ALK.
 | Auth | Registration required (free) |
 | Loader | `src/darwindiff/geotraces_loader.py`, tests in `tests/test_geotraces_loader.py`, fetch helper at `scripts/fetch/geotraces.sh` |
 
+### Daniels et al. 2018 — coccolithophore CP:PP calcification compilation
+
+Georeferenced ¹⁴C/¹³C incubations of calcite production (CP) and primary production (PP) from unperturbed water samples (n=2751 with finite CP & PP). The only **direct, Darwin-independent surface rain-ratio** dataset matching the box's `dPIC = R_PICPOC·mort_total` term in kind — the real per-AOI `R_PICPOC` anchor that breaks the circularity of grading recovery against Darwin's own PIC. CP/PP is log-normal (global geomean ≈ 0.027); the loader bins to per-cell geometric means. ~473 KB single `.tab`.
+
+| Property | Value |
+|---|---|
+| DOI | `10.1594/PANGAEA.888182` (data) · `10.5194/essd-10-1859-2018` (paper) |
+| Source | https://doi.pangaea.de/10.1594/PANGAEA.888182 (`?format=textfile`) |
+| Auth | None (CC-BY-3.0) |
+| Local path | `data/daniels/Daniels_etal_2018_PANGAEA_888182.tab` (override via `DANIELS_DATA_PATH`) |
+| Loader | `src/darwindiff/daniels_loader.py`, tests in `tests/test_daniels_loader.py` |
+| Unblocks | Real per-AOI `R_PICPOC` rain-ratio loss (`DANIELS_RPICPOC_W` in `run_v3.0_joint_multi_aoi.py`); spine D (#143). See `docs/findings/2026-06-26_rainratio_real_vs_darwin.md`. |
+
+Fetch:
+
+```
+curl -sL "https://doi.pangaea.de/10.1594/PANGAEA.888182?format=textfile" \
+  -o data/daniels/Daniels_etal_2018_PANGAEA_888182.tab
+```
+
 ### NASA GHG Center — ECCO-Darwin v5 air–sea CO₂ flux GeoTIFFs
 
 36 monthly Cloud Optimized GeoTIFFs, 2020–2022, ~285 MB total. Same v05 run as the bin_average product; CO₂ flux only.
