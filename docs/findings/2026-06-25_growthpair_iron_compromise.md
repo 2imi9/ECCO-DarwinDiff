@@ -240,8 +240,29 @@ over-boosts (alpfe 9/10 but scav_rat/Biggrow crash → 0/10 6/6); `10×` is near
 **Headline:** the alpfe collapse was the Darwin z-scored pattern terms drowning the real-iron
 signal; real GEOTRACES iron agrees with Carroll; up-weighting it recovers the iron pair without
 losing the growth pair — breaking the compromise gating/pooling could not, **using real data.**
-Follow-up: a fine weight sweep (5×–15×) for robustness beyond 3/10; scav_rat↔Biggrow tension at
-high boost.
+
+### Fine iron-weight sweep (5×–15×, n=10 each, VERIFIED) — robust 6/6 NOT reached; blocker isolated
+
+| iron wt | strict per-AOI 6/6 | ≥5/6 | alpfe | scav | Small | Big | diat | RPIC |
+|---|---|---|---|---|---|---|---|---|
+| 5× | 1/10 | 2/10 | 2 | 5 | 7 | 6 | 10 | 9 |
+| **7×** | 2/10 | **9/10** | 4 | 9 | 9 | **9** | 10 | 10 |
+| 8× | 1/10 | 9/10 | 4 | 10 | 9 | 7 | 10 | 10 |
+| **10×** | **3/10** | 7/10 | **7** | 9 | 8 | 5 | 10 | 10 |
+| 12× | 2/10 | 8/10 | **8** | 8 | 8 | 6 | 10 | 10 |
+| 15× | 2/10 | 8/10 | 7 | 8 | 9 | 5 | 10 | 10 |
+
+**Strict 6/6 caps at 3/10 (10×).** But **7× gives 9/10 at ≥5/6** — nearly every seed is one param
+short, and that param is **alpfe**. The ceiling is a precise **alpfe ↔ Biggrow tradeoff along the
+iron-weight axis**: low weight recovers Biggrow (9/10) but under-constrains alpfe; high weight
+recovers alpfe but over-pins `f_fe` so Biggrow absorbs the misfit (the `μ·f` coupling of §3.1). One
+iron knob cannot satisfy both.
+
+**Robust 6/6 needs a second, Biggrow-specific anchor** — the growth-flux `PRIMPROD_W` — whose
+`primProd` field is **NOT staged on the cluster** (same data gap as NO₃). So the no-new-data levers
+are exhausted at: **5/6 near-robust (9/10 seeds at 7×) + strict 6/6 in 3/10 (10×), iron pair
+real-data-driven.** The single remaining blocker is Biggrow's missing observable — a data-staging
+step (`primProd` monthly field), not a modelling one.
 
 ## Artifacts
 
