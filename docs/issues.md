@@ -1,5 +1,7 @@
 # Issue tracker conventions
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Dated manual snapshot; the live GitHub tracker is canonical. Project is a surrogate-to-model identifiability study over 4 observable params; '5/6 ceiling' framing is superseded (see [STATUS.md](../STATUS.md)).
+
 How DarwinDiff issues are filed, labeled, and prioritized. Sibling to `CONTRIBUTING.md` (branch / PR / commit conventions).
 
 ## Label taxonomy

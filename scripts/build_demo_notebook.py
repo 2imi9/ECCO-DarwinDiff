@@ -269,7 +269,7 @@ should recover the spatial structure of the parameters that vary with SST
 (alpfe, Smallgrow). Parameters that are constant in the truth may drift to
 alternative values that explain the same target field — this is the
 underdetermination phenomenon that the full v3.1 work characterises across
-857 seeds as the structural 5/6 ceiling.
+857 seeds (historical '5/6 ceiling' framing, since superseded by the 4-observable identifiability study; see STATUS.md).
 """),
     code(r"""
 # Loss curve

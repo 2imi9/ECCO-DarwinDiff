@@ -98,7 +98,7 @@ The full evidence table, per-version findings, and the cluster-scale sweep plan 
 
 📖 **[ecco-darwindiff.readthedocs.io][docs_url]** — the full documentation site. Quick links:
 
-- [Project status][status_url] — canonical live results, the 5/6 ceiling, known limits
+- [Project status][status_url] — canonical live results, the identifiability frontier (4 observable params), known limits
 - [Findings](https://ecco-darwindiff.readthedocs.io/en/latest/findings/) — per-version technical writeups (v2.1 → v3.3)
 - [DINN design](https://ecco-darwindiff.readthedocs.io/en/latest/dinn_design/) · [ECCO-Darwin relationship](https://ecco-darwindiff.readthedocs.io/en/latest/ecco_darwin_relationship/)
 - [Cluster setup](https://ecco-darwindiff.readthedocs.io/en/latest/cluster_setup/) · [Data sources](https://ecco-darwindiff.readthedocs.io/en/latest/data/)
