@@ -1,5 +1,15 @@
 # Surrogate gap quantified — box vs Darwin at the TRUE Carroll params (2026-06-26)
 
+> **CORRECTION (2026-06-27):** the **eqpac FeT r = −0.96** below is an **under-convergence artifact of
+> the 200-step integration, NOT a fundamental surrogate gap.** At convergence (3200 steps) the box's
+> equatorial iron pattern correlates **+0.81** with Darwin. The box *does* reproduce Darwin's eqpac iron;
+> the recovery just fits a 200-step transient. The mechanistic claim in point (2) below ("the box cannot
+> reproduce Darwin's eqpac iron pattern") is therefore mis-attributed — it describes the *200-step
+> recovery state*, not the box's steady-state fidelity. See `2026-06-27_box_convergence_finding.md`. The
+> *result* (recovery leans on real GEOTRACES iron, not the transient Darwin pattern) stands; the *reason*
+> is integration length, which is fixable. All `r` values below are at 200 steps = the recovery's
+> operating point, and should be read as "what the recovery fits," not "the box's converged fidelity."
+
 `scripts/box_vs_darwin_fidelity.py` run locally (5090). No fitting: the 2-layer box is handed
 Carroll's *published* parameters and integrated to quasi-steady state; we report, over ocean cells,
 the z-scored spatial-pattern correlation `r` (box vs Darwin) per field, and the surface PIC:POC
