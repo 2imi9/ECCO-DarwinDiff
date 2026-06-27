@@ -1,16 +1,18 @@
-# Cluster compute roadmap — directions ranked by EV against the 5/6 bottleneck
+# Cluster compute roadmap — directions ranked by EV for the identifiability study
 
-Planning companion to [docs/cluster_setup.md](cluster_setup.md) (operational how-to). This doc covers WHAT to do with cluster compute once Engaging + AICR access is online. Ordered by expected value against the v3.1 structural 5/6 ceiling.
+Planning companion to [docs/cluster_setup.md](cluster_setup.md) (operational how-to). This doc covers WHAT to do with cluster compute once Engaging + AICR access is online. Ordered by expected value for closing the open identifiability questions.
 
-## The bottleneck recap
+> **⚠ REFRAMED (2026-06-27).** This roadmap was written against a "5/6 bottleneck / 6/6 chase." That frame is superseded by the surrogate-to-model identifiability study (4 observable params; the growth pair is unobservable by construction). The iron pair and `R_PICPOC` recover from real anchors (`geo1` holds {`alpfe`,`scav_rat`,`R_PICPOC`} jointly 8/10). **`R_PICPOC` is NOT cluster-gated** — native resolution was *tested and did not help*; it recovers at 1° with a real calcite anchor. The genuinely open laptop-feasible item is `diatomgraz` (an iron-pair tradeoff needing dense Darwin POSi/TRAC16). Read "5/6 ceiling" below as the historical frame; the cluster value is now native-res **parameter maps + forward Darwin validation + time-resolved decorrelation**, not breaking a wall.
 
-After 847 seeds across 85 configs of single-lever variation, two unreproduced single-seed 5/6 events, and a failed composition test (Wave 6) of the two complementary 5/6 lever families, the 5/6 ceiling is **structural**, not a hyperparameter-tuning artifact. The diagnosis from v3.0–v3.1: **~5 effective constraints on 6 parameters** under the current observational set; the 6th parameter is always the residual sink, and loss weighting decides which.
+## The bottleneck recap (historical framing)
 
-Compute alone does NOT solve this. The bottleneck is observation-information content, not cell count or training iterations. Compute is necessary but not sufficient: it enables observation-type extensions (POSi, PFT-Chl, BGC-Argo), temporal extensions (time-resolved fitting), and structural model extensions (full Darwin-3 box) that would not otherwise fit in memory or wall-clock.
+After 847 seeds across 85 configs, the v3.0–v3.1 work characterized a "5/6 ceiling." The current understanding: the honest scope is **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (so a literal 6/6 was never attainable — you cannot recover a parameter no observation sees). The iron pair and `R_PICPOC` recover from real anchors; `diatomgraz` is the one open item (iron-pair tradeoff, needs dense Darwin POSi/TRAC16).
+
+Compute alone does not recover `diatomgraz`: the binding constraint is a real, dense silica/POSi observation (TRAC16), not cell count or iterations. `R_PICPOC` and the iron pair are already resolved via real absolute anchors. Compute's value is genuine but elsewhere — native-resolution parameter maps, forward Darwin validation, time-resolved decorrelation, and the Track 2 emulator.
 
 ## What compute categorically enables
 
-| Category | What compute changes | Direct attack on 5/6 ceiling? |
+| Category | What compute changes | Direct attack on open identifiability questions? |
 |---|---|---|
 | Resolution | 1° proxy → native LLC270 (~330× more cells per AOI) | Weak — more cells of same regimes are highly correlated |
 | Time | 23-yr time-mean → ~300 monthly snapshots | **Strong** — different params drive different time scales, partially decorrelating the binding set |

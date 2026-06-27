@@ -19,16 +19,18 @@ DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistr
 
 ## What works · what's blocked
 
-=== "Works"
+This is a **surrogate-to-model identifiability study** — *which* of the six Carroll parameters are identifiable from real ocean observations. The honest target is **four observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real data constrains growth rates).
 
-    - The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config; one fit runs in ~7 min on a single GPU.
-    - A **reproducible 5/6** at 3-AOI (v3.2): dense-Darwin `POSi` + Eppley temperature limitation recover `diatomgraz` alongside the iron pair — mean **2.0 → 3.85/6**, 70% of seeds ≥4/6 (n=20). The synthetic demo runs end-to-end on a laptop / free Colab T4.
+=== "Identifiable (real data)"
 
-=== "Blocked"
+    - The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config (~7 min/fit) — against real GEOTRACES IDP2025 dissolved iron.
+    - **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC). The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 8/10 seeds** — a 3-of-4-observable frontier (hold-together sweep, 8×n=10, all `verify_run` exit 0).
 
-    - A **structural 6/6 wall**: 0/856 seeds recover all six jointly — `R_PICPOC` (3%) is the lone unrecovered parameter.
-    - `R_PICPOC` needs **richer calcite physics**: the box's rigid-ratio calcite can't match Darwin's ~23× coccolithophore-driven spatial PIC/POC variation. Resolving it needs the differentiable Darwin calcite port + native resolution — not a box-scale estimator or seasonal lever.
-    - 1° box-model proxy; 23-year climatology, not time-resolved; single-GPU prototype. Full evidence → **[Project Status](status.md)**.
+=== "Open / not identifiable"
+
+    - **No 6/6 wall.** `R_PICPOC` is recoverable; the differentiable Darwin calcite port + native resolution were **tested and did not help** — the real gap was a direct calcite *observation*, now supplied.
+    - **`diatomgraz`** is not recovered in the real-data sweep (best 4/10 = chance) — an iron-pair tradeoff, recoverable in principle only via dense Darwin POSi/TRAC16 (not yet staged). **The growth pair is unobservable by construction.**
+    - The surrogate gap is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15), so identifiability rests on real *absolute* anchors. 1° proxy; 23-yr climatology; single-GPU. Full evidence → **[Project Status](status.md)**.
 
 ## Documentation map
 
@@ -38,7 +40,7 @@ DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistr
 
     ---
 
-    The canonical live results doc — headline recovery table, version chronology, the 5/6 ceiling diagnosis, and known limitations.
+    The canonical live results doc — headline recovery table, version chronology, the identifiability frame (4 observable params; growth pair unobservable), and known limitations.
 
 -   :material-sitemap: **[DINN design](dinn_design.md)**
 
@@ -56,7 +58,7 @@ DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistr
 
     ---
 
-    Per-version technical writeups, v2.1 → v3.2 — the experimental record behind each result, including the `R_PICPOC` structural campaign.
+    Per-version technical writeups, v2.1 → v3.2 — the experimental record behind each result, including the `R_PICPOC` real-calcite-anchor result.
 
 -   :material-server: **[Cluster setup](cluster_setup.md)**
 

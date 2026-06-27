@@ -1,5 +1,8 @@
 # DarwinDiff Compute Budget — Full Task Ladder
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Point-in-time record; data/plans stand, framing corrected by [STATUS.md](../../STATUS.md). The project is a **surrogate-to-model identifiability study over 4 OBSERVABLE params** {alpfe, scav_rat, diatomgraz, R_PICPOC} — **not** a 6/6 chase or a '5/6 ceiling / parameter-conservation' result. The growth pair {Smallgrow, Biggrow} is unobservable by construction. **R_PICPOC is recoverable** at 1° with a real calcite anchor (Daniels/MODIS) + `RATIO_MAX=2` — the differentiable Darwin calcite port and native resolution were *tested and did not help*, so R_PICPOC is **not cluster-gated**. `geo1` holds {alpfe, scav_rat, R_PICPOC} jointly 8/10; diatomgraz is an open iron-pair tradeoff. The surrogate gap is **dimensional** (the 0-D box homogenizes spatial structure, CV→1e-15), so box-vs-Darwin pattern-matching is not a fidelity metric.
+
+
 *Research note · 2026-06-21 · audience: project lead (ML). Numbers are MEASURED unless tagged ESTIMATE / DERIVED / UNMEASURED. Canonical source: `docs/research_notes/2026-06-19_aicr_memory_budget.md`; cell counts from `scripts/measure_compute_budget.py`; wall-clock from `scripts/measure_compute_time.py`. Produced by an adversarially-verified multi-agent budget pass (12 agents; every row's memory arithmetic + GPU placement independently re-checked).*
 
 ---
