@@ -34,9 +34,15 @@ as a lever ranking.** The two effects that clear Bonferroni:
 ## Hypothesis verdicts (qualified)
 
 **H1 — Daniels load-bearing: survives, but narrow the claim.** The *direction* is robust (above). But:
-- It isolates **"any ratio observable," not "the real Daniels data specifically"** — the obvious control
-  (RATIO_W on / Daniels off, i.e. Darwin's *own* ratio as anchor) was **not run**. The self-twin shows
-  R_PICPOC is intrinsically identifiable, so any ratio constraint likely suffices. **Next step: run it.**
+- It isolates **"any ratio observable," not "the real Daniels data specifically."** The adversarial
+  review flagged that this sweep never ran the RATIO_W-on / Daniels-off control (Darwin's *own* ratio
+  as anchor) — but **prior project work already did**: `finding_rpicpoc_wall_broken_ratiomax` shows
+  the Darwin-ratio anchor (RATIO_W=2, RATIO_MAX=2) recovers R_PICPOC 10/10. Combined with the self-twin
+  (R_PICPOC intrinsically identifiable), the conclusion is that **any ratio constraint suffices** to
+  recover R_PICPOC — the surrogate just needs *a* ratio anchor. So the Daniels anchor's unique value is
+  **not "it recovers R_PICPOC" (Darwin's own ratio does too) but "it does so non-circularly"**: it
+  anchors to *real* CP:PP data (landing at ~0.05) instead of grading against Darwin's own PIC/POC. A
+  same-config RATIO_W replication would tidy this, but the principle is already established.
 - Recovery is to the **real ~0.05, not exactly Carroll's 0.0425**. "Consistent with Carroll" is weak:
   the Cal-grade band is ±40% (factor-1.6), so Daniels (0.027), Carroll (0.0425), and recovered (0.05)
   all fall in one band. And the project's own rain-ratio finding calls Carroll's value biased ~25–30%
@@ -72,10 +78,11 @@ and (iii) only **two** effects are statistically real at n=10 — the anchor→R
 iron-weight→scav_rat tradeoff. This is a **frontier, not a 6/6**, and not a discovery of Carroll's value.
 
 ## Next steps (from the review)
-1. **RATIO_W-on / Daniels-off control** — isolate "real data" from "any ratio anchor" (the missing H1 leg).
-2. **n≥20 at geo1 and dan2** — break the statistical tie for "best operating point."
-3. **Stage dense Darwin POSi (TRAC16)** — the only way to adjudicate diatomgraz observability.
-4. Report seed-variance/CIs on the per-AOI mean R_PICPOC values (not just point estimates).
+1. **n≥20 at geo1 and dan2** — break the statistical tie for "best operating point" (highest priority).
+2. **Stage dense Darwin POSi (TRAC16)** — the only way to adjudicate diatomgraz observability.
+3. Report seed-variance/CIs on the per-AOI mean R_PICPOC values (not just point estimates).
+4. *(optional)* same-config RATIO_W replication — the principle ("any ratio anchor suffices") is already
+   established by `finding_rpicpoc_wall_broken_ratiomax`; this would just confirm it in the 3-AOI config.
 
 Provenance: verify_run.py exit 0 on all 8; pre-registration 9a4c1d7; adversarial review wf_e1b125fc
 (4 agents, Wilson/Fisher, all verdicts survives_with_qualification).
