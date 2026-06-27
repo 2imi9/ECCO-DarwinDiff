@@ -1,14 +1,17 @@
 # Surrogate gap quantified — box vs Darwin at the TRUE Carroll params (2026-06-26)
 
-> **CORRECTION (2026-06-27):** the **eqpac FeT r = −0.96** below is an **under-convergence artifact of
-> the 200-step integration, NOT a fundamental surrogate gap.** At convergence (3200 steps) the box's
-> equatorial iron pattern correlates **+0.81** with Darwin. The box *does* reproduce Darwin's eqpac iron;
-> the recovery just fits a 200-step transient. The mechanistic claim in point (2) below ("the box cannot
-> reproduce Darwin's eqpac iron pattern") is therefore mis-attributed — it describes the *200-step
-> recovery state*, not the box's steady-state fidelity. See `2026-06-27_box_convergence_finding.md`. The
-> *result* (recovery leans on real GEOTRACES iron, not the transient Darwin pattern) stands; the *reason*
-> is integration length, which is fixable. All `r` values below are at 200 steps = the recovery's
-> operating point, and should be read as "what the recovery fits," not "the box's converged fidelity."
+> **SUPERSEDED (2026-06-27) by `2026-06-27_box_homogenization_DEFINITIVE.md`.** The box-vs-Darwin
+> pattern-`r` table below is **not a well-defined fidelity metric.** Verified (CV computation +
+> adversarial review extending to 12800 steps): at uniform Carroll params the box tracer fields are
+> nearly **spatially flat** (CV ~4e-5 at 200 steps → ~1e-15 by 6400) while Darwin's fields are O(1)
+> (CV ~0.6–2.4). So every `r` below correlates a near-flat field against a structured one; the values
+> and their sign-flips (incl. eqpac FeT −0.96→+0.81→−0.79) are vanishing-structure/IC artifacts. **Both
+> this note's "good chemistry proxy r~1 DIC/ALK; eqpac iron a fundamental gap" AND the intermediate
+> `box_convergence_finding` correction are wrong.** What stands: ALK (an IC self-match, not fidelity)
+> and **PIC:POC = 0.0424** (IC-independent). The real surrogate gap is dimensional — a 0-D box cannot
+> generate Darwin's circulation-driven spatial structure. The downstream conclusion (recovery leans on
+> real absolute anchors, not the Darwin pattern) is **stronger** under the correct reading. Read the
+> definitive note; treat the table below as historical.
 
 `scripts/box_vs_darwin_fidelity.py` run locally (5090). No fitting: the 2-layer box is handed
 Carroll's *published* parameters and integrated to quasi-steady state; we report, over ocean cells,

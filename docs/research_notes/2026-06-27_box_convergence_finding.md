@@ -1,5 +1,13 @@
 # Box convergence — the 200-step recovery fits a transient pattern, not a steady state (2026-06-27)
 
+> **SUPERSEDED (same day) by `2026-06-27_box_homogenization_DEFINITIVE.md`.** This note over-corrected:
+> it claimed "+0.81 at convergence = the box reproduces Darwin's eqpac iron," but adversarial review +
+> my own CV computation showed (a) +0.81 is a 3200-step waypoint that flips to −0.79 by 6400, and
+> (b) the converged box is spatially **near-uniform** (tracer CV → 1e-15), so there is **no converged
+> pattern to correlate** — neither −0.96 nor +0.81 is meaningful. The robust parts below (means
+> converge by 200; PIC:POC = 0.0424 stable) stand; the FeT "+0.81 fidelity" claim does not. See the
+> definitive note.
+
 Motivated by a Lyapunov-style linearization of the box (`/c/Users/Frank/dd_agg/box_linearization.py`):
 the steady-state Jacobian has a slow dissipative mode (|eig| = 0.9957, a ~230-step relaxation
 timescale) and 2 conserved modes. Since the recovery integrates only **200 steps**, that slow mode
