@@ -4,6 +4,9 @@ I now have everything needed. One note: STATUS.md line 66 says DINN is "~454 wei
 
 # DarwinDiff `main.tex` — Area-Chair Revision Plan
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Point-in-time paper-prep doc; data stands, framing corrected by [STATUS.md](../../STATUS.md). The project is a **surrogate-to-model identifiability study over 4 OBSERVABLE params** {alpfe, scav_rat, diatomgraz, R_PICPOC} (growth pair unobservable by construction), **not** a 6/6 chase / 'parameter conservation' ceiling. R_PICPOC is recoverable with a real calcite anchor (Daniels/MODIS); the Darwin port + native resolution were tested and did not help. The surrogate gap is dimensional (the 0-D box homogenizes spatial structure), so identifiability comes from real absolute anchors.
+
+
 *Prepared for Lucas (Ziming) Qi and Jonathan Lauderdale. Read against the canonical data (`aggregated_v3.1.json`: 856 seeds / 86 configs; Carroll optima: alpfe 0.928, scav_rat 6.025e-7, R_PICPOC 0.04245, diatomgraz 0.830) and `v3.1_closeout.md`. No numbers below are invented — every figure is either from the manuscript, the JSON, or the closeout. Counts are settled per your brief; I do not re-flag 856/86.*
 
 The paper is honest, internally consistent on the headline numbers, and the science is sound. The fixes below make it *defensible under adversarial review* without changing a single result. The single highest-leverage theme: **the title and abstract's last sentence over-claim ("structural… intrinsic") while the body under-claims (robust ceiling is really 4/6, not 5/6).** Fixing that asymmetry is worth more than all the minor edits combined.

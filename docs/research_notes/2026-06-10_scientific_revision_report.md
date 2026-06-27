@@ -6,6 +6,9 @@ I've verified the load-bearing numbers directly: aggregated_v3.1.json gives **85
 
 # DarwinDiff — Scientific-Revision Report
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Point-in-time paper-prep doc; data stands, framing corrected by [STATUS.md](../../STATUS.md). The project is a **surrogate-to-model identifiability study over 4 OBSERVABLE params** {alpfe, scav_rat, diatomgraz, R_PICPOC} (growth pair unobservable by construction), **not** a 6/6 chase / 'parameter conservation' ceiling. R_PICPOC is recoverable with a real calcite anchor (Daniels/MODIS); the Darwin port + native resolution were tested and did not help. The surrogate gap is dimensional (the 0-D box homogenizes spatial structure), so identifiability comes from real absolute anchors.
+
+
 **Scope:** STATUS.md, public README (`origin/main`), `docs/findings/*.md`. Prepared for review by the author and Jon before any edits. Every number below is either quoted verbatim from the named file or recomputed by me from `docs/paper/figures/aggregated_v3.1.json` (the committed aggregation artifact) and, where noted, the run JSONs under `D:\runs\bcr_*`. I invent no values.
 
 **Key arbiter established without ambiguity:** `docs/paper/figures/aggregated_v3.1.json` is the committed aggregation of the v3.1 sweep. It reports `total_seeds: 856`, `total_configs: 86`, and contains exactly 856 seed records. This settles the canonical denominator **from the documents alone — no `D:\runs` access is required** to fix the seed/config counts. I also recomputed every per-parameter and distribution figure below directly from it.
