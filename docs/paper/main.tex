@@ -294,11 +294,7 @@ This transfer is not free. A $0$-D box cannot carry circulation-driven spatial s
 
 The estimator is a per-cell Darwin-Informed Neural Network (DINN): a stack of $1\times1$ convolutions that maps each grid cell's local environment to its own Carroll-6 vector. Gradients backpropagate from the loss through the differentiable box into the convolutional weights, so the network learns a spatially varying parameter field rather than a single global setting.
 
-To test whether the per-cell architecture is load-bearing, we ablate it against a \texttt{GlobalScalarNet} control that predicts one global Carroll-6 vector shared by every cell. The two arms use an identical \texttt{geo1} configuration---three areas of interest (equatorial Pacific, North Atlantic, Southern Ocean), real GEOTRACES iron, and the real Daniels calcite anchor---and per-cell forcing and initial conditions are present in \emph{both} arms; only the parameter source differs. This isolates the effect of per-cell parameter flexibility and directly answers the objection that a global-scalar box driven by per-cell forcing is already expressive enough.
-
-On the target trio \{\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}\} ($n=10$ seeds), the per-cell DINN holds all three jointly in $7/10$ runs versus $0/10$ for global-scalar. Marginally, \texttt{alpfe} recovers $10/10$ (per-cell) and $10/10$ (global); \texttt{scav\_rat} $7/10$ versus $0/10$; \texttt{R\_PICPOC} $9/10$ versus $0/10$. A fresh identical-configuration re-run reproduces both arms at $7/10$. Fisher's exact test gives $p<0.01$ for \texttt{scav\_rat}, for \texttt{R\_PICPOC}, and for the joint. The per-cell architecture is thus load-bearing for \emph{in-band recovery of} the target trio: \texttt{scav\_rat} and \texttt{R\_PICPOC} require per-cell parameters to land in-band because a single global vector cannot match spatially varying absolute anchors---a global \texttt{R\_PICPOC} drifts to $0.092 \approx 2.2\times$ the Carroll value $0.0425$ ($0.092$ is the mean across seeds). We emphasize the scope of this ablation: it establishes that per-cell prediction is \emph{necessary} for \texttt{scav\_rat} and \texttt{R\_PICPOC} to land in-band against spatially-varying absolute anchors; it does not by itself establish point identification (cf. the sign-flip control in the equifinality section, Sec.~\ref{sec:results-equifinality}).
-
-We state the countervailing nuance rather than bury it. The global-scalar's rigidity \emph{regularizes} the growth and grazing parameters toward their global Carroll values: \texttt{Smallgrow}, \texttt{Biggrow}, and \texttt{diatomgraz} recover $10/10$ under global-scalar versus $1/10$, $4/10$, and $1/10$ under per-cell, within the generous $40\%$ ``Cal-grade'' band. Consequently the global arm's higher mean recovery (mean $n_{\mathrm{cal}}=4.0$ versus per-cell $3.2$; the per-cell mean is $(10+7+9+1+4+1)/10=3.2$ and the global mean is $40/10=4.0$) is \emph{misleading}: those are non-target parameters---the growth pair is unobservable---and per-cell flexibility overfits them, so the $7/10$-versus-$0/10$ gap lives specifically on the target trio. \texttt{alpfe} is recovered $10/10$ by both arms (mass-balance-identified---its magnitude pinned by the absolute iron anchor---not per-cell-dependent); \texttt{scav\_rat} is the iron parameter that genuinely needs per-cell resolution.
+To test whether this per-cell flexibility is load-bearing, we introduce a \texttt{GlobalScalarNet} control that predicts a single global Carroll-6 vector shared by every cell, and ablate the two arms under an identical configuration (with per-cell forcing present in both). The comparison and its results are reported in Sec.~\ref{sec:results-ablation}.
 
 \subsection{Loss and real, absolute anchors}
 
@@ -376,6 +372,26 @@ for \texttt{scav\_rat} and $R_{\mathrm{PIC:POC}}$ to land in-band against the
 spatially-varying absolute anchors; it does not by itself establish point
 identification (cf. the sign-flip control of
 Sec.~\ref{sec:results-equifinality}).
+
+This necessity-not-identification reading is borne out by the across-seed spread
+of the recovered \emph{values} (not merely the in-band counts). The global-scalar
+arm is sharply convergent but systematically wrong: across the ten seeds its
+recovered values have coefficient of variation $\mathrm{CV}\approx0\%$ for all
+three trio parameters, yet that single optimum sits outside the band for
+\texttt{scav\_rat} ($41\%$ from Carroll) and $R_{\mathrm{PIC:POC}}$ ($118\%$, the
+drift to $0.092$)---one global vector that cannot be both raised and lowered to
+meet spatially-varying anchors. The per-cell arm is the mirror image: its mean
+recovered values sit near the targets (\texttt{alpfe} $2.9\%$ and \texttt{scav\_rat}
+$9.6\%$ from Carroll; $R_{\mathrm{PIC:POC}}$ at $\approx0.053$, the real Daniels
+value), but the across-seed spread is wide for \texttt{scav\_rat}
+($\mathrm{CV}\approx43\%$)---it reaches the band $7/10$ of the time without being
+sharply point-identified, while $R_{\mathrm{PIC:POC}}$ is the sharpest per-cell
+value ($\mathrm{CV}\approx10\%$), consistent with being pinned by the absolute
+calcite anchor. The honest reading is therefore that per-cell prediction is what
+lets \texttt{scav\_rat} and $R_{\mathrm{PIC:POC}}$ reach the band at all (the
+global optimum is sharply \emph{outside} it), but only $R_{\mathrm{PIC:POC}}$
+approaches sharp identification---and even then to the anchor's value, not
+Carroll's.
 
 \begin{table}[t]
 \centering
