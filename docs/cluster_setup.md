@@ -217,7 +217,7 @@ Workloads that are infeasible or marginal locally and become routine on cluster:
 | Multi-tracer joint loss at LLC270 native resolution | Tight on 32 GB at full AOI | Comfortable on 80 GB A100 / H100 |
 | Time-resolved fitting (~300 monthly snapshots × per-fit cost) | Infeasible (~25 h sequential) | Multi-GPU data-parallel; opens Track 2 emulator |
 | Full-ocean parameter recovery sweep | Infeasible | Embarrassingly parallel across AOIs |
-| Native-resolution Carroll-6 recovery (vs box-model proxy) | Untested; box-model state grows ~3× | Headroom matters once architecture grows |
+| Native-resolution parameter maps + forward Darwin validation (vs box-model proxy) | Tested: native res selects *which* iron-pair param recovers but does **not** lift the recovery count, and did **not** help `R_PICPOC` — identifiability comes from real absolute anchors, not resolution (the surrogate gap is dimensional, not resolution-limited). Value is per-cell parameter maps + forward validation. | Headroom for the maps + validation |
 
 ## AICR — application path
 
