@@ -182,7 +182,7 @@ def plot_lever_response(configs: list[tuple[float, dict]],
         ax.set_xlabel(lever_name)
     ax2.set_ylabel("mean # Cal-grade params (out of 6)")
     ax2.set_ylim(0, 6.1)
-    ax2.axhline(5, color="red", linestyle="--", alpha=0.5, label="5/6 ceiling")
+    ax2.axhline(5, color="red", linestyle="--", alpha=0.5, label="y=5 (historical 5/6 framing)")
     ax2.axhline(6, color="green", linestyle="--", alpha=0.5, label="6/6 target")
     ax2.legend(loc="best", fontsize=8)
     ax2.grid(alpha=0.3)

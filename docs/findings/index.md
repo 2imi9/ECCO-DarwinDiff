@@ -11,7 +11,7 @@ Per-version technical writeups behind the headline results. [Project Status](../
 - [v2.7 — 2-layer box scoping](v2.7_multilayer_box_scoping.md) — subsurface DFe anchoring alone does not unblock `scav_rat`.
 - [v2.8 — Darwin ICs + POC loss](v2.8_darwin_ic_poc_sub.md) — project-first reproducible `scav_rat` recovery; bimodal degeneracy.
 - [v2 Track 1 closeout](v2_track1_closeout.md) — carbonate-cycle arc summary.
-- [v3.0 — multi-AOI scoping](v3.0_multi_aoi_scoping.md) — joint multi-AOI training; the 5/6 plateau as parameter conservation.
+- [v3.0 — multi-AOI scoping](v3.0_multi_aoi_scoping.md) — joint multi-AOI training; the 5/6 plateau (historical 'parameter conservation' framing — superseded; see lead note).
 - [v3.1 — closeout](v3.1_closeout.md) — 3-AOI Basin C; 38/40 iron-pair recovery; two complementary 5/6 paths.
 - [v3.2 — dense POSi + Eppley](posi_dense_diatomgraz.md) — first reproducible 5/6 at 3-AOI via forward-model fidelity *(valid prior result against Darwin's own silica field; the `/6` framing is superseded by the 4-observable frame, and `diatomgraz` does **not** recover in the real-data sweep — it is an iron-pair tradeoff)*.
 

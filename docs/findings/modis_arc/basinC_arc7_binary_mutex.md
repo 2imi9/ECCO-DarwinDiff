@@ -1,5 +1,8 @@
 # Arc 7 — Binary mutex confirmed at low paired-anchor doses
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Point-in-time record; data stands, framing corrected by [STATUS.md](../../../STATUS.md). The project is a surrogate-to-model identifiability study over **4 observable params**; the growth pair is unobservable by construction. **R_PICPOC is recoverable** with a real calcite anchor (the '6/6 wall / 5/6 ceiling / needs the Darwin port' framing is refuted). The dimensional surrogate gap (box homogenizes) — not calcite physics — is the real limit.
+
+
 Date: 2026-05-20  
 Sweep: `D:\runs\bcr_20260520_0121\`  
 Base: Basin C (F2 config — D4 + CHL1_W_EXTRA=3.0 + POSI_W=1.0)

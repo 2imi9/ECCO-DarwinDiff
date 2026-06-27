@@ -377,7 +377,7 @@ def build_summary(statuses: list[dict], stamp: str) -> str:
     if six_six:
         lines.extend(six_six)
     else:
-        lines.append("(none — 5/6 ceiling remains the laptop bound)")
+        lines.append("(none — historical '5/6 ceiling' framing; see STATUS.md)")
 
     # Per-arc breakdown
     lines.extend(["", "## Per-arc breakdown", ""])

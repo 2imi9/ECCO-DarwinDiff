@@ -1,5 +1,8 @@
 # R_PICPOC wall broken by a contaminated-ratio-target fix; robust 6/6 hits a structural ceiling
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Point-in-time record; data stands, framing corrected by [STATUS.md](../../STATUS.md). The project is a surrogate-to-model identifiability study over **4 observable params**; the growth pair is unobservable by construction. **R_PICPOC is recoverable** with a real calcite anchor (the '6/6 wall / 5/6 ceiling / needs the Darwin port' framing is refuted). The dimensional surrogate gap (box homogenizes) — not calcite physics — is the real limit.
+
+
 **Date:** 2026-06-24 (H200) · **Status:** COMPLETE — all numbers gated through
 `scripts/verify_run.py` (recompute-from-raw, exit 0). Code behind NEW default-OFF
 flags (`RATIO_MAX`, `RATIO_AOI_W_*`, `RATIO_SCHED_START`, `USE_ENV_RAIN_RATIO`);

@@ -1,5 +1,8 @@
 # DarwinDiff — Lauderdale catch-up deck (May 2026)
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Point-in-time record; data stands, framing corrected by [STATUS.md](../../../STATUS.md). The project is a surrogate-to-model identifiability study over **4 observable params**; the growth pair is unobservable by construction. **R_PICPOC is recoverable** with a real calcite anchor (the '6/6 wall / 5/6 ceiling / needs the Darwin port' framing is refuted). The dimensional surrogate gap (box homogenizes) — not calcite physics — is the real limit.
+
+
 Four slides, ~5-7 min each + Q&A. Designed for Jon (collaborator) + readiness to fork content into a Chris Hill / NVIDIA / committee deck.
 
 ---

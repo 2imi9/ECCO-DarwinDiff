@@ -1,5 +1,8 @@
 # Autonomous overnight session — 2026-05-19
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Point-in-time record; data stands, framing corrected by [STATUS.md](../../../STATUS.md). The project is a surrogate-to-model identifiability study over **4 observable params**; the growth pair is unobservable by construction. **R_PICPOC is recoverable** with a real calcite anchor (the '6/6 wall / 5/6 ceiling / needs the Darwin port' framing is refuted). The dimensional surrogate gap (box homogenizes) — not calcite physics — is the real limit.
+
+
 **Wall-clock:** 13:15 → 14:53 EDT (~1h40m). The "overnight" was the user's nap window: they hit me with the task at lunch, said "you have 5-6 hours, run it yourself," then slept.
 
 **Headline outcomes (in order of importance):**
