@@ -2,6 +2,8 @@
 
 Per-version technical writeups behind the headline results. [Project Status](../status.md) is the canonical live summary; these pages are the underlying experimental record.
 
+> **Current frame:** a *surrogate-to-model identifiability study* over **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction**. `R_PICPOC` is recoverable given a real calcite anchor (Daniels/MODIS) — the "6/6 wall / needs the Darwin port" framing in the older writeups below is **superseded**. The v2.x/v3.x pages are point-in-time records.
+
 ## Version milestones
 
 - [v2.1 — GLODAP DIC/ALK hybrid](v2.1_phase1_glodap.md) — first real-observation target; `R_PICPOC` 360% → 74% off Carroll.
@@ -11,11 +13,13 @@ Per-version technical writeups behind the headline results. [Project Status](../
 - [v2 Track 1 closeout](v2_track1_closeout.md) — carbonate-cycle arc summary.
 - [v3.0 — multi-AOI scoping](v3.0_multi_aoi_scoping.md) — joint multi-AOI training; the 5/6 plateau as parameter conservation.
 - [v3.1 — closeout](v3.1_closeout.md) — 3-AOI Basin C; 38/40 iron-pair recovery; two complementary 5/6 paths.
-- [v3.2 — dense POSi + Eppley](posi_dense_diatomgraz.md) — first reproducible 5/6 at 3-AOI via forward-model fidelity.
+- [v3.2 — dense POSi + Eppley](posi_dense_diatomgraz.md) — first reproducible 5/6 at 3-AOI via forward-model fidelity *(valid prior result against Darwin's own silica field; the `/6` framing is superseded by the 4-observable frame, and `diatomgraz` does **not** recover in the real-data sweep — it is an iron-pair tradeoff)*.
 
-## R_PICPOC structural campaign
+## R_PICPOC recovery (real calcite anchor)
 
-- [Ratio loss (structural)](rpicpoc_ratio_structural.md) — the PIC:POC ratio observable recovers `R_PICPOC` in eqpac without the iron-pair mutex; the ≥2-AOI wall is calcite forward-model fidelity.
+`R_PICPOC` is recoverable given a real calcite observation (Daniels CP:PP / MODIS PIC). Any ratio anchor recovers it (Darwin's own too, via `RATIO_MAX=2`) — the real anchor supplies **non-circularity**, not recoverability. The campaign below is point-in-time.
+
+- [Ratio loss (structural)](rpicpoc_ratio_structural.md) — the PIC:POC ratio observable recovers `R_PICPOC` in eqpac without the iron-pair mutex. **SUPERSEDED:** the apparent ≥2-AOI "wall" was a *contaminated Southern-Ocean ratio target*, not forward-model fidelity — fixed by `RATIO_MAX=2` (`R_PICPOC` 10/10) and recoverable from a real calcite anchor.
 - [ALK anchor mutex test](alk_anchor_rpicpoc_mutex.md) — pre-registered null; an apparent co-recovery falsified as a cell-weighted averaging artifact.
 
 ## Scaling & verification

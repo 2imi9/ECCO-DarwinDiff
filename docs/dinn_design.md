@@ -31,7 +31,9 @@ For each epoch:
   1. Network: env_per_cell → 6 raw values per cell
   2. Sigmoid bounding into Carroll's PARAM_BOUNDS → 6 physical params per cell
   3. Box model: integrate from initial state for N steps using per-cell params
-  4. Loss: spatial-pattern MSE between predicted state and Darwin's actual state
+  4. Loss: MSE against REAL absolute-unit observations (GEOTRACES iron; Daniels/MODIS calcite)
+     plus Darwin-target terms — NB the 0-D box homogenizes spatial structure, so box-vs-Darwin
+     *pattern* r is not a fidelity metric; the real absolute anchors carry the identifying signal
   5. Backward: gradients reach the network via autograd through the box model
   6. Adam step on network weights
 ```
@@ -123,9 +125,9 @@ Define two parametric classes for Carroll-6 calibration:
 
 The DINN class **strictly contains** the global-scalar class — a network can collapse to a constant function by learning zero weights. So DINN's loss can never be worse than the optimal global-scalar fit. The interesting question is whether DINN's loss is strictly lower, which happens iff the target field has spatial structure expressible only by per-cell parameters.
 
-In every fit (notebooks 09–14), the answer is yes: the global-scalar class produces a constant prediction (mathematically required by uniform parameters + uniform initial state) and Pearson r against the spatially-varying Darwin field is undefined. DINN per-cell produces a non-trivial r in every fit. The loss ratio Global / DINN quantifies how much spatial structure the per-cell class captures that the global-scalar class cannot.
+The answer is yes, and the 2026-06-27 homogenization finding makes it concrete and *stronger*: at uniform parameters the box relaxes to a spatially **near-uniform** state (tracer CV → ~1e-15 by 6400 steps; `docs/research_notes/2026-06-27_box_homogenization_DEFINITIVE.md`), so the global-scalar class produces **no** spatial structure at all — only per-cell parameter variation can. **Caveat (important):** because the box homogenizes, box-vs-Darwin spatial-pattern `r` is **not** a fidelity metric. The per-cell advantage is established (a) by the loss comparison — per-cell achieves strictly lower loss — and (b), crucially, by *where the identifying information comes from*: real, absolute, Darwin-independent observations (GEOTRACES dissolved iron; Daniels CP:PP / MODIS PIC calcite), which vary per cell and therefore require a per-cell parameter map.
 
-This is the cleanest restatement of the DarwinDiff scientific claim: **per-cell parameters can express what global-scalar parameters cannot, and Carroll's published calibration is bounded by the global-scalar ceiling**, no matter how well the 6 numbers themselves are tuned.
+This is the cleanest restatement of the DarwinDiff scientific claim: **per-cell parameters can be identified from per-cell real observations where a global-scalar vector cannot, and Carroll's published global-scalar calibration is bounded by that ceiling.** The study characterizes *which* of the **4 observable** Carroll-6 params {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`} are identifiable from real data; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real-world data constrains growth rates).
 
 Quantitative results live in [STATUS.md](../STATUS.md) and [`docs/findings/`](findings/).
 
@@ -136,7 +138,7 @@ All three networks live in [`src/darwindiff/networks.py`](../src/darwindiff/netw
 | Network | Inputs | Params | When to use |
 |---|---|---|---|
 | `DINN` (baseline) | SST only (1 channel) | ~454 | Structural-argument fits where the comparison to global-scalar matters more than absolute fit quality. Default for cross-basin claims — less interpolation slack to mask extrapolation failure. |
-| `DINNDeep` | SST + MLD + wind + lat (4 channels) | ~9.4K | Within-AOI fits where r is the goal. Saturates on biomass tracers (r → 1.0) but recovers fewer calibration-grade Carroll-6 params than the baseline; from v2.2.x onward, the project trains DINN baseline only by default. **Does not extrapolate across spatial blocks.** |
+| `DINNDeep` | SST + MLD + wind + lat (4 channels) | ~9.4K | Within-AOI fits where box-internal fit is the goal (note: r against the homogenized box field is *not* a Darwin-fidelity metric). Saturates on biomass tracers but recovers fewer real-data-identifiable Carroll-6 params than the baseline; from v2.2.x onward the project trains DINN baseline only by default. **Does not extrapolate across spatial blocks.** |
 | `DINNRegional` | Region-level scalar features | ~166 | Region-level (not per-cell) fits. Superseded by DINN per-cell variants for current work. |
 
 ## Multi-AOI and PER_AOI variants
@@ -148,7 +150,7 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 
 ## Scope and honest caveats
 
-- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap; the 5/6 ceiling on Carroll-6 recovery still has the box-model proxy as a contributing factor alongside parameter conservation under the observational constraint set.
+- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap. The binding limitation is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15 at convergence), so identifiability must come from real *absolute* anchors rather than box-vs-Darwin pattern fidelity. Of the 4 observable params, the iron pair and `R_PICPOC` are identifiable from real data (`geo1` holds 3/4 jointly in 8/10 seeds); `diatomgraz` is an open iron-pair tradeoff; the growth pair is unobservable by construction.
 - **DINN is per-cell, not spatially-coupled.** The current setup ignores advection/diffusion between cells because the truth structure for parameter values is per-cell — each cell has its own Carroll-6 vector. Track 2 (emulator) will use different architectures with explicit spatial coupling.
 - **DINNDeep does not extrapolate spatially.** Block cross-validation gives held-out r=0.301 on FeT (vs r=1.000 in-distribution). For applying a network trained on AOI A to AOI B, train per-AOI or use the smaller DINN baseline.
 - **Climatology, not time-resolved.** All current fits use the time-mean over 23 years of monthly Darwin output. Time-resolved fitting opens Track 2 emulator territory and needs cluster compute.

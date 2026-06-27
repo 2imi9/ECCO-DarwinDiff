@@ -9,7 +9,7 @@ The GitHub issue tracker (`2imi9/ECCO-DarwinDiff`) holds the forward plan for th
 parameter-learner (Track 1) work, organized into spines **A–D** under index epic
 [#124](https://github.com/2imi9/ECCO-DarwinDiff/issues/124):
 
-- **A — land in-flight** · **B — seasonal + cluster gate** · **C — manuscript #1 hardening** · **D — R_PICPOC / Darwin calcite port (6-of-6)**
+- **A — land in-flight** · **B — seasonal + cluster gate** · **C — manuscript #1 hardening** · **D — R_PICPOC via real calcite anchor; identifiability frontier** *(the differentiable Darwin calcite port was tested and did not help — R_PICPOC recovers with a real calcite observation: Daniels CP:PP / MODIS PIC)*
 
 **At session start (first repo access):** a `SessionStart` hook (`.claude/settings.json`)
 prints the open issues. Orient the session against them before starting work; if the list
@@ -32,5 +32,10 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
 - After every push, fetch Greptile + Codex review comments via `gh` and address P1s before
   reporting done (when those bots are active on the repo).
 - Recovery results: compare against Carroll's published Green's-functions optima, report
-  n≥10 with seed variance, DINN baseline only by default. The six-parameter Carroll-6 target
-  stays — `R_PICPOC` is a research question (spine D), not a settled limit.
+  n≥10 with seed variance, DINN baseline only by default. **Framing is a surrogate-to-model
+  identifiability study, not a 6/6 chase**: the observable denominator is **4** {`alpfe`,
+  `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is
+  **unobservable by construction** (excluded, not failed). `R_PICPOC` is recoverable given a
+  real calcite anchor (Daniels/MODIS); the best config holds {`alpfe`, `scav_rat`, `R_PICPOC`}
+  jointly 8/10. The surrogate gap is dimensional (the 0-D box homogenizes spatial structure),
+  so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).
