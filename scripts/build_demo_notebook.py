@@ -28,33 +28,33 @@ def code(source: str) -> dict:
 
 CELLS = [
     md(r"""
-# ECCO-DarwinDiff — Differentiable Parameter Recovery Demo
+# ECCO-DarwinDiff — Identifiability Demo (differentiable parameter recovery)
 
-A self-contained, runs-on-free-Colab-T4 demonstration of DarwinDiff: a PyTorch
+A self-contained, runs-in-the-browser demonstration of DarwinDiff: a PyTorch
 reimplementation of the ECCO-Darwin ocean-biogeochemistry box model where
 gradients flow through every simulation step, so parameters can be learned by
 gradient descent *through* the model.
 
-In ~5 minutes on a free Colab T4, this notebook:
+In ~10 minutes on a free Colab T4 (CPU works too), this notebook builds a
+synthetic test problem and uses it to show the project's three core lessons —
+**honestly, by running them**, not asserting them:
 
-1. Builds a synthetic AOI (8×16 grid) with a smooth SST gradient.
-2. Picks ground-truth Carroll-6 values and forward-integrates the differentiable
-   box model to produce a target biomass field.
-3. Recovers the parameters **two ways** — a **per-cell DINN** and a **single
-   global-scalar vector** (the differentiable analogue of one Green's-functions
-   optimum) — and compares them head to head. This is a miniature, in-memory
-   version of the per-cell-vs-global ablation the project runs against real
-   ECCO-Darwin v05 output.
+1. **Capacity.** A *per-cell* neural network can fit spatial structure that a
+   single *global* parameter vector (the analogue of one Green's-functions
+   optimum) provably cannot.
+2. **Fitting ≠ identifying.** Driving the loss to ~zero does **not** mean the
+   true parameters were recovered — different parameter fields fit the same
+   observable (equifinality). We show `alpfe` recovered with a *coin-flip sign*
+   across seeds.
+3. **Identifiability is parameter-specific.** Under identical fits, some
+   parameters are recovered consistently and others are not — which is exactly
+   what determines whether a given observation can constrain a given parameter.
 
-**What this demo is:** a clean illustration of the differentiable method, and of
-*what a per-cell predictor can represent that a global scalar cannot*.
-**What it is not:** evidence about which ECCO-Darwin parameters are actually
-identifiable — that comes from the full study (multi-AOI fits against real
-GEOTRACES iron + calcite anchors, n≥10, `verify_run.py`-gated). The project's
-honest framing is a **surrogate-to-model identifiability study over the 4
-observable Carroll-6 parameters** ({`alpfe`, `scav_rat`, `diatomgraz`,
-`R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is unobservable by
-construction). See
+This is why the real project is framed as a **surrogate-to-model identifiability
+study over the 4 observable Carroll-6 parameters** ({`alpfe`, `scav_rat`,
+`diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is
+unobservable by construction), and why it leans on real *absolute* anchors
+(GEOTRACES iron, Daniels calcite) rather than pattern-matching alone. See
 [STATUS.md](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/STATUS.md).
 """),
     md(r"""
@@ -107,54 +107,45 @@ for name, val in zip(PARAM_NAMES, CARROLL_VALUES.tolist()):
     print(f"  {name:12s} = {val:.5g}")
 print(f"\nPhysical bounds (PARAM_BOUNDS):")
 for name, (lo, hi) in zip(PARAM_NAMES, PARAM_BOUNDS.tolist()):
-    print(f"  {name:12s} ∈ [{lo:.4g}, {hi:.4g}]")
+    print(f"  {name:12s} in [{lo:.4g}, {hi:.4g}]")
 """),
     md(r"""
 ## 3. Synthetic AOI + ground-truth parameter field
 
 We build an 8×16 grid with a smooth SST gradient as the single environmental
-input channel. Then we pick a ground-truth parameter field that **varies smoothly
-with SST**: `alpfe` higher in warm cells (warm-water iron-dust proxy),
-`Smallgrow` higher in cold cells. The other 4 parameters are fixed at Carroll's
-optima.
+input channel, then a ground-truth parameter field that varies smoothly with
+SST: `alpfe` higher in warm cells (warm-water iron-dust proxy), `Smallgrow`
+higher in cold cells. The other 4 parameters are fixed at Carroll's optima.
 
-Note this is the *favourable* case for a per-cell predictor — the truth genuinely
-varies in space, so there is spatial structure to find. We return to that caveat
-in the interpretation: ECCO-Darwin's real parameters were calibrated as **global
-constants**, which is why the per-cell-vs-global question is open and worth a real
-ablation. In the production work, environmental inputs are SST + MLD + wind +
-latitude + AOI-identity, and the box couples to GLODAP/GEOTRACES/Darwin v05 fields.
+This is the *favourable* case for a per-cell predictor — the truth genuinely
+varies in space, so there is structure to find. (ECCO-Darwin's real parameters
+were calibrated as **global constants**, which is why the per-cell-vs-global
+question is open and worth a real ablation; we return to this at the end.)
 """),
     code(r"""
 H, W = 8, 16
-N_STEPS = 200
+N_STEPS = 150
 DT = 0.25
 
-# SST gradient as the env channel, z-scored
-sst = torch.linspace(-2.0, 2.0, H).unsqueeze(1) * torch.ones(1, W)
-sst = sst.unsqueeze(0).unsqueeze(0)  # [1, 1, H, W]
-sst_z = (sst - sst.mean()) / (sst.std() + 1e-8)
-sst_z = sst_z.to(DEVICE)
+sst = (torch.linspace(-2.0, 2.0, H).unsqueeze(1) * torch.ones(1, W)).unsqueeze(0).unsqueeze(0)
+sst_z = ((sst - sst.mean()) / (sst.std() + 1e-8)).to(DEVICE)   # [1,1,H,W]
 print(f"SST grid shape: {sst_z.shape}  range: [{sst_z.min():.2f}, {sst_z.max():.2f}]")
 """),
     code(r"""
-# Truth params: alpfe varies 0.30 -> 0.95 with SST; Smallgrow varies 1.20 -> 0.30 with SST.
-# Others fixed at Carroll's optima.
 def make_truth(sst_norm_2d):
-    bounds = PARAM_BOUNDS.to(DEVICE)
     carroll = CARROLL_VALUES.to(DEVICE)
-    truth = torch.zeros(6, H, W, device=DEVICE)
-    truth[0] = 0.30 + sst_norm_2d * (0.95 - 0.30)      # alpfe
-    truth[1] = carroll[1]                              # scav_rat (constant)
-    truth[2] = 1.20 - sst_norm_2d * (1.20 - 0.30)      # Smallgrow
-    truth[3] = carroll[3]                              # Biggrow (constant)
-    truth[4] = carroll[4]                              # diatomgraz (constant)
-    truth[5] = carroll[5]                              # R_PICPOC (constant)
-    return truth
+    t = torch.zeros(6, H, W, device=DEVICE)
+    t[0] = 0.30 + sst_norm_2d * (0.95 - 0.30)      # alpfe varies with SST
+    t[1] = carroll[1]                              # scav_rat (constant)
+    t[2] = 1.20 - sst_norm_2d * (1.20 - 0.30)      # Smallgrow varies with SST
+    t[3] = carroll[3]; t[4] = carroll[4]; t[5] = carroll[5]
+    return t
 
 sst_norm = (sst_z.squeeze() - sst_z.min()) / (sst_z.max() - sst_z.min() + 1e-8)
 truth = make_truth(sst_norm)
-print(f"Truth alpfe varies: [{truth[0].min():.3f}, {truth[0].max():.3f}]")
+alpfe_true = truth[0].flatten().cpu().numpy()
+smallgrow_true = truth[2].flatten().cpu().numpy()
+print(f"Truth alpfe varies:     [{truth[0].min():.3f}, {truth[0].max():.3f}]")
 print(f"Truth Smallgrow varies: [{truth[2].min():.3f}, {truth[2].max():.3f}]")
 print("Other params fixed at Carroll's optima.")
 """),
@@ -162,17 +153,12 @@ print("Other params fixed at Carroll's optima.")
 ## 4. Forward-integrate the box model
 
 `carroll6_step` is the differentiable PyTorch port of Darwin's 5-tracer reaction
-network. It operates per-cell, but PyTorch broadcasting lets us integrate all 128
-cells of the 8×16 grid in parallel.
-
-We integrate 200 forward-Euler steps (50 simulated days) to reach a near
-steady-state biomass field. This is the target both recovery methods will learn
-to match.
+network. It is per-cell, but PyTorch broadcasting integrates all 128 cells in
+parallel. 150 forward-Euler steps reach a near steady-state biomass field — the
+**single observable** both recovery methods must match.
 """),
     code(r"""
 def forward_box(params_field):
-    # Integrate the box model per cell, vectorized via broadcasting.
-    # params_field: shape [6, H, W] in physical units. Returns biomass [H, W].
     state = torch.stack([
         torch.full((H, W), 0.5e-3, device=params_field.device),  # DFe
         torch.full((H, W), 0.05,   device=params_field.device),  # Ps
@@ -182,10 +168,10 @@ def forward_box(params_field):
     ])
     for _ in range(N_STEPS):
         state = carroll6_step(state, params_field, DT)
-    return state[1] + state[2]
+    return state[1] + state[2]                                   # Ps + Pl biomass
 
-target = forward_box(truth)
-target_zscored = (target - target.mean()) / (target.std() + 1e-8)
+target = forward_box(truth).detach()
+target_z = (target - target.mean()) / (target.std() + 1e-8)
 print(f"Steady-state phyto biomass: [{target.min():.4f}, {target.max():.4f}] mmol C/m^3")
 """),
     md(r"""
@@ -193,177 +179,175 @@ print(f"Steady-state phyto biomass: [{target.min():.4f}, {target.max():.4f}] mmo
 """),
     code(r"""
 fig, axes = plt.subplots(1, 4, figsize=(15, 3))
-imgs = [
+for ax, (img, title) in zip(axes, [
     (sst_z.squeeze().cpu(), "Input: SST (z-scored)"),
     (truth[0].cpu(), "Truth alpfe (varies)"),
     (truth[2].cpu(), "Truth Smallgrow (varies)"),
     (target.detach().cpu(), "Target: Ps + Pl biomass"),
-]
-for ax, (img, title) in zip(axes, imgs):
+]):
     im = ax.imshow(img, aspect="auto", origin="lower", cmap="viridis")
-    ax.set_title(title, fontsize=10)
-    plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-plt.tight_layout()
-plt.show()
+    ax.set_title(title, fontsize=10); plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+plt.tight_layout(); plt.show()
 """),
     md(r"""
 ## 5. Two parameter classes: per-cell DINN vs one global scalar
 
-The architectural question DarwinDiff poses: should **each grid cell** get its own
-parameter vector (a **per-cell DINN**, built from 1×1 convolutions — every cell
-predicts from its own covariates, with no spatial sharing), or is a **single
-global vector** enough (Carroll's actual calibration produces one global Carroll-6
-set)?
-
-The per-cell class strictly *contains* the global one, so on any target it can
-never fit worse. The real question is whether that extra capacity is
-**load-bearing** — does it recover structure a global scalar cannot? Rather than
-assert it, we **test it directly below**: train both on the same target and
-compare the loss and the recovered fields.
+Should **each grid cell** get its own parameter vector (a **per-cell DINN**, 1×1
+convolutions — every cell predicts from its own covariates, no spatial sharing),
+or is a **single global vector** enough (Carroll's actual calibration produces
+one global Carroll-6 set)? The per-cell class strictly *contains* the global one.
+We define both and put them through the identical loss.
 """),
     code(r"""
 class TinyDINN(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.net = torch.nn.Sequential(
-            torch.nn.Conv2d(1, 8, kernel_size=1),
-            torch.nn.Tanh(),
-            torch.nn.Conv2d(8, 8, kernel_size=1),
-            torch.nn.Tanh(),
+            torch.nn.Conv2d(1, 8, kernel_size=1), torch.nn.Tanh(),
+            torch.nn.Conv2d(8, 8, kernel_size=1), torch.nn.Tanh(),
             torch.nn.Conv2d(8, 6, kernel_size=1),
         )
-
     def forward(self, env):
         return self.net(env)  # [B, 6, H, W] unbounded
 
-torch.manual_seed(0)
-net = TinyDINN().to(DEVICE)
-n_params = sum(p.numel() for p in net.parameters())
-print(f"TinyDINN: {n_params} parameters (production DINN: ~454; DINNDeep: ~9.4K)")
-print("Global-scalar baseline: 6 free parameters (one Carroll-6 vector for the whole grid).")
-"""),
-    md(r"""
-## 6. Train both, by gradient descent through the box model
-
-Adam at lr=5e-3 for 800 epochs, identical for both methods. Each epoch: predict
-params → `bounded_params` sigmoid into PARAM_BOUNDS → integrate the box →
-z-scored MSE against the target → backward (autograd traces gradients through all
-200 box steps) → Adam step. The **only** difference between the two runs is the
-parameter source: a per-cell field vs a single broadcast vector.
-"""),
-    code(r"""
-N_EPOCHS = 800
-LR = 5e-3
 bounds = PARAM_BOUNDS.to(DEVICE)
+LR, N_EPOCHS = 5e-3, 400
 
-# (a) Per-cell DINN — each cell predicts its own Carroll-6 vector from SST.
-torch.manual_seed(0)
-net = TinyDINN().to(DEVICE)
-optim = torch.optim.Adam(net.parameters(), lr=LR)
-loss_history = []
-for epoch in range(N_EPOCHS):
-    raw = net(sst_z)                                               # [1, 6, H, W]
-    params = bounded_params(raw, bounds, param_axis=1).squeeze(0)  # [6, H, W]
-    pred = forward_box(params)
-    pred_z = (pred - pred.mean()) / (pred.std() + 1e-8)
-    loss = ((pred_z - target_zscored) ** 2).mean()
-    loss.backward(); optim.step(); optim.zero_grad()
-    loss_history.append(loss.item())
-    if epoch % 200 == 0:
-        print(f"  [per-cell] epoch {epoch:4d}  loss={loss.item():.5f}")
-print(f"Per-cell DINN final loss: {loss_history[-1]:.5f}")
-"""),
-    code(r"""
-# (b) Global-scalar baseline — ONE Carroll-6 vector for the whole grid (no spatial
-# variation). This is the differentiable analogue of a single Green's-functions optimum.
-torch.manual_seed(0)
-raw_g = torch.zeros(6, device=DEVICE, requires_grad=True)
-optim_g = torch.optim.Adam([raw_g], lr=LR)
-loss_history_g = []
-for epoch in range(N_EPOCHS):
-    params_g = bounded_params(raw_g, bounds)                  # [6]
-    params_g_field = params_g.view(6, 1, 1).expand(6, H, W)   # broadcast, identical per cell
-    pred = forward_box(params_g_field)
-    pred_z = (pred - pred.mean()) / (pred.std() + 1e-8)
-    loss = ((pred_z - target_zscored) ** 2).mean()
-    loss.backward(); optim_g.step(); optim_g.zero_grad()
-    loss_history_g.append(loss.item())
-    if epoch % 200 == 0:
-        print(f"  [global ] epoch {epoch:4d}  loss={loss.item():.5f}")
-print(f"Global-scalar final loss: {loss_history_g[-1]:.5f}   "
-      f"(per-cell DINN: {loss_history[-1]:.5f})")
-ratio = loss_history_g[-1] / max(loss_history[-1], 1e-12)
-print(f"Loss ratio global/per-cell: {ratio:.1f}x  "
-      f"(>1 means per-cell fits the spatially-varying target better)")
+def train_percell(seed, n_epochs=N_EPOCHS):
+    torch.manual_seed(seed)
+    net = TinyDINN().to(DEVICE)
+    opt = torch.optim.Adam(net.parameters(), lr=LR)
+    hist = []
+    for _ in range(n_epochs):
+        params = bounded_params(net(sst_z), bounds, param_axis=1).squeeze(0)  # [6,H,W]
+        pred = forward_box(params)
+        pred_z = (pred - pred.mean()) / (pred.std() + 1e-8)
+        loss = ((pred_z - target_z) ** 2).mean()                              # z-scored PATTERN loss
+        loss.backward(); opt.step(); opt.zero_grad(); hist.append(loss.item())
+    with torch.no_grad():
+        params = bounded_params(net(sst_z), bounds, param_axis=1).squeeze(0)
+    return params.detach(), hist
+
+def train_global(seed, n_epochs=N_EPOCHS):
+    torch.manual_seed(seed)
+    raw_g = torch.zeros(6, device=DEVICE, requires_grad=True)                 # ONE vector, no spatial variation
+    opt = torch.optim.Adam([raw_g], lr=LR)
+    hist = []
+    for _ in range(n_epochs):
+        params = bounded_params(raw_g, bounds).view(6, 1, 1).expand(6, H, W)
+        pred = forward_box(params)
+        pred_z = (pred - pred.mean()) / (pred.std() + 1e-8)
+        loss = ((pred_z - target_z) ** 2).mean()
+        loss.backward(); opt.step(); opt.zero_grad(); hist.append(loss.item())
+    with torch.no_grad():
+        params = bounded_params(raw_g, bounds).view(6, 1, 1).expand(6, H, W)
+    return params.detach(), hist
+
+print("TinyDINN params:", sum(p.numel() for p in TinyDINN().parameters()),
+      "| global-scalar: 6 free parameters")
 """),
     md(r"""
-## 7. Compare — loss curves + recovered fields
+## 6. Lesson 1 — capacity: per-cell fits the pattern, a global scalar cannot
 
-The honest A/B: same target, same optimiser, same epochs; only the parameter
-source differs.
+Same target, same optimiser, same epochs; only the parameter source differs.
 """),
     code(r"""
-# Loss curves, both methods
+pc_params, pc_hist = train_percell(0)
+g_params, g_hist = train_global(0)
+print(f"per-cell DINN  final loss: {pc_hist[-1]:.5f}")
+print(f"global scalar  final loss: {g_hist[-1]:.5f}   (ratio {g_hist[-1]/max(pc_hist[-1],1e-12):.0f}x)")
+
 fig, ax = plt.subplots(1, 1, figsize=(8, 3))
-ax.semilogy(loss_history, label=f"per-cell DINN (final {loss_history[-1]:.4f})")
-ax.semilogy(loss_history_g, label=f"global scalar (final {loss_history_g[-1]:.4f})")
-ax.set_xlabel("Epoch"); ax.set_ylabel("Loss (log scale)")
-ax.set_title(f"Training loss through 200 box steps × {N_EPOCHS} epochs")
-ax.legend(); ax.grid(alpha=0.3)
-plt.tight_layout(); plt.show()
+ax.semilogy(pc_hist, label=f"per-cell DINN (final {pc_hist[-1]:.4f})")
+ax.semilogy(g_hist, label=f"global scalar (final {g_hist[-1]:.4f})")
+ax.set_xlabel("Epoch"); ax.set_ylabel("z-scored pattern loss (log)")
+ax.set_title("Lesson 1 — per-cell fits the spatially-varying target; global scalar is pinned at the variance floor")
+ax.legend(); ax.grid(alpha=0.3); plt.tight_layout(); plt.show()
+print("The global scalar produces an identical value at every cell -> no spatial pattern -> "
+      "a z-scored PATTERN loss has no gradient for it. Per-cell has the capacity; global does not.")
+"""),
+    md(r"""
+## 7. Lesson 2 — fitting ≠ identifying (equifinality)
+
+The per-cell DINN drove the loss near zero. Did it recover the *true* `alpfe`
+field? Below we re-fit from several random seeds and report the **signed**
+Pearson correlation of the recovered `alpfe` against the truth. If the **sign
+flips across seeds**, the network found *different* parameter fields that fit the
+same observable equally well — the parameter is **not identified**, no matter how
+low the loss.
 """),
     code(r"""
-# Recovered alpfe field: truth (varies) vs per-cell (can vary) vs global (flat by construction)
-net.eval()
-with torch.no_grad():
-    raw = net(sst_z)
-    rec_pc = bounded_params(raw, bounds, param_axis=1).squeeze(0).cpu().numpy()   # [6,H,W]
-    rec_g = bounded_params(raw_g.detach(), bounds).cpu().numpy()                  # [6]
-truth_np = truth.cpu().numpy()
+SEEDS = [0, 1, 2, 3, 4]
+def r_signed(field, true_flat):
+    a = field.flatten().cpu().numpy()
+    return float("nan") if np.std(a) < 1e-9 else float(np.corrcoef(a, true_flat)[0, 1])
 
-idx = 0  # alpfe (the varying one)
-g_field = np.full((H, W), rec_g[idx])
-vmin = min(truth_np[idx].min(), rec_pc[idx].min(), g_field.min())
-vmax = max(truth_np[idx].max(), rec_pc[idx].max(), g_field.max())
-fig, axes = plt.subplots(1, 3, figsize=(13, 3))
-for ax, (img, title) in zip(axes, [
-    (truth_np[idx], "Truth alpfe (varies with SST)"),
-    (rec_pc[idx], "Per-cell DINN recovered"),
-    (g_field, "Global scalar recovered (flat)"),
-]):
-    im = ax.imshow(img, aspect="auto", origin="lower", cmap="viridis", vmin=vmin, vmax=vmax)
+rows = []
+for s in SEEDS:
+    p, h = train_percell(s, n_epochs=300)
+    rows.append((s, h[-1], r_signed(p[0], alpfe_true), r_signed(p[2], smallgrow_true), p))
+print(f"{'seed':>4} {'loss':>10} {'alpfe r':>9} {'Smallgrow r':>12}")
+for s, l, ra, rs, _ in rows:
+    print(f"{s:>4} {l:>10.2e} {ra:>+9.2f} {rs:>+12.2f}")
+alpfe_rs = [r[2] for r in rows]
+print(f"\nalpfe sign across seeds: {['+' if r > 0 else '-' for r in alpfe_rs]}  "
+      f"(|r| mean {np.mean(np.abs(alpfe_rs)):.2f})")
+print("Strong |r| but a coin-flip sign = equifinality: the biomass observable does not "
+      "pin alpfe's direction.")
+"""),
+    code(r"""
+# Visualise the equifinality: the recovered alpfe field for the first 3 seeds vs truth.
+fig, axes = plt.subplots(1, 4, figsize=(15, 3))
+ims = [(truth[0].cpu(), "Truth alpfe")]
+for s, _, ra, _, p in rows[:3]:
+    ims.append((p[0].cpu(), f"seed {s} recovered (r={ra:+.2f})"))
+for ax, (img, title) in zip(axes, ims):
+    im = ax.imshow(img, aspect="auto", origin="lower", cmap="viridis")
     ax.set_title(title, fontsize=10); plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 plt.tight_layout(); plt.show()
-
-r_pc = float(np.corrcoef(rec_pc[idx].flatten(), truth_np[idx].flatten())[0, 1])
-print(f"alpfe spatial recovery — per-cell Pearson r = {r_pc:.2f}; "
-      f"global scalar is constant ({rec_g[idx]:.3f}) so it has no spatial r by construction.")
+print("Different seeds recover different alpfe fields (some the mirror image of truth) — "
+      "all fitting the same target. That is non-identifiability, shown directly.")
 """),
     md(r"""
-## 8. Interpretation
+## 8. Lesson 3 — identifiability is parameter-specific
 
-- Both classes train end-to-end via autograd through 200 box steps — the
-  **differentiable method works**.
-- The **per-cell DINN reaches lower loss and recovers the SST-varying structure**
-  of `alpfe`/`Smallgrow`; the global scalar is flat by construction (one number
-  cannot vary across cells). This is the per-cell *representational advantage* —
-  shown, not asserted.
-- **Honest caveat (this is the crux).** Here the truth varies spatially *by
-  construction*, which hands the per-cell predictor something to find. Against
-  real ECCO-Darwin, whose Carroll-6 parameters were calibrated as **global
-  constants**, a global scalar is the natural hypothesis — so whether the per-cell
-  predictor is *load-bearing for the real problem* is exactly the open question the
-  full **per-cell-vs-global ablation** answers (real GEOTRACES iron + calcite
-  anchors, multi-AOI, n≥10, `verify_run.py`-gated). This synthetic demo shows the
-  mechanism; it does not settle the real case.
-- Two facts from the full study this in-memory demo cannot show: against real data
-  the 0-D box **homogenizes** (tracer CV → ~1e-15), so identifiability comes from
-  real *absolute* anchors rather than the box's own spatial pattern; and the growth
-  pair is **unobservable by construction** (no real growth-rate data). The honest
-  target is the **4 observable parameters**.
+Notice in the table that `Smallgrow` tends to track its truth more consistently
+than `alpfe`. `Smallgrow` (small-phytoplankton growth rate) has a fairly direct,
+monotonic effect on biomass, so the observable constrains it; `alpfe` (iron
+solubility) acts indirectly through the iron→growth chain and trades off against
+other parameters, so its direction is under-determined. **Which** parameters a
+given observation can identify is not all-or-nothing — it is exactly what the
+full study characterises.
+"""),
+    md(r"""
+## 9. Interpretation — what this means for the real project
 
-For the full account — the surrogate-to-model identifiability framing, the
-real-data iron/calcite recovery, and the known limitations — see
+- **The differentiable method works** — autograd traces gradients through 150
+  box steps to the parameters, for both the per-cell and global classes.
+- **Per-cell has representational capacity a global scalar lacks** (Lesson 1) —
+  necessary to express any spatial parameter variation.
+- **But fitting the observable does not identify the parameters** (Lesson 2): the
+  per-cell DINN reaches ~zero loss while recovering `alpfe` with an arbitrary
+  sign across seeds. Capacity ≠ identifiability.
+- **Identifiability is parameter-specific** (Lesson 3) and depends on how directly
+  the observation constrains each parameter — which is why the real project uses
+  **distinct absolute anchors for distinct parameters** (GEOTRACES dissolved iron
+  for the iron pair; Daniels/MODIS calcite for `R_PICPOC`), rather than
+  pattern-matching one field.
+
+Two facts from the full study this in-memory demo cannot show, but that sharpen
+the same point: against real ECCO-Darwin the 0-D box **homogenizes** (tracer
+spatial CV → ~1e-15), so the box's *own* spatial pattern carries little
+information and identifiability rests on real **absolute** anchors; and the growth
+pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real
+growth-rate data). The honest target is the **4 observable parameters**.
+
+A note on scope: here the truth varies in space *by construction*, which is what
+lets the per-cell class help at all. ECCO-Darwin's Carroll-6 parameters were
+calibrated as **global constants**, so whether the per-cell predictor is
+*load-bearing for the real problem* is an open question — tested directly by the
+project's full **per-cell-vs-global ablation** (real anchors, multi-AOI, n≥10,
+`verify_run.py`-gated). See
 [STATUS.md](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/STATUS.md) and
 [docs/findings/index.md](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/docs/findings/index.md).
 """),
@@ -373,19 +357,11 @@ real-data iron/calcite recovery, and the known limitations — see
 NOTEBOOK = {
     "cells": CELLS,
     "metadata": {
-        "kernelspec": {
-            "display_name": "Python 3",
-            "language": "python",
-            "name": "python3",
-        },
+        "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
         "language_info": {
             "codemirror_mode": {"name": "ipython", "version": 3},
-            "file_extension": ".py",
-            "mimetype": "text/x-python",
-            "name": "python",
-            "nbconvert_exporter": "python",
-            "pygments_lexer": "ipython3",
-            "version": "3.11",
+            "file_extension": ".py", "mimetype": "text/x-python", "name": "python",
+            "nbconvert_exporter": "python", "pygments_lexer": "ipython3", "version": "3.11",
         },
         "accelerator": "GPU",
         "colab": {"provenance": []},
