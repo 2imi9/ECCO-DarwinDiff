@@ -402,22 +402,26 @@ source differs. Counts are seeds with the marginal inside the single
 pre-registered $40\%$ Cal-grade band over
 $n{=}10$. The growth/grazing rows are non-target (the growth pair is unobservable
 by construction) and are shown only to expose the regularization nuance of
-Sec.~\ref{sec:results-nuance}.}
+Sec.~\ref{sec:results-nuance}. Bracketed values are Wilson $95\%$ confidence
+intervals on each rate; for the joint trio and for \texttt{scav\_rat} and
+$R_{\mathrm{PIC:POC}}$ the per-cell and global-scalar intervals do \emph{not}
+overlap, the interval-form statement of the Fisher result. The $0/10$ global rate
+has a rule-of-three upper bound of $0.30$.}
 \label{tab:ablation}
 \begin{tabular}{@{}lccc@{}}
 \toprule
 Parameter & Per-cell DINN & Global-scalar & Fisher $p$ \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{Target trio (demonstrated-observable)}}\\
-\texttt{alpfe} (iron-dust solubility)      & 10/10 & 10/10 & --- \\
-\texttt{scav\_rat} (iron scavenging)       & 7/10  & 0/10  & $<0.01$ \\
-$R_{\mathrm{PIC:POC}}$ (rain ratio)        & 9/10  & 0/10  & $<0.01$ \\
-\textbf{Joint trio}                        & \textbf{7/10} & \textbf{0/10} & $<0.01$ \\
+\texttt{alpfe} (iron-dust solubility)      & 10/10\,{\scriptsize[.72,1.0]} & 10/10\,{\scriptsize[.72,1.0]} & --- \\
+\texttt{scav\_rat} (iron scavenging)       & 7/10\,{\scriptsize[.40,.89]}  & 0/10\,{\scriptsize[.00,.28]}  & $<0.01$ \\
+$R_{\mathrm{PIC:POC}}$ (rain ratio)        & 9/10\,{\scriptsize[.60,.98]}  & 0/10\,{\scriptsize[.00,.28]}  & $<0.01$ \\
+\textbf{Joint trio}                        & \textbf{7/10}\,{\scriptsize[.40,.89]} & \textbf{0/10}\,{\scriptsize[.00,.28]} & $<0.01$ \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{Non-target (growth pair unobservable; grazing open)}}\\
-\texttt{Smallgrow}                         & 1/10  & 10/10 & --- \\
-\texttt{Biggrow}                           & 4/10  & 10/10 & --- \\
-\texttt{diatomgraz} (palatability)         & 1/10  & 10/10 & --- \\
+\texttt{Smallgrow}                         & 1/10\,{\scriptsize[.02,.40]}  & 10/10\,{\scriptsize[.72,1.0]} & --- \\
+\texttt{Biggrow}                           & 4/10\,{\scriptsize[.17,.69]}  & 10/10\,{\scriptsize[.72,1.0]} & --- \\
+\texttt{diatomgraz} (palatability)         & 1/10\,{\scriptsize[.02,.40]}  & 10/10\,{\scriptsize[.72,1.0]} & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -668,6 +672,75 @@ underlying ECCO-Darwin v05 output \cite{carroll2022} and the real-ocean anchors
 (GEOTRACES IDP2025 dissolved iron; the Daniels CP:PP / MODIS calcite ratio) are
 obtained from their respective public archives. Configuration files, seeds, and
 the pre-registered conclusions are included to support reproduction.
+
+\appendix
+
+\section{Reproducibility}
+\label{sec:appendix-repro}
+
+This appendix collects the fixed quantities behind every number in the paper so a
+reader can rebuild the estimator. All values are read from the single-source
+\texttt{carroll6} parameter registry and the run configuration; no number here is
+re-typed by hand.
+
+\paragraph{Learned parameters: Carroll values and bounds.}
+The six learned Carroll-6 parameters, their published Carroll values (the recovery
+targets), and the box-constrained search bounds the per-cell network maps into:
+\begin{center}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Parameter & Role & Carroll value & Bounds \\
+\midrule
+\texttt{alpfe}      & iron-dust solubility (--)      & $0.928$     & $[0.05,\,1.0]$ \\
+\texttt{scav\_rat}  & iron scavenging (s$^{-1}$)     & $6.03\times10^{-7}$ & $[3\times10^{-8},\,3\times10^{-6}]$ \\
+\texttt{Smallgrow}  & small-phyto growth (d$^{-1}$)  & $0.661$     & $[0.1,\,2.0]$ \\
+\texttt{Biggrow}    & large-phyto growth (d$^{-1}$)  & $0.431$     & $[0.1,\,2.0]$ \\
+\texttt{diatomgraz} & diatom palatability (--)       & $0.830$     & $[0.05,\,1.0]$ \\
+$R_{\mathrm{PIC:POC}}$ & PIC:POC rain ratio (--)     & $0.0425$    & $[0.005,\,1.5]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Fixed (non-learned) box constants.}
+Held at their Carroll/Darwin settings throughout: iron half-saturation
+$K_{\mathrm{Fe}}=5\times10^{-5}$, iron quota $Q_{\mathrm{Fe}}=10^{-5}$, quadratic
+phytoplankton mortality $0.5$, baseline grazing rate $0.30$~d$^{-1}$ (multiplied by
+\texttt{diatomgraz}), and PIC sinking speed $w_{\mathrm{sink}}=0.1$. The recovered
+iron operating point $f_{\mathrm{Fe}}=\mathrm{DFe}/(\mathrm{DFe}+K_{\mathrm{Fe}})
+\approx0.67$--$0.91$ (Sec.~\ref{sec:results-iron}) follows from this
+$K_{\mathrm{Fe}}$.
+
+\paragraph{Recovery bands.}
+A marginal is graded by relative offset
+$|\hat\theta-\theta_{\mathrm{Carroll}}|/|\theta_{\mathrm{Carroll}}|$:
+\emph{Excellent} ($\le5\%$), \emph{Cal-grade} ($\le40\%$), \emph{Loose}
+($\le80\%$), \emph{Drifted} ($>80\%$). ``Recovery'' throughout means
+\emph{Cal-grade}, i.e.\ within the pre-registered $40\%$ band; the threshold is a
+project convention, not a Carroll-stated tolerance.
+
+\paragraph{Configuration (\texttt{geo1}) and loss.}
+Three areas of interest (equatorial Pacific, North Atlantic subpolar, Southern
+Ocean) at $1^\circ$. Anchors: GEOTRACES IDP2025 surface and subsurface dissolved
+iron, and the Daniels CP:PP / MODIS calcite ratio. Real-iron weight
+\texttt{GEOTRACES\_W} baseline $0.3$, up-weighted to $3$ ($\sim\!10\times$) to
+identify the iron pair (Sec.~\ref{sec:results-iron}). \texttt{RATIO\_MAX}$=2$ caps
+the per-cell PIC:POC \emph{target}, excluding non-physical low-POC cells (a
+Southern-Ocean artifact with target mean $\approx4.7\times10^{7}$ that otherwise
+collapses the ratio normalizer). Optimizer Adam; $1500$ epochs; $n{=}10$ seeds
+($0$--$9$); the synthetic equifinality control uses $n{=}6$ seeds. The estimator is
+the two-layer five-PFT differentiable box \texttt{carroll6\_5pft\_2layer}; the
+ablation control is \texttt{GlobalScalarNet} (one global Carroll-6 vector).
+
+\paragraph{Software, hardware, and integrity gate.}
+PyTorch $2.11$ (CUDA $12.8$), Python $3.12$; runs executed on NU Explorer GPUs
+(H200 / A100 / T4). Every recovery count is re-derived from raw run output by
+\texttt{verify\_run.py}, which recomputes each statistic from raw and exits zero
+only on agreement (a data-integrity gate, not a validation of the science).
+
+\paragraph{Data sources.}
+ECCO-Darwin v05 output \cite{carroll2022}; GEOTRACES IDP2025 dissolved iron
+(\texttt{geotraces.org/idp2025}); Daniels et al.\ CP:PP calcite ratio
+(\texttt{doi:10.5194/essd-10-1859-2018}; data \texttt{doi:10.1594/PANGAEA.888182}).
 
 \begin{thebibliography}{9}
 
