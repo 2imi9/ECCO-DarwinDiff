@@ -216,7 +216,7 @@ from darwindiff.daniels_loader import (
     load_daniels_points,
 )
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
-from darwindiff.networks import DINN
+from darwindiff.networks import DINN, GlobalScalarNet
 from darwindiff.gating import (
     GATING_POLICIES,
     apply_gate,
@@ -327,6 +327,12 @@ CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
 # lambda lets each regime fit its preferred parameters while staying in the
 # same neighborhood, breaking the 5/6 shared-MLP architectural ceiling.
 USE_PER_AOI_DINN = os.environ.get("PER_AOI_DINN", "0") == "1"
+# Ablation control: GLOBAL_SCALAR=1 replaces the per-cell DINN with a single
+# global Carroll-6 vector per seed (shared across AOIs) — the differentiable
+# analogue of one Green's-functions parameter set. Everything else (forcing,
+# integrator, loss, scoring) is identical, so per-cell-vs-global is a clean A/B.
+# Takes precedence over PER_AOI_DINN (a global scalar is global by construction).
+USE_GLOBAL_SCALAR = os.environ.get("GLOBAL_SCALAR", "0") == "1"
 CONSISTENCY_LAMBDA = float(os.environ.get("CONSISTENCY_LAMBDA", "0.0"))
 # POOL_PARAMS (partial pooling): which Carroll-6 params are pulled toward cross-AOI
 # agreement by CONSISTENCY_LAMBDA; the rest stay fully per-AOI free. Implements the
@@ -1475,7 +1481,18 @@ for i, b in enumerate(bundles):
 # matching prior behavior. In per-AOI mode each (seed, AOI) gets an
 # independent DINN, seeded as (seed + aoi_idx * 10000) for determinism.
 nets_per_aoi: dict[str, list[DINN]] = {}
-if USE_PER_AOI_DINN:
+if USE_GLOBAL_SCALAR:
+    print(f"\n[ABLATION] Building {N_SEEDS} GLOBAL-SCALAR nets (one global 6-vector "
+          f"per seed, shared across all AOIs — the single-Green's-functions control)...")
+    shared_nets = []
+    for s in SEEDS:
+        torch.manual_seed(s)
+        n = GlobalScalarNet(n_input_channels=n_input_channels,
+                            hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
+        shared_nets.append(n)
+    for k in AOIS_KEYS:
+        nets_per_aoi[k] = shared_nets  # alias: one global vector applied to every AOI/cell
+elif USE_PER_AOI_DINN:
     print(f"\nBuilding {N_SEEDS * N_AOIS} per-AOI DINN networks "
           f"(one per (seed, AOI); lambda_consistency={CONSISTENCY_LAMBDA})...")
     for aoi_idx, k in enumerate(AOIS_KEYS):
