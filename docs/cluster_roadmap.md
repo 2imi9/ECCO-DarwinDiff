@@ -181,7 +181,7 @@ Other potentially useful laptop work falls into **leapfrog territory** (differen
 | Kerberos + Duo + OnDemand login | Auto-activates Engaging |
 | Port one Basin C config to SLURM | `scripts/slurm/run_notebook.sbatch` template |
 | First Engaging fit at 3-AOI Basin C base | "Code ran on Engaging" proof for AICR application |
-| Reply to ORCD beta-coordinator confirming Engaging usage | Per the AICR onboarding email |
+| Submit the NU AICR PI project proposal (B200) | Cristina/Schultz-sponsored, in prep |
 
 ### Phase 2 — AICR onboarding + first B200 jobs (likely 2–8 weeks after Phase 1)
 

@@ -134,8 +134,7 @@ The mutex between iron-pair recovery and R_PICPOC recovery is binary in PIC anch
 Three clusters across **two institutions** — do not conflate (full table in [docs/cluster_setup.md](docs/cluster_setup.md)):
 
 - **Explorer** (Northeastern RC, H200 144 GB ×32) — **active near-term path**, access granted June 2026 (Cristina-sponsored). The first native-resolution prototype runs here.
-- **AICR** (Northeastern RC, B200) — future path via a PI **project proposal** (in prep); target for the global-native / seasonal sweep. (Earlier notes mis-framed AICR as an MIT-ORCD follow-on to Engaging — it is Northeastern's.)
-- **Engaging** (MIT ORCD) — Jon-side option, open to MIT users.
+- **AICR** (Northeastern RC, B200) — future path via a PI **project proposal** (in prep); target for the global-native / seasonal sweep. (AICR is Northeastern's, accessed via a PI proposal — not an MIT path.)
 
 Detailed setup, partitions, storage, and SLURM templates in [docs/cluster_setup.md](docs/cluster_setup.md).
 
@@ -155,7 +154,7 @@ The cluster path unlocks: native LLC270-resolution recovery (vs the 1° box-mode
 
 - [README](README.md) — project overview
 - [docs/dinn_design.md](docs/dinn_design.md) — DINN architecture, training loop, structural argument
-- [docs/cluster_setup.md](docs/cluster_setup.md) — Northeastern Explorer / AICR + MIT ORCD Engaging setup
+- [docs/cluster_setup.md](docs/cluster_setup.md) — Northeastern Explorer / AICR setup
 - [data/README.md](data/README.md) — dataset provenance and download mechanics
 - [.claude/skills/README.md](.claude/skills/README.md) — project-scoped Claude Code skill bundle
 - [docs/findings/](docs/findings/index.md) — per-version technical writeups

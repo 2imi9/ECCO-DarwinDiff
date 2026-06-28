@@ -64,7 +64,7 @@ This is a **surrogate-to-model identifiability study** — *which* of the six Ca
 
     ---
 
-    MIT ORCD Engaging + AICR (B200) setup, partitions, storage, and SLURM templates. See also the [cluster roadmap](cluster_roadmap.md).
+    Northeastern Explorer + AICR setup, partitions, storage, and SLURM templates. See also the [cluster roadmap](cluster_roadmap.md).
 
 -   :material-database: **[Data sources](data.md)**
 

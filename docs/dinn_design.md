@@ -175,6 +175,6 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 
 - [README.md](../README.md) — project overview
 - [STATUS.md](../STATUS.md) — live state and findings
-- [docs/cluster_setup.md](cluster_setup.md) — running on MIT ORCD
+- [docs/cluster_setup.md](cluster_setup.md) — running on Northeastern Explorer
 - [docs/findings/](findings/) — per-version technical writeups
 - [docs/ecco_darwin_parameter_inventory.md](ecco_darwin_parameter_inventory.md) — verified Carroll-6 parameter list
