@@ -90,6 +90,12 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--param", default="alpfe", choices=PARAM_NAMES,
                     help="parameter to profile (default alpfe)")
+    ap.add_argument("--mode", default="global", choices=["global", "peraoi"],
+                    help="'global' (default) = shared-theta optimum + 6x6 Hessian + profile; "
+                         "'peraoi' = a SEPARATE 6x6 Fisher/Hessian per AOI at Carroll, giving "
+                         "basin-resolved identifiability (which parameters each basin's data "
+                         "constrains). First cut toward the per-cell spatial map (#152); the box "
+                         "is per-cell independent so the field Fisher is block-diagonal.")
     ap.add_argument("--loss", default="full", choices=["full", "realiron", "realbsi", "realpic"],
                     help="'full' = exact runner joint loss; 'realiron' = ONLY the REAL "
                          "GEOTRACES dissolved-iron residual (surf+sub, for alpfe/scav_rat); "
@@ -131,6 +137,65 @@ def main() -> int:
     bounds = PARAM_BOUNDS.to(dev).float()
     lo = bounds[:, 0:1]                                     # [6,1] (broadcast over seed axis)
     hi = bounds[:, 1:2]
+
+    # -------- per-AOI EMPIRICAL FISHER mode (basin-resolved identifiability, #152) --------
+    # The 0-D box integrates each cell independently and the loss scale-normalizer is built
+    # from the TARGET (constant w.r.t. params), so d(loss)/d(theta) at every cell is recovered
+    # in ONE backward of a per-cell theta FIELD (block-diagonal). The empirical Fisher
+    # F = sum_cell g_cell g_cell^T is PSD BY CONSTRUCTION -- unlike the full Hessian at Carroll,
+    # which is indefinite because Carroll is the GLOBAL optimum, not each basin's own minimum.
+    # (Empirical Fisher, not the exact Gauss-Newton J^T Sigma^-1 J -- it is g=r*J weighted, so
+    # CRLB magnitudes are approximate, but the eigenstructure / null-space = the identifiable vs
+    # sloppy directions is the robust, PSD-guaranteed deliverable.)
+    if args.mode == "peraoi":
+        import math
+        scale_v = carroll.abs().clamp(min=1e-30)
+        per_aoi = {}
+        for b in bundles:
+            set_seeds(1)
+            Hh, Ww = b["mask_f"].shape
+            tf = carroll.reshape(6, 1, 1, 1).expand(6, 1, Hh, Ww).clone().requires_grad_(True)
+            l, _ = aoi_loss(b, tf)
+            (gf,) = torch.autograd.grad(l.sum(), tf)                 # [6,1,Hh,Ww] per-cell grad
+            mask = (b["mask_f"] > 0).reshape(-1)
+            g = gf.reshape(6, -1)[:, mask]                           # [6, Nactive]
+            n_active = int(mask.sum())
+            F = (g @ g.T) * scale_v[:, None] * scale_v[None, :]      # dimensionless empirical Fisher
+            F = 0.5 * (F + F.T)
+            evals, evecs = torch.linalg.eigh(F)
+            evals_l = [float(x) for x in evals]
+            emax = max(evals_l) if evals_l and max(evals_l) > 0 else 1.0
+            ridge = 1e-6 * emax + 1e-30
+            crlb = [float(x) for x in
+                    torch.linalg.inv(F + ridge * torch.eye(6, device=F.device, dtype=F.dtype)).diagonal()]
+            selfinfo = [float(F[i, i]) for i in range(6)]            # per-param Fisher info (>=0)
+            sloppy = evecs[:, 0]
+            pos = [e for e in evals_l if e > 1e-6 * emax]
+            span = math.log10(max(pos) / min(pos)) if len(pos) >= 2 else float("nan")
+            print(f"\n-- AOI {b['key']} (weight {b['weight']}, {n_active} cells) empirical Fisher at Carroll --")
+            print("   eigenvalues low->high: " + ", ".join(f"{e:.2e}" for e in evals_l)
+                  + (f"   (sloppiness {span:.2f} dec)" if len(pos) >= 2 else ""))
+            print("   per-param Fisher info (diag; HIGH = constrained): "
+                  + "  ".join(f"{PARAM_NAMES[i]}={selfinfo[i]:.2e}" for i in range(6)))
+            print("   per-param CRLB (var bound; HIGH = unconstrained): "
+                  + "  ".join(f"{PARAM_NAMES[i]}={crlb[i]:.1e}" for i in range(6)))
+            print("   sloppiest direction: "
+                  + " ".join(f"{PARAM_NAMES[i]}{float(sloppy[i]):+.2f}" for i in range(6)))
+            per_aoi[b["key"]] = {
+                "weight": float(b["weight"]), "n_cells": n_active, "eigenvalues": evals_l,
+                "sloppiness_decades": span,
+                "fisher_info_diag": {PARAM_NAMES[i]: selfinfo[i] for i in range(6)},
+                "crlb": {PARAM_NAMES[i]: crlb[i] for i in range(6)},
+                "sloppy_vector": {PARAM_NAMES[i]: float(sloppy[i]) for i in range(6)},
+            }
+        out = {"mode": "peraoi", "method": "empirical_fisher", "aois": aois, "weights": weights,
+               "carroll": {PARAM_NAMES[i]: float(carroll[i]) for i in range(6)},
+               "per_aoi": per_aoi}
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(json.dumps(out, indent=1), encoding="utf-8")
+            print(f"\nwrote {args.out}")
+        return 0
 
     def loss_vec(theta: torch.Tensor) -> torch.Tensor:
         """Exact runner joint loss for a BATCH of global thetas. theta [6,S] -> [S]."""
