@@ -2,7 +2,7 @@
 
 Planning companion to [docs/cluster_setup.md](cluster_setup.md) (operational how-to). This doc covers WHAT to do with cluster compute once Engaging + AICR access is online. Ordered by expected value for closing the open identifiability questions.
 
-> **⚠ REFRAMED (2026-06-27).** This roadmap was written against a "5/6 bottleneck / 6/6 chase." That frame is superseded by the surrogate-to-model identifiability study (4 observable params; the growth pair is unobservable by construction). The iron pair and `R_PICPOC` recover from real anchors (`geo1` holds {`alpfe`,`scav_rat`,`R_PICPOC`} jointly 8/10). **`R_PICPOC` is NOT cluster-gated** — native resolution was *tested and did not help*; it recovers at 1° with a real calcite anchor. The genuinely open laptop-feasible item is `diatomgraz` (an iron-pair tradeoff needing dense Darwin POSi/TRAC16). Read "5/6 ceiling" below as the historical frame; the cluster value is now native-res **parameter maps + forward Darwin validation + time-resolved decorrelation**, not breaking a wall.
+> **⚠ REFRAMED (2026-06-27).** This roadmap was written against a "5/6 bottleneck / 6/6 chase." That frame is superseded by the surrogate-to-model identifiability study (4 observable params; the growth pair is unobservable by construction). The iron pair and `R_PICPOC` recover from real anchors (`geo1` holds {`alpfe`,`scav_rat`,`R_PICPOC`} jointly 7/10). **`R_PICPOC` is NOT cluster-gated** — native resolution was *tested and did not help*; it recovers at 1° with a real calcite anchor. The genuinely open laptop-feasible item is `diatomgraz` (an iron-pair tradeoff needing dense Darwin POSi/TRAC16). Read "5/6 ceiling" below as the historical frame; the cluster value is now native-res **parameter maps + forward Darwin validation + time-resolved decorrelation**, not breaking a wall.
 
 ## The bottleneck recap (historical framing)
 
@@ -181,7 +181,7 @@ Other potentially useful laptop work falls into **leapfrog territory** (differen
 | Kerberos + Duo + OnDemand login | Auto-activates Engaging |
 | Port one Basin C config to SLURM | `scripts/slurm/run_notebook.sbatch` template |
 | First Engaging fit at 3-AOI Basin C base | "Code ran on Engaging" proof for AICR application |
-| Reply to ORCD beta-coordinator confirming Engaging usage | Per the AICR onboarding email |
+| Submit the NU AICR PI project proposal (B200) | Cristina/Schultz-sponsored, in prep |
 
 ### Phase 2 — AICR onboarding + first B200 jobs (likely 2–8 weeks after Phase 1)
 

@@ -24,7 +24,7 @@ This is a **surrogate-to-model identifiability study** — *which* of the six Ca
 === "Identifiable (real data)"
 
     - The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config (~7 min/fit) — against real GEOTRACES IDP2025 dissolved iron.
-    - **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC). The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 8/10 seeds** — a 3-of-4-observable frontier (hold-together sweep, 8×n=10, all `verify_run` exit 0).
+    - **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC). The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 7/10 seeds** — a 3-of-4-observable frontier (hold-together sweep, 8×n=10, all `verify_run` exit 0).
 
 === "Open / not identifiable"
 
@@ -64,7 +64,7 @@ This is a **surrogate-to-model identifiability study** — *which* of the six Ca
 
     ---
 
-    MIT ORCD Engaging + AICR (B200) setup, partitions, storage, and SLURM templates. See also the [cluster roadmap](cluster_roadmap.md).
+    Northeastern Explorer + AICR setup, partitions, storage, and SLURM templates. See also the [cluster roadmap](cluster_roadmap.md).
 
 -   :material-database: **[Data sources](data.md)**
 

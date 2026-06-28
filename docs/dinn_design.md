@@ -150,7 +150,7 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 
 ## Scope and honest caveats
 
-- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap. The binding limitation is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15 at convergence), so identifiability must come from real *absolute* anchors rather than box-vs-Darwin pattern fidelity. Of the 4 observable params, the iron pair and `R_PICPOC` are identifiable from real data (`geo1` holds 3/4 jointly in 8/10 seeds); `diatomgraz` is an open iron-pair tradeoff; the growth pair is unobservable by construction.
+- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap. The binding limitation is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15 at convergence), so identifiability must come from real *absolute* anchors rather than box-vs-Darwin pattern fidelity. Of the 4 observable params, the iron pair and `R_PICPOC` are identifiable from real data (`geo1` holds 3/4 jointly in 7/10 seeds); `diatomgraz` is an open iron-pair tradeoff; the growth pair is unobservable by construction.
 - **DINN is per-cell, not spatially-coupled.** The current setup ignores advection/diffusion between cells because the truth structure for parameter values is per-cell — each cell has its own Carroll-6 vector. Track 2 (emulator) will use different architectures with explicit spatial coupling.
 - **DINNDeep does not extrapolate spatially.** Block cross-validation gives held-out r=0.301 on FeT (vs r=1.000 in-distribution). For applying a network trained on AOI A to AOI B, train per-AOI or use the smaller DINN baseline.
 - **Climatology, not time-resolved.** All current fits use the time-mean over 23 years of monthly Darwin output. Time-resolved fitting opens Track 2 emulator territory and needs cluster compute.
@@ -175,6 +175,6 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 
 - [README.md](../README.md) — project overview
 - [STATUS.md](../STATUS.md) — live state and findings
-- [docs/cluster_setup.md](cluster_setup.md) — running on MIT ORCD
+- [docs/cluster_setup.md](cluster_setup.md) — running on Northeastern Explorer
 - [docs/findings/](findings/) — per-version technical writeups
 - [docs/ecco_darwin_parameter_inventory.md](ecco_darwin_parameter_inventory.md) — verified Carroll-6 parameter list
