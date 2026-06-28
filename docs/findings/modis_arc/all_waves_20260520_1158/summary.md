@@ -1,5 +1,8 @@
 # Basin C overnight 2026-05-19/20 — all-waves analysis (20260520_1158)
 
+> **⚠ SUPERSEDED FRAMING (2026-06-28).** Point-in-time record; data stands, framing corrected by [STATUS.md](../../../../STATUS.md). The project is a surrogate-to-model identifiability study over **4 observable params**; the growth pair is unobservable by construction. **R_PICPOC is recoverable** with a real calcite anchor (the '5/6 ceiling / 6/6 wall / needs the Darwin port + native resolution' framing is refuted). The per-cell predictor is load-bearing for the target trio (ablation 7/10 vs 0/10, PR #158).
+
+
 ## Source roots
 
 - wave3: `None`

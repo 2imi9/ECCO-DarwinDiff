@@ -37,5 +37,5 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is
   **unobservable by construction** (excluded, not failed). `R_PICPOC` is recoverable given a
   real calcite anchor (Daniels/MODIS); the best config holds {`alpfe`, `scav_rat`, `R_PICPOC`}
-  jointly 8/10. The surrogate gap is dimensional (the 0-D box homogenizes spatial structure),
+  jointly 7/10. The surrogate gap is dimensional (the 0-D box homogenizes spatial structure),
   so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).

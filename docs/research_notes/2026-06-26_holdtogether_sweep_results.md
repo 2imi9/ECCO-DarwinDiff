@@ -52,7 +52,8 @@ as a lever ranking.** The two effects that clear Bonferroni:
   SO's R_PICPOC is not anchor-tested (and SO is the weakest AOI).
 
 **H2 — hold-together: 3 of 4, jointly, at geo1 — and the 4th is a tradeoff, not a block.**
-- `geo1` holds {alpfe, scav_rat, R_PICPOC} **jointly in 8/10 seeds** (measured, not inferred) — but is
+- `geo1` holds {alpfe, scav_rat, R_PICPOC} **jointly in 8/10 seeds** (measured, not inferred; the later
+  per-cell ablation re-aggregation gave 7/10 — a single band-edge seed, so report it as 7–8/10) — but is
   **statistically tied with `base`/`dan2` (7/10)** at n=10. Report "tied-best," and run n≥20 to separate.
 - **No config holds all 4.** `diatomgraz` never exceeds chance (best 4/10, CI [0.17,0.69]; pooled
   9/80 = 11%). **"Proxy-blocked" is refuted as stated:** `noposi` turns the sparse proxy OFF yet
@@ -71,7 +72,7 @@ not necessary. `noposi` (alpfe 6 / scav 8) shows the two iron params are not a s
 ## Honest headline
 
 The real CP:PP anchor adds R_PICPOC on top of the iron pair: **geo1 holds {alpfe, scav_rat, R_PICPOC}
-jointly in 8/10 seeds** — a 3-param co-hold the project had not shown before. But (i) the denominator is
+jointly in 8/10 seeds** (7/10 on the per-cell ablation re-aggregation — band-edge) — a 3-param co-hold the project had not shown before. But (i) the denominator is
 **4 observable params** (the growth pair is excluded by construction — no real-world constraint exists),
 (ii) the 4th param `diatomgraz` is **not recovered** here (a tradeoff, pending the dense TRAC16 target),
 and (iii) only **two** effects are statistically real at n=10 — the anchor→R_PICPOC and the

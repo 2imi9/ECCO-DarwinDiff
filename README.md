@@ -82,7 +82,7 @@ uv run python scripts/verify_run.py runs/eqpac
 
 **Works**
 
-- The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config (~7 min/fit on a single GPU) — and **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC). The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 8/10 seeds** — a 3-of-4-observable frontier driven by real, Darwin-independent anchors (hold-together sweep, 8×n=10, all `verify_run` exit 0).
+- The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config (~7 min/fit on a single GPU) — and **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC). The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 7/10 seeds** — a 3-of-4-observable frontier driven by real, Darwin-independent anchors (hold-together sweep, 8×n=10, all `verify_run` exit 0).
 - A **reproducible 5/6** at 3-AOI (v3.2 — a *prior box-scale result against Darwin's own silica field*): dense-Darwin `POSi` + Eppley recover `diatomgraz` alongside the iron pair (mean 3.85/6, 70% ≥4/6, n=20). *In the real-data sweep `diatomgraz` does **not** recover (best 4/10 = chance) — it is an iron-pair tradeoff, recoverable in principle only via dense Darwin POSi/TRAC16, not yet staged on the cluster.*
 
 **Known limits**

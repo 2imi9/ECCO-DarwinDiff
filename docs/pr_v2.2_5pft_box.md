@@ -1,5 +1,8 @@
 # PR description draft — v2.2-5pft-box branch
 
+> **⚠ SUPERSEDED FRAMING (2026-06-28).** Point-in-time record; data stands, framing corrected by [STATUS.md](../STATUS.md). The project is a surrogate-to-model identifiability study over **4 observable params**; the growth pair is unobservable by construction. **R_PICPOC is recoverable** with a real calcite anchor (the '5/6 ceiling / 6/6 wall / needs the Darwin port + native resolution' framing is refuted). The per-cell predictor is load-bearing for the target trio (ablation 7/10 vs 0/10, PR #158).
+
+
 **Suggested title (per CONTRIBUTING.md scope-prefix):**
 `Track 1 v2.2 closeout: 5-PFT box + v2.4 PINN drift (4/6 calibration-grade)`
 
