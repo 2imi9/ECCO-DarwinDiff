@@ -1,0 +1,708 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+
+\title{Which Parameters of a Non-Differentiable Ocean Biogeochemistry Model
+Are Identifiable Through a Differentiable Surrogate?}
+\author{The DarwinDiff Project}
+\date{2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Calibrating the biogeochemistry of a coupled general circulation model (GCM) such
+as ECCO-Darwin v05 is hard because the model is not differentiable: its six
+``Carroll-6'' calibration parameters are tuned by costly Green's-functions sweeps
+(\(\sim\!7\) forward runs per gradient) rather than by backpropagation
+\cite{menemenlis2005,carroll2022}. We ask which of these parameters are
+\emph{identifiable} when the GCM is replaced, for inversion only, by a 0-D
+differentiable surrogate (the \texttt{carroll6\_5pft\_2layer} box) fit jointly to
+Darwin output and to absolute real-ocean anchors (GEOTRACES iron, a Daniels
+PIC:POC ratio). A per-cell Darwin-Informed neural network predicts a local
+Carroll-6 vector at each grid cell and backpropagates through the box; one
+backward pass yields exact gradients of the \emph{surrogate} objective for all six
+parameters (replacing Green's functions only as an inversion-side estimator, and
+inheriting the surrogate gap below). Of six parameters, four are observable
+\emph{in principle}; the \emph{demonstrated}-observable set is the trio
+\(\{\)alpfe, scav\_rat, R\_PICPOC\(\}\), while diatomgraz observability remains
+open (it is at-chance from the available real data). The growth pair (Smallgrow,
+Biggrow) is unobservable by construction. An ablation isolating only the parameter
+source shows the per-cell network is load-bearing for \emph{in-band recovery of}
+\texttt{scav\_rat} and \texttt{R\_PICPOC}: on \(\{\)alpfe, scav\_rat, R\_PICPOC\(\}\)
+it holds 7/10 jointly (\(n{=}10\) seeds, cross-confirmed) versus 0/10 for a single
+global-scalar vector (Fisher \(p{<}0.01\)), because a global vector cannot match
+spatially varying absolute anchors. \texttt{alpfe} recovers 10/10 in \emph{both}
+arms, so it is mass-balance-identified (its magnitude pinned by the absolute iron
+anchor), not per-cell-dependent. The global arm posts a \emph{higher} overall mean
+recovery (mean \(n_{\mathrm{cal}}=4.0\) versus per-cell \(3.2\)), but only by
+regularizing the \emph{unobservable} growth parameters toward their global
+values---so the 7/10-versus-0/10 gap lives specifically on the target trio. We
+characterize a surrogate gap---the box cannot carry circulation-driven spatial
+structure---so identifiability must come from real, Darwin-independent anchors, not
+pattern matching, extending the BINN design \cite{xu2025binn} to a
+non-differentiable model. Separately, this is a single-method, single-model study
+without an independent inversion, so recovery against Carroll's own values is a
+consistency check, not a cross-validated discovery
+\cite{heimbach2015,transtrum2012}.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Coupled ocean biogeochemical general circulation models (GCMs) such as
+ECCO-Darwin~\cite{carroll2022} are calibrated through a small set of governing
+parameters whose values are fixed by expensive iterative procedures. The
+operational state of the art is Green's-functions calibration, in which each
+candidate parameter perturbation requires a full forward integration of the
+coupled model; obtaining the gradient of a six-parameter calibration set
+(hereafter ``Carroll-6'') against an objective therefore costs on the order of
+seven forward ECCO-Darwin runs. The more powerful native inverse machinery---the
+ECCO adjoint and its 4D-Var data-assimilation system~\cite{heimbach2015,
+menemenlis2005}---is not available for the Darwin biogeochemistry: the coupled
+GCM is, for practical purposes, \emph{non-differentiable} with respect to its
+biogeochemical parameters. This rules out gradient-based parameter learning on
+the model that practitioners actually run.
+
+We ask whether a cheap, fully differentiable \emph{surrogate} can recover the
+GCM's calibration parameters when the GCM itself cannot be differentiated. Our
+surrogate is a zero-dimensional differentiable box model
+(\texttt{carroll6\_5pft\_2layer}) sharing the Carroll-6 parameterization with
+ECCO-Darwin v05. A per-cell Darwin-Informed Neural Network (DINN)---a stack of
+$1{\times}1$ convolutions---predicts a local Carroll-6 vector for every grid
+cell from its environment, and gradients backpropagate through the
+differentiable box. A single backward pass yields all six exact gradients
+\emph{of the surrogate objective}; this replaces the $\sim$7 forward
+ECCO-Darwin runs of a Green's-functions sweep only as an inversion-side gradient
+estimator, and the gradients it returns are gradients of the box, not of
+ECCO-Darwin---so the estimate inherits the surrogate gap characterized below.
+We fit the surrogate jointly to ECCO-Darwin v05 output \emph{and} to real
+ocean observations (GEOTRACES IDP2025 dissolved iron, a Daniels CP:PP / MODIS
+calcite ratio anchor) across three areas of interest (equatorial Pacific, North
+Atlantic, Southern Ocean).
+
+\paragraph{The identifiability question, not a recovery score.}
+The central finding is that fitting the observable is \emph{not} the same as
+identifying the parameter, and that identifiability is parameter-specific. We
+therefore do not report a headline ``six-of-six'' score; we decompose the
+Carroll-6 set into what is observable, what is not, and why. Four parameters are
+in principle observable---iron-dust solubility \texttt{alpfe} and iron
+scavenging \texttt{scav\_rat} (the ``iron pair''), diatom palatability
+\texttt{diatomgraz}, and the PIC:POC rain ratio \texttt{R\_PICPOC}---but the
+\emph{demonstrated}-observable set is the trio \{\texttt{alpfe},
+\texttt{scav\_rat}, \texttt{R\_PICPOC}\}; \texttt{diatomgraz} is
+observable-in-principle-but-not-from-the-staged-data (it is at-chance from the
+available real observations, see below). The growth
+pair (\texttt{Smallgrow}, \texttt{Biggrow}) is unobservable by construction:
+there are no real growth-rate observations, and a 23-year climatology averages
+away the seasonal-succession signal that would otherwise constrain it. We
+report against the three demonstrated-observable parameters
+\{\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}\} plus
+\texttt{diatomgraz} (observable in principle but not from the staged data), and
+state the growth pair's status explicitly rather than counting it toward or
+against any score.
+
+\paragraph{The surrogate gap.}
+A zero-dimensional box cannot carry the circulation-driven spatial structure of
+a three-dimensional GCM, and we characterize this gap rather than paper over it.
+At uniform parameters the box relaxes to a near-uniform state---tracer
+coefficient of variation falls from $4\times10^{-5}$ at 200 steps to
+$\sim10^{-15}$ at 6400 steps, against Darwin's $O(1)$ CV of 0.6--2.4. The gap has
+two distinct components. (a) A \emph{dimensional / pattern} gap: the CV collapse
+means box-versus-Darwin spatial-pattern correlation is \emph{not} a fidelity
+metric, so identifiability must come from real, absolute, Darwin-independent
+anchors rather than from matching the model's own spatial pattern. (b) An
+\emph{intensive closure} gap that survives spatial averaging: the box's surface
+PIC:POC is $\approx0.0424$ \emph{everywhere}, whereas Darwin's
+\emph{ratio-of-means} (not mean-of-ratios) per AOI is $0.033$ (eqpac), $0.676$
+(natl), and $0.0067$ (SO). The single box value $0.0424$ therefore sits
+\emph{between} the two extremes with opposite-sign errors: it is $1.3\times$ too
+high in eqpac, $16\times$ too \emph{low} in natl, and $6\times$ too \emph{high}
+in SO. Because a single global scalar cannot be simultaneously raised toward
+$0.676$ (natl) and lowered toward $0.0067$ (SO), no single-scalar closure can fit
+all three AOIs---a stronger proof of the single-scalar closure limit than a
+one-sided magnitude error. Gap (b) thus caps any joint multi-AOI
+\texttt{R\_PICPOC} claim.
+
+\paragraph{What makes the architecture load-bearing.}
+Holding the configuration fixed and varying \emph{only} the parameter
+source---per-cell DINN versus a single global-scalar Carroll-6 vector, with
+per-cell forcing and initial conditions present in both arms---the per-cell
+predictor holds the target trio \{\texttt{alpfe}, \texttt{scav\_rat},
+\texttt{R\_PICPOC}\} jointly $7/10$ across seeds versus $0/10$ for the global
+scalar (Fisher exact $p<0.01$ for \texttt{scav\_rat}, \texttt{R\_PICPOC}, and the
+joint; cross-confirmed by a fresh identical-config re-run, both $7/10$).
+\texttt{scav\_rat} and \texttt{R\_PICPOC} require per-cell prediction for in-band
+recovery because a single global vector cannot match spatially varying absolute
+anchors---global \texttt{R\_PICPOC} drifts to $0.092\approx2.2\times$ the Carroll
+value $0.0425$ (this $0.092$ is the mean across seeds). We
+state the nuance plainly: the global scalar's rigidity regularizes the
+growth/grazing parameters toward their global Carroll values
+(\texttt{Smallgrow}/\texttt{Biggrow}/\texttt{diatomgraz} $10/10$ versus per-cell
+$1/4/1$ within a generous $\sim$40\% band), so its higher mean recovery
+(mean $n_{\mathrm{cal}}=4.0$ versus per-cell $3.2$) is misleading---those
+are unobservable non-target parameters that per-cell flexibility overfits, and the
+$7/10$-versus-$0/10$ gap lives specifically on the target trio.
+\texttt{alpfe} is recovered $10/10$ by both arms, so it is mass-balance-identified
+(its magnitude pinned by the absolute iron anchor), not per-cell-dependent; only
+\texttt{scav\_rat} is the iron parameter that requires per-cell prediction.
+
+\paragraph{Identifiability is parameter-specific, and we show why.}
+A synthetic test with a spatially varying truth makes the mechanism explicit: a
+per-cell DINN drives the loss to $\sim10^{-4}$ yet recovers \texttt{alpfe} with
+an \emph{arbitrary sign} across seeds ($n=6$ seeds; $3$ of $6$ recovered
+\texttt{alpfe} with negative sign, so $|r|\sim0.9$ but the direction is
+arbitrary), while a
+parameter with a direct monotonic effect (\texttt{Smallgrow}) recovers
+consistently---fitting the observable does not identify the parameter. Note the
+two roles \texttt{alpfe} plays: in this synthetic test the truth is a
+spatially varying field with \emph{no} absolute-magnitude anchor on
+\texttt{alpfe}, so its \emph{sign} is free; the real GEOTRACES anchor instead
+pins \texttt{alpfe}'s \emph{magnitude} (this is the mass-balance handle). The iron
+pair is identified by mass balance, not iron-limitation physics: the recovered
+operating point is near-saturated ($f_{\mathrm{Fe}}\sim0.67$--$0.91$), so
+\texttt{alpfe} is pinned by dissolved-iron mass balance against the absolute
+GEOTRACES IDP2025 anchor rather than by iron-limitation dynamics; the real-iron
+likelihood profile is shallow (a direction, not a sharp value), and recovery
+required up-weighting the real iron term $\sim10\times$ (GEOTRACES weight
+$0.3\to3$)---the Darwin-pattern block alone does not identify the pair, which
+strengthens the dimensional-gap claim. \texttt{R\_PICPOC} recovers via a real
+ratio anchor: an anchor-off control scatters ($3/10$) while anchor-on
+concentrates at $\approx0.05$ (the real Daniels value) ($10/10$, Fisher
+$p=0.003$). \emph{Any} ratio
+anchor recovers it, so the real anchor's contribution is non-circularity---it
+ties recovery to a real $\approx0.05$ rather than to Darwin's own PIC:POC---not
+recoverability itself. Crucially, $0.05$ is only $+18\%$ over Carroll's $0.0425$
+(well inside the $40\%$ band), so the non-circularity rests on the anchor
+\emph{source} (real calcite, not Darwin's own output), not on numeric distance.
+Symmetrically with the global arm---whose growth $10/10$ is a rigidity prior
+coinciding with the truth---the per-cell \texttt{R\_PICPOC} recovery is itself
+\emph{anchor-imposed} (to $\approx0.05$); the load-bearing claim is precisely that
+per-cell is needed to satisfy a \emph{spatially-varying} absolute anchor without
+the single-scalar drift to $0.092$, not that the value is independently
+identified. We report this as validation within a wide band
+($\approx0.05$ versus Carroll $0.0425$, a $\sim$40\% calibration band) alongside
+the caveat that Carroll's single global value is under-constrained and that gap
+(b) caps a joint claim; we do \emph{not} claim to validate $0.0425$. A
+self-twin control against box-generated targets at the known optimum recovers all
+six parameters at loss $\sim10^{-10}$ when started at truth, confirming the
+machinery is correct and that the from-mid-bounds stall is an optimization /
+initialization artifact, not intrinsic degeneracy. \texttt{diatomgraz}
+observability remains open: it is not recovered from available real observations
+(best $\sim4/10$, at chance) and would in principle require dense Darwin
+POSi/TRAC16 fields that we have not staged. This decomposition places the work in
+the sloppiness and structural-identifiability lineage~\cite{transtrum2012},
+where loss-insensitive (``sloppy'') parameter directions are the rule rather
+than the exception in multiparameter models.
+
+\paragraph{Relation to BINN.}
+The closest prior work is the Biogeochemistry-Informed Neural Network of
+Xu et al.~\cite{xu2025binn}, the mature published originator of the design we
+build on: a per-location neural network whose predictions pass through a
+differentiable biogeochemical model so that gradients train the network
+end-to-end. The decisive difference is that BINN differentiates the
+\emph{actual} model (CLM5) and therefore has \emph{no surrogate gap}; its
+objective is self-consistency of a differentiable model with data. Our setting
+is the opposite and harder one. (i) We transfer the design to a
+\emph{non-differentiable} coupled GCM (ECCO-Darwin) by interposing a 0-D
+differentiable surrogate, which introduces---and forces us to characterize---the
+surrogate gap above. (ii) We replace the self-consistency lens with an
+\emph{identifiability decomposition}: which parameters are observable and why,
+rather than whether a differentiable model can fit itself. (iii) Identifiability
+is driven by real, absolute, Darwin-independent anchors with multi-AOI
+attribution, not by the model's own output. We do not use the native inverse
+machinery that would be the conventional route---ECCO adjoint / 4D-Var
+\cite{heimbach2015, menemenlis2005} and Green's-functions calibration---precisely
+because it is unavailable for the Darwin biogeochemistry; positioning against it
+is part of our contribution.
+
+\paragraph{Scope and limitations.}
+We state the limitations up front because they bound every claim that follows.
+The 0-D box is a 1-degree \emph{proxy} for the 3-D GCM; the targets are a 23-year
+climatology, not time-resolved; experiments run on a single-GPU prototype. Most
+importantly, this is a single-method, single-model study: we run no independent
+inversion (Green's-functions, Bayesian, or 4D-Var) on the same targets and no
+forward-Darwin held-out validation, so ``recovery'' graded against Carroll's own
+published values is a \emph{consistency check}, not a cross-validated discovery---this
+is the single biggest limitation. The intensive closure gap (b) caps any joint
+multi-AOI \texttt{R\_PICPOC} claim; \texttt{diatomgraz} observability is open; and
+the growth pair is unobservable by construction. Every recovery number reported
+here is re-derived from raw outputs and gated by an automated reproducibility
+check (\texttt{verify\_run.py}); we stress that this is a data-integrity gate, not
+a validation of the science. Conclusions were pre-registered, verification was
+adversarial, and two self-corrections are on the record.
+
+\paragraph{Contributions.}
+\begin{itemize}
+  \item \textbf{A surrogate-based route to a non-differentiable GCM.} We recover a
+    characterizable subset of ECCO-Darwin v05's Carroll-6 calibration parameters
+    by fitting a 0-D differentiable box---trained jointly to GCM output and to
+    real observations---obtaining all six gradients of the surrogate objective in
+    one backward pass in place of $\sim$7 forward Green's-functions runs (as an
+    inversion-side estimator only; the gradients are of the box, and inherit the
+    surrogate gap).
+  \item \textbf{An identifiability decomposition of the Carroll-6 set.} We map
+    which parameters are demonstrated-observable (\texttt{alpfe},
+    \texttt{scav\_rat}, \texttt{R\_PICPOC}), which are observable-in-principle but
+    not from the staged data (\texttt{diatomgraz}), and which are not (the growth
+    pair, by construction), and we attribute the difference to mass balance,
+    monotone sensitivity, and anchor availability rather than to a fit score.
+  \item \textbf{A characterization of the surrogate gap.} We separate a
+    dimensional / pattern gap (the box's CV collapse) from an intensive
+    single-scalar closure gap (the box's $0.0424$ PIC:POC sits between
+    opposite-sign AOI errors---$1.3\times$ high in eqpac, $16\times$ low in natl,
+    $6\times$ high in SO---so it cannot be raised toward natl and lowered toward
+    SO at once), and show the latter caps any joint multi-AOI \texttt{R\_PICPOC}
+    claim---establishing that identifiability must come from real absolute
+    anchors, not from box--Darwin pattern correlation.
+  \item \textbf{An architecture ablation with real anchors.} Under an
+    identical 3-AOI configuration differing only in parameter source, the
+    per-cell DINN holds \{\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}\}
+    jointly $7/10$ versus $0/10$ for a global-scalar vector (Fisher
+    $p<0.01$, cross-confirmed), isolating the per-cell predictor as load-bearing
+    for in-band recovery against the spatially varying absolute anchors.
+  \item \textbf{An explicit delineation from BINN}~\cite{xu2025binn} and from the
+    native ECCO inverse machinery~\cite{heimbach2015, menemenlis2005}, situated in
+    the structural-identifiability and sloppiness
+    literature~\cite{transtrum2012}.
+\end{itemize}
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Problem setting and limitations}
+
+ECCO-Darwin v05 \cite{carroll2022} is a coupled ocean biogeochemistry general circulation model (GCM) calibrated through a Green's-functions procedure: each parameter perturbation requires a separate forward integration, and the model is not differentiable end-to-end. Our goal is not to replace that calibration but to ask a narrower, falsifiable question: which of the six Carroll-6 calibration parameters can be \emph{identified} from output and observations alone, and why. We frame our approach against the native inverse machinery we do not use---the ECCO adjoint and 4D-Var system \cite{heimbach2015,menemenlis2005} and Green's-functions calibration---and against the parameter-sloppiness lineage \cite{transtrum2012} that supplies our notion of structural identifiability.
+
+We state the load-bearing limitations up front. The surrogate is a $0$-D box that acts as a one-degree \emph{proxy} for the 3-D GCM; it is fit to a 23-year climatology and is therefore not time-resolved; and the prototype runs on a single GPU. Most importantly, this is a \emph{single-method, single-model} study: we run no independent inversion (Green's-functions, Bayesian, or 4D-Var) on the same targets and no forward-Darwin held-out validation. ``Recovery'' graded against Carroll's own published values is therefore a \emph{consistency check}, not a cross-validated discovery---this is the single biggest limitation. Of the six parameters, only four are observable in principle---\texttt{alpfe} (iron-dust solubility), \texttt{scav\_rat} (iron scavenging), \texttt{diatomgraz} (diatom palatability), and \texttt{R\_PICPOC} (PIC:POC rain ratio); the demonstrated-observable set is the trio \{\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}\}, while \texttt{diatomgraz} is observable in principle but not from the staged data. The growth pair \{\texttt{Smallgrow}, \texttt{Biggrow}\} is unobservable by construction, as no real growth-rate observations exist and a 23-year climatology averages away the seasonal-succession handle that would constrain it. We carry an \emph{honest denominator} of three demonstrated-observable parameters plus \texttt{diatomgraz} (observable-in-principle) throughout.
+
+\paragraph{The Cal-grade recovery band.}
+All recovery counts in this paper are reported at a single, pre-registered threshold we call \emph{Cal-grade}: a parameter counts as recovered if its recovered value lands within a $40\%$ relative offset of the published Carroll value. The exact convention used by the code carries finer sub-bands---``Excellent'' ($\le5\%$), the $40\%$ Cal-grade threshold itself, ``Loose'' ($\le80\%$), and ``Drifted'' ($>80\%$)---but every count below is graded at the single $40\%$ Cal-grade threshold. We stress that this band is \emph{generous}, and that it is a project convention for in-band recovery, \emph{not} a Carroll or Green's-functions tolerance: it is not an accepted error bar on the Carroll values, only a fixed yardstick we register in advance and apply uniformly to every recovery count.
+
+\subsection{Differentiable $0$-D surrogate}
+
+The surrogate is the \texttt{carroll6\_5pft\_2layer} box: a $0$-D, five-phytoplankton-functional-type, two-layer differentiable forward model implemented so that each Carroll-6 parameter is an explicit, gradient-bearing input. Replacing the GCM with a differentiable box transfers the inverse problem from a non-differentiable model to one in which a single backward pass yields all six exact gradients \emph{of the surrogate objective}, versus the roughly seven forward ECCO-Darwin Green's-functions integrations required to estimate the same sensitivities by perturbation. We are careful here: the backward pass replaces Green's functions \emph{only} as an inversion-side gradient estimator, and the gradients it returns are gradients of the box objective, not of ECCO-Darwin---so the estimate inherits the surrogate gap below. We therefore do not claim a like-for-like speedup of the GCM calibration itself.
+
+This transfer is not free. A $0$-D box cannot carry circulation-driven spatial structure, and we characterize the resulting \emph{surrogate gap} rather than conceal it. At uniform parameters the box relaxes to a spatially near-uniform state: tracer coefficient of variation falls from $4\times10^{-5}$ at 200 integration steps to $\sim10^{-15}$ at 6400 steps, against Darwin's $O(1)$ spatial CV of $0.6$--$2.4$. We split the gap into two parts. (a)~A \emph{dimensional/pattern gap}: the CV collapse above, which makes box-vs-Darwin spatial-pattern correlation \emph{not} a fidelity metric and forces identifiability to come from real, absolute, Darwin-independent anchors. (b)~An \emph{intensive closure gap}: the box's surface PIC:POC is $\approx 0.0424$ everywhere, while Darwin's \emph{ratio-of-means} (not mean-of-ratios) is $0.033/0.676/0.0067$ across the three areas of interest. The single box value $0.0424$ sits \emph{between} the extremes with opposite-sign errors: $1.3\times$ too high in eqpac, $16\times$ too \emph{low} in natl, and $6\times$ too \emph{high} in SO. A single global scalar cannot be simultaneously raised toward $0.676$ (natl) and lowered toward $0.0067$ (SO), so no single-scalar closure can fit all three AOIs---a stronger proof of the single-scalar closure limit than a one-sided magnitude error. Gap~(b) is therefore a structural single-scalar closure limit that caps any joint multi-AOI \texttt{R\_PICPOC} claim, and we report it as such.
+
+\subsection{Per-cell DINN and the architectural ablation}
+
+The estimator is a per-cell Darwin-Informed Neural Network (DINN): a stack of $1\times1$ convolutions that maps each grid cell's local environment to its own Carroll-6 vector. Gradients backpropagate from the loss through the differentiable box into the convolutional weights, so the network learns a spatially varying parameter field rather than a single global setting.
+
+To test whether this per-cell flexibility is load-bearing, we introduce a \texttt{GlobalScalarNet} control that predicts a single global Carroll-6 vector shared by every cell, and ablate the two arms under an identical configuration (with per-cell forcing present in both). The comparison and its results are reported in Sec.~\ref{sec:results-ablation}.
+
+\subsection{Loss and real, absolute anchors}
+
+Because the surrogate gap rules out spatial-pattern matching as a fidelity signal, identifiability must be driven by real, absolute, Darwin-independent anchors. The loss combines Darwin-output terms with two real-observation anchors.
+
+\emph{Iron (GEOTRACES IDP2025).} The recovered iron operating point is near-saturated ($f_{\mathrm{Fe}} \approx 0.67$--$0.91$), so \texttt{alpfe} is identified by dissolved-iron \emph{mass balance} against the absolute GEOTRACES anchor, not by iron-limitation dynamics; we reframe the iron pair accordingly. We are precise about what each setting constrains: the absolute GEOTRACES anchor pins \texttt{alpfe}'s \emph{magnitude} (this is the mass-balance handle, and the reason \texttt{alpfe} recovers $10/10$ in both arms); the synthetic sign-flip control of Sec.~\ref{sec:results-equifinality} uses a spatially-varying truth with \emph{no} absolute-magnitude anchor on \texttt{alpfe}, leaving its \emph{sign} free; neither experiment claims to constrain \texttt{alpfe}'s full spatial field. ``Mass-balance-identified'' therefore means ``magnitude pinned.'' The real-iron likelihood profile is shallow---it constrains a direction, not a sharp value---and recovery required up-weighting the real-iron term roughly $10\times$ (\texttt{GEOTRACES\_W} from $0.3$ to $3$). The Darwin-pattern block alone does not identify the iron pair, which strengthens the dimensional-gap claim: the signal that resolves \texttt{alpfe} is the real absolute anchor, not the box's reproduction of Darwin structure.
+
+\emph{Calcite (Daniels CP:PP / MODIS).} \texttt{R\_PICPOC} recovers via a real ratio anchor. The anchor's role is \emph{non-circularity}, not recoverability: an anchor-off control recovers \texttt{R\_PICPOC} in only $3/10$ runs with scattered values, while anchor-on recovers $10/10$ at $\approx 0.05$ (the real Daniels value, Fisher $p=0.003$), and any ratio anchor recovers it. The real anchor's value ties \texttt{R\_PICPOC} to the observed $\approx 0.05$ rather than to Darwin's own PIC:POC. Note that $0.05$ is only $+18\%$ over Carroll's $0.0425$ (well inside the $40\%$ band), so the non-circularity rests on the anchor \emph{source}---real calcite, not Darwin's own output---and not on numeric distance from Carroll. Symmetrically with the global arm, whose growth $10/10$ is a rigidity prior coinciding with the truth, the per-cell \texttt{R\_PICPOC} recovery is itself \emph{anchor-imposed} (to $\approx0.05$); the load-bearing claim is that per-cell is needed to satisfy a \emph{spatially-varying} absolute anchor without the single-scalar drift to $0.092$, not that the value is independently identified. Recovery is validation \emph{within a wide band}---$\approx 0.05$ against Carroll $0.0425$, within the $\sim\pm40\%$ Cal band---and we report it alongside the facts that Carroll's single global value is under-constrained and that closure gap~(b) caps a joint multi-AOI claim. We do \emph{not} claim recovery validates the value $0.0425$.
+
+\subsection{Identifiability is parameter-specific: synthetic and self-twin controls}
+
+Fitting the observable is not the same as identifying the parameter, and we demonstrate this with two controls. In a \emph{synthetic equifinality} test with a spatially varying ground truth, the per-cell DINN drives the loss to $\sim10^{-4}$ yet recovers \texttt{alpfe} with an \emph{arbitrary sign across seeds} ($|r|\sim0.9$, sign-flip, $n=6$ seeds; $3$ of $6$ seeds recovered \texttt{alpfe} with negative sign), while \texttt{Smallgrow}, whose effect on the observable is directly monotonic, recovers more consistently---identifiability is parameter-specific even when the fit is excellent. Because this synthetic truth carries no absolute-magnitude anchor on \texttt{alpfe}, only its sign is unconstrained; it is the real GEOTRACES anchor, not this control, that pins \texttt{alpfe}'s magnitude.
+
+As a \emph{method-isolation} self-twin, we replace the real and Darwin targets with box-generated targets at the known Carroll optimum. Starting at truth, the same machinery recovers all six parameters at loss $\sim10^{-10}$. The method therefore works as an estimator; the from-mid-bounds stall observed on real targets is an optimization/initialization artifact, not intrinsic degeneracy of the estimator.
+
+\subsection{\texttt{diatomgraz} and the integrity gate}
+
+\texttt{diatomgraz} observability remains open: it is not recovered from the available real observations (best $\sim4/10$, at chance), and is recoverable in principle only from dense Darwin POSi/TRAC16 fields, which we have not staged.
+
+Every recovery number reported above is re-derived from raw outputs and gated by \texttt{verify\_run.py}, which recomputes each statistic from raw and exits zero only on agreement. We emphasize that this is a \emph{data-integrity} gate, not validation: it guarantees that reported numbers trace to raw runs, not that the recovered parameters are physically correct. Conclusions were pre-registered, verification was adversarial, and two self-corrections remain on the record.
+
+\subsection{Relation to BINN}
+
+The per-location-network-through-a-differentiable-BGC-model design originates with the Biogeochemistry-Informed Neural Network (BINN) of \cite{xu2025binn}, which differentiates the \emph{actual} model (CLM5) and therefore has no surrogate gap. Our contribution is threefold. (i)~We transfer the design to a \emph{non-differentiable} GCM (ECCO-Darwin) through a $0$-D differentiable surrogate, which introduces and forces us to characterize the surrogate gap. (ii)~We adopt an \emph{identifiability-decomposition} lens---asking which parameters are observable and why---rather than demonstrating self-consistency. (iii)~Our identifiability is driven by real absolute anchors with multi-AOI attribution, not by agreement with the model's own output.
+
+\section{Results}
+\label{sec:results}
+
+We organize the evidence around a single question: when the target GCM cannot be
+differentiated, which of its six Carroll-6 calibration parameters does a 0-D
+differentiable surrogate, fit to GCM output \emph{and} real ocean observations,
+actually identify? We separate the demonstrated-observable trio
+$\{\texttt{alpfe}, \texttt{scav\_rat}, R_{\mathrm{PIC:POC}}\}$ and the
+observable-in-principle \texttt{diatomgraz} (not recoverable from the staged data)
+from the growth pair $\{\texttt{Smallgrow}, \texttt{Biggrow}\}$, which is
+unobservable by construction: no real growth-rate observations exist, and the
+23-yr climatology averages away the seasonal-succession signal that would
+otherwise constrain growth rates. Every recovery count below is re-derived from
+raw outputs and gated by an automated data-integrity check; this gate enforces
+reproducibility of the numbers, not validity of the conclusions. Unless noted,
+counts are over $n{=}10$ seeds and ``recovery'' means a marginal lands inside the
+single pre-registered, generous $40\%$ ``Cal-grade'' band around the published
+Carroll value (a project convention for in-band recovery, not a Carroll or
+Green's-functions tolerance; see Sec.~\ref{sec:method}).
+
+\subsection{The per-cell architecture is load-bearing for in-band recovery of the target trio}
+\label{sec:results-ablation}
+
+Our central comparison holds the entire pipeline fixed and varies only the
+\emph{source} of the Carroll-6 vector. Both arms use the identical \texttt{geo1}
+configuration (three areas of interest---eqpac, natl, SO---with real GEOTRACES
+iron and the real Daniels calcite anchor) and, critically, both arms receive the
+\emph{same} per-cell forcing and initial conditions. The per-cell arm lets a
+Darwin-Informed neural network (a stack of $1{\times}1$ convolutions) predict a
+Carroll-6 vector at every grid cell from local environment, backpropagating
+through the differentiable box; the control arm fits a single \emph{global-scalar}
+Carroll-6 vector to the same data. Because per-cell forcing is present in both
+arms, this isolates the parameter field itself: it directly answers the
+objection that ``a global-scalar box with per-cell forcing is not flat.''
+
+On the target trio $\{\texttt{alpfe}, \texttt{scav\_rat}, R_{\mathrm{PIC:POC}}\}$,
+the per-cell DINN recovers all three \emph{jointly} in 7/10 seeds; the
+global-scalar control recovers them jointly in 0/10
+(Table~\ref{tab:ablation}). The marginals locate the failure precisely:
+\texttt{alpfe} recovers in both arms (10/10 vs.\ 10/10), but \texttt{scav\_rat}
+(7/10 vs.\ 0/10) and $R_{\mathrm{PIC:POC}}$ (9/10 vs.\ 0/10) require the per-cell
+field. A fresh, identically-configured re-run reproduces the joint result
+(7/10 in both runs). Fisher's exact test gives $p<0.01$ for \texttt{scav\_rat},
+for $R_{\mathrm{PIC:POC}}$, and for the joint trio. The mechanism is that a single
+global vector cannot match spatially-varying \emph{absolute} anchors: the
+global-scalar $R_{\mathrm{PIC:POC}}$ drifts to $0.092 \approx 2.2\times$ the
+Carroll value of $0.0425$ ($0.092$ is the mean across seeds). We are careful about
+what this establishes: the ablation shows per-cell prediction is \emph{necessary}
+for \texttt{scav\_rat} and $R_{\mathrm{PIC:POC}}$ to land in-band against the
+spatially-varying absolute anchors; it does not by itself establish point
+identification (cf. the sign-flip control of
+Sec.~\ref{sec:results-equifinality}).
+
+This necessity-not-identification reading is borne out by the across-seed spread
+of the recovered \emph{values} (not merely the in-band counts). The global-scalar
+arm is sharply convergent but systematically wrong: across the ten seeds its
+recovered values have coefficient of variation $\mathrm{CV}\approx0\%$ for all
+three trio parameters, yet that single optimum sits outside the band for
+\texttt{scav\_rat} ($41\%$ from Carroll) and $R_{\mathrm{PIC:POC}}$ ($118\%$, the
+drift to $0.092$)---one global vector that cannot be both raised and lowered to
+meet spatially-varying anchors. The per-cell arm is the mirror image: its mean
+recovered values sit near the targets (\texttt{alpfe} $2.9\%$ and \texttt{scav\_rat}
+$9.6\%$ from Carroll; $R_{\mathrm{PIC:POC}}$ at $\approx0.053$, the real Daniels
+value), but the across-seed spread is wide for \texttt{scav\_rat}
+($\mathrm{CV}\approx43\%$)---it reaches the band $7/10$ of the time without being
+sharply point-identified, while $R_{\mathrm{PIC:POC}}$ is the sharpest per-cell
+value ($\mathrm{CV}\approx10\%$), consistent with being pinned by the absolute
+calcite anchor. The honest reading is therefore that per-cell prediction is what
+lets \texttt{scav\_rat} and $R_{\mathrm{PIC:POC}}$ reach the band at all (the
+global optimum is sharply \emph{outside} it), but only $R_{\mathrm{PIC:POC}}$
+approaches sharp identification---and even then to the anchor's value, not
+Carroll's.
+
+\begin{table}[t]
+\centering
+\caption{Ablation: per-cell DINN vs.\ a single global-scalar Carroll-6 vector,
+identical \texttt{geo1} configuration (3-AOI, real GEOTRACES iron, real Daniels
+anchor); per-cell forcing and ICs present in \emph{both} arms, only the parameter
+source differs. Counts are seeds with the marginal inside the single
+pre-registered $40\%$ Cal-grade band over
+$n{=}10$. The growth/grazing rows are non-target (the growth pair is unobservable
+by construction) and are shown only to expose the regularization nuance of
+Sec.~\ref{sec:results-nuance}.}
+\label{tab:ablation}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Parameter & Per-cell DINN & Global-scalar & Fisher $p$ \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Target trio (demonstrated-observable)}}\\
+\texttt{alpfe} (iron-dust solubility)      & 10/10 & 10/10 & --- \\
+\texttt{scav\_rat} (iron scavenging)       & 7/10  & 0/10  & $<0.01$ \\
+$R_{\mathrm{PIC:POC}}$ (rain ratio)        & 9/10  & 0/10  & $<0.01$ \\
+\textbf{Joint trio}                        & \textbf{7/10} & \textbf{0/10} & $<0.01$ \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Non-target (growth pair unobservable; grazing open)}}\\
+\texttt{Smallgrow}                         & 1/10  & 10/10 & --- \\
+\texttt{Biggrow}                           & 4/10  & 10/10 & --- \\
+\texttt{diatomgraz} (palatability)         & 1/10  & 10/10 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The global arm's higher mean recovery is misleading}
+\label{sec:results-nuance}
+
+The same comparison carries a nuance we state rather than hide. The
+global-scalar's rigidity acts as a regularizer that pins the growth and grazing
+parameters near their global Carroll values, so the control recovers
+\texttt{Smallgrow}, \texttt{Biggrow}, and \texttt{diatomgraz} at 10/10 each,
+against the per-cell arm's 1/10, 4/10, and 1/10 (Table~\ref{tab:ablation}).
+Consequently the global arm posts a \emph{higher} mean count of recovered
+parameters (mean $n_{\mathrm{cal}} = 4.0$ vs.\ the per-cell arm's $3.2$; the
+per-cell mean is $(10+7+9+1+4+1)/10 = 3.2$ and the global mean is $40/10 = 4.0$).
+This is an artifact of the denominator: those three
+are \emph{non-target} parameters---the growth pair is unobservable by
+construction and grazing observability is open (Sec.~\ref{sec:results-diatomgraz}).
+The per-cell field's flexibility \emph{overfits} them, while the global arm's
+``recovery'' is merely a rigidity prior coinciding with the truth. The mean is
+misleading precisely because the $7/10$-versus-$0/10$ gap lives specifically on
+the target trio, not in this count. The
+parameter-by-parameter reading is the honest one: \texttt{alpfe} is recovered by
+both arms because it is mass-balance-identified (its magnitude pinned by the
+absolute iron anchor; Sec.~\ref{sec:results-iron}),
+not per-cell-dependent; \texttt{scav\_rat} is the iron parameter that genuinely
+requires the per-cell field; and the trio result, not the mean count, is the
+load-bearing claim.
+
+\subsection{A dimensional surrogate gap, in two parts}
+\label{sec:results-gap}
+
+The 0-D box cannot reproduce the GCM's spatial structure, and we decompose this
+gap into a dimensional/pattern part and an intensive closure part.
+
+\paragraph{(a) Dimensional/pattern gap.}
+At uniform parameters the box relaxes to a spatially near-uniform state: the
+tracer coefficient of variation collapses from $4\times10^{-5}$ at 200 integration
+steps to ${\sim}10^{-15}$ at 6400 steps, against Darwin's $\mathcal{O}(1)$
+spatial CV of $0.6\text{--}2.4$. The box carries no circulation-driven structure.
+The direct consequence is that box-vs-Darwin spatial-\emph{pattern} correlation is
+\emph{not} a fidelity metric and cannot serve as an identification signal;
+identifiability must come from real, absolute, Darwin-independent anchors.
+
+\paragraph{(b) Intensive closure gap.}
+A second gap survives spatial averaging, and it is \emph{two-sided}. The box
+surface PIC:POC sits at ${\approx}0.0424$ essentially everywhere, whereas Darwin's
+\emph{ratio-of-means} (not mean-of-ratios) is
+$0.033$ (eqpac), $0.676$ (natl), and $0.0067$ (SO) per AOI. The single box value
+$0.0424$ thus sits \emph{between} the two extremes with opposite-sign errors: it
+is $1.3\times$ too high in eqpac, $16\times$ too \emph{low} in natl, and
+$6\times$ too \emph{high} in SO, independent of any spatial pattern. This is a
+structural single-scalar closure limit, and the two-sidedness sharpens the
+argument: a single global rain ratio cannot be simultaneously raised toward
+$0.676$ (natl) and lowered toward $0.0067$ (SO), so no single-scalar closure can
+fit all three AOIs---a stronger proof of the single-scalar closure limit than a
+one-sided magnitude error. It therefore \emph{caps any joint multi-AOI claim} on
+$R_{\mathrm{PIC:POC}}$.
+
+\subsection{The iron pair is identified by mass balance, not iron-limitation physics}
+\label{sec:results-iron}
+
+We reframe the iron-pair result honestly. The recovered operating point is
+near-saturated in the iron-limitation term ($f_{\mathrm{Fe}} \approx
+0.67\text{--}0.91$), so \texttt{alpfe} is not constrained by iron-limitation
+\emph{dynamics} but by dissolved-iron \emph{mass balance} against the absolute
+GEOTRACES IDP2025 anchor. We are explicit about what is constrained: the absolute
+anchor pins \texttt{alpfe}'s \emph{magnitude} (and this is why \texttt{alpfe}
+recovers 10/10 in both arms---``mass-balance-identified'' means ``magnitude
+pinned''); the synthetic control of Sec.~\ref{sec:results-equifinality}, which
+carries no absolute anchor, leaves \texttt{alpfe}'s \emph{sign} free; neither
+experiment constrains its full spatial field. Consistent with this, the real-iron
+likelihood profile is shallow---it fixes a direction, not a sharp value. Recovery
+of the pair required up-weighting the real iron term by ${\sim}10\times$
+($\texttt{GEOTRACES\_W}: 0.3 \rightarrow 3$); the Darwin-pattern block
+\emph{alone} does not identify the pair. This strengthens, rather than weakens,
+the dimensional-gap claim of Sec.~\ref{sec:results-gap}: identification comes from
+the real absolute anchor, not from matching Darwin's spatial pattern.
+
+\subsection{$R_{\mathrm{PIC:POC}}$: the real anchor buys non-circularity, not recoverability}
+\label{sec:results-rpicpoc}
+
+$R_{\mathrm{PIC:POC}}$ recovers through a real ratio anchor (Daniels CP:PP /
+MODIS), and the key control shows that \emph{any} ratio anchor recovers it: with
+the anchor off, recovery is 3/10 and scattered; with the anchor on, recovery is
+10/10 at ${\approx}0.05$ (the real Daniels value, Fisher $p=0.003$). The real
+anchor's contribution is
+therefore \emph{non-circularity}---it ties the recovered ratio to a real-world
+value of ${\sim}0.05$ rather than to Darwin's own internal PIC:POC---and not
+recoverability per se. Note that $0.05$ is only $+18\%$ over Carroll's $0.0425$
+(well inside the $40\%$ band), so the non-circularity rests on the anchor
+\emph{source} (real calcite, not Darwin's own output), not on numeric distance
+from Carroll. Symmetrically with the global arm---whose growth 10/10 is a rigidity
+prior that happens to coincide with the truth---the per-cell
+$R_{\mathrm{PIC:POC}}$ recovery is itself \emph{anchor-imposed} (to ${\approx}0.05$):
+the load-bearing claim is precisely that per-cell prediction is needed to satisfy a
+\emph{spatially-varying} absolute anchor without the single-scalar drift to
+$0.092$, \emph{not} that the value is independently identified. We report this as
+validation within a wide band
+(${\sim}0.05$ vs.\ Carroll's $0.0425$, the same ${\sim}{\pm}40\%$ Cal band),
+alongside two caveats: Carroll's single global value is itself under-constrained,
+and the intensive closure gap (b) caps any \emph{joint} multi-AOI claim. We do
+\emph{not} claim this validates the specific value $0.0425$.
+
+\subsection{Equifinality: fitting the observable is not identifying the parameter}
+\label{sec:results-equifinality}
+
+A synthetic experiment with a spatially-varying ground truth confirms the
+mechanism behind the ablation. There, a per-cell DINN drives the loss to
+${\sim}10^{-4}$ yet recovers \texttt{alpfe} with an \emph{arbitrary sign} across
+seeds ($|r|\approx0.9$, sign-flip, $n=6$ seeds; $3$ of $6$ seeds recovered
+\texttt{alpfe} with negative sign---so the magnitude correlation is high but the
+direction is arbitrary): an excellent fit to the observable
+coexists with non-identification of the parameter. This synthetic truth carries
+\emph{no} absolute-magnitude anchor on \texttt{alpfe}, so only its sign is free;
+it is the real GEOTRACES anchor (Sec.~\ref{sec:results-iron}), present at $n=10$,
+that pins \texttt{alpfe}'s magnitude. We place this $n=6$ count adjacent to the
+$n=10$ real counts so the difference in seed budget is visible. Identifiability is
+parameter-specific---\texttt{Smallgrow}, which has a direct monotonic effect on
+the observable, recovers far more consistently in the same test. This is the
+synthetic analogue of the real-data finding that \texttt{scav\_rat} and
+$R_{\mathrm{PIC:POC}}$ need per-cell structure and absolute anchors to be pinned.
+
+\subsection{Method isolation: the self-twin recovers all six}
+\label{sec:results-selftwin}
+
+To separate intrinsic degeneracy from optimization difficulty, we run the same
+machinery against box-\emph{generated} targets at the known Carroll optimum.
+Started at the truth, it recovers all six parameters at loss ${\sim}10^{-10}$.
+The method is therefore sound; the from-mid-bounds stall observed elsewhere is an
+optimization/initialization artifact, not an intrinsic property of the parameter
+set.
+
+\subsection{Grazing observability remains open}
+\label{sec:results-diatomgraz}
+
+\texttt{diatomgraz} is not recovered from the available real observations (best
+${\sim}4/10$, indistinguishable from chance); it is recoverable in principle from
+dense Darwin POSi/TRAC16 fields, which we have not staged here.
+
+\subsection{Relation to prior work}
+\label{sec:results-related}
+
+The closest prior design is the Biogeochemistry-Informed Neural Network of
+Xu et al.~\cite{xu2025binn}, the mature originator of the per-location-NN-through-a-%
+differentiable-BGC-model architecture. BINN differentiates the \emph{actual}
+model (CLM5) and therefore has \emph{no surrogate gap}. Our contribution is
+threefold: (i) we transfer the design to a \emph{non}-differentiable GCM
+(ECCO-Darwin) via a 0-D differentiable surrogate, which introduces and forces us
+to characterize the surrogate gap of Sec.~\ref{sec:results-gap}; (ii) we adopt an
+identifiability-\emph{decomposition} lens---asking which parameters are observable
+and why---rather than a self-consistency framing; and (iii) we drive
+identifiability from real, absolute anchors with multi-AOI attribution. We do
+\emph{not} use the native inverse machinery of ECCO---adjoint/4D-Var
+\cite{heimbach2015,menemenlis2005} and Green's-functions calibration
+\cite{carroll2022}---and we read our results through the sloppiness/%
+identifiability lineage of Transtrum and Sethna~\cite{transtrum2012}.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{What the result is.}
+We report neither a calibration of ECCO-Darwin nor a discovery of new
+ocean-biogeochemical parameter values, but a \emph{parameter-specific
+identifiability map}. Given a coupled GCM (ECCO-Darwin v05) that cannot itself be
+differentiated, a 0-D differentiable surrogate---the
+\texttt{carroll6\_5pft\_2layer} box---fit to the GCM's output \emph{and} to real
+ocean observations identifies a characterizable subset of the GCM's six Carroll-6
+calibration parameters. The demonstrated-observable set is the trio
+$\{$\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}$\}$;
+\texttt{diatomgraz} is observable in principle but not from the staged data; and
+the growth pair $\{$\texttt{Smallgrow}, \texttt{Biggrow}$\}$ is unobservable by
+construction. The mechanism is a per-cell DINN whose predictions pass through the
+differentiable box, so one backward pass yields all six exact gradients
+\emph{of the surrogate objective}---an inversion-side replacement for the $\sim$7
+forward Green's-functions runs, inheriting the surrogate gap and \emph{not} a
+like-for-like speedup of the GCM calibration. The central evidence is the
+architecture ablation (Sec.~\ref{sec:results-ablation}): with only the parameter
+source varied, the per-cell DINN holds the trio 7/10 jointly versus 0/10 for a
+global scalar, because a single global vector cannot match spatially varying
+absolute anchors. Within that result, \texttt{alpfe} recovers 10/10 in both arms
+(mass-balance-identified, its magnitude pinned by the iron anchor), so the
+load-bearing per-cell dependence is specifically for in-band recovery of
+\texttt{scav\_rat} and \texttt{R\_PICPOC}---and the per-cell \texttt{R\_PICPOC}
+value is anchor-imposed to $\approx0.05$, not independently identified.
+
+\paragraph{The single biggest limitation, stated up front.}
+This is a \emph{single-method, single-model} study. We run no independent
+inversion---no Green's-functions, Bayesian, or 4D-Var \cite{heimbach2015}
+optimization---on the same targets, and we perform no forward-Darwin held-out
+validation. Consequently, every ``recovery'' is graded against Carroll's
+\emph{own} published parameter values \cite{carroll2022} at our generous,
+pre-registered $40\%$ Cal-grade band, and is therefore a \emph{consistency check},
+not a cross-validated discovery. This is the single largest caveat on the entire
+result and we place no claim above it. Compounding limitations: the 0-D box is a
+1-degree proxy for a 3-D GCM; targets are a 23-year climatology rather than
+time-resolved fields; the study runs on a single-GPU prototype; the intensive
+closure gap (b) caps any joint multi-AOI \texttt{R\_PICPOC} claim;
+\texttt{diatomgraz} observability is open; and the growth pair is unobservable by
+construction.
+
+\paragraph{What the method is useful for.}
+As an estimator the machinery is sound: a self-twin against box-generated targets
+at the known optimum recovers all six parameters at loss $\sim$$10^{-10}$ from
+truth (Sec.~\ref{sec:results-selftwin}), so the from-mid-bounds stall on real
+targets is an optimization/initialization artifact, not intrinsic degeneracy. The
+useful product is therefore a cheap, differentiable inversion-side gradient
+estimator and the parameter-specific identifiability map it produces: it tells a
+calibrator \emph{which} Carroll-6 parameters a real-anchored surrogate inversion
+can constrain (the iron magnitude via mass balance, the rain ratio via a real
+calcite anchor) and which it cannot (the growth pair, and---from the staged
+data---grazing), before committing expensive full-GCM Green's-functions effort.
+Relative to BINN \cite{xu2025binn}, which differentiates the actual model (CLM5)
+and so has no surrogate gap, our delta is to carry this design to a
+\emph{non-differentiable} GCM through a surrogate, to adopt an
+identifiability-decomposition rather than a self-consistency lens, and to drive
+identifiability from real absolute anchors with multi-AOI attribution; we read the
+parameter-specific result through the sloppiness/identifiability lineage
+\cite{transtrum2012}. Every number is re-derived from raw outputs and gated by
+\texttt{verify\_run.py}, a \emph{data-integrity} gate (not scientific validation);
+conclusions were pre-registered, verification was adversarial, and two
+self-corrections remain on the record.
+
+\paragraph{Forward work.}
+The decisive next steps follow directly from the limitations. First, an
+\emph{independent inversion}---Green's-functions, Bayesian, or 4D-Var
+\cite{heimbach2015}---on the same targets, to convert the consistency check into a
+cross-validated result. Second, \emph{forward-Darwin held-out} validation,
+propagating recovered parameters through the full GCM on unseen conditions. Third,
+\emph{time-resolved} targets in place of the 23-year climatology, to expose the
+growth-pair succession handle. Fourth, \emph{dense biogenic-silica} (POSi/TRAC16)
+supervision to close the open \texttt{diatomgraz} question. None of these removes
+the intensive closure gap (b)---the two-sided, opposite-sign AOI spread that no
+single scalar can straddle---which remains a structural cap on any joint multi-AOI
+\texttt{R\_PICPOC} claim and motivates a higher-dimensional surrogate as the
+longer-term path.
+
+\section{Code and Data Availability}
+\label{sec:availability}
+
+The differentiable surrogate (\texttt{carroll6\_5pft\_2layer}), the per-cell DINN
+and \texttt{GlobalScalarNet} estimators, the loss with the GEOTRACES iron and
+Daniels calcite anchors, and the \texttt{verify\_run.py} data-integrity gate are
+maintained in the DarwinDiff project repository. Every recovery count reported
+here is re-derived from raw cluster outputs by \texttt{verify\_run.py}, which
+recomputes each statistic from raw and exits zero only on agreement; the
+underlying ECCO-Darwin v05 output \cite{carroll2022} and the real-ocean anchors
+(GEOTRACES IDP2025 dissolved iron; the Daniels CP:PP / MODIS calcite ratio) are
+obtained from their respective public archives. Configuration files, seeds, and
+the pre-registered conclusions are included to support reproduction.
+
+\begin{thebibliography}{9}
+
+\bibitem{carroll2022}
+D.~Carroll \emph{et al.},
+``The ECCO-Darwin data-assimilative global ocean biogeochemistry model:
+estimates of seasonal to multidecadal surface ocean $p\mathrm{CO}_2$ and air--sea
+$\mathrm{CO}_2$ flux,''
+\emph{Global Biogeochemical Cycles}, vol.~36, 2022.
+
+\bibitem{xu2025binn}
+L.~Xu \emph{et al.},
+``A Biogeochemistry-Informed Neural Network (BINN) for estimating spatially
+resolved biogeochemical parameters from data,''
+\emph{arXiv preprint} arXiv:2502.00672, 2025.
+
+\bibitem{heimbach2015}
+P.~Heimbach and G.~Forget,
+``The ECCO adjoint and 4D-Var ocean state estimation,''
+in \emph{Encyclopedia of Computational Mechanics} / ECCO ocean state estimation
+documentation, 2015.
+
+\bibitem{menemenlis2005}
+D.~Menemenlis, I.~Fukumori, and T.~Lee,
+``Using Green's functions to calibrate an ocean general circulation model,''
+\emph{Monthly Weather Review}, vol.~133, pp.~1224--1240, 2005.
+
+\bibitem{transtrum2012}
+M.~K.~Transtrum and J.~P.~Sethna,
+``Geometry of nonlinear least squares with applications to sloppy models and
+optimization'' / structural-identifiability and parameter-sloppiness analysis,
+2012; see also R.~N.~Gutenkunst \emph{et al.}, ``Universally sloppy parameter
+sensitivities in systems biology models,'' \emph{PLoS Computational Biology},
+2007.
+
+\end{thebibliography}
+
+\end{document}
