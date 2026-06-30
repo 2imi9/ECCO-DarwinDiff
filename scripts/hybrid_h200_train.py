@@ -3,10 +3,11 @@
 hybrid, to tighten the laptop feasibility probe on an H200.
 
 Headline upgrade over the CPU probe: the iron-limitation closure f_fe(DFe) is
-learned by a neural net INSIDE the real differentiable biogeochemistry, trained
-across a BATCH of initial conditions spanning the iron-limitation knee (so the
-net sees the whole curve, not 4 points) -- both on clean and on 5%-noisy
-targets. Plus GPU confirmations of deep gradient flow and exact param recovery.
+learned by a neural net INSIDE the differentiable 0-D box (a simplified stand-in,
+NOT real Darwin), trained across a BATCH of initial conditions spanning the
+iron-limitation knee (so the net sees the whole curve, not 4 points). This is a
+self-twin test (recover a known closure from synthetic targets) -- it proves the
+technique, not real-data biology. Plus GPU checks of gradient flow + param recovery.
 
 Writes a JSON result. Run on the cluster via scripts/slurm/run_hybrid_h200.sbatch.
 """

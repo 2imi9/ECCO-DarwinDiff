@@ -6,7 +6,7 @@
 
 ## In one paragraph
 
-The reason calibrating ECCO-Darwin is slow is that the model is **not differentiable**: you cannot ask it "if I nudge this parameter, which way does the error move?" and get an instant answer. Our first project worked *around* that by fitting a cheap stand-in model. This note is about a more direct option: **make Darwin's biogeochemistry itself differentiable**, by re-writing its equations in a framework that computes those "which way" answers automatically, and replacing the few uncertain pieces with small neural networks. We built a small test to check whether this is even executable before committing to it. **It is**: all four core capabilities work on the real equations at small scale. The one known risk — numerical drift over long runs — is real but has a standard fix.
+The reason calibrating ECCO-Darwin is slow is that the model is **not differentiable**: you cannot ask it "if I nudge this parameter, which way does the error move?" and get an instant answer. Our first project worked *around* that by fitting a cheap stand-in model. This note is about a more direct option: **make Darwin's biogeochemistry itself differentiable**, by re-writing its equations in a framework that computes those "which way" answers automatically, and replacing the few uncertain pieces with small neural networks. We built a small test to check whether this is even executable before committing to it. **It is**: all four core capabilities work in the differentiable *box* at small scale, on self-twin problems (recovering known answers from synthetic targets) — proof the *technique* is sound, not yet the real-Darwin build. The one known risk — numerical drift over long runs — is real but has a standard fix.
 
 ---
 
@@ -28,7 +28,7 @@ This is exactly what the BINN method (which our paper already cites) does for a 
 
 ## Does it actually work? (the small-scale test)
 
-Before committing, we built a probe (`scripts/hybrid_feasibility_probe.py`) that runs the **real Darwin box equations** and checks the four things this path depends on. All on a laptop CPU, in under two minutes. Each test reports a real measured number.
+Before committing, we built a probe (`scripts/hybrid_feasibility_probe.py`) on the **same simplified differentiable box from the first project** — not Darwin's full code, but a real working stand-in, enough to prove the *technique* before building the real-Darwin version. It checks the four things this path depends on, on a laptop CPU in under two minutes. **These are self-twin tests:** we recover *known* answers from *synthetic* targets. That is the correct way to prove machinery works — but on its own it does **not** show we learned any real ocean biology. That comes later, on real Darwin (Stages 1–3 below).
 
 | # | What it checks | Plain-language question | Result |
 |---|---|---|---|
@@ -37,7 +37,7 @@ Before committing, we built a probe (`scripts/hybrid_feasibility_probe.py`) that
 | C | **Gradient flow at depth** | Do the "which way" gradients stay stable through a long (2,000-step) run? | Yes — gradients are finite and well-defined end to end. |
 | D | **Calibration by backprop** | Can we recover a known parameter by gradient descent through the real dynamics? | Yes — recovered the growth-rate parameter to **~0.00002%** of its true value. |
 
-**What this means:** the four ingredients of the hybrid path — a differentiable forward model (C), parameter calibration by gradient (D), a trainable neural closure inside the physics (B), and stable long-run behavior with the right integrator (A) — all work on the real equations at small scale. There is no hidden show-stopper. The path is **executable**.
+**What this means:** the four ingredients of the hybrid path — a differentiable forward model (C), parameter calibration by gradient (D), a trainable neural closure inside the physics (B), and stable long-run behavior with the right integrator (A) — all work **in the box, at small scale, on self-twin problems**. There is no hidden show-stopper in the *machinery*. The path is **executable** — what remains is doing it on the real Darwin equations (Stages 1–3), which is the build, not a feasibility question.
 
 ## Two things we learned the hard way
 
@@ -46,7 +46,7 @@ Before committing, we built a probe (`scripts/hybrid_feasibility_probe.py`) that
 
 ## A related result Jon's feedback unlocked (the calcite "rain ratio")
 
-Jon noted that only *some* Darwin plankton types calcify, so the bulk calcite-to-organic ratio (PIC:POC) should vary strongly in space rather than be one global number. We tested this (`scripts/per_pft_picpoc_experiment.py`): a single global ratio is mathematically forced to be constant and **cannot** reproduce the ~100× spread we see between basins, but moving the ratio onto the calcifier type alone makes the spread fall out of *how many calcifiers are present* — one constant per-calcifier ratio reproduces all three basins via calcifier fractions of ~3% / ~68% / ~0.7%, matching known biogeography. We had already built this mechanism (`USE_COCCOLITH_ONLY_CALCITE`) and shelved it, precisely because the 0-D box cannot carry the spatial calcifier field — which is another reason the next stage must be higher-dimensional.
+Jon noted that only *some* Darwin plankton types calcify, so the bulk calcite-to-organic ratio (PIC:POC) should vary strongly in space rather than be one global number. We tested this in two steps. **(1) Conceptually** (`scripts/per_pft_picpoc_experiment.py`): a single global ratio is mathematically forced to be constant and **cannot** reproduce the ~100× basin spread; moving the ratio onto the calcifier type *can*, *if* the calcifier fraction varies enough. **(2) Against real Darwin data** (`scripts/per_pft_picpoc_validate.py`): we plugged in Darwin's **actual** calcifier (Chl2) fractions — 21% / 89% / 16% across the three basins — and the implied per-calcifier ratio **still varies ~18×**. So composition **alone does not** close the spread. The Southern Ocean (calcifiers present, calcite near-absent) points to a likely missing piece — *environment-gated* calcification — but that is a **hypothesis to test, not a result here**. We had already built the relevant mechanisms (`USE_COCCOLITH_ONLY_CALCITE`, `USE_ENV_RAIN_RATIO`) and shelved them precisely because the 0-D box cannot carry the spatial calcifier field or the environmental gradients — another reason the next stage must be higher-dimensional. (Caveat: our calcifier fraction is standing-stock, not production-weighted.)
 
 ## What we plan (the roadmap, and the honest risks)
 
