@@ -313,13 +313,13 @@ A private / unreleased adjoint fork could exist (Lauderdale / Follows / Dutkiewi
 
 ## Cross-references
 
-- [README](../../README.md) — project overview, headline results table
-- [STATUS](../../STATUS.md) — live state, finding-by-finding
-- [docs/dinn_design.md](../dinn_design.md) — DINN / DINNDeep architecture, training loop
-- [docs/cluster_setup.md](../cluster_setup.md) — ORCD Engaging + B200 cluster setup, Jonathan-ready quickstart
+- [README](../../../README.md) — project overview, headline results table
+- [STATUS](../../../STATUS.md) — live state, finding-by-finding
+- [docs/dinn_design.md](../../dinn_design.md) — DINN / DINNDeep architecture, training loop
+- [docs/cluster_setup.md](../../cluster_setup.md) — ORCD Engaging + B200 cluster setup, Jonathan-ready quickstart
 - [docs/findings/2026_05_09.md](2026_05_09.md) — v1.0–v1.5 findings (nb10–16)
 - [docs/findings/2026_05_10.md](2026_05_10.md) — v1.6 findings (nb17 trust map)
-- [notebooks/20_carbonate_extension_eqpac.ipynb](../../notebooks/20_carbonate_extension_eqpac.ipynb) — v2.0 headline experiment
-- [notebooks/21_carbonate_block_cv.ipynb](../../notebooks/21_carbonate_block_cv.ipynb) — block-CV check on the v2.0 setup
-- [src/darwindiff/carbonate.py](../../src/darwindiff/carbonate.py) — Follows-2006 solver + Wanninkhof flux
-- [src/darwindiff/carroll6.py](../../src/darwindiff/carroll6.py) — extended with `carroll6_carbonate_integrate`
+- [notebooks/20_carbonate_extension_eqpac.ipynb](../../../notebooks/20_carbonate_extension_eqpac.ipynb) — v2.0 headline experiment
+- [notebooks/21_carbonate_block_cv.ipynb](../../../notebooks/21_carbonate_block_cv.ipynb) — block-CV check on the v2.0 setup
+- [src/darwindiff/carbonate.py](../../../src/darwindiff/carbonate.py) — Follows-2006 solver + Wanninkhof flux
+- [src/darwindiff/carroll6.py](../../../src/darwindiff/carroll6.py) — extended with `carroll6_carbonate_integrate`

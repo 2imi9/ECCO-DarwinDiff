@@ -27,7 +27,7 @@ Explorer is Northeastern RC's general HPC cluster (<https://rc.northeastern.edu>
 
 | GPU | VRAM | Count | Notes |
 |---|---|---|---|
-| H200 | 144 GB | 4 nodes × 8 = 32 | Ideal tier; holds a native-resolution fit (LLC270 time-mean ~63 GB, measured in [`memory_scaling.md`](findings/memory_scaling.md)) on one card |
+| H200 | 144 GB | 4 nodes × 8 = 32 | Ideal tier; holds a native-resolution fit (LLC270 time-mean ~63 GB, measured in [`memory_scaling.md`](archive/findings/memory_scaling.md)) on one card |
 | A100 | 80 GB | 2 nodes × 4 = 8 | Workable fallback |
 | t4 | 16 GB | many | Small but schedulable — fine for the box-scale recovery / Fisher / ablation jobs (used for the per-cell ablation + identifiability map) |
 | V100 | 16–32 GB | many | **Avoid: the cluster torch (cu128) has no kernels for V100 (CC 7.0).** Use t4 (7.5) / a100 / h200 instead |

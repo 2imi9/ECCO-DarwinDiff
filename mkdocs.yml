@@ -86,11 +86,10 @@ exclude_docs: |
   briefs/
   talks/
   paper/
-  research_notes/
   CLAUDE_PROJECT_CONTEXT.md
   pr_v2.2_5pft_box.md
-  findings/modis_arc/
-  findings/v3.0_arc/
+  archive/findings/modis_arc/
+  archive/findings/v3.0_arc/
   *.json
   *.csv
   *.tex
@@ -106,28 +105,22 @@ validation:
     absolute_links: ignore
     unrecognized_links: ignore
 
+# Layered, progressive-disclosure nav: Overview → Status/Matrix → Guides → Reference → Archive.
+# The gist is one page (Overview); depth is available but never forced. Per-version research
+# writeups are archived (docs/archive/) and out of the nav — reachable from the Archive landing.
 nav:
-  - Home: index.md
+  - Overview: index.md
   - Project Status: status.md
-  - Design & method:
+  - Config / Results Matrix: results_matrix.md
+  - Guides:
       - DINN design: dinn_design.md
       - ECCO-Darwin relationship: ecco_darwin_relationship.md
       - Parameter inventory: ecco_darwin_parameter_inventory.md
-  - Findings:
-      - findings/index.md
-      - "v2.1 — GLODAP DIC/ALK hybrid": findings/v2.1_phase1_glodap.md
-      - "v2.2 — 5-PFT box": findings/v2.2_phase2.md
-      - "v2.8 — Darwin ICs + POC loss": findings/v2.8_darwin_ic_poc_sub.md
-      - "v3.0 — multi-AOI scoping": findings/v3.0_multi_aoi_scoping.md
-      - "v3.1 — closeout": findings/v3.1_closeout.md
-      - "v3.2 — dense POSi + Eppley": findings/posi_dense_diatomgraz.md
-      - "R_PICPOC — ratio loss (structural)": findings/rpicpoc_ratio_structural.md
-      - "R_PICPOC — ALK anchor mutex test": findings/alk_anchor_rpicpoc_mutex.md
-  - Operations:
       - Cluster setup: cluster_setup.md
       - Cluster roadmap: cluster_roadmap.md
       - Data sources: data.md
-  - Project:
+  - Reference:
       - Research log: research_log.md
       - Known issues: issues.md
       - Contributing: contributing.md
+  - Archive: archive/index.md

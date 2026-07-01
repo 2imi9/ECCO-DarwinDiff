@@ -246,6 +246,6 @@ After Paper #2 ships. Each is a follow-on paper:
 
 - [docs/cluster_setup.md](cluster_setup.md) — operational guide for Engaging + AICR access
 - [STATUS.md](../STATUS.md) — current v3.1 results and verified numbers
-- [docs/findings/v3.1_closeout.md](findings/v3.1_closeout.md) — v3.1 closeout with Wave 6 composition test
+- [docs/findings/v3.1_closeout.md](archive/findings/v3.1_closeout.md) — v3.1 closeout with Wave 6 composition test
 - [docs/dinn_design.md](dinn_design.md) — architecture details
 - [data/README.md](../data/README.md) — observation channel availability + planned integrations

@@ -129,7 +129,7 @@ The answer is yes, and the 2026-06-27 homogenization finding makes it concrete a
 
 This is the cleanest restatement of the DarwinDiff scientific claim: **per-cell parameters can be identified from per-cell real observations where a global-scalar vector cannot, and Carroll's published global-scalar calibration is bounded by that ceiling.** The study characterizes *which* of the **4 observable** Carroll-6 params {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`} are identifiable from real data; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real-world data constrains growth rates).
 
-Quantitative results live in [STATUS.md](../STATUS.md) and [`docs/findings/`](findings/).
+Quantitative results live in [STATUS.md](../STATUS.md) and [`docs/findings/`](archive/findings/).
 
 ## Network variants
 
@@ -176,5 +176,5 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 - [README.md](../README.md) — project overview
 - [STATUS.md](../STATUS.md) — live state and findings
 - [docs/cluster_setup.md](cluster_setup.md) — running on Northeastern Explorer
-- [docs/findings/](findings/) — per-version technical writeups
+- [docs/findings/](archive/findings/) — per-version technical writeups
 - [docs/ecco_darwin_parameter_inventory.md](ecco_darwin_parameter_inventory.md) — verified Carroll-6 parameter list
