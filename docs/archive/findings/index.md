@@ -1,6 +1,6 @@
 # Findings
 
-Per-version technical writeups behind the headline results. [Project Status](../status.md) is the canonical live summary; these pages are the underlying experimental record.
+Per-version technical writeups behind the headline results. [Project Status](../../status.md) is the canonical live summary; these pages are the underlying experimental record.
 
 > **Current frame:** a *surrogate-to-model identifiability study* over **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction**. `R_PICPOC` is recoverable given a real calcite anchor (Daniels/MODIS) — the "6/6 wall / needs the Darwin port" framing in the older writeups below is **superseded**. The v2.x/v3.x pages are point-in-time records.
 

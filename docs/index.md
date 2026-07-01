@@ -40,7 +40,13 @@ This is a **surrogate-to-model identifiability study** — *which* of the six Ca
 
     ---
 
-    The canonical live results doc — headline recovery table, version chronology, the identifiability frame (4 observable params; growth pair unobservable), and known limitations.
+    The canonical current-best snapshot — headline numbers, the identifiability frame (4 observable params; growth pair unobservable), and known limitations.
+
+-   :material-table: **[Config / Results Matrix](results_matrix.md)**
+
+    ---
+
+    The single source of truth — what every config (v2.x box → 3-AOI `geo1` → native LLC270 → Track-2 probe) tested, found, and how each differs.
 
 -   :material-sitemap: **[DINN design](dinn_design.md)**
 
@@ -54,11 +60,11 @@ This is a **surrogate-to-model identifiability study** — *which* of the six Ca
 
     How the box model maps onto full ECCO-Darwin, and the [parameter inventory](ecco_darwin_parameter_inventory.md) of what is and isn't being recovered.
 
--   :material-flask: **[Findings](findings/v3.1_closeout.md)**
+-   :material-flask: **[Archive](archive/index.md)**
 
     ---
 
-    Per-version technical writeups, v2.1 → v3.2 — the experimental record behind each result, including the `R_PICPOC` real-calcite-anchor result.
+    Per-version research provenance, v2.1 → v3.2 (out of the onboarding path) — the verified experimental record behind each matrix row, including the `R_PICPOC` real-calcite-anchor campaign.
 
 -   :material-server: **[Cluster setup](cluster_setup.md)**
 
@@ -83,11 +89,11 @@ uv sync && uv run pytest -q          # smoke test
 
 The runnable synthetic-recovery demo (~5 min, laptop / Colab T4) lives in
 [`notebooks/demo_colab.ipynb`](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb),
-and the full reproduce path is in the [README](https://github.com/2imi9/ECCO-DarwinDiff#reproduce).
+and the full reproduce path is in the [README](https://github.com/2imi9/ECCO-DarwinDiff#quick-start).
 
 ## Background reading
 
-ECCO-Darwin (Carroll et al. [2020](https://doi.org/10.1029/2019MS001888), *JAMES*; [2022](https://doi.org/10.1029/2021GB007162), *GBC*) is calibrated via **Green's functions** ([Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1)), which scale badly: each tuned parameter needs a fresh full forward run, so the published calibration handles only **6 parameters**. DarwinDiff replaces the biogeochemistry side with PyTorch autograd — gradients for all parameters in one backward pass, with values varying across space. The closest method template is the per-location parameter network of [Xu et al. 2025 (BINN)](https://arxiv.org/abs/2502.00672); the full annotated reference list is in the [README](https://github.com/2imi9/ECCO-DarwinDiff#background-reading).
+ECCO-Darwin (Carroll et al. [2020](https://doi.org/10.1029/2019MS001888), *JAMES*; [2022](https://doi.org/10.1029/2021GB007162), *GBC*) is calibrated via **Green's functions** ([Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1)), which scale badly: each tuned parameter needs a fresh full forward run, so the published calibration handles only **6 parameters**. DarwinDiff replaces the biogeochemistry side with PyTorch autograd — gradients for all parameters in one backward pass, with values varying across space. The closest method template is the per-location parameter network of [Xu et al. 2025 (BINN)](https://arxiv.org/abs/2502.00672); the full annotated reference list is in the [README](https://github.com/2imi9/ECCO-DarwinDiff#citation).
 
 ## How to cite
 

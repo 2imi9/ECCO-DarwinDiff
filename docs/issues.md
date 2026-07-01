@@ -76,7 +76,7 @@ When something lands without labels:
 - [`CONTRIBUTING.md`](../CONTRIBUTING.md) — branch naming, commit / PR conventions, merge policy.
 - [`docs/cluster_roadmap.md`](cluster_roadmap.md) — tier-1 / tier-2 EV ranking and decision tree.
 - [`STATUS.md`](../STATUS.md) — live state of model + sweep results.
-- [`docs/findings/v3.1_closeout.md`](findings/v3.1_closeout.md) — paper-prep technical writeup.
+- [`docs/findings/v3.1_closeout.md`](archive/findings/v3.1_closeout.md) — paper-prep technical writeup.
 
 ## Current label snapshot
 
