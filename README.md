@@ -147,6 +147,7 @@ If your work depends on the underlying model, cite Carroll et al.
 | [Olsen et al. 2016](https://doi.org/10.5194/essd-8-297-2016) · [Schlitzer et al. 2018](https://doi.org/10.1016/j.chemgeo.2018.05.040) | GLODAP DIC/ALK + GEOTRACES iron observations (loaders / losses). |
 | [Xu et al. 2025 (BINN)](https://arxiv.org/abs/2502.00672) | Differentiable physics + per-location parameter network — closest method template. |
 | [Kochkov et al. 2024 (NeuralGCM)](https://arxiv.org/abs/2311.07222) · [Clark et al. 2026 (ACE2S)](https://arxiv.org/abs/2606.07928) · [Ouala & Lachkar 2026 (Neural-BGC)](https://doi.org/10.22541/essoar.15002003/v1) | Hybrid-physics / emulator references for Track 2. |
+| [Dheeshjith et al. 2024 (Samudra)](https://arxiv.org/abs/2412.03795) · [Yuan et al. 2026 (Samudra 2)](https://arxiv.org/abs/2606.02610) · [Ai2 2025 (SamudrACE)](https://arxiv.org/abs/2509.12490) | AI ocean / coupled-climate emulators — architecture, resolution-scaling, and coupling templates for Track 2 (none emulate ocean carbon — the whitespace). See [ADR-0002](docs/adr/0002-track2-emulator-scope.md). |
 
 </details>
 

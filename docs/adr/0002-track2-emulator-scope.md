@@ -64,7 +64,28 @@ Learn an operator $G_\theta$ that advances the ocean-carbon state one month unde
 ## Open questions for Jon + literature to validate (before B200 hours)
 - Which carbon fields are the **scientifically load-bearing** emulator targets (surface CO2-flux + DIC/ALK vs full 3-D tracer set)?
 - Conservation: soft penalty vs hard projection — what's acceptable for the science claim?
-- **Literature to mine** (a focused survey, like the Track-1 lit loop): neural operators for ocean/climate emulation, **conservation-constrained** NN emulators, autoregressive **rollout-stability** methods, and any prior ocean carbon-cycle emulator — to validate the operator + conservation choices *before* committing B200 time. \TODO{run this survey.}
+- **Literature to mine** (a focused survey, like the Track-1 lit loop): neural operators for ocean/climate emulation, **conservation-constrained** NN emulators, autoregressive **rollout-stability** methods, and any prior ocean carbon-cycle emulator — to validate the operator + conservation choices *before* committing B200 time. Survey **seed captured in "Prior art" below** (Samudra lineage, SamudrACE, earth2studio portability); still to mine: conservation-constrained + rollout-stability methods specifically.
+
+## Prior art — climate & ocean emulators to follow (survey seed)
+
+*Captured 2026-07-01 as forward-looking reference for Track 2; implementation later. These are the state-of-the-art AI ocean/climate emulators whose architectures, rollout-stability tricks, and coupling paradigms the DarwinDiff carbon emulator should follow.* **Key gap they all share: every one emulates the *physical* ocean/climate state (T/S/SSH/velocity, atmosphere) — none emulate ocean *carbon / biogeochemistry* (DIC/ALK/air–sea CO₂ flux). That whitespace is exactly Track 2's target** (corroborates the Earth-2/PhysicsNeMo audit above).
+
+| Model | What it emulates | Architecture | Key result / lesson for us | Ref · license |
+|---|---|---|---|---|
+| **Samudra** (Dheeshjith et al. 2024) | Ocean component of a climate model (GFDL OM4 / MOM6) — SSH, u/v, T, S, full depth | **Modified ConvNeXt U-Net** (not FNO), multi-depth | First autoregressive global ocean emulator stable for **centuries**, **~150× faster**; but *struggles to match forcing-trend magnitude while staying stable* — the core skill-vs-stability tension | [arXiv:2412.03795](https://arxiv.org/abs/2412.03795) · [GRL 2025](https://doi.org/10.1029/2024GL114318) |
+| **Samudra 2** (Yuan et al. 2026) | Same ocean state, **scaled across resolutions** | Wider ConvNeXt U-Net + **dynamic loss reweighting channels by error** | **Scaling recipe** the user flagged: 1° → ½° → ¼°, ~8-yr rollouts, recovers mesoscale eddies + western boundary currents; upper-ocean T R² 0.56→0.87, deep-ocean error ~7× lower. Fixes Samudra's two failure modes — **variance collapse** + **imprinting** (velocity leaking into deep fields) — which are directly our autoregressive-drift risk (#7) | [arXiv:2606.02610](https://arxiv.org/abs/2606.02610) · CC BY 4.0 |
+| **SamudrACE** (Ai2 + NYU 2025) | **Coupled** ocean + atmosphere + land + sea-ice — emulates GFDL **CM4 piControl** | **Coupler linking Samudra (ocean) + ACE2 (atmos/land)**, fine-tuned; 145 2-D fields, 8 atmos + 19 ocean levels | **Coupling paradigm**: independently-trained emulators joined via a coupler → **1500 sim-yr/day on one H100**. Template for a *modular* carbon emulator that plugs onto a physical-ocean emulator. piControl-only (no future-climate generalization). HF `allenai/SamudrACE-CM4-piControl`; needs Ai2 `fme≥2025.10`; code `github.com/ai2cm/ace` | [arXiv:2509.12490](https://arxiv.org/abs/2509.12490) · Apache-2.0 |
+| **ACE2 / ACE2S** (Ai2) | Atmosphere + land (the atmospheric half of SamudrACE) | Spherical FME emulator | The atmosphere partner already coupled in SamudrACE; ACE2S is our existing Track-2 benchmark reference | [arXiv:2606.07928](https://arxiv.org/abs/2606.07928) |
+| **Neural-BGC** (Ouala & Lachkar 2026) | Ocean BGC — **DO / NO₃ only, regional** (ROMS + NN) | Regional NN closure | Closest existing *biogeochemistry* emulator; **DarwinDiff differs = carbon (DIC/ALK/CO₂ flux) + global + multi-decadal** | [essoar](https://doi.org/10.22541/essoar.15002003/v1) |
+
+### Portability target — attach to NVIDIA earth2studio
+
+The goal is a **portable ocean-carbon emulator that attaches to [earth2studio](https://github.com/NVIDIA/earth2studio)** (Apache-2.0), NVIDIA's inference framework for AI weather/climate models. Two facts make this concrete:
+
+- **The interface is already scaffolded.** `src/darwindiff/emulator.py` mirrors earth2studio's **prognostic-model contract** (`input_coords` / `output_coords` / `step` / `create_iterator`) and the PhysicsNeMo `Module` base, import-guarded so those are cluster-only deps. An earth2studio prognostic model is exactly our autoregressive `s_{t+1} = G_θ(s_t, f_t)` — their weather models step ~6 h; ours steps ~1 month.
+- **earth2studio ships zero ocean/BGC models** (verified: all current models are atmospheric — global weather 0.25–1.5°, regional HRRR/StormCast). So a Darwin-carbon prognostic plugin is **net-new** in that ecosystem, and the differentiation target.
+
+**Design signals for the operator choice.** The best global ocean emulators (Samudra lineage) use **ConvNeXt-U-Net on a regular lat-lon grid**, *not* FNO — worth weighing against the scaffold's FNO/AFNO/SFNO plan when the operator is picked. Samudra 2's **channel-reweighting loss** and Samudra's **forcing-trend-vs-stability** finding are direct inputs to our conservation (#7) and OOD-extrapolation (#6) success criteria. Two portability ecosystems to target: **NVIDIA earth2studio** (prognostic contract, already scaffolded) and **Ai2 `fme`** (the SamudrACE / ACE stack).
 
 ---
 
