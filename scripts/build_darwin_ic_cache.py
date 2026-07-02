@@ -23,6 +23,7 @@ Run once; ~30 sec wall clock for 5 tracers x 11 GB pickup.
 """
 from __future__ import annotations
 
+import os as _os
 import sys
 import time
 from pathlib import Path
@@ -39,10 +40,9 @@ from darwindiff.llc270_loader import bin_to_1deg_grid
 
 # --- Paths --------------------------------------------------------------------
 
-DARWIN_ROOT = Path(r"D:\ecco_darwin_v5")
+DARWIN_ROOT = Path(_os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5"))
 PICKUP_PATH = DARWIN_ROOT / "input" / "darwin_initial_conditions" / "pickup_ptracers.0000000001.data"
 GRID_DIR = DARWIN_ROOT / "grid"
-import os as _os
 _CACHE_NAME = _os.environ.get("CACHE_NAME", "darwin_ic_cache.npz")
 CACHE_PATH = _HERE / _CACHE_NAME
 # O7: NATIVE_RES=1 keeps native cells (no 1deg binning) + stores per-cell xc/yc
