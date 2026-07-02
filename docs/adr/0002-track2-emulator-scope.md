@@ -87,6 +87,20 @@ The goal is a **portable ocean-carbon emulator that attaches to [earth2studio](h
 
 **Design signals for the operator choice.** The best global ocean emulators (Samudra lineage) use **ConvNeXt-U-Net on a regular lat-lon grid**, *not* FNO — worth weighing against the scaffold's FNO/AFNO/SFNO plan when the operator is picked. Samudra 2's **channel-reweighting loss** and Samudra's **forcing-trend-vs-stability** finding are direct inputs to our conservation (#7) and OOD-extrapolation (#6) success criteria. Two portability ecosystems to target: **NVIDIA earth2studio** (prognostic contract, already scaffolded) and **Ai2 `fme`** (the SamudrACE / ACE stack).
 
+### PhysicsNeMo building blocks (the framework beneath earth2studio)
+
+*Captured 2026-07-01 from NVIDIA's PhysicsNeMo docs; forward-looking reference for Track 2 — and possibly Track 1.* [PhysicsNeMo](https://github.com/NVIDIA/physicsnemo) (Apache-2.0, `pip install nvidia-physicsnemo`) is NVIDIA's modular Physics-ML framework that sits under earth2studio. It is deliberately **not all-or-nothing** — importable blocks to pull in where they help, which matches DarwinDiff's "keep the known physics, add ML only where uncertain" stance. The scaffold already subclasses its `Module` base.
+
+| Module | What it is | DarwinDiff relevance |
+|---|---|---|
+| `physicsnemo.models` | Neural Operators (FNO/AFNO/SFNO), GNNs, Transformers, diffusion backbones | The emulator operator (scaffold already uses FNO from here) |
+| **`physicsnemo.diffusion`** | Denoisers, noise schedulers, samplers, **multi-diffusion**; one trained model → ensembles, **inverse problems by posterior sampling**, inference-time physics constraints | **Both tracks.** Track-1 recovery *is* an inverse problem → diffusion **posterior sampling** would yield parameter *uncertainty* (posterior width = identifiability), a complement to the current point-estimate gradient descent. Track-2: carbon-uncertainty **ensembles** + constraint enforcement without retraining |
+| `physicsnemo.sym` | Symbolic PDE residuals + physics-informed losses | The PINN drift term + the conservation penalty (#7) |
+| `physicsnemo.distributed` | `torch.distributed`-based domain-parallel training | Scaling the emulator to native / global on the B200 |
+| `physicsnemo.datapipes` · `physicsnemo.mesh` | GPU-first scientific data loading; GPU mesh processing | Native data loading (mesh is less relevant — we are on a lat-lon grid) |
+
+**Why the diffusion angle is worth flagging.** NVIDIA's Earth-2 uses diffusion because "a single deterministic answer is not enough" — the same is true for ocean carbon (uncertainty *is* the result). For **Track 1**, reframing parameter recovery as posterior sampling would turn the identifiability study from "did the point estimate land near Carroll" into "how tightly is each parameter constrained" — exactly the question the study asks. Logged as a **future method option**, not a committed direction. Refs: [Diffusion API docs](https://docs.nvidia.com/physicsnemo/latest/) · [PhysicsNeMo blog](https://nvidia.github.io/physicsnemo/blog/) · [GitHub](https://github.com/NVIDIA/physicsnemo).
+
 ---
 
 *Companion: ADR-0001 (Track-1 calcite port, BLOCKED). This is the Track-2 design; nothing here trains or touches a GPU until B200 onboarding + a Jon review of the targets/conservation choices.*
