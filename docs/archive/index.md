@@ -1,5 +1,8 @@
 # Archive — research provenance
 
+> **[Ablation Ledger](ablation_ledger.md)** — the exhaustive record of all **168 distinct ablations**
+> across 10 lever axes (2026-07-03 audit), with the verdict on what optimization space remains.
+
 These are the **verified, point-in-time research writeups** behind the headline results.
 They are kept as provenance (every number was `verify_run.py`-gated when written) but are
 **out of the onboarding path** — start at [Project Status](../status.md) and the

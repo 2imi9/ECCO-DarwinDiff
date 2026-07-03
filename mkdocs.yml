@@ -116,6 +116,7 @@ nav:
       - DINN design: dinn_design.md
       - ECCO-Darwin relationship: ecco_darwin_relationship.md
       - Parameter inventory: ecco_darwin_parameter_inventory.md
+      - Emulator coupling plan: emulator_coupling_plan.md
       - Cluster setup: cluster_setup.md
       - Cluster roadmap: cluster_roadmap.md
       - Data sources: data.md
@@ -123,4 +124,6 @@ nav:
       - Research log: research_log.md
       - Known issues: issues.md
       - Contributing: contributing.md
-  - Archive: archive/index.md
+  - Archive:
+      - archive/index.md
+      - Ablation ledger (all 168): archive/ablation_ledger.md
