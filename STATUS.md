@@ -59,6 +59,18 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   per-cell DINN is load-bearing on real data**: at `geo1`, per-cell holds the trio 7/10 vs **0/10**
   for a single global Carroll-6 vector (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01).
   [PR #158](https://github.com/2imi9/ECCO-DarwinDiff/pull/158).
+- **Independent validation ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163)) is now addressed — and it decomposes cleanly.**
+  *Estimator-independence:* a **DINN-free** global-scalar recovery on real data reaches the same
+  optimum as the per-cell DINN for `alpfe` (Excellent, ≈ Carroll), and a **gradient-free** Nelder-Mead
+  estimator agrees too ([`scripts/independent_validation.py`](scripts/independent_validation.py), [PR #172](https://github.com/2imi9/ECCO-DarwinDiff/pull/172)) —
+  so **`alpfe`'s recovery is method-independent**, not a DINN/autograd artifact; `scav_rat` and
+  `R_PICPOC` genuinely *require* the per-cell structure (0/10 without it). *Independent-data:* a
+  held-out GEOTRACES cross-validation ([PR #173](https://github.com/2imi9/ECCO-DarwinDiff/pull/173) —
+  hold out 30 % of the iron cells, score the box's DFe at the **unseen** cells) returns **negative R²**:
+  the 0-D box homogenizes, so it has no spatial structure to predict per-cell iron. A faithful held-out
+  *data* validation is therefore **structurally blocked by the surrogate gap** and needs a model with
+  spatial dynamics (the Track-2 UDE / emulator). The recovery pins the iron *magnitude*; it cannot
+  predict *which* cell has *how much*.
 - **Statistical honesty.** In the hold-together sweep only two effects are real at n=10 — the
   ratio anchor recovering `R_PICPOC` (3/10→10/10, Fisher p=0.003) and high iron weight collapsing
   `scav_rat` (8/10→0, p=7e-4); differences among the high cells (7–10/10) are sampling noise. The
@@ -100,14 +112,23 @@ goals; they are **not** gated on `R_PICPOC` or "6/6", which are resolved/reframe
 - **Box model is a 5-tracer proxy** of full Darwin 3 (the 5-PFT + 2-layer extensions close part of the gap).
 - **DINN is per-cell, not spatially coupled** — appropriate for parameter recovery, not the Track-2 emulator.
 - **The surrogate gap is dimensional** (see above) — pattern correlations are not fidelity metrics.
+  It also blocks held-out *data* validation: the held-out GEOTRACES test ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163))
+  returns negative R² because the box homogenizes — a faithful held-out validation needs the spatial UDE.
+- **The 1° `geo1` recovery does not transfer to native LLC270 via the shared DINN.** At native,
+  *per-AOI* recovery is strong (SO recovers the full iron pair 5/5 alone; eqpac recovers `alpfe`), but
+  the shared-DINN 3-AOI joint straddles: natl's native iron genuinely prefers a low `alpfe` (~0.1 — a
+  real regional divergence, not a fitting artifact) and SO has no Daniels coverage, so the joint iron
+  pair collapses to 0/10. Native *dilutes* the sparse real obs (GEOTRACES iron ≈ 14 surface cells for
+  ~10 k native cells). Verified (`verify_run` exit 0); PRs [#122](https://github.com/2imi9/ECCO-DarwinDiff/issues/122)/[#123](https://github.com/2imi9/ECCO-DarwinDiff/issues/123).
 - **Climatology, not time-resolved** — all current fits use 23-year time-mean Darwin output.
-- **Single-method** — no forward-Darwin held-out validation yet ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163)).
 - **Windows `MAX_PATH`=260** and **laptop sleep** can interrupt unattended overnight sweeps
   (mitigations in the archive / `scripts/recover_failed_config_log.py`).
 
 ## Cross-references
 
 - [Config / Results Matrix](docs/results_matrix.md) — the single source of truth for per-config results
+- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations + the verdict (box-tuning space exhausted)
+- [Emulator coupling plan](docs/emulator_coupling_plan.md) — the off-box path (Track-1 ↔ Track-2 via Earth-2)
 - [CHANGELOG.md](CHANGELOG.md) — chronological record (version-by-version)
 - [README](README.md) — project overview · [docs/dinn_design.md](docs/dinn_design.md) — architecture
 - [docs/cluster_setup.md](docs/cluster_setup.md) · [data/README.md](data/README.md) · [archive](docs/archive/index.md)
