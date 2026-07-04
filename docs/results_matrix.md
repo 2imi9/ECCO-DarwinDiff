@@ -4,6 +4,19 @@ The single source of truth for **what each DarwinDiff configuration tested and w
 found**. [Project Status](status.md) links here for the current best; the
 [archive](archive/index.md) holds the per-version writeups behind each row.
 
+> This page is the **curated headline** (the configs that define the frontier). The
+> **exhaustive record — all 168 distinct ablations across 10 lever axes — is the
+> [Ablation Ledger](archive/ablation_ledger.md)**, together with the verdict below.
+>
+> **Verdict (2026-07-03 audit):** the **estimator / loss-weighting / box-structure space is
+> effectively exhausted** (~0 more tuning experiments worth running; every ceiling-breaker is
+> refuted — the ceiling is the 0-D box surrogate, not the optimizer). **~4–6 genuinely new
+> experiments remain**, and every high-EV one is **data-staging-blocked or off-box**: the #1
+> lever is a **macronutrient (NO3/PO4) tracer + drawdown loss** (breaks the growth degeneracy
+> *and* the alpfe weld), then dense POSi / native primProd staging, a small-phyto gyre AOI, an
+> n≥20 tie-break, and real MODIS obs/obs ratio — the strategic exit being the
+> [differentiable-BGC UDE](emulator_coupling_plan.md).
+
 **Scoring** ([`diagnostics.band_of`](dinn_design.md)): *Excellent* ≤ 5 % off Carroll ·
 *Cal-grade* ≤ 40 %. Counts are `seeds-recovered / seeds-run`, every number gated by
 [`scripts/verify_run.py`](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/scripts/verify_run.py)

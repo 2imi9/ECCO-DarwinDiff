@@ -282,6 +282,11 @@ GEOTRACES_W = float(os.environ.get("GEOTRACES_W", "0.3"))
 GEOTRACES_SUB_W = float(os.environ.get("GEOTRACES_SUB_W", "1.0"))
 SUB_DEPTH_MIN = float(os.environ.get("GEOTRACES_SUB_DEPTH_MIN", "50.0"))
 SUB_DEPTH_MAX = float(os.environ.get("GEOTRACES_SUB_DEPTH_MAX", "1000.0"))
+# #163 independent-DATA validation: hold out this spatial fraction of surface GEOTRACES
+# iron cells from the TRAINING loss; after training, score the box's predicted DFe at
+# those unseen cells vs real held-out iron. 0 = off (default; byte-identical behaviour).
+GEOTRACES_HOLDOUT_FRAC = float(os.environ.get("GEOTRACES_HOLDOUT_FRAC", "0"))
+GEOTRACES_HOLDOUT_SEED = int(os.environ.get("GEOTRACES_HOLDOUT_SEED", "12345"))
 N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
 USE_DARWIN_IC = os.environ.get("DARWIN_IC", "1") == "1"   # default ON for v3.0
 # O7: NATIVE_RES=1 fits at full LLC270 native resolution (~9.8k cells/AOI) instead
@@ -1292,6 +1297,19 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         np.where(geo_surf_loss_mask, geo_surf_target, 0.0).astype(np.float32)
     ).to(device)
     geo_surf_mask_t = torch.tensor(geo_surf_loss_mask, dtype=torch.bool).to(device)
+    # #163 held-out split: pull a spatial fraction of the iron cells OUT of the training
+    # mask; keep them for post-training scoring against real held-out iron.
+    geo_surf_holdout_mask_t = torch.zeros_like(geo_surf_mask_t)
+    if GEOTRACES_HOLDOUT_FRAC > 0:
+        _true = geo_surf_mask_t.nonzero(as_tuple=False)
+        if len(_true) > 0:
+            _n_hold = max(1, int(round(len(_true) * GEOTRACES_HOLDOUT_FRAC)))
+            _perm = torch.randperm(len(_true), generator=torch.Generator().manual_seed(GEOTRACES_HOLDOUT_SEED))
+            _hi = _true[_perm[:_n_hold]]
+            geo_surf_holdout_mask_t[_hi[:, 0], _hi[:, 1]] = True
+            geo_surf_mask_t = geo_surf_mask_t & ~geo_surf_holdout_mask_t
+            print(f"  [HOLDOUT] surface iron: {int(geo_surf_holdout_mask_t.sum())} of "
+                  f"{len(_true)} obs cells held out of training (frac={GEOTRACES_HOLDOUT_FRAC})")
     geo_surf_mask_f = geo_surf_mask_t.to(torch.float32)
     n_geo_surf_f = geo_surf_mask_f.sum().clamp(min=1.0)
 
@@ -1368,6 +1386,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
         "geo_surf_target_t": geo_surf_target_t, "geo_surf_mask_t": geo_surf_mask_t,
         "geo_surf_mask_f": geo_surf_mask_f, "n_geo_surf_f": n_geo_surf_f,
+        "geo_surf_holdout_mask_t": geo_surf_holdout_mask_t,
         "geo_sub_target_t": geo_sub_target_t, "geo_sub_mask_t": geo_sub_mask_t,
         "geo_sub_mask_f": geo_sub_mask_f, "n_geo_sub_f": n_geo_sub_f,
         "n_geo_surf": int(geo_surf_loss_mask.sum()),
@@ -1844,6 +1863,27 @@ if __name__ == "__main__":
     # PARAM_NAMES + CARROLL_VALUES come from the carroll6.PARAMS registry (imported
     # above) — the single source of truth for the parameter layout + Carroll optima.
     carroll_published = CARROLL_VALUES  # tensor of length 6
+
+    # #163 independent-DATA validation: score the box's final predicted DFe at the
+    # HELD-OUT iron cells (never seen in training) vs real GEOTRACES iron. Good skill =>
+    # the recovered params generalise to unseen real data (discovery, not just Carroll-consistency).
+    if GEOTRACES_HOLDOUT_FRAC > 0:
+        print()
+        print("=== HELD-OUT GEOTRACES iron validation (cells excluded from training) ===")
+        for _b in bundles:
+            _hm = _b.get("geo_surf_holdout_mask_t")
+            _sf = last_states_per_aoi.get(_b["key"]) if _hm is not None else None
+            if _hm is None or int(_hm.sum()) == 0 or _sf is None:
+                continue
+            _pred = _sf[I_DFE_1][:, _hm]                 # [N_seeds, n_hold]
+            _real = _b["geo_surf_target_t"][_hm]         # [n_hold]
+            _relerr = ((_pred - _real[None]).abs() / _real[None].clamp(min=1e-30)).mean(dim=1)
+            _ssr = ((_pred - _real[None]) ** 2).sum(dim=1)
+            _sst = ((_real - _real.mean()) ** 2).sum().clamp(min=1e-30)
+            _r2 = 1.0 - _ssr / _sst
+            print(f"  {_b['key']}: n_holdout={int(_hm.sum())}  "
+                  f"held-out rel-err mean={float(_relerr.mean()):.3f} (best {float(_relerr.min()):.3f})  "
+                  f"R2 mean={float(_r2.mean()):.3f} (best {float(_r2.max()):.3f})")
 
     all_results = []
     for seed_idx, seed in enumerate(SEEDS):
