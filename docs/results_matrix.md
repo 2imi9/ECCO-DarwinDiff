@@ -8,14 +8,16 @@ found**. [Project Status](status.md) links here for the current best; the
 > **exhaustive record — all 168 distinct ablations across 10 lever axes — is the
 > [Ablation Ledger](archive/ablation_ledger.md)**, together with the verdict below.
 >
-> **Verdict (2026-07-03 audit):** the **estimator / loss-weighting / box-structure space is
-> effectively exhausted** (~0 more tuning experiments worth running; every ceiling-breaker is
-> refuted — the ceiling is the 0-D box surrogate, not the optimizer). **~4–6 genuinely new
-> experiments remain**, and every high-EV one is **data-staging-blocked or off-box**: the #1
-> lever is a **macronutrient (NO3/PO4) tracer + drawdown loss** (breaks the growth degeneracy
-> *and* the alpfe weld), then dense POSi / native primProd staging, a small-phyto gyre AOI, an
-> n≥20 tie-break, and real MODIS obs/obs ratio — the strategic exit being the
-> [differentiable-BGC UDE](emulator_coupling_plan.md).
+> **Verdict (2026-07-05):** Track 1 (this matrix, tables A/B) is **scientifically complete** — a
+> *surrogate-to-model identifiability study*, not a 6/6 recovery chase. The **estimator /
+> loss-weighting / box-structure space is exhausted** (~0 more box-tuning experiments worth
+> running; every ceiling-breaker is refuted — the ceiling is the 0-D box surrogate, not the
+> optimizer). The remaining high-EV levers are **not Track-1 box tuning**: they are **off-box /
+> real-scale** and belong to Track 2 (the #1 being a **macronutrient NO3/PO4 tracer + drawdown
+> loss** inside a transport-carrying differentiable model), or data-staging (dense POSi, native
+> primProd, a small-phyto gyre AOI, an n≥20 tie-break, real MODIS obs/obs ratio). The strategic
+> exit is the [differentiable-BGC UDE](emulator_coupling_plan.md) — Track 2, feasibility-proven
+> on the box only and unbuilt at real scale.
 
 **Scoring** ([`diagnostics.band_of`](dinn_design.md)): *Excellent* ≤ 5 % off Carroll ·
 *Cal-grade* ≤ 40 %. Counts are `seeds-recovered / seeds-run`, every number gated by
@@ -28,6 +30,17 @@ growth rates) and is excluded from the target, not counted as a miss.
 ---
 
 ## A. Box-scale parameter-recovery configs (the spine)
+
+> **Tables A/B = Track 1 (parameter learner, 0-D box) — a completed surrogate-to-model
+> identifiability study.** It maps *which* Carroll-6 params are identifiable from real
+> observations and *why*, not a 6/6 recovery chase: `alpfe` = method-independent,
+> mass-balance-identified; `R_PICPOC` = recovers via a real calcite anchor (and a single global
+> value is under-constrained — the bulk ratio should vary regionally); `scav_rat` = requires
+> per-cell (weakest leg); `diatomgraz` + the growth pair = unobservable from staged data. Honest
+> limit: this is a **consistency check against Carroll's own values, not a cross-validated
+> discovery against the GCM** — held-out real-data R² is negative because the 0-D box homogenizes
+> (the surrogate gap), which is a **finding**, not a flaw, and is what forces identifiability to
+> come from real absolute anchors.
 
 | Config | Scale / AOI | What it tested | Verified result | What's distinct |
 |---|---|---|---|---|
@@ -46,7 +59,7 @@ growth rates) and is excluded from the target, not counted as a miss.
 | **native LLC270** | **Native** res, Eq Pac | Does native resolution change iron recovery? | Resolution *selects* which iron param recovers (native → `alpfe`, 1° → `scav_rat`; **8/10 each, per PRs [#122](https://github.com/2imi9/ECCO-DarwinDiff/issues/122) / [#123](https://github.com/2imi9/ECCO-DarwinDiff/issues/123)** — not archived) — it does **not** lift the recovery count ([cluster_setup.md](cluster_setup.md)) | Native resolution is not a 6/6 unlock — it reshuffles *which* iron param recovers |
 | **R_PICPOC fix** (`RATIO_MAX` + Daniels) | 1° box, 3-AOI | Was `R_PICPOC` a "6/6 wall"? | **`R_PICPOC` 10/10**, landing at real ~0.05 (*consistent with* Carroll's 0.0425 within the ±40 % Cal band — not a validation) once the SO ratio target is sanitized (`RATIO_MAX=2`) + a real calcite anchor (Daniels CP:PP / MODIS) is added | **Refutes the "wall"**: the gap was a contaminated target + a missing real observation, not calcite physics or resolution. Deeper spine-D result: Carroll's *global* `R_PICPOC` is itself under-constrained and mis-specified vs a regionally-variable rain ratio (Daniels eqpac ~0.039, ≈1.6× global) |
 | **`geo1` hold-together** _(current best)_ | 1° box, 3-AOI | Joint hold of the observable trio | **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly 7/10** (3-of-4-observable frontier; tied with `base`/`dan2` at n=10) | The current operating point — real, Darwin-independent anchors hold 3 of 4 |
-| **per-cell vs global** | 1° box, 3-AOI, `geo1` | Is the per-cell DINN load-bearing? | per-cell **7/10** vs global scalar **0/10** for the trio (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01) | Identifiability rests on per-cell anchoring, not pattern-matching against Darwin |
+| **per-cell vs global** | 1° box, 3-AOI, `geo1` | Is the per-cell DINN load-bearing? | per-cell **7/10** vs global scalar **0/10** for the trio (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01) | Identifiability is **parameter-specific**: `alpfe` is **method-independent / mass-balance-identified** (a DINN-free global-scalar and a gradient-free estimator reach the same `alpfe` optimum), but `scav_rat` and `R_PICPOC` genuinely **require** the per-cell structure (0/10 without it). So the per-cell DINN is load-bearing for the trio, not a pattern-matching artifact against Darwin |
 
 ## C. Track-2 hybrid — feasibility only (self-twin / synthetic, **not** real Darwin)
 
@@ -54,6 +67,17 @@ growth rates) and is excluded from the target, not counted as a miss.
 > They show the differentiable-UDE machinery *runs* — **not** that Darwin has been made
 > differentiable, that real biology was learned, or that environment-gated calcification is
 > proven. Real-data results live in tables A/B.
+>
+> **Scope.** Track 2 is feasibility-proven **on the 0-D box only** (transport-free self-twin) and
+> is **not built at real scale** — nothing runs beyond synthetic self-twin probes. The
+> make-or-break is **E2: held-out real-data R² > 0 once transport is present** (this is what would
+> turn the Track-1 consistency check into a discovery) — **UNBUILT**. The build path is **gated,
+> riskiest-assumption-first**: Phase 1 = a minimal real-data transport UDE (regional 2-D, driven
+> by ECCO-Darwin's own velocities) on real GEOTRACES iron + calcite, held-out scored (does
+> transport close the surrogate gap on real data?); Phase 2 = a physical-backbone
+> differentiability probe; Phase 3+ = the full coupled build. Two unproven gates: (1) transport
+> closes the gap on real sparse obs (~14 iron cells); (2) gradients flow through a real physical
+> backbone to a BGC UDE. See [emulator coupling plan](emulator_coupling_plan.md).
 
 | Probe | Scale | What it tested | Verified result | Honest scope |
 |---|---|---|---|---|
@@ -75,6 +99,13 @@ growth rates) and is excluded from the target, not counted as a miss.
   state (tracer CV → ~1e-15 vs Darwin's O(1)), so box-vs-Darwin *pattern* correlations are not fidelity
   metrics — identifiability comes from real *absolute* anchors, which is exactly what makes the per-cell
   DINN load-bearing (table B, per-cell vs global).
+- **What Track 1 is (and isn't).** These recoveries are a **consistency check against Carroll's own
+  published values within the wide Cal band — not a cross-validated discovery against the GCM.** A held-out
+  real-data GEOTRACES test returns **negative R²** because the 0-D box homogenizes (the surrogate gap): the
+  recovery pins parameter *magnitude* from real absolute anchors but cannot predict *which cell has how
+  much*. That is a **finding** (identifiability must come from absolute anchors, not pattern-matching), and
+  it is precisely what motivates Track 2's transport-carrying UDE — where the make-or-break E2 (held-out
+  real R² > 0) lives.
 
 ## Provenance
 
@@ -91,4 +122,7 @@ Each row's underlying writeup is archived (verified research record, kept out of
 - per-cell vs global: [PR #158](https://github.com/2imi9/ECCO-DarwinDiff/pull/158),
   [archive — box homogenization](archive/research_notes/2026-06-27_box_homogenization_DEFINITIVE.md).
 - Track-2 feasibility: [archive — hybrid feasibility note](archive/research_notes/2026-06-29_hybrid_differentiable_bgc_feasibility.md),
-  [archive — spatial UDE](archive/findings/2026-06-30_spatial_ude.md).
+  [archive — spatial UDE](archive/findings/2026-06-30_spatial_ude.md); forward path + backbone survey
+  (Samudra 2 physical-ocean backbone, SamudrACE's explicit BGC hole = our Option-C carbon-BGC-UDE slot;
+  ACE2/OlmoEarth surveyed and rejected) in the [emulator coupling plan](emulator_coupling_plan.md) —
+  **gated on Paper #1 shipping and unbuilt at real scale**.

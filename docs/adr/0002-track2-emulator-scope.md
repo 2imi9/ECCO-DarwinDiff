@@ -1,10 +1,12 @@
 # ADR 0002 — Track-2 emulator scope (neural-operator ECCO-Darwin carbon emulator)
 
 > **Note (2026-06-27):** references below to a "5/6 ceiling / 5-6 done" and to ADR-0001 as a live "calcite port" path reflect the **superseded** 6/6-chase framing — the project is a surrogate-to-model identifiability study over 4 observable params, and ADR-0001 is REJECTED (R_PICPOC recovers via a real anchor). The **Track-2 emulator design itself is unaffected** by that correction.
+>
+> **Track-2 status (2026-07-05):** feasibility has been demonstrated only on the 0-D box as a synthetic self-twin (transport-free) — this is NOT real Darwin and nothing runs beyond synthetic self-twin probes. The real-scale emulator below is unbuilt; its make-or-break gate is **E2 — held-out real-data R² > 0 once transport is present**, which turns the consistency-check into a discovery. Do not describe Track-2 as having "made Darwin differentiable" or "learned real biology" — results to date are synthetic self-twin.
 
 
 - **Status:** Proposed
-- **Track:** 2 (neural surrogate emulator) — distinct from Track-1 parameter recovery (ADR-0001, paper #1)
+- **Track:** 2 (neural surrogate emulator) — distinct from Track-1 parameter recovery (the surrogate-to-model identifiability study, paper #1; see STATUS.md — ADR-0001 is the REJECTED calcite-port record, not the study scope)
 - **Research questions:** [#6](https://github.com/2imi9/ECCO-DarwinDiff/issues/6) (mechanistic vs pure-NN extrapolation under climate perturbation), [#7](https://github.com/2imi9/ECCO-DarwinDiff/issues/7) (mass conservation at decadal rollouts)
 - **Compute:** NU AICR **B200** (192 GB, sm_100; onboarding ~early July 2026); dev on the free Explorer **H200**
 - **Date:** 2026-06-24
@@ -44,7 +46,7 @@ Learn an operator $G_\theta$ that advances the ocean-carbon state one month unde
 ### Positive
 - Fills a **verified whitespace** (no ocean-carbon emulator in Earth-2/PhysicsNeMo); differentiates from Ouala & Lachkar (carbon + global + decadal vs DO/NO3 + regional).
 - The B200's throughput/memory is finally the *right* tool (unlike Track-1).
-- Cleanly separates the deliverables: **paper #1 = Track-1 identifiability** (laptop/H200, now); **paper #2 = the emulator** (B200, the leapfrog).
+- Cleanly separates the deliverables: **paper #1 = Track-1 identifiability** (laptop/H200; the surrogate-to-model identifiability study, scientifically complete and in hardening/write-up); **paper #2 = the emulator** (B200, the leapfrog).
 
 ### Risks / what could fail
 - **Autoregressive drift** — month-to-month errors compound over decadal rollouts (the central emulator risk). Mitigation: rollout-in-the-loss (multi-step training), spectral/energy diagnostics.
@@ -54,6 +56,10 @@ Learn an operator $G_\theta$ that advances the ocean-carbon state one month unde
 - **Data volume** — global monthly multi-decadal fields are large; the B200 onboarding + `/projects/schultz` 1.5 TB cap constrain dataset construction.
 
 ## Implementation plan (phased, test-gated; mirrors the Track-1 discipline)
+
+**The whole build is gated on Paper #1 (Track-1) shipping.** Riskiest-assumption-first: the two unproven gates below decide whether the global operator is worth building at all, and come *before* any global pipeline.
+
+0. **Riskiest-assumption-first transport probe (real data).** Before any global operator, fit a minimal real-data transport UDE (1-D column / minimal 2-D, driven by ECCO-Darwin's own velocities) to real GEOTRACES iron + calcite, held-out scored. *Gate 1 (make-or-break, E2): does adding transport close the surrogate gap on real data (held-out R² > 0) with sparse obs (~14 iron cells)?* Then a physical-backbone differentiability probe (Samudra-coupling). *Gate 2: do gradients flow through a real physical backbone into the BGC UDE?* Only after both gates pass proceed to the global build (steps 1–6, the Phase-3+ full-build path).
 1. **Dataset pipeline.** v05 monthly → regular-grid (state, forcing) → (next-state) pairs; train/val split by time. *Gate: a CPU smoke test on a few months.*
 2. **Single-step operator (Phase 1).** Train FNO for $s_t,f_t \to s_{t+1}$; report held-out one-step skill. *Gate: beats persistence + climatology.*
 3. **Autoregressive rollout.** Free-run for years; measure drift + the conservation diagnostic (#7). *Gate: stable multi-year rollout; drift quantified.*
@@ -64,7 +70,7 @@ Learn an operator $G_\theta$ that advances the ocean-carbon state one month unde
 ## Open questions for Jon + literature to validate (before B200 hours)
 - Which carbon fields are the **scientifically load-bearing** emulator targets (surface CO2-flux + DIC/ALK vs full 3-D tracer set)?
 - Conservation: soft penalty vs hard projection — what's acceptable for the science claim?
-- **Literature to mine** (a focused survey, like the Track-1 lit loop): neural operators for ocean/climate emulation, **conservation-constrained** NN emulators, autoregressive **rollout-stability** methods, and any prior ocean carbon-cycle emulator — to validate the operator + conservation choices *before* committing B200 time. Survey **seed captured in "Prior art" below** (Samudra lineage, SamudrACE, earth2studio portability); still to mine: conservation-constrained + rollout-stability methods specifically.
+- **Literature to mine** (a focused survey, like the Track-1 lit loop): neural operators for ocean/climate emulation, **conservation-constrained** NN emulators, autoregressive **rollout-stability** methods, and any prior ocean carbon-cycle emulator — to validate the operator + conservation choices *before* committing B200 time. Backbone survey grounded (2026-07-05): Samudra 2 ([arXiv:2606.02610](https://arxiv.org/abs/2606.02610)) is the best backbone but worsens the sparse-obs identifiability tension; SamudrACE ([arXiv:2509.12490](https://arxiv.org/abs/2509.12490)) names an explicit biogeochemistry hole = our Option-C carbon-BGC-UDE slot; ACE2 = atmosphere-only (no carbon); OlmoEarth = poor fit. Still to mine: conservation-constrained + rollout-stability methods specifically.
 
 ## Prior art — climate & ocean emulators to follow (survey seed)
 
@@ -75,7 +81,7 @@ Learn an operator $G_\theta$ that advances the ocean-carbon state one month unde
 | **Samudra** (Dheeshjith et al. 2024) | Ocean component of a climate model (GFDL OM4 / MOM6) — SSH, u/v, T, S, full depth | **Modified ConvNeXt U-Net** (not FNO), multi-depth | First autoregressive global ocean emulator stable for **centuries**, **~150× faster**; but *struggles to match forcing-trend magnitude while staying stable* — the core skill-vs-stability tension | [arXiv:2412.03795](https://arxiv.org/abs/2412.03795) · [GRL 2025](https://doi.org/10.1029/2024GL114318) |
 | **Samudra 2** (Yuan et al. 2026) | Same ocean state, **scaled across resolutions** | Wider ConvNeXt U-Net + **dynamic loss reweighting channels by error** | **Scaling recipe** the user flagged: 1° → ½° → ¼°, ~8-yr rollouts, recovers mesoscale eddies + western boundary currents; upper-ocean T R² 0.56→0.87, deep-ocean error ~7× lower. Fixes Samudra's two failure modes — **variance collapse** + **imprinting** (velocity leaking into deep fields) — which are directly our autoregressive-drift risk (#7) | [arXiv:2606.02610](https://arxiv.org/abs/2606.02610) · CC BY 4.0 |
 | **SamudrACE** (Ai2 + NYU 2025) | **Coupled** ocean + atmosphere + land + sea-ice — emulates GFDL **CM4 piControl** | **Coupler linking Samudra (ocean) + ACE2 (atmos/land)**, fine-tuned; 145 2-D fields, 8 atmos + 19 ocean levels | **Coupling paradigm**: independently-trained emulators joined via a coupler → **1500 sim-yr/day on one H100**. Template for a *modular* carbon emulator that plugs onto a physical-ocean emulator. piControl-only (no future-climate generalization). HF `allenai/SamudrACE-CM4-piControl`; needs Ai2 `fme≥2025.10`; code `github.com/ai2cm/ace` | [arXiv:2509.12490](https://arxiv.org/abs/2509.12490) · Apache-2.0 |
-| **ACE2 / ACE2S** (Ai2) | Atmosphere + land (the atmospheric half of SamudrACE) | Spherical FME emulator | The atmosphere partner already coupled in SamudrACE; ACE2S is our existing Track-2 benchmark reference | [arXiv:2606.07928](https://arxiv.org/abs/2606.07928) |
+| **ACE2 / ACE2S** (Ai2) | Atmosphere + land (the atmospheric half of SamudrACE) | Spherical FME emulator | The atmosphere partner already coupled in SamudrACE; ACE2 is atmosphere-only (no carbon cycle) — a backbone/coupling reference for a future Track-2 build, not an existing benchmark | [arXiv:2606.07928](https://arxiv.org/abs/2606.07928) |
 | **Neural-BGC** (Ouala & Lachkar 2026) | Ocean BGC — **DO / NO₃ only, regional** (ROMS + NN) | Regional NN closure | Closest existing *biogeochemistry* emulator; **DarwinDiff differs = carbon (DIC/ALK/CO₂ flux) + global + multi-decadal** | [essoar](https://doi.org/10.22541/essoar.15002003/v1) |
 
 ### Portability target — attach to NVIDIA earth2studio
@@ -103,4 +109,4 @@ The goal is a **portable ocean-carbon emulator that attaches to [earth2studio](h
 
 ---
 
-*Companion: ADR-0001 (Track-1 calcite port, BLOCKED). This is the Track-2 design; nothing here trains or touches a GPU until B200 onboarding + a Jon review of the targets/conservation choices.*
+*Companion: ADR-0001 (Track-1 calcite port, REJECTED / SUPERSEDED — R_PICPOC recovers via a real calcite anchor, see STATUS.md). This is the Track-2 design; nothing here trains or touches a GPU until B200 onboarding + a Jon review of the targets/conservation choices.*

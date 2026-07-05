@@ -10,7 +10,11 @@ DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with g
 descent through a differentiable 0-D box model, predicted per grid cell by a small neural
 network (`DINN`). It is framed as a **surrogate-to-model identifiability study** — *which*
 of the six Carroll-6 parameters are identifiable from real ocean observations, *which* are
-not, and *why* — **not** a "6/6 recovery" chase.
+not, and *why* — **not** a "6/6 recovery" chase. As a study, Track 1 is **scientifically
+complete**: the central, verified result is that the per-cell architecture is *load-bearing*
+— a per-cell DINN holds the target trio {`alpfe`, `scav_rat`, `R_PICPOC`} while a single
+global-scalar vector holds ~0 (disjoint CIs). What remains is manuscript finalization and the
+(separate) Track-2 build, not further recovery-chasing.
 
 The honest target is **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}.
 The growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** — no real-world
@@ -19,7 +23,7 @@ as a miss.
 
 ## Current best
 
-Active at **3-AOI joint training** (Eq Pacific + N Atlantic Subpolar + Southern Ocean Pacific)
+The study operates at **3-AOI joint training** (Eq Pacific + N Atlantic Subpolar + Southern Ocean Pacific)
 on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All numbers below are
 `scripts/verify_run.py`-gated (exit 0 = re-derived from raw).
 
@@ -32,10 +36,11 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   `R_PICPOC`} jointly in 7/10 seeds** — a **3-of-4-observable frontier**, statistically tied with
   `base`/`dan2` at n=10. (A fresh identical-config re-run confirms 7/10; the original hold-together
   sweep reported 8/10 — they differ by one band-edge seed.)
-- **`diatomgraz` — not recovered** in the real-data sweep (best 4/10 = chance). It is an
-  **iron-pair tradeoff**, recoverable in principle via the dense Darwin POSi (`TRAC16`) target,
-  which is **not yet staged on the cluster** (open, not solved; profile-likelihood-confirmed
-  structural non-identifiability in the present data — [#152](https://github.com/2imi9/ECCO-DarwinDiff/issues/152)).
+- **`diatomgraz` — not recovered** in the real-data sweep (best 4/10 = chance). This is a
+  **settled identifiability verdict**, not an open task: it is profile-likelihood-flat /
+  structurally non-identifiable from the present staged data — [#152](https://github.com/2imi9/ECCO-DarwinDiff/issues/152).
+  In principle it is an **iron-pair tradeoff** recoverable via the dense Darwin POSi (`TRAC16`)
+  target, which is **not staged**; that is a future data-staging option, not a Track-1 blocker.
 
 → Every config that produced these, and how each differs, is in the **[Config / Results Matrix](docs/results_matrix.md)**.
 
@@ -76,6 +81,11 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   `scav_rat` (8/10→0, p=7e-4); differences among the high cells (7–10/10) are sampling noise. The
   metric throughout is **per-AOI ≥2-AOI co-recovery** (avoids a cell-weighted straddle
   false-positive). FIM/profile diagnostics independently agree.
+- **Honest scope of the completed study.** Track 1 is a **consistency check against Carroll's own
+  published values**, not a cross-validated discovery against the GCM. The surrogate gap (the 0-D box
+  homogenizes, held-out real-data R² is negative) means identifiability must come from real *absolute*
+  anchors, not pattern-matching — this is a **finding that bounds the claim**, and it is precisely what
+  motivates Track 2. With this, the Track-1 identifiability question is answered and the study is complete.
 
 ## Architecture (brief)
 
@@ -104,13 +114,40 @@ Two Northeastern clusters (full table in [docs/cluster_setup.md](docs/cluster_se
 - **AICR** (B200) — future path via a PI proposal; target for the global-native / seasonal sweep.
 
 The cluster path unlocks native LLC270-resolution recovery, time-resolved multi-year fitting,
-larger multi-seed ensembles, and Track 2 emulator development. These remain legitimate cluster
-goals; they are **not** gated on `R_PICPOC` or "6/6", which are resolved/reframed at 1° box scale.
+and **Track-2** build-out. (A larger multi-seed ensemble has already been folded into the hardened
+Paper #1, so it is no longer a pending unlock — the verified n=10 headline numbers above stand as the
+reported values.) These remain legitimate cluster goals; they are **not** gated on `R_PICPOC` or "6/6",
+which are resolved/reframed at 1° box scale.
+
+## Track 2 — differentiable spatial model (status: feasibility-proven on the 0-D box only)
+
+Track 2 (a UDE / differentiable spatial emulator) is **feasibility-proven on the 0-D box only** —
+self-twin, **synthetic**, transport-free; it is **not** real Darwin and **not** built at real scale.
+Nothing runs beyond synthetic self-twin probes. Its make-or-break gate is **E2: held-out real-data
+R² > 0 once transport is present** (this is what would turn the Track-1 consistency check into a genuine
+discovery); E2 is **unbuilt**. The build plan is gated, riskiest-assumption-first:
+
+- **Phase 1** — a minimal real-data transport UDE (regional 2-D, driven by ECCO-Darwin's own
+  velocities) fit to real GEOTRACES iron + calcite, held-out scored (does transport close the surrogate
+  gap on real data?).
+- **Phase 2** — a physical-backbone differentiability probe (do gradients flow through a real physical
+  backbone into a BGC UDE?).
+- **Phase 3+** — the full coupled build.
+
+Multi-month, gated on Paper #1 shipping. Backbone survey: **Samudra 2** (arXiv 2606.02610) is the
+leading physical backbone but worsens the sparse-obs tension; **SamudrACE** (arXiv 2509.12490) is
+differentiable coupled physics with an **explicit biogeochemistry hole** — the natural carbon-BGC-UDE
+slot; **ACE2** is atmosphere-only and **OlmoEarth** (land) is a poor fit.
+
+**Honesty guardrail:** Track-2 results to date are synthetic self-twin — do **not** say "made Darwin
+differentiable", "learned real biology", or "env-gated calcification proven".
 
 ## Known limitations
 
 - **Box model is a 5-tracer proxy** of full Darwin 3 (the 5-PFT + 2-layer extensions close part of the gap).
-- **DINN is per-cell, not spatially coupled** — appropriate for parameter recovery, not the Track-2 emulator.
+- **DINN is per-cell, not spatially coupled** — appropriate for parameter recovery, not the Track-2
+  spatial UDE. This transport-free limitation *is* the surrogate gap, and closing it on real data is
+  precisely Track-2's make-or-break gate (E2).
 - **The surrogate gap is dimensional** (see above) — pattern correlations are not fidelity metrics.
   It also blocks held-out *data* validation: the held-out GEOTRACES test ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163))
   returns negative R² because the box homogenizes — a faithful held-out validation needs the spatial UDE.
@@ -128,7 +165,7 @@ goals; they are **not** gated on `R_PICPOC` or "6/6", which are resolved/reframe
 
 - [Config / Results Matrix](docs/results_matrix.md) — the single source of truth for per-config results
 - [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations + the verdict (box-tuning space exhausted)
-- [Emulator coupling plan](docs/emulator_coupling_plan.md) — the off-box path (Track-1 ↔ Track-2 via Earth-2)
+- [Emulator coupling plan](docs/emulator_coupling_plan.md) — the Track-2 off-box build plan (physical-backbone survey — Samudra 2 as leading backbone, SamudrACE's named biogeochemistry hole as the carbon-BGC-UDE slot — plus the gated Phase 1→3 plan)
 - [CHANGELOG.md](CHANGELOG.md) — chronological record (version-by-version)
 - [README](README.md) — project overview · [docs/dinn_design.md](docs/dinn_design.md) — architecture
 - [docs/cluster_setup.md](docs/cluster_setup.md) · [data/README.md](data/README.md) · [archive](docs/archive/index.md)
