@@ -5,7 +5,7 @@
 
 <img src="docs/dinn_architecture.svg" alt="DINN architecture: three environmental covariates (SST, wind speed, MLD) feed two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights" width="720">
 
-**A differentiable PyTorch reimplementation of ECCO-Darwin ocean biogeochemistry — gradients flow through every step of the simulation, so one loss surface recovers the parameters that Green's-functions calibration tunes one at a time, predicted per grid cell from the local environment.**
+**A differentiable PyTorch reimplementation of ECCO-Darwin ocean biogeochemistry — gradients flow through every step of the simulation, so one loss surface recovers the identifiable subset of the parameters that Green's-functions calibration tunes one at a time, predicted per grid cell from the local environment — a surrogate-to-model identifiability study.**
 
 [![Tests](https://github.com/2imi9/ECCO-DarwinDiff/actions/workflows/tests.yml/badge.svg)](https://github.com/2imi9/ECCO-DarwinDiff/actions/workflows/tests.yml)
 [![Documentation](https://readthedocs.org/projects/ecco-darwindiff/badge/?version=latest)](https://ecco-darwindiff.readthedocs.io/en/latest/)
@@ -24,10 +24,14 @@ forward run per parameter, so the published calibration tunes only six. **ECCO-D
 the biogeochemistry side with **PyTorch autograd**: gradients for every parameter in a single
 backward pass, with the values varying across space, predicted by a small per-cell network. The work
 is framed as a **surrogate-to-model identifiability study** — which of the six Carroll-6 parameters are
-identifiable from real ocean observations, which are not, and why. *Manuscript in preparation.*
+identifiable from real ocean observations, which are not, and why. *The study is complete; paper #1 is in
+preparation.*
 
-Two tracks: **(1) Parameter learner** *(active)* — replaces Green's-functions calibration;
-**(2) Emulator** *(not started)* — a neural stand-in for long-timescale climate runs.
+Two tracks: **(1) Parameter learner** *(complete — paper #1 in preparation)* — a surrogate-to-model
+identifiability study that replaces Green's-functions calibration;
+**(2) Emulator / spatial UDE** *(feasibility-probed on the 0-D box; real-scale build gated on paper #1)* —
+a differentiable spatial model / neural stand-in for long-timescale climate runs. Box-scale probes are
+synthetic self-twin only (no transport, not real Darwin).
 
 ## Installation
 
@@ -77,7 +81,10 @@ uv run python scripts/verify_run.py runs/eqpac          # exit 0 == trustworthy
 The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95 %)** at the best 3-AOI config
 (~7 min/fit) — and **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC).
 The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 7/10 seeds** — a
-3-of-4-observable frontier, driven by real, Darwin-independent anchors.
+3-of-4-observable frontier, driven by real, Darwin-independent anchors. This is a consistency check
+against Carroll's own values, not a cross-validated discovery against the GCM: the 0-D box homogenizes
+(no transport), so held-out real-data R² is negative and identifiability must come from real absolute
+anchors — closing that gap is Track 2's job.
 
 The honest target is **4 observable params**; the growth pair {`Smallgrow`, `Biggrow`} is
 **unobservable by construction** (growth rates are not measured), so "6/6" is the wrong frame — and
@@ -147,7 +154,7 @@ If your work depends on the underlying model, cite Carroll et al.
 | [Olsen et al. 2016](https://doi.org/10.5194/essd-8-297-2016) · [Schlitzer et al. 2018](https://doi.org/10.1016/j.chemgeo.2018.05.040) | GLODAP DIC/ALK + GEOTRACES iron observations (loaders / losses). |
 | [Xu et al. 2025 (BINN)](https://arxiv.org/abs/2502.00672) | Differentiable physics + per-location parameter network — closest method template. |
 | [Kochkov et al. 2024 (NeuralGCM)](https://arxiv.org/abs/2311.07222) · [Clark et al. 2026 (ACE2S)](https://arxiv.org/abs/2606.07928) · [Ouala & Lachkar 2026 (Neural-BGC)](https://doi.org/10.22541/essoar.15002003/v1) | Hybrid-physics / emulator references for Track 2. |
-| [Dheeshjith et al. 2024 (Samudra)](https://arxiv.org/abs/2412.03795) · [Yuan et al. 2026 (Samudra 2)](https://arxiv.org/abs/2606.02610) · [Ai2 2025 (SamudrACE)](https://arxiv.org/abs/2509.12490) | AI ocean / coupled-climate emulators — architecture, resolution-scaling, and coupling templates for Track 2 (none emulate ocean carbon — the whitespace). See [ADR-0002](docs/adr/0002-track2-emulator-scope.md). |
+| [Dheeshjith et al. 2024 (Samudra)](https://arxiv.org/abs/2412.03795) · [Yuan et al. 2026 (Samudra 2)](https://arxiv.org/abs/2606.02610) · [Ai2 2025 (SamudrACE)](https://arxiv.org/abs/2509.12490) | AI ocean / coupled-climate emulators — architecture, resolution-scaling, and coupling templates for Track 2. SamudrACE names an explicit biogeochemistry hole as future work — the carbon-BGC-UDE slot Track 2 targets; none emulate ocean carbon (the whitespace). See [ADR-0002](docs/adr/0002-track2-emulator-scope.md). |
 
 </details>
 

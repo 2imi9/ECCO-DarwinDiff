@@ -4,22 +4,22 @@
 
 <figure markdown="span">
   ![DINN architecture: three environmental covariates (SST, wind speed, MLD) feed two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights](dinn_architecture.svg){ width="820" }
-  <figcaption>DarwinDiff's per-cell network (DINN): the loss flows through the differentiable box model, so a single backward pass recovers the six Carroll parameters.</figcaption>
+  <figcaption>DarwinDiff's per-cell network (DINN): the loss flows through the differentiable box model, so a single backward pass yields gradients for all Carroll parameters at once — of which four are the observable identifiability target.</figcaption>
 </figure>
 
-DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistry model in which **gradients flow through every step of the simulation**. A single loss surface learns the parameters that Carroll's Green's-functions calibration tunes one-at-a-time — predicted *per grid cell* from local environmental conditions. Manuscript in preparation.
+DarwinDiff is a PyTorch **differentiable 0-D box model** of ocean biogeochemistry — a 5-tracer proxy of ECCO-Darwin — in which **gradients flow through every step of the box integration**. A single loss surface learns the parameters that Carroll's Green's-functions calibration tunes one-at-a-time — predicted *per grid cell* from local environmental conditions. Manuscript in preparation.
 
 !!! note "This is the documentation home"
     The narrative docs, design notes, and per-version findings are organized in the navigation on the left. **[Project Status](status.md)** is the canonical, always-current snapshot of results. The source lives on [GitHub](https://github.com/2imi9/ECCO-DarwinDiff).
 
 ## Two tracks
 
-1. **Parameter learner** *(active)* — learns a per-cell function from local environment to the six Carroll parameters by gradient descent through the differentiable box model, replacing Green's-functions calibration.
-2. **Emulator** *(not started)* — a neural stand-in for ECCO-Darwin for long-timescale climate runs.
+1. **Parameter learner** *(complete — paper #1)* — a surrogate-to-model identifiability study: which of the Carroll parameters (four observable; see below) are identifiable from real ocean observations by gradient descent through the differentiable box model. It is a consistency check against Carroll's own values, not a validated replacement for Green's-functions calibration.
+2. **Differentiable spatial model (UDE)** *(feasibility-proven on the 0-D box only)* — a differentiable transport + carbon-BGC model that the parameter learner would calibrate. Feasibility is proven on a synthetic self-twin (0-D and spatial box probes); it is **not** built at real scale. The make-or-break test is held-out real-data R² > 0 once transport is present — unbuilt, gated behind paper #1 (see [emulator coupling plan](emulator_coupling_plan.md)).
 
 ## What works · what's blocked
 
-This is a **surrogate-to-model identifiability study** — *which* of the six Carroll parameters are identifiable from real ocean observations. The honest target is **four observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real data constrains growth rates).
+This study is **complete (paper #1)**. It is a **surrogate-to-model identifiability study** — *which* of the six Carroll parameters are identifiable from real ocean observations, framed honestly as a consistency check against Carroll's own values (not a cross-validated discovery against the GCM). The honest target is **four observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real data constrains growth rates).
 
 === "Identifiable (real data)"
 
@@ -46,7 +46,7 @@ This is a **surrogate-to-model identifiability study** — *which* of the six Ca
 
     ---
 
-    The single source of truth — what every config (v2.x box → 3-AOI `geo1` → native LLC270 → Track-2 probe) tested, found, and how each differs.
+    The single source of truth — what every config (v2.x box → 3-AOI `geo1` → native LLC270 → Track-2 feasibility probes (self-twin, synthetic)) tested, found, and how each differs.
 
 -   :material-sitemap: **[DINN design](dinn_design.md)**
 
