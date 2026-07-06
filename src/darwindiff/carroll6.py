@@ -50,12 +50,14 @@ reference_darwin3.md.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from types import SimpleNamespace
 
 import torch
 
 from darwindiff.carbonate import PCO2_ATM_DEFAULT, co2_flux, solve_carbonate
+from darwindiff.integrators import integrate as _integrate
 
 # Background (non-learned) parameters — the ~94% of Darwin knobs Carroll left at defaults.
 M_LIN: float = 0.05         # 1/d, linear phyto mortality
@@ -179,22 +181,24 @@ PARAM_INDEX: dict[str, int] = {p.name: i for i, p in enumerate(PARAMS)}
 P = SimpleNamespace(**PARAM_INDEX)
 
 
-def carroll6_step(
+def carroll6_tendency(
     state: torch.Tensor,
     params: torch.Tensor,
-    dt: float,
 ) -> torch.Tensor:
-    """One forward-Euler step of the 5-tracer Carroll-6 box model.
+    """Raw d(state)/dt for the 5-tracer Carroll-6 box (no timestep applied).
+
+    This is the integrator-agnostic core: the rate equations of Eq. (20)-(25) in
+    the module docstring, returned as a tendency so any stepper in
+    :mod:`darwindiff.integrators` (forward-Euler or RK4) can advance it.
 
     Args:
         state: shape [5], [DFe, Ps, Pl, POC, PIC] in mmol/m^3 (Fe in mmol Fe/m^3).
         params: shape [6], [alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC].
             scav_rat is per-second following the Carroll source convention; converted
-            to per-day at the use site.
-        dt: time step in days.
+            to per-day here.
 
     Returns:
-        next state, shape [5].
+        d(state)/dt, shape [5], in per-day units.
     """
     DFe, Ps, Pl, POC, PIC = state[0], state[1], state[2], state[3], state[4]
     alpfe = params[P.alpfe]
@@ -220,13 +224,90 @@ def carroll6_step(
     dPOC = mort_total - W_SINK * POC
     dPIC = R_PICPOC * mort_total - W_SINK * PIC
 
-    return torch.stack([
-        DFe + dt * dDFe,
-        Ps + dt * dPs,
-        Pl + dt * dPl,
-        POC + dt * dPOC,
-        PIC + dt * dPIC,
-    ])
+    return torch.stack([dDFe, dPs, dPl, dPOC, dPIC])
+
+
+def carroll6_ude_tendency(
+    state: torch.Tensor,
+    params: torch.Tensor,
+    *,
+    ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
+) -> torch.Tensor:
+    """Carroll-6 tendency with optional *learned closures* — the UDE hook (Track 2).
+
+    Identical rate equations to :func:`carroll6_tendency`, except two genuinely
+    uncertain terms may be replaced by a trained neural network, turning the box
+    into a Universal Differential Equation. With both closures ``None`` the output
+    is byte-identical to :func:`carroll6_tendency`, so this is a strict superset
+    and safe to route existing code through. The two hooks cover the two candidate
+    first closures, so the choice can be settled with Jon without changing this API.
+
+    Args:
+        state, params: as in :func:`carroll6_tendency`.
+        ffe_closure: ``f(DFe) -> f_Fe`` (expected in ``[0, 1]``) replacing the
+            mechanistic Michaelis-Menten iron limitation ``DFe / (DFe + K_Fe)`` —
+            the closure the Phase-0 feasibility probe learned to ~5%.
+        calcite_closure: ``f(state, mort_total) -> PIC production rate`` replacing
+            the single-scalar law ``R_PICPOC * mort_total`` that Paper #1 could not
+            resolve spatially (the natural calcification-closure target).
+
+    Returns:
+        d(state)/dt, shape [5], per-day units.
+    """
+    DFe, Ps, Pl, POC, PIC = state[0], state[1], state[2], state[3], state[4]
+    alpfe = params[P.alpfe]
+    scav_rat = params[P.scav_rat]
+    mu_s = params[P.Smallgrow]
+    mu_l = params[P.Biggrow]
+    g_diatom = params[P.diatomgraz]
+    R_PICPOC = params[P.R_PICPOC]
+    scav_rat_per_day = scav_rat * 86400.0
+
+    f_fe = ffe_closure(DFe) if ffe_closure is not None else DFe / (DFe + K_FE)
+    growth_s = mu_s * f_fe * LIGHT * Ps
+    growth_l = mu_l * f_fe * LIGHT * Pl
+    fe_uptake = Q_FE * (growth_s + growth_l)
+    mort_s = M_LIN * Ps + M_QUAD * Ps * Ps
+    mort_l = M_LIN * Pl + M_QUAD * Pl * Pl
+    graze_l = g_diatom * G0_GRAZE * Pl
+    mort_total = mort_s + mort_l + graze_l
+
+    pic_prod = (
+        calcite_closure(state, mort_total)
+        if calcite_closure is not None
+        else R_PICPOC * mort_total
+    )
+
+    dDFe = alpfe * PHI_DUST - scav_rat_per_day * DFe * POC - fe_uptake
+    dPs = growth_s - mort_s
+    dPl = growth_l - mort_l - graze_l
+    dPOC = mort_total - W_SINK * POC
+    dPIC = pic_prod - W_SINK * PIC
+
+    return torch.stack([dDFe, dPs, dPl, dPOC, dPIC])
+
+
+def carroll6_step(
+    state: torch.Tensor,
+    params: torch.Tensor,
+    dt: float,
+) -> torch.Tensor:
+    """One forward-Euler step of the 5-tracer Carroll-6 box model.
+
+    Thin wrapper over :func:`carroll6_tendency` (``state + dt * tendency``);
+    numerically identical to the previous inline form. For long rollouts prefer
+    ``carroll6_integrate(..., method="rk4")``.
+
+    Args:
+        state: shape [5], [DFe, Ps, Pl, POC, PIC] in mmol/m^3 (Fe in mmol Fe/m^3).
+        params: shape [6], [alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC].
+        dt: time step in days.
+
+    Returns:
+        next state, shape [5].
+    """
+    return state + dt * carroll6_tendency(state, params)
 
 
 def carroll6_integrate(
@@ -235,32 +316,39 @@ def carroll6_integrate(
     dt: float,
     n_steps: int,
     snapshot_indices: list[int] | None = None,
+    method: str = "euler",
+    checkpoint_segment: int | None = None,
 ) -> torch.Tensor:
-    """Forward-Euler integration with autograd through every step.
+    """Integrate the 5-tracer box with autograd through every step.
+
+    Delegates to :func:`darwindiff.integrators.integrate` over
+    :func:`carroll6_tendency`. ``method="euler"`` (the default) is byte-identical
+    to the historical forward-Euler loop the paper's fits use; ``method="rk4"``
+    switches to the fourth-order stepper for long, drift-sensitive rollouts.
 
     Args:
         state0: initial state, shape [5].
         params: Carroll-6 parameters, shape [6].
         dt: time step in days.
-        n_steps: number of forward-Euler steps.
+        n_steps: number of steps.
         snapshot_indices: 1-indexed steps at which to save state. If None, returns
             only the final state. If provided, returns shape [len(snapshot_indices), 5].
+        method: ``"euler"`` (default) or ``"rk4"``.
+        checkpoint_segment: gradient-checkpoint block size for long rollouts;
+            honored only when ``snapshot_indices`` is None (see the integrator).
 
     Returns:
         Final state shape [5] when snapshot_indices is None, else stacked snapshots.
     """
-    state = state0
-    if snapshot_indices is None:
-        for _ in range(n_steps):
-            state = carroll6_step(state, params, dt)
-        return state
-    snapshot_set = set(snapshot_indices)
-    snaps: list[torch.Tensor] = []
-    for step in range(1, n_steps + 1):
-        state = carroll6_step(state, params, dt)
-        if step in snapshot_set:
-            snaps.append(state)
-    return torch.stack(snaps)
+    def tend(s: torch.Tensor) -> torch.Tensor:
+        return carroll6_tendency(s, params)
+
+    return _integrate(
+        tend, state0, dt, n_steps,
+        method=method,
+        snapshot_indices=snapshot_indices,
+        checkpoint_segment=checkpoint_segment,
+    )
 
 
 def carroll6_carbonate_step(
