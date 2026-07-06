@@ -21,9 +21,12 @@ truth is `iron-limitation(DFe) × env-window(env)`.
 | loss | 0.61 → 3.8e-5 (↓ ~15,900×) |
 | **2-D closure recovery (MAE)** | **0.0044 (0.44%)** |
 
-The hybrid recovers a **spatial, environment-modulated** closure to sub-percent
-accuracy. This is the concrete Track-2 leapfrog: differentiably learning the kind
-of environment-gated, spatially-varying process the per-PFT/SO finding points to.
+The machinery recovers a **synthetic** spatial, 2-input closure to sub-percent
+accuracy. This is a **feasibility** result, not a real-data discovery: both the
+environment field and the true closure are made-up (a self-twin). It proves the
+machinery can learn the *shape* of closure — spatial and environment-dependent —
+that the per-PFT/SO finding points to; learning the *real* relationship from real
+Darwin data is the Track-2 build, not this run.
 
 ## Launch-bound / `torch.compile` (corrected)
 The per-step rollout is launch-bound. A clean benchmark (RTX 5090, 9,216 cells,
