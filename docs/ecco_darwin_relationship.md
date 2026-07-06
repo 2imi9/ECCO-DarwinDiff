@@ -104,7 +104,7 @@ The differentiable SMS kernel is the load-bearing piece. Without it, gradients c
 - [`docs/dinn_design.md`](dinn_design.md) — the per-cell NN architecture (DINN, DINNDeep), training loop, structural-ceiling argument.
 - [`docs/ecco_darwin_parameter_inventory.md`](ecco_darwin_parameter_inventory.md) — the broader Darwin parameter landscape; where Carroll-6 sit in the larger tunable surface.
 - [`STATUS.md`](../STATUS.md) — current sweep results: which Carroll-6 subsets recover, which don't, and why.
-- [`docs/findings/v3.1_closeout.md`](findings/v3.1_closeout.md) — point-in-time writeup of the v3.1 multi-AOI recovery result (the "5/6 ceiling" framing is superseded by the real-data identifiability frame — honest denominator 4 observable params; see STATUS.md).
+- [`docs/findings/v3.1_closeout.md`](archive/findings/v3.1_closeout.md) — point-in-time writeup of the v3.1 multi-AOI recovery result (the "5/6 ceiling" framing is superseded by the real-data identifiability frame — honest denominator 4 observable params; see STATUS.md).
 - [Carroll et al. 2022 (GBC)](https://doi.org/10.1029/2021GB007162) — *Attribution of space-time variability in global-ocean dissolved inorganic carbon.* The v05 calibration baseline DarwinDiff targets.
 - [Carroll et al. 2020 (JAMES)](https://doi.org/10.1029/2019MS001888) — *The ECCO-Darwin Data-Assimilative Global Ocean Biogeochemistry Model: Estimates of Seasonal to Multidecadal Surface Ocean pCO₂ and Air-Sea CO₂ Flux.* The original ECCO-Darwin paper; v04 / Darwin 1; source of the six calibrated values inherited bit-for-bit by Carroll 2022 (DOI verified 2026-05-21 against AGU/Wiley).
 - [Xu et al. 2025 (BINN preprint)](https://arxiv.org/abs/2502.00672) — the soil-carbon precursor whose architecture DINN adapts.
