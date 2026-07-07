@@ -182,16 +182,15 @@ single-AOI iron testbed.
 
 ---
 
-## 7. Open questions left for us  **[OPEN]**
+## 7. Open items — we resolve these ourselves (not Jon's time)  **[OPEN — self-research]**
 
-- **Per-PFT vs per-time parameterization** — Jon asked whether the ratio parameter should be set
-  per-functional-type or per-time, constant or time-varying. (Feeds the `calcite_closure` design.)
-- **Which Darwin version's coccolithophore treatment to anchor** — *"Darwin simulates where
-  coccolithophores are, confused by versions."* Darwin 3 has a dedicated Cocco group; the box proxies it
-  with `Chl2`. Ask Jon which version to target.
-- **"Definition of ocean weathering, considering ocean dynamics"** — a concept Jon raised; not reflected
-  in the code. Flag for clarification (likely about iron/alkalinity sources).
-- **"Parameter recovery detailed"** — they want more detail on the recovery method (a presentation ask).
+- **Per-PFT vs per-time parameterization** — should the ratio be set per-functional-type or per-time,
+  constant or time-varying? Feeds the `calcite_closure` design; we determine it from the data + Darwin docs.
+- **Which Darwin version's coccolithophore treatment to anchor** — Darwin 3 has a dedicated Cocco group;
+  the box proxies it with `Chl2`. Resolve from the Darwin3 docs we already have (no need to ask Jon).
+- **"Parameter recovery detailed"** — provide more recovery-method detail (a presentation/write-up task).
+
+*(Dropped: the "ocean weathering" note — a typo in the meeting fragments, not a real item.)*
 
 ---
 
@@ -212,9 +211,11 @@ single-AOI iron testbed.
    gating stays shelved.
 4. **[ACTION]** Ship spatial-distribution figures — but per the iron-lit, GEOTRACES iron as a **sparse
    section/coverage** map (Tagliabue-style), NOT a dense global field; annotate the ~13/14/25-cell sparsity.
-5. **[SILICATE]** Rename plan item 2 to "biogenic-silica (POSi/bSi) diagnostic."
-6. **[SO / OPEN]** SO distinct + secure a real SO calcite anchor; resolve per-PFT-vs-per-time and the
-   Darwin-version question with Jon.
+5. **[SILICATE — CONFIRMED]** Rename plan item 2 "dense-silica" → "biogenic-silica (POSi/bSi) diagnostic
+   for diatomgraz" (Jon confirmed the box has no Si nutrient). Apply in STATUS.md / main.tex / NEXT_SESSION
+   when those (currently WIP/local) files are next edited.
+6. **[SO / SELF-RESEARCH]** SO distinct + secure a real SO calcite anchor; resolve per-PFT-vs-per-time and
+   the Darwin-version question **ourselves** (from the data + Darwin3 docs — not Jon's time).
 
 *Iron-literature research pass: COMPLETE and folded in above (verified against Darwin3 docs + v05/v06
 config). Calcite composition validation: COMPLETE (`per_pft_real_chl2_validation.py`).*
