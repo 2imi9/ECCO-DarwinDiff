@@ -219,21 +219,87 @@ Workloads that are infeasible or marginal locally and become routine on cluster:
 | Full-ocean parameter recovery sweep | Infeasible | Embarrassingly parallel across AOIs |
 | Native-resolution Carroll-6 recovery (vs box-model proxy) | Untested; box-model state grows ~3× | Headroom matters once architecture grows |
 
-## AICR — application path
+## AICR — Massachusetts AI Compute Resource
 
-After confirming a successful Engaging run:
+AICR is a multi-institution **B200 / RTX PRO 6000** GPU cluster at MGHPCC (Holyoke), serving ~7 institutions. Docs: <https://docs.aicr.ai>. DarwinDiff's **project was added 2026-07-07**. Per the compute budget a single fit is launch-bound (same speed on 5090 / H200 / B200), so AICR's role is **throughput — large sweeps + native/seasonal runs**, targeting `b200-batch`.
 
-1. Reply to the ORCD beta-coordinator confirming Engaging usage + acknowledgment of the AICR storage policy (no backup, scratch purged).
-2. Receive the AICR access form.
-3. Once granted, port the workload from Engaging-partition SLURM to AICR-partition SLURM (typically a one-line `#SBATCH --partition` change + module path adjustment).
+> **Onboarding status (2026-07-07) — first login blocked by provisioning lag.** OOD errors
+> `nginx_stage: can't find user for qi_zim_neu` — the individual account isn't provisioned/synced to the
+> OOD/compute nodes yet (`getpwnam` fails). **`qi_zim_neu` is the correct username** (Explorer `qi.zim` →
+> AICR `<institutional-username>_<institution-code>`: dots→underscores, `_neu` for NU) — not a mismatch.
+> SSH is blocked by the same gap (the cert is downloaded through OOD). Fix is RC-side: email
+> `rchelp@northeastern.edu` (opens a ServiceNow ticket) and/or RC office hours (Wed 3–4 / Thu 11–12 ET,
+> [Wed Zoom](https://northeastern.zoom.us/j/92041124566) · [Thu Zoom](https://northeastern.zoom.us/j/94304265138)).
+> **Not blocking** — Explorer's H200 carries current work.
 
-AICR storage caveats:
+### Access — username & credentials
 
-- Scratch is purged regularly.
-- Project/group storage is temporary.
-- Copy any data you need to keep off AICR after computation completes.
+- **Username:** `qi_zim_neu`.
+- **OnDemand (browser, no setup):** <https://ood.aicr.ai> — sign in with NU username + password.
+- **SSH (certificate auth — no password, no VPN; login nodes are public):** on account creation, download
+  the `aicr_keys` folder from OOD (**Files → Home Directory → Download**): `id_ed25519_aicr` (private key,
+  passphrase-protected), `id_ed25519_aicr.pub`, `id_ed25519_aicr-cert.pub` (CA-signed cert), `.passphrase`
+  (initial passphrase). Place all in `~/.ssh/`, then:
 
-These match DarwinDiff's existing disk-temporary workflow (per-run JSON outputs to local `D:\runs\`, no per-run state in repo) so no architectural changes are required.
+  ```bash
+  chmod 600 ~/.ssh/id_ed25519_aicr
+  chmod 644 ~/.ssh/id_ed25519_aicr.pub ~/.ssh/id_ed25519_aicr-cert.pub
+  ssh-keygen -p -f ~/.ssh/id_ed25519_aicr        # set your own passphrase (initial is in .passphrase)
+  ```
+
+  Add to `~/.ssh/config` (then `ssh aicr`):
+
+  ```
+  Host aicr
+      HostName login.aicr.ai
+      User qi_zim_neu
+      IdentityFile ~/.ssh/id_ed25519_aicr
+      CertificateFile ~/.ssh/id_ed25519_aicr-cert.pub
+      ServerAliveInterval 60
+  ```
+
+  Certs are short-lived → re-download via OOD's **SSH Certificate** app when they approach expiry
+  (`Permission denied (publickey)` usually = expired/missing cert). Host key changed →
+  `ssh-keygen -R login.aicr.ai`.
+
+### Hardware & partitions
+
+| Partition | GPU | Walltime | Use |
+|---|---|---|---|
+| `b200-batch` | B200 | 24 h | training / sweeps ← our throughput jobs |
+| `b200-devel` | B200 | 4 h | interactive / OOD |
+| `rtx-batch` / `rtx-devel` | RTX PRO 6000 | 24 h / 4 h | batch / interactive |
+| `cpu` | — | 24 h | data transforms |
+
+- GPU request: `--gres=gpu:N`. Modules: `module load cuda/13.1`, `module load miniforge3/25.3.0-3`.
+- **Login nodes:** 4 CPU / 8 GB per user — edit / submit / small transfers only, **no compute** (use
+  `sbatch` or `salloc`). Idle-GPU jobs are **auto-cancelled** (same as Explorer's Arbiter — build inside a
+  Slurm job, not on the login node). Multi-GPU jobs must actually use the GPUs (DDP / NCCL).
+
+### Storage
+
+| Path | Quota | Policy |
+|---|---|---|
+| `/home/qi_zim_neu` | 100 GB | 7-day snapshots — scripts / env only |
+| `/scratch/qi_zim_neu` | 10 TB | **30-day purge, no backup** — job outputs |
+| `/work/neu/<group>` (confirm group name; the `/projects/schultz` analog) | PI-managed | 7-day snapshots — **repo + caches live here** |
+
+Storage is ephemeral → migrate keep-data off via **Globus** post-project. Matches DarwinDiff's
+disk-temporary workflow (per-run JSON to local `D:\runs\`, no per-run state in repo).
+
+### Setup & run (post-activation)
+
+```bash
+ssh aicr
+cd /work/neu/<group> && git clone https://github.com/2imi9/ECCO-DarwinDiff.git && cd ECCO-DarwinDiff
+module load miniforge3/25.3.0-3 cuda/13.1
+uv python pin 3.12 && uv sync --all-extras && uv run pytest        # honor the .python-version pin (see Explorer note)
+sbatch --partition=b200-batch scripts/slurm/run_explorer_gpu.sbatch  # adjust partition/modules/data-root from the Explorer sbatch
+```
+
+Porting from Explorer is ~three edits: partition (`gpu` → `b200-batch`), modules (`anaconda3` →
+`miniforge3/25.3.0-3` + `cuda/13.1`), and storage root (`/projects/schultz` → `/work/neu/<group>`).
+Support: `rchelp@northeastern.edu`.
 
 ## Cross-references
 
