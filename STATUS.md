@@ -2,7 +2,33 @@
 
 Live status doc. Headlines reflect verified results at the current project version. Per-version technical detail lives in [`docs/findings/`](docs/findings/index.md) and individual PR threads.
 
-## Current state — Track 1 v3.3
+## Current state (2026-07-07) — the project is now TWO papers
+
+**Paper #1 (Track 1 identifiability study) is CLOSED as a reference write-up; Paper #2 (Track 2, the differentiable-Darwin "UDE") is in progress.** This section supersedes the Track-1 box-recovery detail below for "what shape are we in" questions.
+
+### Paper #1 — Track 1 identifiability study (CLOSED)
+`docs/paper/main.tex` (**local-only, gitignored**; build `cd docs/paper && latexmk -pdf main.tex`). Shared with Jon Lauderdale (MIT) + the Explorer PI as a formatted **write-up for reference, NOT submitted** (frame it that way to them — not "paper"/"manuscript"). **Result:** replacing the non-differentiable GCM with a 0-D differentiable surrogate + per-cell DINN, the **demonstrated-observable set is the trio {alpfe, scav_rat, R_PICPOC}**. Per-cell architecture is load-bearing: holds the trio jointly **7/10 (n=10) and 33/50 (n=50)** vs **0/50** for a global-scalar vector (disjoint Wilson CIs). `alpfe` 10/10 both arms (mass-balance-identified); `scav_rat` (8/0) and `R_PICPOC` (9/0) require per-cell; `diatomgraz` observable-in-principle but not from staged data; growth pair unobservable by construction. Graded as an **honest consistency check** vs Carroll's published values, **not a discovery** — the *surrogate gap* (0-D box can't carry spatial structure) forces identification from real absolute anchors (GEOTRACES iron, Daniels calcite). Figures done (matplotlib data figs + TikZ schematics). The v3.2/v3.3 box-recovery detail below is the engineering under this paper.
+
+### Paper #2 — Track 2 UDE / differentiable-Darwin (IN PROGRESS)
+Make Darwin's real BGC differentiable and learn its uncertain closures with small NNs; the UDE **is** the independent-inversion validation Paper #1 lacked (#163). **Foundation merged to `main` (#177):** `src/darwindiff/integrators.py` (RK4/Euler + gradient checkpointing + **time-aware forcing `f(t,x)`** + `relative_mass_drift`); `carroll6_tendency` + `carroll6_ude_tendency` (pluggable neural `ffe`/`calcite` closures; `carroll6_integrate(method="rk4")`, Euler default byte-identical); `src/darwindiff/transport.py` (mass-conserving batched-column vertical transport + dust/light forcing).
+**Night-1+2 H200 results (closure identifiability):** closure equifinality is a **support problem** (a neural closure fits the trajectory but recovers the true function only where the state visits). **Excitation ladder** (n=4, Monod-anchored closure, full-domain closure error): none **0.203** → transient(multi-IC) **0.173** → spatial(regime) **0.154** → **Fisher-designed drawdown 0.116**. Two levers: **structure (analytic Monod backbone + bounded NN correction) ≈ 15×** (free-MLP 2.5–2.9 vs anchored 0.12–0.20); **excitation monotonic with support depth** (must drive DFe → k). Forcing **designed offline for pennies** (`scripts/ude_forcing_design.py`, ~2-min CPU Fisher probe): the lever is **light-driven drawdown, not dust** (winner `drawdown_pulse`, design λ_min ↑330×). Free MLP NaN'd under strong forcing (structure buys stability). Numerics: transport conserves **~5 ppm over 68 yr**; checkpointing **~100× memory**; H200 feasible ceiling ~100k cells×12 layers×20k steps. Scripts: `ude_closure_identifiability_h200.py` (arms A–H: single/multi-IC/regime/forced × free/monod), `ude_transport_stress_h200.py`, `scripts/slurm/`.
+
+### The three components + the seam (re-grounded 2026-07-07)
+- **DINN (parameter learner)** — per-cell 1×1 convs → Carroll-6 field; per-cell, **not** spatially coupled.
+- **FNO emulator** (`src/darwindiff/emulator.py`) — Fourier Neural Operator forward surrogate `state→next state`, PhysicsNeMo/Earth-2 schema, spatially coupled, **scaffold, NOT parameter-aware**; for long climate rollouts (Jonathan's goal / NVIDIA-Nebius phase).
+- **UDE** — the mechanistic differentiable spatial model (the Track-2 work above).
+- **The seam / fix:** the parameter learner's ceiling is the surrogate gap (it backprops through the 0-D box). Fix = give it a **spatially-resolved differentiable forward model** to backprop through — the emulator IF **parameter-conditioned** (`FNO(state, Carroll-6 field) → next`: spatial structure + speed + differentiability, and doubles as the long-run emulator), or the UDE (mechanistic, interpretable, extrapolation-safe). **NOT yet built or researched** — the research-first task.
+
+### Compute / constraints (2026-07)
+**Explorer H200 is the main source** (`ssh explorer`, automated; repo `/projects/schultz/qi.zim/ecco-darwindiff` + `.venv`). **Local RTX 5090 is IN USE — cluster or CPU only for compute.** AICR B200 onboarding early July (first cohort; contact Devesh Tiwari, NU RC). A caught CUDA OOM in a sweep poisons the context (`CUBLAS_ALLOC_FAILED`) → isolate OOM-probing from training. Conventions: scope-prefixed PRs, **no Co-Authored-By**, non-squash, `2imi9/` branches, explicit paths (shared checkout switches branch mid-task); `verify_run.py`-gate recovery numbers; **research-first / cost-first**.
+
+### Immediate next steps
+1. **Research-first (cheap):** parameter-learner ↔ emulator coupling — parameter-conditioned differentiable emulator, amortized/simulation-based calibration, and where black-box FNO extrapolation risk (#6) forces the mechanistic UDE.
+2. **Build (autonomous):** symbolic distillation (save the trained closure, distill to a formula — the go/no-go); real Phase-1 transport (batched Thomas vertical diffusion + centered advection per the design brief); parameter-condition `emulator.py` + a DINN-backprop-through-emulator test.
+3. **Jon questions (Paper #2-defining):** iron vs calcite closure target; what drives calcification (SST/Ω/nutrients/which PFTs); offline transport scope OK; forcing realism (synthetic drawdown vs real seasonal cycle); what independent validation = discovery; his two R_PICPOC points.
+Design docs: `docs/research_notes/2026-07-06_ude_phase1_design_brief.md`, `..._closure_identifiability_recipe.md`, `..._implementation_brief.md`. Handoff prompt for a fresh session: `docs/NEXT_SESSION.md`. Tracker: #176 (Phase-1 UDE), #163 (validation→discovery = Paper #2), #124 (roadmap epic).
+
+## Track 1 box-scale recovery detail (v3.2/v3.3 — historical, the engineering under Paper #1)
 
 DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with gradient descent through a differentiable box model, predicted by a per-cell neural network. Active at **3-AOI multi-AOI joint training** (Equatorial Pacific + N Atlantic Subpolar + Southern Ocean Pacific) on a single workstation (NVIDIA RTX 5090 32 GB).
 
