@@ -119,7 +119,11 @@ Paper #1, so it is no longer a pending unlock — the verified n=10 headline num
 reported values.) These remain legitimate cluster goals; they are **not** gated on `R_PICPOC` or "6/6",
 which are resolved/reframed at 1° box scale.
 
-## Track 2 — differentiable spatial model (status: feasibility-proven on the 0-D box only)
+## Track 2 — differentiable spatial model (status: foundation BUILT + synthetic closure-recovery result; real-data E2 gate unbuilt)
+
+**Update (2026-07-07) — the differentiable foundation is now built and merged (#177).** `integrators.py` (RK4 + gradient checkpointing + time-aware forcing `f(t,x)`), `carroll6_ude_tendency` (pluggable neural closures), and `transport.py` (mass-conserving batched-column vertical transport) are on `main`. On a **synthetic self-twin** (still not real Darwin, still transport-limited), closure equifinality was diagnosed as a **support problem** and cured: a **Monod-anchored closure** (~15x over a free MLP) plus an **excitation designed offline for pennies** (a ~2-min CPU Fisher probe found the lever is *light-driven drawdown, not dust*) recovers the closure over the widest domain -- excitation ladder, full-domain closure error `0.203 -> 0.173 -> 0.154 -> 0.116` (n=4). This is a **synthetic methods result, not a real-data claim**; the E2 gate below (held-out real-data R^2 > 0 with transport) remains the make-or-break and is still unbuilt. Design docs: `docs/research_notes/2026-07-06_*`. The three-component picture (DINN parameter learner / FNO emulator scaffold `emulator.py` / mechanistic UDE) and the parameter-learner<->emulator seam are in `docs/NEXT_SESSION.md`.
+
+_Original feasibility framing:_ differentiable spatial model (feasibility-proven on the 0-D box only)
 
 Track 2 (a UDE / differentiable spatial emulator) is **feasibility-proven on the 0-D box only** —
 self-twin, **synthetic**, transport-free; it is **not** real Darwin and **not** built at real scale.
