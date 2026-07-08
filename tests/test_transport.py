@@ -400,3 +400,41 @@ def test_surface_dust_field_is_surface_only_and_z_independent():
     diff = d_scalar[:, 0] - d_surface[:, 0]                            # dDFe difference per layer
     assert abs(diff[0].item()) < 1e-9                                  # surface: both sourced, match
     torch.testing.assert_close(diff[1:], torch.full((7,), alpfe * phi))  # deep: scalar over-injects
+
+
+# --- A3: DIC/ALK stoichiometry so the calcite closure's carbon effect is real ------
+
+
+def test_bgc_7tracer_calcite_conserves_carbon():
+    """A3: with a 7-tracer state [.., DIC, ALK] the calcite closure's pic_prod drains
+    DIC as it fills PIC, so total carbon (Ps+Pl+POC+PIC+DIC) changes ONLY by the
+    export sink -W_SINK*(POC+PIC). Before A3, pic_prod filled PIC from nothing --
+    carbon was created. Holds with a nonzero learned calcite closure."""
+    params = carroll6.CARROLL_VALUES
+    torch.manual_seed(0)
+    scale = torch.tensor([1e-4, 0.3, 0.3, 0.6, 0.05, 2000.0, 2300.0])
+    offset = torch.tensor([1e-5, 0.05, 0.05, 0.1, 0.01, 1900.0, 2200.0])
+    state = torch.rand(6, 7) * scale + offset
+    clo = EnvCalciteClosure(torch.randn(6, 3))
+    for p in clo.net.parameters():
+        nn.init.normal_(p, std=0.5)  # nonzero (learned) calcite closure
+    d = bgc_tendency_field(state, params, calcite_closure=clo)
+    total_c = d[:, 1] + d[:, 2] + d[:, 3] + d[:, 4] + d[:, 5]  # Ps+Pl+POC+PIC+DIC
+    export = -float(carroll6.W_SINK) * (state[:, 3] + state[:, 4])
+    assert (total_c - export).abs().max().item() < 1e-5  # fp32 round-off on the cancellation
+
+
+def test_bgc_7tracer_alkalinity_stoichiometry():
+    """dALK == -2 * pic_prod (CaCO3 consumes 2 alkalinity equivalents per mole PIC)."""
+    params = carroll6.CARROLL_VALUES
+    state = torch.rand(5, 7) * torch.tensor([1e-4, 0.3, 0.3, 0.6, 0.05, 2000.0, 2300.0]) + 0.01
+    d = bgc_tendency_field(state, params)  # constant R_PICPOC (no closure)
+    pic_prod = d[:, 4] + float(carroll6.W_SINK) * state[:, 4]  # dPIC = pic_prod - W_SINK*PIC
+    torch.testing.assert_close(d[:, 6], -2.0 * pic_prod)
+
+
+def test_bgc_5tracer_path_unchanged_shape():
+    """The 5-tracer path is unaffected by A3 (returns [.., 5]; byte-identity to the
+    box is covered by test_bgc_field_matches_box_on_single_cell)."""
+    d = bgc_tendency_field(torch.full((4, 5), 0.1), carroll6.CARROLL_VALUES)
+    assert d.shape == (4, 5)

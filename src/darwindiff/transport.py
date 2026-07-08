@@ -42,14 +42,18 @@ def bgc_tendency_field(
     scav_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
     dust: torch.Tensor | float | None = None,
     light: torch.Tensor | float | None = None,
+    co2_flux: torch.Tensor | float | None = None,
 ) -> torch.Tensor:
     """Vectorized Carroll-6 BGC tendency over an arbitrary field of cells.
 
     Same rate equations as :func:`darwindiff.carroll6.carroll6_ude_tendency`, but
     the tracer axis is the last dim so any leading shape (columns, depth, grid)
     integrates at once. ``params`` may be ``[6]`` (shared) or broadcastable to the
-    field. Optional neural closures replace the iron-limitation and calcification
-    terms (the UDE hook). ``dust`` (iron-dust source, default ``PHI_DUST``) and
+    field. The state may be **5-tracer** ``[DFe, Ps, Pl, POC, PIC]`` or **7-tracer**
+    ``[..., DIC, ALK]``; with 7 tracers the single ``pic_prod`` feeds
+    ``dPIC(+1)/dDIC(-1)/dALK(-2)`` so the calcite closure's carbon effect is captured
+    and carbon conserves through calcification (deep review A3). Optional neural
+    closures replace the iron-limitation and calcification terms (the UDE hook). ``dust`` (iron-dust source, default ``PHI_DUST``) and
     ``light`` (default ``LIGHT``) may be time-varying scalars/fields for temporal
     forcing (broadcastable to the field).
 
@@ -99,7 +103,19 @@ def bgc_tendency_field(
     dPl = growth_l - mort_l - graze_l
     dPOC = mort_total - W_SINK * POC
     dPIC = pic_prod - W_SINK * PIC
-    return torch.stack([dDFe, dPs, dPl, dPOC, dPIC], dim=-1)
+    base = [dDFe, dPs, dPl, dPOC, dPIC]
+
+    if state.shape[-1] >= 7:  # 7-tracer [..., DIC, ALK]: A3 calcite/organic stoichiometry
+        # The SAME pic_prod drains 1 DIC + 2 ALK per mole CaCO3, and organic C
+        # fixation (growth) drains DIC -- so the calcite closure's carbon/alkalinity
+        # effect is captured (not silently dropped) and total carbon is conserved
+        # through calcification. POC/PIC export (W_SINK) + optional air-sea `co2_flux`
+        # (mmol C/m^3/d, positive = DIC loss) are the only carbon exits.
+        cf = 0.0 if co2_flux is None else co2_flux
+        dDIC = -(growth_s + growth_l) - pic_prod - cf
+        dALK = -2.0 * pic_prod
+        return torch.stack(base + [dDIC, dALK], dim=-1)
+    return torch.stack(base, dim=-1)
 
 
 def surface_dust_field(
