@@ -6,9 +6,11 @@ from torch import nn
 
 from darwindiff import carroll6
 from darwindiff.integrators import integrate, relative_mass_drift
+from darwindiff.closures import EnvCalciteClosure
 from darwindiff.transport import (
     bgc_tendency_field,
     column_tendency,
+    grid_tendency,
     horizontal_advection,
     vertical_advection,
     vertical_diffusion,
@@ -186,3 +188,69 @@ def test_horizontal_advection_batched_velocity_broadcast():
         [horizontal_advection(field[b], u, v, dx=1.0, dy=1.0) for b in range(3)]
     )
     torch.testing.assert_close(out, ref)
+
+
+# --- grid_tendency: full 3-D composition (horizontal + vertical + BGC) -------------
+
+
+def _grid_state(Y=2, X=2, Z=3, seed=0):
+    g = torch.Generator().manual_seed(seed)
+    base = torch.tensor([1.0e-4, 0.2, 0.2, 0.5, 0.02])
+    return base * (1.0 + 0.1 * torch.rand(Y, X, Z, 5, generator=g))  # [Y, X, Z, tracer]
+
+
+def test_grid_tendency_gradcheck_transport():
+    """fp64 gradcheck of the full 3-D transport composition (bgc off): horizontal +
+    vertical operators are linear in the state, so the Jacobian is exact."""
+    torch.manual_seed(0)
+    state = _grid_state().double().requires_grad_(True)
+    params = carroll6.CARROLL_VALUES.double()
+    u = torch.rand(2, 2, dtype=torch.float64) + 0.5  # bounded away from 0 (fixed upwind pattern)
+    v = torch.rand(2, 2, dtype=torch.float64) + 0.5
+    assert torch.autograd.gradcheck(
+        lambda s: grid_tendency(
+            s, params, u=u, v=v, dx=1.0, dy=1.0, kz=0.1, dz=25.0, w=1.0, bgc=False
+        ),
+        (state,),
+    )
+
+
+def test_grid_tendency_transport_only_conserves_domain():
+    """With bgc off, the 3-D field conserves the per-tracer domain total over a rollout."""
+    f0 = _grid_state(Y=4, X=4, Z=4).double()
+    params = carroll6.CARROLL_VALUES.double()
+    u = 0.3 * (torch.rand(4, 4, dtype=torch.float64) - 0.5)
+    v = 0.3 * (torch.rand(4, 4, dtype=torch.float64) - 0.5)
+
+    def tend(s):
+        return grid_tendency(
+            s, params, u=u, v=v, dx=1.0, dy=1.0, kz=0.1, dz=25.0, w=1.0, bgc=False
+        )
+
+    fN = integrate(tend, f0, dt=0.05, n_steps=40, method="rk4")
+    assert torch.isfinite(fN).all()
+    tot0 = f0.sum(dim=(-4, -3, -2))  # over Y, X, Z per tracer
+    drift = (fN.sum(dim=(-4, -3, -2)) - tot0).abs() / tot0.abs()
+    assert drift.max().item() < 1e-10
+
+
+def test_grid_tendency_trains_a_closure_through_full_rollout():
+    """A calcite closure gets finite, nonzero gradients through the full 3-D
+    (BGC + vertical + horizontal) checkpointed rollout -- end-to-end trainability."""
+    params = carroll6.CARROLL_VALUES.clone()
+    state0 = _grid_state(Y=3, X=3, Z=3)
+    env = torch.randn(3, 3, 3, 3)  # [Y, X, Z, n_env], cell-aligned with the state
+    clo = EnvCalciteClosure(env)
+    u = 0.2 * (torch.rand(3, 3) - 0.5)
+    v = 0.2 * (torch.rand(3, 3) - 0.5)
+
+    def tend(s):
+        return grid_tendency(
+            s, params, u=u, v=v, dx=1.0, dy=1.0, kz=0.1, dz=25.0, calcite_closure=clo
+        )
+
+    fN = integrate(tend, state0, dt=0.25, n_steps=40, method="rk4", checkpoint_segment=10)
+    fN.pow(2).mean().backward()
+    grads = [p.grad for p in clo.net.parameters()]
+    assert all(g is not None and torch.isfinite(g).all() for g in grads)
+    assert any(g.abs().sum().item() > 0.0 for g in grads)

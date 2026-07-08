@@ -213,3 +213,48 @@ def column_tendency(
     if w != 0.0:
         d = d + vertical_advection(state, w, dz)
     return d
+
+
+def grid_tendency(
+    state: torch.Tensor,
+    params: torch.Tensor,
+    *,
+    u: torch.Tensor,
+    v: torch.Tensor,
+    dx: float,
+    dy: float,
+    kz: float = 0.1,
+    dz: float = 25.0,
+    w: float = 0.0,
+    bgc: bool = True,
+    ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
+    scav_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
+    dust: torch.Tensor | float | None = None,
+    light: torch.Tensor | float | None = None,
+) -> torch.Tensor:
+    """Full 3-D tendency: BGC + vertical mixing/advection + horizontal advection.
+
+    ``state``: ``[..., Y, X, Z, tracer]`` -- horizontal axes (Y, X) then the depth
+    axis Z then the tracer axis. This composes :func:`column_tendency` (which
+    already applies BGC per cell and the vertical operators on the Z axis, dim -2)
+    with :func:`horizontal_advection` on the (Y, X) axes -- reached by moving Z out
+    to the front so the operator sees its expected ``[..., Y, X, tracer]`` layout,
+    then moving the result back. ``u``, ``v`` are horizontal velocities
+    broadcastable to ``[..., Y, X]``. This is the tendency the E2 spatial rollout
+    integrates via ``integrators.integrate``.
+
+    Conservation: with ``bgc=False`` every operator is flux-form with no-flux edges,
+    so the domain-integrated tracer is conserved; ``bgc=True`` adds the (intended)
+    reactive sources/sinks.
+    """
+    d = column_tendency(
+        state, params, kz=kz, dz=dz, w=w, bgc=bgc,
+        ffe_closure=ffe_closure, calcite_closure=calcite_closure,
+        scav_closure=scav_closure, dust=dust, light=light,
+    )
+    # horizontal advection acts on (Y, X); move the depth axis (-2) to the front so
+    # horizontal_advection sees [Z, ..., Y, X, tracer], then move the result back.
+    state_h = state.movedim(-2, 0)
+    d_h = horizontal_advection(state_h, u, v, dx, dy).movedim(0, -2)
+    return d + d_h
