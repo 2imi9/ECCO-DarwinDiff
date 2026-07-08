@@ -98,6 +98,27 @@ pass is numerical).
   fp64 machine precision over a rollout (the per-element mass gate, #7).
 - **A6 — `interior_mask`**: no-flux walls are closed-domain-only; the open-AOI E2 loss excludes the wall ring.
 
+## E2 design guardrails (independent second-opinion, 2026-07-08)
+
+- **Lead with CALCITE, not iron.** The wall is at the *observable*, not the cell count: iron *concentration* is a
+  low-information projection of the scavenging *rate* (Tagliabue decoupling), so a held-out iron R²>0 can come from
+  an *equifinal, meaningless* `scav_rat`. Calcite's PIC:POC observable ≈ the parameter → a pass is meaningful.
+  Report iron as the documented *information-wall counterexample* in the same paper, not a second attempt.
+- **Primary E2 control = a NULL-CLOSURE baseline** (`g_θ≡1` constant, through the *identical* transport + K_num).
+  If the constant closure also clears held-out R², transport smoothing did the work → the pass is spurious. This
+  is stronger than the K_num ablation alone (which stays: learned-minus-null gap must be largest at physical K_num
+  and shrink as K_num grows).
+- **Metric = anomaly-R² (field minus basin-mean) on a BLOCKED/regime split** (e.g. train eqpac+natl / test SO),
+  never level-R² on random cells whose neighbours are in-training (trivial interpolation). Add a permuted-predictor
+  control and a profile-curvature cross-check at the claimed-pass K_num.
+- **Guard calcite circularity:** do NOT fit to MODIS PIC and test on held-out MODIS PIC (that's satellite-field
+  interpolation). Anchor on Daniels CP:PP + a blocked split; the claim is *environment-conditioning of PIC:POC
+  reproduced on held-out data*, corroborating (not discovering) a ratio closure Darwin already parameterises.
+- **Fallback = the paper spine, not a consolation prize:** an *identifiability map* of Darwin's BGC closures through
+  a conservation-verified differentiable transport model — which real obs CAN constrain (calcite, curved) vs CANNOT
+  (iron scavenging, shallow/DPI-limited) + the observing-system density (GEOTRACES/PACE) that would close the gap.
+  Novel and honest even if a binary E2 "pass" never lands.
+
 **ALL A1–A6 done and gated (2026-07-08); full suite 314.** The transport machinery is now scientifically sound
 for E2. Remaining before an E2 *number*: the windowed-BPTT trainer (with the checkpoint-equivalence gate,
 already added) + the E2 run carrying the `K_num`/ablation diagnostics; plus the data staging (soluble-iron
