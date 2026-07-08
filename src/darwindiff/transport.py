@@ -102,6 +102,28 @@ def bgc_tendency_field(
     return torch.stack([dDFe, dPs, dPl, dPOC, dPIC], dim=-1)
 
 
+def surface_dust_field(
+    n_z: int,
+    dust: float | None = None,
+    *,
+    dtype: torch.dtype | None = None,
+    device: torch.device | None = None,
+) -> torch.Tensor:
+    """Per-layer iron-dust source concentrated at the SURFACE layer of a column (A4).
+
+    Atmospheric dust is a *surface* flux, so applying a scalar rate at every layer
+    (the default in :func:`bgc_tendency_field`) over-injects iron ~Z-fold and destroys
+    the vertical DFe gradient that ``scav_rat`` identifiability depends on. This places
+    the 0-D volumetric rate ``dust`` (default ``PHI_DUST``) at ``Z=0`` and zero below,
+    so a column's top layer behaves like the 0-D box and the column-integrated input
+    (``= dust*dz``) is independent of the number of layers. Returns shape ``[n_z]``,
+    to pass through the ``dust=`` kwarg of :func:`bgc_tendency_field` / grid path.
+    """
+    d = torch.zeros(n_z, dtype=dtype, device=device)
+    d[0] = float(PHI_DUST) if dust is None else float(dust)
+    return d
+
+
 def vertical_diffusion(field: torch.Tensor, kz: float, dz: float) -> torch.Tensor:
     """Tendency from vertical diffusion (Fickian mixing) with no-flux boundaries.
 

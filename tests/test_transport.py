@@ -13,6 +13,7 @@ from darwindiff.transport import (
     grid_tendency,
     horizontal_advection,
     horizontal_diffusion,
+    surface_dust_field,
     vertical_advection,
     vertical_diffusion,
     w_from_continuity,
@@ -380,3 +381,22 @@ def test_vertical_advection_per_interface_conserves_when_closed():
     w[:, 1:-1] = 0.3 * (torch.rand(3, 5) - 0.5)  # interior interfaces nonzero, ends = 0
     d = vertical_advection(f, w, dz=25.0)
     assert d.sum(dim=-2).abs().max().item() < 1e-6
+
+
+def test_surface_dust_field_is_surface_only_and_z_independent():
+    """A4: surface dust puts the iron flux only in the top layer, so a column no
+    longer gets ~Z-fold too much iron. The scalar default over-injects
+    alpfe*PHI_DUST at every non-surface layer -- pinned here."""
+    params = carroll6.CARROLL_VALUES
+    alpfe = float(params[carroll6.P.alpfe])
+    phi = float(carroll6.PHI_DUST)
+    for Z in (4, 8, 16):
+        dust = surface_dust_field(Z)
+        assert abs(dust[0].item() - phi) < 1e-10  # float32 round-off vs the fp64 constant
+        assert dust[1:].abs().sum().item() == 0.0
+    state = torch.full((8, 5), 0.1)
+    d_scalar = bgc_tendency_field(state, params)                       # scalar PHI_DUST @ every layer
+    d_surface = bgc_tendency_field(state, params, dust=surface_dust_field(8))
+    diff = d_scalar[:, 0] - d_surface[:, 0]                            # dDFe difference per layer
+    assert abs(diff[0].item()) < 1e-9                                  # surface: both sourced, match
+    torch.testing.assert_close(diff[1:], torch.full((7,), alpfe * phi))  # deep: scalar over-injects
