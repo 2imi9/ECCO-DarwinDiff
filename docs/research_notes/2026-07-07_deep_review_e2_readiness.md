@@ -80,6 +80,18 @@ Thomas. 8. Windowed-BPTT trainer **with a checkpoint-equivalence gate**. **Only 
 `K_num` and a dt/dx ablation showing R² does *not* track numerical diffusion (a positive dependence proves the
 pass is numerical).
 
-**Interim hardening landed this session:** precondition docstrings (div-free velocity, closed-domain BCs,
-surface-only dust, explicit-CFL limit) + the non-square directional grid gate + checkpoint-equivalence gate.
-The scheme/scaffolding builds (A1–A6) are the next focused cycles.
+## Progress (2026-07-08)
+
+**Landed + gated:**
+- Interim hardening: precondition docstrings (div-free velocity, closed-domain BCs, surface dust, explicit-CFL
+  limit) + non-square directional grid gate + checkpoint-vs-dense equivalence gate.
+- **A1 — divergence-free `w(z)` from continuity** (`w_from_continuity` + per-interface `vertical_advection`).
+  Verified: uniform-field spurious tendency **0.60 → <1e-12** (fp64); stays uniform over a 400-step rollout.
+- **A2 — centered-2nd advection + explicit tunable `horizontal_diffusion(kh)`** (drops upwind's 3–50×
+  numerical diffusion; diffusion now explicit/diagnosable for the `K_num` ablation). Verified: centered exact
+  on linear fields; unstable at `kh=0` (→1e7), bounded at `kh≥0.05` with A1's `w`.
+- **A4 — `surface_dust_field`** (dust at the surface layer only; column no longer gets Z× iron).
+
+**Remaining:** A3 (DIC/ALK in the state so the calcite closure's carbon effect isn't dropped — a state-vector
+change), A5 (per-element open-system budget accumulator), A6 (open BCs for the AOI window). Then the windowed
+trainer + the E2 run carrying the `K_num`/ablation diagnostics.
