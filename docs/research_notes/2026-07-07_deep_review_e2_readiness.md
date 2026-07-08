@@ -159,3 +159,32 @@ leads, so it is shared infrastructure, not an iron-first commitment.
 
 Next in the DB chain: **DB-2** (real v05 velocity loader → `w_from_continuity`), **DB-3** (held-out
 GEOTRACES-section scoring), then the windowed-BPTT trainer → the E2 run.
+
+## Semi-implicit vertical diffusion — CFL silent-NaN fix (2026-07-08)
+
+The named follow-up "semi-implicit Thomas vertical diffusion" is now **done** (commit `a0e7a50`,
+`src/darwindiff/transport.py`, `tests/test_transport_imex.py`, `scripts/imex_h200_smoke.py` +
+`scripts/slurm/run_imex_h200_smoke.sbatch`). The explicit `vertical_diffusion` is stable only for
+`kz·dt/dz² < 0.5` and **silently NaNs / blows up** above it; realistic mixed-layer `kz ≈ 1e-2 m²/s`
+(≈ 864 m²/day) gives `r = 2.16` at `dz=10 m`, `dt=0.25 d` — well past the wall — so an E2 rollout at
+realistic diffusivity would have silently failed.
+
+- **`thomas_solve`** — batched, autograd-clean tridiagonal solve (matches a dense `torch.linalg.solve`
+  to 1e-16); **`vertical_diffusion_implicit`** — one backward-Euler `(I − dt·L)x = xⁿ` sub-step, `L` the
+  *same* no-flux Laplacian the explicit operator applies. **No CFL limit**, column-conservative (mass
+  drift ~1e-15), gradcheck-clean.
+- **`imex_rollout`** — first-order Lie split: explicit RK4/Euler on the (vdiff-free) tendency, then one
+  implicit vertical-diffusion sub-step. Gradient-checkpointable (bit-identical recompute) for the
+  windowed-BPTT trainer; `include_vdiff` flag + opt-in `dt` CFL guard on the explicit path.
+- **Validated on a real NVIDIA H200** (node d4055): at `r=2.16` the explicit rollout blows up `1.16e34×`
+  while imex stays bounded (`0.88×`); checkpoint==plain bit-identical on-GPU; grads flow; a 327k-cell grid
+  does fwd+bwd in **1.1 s**. **Full suite 376.**
+- **Adversarial review** (4 dims → verify): **numerics + autograd/checkpoint came back clean**; fixed
+  the `dt`-guard threading, added an end-to-end operator-split regression test (catches double-count/drop
+  of vdiff), and `rtol=0` to pin the backward-Euler boundary rows. **Named follow-up:** the imex
+  explicit-tendency contract (`include_vdiff=False`) is documented + test-guarded but not *structurally*
+  enforced — a caller using the `include_vdiff=True` default double-counts vertical diffusion (silent at
+  small `r`, NaN above CFL). Consider making `imex_rollout` build the explicit part itself.
+
+This removes the last numerical blocker the deep review named; the windowed-BPTT trainer can now roll out
+at realistic `kz`. The trainer + DB-2/DB-3 data staging remain before an E2 *number*.
