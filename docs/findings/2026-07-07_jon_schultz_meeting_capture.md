@@ -65,6 +65,20 @@ config files, adversarially checked, CONFIRMED):**
   model-vs-obs along GEOTRACES **sections/profiles** (Tagliabue-2016 style), NOT a dense global map;
   caption any held-out-iron result as station-level, upper-ocean, non-winter-biased.
 
+**Primary iron references (Jon sent 2026-07-07) — the citation backbone for the iron section:**
+- **Parekh et al. 2005** (GBC, doi:10.1029/2004GB002280) / **2006** (Paleoceanography, doi:10.1029/2005PA001258)
+  — the iron-cycle model underlying Darwin's routines: ocean iron input = dust × Fe-fraction × solubility;
+  free-Fe′/organic-ligand equilibrium (Fe′+L′⇌FeL, `L_T`~1e-3); scavenging `r_scav = τ_scav·I_scav·POM^0.58`.
+  Grounds our `alpfe·dust − scav·Fe·POC` as the **Parekh reduction**, and the scavenging closure design (PR-3).
+- **Mahowald et al. 2006** (JGR, doi:10.1029/2005JD006653) = *total dust* deposition; **2009** (Ann. Rev. Mar.
+  Sci., doi:10.1146/annurev.marine.010908.163727) = *soluble-iron* deposition (Fe-fraction × solubility ≈ 1).
+  v05's `ironfile` is the **2009 soluble product ⇒ `alpfe ≈ 1`**.
+- **Tagliabue et al. 2016** (GBC, doi:10.1002/2015GB005289) — iron model inter-comparison: models agree on dFe
+  *concentration* but diverge >1 order of magnitude on *source flux* (1→>30 Gmol/yr) and *residence time*
+  (5→>500 yr) ⇒ **concentration under-constrains the source/sink rate.** Backs the `alpfe`/`scav_rat` SHALLOW
+  profiles (overnight H200, [2026-07-07_overnight_h200_identifiability_profiles.md](2026-07-07_overnight_h200_identifiability_profiles.md))
+  and the `alpfe` "not sharply identified" honesty caveat.
+
 ---
 
 ## 2. CALCITE / PIC:POC — the spatial-variation framing is confirmed  **[CONFIRM]**
