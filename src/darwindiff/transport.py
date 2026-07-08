@@ -154,6 +154,26 @@ def carbon_total(state: torch.Tensor) -> torch.Tensor:
     return c
 
 
+def interior_mask(
+    ny: int, nx: int, ring: int = 1, *, device: torch.device | None = None
+) -> torch.Tensor:
+    """Boolean ``[ny, nx]`` mask that is ``False`` on the outer ``ring`` cells and
+    ``True`` in the interior.
+
+    The no-flux zero-pad in :func:`horizontal_advection` / the vertical operators is a
+    **closed-domain** boundary: it reflects tracer at the edges, creating a fake
+    accumulation/depletion boundary layer (verified: uniform outflow gives edge
+    tendencies ``[-1, 0, ..., 0, +1]``). The E2 gate fits closures on an **open**
+    regional (AOI) window where tracer physically crosses the edges, so the loss must
+    **exclude** that boundary ring (deep review A6). Apply this mask to the E2
+    residual (an open-BC operator with prescribed-halo inflow is a later upgrade, once
+    the AOI-boundary field is staged). ``ring`` cells are dropped on each side.
+    """
+    m = torch.zeros(ny, nx, dtype=torch.bool, device=device)
+    m[ring : ny - ring, ring : nx - ring] = True
+    return m
+
+
 def vertical_diffusion(field: torch.Tensor, kz: float, dz: float) -> torch.Tensor:
     """Tendency from vertical diffusion (Fickian mixing) with no-flux boundaries.
 

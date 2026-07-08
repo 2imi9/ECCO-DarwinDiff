@@ -14,6 +14,7 @@ from darwindiff.transport import (
     grid_tendency,
     horizontal_advection,
     horizontal_diffusion,
+    interior_mask,
     surface_dust_field,
     vertical_advection,
     vertical_diffusion,
@@ -466,3 +467,16 @@ def test_carbon_budget_closes_over_rollout():
     closed0 = carbon_total(aug0[..., :7]) + aug0[..., 7]
     closedN = carbon_total(aN[..., :7]) + aN[..., 7]
     assert (closedN - closed0).abs().max().item() < 1e-6
+
+
+def test_interior_mask_excludes_wall_boundary_layer():
+    """A6: the no-flux walls make a fake edge boundary layer; interior_mask excludes
+    it. Under uniform outflow a uniform tracer has ~0 tendency in the interior but a
+    nonzero ring at the walls -- the mask keeps exactly the clean cells."""
+    Y, X = 5, 6
+    f = torch.ones(Y, X, 1)                        # uniform, single-layer 2-D
+    u, v = torch.ones(Y, X), torch.zeros(Y, X)     # uniform outflow +x (div-free)
+    d = horizontal_advection(f, u, v, 1.0, 1.0)[..., 0]  # [Y, X]
+    m = interior_mask(Y, X, ring=1)
+    assert d[m].abs().max().item() < 1e-6          # interior: clean (uniform stays put)
+    assert d[~m].abs().max().item() > 0.1          # ring: the wall accumulation/depletion
