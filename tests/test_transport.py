@@ -14,6 +14,7 @@ from darwindiff.transport import (
     horizontal_advection,
     vertical_advection,
     vertical_diffusion,
+    w_from_continuity,
 )
 
 
@@ -298,3 +299,52 @@ def test_grid_checkpoint_matches_dense_with_closure():
     g_ckpt, p_ckpt = run(5)
     torch.testing.assert_close(g_dense, g_ckpt, rtol=1e-5, atol=1e-6)
     torch.testing.assert_close(p_dense, p_ckpt, rtol=1e-5, atol=1e-6)
+
+
+# --- A1: continuity-diagnosed w(z) makes the 3-D flux divergence-free ---------------
+
+
+def test_w_from_continuity_makes_uniform_field_stationary():
+    """A1 core: a UNIFORM tracer under (u, v, w_from_continuity) has ~0 tendency at
+    every cell (fp64 machine precision), whereas w=0 on the divergent field
+    manufactures O(1) spurious per-cell structure (the false-E2 source)."""
+    torch.manual_seed(0)
+    Y, X, Z = 4, 5, 3
+    u = (torch.rand(Y, X) - 0.5).double()
+    v = (torch.rand(Y, X) - 0.5).double()
+    params = carroll6.CARROLL_VALUES.double()
+    f = torch.ones(Y, X, Z, 1, dtype=torch.float64)
+    d0 = grid_tendency(f, params, u=u, v=v, w=0.0, dx=1.0, dy=1.0, kz=0.0, bgc=False)
+    w = w_from_continuity(u, v, 1.0, 1.0, 25.0, Z)
+    dw = grid_tendency(f, params, u=u, v=v, w=w, dx=1.0, dy=1.0, kz=0.0, bgc=False)
+    assert d0.abs().max().item() > 0.1     # divergent w=0 manufactures structure
+    assert dw.abs().max().item() < 1e-12   # continuity w cancels it to machine zero (fp64)
+
+
+def test_w_from_continuity_rollout_stays_uniform():
+    """A uniform tracer under the continuity-diagnosed velocity stays uniform over a
+    rollout (no fake structure develops -- the surrogate-gap artifact is removed)."""
+    torch.manual_seed(1)
+    Y, X, Z = 4, 4, 3
+    u = torch.rand(Y, X) - 0.5
+    v = torch.rand(Y, X) - 0.5
+    params = carroll6.CARROLL_VALUES
+    w = w_from_continuity(u, v, 1.0, 1.0, 25.0, Z)
+    f0 = torch.ones(Y, X, Z, 1)
+
+    def tend(s):
+        return grid_tendency(s, params, u=u, v=v, w=w, dx=1.0, dy=1.0, kz=0.0, bgc=False)
+
+    fN = integrate(tend, f0, dt=0.05, n_steps=400, method="rk4")
+    assert torch.isfinite(fN).all()
+    assert (fN - 1.0).abs().max().item() < 1e-5
+
+
+def test_vertical_advection_per_interface_conserves_when_closed():
+    """Per-interface tensor-w vertical advection conserves the column when both
+    boundary interfaces are zero (closed column)."""
+    f = _field(C=3, Z=6)  # [C, Z, tracer]
+    w = torch.zeros(3, 7)
+    w[:, 1:-1] = 0.3 * (torch.rand(3, 5) - 0.5)  # interior interfaces nonzero, ends = 0
+    d = vertical_advection(f, w, dz=25.0)
+    assert d.sum(dim=-2).abs().max().item() < 1e-6

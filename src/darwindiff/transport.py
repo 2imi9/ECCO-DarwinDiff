@@ -122,18 +122,69 @@ def vertical_diffusion(field: torch.Tensor, kz: float, dz: float) -> torch.Tenso
     return -(flux_full[..., 1:, :] - flux_full[..., :-1, :]) / dz
 
 
-def vertical_advection(field: torch.Tensor, w: float, dz: float) -> torch.Tensor:
-    """Tendency from constant vertical advection (upwind) with no-flux boundaries.
+def vertical_advection(
+    field: torch.Tensor, w: float | torch.Tensor, dz: float
+) -> torch.Tensor:
+    """Tendency from vertical advection (upwind).
 
-    ``w`` is a signed vertical velocity (same length unit as ``dz``, per day).
-    Upwind differencing keeps it stable and non-oscillatory; no-flux top/bottom
-    boundaries conserve the column total.
+    ``w`` is either:
+    - a **scalar** constant vertical velocity -> upwind with no-flux top+bottom
+      boundaries (the original behaviour; conserves the column total); or
+    - a **per-interface tensor** broadcastable to ``[..., Z+1]`` giving the velocity
+      at each of the ``Z+1`` interfaces (index 0 = surface ... Z = bottom), positive
+      = **downward** (index-increasing). This is the form :func:`w_from_continuity`
+      returns to make the 3-D flux discretely divergence-free (``w[...,0]=0`` rigid
+      lid; the bottom interface carries the diagnosed outflow).
+
+    Upwind differencing keeps it stable and non-oscillatory.
     """
-    upwind = field[..., :-1, :] if w >= 0.0 else field[..., 1:, :]  # interior interfaces
-    flux = w * upwind
-    zero = torch.zeros_like(field[..., :1, :])
-    flux_full = torch.cat([zero, flux, zero], dim=-2)
-    return -(flux_full[..., 1:, :] - flux_full[..., :-1, :]) / dz
+    if not torch.is_tensor(w) or w.dim() == 0:  # scalar: no-flux both ends
+        wf = float(w)
+        upwind = field[..., :-1, :] if wf >= 0.0 else field[..., 1:, :]
+        flux = wf * upwind
+        zero = torch.zeros_like(field[..., :1, :])
+        flux_full = torch.cat([zero, flux, zero], dim=-2)
+        return -(flux_full[..., 1:, :] - flux_full[..., :-1, :]) / dz
+
+    # per-interface w: ghost-pad the field so the surface/bottom interface upwinds
+    # the edge cell; positive w (downward) takes the cell ABOVE each interface.
+    cpad = torch.cat([field[..., :1, :], field, field[..., -1:, :]], dim=-2)  # [..., Z+2, T]
+    above = cpad[..., :-1, :]                                                 # [..., Z+1, T]
+    below = cpad[..., 1:, :]
+    w_i = w.unsqueeze(-1)                                                     # [..., Z+1, 1]
+    flux = w_i * torch.where(w_i >= 0, above, below)                         # [..., Z+1, T]
+    return -(flux[..., 1:, :] - flux[..., :-1, :]) / dz
+
+
+def w_from_continuity(
+    u: torch.Tensor,
+    v: torch.Tensor,
+    dx: float,
+    dy: float,
+    dz: float,
+    n_z: int,
+) -> torch.Tensor:
+    """Diagnose per-interface vertical velocity ``w(z)`` from horizontal continuity
+    so the combined 3-D flux is **discretely divergence-free** (rigid lid: ``w=0`` at
+    the surface). This is the A1 fix: flux-form advection is ``dC/dt = -u.grad(C) -
+    C.div(u)``, and a divergent ``(u,v)`` makes the ``C.div(u)`` term manufacture
+    spurious per-cell structure a uniform tracer develops ~10x fake range) that the
+    closures would absorb as fake biology. Recomputing ``w`` from continuity cancels
+    it exactly.
+
+    It is made consistent with :func:`horizontal_advection`'s *own* discretization by
+    integrating the operator's horizontal divergence of a uniform field, so a uniform
+    tracer under ``(u, v, w)`` has **zero tendency at every cell** (machine precision).
+    ``u, v`` are broadcastable to ``[..., Y, X]``; returns ``w`` at the ``Z+1``
+    interfaces, shape ``[..., Y, X, Z+1]``, for :func:`vertical_advection`.
+    """
+    ones = u.new_ones(*u.shape, n_z, 1)                       # [..., Y, X, Z, 1]
+    # horizontal tendency of a uniform field == -(horizontal flux divergence)
+    hd = horizontal_advection(ones.movedim(-2, 0), u, v, dx, dy).movedim(0, -2)
+    hd = hd.squeeze(-1)                                        # [..., Y, X, Z]
+    # w[k+1] = w[k] + hd_k*dz, w[0]=0  ->  vertical tendency -(w[k+1]-w[k])/dz = -hd_k
+    cumw = dz * torch.cumsum(hd, dim=-1)                       # w at interfaces 1..Z
+    return torch.cat([torch.zeros_like(cumw[..., :1]), cumw], dim=-1)  # [..., Y, X, Z+1]
 
 
 def horizontal_advection(
@@ -212,7 +263,7 @@ def column_tendency(
     *,
     kz: float = 0.1,
     dz: float = 25.0,
-    w: float = 0.0,
+    w: float | torch.Tensor = 0.0,
     bgc: bool = True,
     ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
     calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
@@ -234,7 +285,7 @@ def column_tendency(
             scav_closure=scav_closure, dust=dust, light=light,
         )
     d = d + vertical_diffusion(state, kz, dz)
-    if w != 0.0:
+    if torch.is_tensor(w) or w != 0.0:
         d = d + vertical_advection(state, w, dz)
     return d
 
@@ -249,7 +300,7 @@ def grid_tendency(
     dy: float,
     kz: float = 0.1,
     dz: float = 25.0,
-    w: float = 0.0,
+    w: float | torch.Tensor = 0.0,
     bgc: bool = True,
     ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
     calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
