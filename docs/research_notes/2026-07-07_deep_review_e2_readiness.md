@@ -91,7 +91,16 @@ pass is numerical).
   numerical diffusion; diffusion now explicit/diagnosable for the `K_num` ablation). Verified: centered exact
   on linear fields; unstable at `kh=0` (→1e7), bounded at `kh≥0.05` with A1's `w`.
 - **A4 — `surface_dust_field`** (dust at the surface layer only; column no longer gets Z× iron).
+- **A3 — DIC/ALK stoichiometry** in `bgc_tendency_field` (7-tracer): the single `pic_prod` feeds
+  `dPIC(+1)/dDIC(-1)/dALK(-2)`, so the calcite closure's carbon effect is real and carbon conserves through
+  calcification. Verified: total-C tendency `== -W_SINK*(POC+PIC)`; `dALK == -2*pic_prod`.
+- **A5 — `carbon_total` + rollout budget-closure gate**: co-integrating cumulative export, carbon conserves to
+  fp64 machine precision over a rollout (the per-element mass gate, #7).
+- **A6 — `interior_mask`**: no-flux walls are closed-domain-only; the open-AOI E2 loss excludes the wall ring.
 
-**Remaining:** A3 (DIC/ALK in the state so the calcite closure's carbon effect isn't dropped — a state-vector
-change), A5 (per-element open-system budget accumulator), A6 (open BCs for the AOI window). Then the windowed
-trainer + the E2 run carrying the `K_num`/ablation diagnostics.
+**ALL A1–A6 done and gated (2026-07-08); full suite 314.** The transport machinery is now scientifically sound
+for E2. Remaining before an E2 *number*: the windowed-BPTT trainer (with the checkpoint-equivalence gate,
+already added) + the E2 run carrying the `K_num`/ablation diagnostics; plus the data staging (soluble-iron
+forcing loader, real v05 velocity → `w_from_continuity`, held-out GEOTRACES-section scoring). The air-sea CO₂
+flux in the field version (currently an optional `co2_flux` passthrough) and a semi-implicit Thomas vertical
+diffusion are named follow-ups.
