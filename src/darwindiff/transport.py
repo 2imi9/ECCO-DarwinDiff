@@ -131,44 +131,50 @@ def horizontal_advection(
     dx: float,
     dy: float,
 ) -> torch.Tensor:
-    """Tendency from horizontal advection, flux-form centered-2nd, no-flux edges.
+    """Tendency from horizontal advection, flux-form **upwind**, no-flux edges.
 
-    This is the operator the 0-D box structurally lacks: it lets a prescribed
-    velocity field redistribute the spatially-varying tracer fields (``DFe``,
-    ``POC``, the calcite ratio) whose local products forced ``scav_rat`` /
-    ``R_PICPOC`` per-cell in Track 1 — i.e. it is the mechanism behind the E2
-    thesis (does transport homogenise the per-cell parameters?).
+    The operator the 0-D box structurally lacks: a prescribed velocity field
+    redistributes the spatially-varying tracer fields (``DFe``, ``POC``, the
+    calcite ratio) whose local products forced ``scav_rat`` / ``R_PICPOC``
+    per-cell in Track 1 -- the mechanism behind the E2 thesis.
 
     ``field``: ``[..., Y, X, tracer]`` (Y second-, X third-to-last spatial axes,
-    tracer last). ``u`` (x-velocity) and ``v`` (y-velocity) are per-cell fields
-    broadcastable to ``[..., Y, X]`` (same for every tracer) or to the full
-    ``field`` shape. ``dx``, ``dy`` are the grid spacings.
+    tracer last). ``u`` (x-velocity) and ``v`` (y-velocity) are broadcastable to
+    the field's non-tracer shape: a per-cell ``[..., Y, X]`` field is unsqueezed to
+    a trailing tracer axis automatically, and a bare ``[Y, X]`` broadcasts over a
+    batched field. ``dx``, ``dy`` are the grid spacings.
 
-    Conservation: the interface flux ``F = v_face * C_face`` is shared between
-    adjacent cells and both domain edges carry zero flux, so the flux-difference
-    tendency telescopes and the domain-integrated tracer is conserved to machine
-    precision — exactly like :func:`vertical_diffusion`/:func:`vertical_advection`.
-    Centered-2nd (not upwind) keeps the operator smooth for autograd; a smooth
-    tanh-blended limiter is a follow-up only if false extrema appear.
+    Reconstruction is **first-order upwind** -- the interface tracer is taken from
+    the up-current cell per the sign of the interface velocity, matching
+    :func:`vertical_advection`. Upwind is *dissipative* and therefore **stable**
+    over decadal rollouts; a naive centered-2nd scheme conserves mass but is
+    unconditionally unstable (non-normal exponential growth on divergent velocity
+    fields), so it is deliberately not used. Conservation is unchanged: the
+    interface flux ``F = v_face * C_up`` is shared between adjacent cells and both
+    edges carry zero flux, so the flux-difference tendency telescopes and the
+    domain-integrated tracer is conserved to machine precision. A smooth
+    higher-order/limited scheme can be layered later if upwind is too diffusive for
+    the target front sharpness.
     """
-    # add a trailing tracer axis to the velocities if they are given per-cell
-    if u.dim() == field.dim() - 1:
+    # give per-cell velocities a trailing tracer axis so they broadcast over
+    # tracers (handles [..., Y, X] and a bare [Y, X] against a batched field)
+    if u.dim() < field.dim():
         u = u.unsqueeze(-1)
-    if v.dim() == field.dim() - 1:
+    if v.dim() < field.dim():
         v = v.unsqueeze(-1)
 
-    # --- advection along X (axis=-2): u ---
-    u_face = 0.5 * (u[..., :, :-1, :] + u[..., :, 1:, :])          # [..., Y, X-1, T]
-    c_face = 0.5 * (field[..., :, :-1, :] + field[..., :, 1:, :])
-    fx = u_face * c_face                                           # interior face flux
+    # --- advection along X (axis=-2): u, upwind ---
+    u_face = 0.5 * (u[..., :, :-1, :] + u[..., :, 1:, :])          # interface velocity
+    c_up_x = torch.where(u_face >= 0, field[..., :, :-1, :], field[..., :, 1:, :])
+    fx = u_face * c_up_x                                           # interior face flux
     zx = torch.zeros_like(field[..., :, :1, :])
     fx_full = torch.cat([zx, fx, zx], dim=-2)                      # [..., Y, X+1, T]
     d_x = -(fx_full[..., :, 1:, :] - fx_full[..., :, :-1, :]) / dx
 
-    # --- advection along Y (axis=-3): v ---
-    v_face = 0.5 * (v[..., :-1, :, :] + v[..., 1:, :, :])          # [..., Y-1, X, T]
-    c_face_y = 0.5 * (field[..., :-1, :, :] + field[..., 1:, :, :])
-    fy = v_face * c_face_y
+    # --- advection along Y (axis=-3): v, upwind ---
+    v_face = 0.5 * (v[..., :-1, :, :] + v[..., 1:, :, :])          # interface velocity
+    c_up_y = torch.where(v_face >= 0, field[..., :-1, :, :], field[..., 1:, :, :])
+    fy = v_face * c_up_y
     zy = torch.zeros_like(field[..., :1, :, :])
     fy_full = torch.cat([zy, fy, zy], dim=-3)                      # [..., Y+1, X, T]
     d_y = -(fy_full[..., 1:, :, :] - fy_full[..., :-1, :, :]) / dy

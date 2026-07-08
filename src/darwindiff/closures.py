@@ -69,9 +69,13 @@ class EnvCalciteClosure(nn.Module):
 
     def g(self, state: torch.Tensor) -> torch.Tensor:
         """The bounded multiplicative envelope ``g_theta`` over the cells."""
-        DFe = state[..., 0]
-        f_lim = (DFe / (DFe + K_FE)).unsqueeze(-1)          # [..., cells, 1]
-        feat = torch.cat([self.env, f_lim], dim=-1)          # [..., cells, n_env+1]
+        # clamp to physical iron (DFe >= 0) BEFORE the ratio: this removes the
+        # ``DFe = -K_FE`` pole (which horizontal-advection overshoot can reach and
+        # which otherwise emits a NaN gradient that poisons the whole optimizer),
+        # while staying byte-identical for every physical state. f_lim in [0, 1).
+        dfe = state[..., 0].clamp_min(0.0)
+        f_lim = (dfe / (dfe + K_FE)).unsqueeze(-1)           # [..., cells, 1]
+        feat = torch.cat([self.env.to(f_lim.dtype), f_lim], dim=-1)
         a = self.net(feat).squeeze(-1)                       # [..., cells]
         return 10.0 ** (self.A * torch.tanh(a))              # in [10**-A, 10**A]
 
@@ -95,8 +99,9 @@ class ScavClosure(nn.Module):
 
     Anchor: ``p = softplus(raw_p)`` is initialised to **exactly 1**, the correction
     readout is zero-initialised (``corr == 1``), and ``r0 = scav_rat_per_day * POC0``,
-    so at init this **byte-reproduces the box sink** ``scav_rat_per_day*DFe*POC``
-    (strict superset). The Darwin/Parekh empirical exponent is ``p ~ 0.58``; report
+    so at init this **reproduces the box sink** ``scav_rat_per_day*DFe*POC`` to float
+    round-off (~1e-7, from the ``exp(log r0)`` round-trip -- a strict superset in
+    practice; the test asserts ``rtol=1e-6``). The Darwin/Parekh empirical exponent is ``p ~ 0.58``; report
     ``(p - 1)`` as a diagnostic -- if data pulls ``p`` below 1 the box's linear-POC
     simplification is being falsified.
 
@@ -144,11 +149,15 @@ class ScavClosure(nn.Module):
 
     def forward(self, DFe: torch.Tensor, POC: torch.Tensor) -> torch.Tensor:
         r0 = torch.exp(self.log_r0)
-        pocn = POC / self.POC0
+        # floor the normalised POC before BOTH the log feature and the pow
+        # backbone: pocn**p has an infinite d/dp (and d/dPOC for p<1) at pocn=0,
+        # so the clamp keeps the closure autograd-clean across the p<1 (Parekh
+        # ~0.58) regime it is built to explore. Byte-identical for physical POC.
+        pocn = (POC / self.POC0).clamp_min(1e-12)
         f1 = torch.log10(DFe.clamp_min(1e-12)) + 4.0
-        f2 = torch.log10(pocn.clamp_min(1e-12))
+        f2 = torch.log10(pocn)
         feat = torch.stack([f1, f2], dim=-1)                 # [..., cells, 2]
         if self._has_env:
-            feat = torch.cat([feat, self.env], dim=-1)
+            feat = torch.cat([feat, self.env.to(feat.dtype)], dim=-1)
         corr = 1.0 + self.eps * torch.tanh(self.net(feat).squeeze(-1))
         return r0 * pocn.pow(self.p) * DFe * corr

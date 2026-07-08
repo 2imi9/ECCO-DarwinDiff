@@ -115,24 +115,27 @@ def test_horizontal_advection_conserves_domain_and_flows_grad():
     assert torch.isfinite(f.grad).all()
 
 
-def test_horizontal_advection_gradcheck():
-    """Exact-Jacobian gradcheck (fp64) w.r.t. the field AND the prescribed (u, v)
-    velocities — the operator must be autograd-clean for the transport UDE."""
+def test_horizontal_advection_gradcheck_field():
+    """Exact-Jacobian gradcheck (fp64) w.r.t. the field: with the upwind pattern
+    fixed by the (constant) velocities, the operator is linear in the field and
+    must be autograd-clean. Velocities are not gradchecked -- upwind's branch
+    selection is non-smooth at zero-velocity interfaces by construction."""
     torch.manual_seed(0)
     f = (0.1 + torch.rand(3, 3, 2, dtype=torch.float64)).requires_grad_(True)
-    u = (torch.rand(3, 3, dtype=torch.float64) - 0.5).requires_grad_(True)
-    v = (torch.rand(3, 3, dtype=torch.float64) - 0.5).requires_grad_(True)
+    u = torch.rand(3, 3, dtype=torch.float64) - 0.5  # fixed constants
+    v = torch.rand(3, 3, dtype=torch.float64) - 0.5
     assert torch.autograd.gradcheck(
-        lambda ff, uu, vv: horizontal_advection(ff, uu, vv, dx=1.0, dy=1.0),
-        (f, u, v),
+        lambda ff: horizontal_advection(ff, u, v, dx=1.0, dy=1.0), (f,)
     )
 
 
 def test_horizontal_advection_rollout_conserves_mass():
-    """A closed 2-D field advected under RK4 conserves the per-tracer domain total
-    to machine precision (the #7 budget invariant, horizontal edition)."""
-    f0 = _hfield(Y=6, X=6, T=2)
-    u, v = 0.5 * _vel(6, 6, 3), 0.5 * _vel(6, 6, 4)
+    """A closed 2-D field advected under RK4 conserves the per-tracer domain total.
+    Run in float64: telescoping conservation is exact in exact arithmetic, so the
+    residual is pure round-off (~1e-14 in fp64; ~1e-7 in fp32 -- the earlier 1e-9
+    fp32 bound passed only by luck, per the PR review)."""
+    f0 = _hfield(Y=6, X=6, T=2).double()
+    u, v = (0.5 * _vel(6, 6, 3)).double(), (0.5 * _vel(6, 6, 4)).double()
 
     def tend(s):
         return horizontal_advection(s, u, v, dx=1.0, dy=1.0)
@@ -141,4 +144,45 @@ def test_horizontal_advection_rollout_conserves_mass():
     assert torch.isfinite(fN).all()
     tot0 = f0.sum(dim=(-3, -2))
     drift = (fN.sum(dim=(-3, -2)) - tot0).abs() / tot0.abs()
-    assert drift.max().item() < 1e-9
+    assert drift.max().item() < 1e-10
+
+
+def test_horizontal_advection_upwind_stable_long_horizon():
+    """Upwind is dissipative, so a divergent velocity field must NOT blow the tracer
+    up over a long rollout (centered-2nd grew to ~1e10 here -- the P1 regression)."""
+    f0 = _hfield(Y=6, X=6, T=2)
+    u, v = 0.5 * _vel(6, 6, 3), 0.5 * _vel(6, 6, 4)
+
+    def tend(s):
+        return horizontal_advection(s, u, v, dx=1.0, dy=1.0)
+
+    fN = integrate(tend, f0, dt=0.05, n_steps=4000, method="rk4")  # t = 200
+    assert torch.isfinite(fN).all()
+    assert fN.abs().max().item() < 20.0 * f0.abs().max().item()
+
+
+def test_horizontal_advection_upwind_direction():
+    """Upwind takes the up-current cell, and the front moves down-current: with u>0
+    (v=0) a step profile [1,1,0,0] loses on the left and gains on the right. A
+    wholesale sign flip inverts both signs and fails this gate."""
+    f = torch.zeros(1, 4, 1)
+    f[0, :2, 0] = 1.0
+    u = torch.ones(1, 4)      # flow in +x everywhere
+    v = torch.zeros(1, 4)
+    d = horizontal_advection(f, u, v, dx=1.0, dy=1.0)[0, :, 0]
+    assert d[0].item() < 0.0   # leftmost (up-current) cell loses
+    assert d[2].item() > 0.0   # down-current cell gains
+
+
+def test_horizontal_advection_batched_velocity_broadcast():
+    """A shared per-cell [Y, X] velocity must broadcast over a batched field and
+    equal the per-batch loop (the old dim-count heuristic crashed on this)."""
+    torch.manual_seed(2)
+    field = 0.1 + torch.rand(3, 5, 5, 2)  # [B, Y, X, T]
+    u = torch.rand(5, 5) - 0.5            # bare [Y, X]
+    v = torch.rand(5, 5) - 0.5
+    out = horizontal_advection(field, u, v, dx=1.0, dy=1.0)
+    ref = torch.stack(
+        [horizontal_advection(field[b], u, v, dx=1.0, dy=1.0) for b in range(3)]
+    )
+    torch.testing.assert_close(out, ref)

@@ -1,10 +1,12 @@
 """Tests for the learned Track-2 closures (Phase 1)."""
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import nn
 
-from darwindiff.carroll6 import CARROLL_VALUES, P
+from darwindiff.carroll6 import CARROLL_VALUES, K_FE, P
 from darwindiff.closures import EnvCalciteClosure, ScavClosure
 from darwindiff.integrators import integrate
 from darwindiff.transport import column_tendency
@@ -108,3 +110,72 @@ def test_scav_trains_through_transport():
         p.grad is not None and torch.isfinite(p.grad).all() and p.grad.abs().sum().item() > 0.0
         for p in clo.parameters()
     )
+
+
+# --- NaN/singularity regressions (from the PR-1/2/3 review) ------------------------
+
+
+def test_env_calcite_finite_grad_at_negative_dfe():
+    """A cell at DFe = -K_FE (reachable via advection overshoot) must not emit NaN
+    gradients: the DFe>=0 clamp removes the f_lim pole. Forward looked finite even
+    before the fix (tanh saturates) -- the failure was silent in backward."""
+    clo = EnvCalciteClosure(_env(C=2, Z=3))
+    torch.manual_seed(7)
+    for p in clo.net.parameters():
+        nn.init.normal_(p, std=1.0)  # live (nonzero) readout
+    state = _state(C=2, Z=3).clone()
+    state[..., 0] = -float(K_FE)  # sit exactly on the old pole
+    state.requires_grad_(True)
+    mort = 0.1 + 0.1 * torch.rand(2, 3)
+    out = clo(state, mort)
+    assert torch.isfinite(out).all()
+    out.pow(2).sum().backward()
+    assert torch.isfinite(state.grad).all()
+    assert all(torch.isfinite(p.grad).all() for p in clo.net.parameters())
+
+
+def test_scav_finite_grad_sublinear_p_at_zero_poc():
+    """In the Parekh sublinear regime (p<1) the pow backbone must stay autograd-clean
+    at POC=0 -- d/dp[pocn**p] and d/dPOC are singular there without the clamp."""
+    clo = ScavClosure()
+    with torch.no_grad():
+        clo.raw_p.copy_(torch.tensor(math.log(math.exp(0.58) - 1.0)))  # softplus -> 0.58
+    assert abs(clo.p.item() - 0.58) < 1e-4
+    dfe = (1.0e-4 * (0.5 + torch.rand(4, 4))).requires_grad_(True)
+    poc = torch.zeros(4, 4, requires_grad=True)  # POC == 0 everywhere
+    sink = clo(dfe, poc)
+    assert torch.isfinite(sink).all()
+    sink.sum().backward()
+    assert torch.isfinite(poc.grad).all() and torch.isfinite(dfe.grad).all()
+    assert all(torch.isfinite(p.grad).all() for p in clo.parameters())
+
+
+# --- formula-pinning gates (catch sign flips / wrong-channel wiring) ---------------
+
+
+def test_env_calcite_g_formula_pinned():
+    """Pin g_theta = 10**(A*tanh(a)): zero the readout weights and set bias b, so
+    a==b everywhere and g == 10**(A*tanh(b)). A sign flip or wrong nonlinearity fails."""
+    clo = EnvCalciteClosure(_env(), A=1.0)
+    with torch.no_grad():
+        clo.net[-1].weight.zero_()
+        clo.net[-1].bias.fill_(0.7)
+    g = clo.g(_state())
+    expected = 10.0 ** (1.0 * math.tanh(0.7))
+    torch.testing.assert_close(g, torch.full_like(g, expected))
+
+
+def test_scav_corr_formula_pinned():
+    """Pin corr = 1 + eps*tanh(a): zero readout weights, bias b -> corr == 1+eps*tanh(b).
+    Catches the corr sign flip that survived the original gates."""
+    clo = ScavClosure(eps=0.2)
+    with torch.no_grad():
+        clo.net[-1].weight.zero_()
+        clo.net[-1].bias.fill_(0.5)
+    dfe = 1.0e-4 * torch.ones(3, 3)
+    poc = 0.5 * torch.ones(3, 3)
+    sink = clo(dfe, poc)
+    backbone = torch.exp(clo.log_r0) * (poc / clo.POC0).pow(clo.p) * dfe
+    corr = sink / backbone
+    expected = 1.0 + 0.2 * math.tanh(0.5)
+    torch.testing.assert_close(corr, torch.full_like(corr, expected))
