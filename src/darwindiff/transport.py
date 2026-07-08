@@ -52,6 +52,12 @@ def bgc_tendency_field(
     terms (the UDE hook). ``dust`` (iron-dust source, default ``PHI_DUST``) and
     ``light`` (default ``LIGHT``) may be time-varying scalars/fields for temporal
     forcing (broadcastable to the field).
+
+    **Precondition on a COLUMN/grid state:** atmospheric dust is a *surface* flux, so
+    a scalar ``dust`` (applied at every Z layer) over-injects iron ~Z-fold and
+    destroys the vertical DFe gradient. For ``[..., Z, tracer]`` states pass a
+    surface-only ``dust`` field (``PHI_DUST/dz`` at Z=0, zero below); the scalar
+    default is correct only for the 0-D box. (deep review 2026-07-07)
     """
     DFe = state[..., 0]
     Ps = state[..., 1]
@@ -102,6 +108,12 @@ def vertical_diffusion(field: torch.Tensor, kz: float, dz: float) -> torch.Tenso
     ``field``: ``[..., Z, tracer]``. Interior interface fluxes are
     ``-kz * d(field)/dz``; top and bottom fluxes are zero, so the column-summed
     tracer is conserved by construction.
+
+    **CFL (explicit scheme):** stable only for ``kz*dt/dz**2 < 0.5``; above it the
+    rollout **silently NaNs** (there is no guard here -- ``dt`` lives in the
+    integrator). Realistic mixed-layer ``kz`` can exceed this at ``dt=0.25 d``. The
+    planned fix is semi-implicit backward-Euler (batched Thomas), which removes the
+    cap (see the E2-readiness note).
     """
     grad = (field[..., 1:, :] - field[..., :-1, :]) / dz          # [..., Z-1, T]
     flux = -kz * grad                                             # interior interfaces
@@ -155,6 +167,18 @@ def horizontal_advection(
     domain-integrated tracer is conserved to machine precision. A smooth
     higher-order/limited scheme can be layered later if upwind is too diffusive for
     the target front sharpness.
+
+    **Preconditions for a valid E2 result (deep review 2026-07-07 -- see
+    docs/research_notes/2026-07-07_deep_review_e2_readiness.md):**
+    (1) ``u, v`` (with ``w``) must be **discretely non-divergent**. Flux form is
+    ``dC/dt = -u·grad(C) - C·div(u)``; a divergent field makes the ``C·div(u)`` term
+    manufacture spurious per-cell structure (a uniform tracer develops ~10x fake
+    range) that the closures would absorb as fake biology -- and total conservation
+    does **not** reveal it. Recompute ``w(z)`` from continuity before any rollout.
+    (2) No-flux edges = a **closed** domain; an open regional (AOI) window needs
+    open/outflow BCs or an edge-ring mask, else the walls create a fake boundary
+    layer. (3) First-order upwind is heavily diffusive (``K_num ~ 0.5|u|dx``, up to
+    ~50x the physical eddy value); quantify/upgrade before trusting an E2 number.
     """
     # give per-cell velocities a trailing tracer axis so they broadcast over
     # tracers (handles [..., Y, X] and a bare [Y, X] against a batched field)
@@ -247,6 +271,12 @@ def grid_tendency(
     Conservation: with ``bgc=False`` every operator is flux-form with no-flux edges,
     so the domain-integrated tracer is conserved; ``bgc=True`` adds the (intended)
     reactive sources/sinks.
+
+    **NOT yet E2-ready** (deep review 2026-07-07): ``w`` defaults to 0 so horizontal
+    ``div(u)`` is uncompensated (see :func:`horizontal_advection` precondition (1));
+    a per-layer ``w(z)`` from continuity is required. See
+    ``docs/research_notes/2026-07-07_deep_review_e2_readiness.md`` for the ordered
+    A1-A6 fixes that must land before a held-out-R^2 number is trustworthy.
     """
     d = column_tendency(
         state, params, kz=kz, dz=dz, w=w, bgc=bgc,

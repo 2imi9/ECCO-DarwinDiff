@@ -254,3 +254,47 @@ def test_grid_tendency_trains_a_closure_through_full_rollout():
     grads = [p.grad for p in clo.net.parameters()]
     assert all(g is not None and torch.isfinite(g).all() for g in grads)
     assert any(g.abs().sum().item() > 0.0 for g in grads)
+
+
+def test_grid_tendency_axis_direction_nonsquare():
+    """On a NON-square grid, at an INTERIOR (wall-free) cell, advecting an X-step
+    with u only acts (X-gradient) while v only does nothing (field is Y-uniform).
+    Catches a Y/X wiring swap in the movedim composition, which conservation and
+    field-gradcheck are both blind to (deep-review P1 test-gap). Uses Y=3 so Y=1 is
+    interior -- avoiding the no-flux wall effect that every edge cell feels."""
+    params = carroll6.CARROLL_VALUES
+    f = torch.zeros(3, 4, 2, 1)  # [Y=3, X=4, Z=2, tracer]
+    f[:, 0, :, 0] = 1.0          # step along X only; uniform in Y and Z
+    kw = dict(dx=1.0, dy=1.0, kz=0.0, w=0.0, bgc=False)
+    u_only = grid_tendency(f, params, u=torch.ones(3, 4), v=torch.zeros(3, 4), **kw)[..., 0]
+    v_only = grid_tendency(f, params, u=torch.zeros(3, 4), v=torch.ones(3, 4), **kw)[..., 0]
+    assert u_only[1, 1:3].abs().sum().item() > 0.0   # interior: u advects the X-step
+    assert v_only[1, 1:3].abs().sum().item() == 0.0  # interior: v on a Y-uniform field = 0
+
+
+def test_grid_checkpoint_matches_dense_with_closure():
+    """Checkpoint-vs-dense gradient equivalence through grid_tendency + a live
+    closure (with the upwind `where` branch under recompute) -- the invariant the
+    checkpointed-decadal plan rests on, previously only tested on a linear tendency."""
+    params = carroll6.CARROLL_VALUES.clone()
+    env = torch.randn(3, 3, 3, 3, generator=torch.Generator().manual_seed(9))
+    u = 0.2 * (torch.rand(3, 3, generator=torch.Generator().manual_seed(1)) - 0.5)
+    v = 0.2 * (torch.rand(3, 3, generator=torch.Generator().manual_seed(2)) - 0.5)
+
+    def run(segment):
+        torch.manual_seed(0)
+        clo = EnvCalciteClosure(env)
+        s0 = _grid_state(3, 3, 3).clone().requires_grad_(True)
+        fN = integrate(
+            lambda s: grid_tendency(
+                s, params, u=u, v=v, dx=1.0, dy=1.0, kz=0.1, dz=25.0, calcite_closure=clo
+            ),
+            s0, dt=0.25, n_steps=20, method="rk4", checkpoint_segment=segment,
+        )
+        fN.pow(2).sum().backward()
+        return s0.grad.clone(), torch.cat([p.grad.flatten() for p in clo.net.parameters()])
+
+    g_dense, p_dense = run(None)
+    g_ckpt, p_ckpt = run(5)
+    torch.testing.assert_close(g_dense, g_ckpt, rtol=1e-5, atol=1e-6)
+    torch.testing.assert_close(p_dense, p_ckpt, rtol=1e-5, atol=1e-6)
