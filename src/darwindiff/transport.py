@@ -174,7 +174,33 @@ def interior_mask(
     return m
 
 
-def vertical_diffusion(field: torch.Tensor, kz: float, dz: float) -> torch.Tensor:
+def vertical_cfl_number(kz: float, dz: float, dt: float) -> float:
+    """Explicit vertical-diffusion CFL number ``kz*dt/dz**2``. Stable for ``< 0.5``."""
+    return kz * dt / (dz * dz)
+
+
+def assert_vertical_cfl(kz: float, dz: float, dt: float, *, limit: float = 0.5) -> None:
+    """Raise if the explicit vertical-diffusion CFL number reaches ``limit`` (0.5).
+
+    The explicit :func:`vertical_diffusion` rollout **silently NaNs** above the limit
+    (deep review 2026-07-07: confirmed NaN at ``kz*dt/dz**2 = 1.25``); this makes the
+    failure loud instead. For realistic mixed-layer ``kz`` at ``dt=0.25 d`` the limit
+    is exceeded -- use the unconditionally-stable :func:`vertical_diffusion_implicit`
+    (via :func:`imex_rollout`) rather than shrinking ``dt``.
+    """
+    cfl = vertical_cfl_number(kz, dz, dt)
+    if cfl >= limit:
+        raise ValueError(
+            f"explicit vertical diffusion is unstable: kz*dt/dz^2 = {cfl:.3g} >= {limit} "
+            f"(kz={kz}, dz={dz}, dt={dt}); it will silently NaN. Use "
+            f"vertical_diffusion_implicit / imex_rollout (backward-Euler, no CFL limit) "
+            f"or reduce dt below {limit * dz * dz / kz:.4g} d."
+        )
+
+
+def vertical_diffusion(
+    field: torch.Tensor, kz: float, dz: float, dt: float | None = None
+) -> torch.Tensor:
     """Tendency from vertical diffusion (Fickian mixing) with no-flux boundaries.
 
     ``field``: ``[..., Z, tracer]``. Interior interface fluxes are
@@ -182,16 +208,82 @@ def vertical_diffusion(field: torch.Tensor, kz: float, dz: float) -> torch.Tenso
     tracer is conserved by construction.
 
     **CFL (explicit scheme):** stable only for ``kz*dt/dz**2 < 0.5``; above it the
-    rollout **silently NaNs** (there is no guard here -- ``dt`` lives in the
-    integrator). Realistic mixed-layer ``kz`` can exceed this at ``dt=0.25 d``. The
-    planned fix is semi-implicit backward-Euler (batched Thomas), which removes the
-    cap (see the E2-readiness note).
+    rollout **silently NaNs**. Pass ``dt`` here to turn that silent failure into a
+    loud :func:`assert_vertical_cfl` error. Realistic mixed-layer ``kz`` exceeds the
+    cap at ``dt=0.25 d`` -- for E2 rollouts use the unconditionally-stable
+    :func:`vertical_diffusion_implicit` (backward-Euler Thomas) via
+    :func:`imex_rollout`, which removes the cap entirely.
     """
+    if dt is not None:
+        assert_vertical_cfl(kz, dz, dt)
     grad = (field[..., 1:, :] - field[..., :-1, :]) / dz          # [..., Z-1, T]
     flux = -kz * grad                                             # interior interfaces
     zero = torch.zeros_like(field[..., :1, :])
     flux_full = torch.cat([zero, flux, zero], dim=-2)             # [..., Z+1, T]
     return -(flux_full[..., 1:, :] - flux_full[..., :-1, :]) / dz
+
+
+def thomas_solve(
+    a: torch.Tensor, b: torch.Tensor, c: torch.Tensor, d: torch.Tensor
+) -> torch.Tensor:
+    """Batched, autograd-clean tridiagonal solve along the Z axis (``dim=-2``).
+
+    Solves ``a[i]*x[i-1] + b[i]*x[i] + c[i]*x[i+1] = d[i]`` for ``x`` over the depth
+    axis of a ``[..., Z, tracer]`` field. ``a`` (sub-diagonal, ``a[0]`` unused), ``b``
+    (diagonal), ``c`` (super-diagonal, ``c[-1]`` unused) are 1-D ``[Z]`` coefficient
+    vectors (broadcast over every batch/tracer axis); ``d`` is the ``[..., Z, tracer]``
+    right-hand side. The Thomas algorithm (forward elimination + back substitution) is
+    O(Z) and sequential in Z, implemented with a Python loop over the (small) depth
+    axis so gradients flow cleanly (no in-place writes to grad tensors). For a
+    diagonally-dominant system (``|b| > |a|+|c|``, true for backward-Euler diffusion)
+    it is numerically stable without pivoting.
+    """
+    n = d.shape[-2]
+    if n == 1:
+        return d / b[0]
+    cp = [c[0] / b[0]]                    # c'[0]
+    dp = [d[..., 0, :] / b[0]]            # d'[0], shape [..., tracer]
+    for i in range(1, n):
+        m = b[i] - a[i] * cp[i - 1]
+        cp.append(c[i] / m)
+        dp.append((d[..., i, :] - a[i] * dp[i - 1]) / m)
+    x = [None] * n
+    x[n - 1] = dp[n - 1]
+    for i in range(n - 2, -1, -1):
+        x[i] = dp[i] - cp[i] * x[i + 1]
+    return torch.stack(x, dim=-2)
+
+
+def vertical_diffusion_implicit(
+    state: torch.Tensor, kz: float, dz: float, dt: float
+) -> torch.Tensor:
+    """One **unconditionally-stable** backward-Euler vertical-diffusion sub-step.
+
+    Solves ``(I - dt*L) x^{n+1} = x^n`` where ``L`` is the *same* no-flux Laplacian
+    operator :func:`vertical_diffusion` applies explicitly, via :func:`thomas_solve`.
+    Returns ``x^{n+1}`` for ``state = x^n`` (shape ``[..., Z, tracer]``). Unlike the
+    explicit scheme this has **no CFL limit** (stable for any ``kz*dt/dz**2``), curing
+    the silent-NaN failure at realistic mixed-layer ``kz`` -- the deep-review /
+    E2-readiness fix. **Mass-conserving:** ``L`` is column-conservative (each matrix
+    column of ``I - dt*L`` sums to 1), so the column-integrated tracer is preserved to
+    machine precision, exactly like the explicit operator.
+
+    Row structure (``r = kz*dt/dz**2``, no-flux top/bottom):
+    interior ``(-r, 1+2r, -r)``; top/bottom rows ``(1+r, -r)`` / ``(-r, 1+r)``.
+    """
+    n = state.shape[-2]
+    if n == 1:  # single layer: no vertical coupling -> identity
+        return state
+    r = kz * dt / (dz * dz)
+    kw = {"dtype": state.dtype, "device": state.device}
+    a = torch.full((n,), -r, **kw)
+    b = torch.full((n,), 1.0 + 2.0 * r, **kw)
+    c = torch.full((n,), -r, **kw)
+    a[0] = 0.0                # unused (no cell above the surface)
+    c[n - 1] = 0.0            # unused (no cell below the bottom)
+    b[0] = 1.0 + r           # no-flux top: only one neighbour
+    b[n - 1] = 1.0 + r       # no-flux bottom: only one neighbour
+    return thomas_solve(a, b, c, state)
 
 
 def vertical_advection(
@@ -372,6 +464,8 @@ def column_tendency(
     dz: float = 25.0,
     w: float | torch.Tensor = 0.0,
     bgc: bool = True,
+    include_vdiff: bool = True,
+    dt: float | None = None,
     ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
     calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
     scav_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
@@ -384,6 +478,14 @@ def column_tendency(
     conservation invariant. ``dust``/``light`` pass time-varying forcing to the
     BGC (for temporal excitation). Plug into ``integrators.integrate`` via a
     closure over ``params`` and the forcing kwargs.
+
+    Set ``include_vdiff=False`` to **exclude** the explicit vertical-diffusion term
+    from the tendency -- the mode :func:`imex_rollout` uses so vertical diffusion can
+    instead be applied implicitly (backward-Euler, no CFL limit) as a separate
+    operator-split sub-step. With ``include_vdiff=True`` (default) vertical diffusion
+    is explicit and subject to ``kz*dt/dz**2 < 0.5``; pass the integrator's ``dt`` here
+    to **guard** it -- :func:`assert_vertical_cfl` then raises loudly instead of the
+    rollout silently NaN-ing above the limit (deep review 2026-07-08).
     """
     d = torch.zeros_like(state)
     if bgc:
@@ -391,7 +493,8 @@ def column_tendency(
             state, params, ffe_closure=ffe_closure, calcite_closure=calcite_closure,
             scav_closure=scav_closure, dust=dust, light=light,
         )
-    d = d + vertical_diffusion(state, kz, dz)
+    if include_vdiff:
+        d = d + vertical_diffusion(state, kz, dz, dt=dt)
     if torch.is_tensor(w) or w != 0.0:
         d = d + vertical_advection(state, w, dz)
     return d
@@ -410,6 +513,8 @@ def grid_tendency(
     w: float | torch.Tensor = 0.0,
     kh: float = 0.0,
     bgc: bool = True,
+    include_vdiff: bool = True,
+    dt: float | None = None,
     ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
     calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
     scav_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
@@ -438,7 +543,7 @@ def grid_tendency(
     A1-A6 fixes that must land before a held-out-R^2 number is trustworthy.
     """
     d = column_tendency(
-        state, params, kz=kz, dz=dz, w=w, bgc=bgc,
+        state, params, kz=kz, dz=dz, w=w, bgc=bgc, include_vdiff=include_vdiff, dt=dt,
         ffe_closure=ffe_closure, calcite_closure=calcite_closure,
         scav_closure=scav_closure, dust=dust, light=light,
     )
@@ -450,3 +555,126 @@ def grid_tendency(
     if kh != 0.0:
         d_h = d_h + horizontal_diffusion(state_h, kh, dx, dy)
     return d + d_h.movedim(0, -2)
+
+
+def _rk4_explicit(f, x: torch.Tensor, t: float, dt: float) -> torch.Tensor:
+    """Local classical RK4 step (forcing at stage times ``t, t+dt/2, t+dt/2, t+dt``)."""
+    k1 = f(t, x)
+    k2 = f(t + 0.5 * dt, x + 0.5 * dt * k1)
+    k3 = f(t + 0.5 * dt, x + 0.5 * dt * k2)
+    k4 = f(t + dt, x + dt * k3)
+    return x + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+
+
+def _euler_explicit(f, x: torch.Tensor, t: float, dt: float) -> torch.Tensor:
+    """Local forward-Euler step."""
+    return x + dt * f(t, x)
+
+
+# Local explicit steppers (kept self-contained rather than importing integrators.py,
+# whose stepper signatures are mid-refactor in a concurrent branch -- see the shared-
+# checkout note). Semantics match integrators.rk4_step/euler_step.
+_EXPLICIT_STEP = {"rk4": _rk4_explicit, "euler": _euler_explicit}
+
+
+def _to_time_aware(f):
+    """Accept a legacy autonomous ``f(x)`` and wrap it as ``f(t, x)`` (else use as-is)."""
+    import inspect
+
+    try:
+        n = len([
+            p for p in inspect.signature(f).parameters.values()
+            if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD) and p.default is p.empty
+        ])
+    except (TypeError, ValueError):
+        n = 2
+    return (lambda t, x: f(x)) if n <= 1 else f
+
+
+def imex_rollout(
+    tendency: Callable,
+    state: torch.Tensor,
+    dt: float,
+    n_steps: int,
+    *,
+    kz: float,
+    dz: float,
+    method: str = "rk4",
+    t0: float = 0.0,
+    checkpoint_segment: int | None = None,
+    snapshot_indices: list[int] | None = None,
+) -> torch.Tensor:
+    """IMEX rollout: **explicit** RK4/Euler on ``tendency`` + **implicit** vertical
+    diffusion each step (first-order Lie/Godunov operator splitting).
+
+    ``tendency(t, x) -> dx`` must be the EXPLICIT part **without** the vertical-diffusion
+    term. This rollout adds the implicit vertical-diffusion sub-step itself, so if the
+    ``tendency`` ALSO contains vertical diffusion it is **double-counted** (silently wrong
+    at small ``kz*dt/dz**2``, and NaN above the explicit CFL limit). ``column_tendency`` /
+    ``grid_tendency`` default ``include_vdiff=True``, so you MUST pass ``include_vdiff=False``::
+
+        # WRONG -- double-counts vertical diffusion:
+        tend = lambda t, x: grid_tendency(x, params, u=u, v=v, dx=dx, dy=dy, kz=kz, dz=dz)
+        # RIGHT -- vertical diffusion handled implicitly by imex_rollout:
+        tend = lambda t, x: grid_tendency(x, params, u=u, v=v, dx=dx, dy=dy, kz=kz, dz=dz,
+                                          include_vdiff=False)
+        out = imex_rollout(tend, state, dt, n_steps, kz=kz, dz=dz)
+
+    Each step advances the explicit operators (BGC, advection, horizontal mixing) with the
+    chosen explicit ``method`` and then applies one unconditionally-stable backward-Euler
+    vertical-diffusion sub-step (:func:`vertical_diffusion_implicit`) -- so the whole
+    rollout has **no vertical-CFL limit** and does not silently NaN at realistic
+    mixed-layer ``kz`` (the E2-readiness fix). Splitting is first-order in ``dt``; each
+    sub-step keeps its own order.
+
+    ``state``: ``[..., Z, tracer]`` (depth axis -2). Supports gradient
+    ``checkpoint_segment`` (bound backward memory for windowed BPTT; the implicit solve
+    is deterministic so recompute is bit-identical) and ``snapshot_indices`` (1-indexed,
+    stack snapshots; honored without checkpointing). Returns the final state, or the
+    stacked snapshots if ``snapshot_indices`` is given.
+    """
+    if method not in _EXPLICIT_STEP:
+        raise ValueError(f"unknown method {method!r}; expected one of {sorted(_EXPLICIT_STEP)}")
+    estep = _EXPLICIT_STEP[method]
+    f = _to_time_aware(tendency)
+
+    def advance(x: torch.Tensor, t: float) -> torch.Tensor:
+        x = estep(f, x, t, dt)                          # explicit: BGC + advection + horiz
+        return vertical_diffusion_implicit(x, kz, dz, dt)  # implicit: vertical diffusion
+
+    if snapshot_indices is not None:
+        wanted = set(snapshot_indices)
+        snaps: list[torch.Tensor] = []
+        x, t = state, t0
+        for s in range(1, n_steps + 1):
+            x = advance(x, t)
+            t += dt
+            if s in wanted:
+                snaps.append(x)
+        return torch.stack(snaps)
+
+    if checkpoint_segment and checkpoint_segment > 0:
+        from torch.utils.checkpoint import checkpoint
+
+        x, i, t = state, 0, t0
+        while i < n_steps:
+            k = min(checkpoint_segment, n_steps - i)
+            t_seg = t
+
+            def seg(x_in: torch.Tensor, _k: int = k, _t: float = t_seg) -> torch.Tensor:
+                tt = _t
+                for _ in range(_k):
+                    x_in = advance(x_in, tt)
+                    tt += dt
+                return x_in
+
+            x = checkpoint(seg, x, use_reentrant=False)
+            i += k
+            t += k * dt
+        return x
+
+    x, t = state, t0
+    for _ in range(n_steps):
+        x = advance(x, t)
+        t += dt
+    return x
