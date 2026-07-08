@@ -140,6 +140,20 @@ def surface_dust_field(
     return d
 
 
+def carbon_total(state: torch.Tensor) -> torch.Tensor:
+    """Total carbon per cell = the carbon-bearing tracers summed:
+    ``Ps + Pl + POC + PIC`` (+ ``DIC`` for a 7-tracer state). Iron (``DFe``) and
+    alkalinity (``ALK``) are excluded. Sum this over space for the open-system carbon
+    budget: ``d(Total C) = inputs - outputs`` -- with A3's stoichiometry the only
+    carbon exits are particulate export (``W_SINK*(POC+PIC)``) and the optional
+    air-sea flux, so total carbon conserves through calcification (deep review A5).
+    """
+    c = state[..., 1] + state[..., 2] + state[..., 3] + state[..., 4]  # Ps+Pl+POC+PIC
+    if state.shape[-1] >= 7:
+        c = c + state[..., 5]  # + DIC
+    return c
+
+
 def vertical_diffusion(field: torch.Tensor, kz: float, dz: float) -> torch.Tensor:
     """Tendency from vertical diffusion (Fickian mixing) with no-flux boundaries.
 

@@ -9,6 +9,7 @@ from darwindiff.integrators import integrate, relative_mass_drift
 from darwindiff.closures import EnvCalciteClosure
 from darwindiff.transport import (
     bgc_tendency_field,
+    carbon_total,
     column_tendency,
     grid_tendency,
     horizontal_advection,
@@ -438,3 +439,30 @@ def test_bgc_5tracer_path_unchanged_shape():
     box is covered by test_bgc_field_matches_box_on_single_cell)."""
     d = bgc_tendency_field(torch.full((4, 5), 0.1), carroll6.CARROLL_VALUES)
     assert d.shape == (4, 5)
+
+
+def test_carbon_budget_closes_over_rollout():
+    """A5: co-integrating cumulative carbon export alongside the 7-tracer state, total
+    carbon (carbon_total) + cumulative export is conserved to machine precision over a
+    rollout -- the open-system carbon budget dN = inputs - outputs closes (air-sea off,
+    so export is the only exit). The per-element mass gate (#7) the review found
+    unsupported. The invariant's tendency is algebraically zero (-export + export), so
+    RK4 preserves it to fp64 round-off."""
+    params = carroll6.CARROLL_VALUES.double()
+    torch.manual_seed(0)
+    scale = torch.tensor([1e-4, 0.3, 0.3, 0.6, 0.05, 2000.0, 2300.0], dtype=torch.float64)
+    offset = torch.tensor([1e-5, 0.05, 0.05, 0.1, 0.01, 1900.0, 2200.0], dtype=torch.float64)
+    s0 = torch.rand(4, 7, dtype=torch.float64) * scale + offset
+    aug0 = torch.cat([s0, torch.zeros(4, 1, dtype=torch.float64)], dim=-1)  # +cumulative export
+    wsink = float(carroll6.W_SINK)
+
+    def tend(t, a):
+        core = a[..., :7]
+        d = bgc_tendency_field(core, params)  # bgc only (closed cell)
+        exp = (wsink * (core[..., 3] + core[..., 4])).unsqueeze(-1)  # carbon leaving via sinking
+        return torch.cat([d, exp], dim=-1)
+
+    aN = integrate(tend, aug0, dt=0.5, n_steps=100, method="rk4")
+    closed0 = carbon_total(aug0[..., :7]) + aug0[..., 7]
+    closedN = carbon_total(aN[..., :7]) + aN[..., 7]
+    assert (closedN - closed0).abs().max().item() < 1e-6
