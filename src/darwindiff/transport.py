@@ -39,6 +39,7 @@ def bgc_tendency_field(
     *,
     ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
     calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
+    scav_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
     dust: torch.Tensor | float | None = None,
     light: torch.Tensor | float | None = None,
 ) -> torch.Tensor:
@@ -82,7 +83,12 @@ def bgc_tendency_field(
         else R_PICPOC * mort_total
     )
 
-    dDFe = alpfe * phi_dust - scav_rat_per_day * DFe * POC - fe_uptake
+    scav_sink = (
+        scav_closure(DFe, POC)
+        if scav_closure is not None
+        else scav_rat_per_day * DFe * POC
+    )
+    dDFe = alpfe * phi_dust - scav_sink - fe_uptake
     dPs = growth_s - mort_s
     dPl = growth_l - mort_l - graze_l
     dPOC = mort_total - W_SINK * POC
@@ -180,6 +186,7 @@ def column_tendency(
     bgc: bool = True,
     ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
     calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
+    scav_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
     dust: torch.Tensor | float | None = None,
     light: torch.Tensor | float | None = None,
 ) -> torch.Tensor:
@@ -194,7 +201,7 @@ def column_tendency(
     if bgc:
         d = d + bgc_tendency_field(
             state, params, ffe_closure=ffe_closure, calcite_closure=calcite_closure,
-            dust=dust, light=light,
+            scav_closure=scav_closure, dust=dust, light=light,
         )
     d = d + vertical_diffusion(state, kz, dz)
     if w != 0.0:

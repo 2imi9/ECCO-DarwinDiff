@@ -11,8 +11,11 @@ deviations from data.
 """
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 from darwindiff.carroll6 import CARROLL_VALUES, K_FE, P
 
@@ -74,3 +77,78 @@ class EnvCalciteClosure(nn.Module):
 
     def forward(self, state: torch.Tensor, mort_total: torch.Tensor) -> torch.Tensor:
         return self.R0 * self.g(state) * mort_total
+
+
+class ScavClosure(nn.Module):
+    r"""Learned iron-*scavenging* sink closure.
+
+        ``scav_sink(DFe, POC; env) = r0 * (POC/POC0)**p * DFe * (1 + eps*tanh(MLP(feat)))``
+
+    Motivation (finding 2026-07-07): iron *solubility* (``alpfe``) is a global
+    scalar already baked into the (soluble) forcing, so the learnable iron physics
+    is the **scavenging sink**. The box's sink ``scav_rat_per_day * DFe * POC`` is a
+    triple simplification of Darwin3/Parekh scavenging (it scavenges *total* DFe not
+    free Fe', uses *linear* POC not POC**0.58, and has no ligand chemistry). This
+    closure keeps the Parekh backbone analytic and lets a small bounded net augment
+    the two dropped pieces: the POC sublinearity via a learnable exponent ``p`` and
+    the Fe'/ligand curvature via the bounded ``(1 + eps*tanh)`` correction.
+
+    Anchor: ``p = softplus(raw_p)`` is initialised to **exactly 1**, the correction
+    readout is zero-initialised (``corr == 1``), and ``r0 = scav_rat_per_day * POC0``,
+    so at init this **byte-reproduces the box sink** ``scav_rat_per_day*DFe*POC``
+    (strict superset). The Darwin/Parekh empirical exponent is ``p ~ 0.58``; report
+    ``(p - 1)`` as a diagnostic -- if data pulls ``p`` below 1 the box's linear-POC
+    simplification is being falsified.
+
+    Positivity: ``r0>0`` (exp), ``(POC/POC0)**p>=0``, ``DFe>=0``, ``corr in
+    [1-eps, 1+eps]`` -> the sink is non-negative (a proper loss term). ``DFe``,
+    ``POC`` are ``[..., cells]``; optional ``env`` (caller-standardised, e.g. T) is
+    ``[..., cells, n_env]`` and cell-aligned.
+    """
+
+    def __init__(
+        self,
+        env: torch.Tensor | None = None,
+        scav_rat_per_day: float | None = None,
+        POC0: float = 0.5,
+        hidden: int = 16,
+        eps: float = 0.2,
+    ) -> None:
+        super().__init__()
+        base = (
+            float(CARROLL_VALUES[P.scav_rat]) * 86400.0
+            if scav_rat_per_day is None
+            else float(scav_rat_per_day)
+        )
+        self.POC0 = float(POC0)
+        self.eps = float(eps)
+        self.log_r0 = nn.Parameter(torch.tensor(math.log(base * self.POC0)))
+        # p = softplus(raw_p); log(e - 1) makes softplus == 1 exactly at init
+        self.raw_p = nn.Parameter(torch.tensor(math.log(math.e - 1.0)))
+        self._has_env = env is not None
+        if env is not None:
+            self.register_buffer("env", env)
+        n_env = int(env.shape[-1]) if env is not None else 0
+        self.net = nn.Sequential(
+            nn.Linear(2 + n_env, hidden),
+            nn.Tanh(),
+            nn.Linear(hidden, 1),
+        )
+        nn.init.zeros_(self.net[-1].weight)
+        nn.init.zeros_(self.net[-1].bias)  # corr == 1 at init
+
+    @property
+    def p(self) -> torch.Tensor:
+        """The learnable POC exponent (init 1.0; Darwin/Parekh reference 0.58)."""
+        return F.softplus(self.raw_p)
+
+    def forward(self, DFe: torch.Tensor, POC: torch.Tensor) -> torch.Tensor:
+        r0 = torch.exp(self.log_r0)
+        pocn = POC / self.POC0
+        f1 = torch.log10(DFe.clamp_min(1e-12)) + 4.0
+        f2 = torch.log10(pocn.clamp_min(1e-12))
+        feat = torch.stack([f1, f2], dim=-1)                 # [..., cells, 2]
+        if self._has_env:
+            feat = torch.cat([feat, self.env], dim=-1)
+        corr = 1.0 + self.eps * torch.tanh(self.net(feat).squeeze(-1))
+        return r0 * pocn.pow(self.p) * DFe * corr

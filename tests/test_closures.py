@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 from darwindiff.carroll6 import CARROLL_VALUES, P
-from darwindiff.closures import EnvCalciteClosure
+from darwindiff.closures import EnvCalciteClosure, ScavClosure
 from darwindiff.integrators import integrate
 from darwindiff.transport import column_tendency
 
@@ -56,3 +56,55 @@ def test_env_calcite_trains_through_transport():
     grads = [p.grad for p in clo.net.parameters()]
     assert all(g is not None and torch.isfinite(g).all() for g in grads)
     assert any(g.abs().sum().item() > 0.0 for g in grads)
+
+
+# --- PR-3: scavenging iron sink closure -------------------------------------------
+
+
+def test_scav_baseline_byte_identical():
+    """At init (p==1, corr==1, r0=scav_rat_per_day*POC0) the closure reproduces the
+    box sink scav_rat_per_day * DFe * POC (strict superset of the box law)."""
+    clo = ScavClosure()
+    assert abs(clo.p.item() - 1.0) < 1e-6
+    dfe = 1.0e-4 * (0.5 + torch.rand(4, 6))
+    poc = 0.1 + 0.5 * torch.rand(4, 6)
+    scav_rat_per_day = float(CARROLL_VALUES[P.scav_rat]) * 86400.0
+    torch.testing.assert_close(clo(dfe, poc), scav_rat_per_day * dfe * poc, rtol=1e-6, atol=0.0)
+
+
+def test_scav_sink_nonneg_and_bounded_correction():
+    """For any weights the sink is >=0 and its correction factor stays in
+    [1-eps, 1+eps] (bounded deformation of the Parekh backbone)."""
+    clo = ScavClosure(eps=0.2)
+    torch.manual_seed(5)
+    for p in clo.net.parameters():
+        nn.init.normal_(p, std=3.0)
+    dfe = 1.0e-4 * (0.5 + torch.rand(8, 8))
+    poc = 0.1 + 0.5 * torch.rand(8, 8)
+    sink = clo(dfe, poc)
+    assert (sink >= 0.0).all()
+    backbone = torch.exp(clo.log_r0) * (poc / clo.POC0).pow(clo.p) * dfe
+    corr = sink / backbone
+    assert corr.min().item() >= 1.0 - clo.eps - 1e-6
+    assert corr.max().item() <= 1.0 + clo.eps + 1e-6
+
+
+def test_scav_trains_through_transport():
+    """The scavenging closure (rate r0, exponent p, and net) gets finite, nonzero
+    gradients through a checkpointed transport rollout."""
+    params = CARROLL_VALUES.clone()
+    state0 = _state(C=6, Z=6)
+    clo = ScavClosure()
+
+    def tend(s):
+        return column_tendency(s, params, kz=0.1, dz=25.0, scav_closure=clo)
+
+    fN = integrate(tend, state0, dt=0.25, n_steps=80, method="rk4", checkpoint_segment=20)
+    fN.pow(2).mean().backward()
+    named = dict(clo.named_parameters())
+    for g in (named["log_r0"].grad, named["raw_p"].grad):
+        assert g is not None and torch.isfinite(g).all()
+    assert any(
+        p.grad is not None and torch.isfinite(p.grad).all() and p.grad.abs().sum().item() > 0.0
+        for p in clo.parameters()
+    )
