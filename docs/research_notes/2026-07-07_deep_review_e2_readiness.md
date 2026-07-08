@@ -125,3 +125,37 @@ already added) + the E2 run carrying the `K_num`/ablation diagnostics; plus the 
 forcing loader, real v05 velocity → `w_from_continuity`, held-out GEOTRACES-section scoring). The air-sea CO₂
 flux in the field version (currently an optional `co2_flux` passthrough) and a semi-implicit Thomas vertical
 diffusion are named follow-ups.
+
+## Data staging toward E2 — DB-1 (2026-07-08)
+
+**DB-1 — soluble-iron forcing loader (`src/darwindiff/iron_forcing_loader.py`, + `scripts/fetch/iron_forcing.sh`,
+`tests/test_iron_forcing_loader.py`).** Replaces the constant scalar `PHI_DUST` with the v05 **Mahowald-2009
+spatial soluble-iron deposition field** — the forcing fix from the Jon+Schultz meeting (spatial iron
+variability belongs in the *forcing*; `alpfe` stays a global scalar). Independent of the calcite-first E2
+guardrail above: this forcing field drives the DFe part of the coupled rollout regardless of which observable
+leads, so it is shared infrastructure, not an iron-first commitment.
+
+- **Format** (from v05 `data.darwin` + Darwin3 iron docs): `ironfile=llc270_Mahowald_2009_soluble_iron_dust.bin`,
+  `ironperiod=-12` → LLC270 **compact** binary, 12 monthly-climatology records × 13 faces × 270², big-endian f4
+  (45.5 MB); `darwin_inscal_iron=1000` (raw `mol Fe/m²/s` → `mmol/m²/s`); `iron_interpMethod=0` (step).
+- **Unit chain** (the crux): Darwin's surface source is `S_Fe = alpfe/(dr_F·hFacC)·F_Fe`, so `PHI_DUST ≡ F_Fe/dz`
+  with `alpfe` separate. The loader returns the **grid-independent areal flux**; `flux_to_phi_dust(areal, dz)`
+  divides by the transport model's *own* `dz` (not Darwin's 10 m), and `phi_dust_surface_field` places it at
+  Z=0 only (composes **A4**). `hFacC` dropped — verified **exactly 1** at the LLC270 open-ocean surface.
+- **Ocean masking** uses grid `hFacC>0` (correct land/sea), *not* the tracer loader's `field!=0` (which would
+  drop genuine low-deposition ocean and bias bin-means high). Bins onto the **same 1° grid as the DFe targets**.
+- **Validation:** the compact reader / hFacC mask / DRF / AOI-binning are verified against the **real on-disk
+  LLC270 grid**; only the iron *magnitudes/pattern* await the `.bin` (Earthdata-gated — not on the NAS output
+  mirror; `scripts/fetch/iron_forcing.sh` documents the fetch). A `phi_dust_sanity` units guard flags an
+  endianness/scale error as an N-orders ratio vs `PHI_DUST`.
+- **Adversarial review** (workflow: 4 dims → per-finding verify): **physics/units and binary-IO came back
+  clean** (empty, with concrete reproduction attempts); fixed 1 docstring overclaim (`interior_mask` excludes
+  only the outer ring, *not* interior no-coverage bins → added `coverage_mask` for the E2 loss) + hardened 3
+  test-adequacy gaps (independent-literal unit pin; non-opt-in monkeypatched `hFacC>0`-mask test; synthetic
+  `hFacC` surface-slice test) — mutation-checked to fail on their target regressions. **Full suite 352.**
+- **Caveat for the E2 loss:** the `fill=0` at no-coverage bins is a *fabricated* zero source; the loss must
+  AND-in `coverage_mask(areal_flux_grid)` (computed before the fill) alongside `interior_mask`. eqpac has 0
+  no-coverage bins so it is harmless there, but coastal/island AOIs need it.
+
+Next in the DB chain: **DB-2** (real v05 velocity loader → `w_from_continuity`), **DB-3** (held-out
+GEOTRACES-section scoring), then the windowed-BPTT trainer → the E2 run.
