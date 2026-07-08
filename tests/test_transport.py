@@ -9,6 +9,7 @@ from darwindiff.integrators import integrate, relative_mass_drift
 from darwindiff.transport import (
     bgc_tendency_field,
     column_tendency,
+    horizontal_advection,
     vertical_advection,
     vertical_diffusion,
 )
@@ -87,3 +88,57 @@ def test_neural_closure_trains_through_batched_transport():
     grads = [p.grad for p in net.parameters()]
     assert all(g is not None and torch.isfinite(g).all() for g in grads)
     assert any(g.abs().sum().item() > 0.0 for g in grads)
+
+
+# --- horizontal advection (Phase-1 PR-1: the operator the 0-D box lacks) ---------
+
+
+def _hfield(Y=4, X=5, T=2, seed=0):
+    g = torch.Generator().manual_seed(seed)
+    return 0.1 + torch.rand(Y, X, T, generator=g)
+
+
+def _vel(Y=4, X=5, seed=0):
+    g = torch.Generator().manual_seed(seed)
+    return torch.rand(Y, X, generator=g) - 0.5  # signed cell-centre velocity
+
+
+def test_horizontal_advection_conserves_domain_and_flows_grad():
+    """Flux-form centered advection conserves the domain-integrated tracer (per
+    tracer) and passes clean gradients to the field."""
+    f = _hfield().requires_grad_(True)
+    u, v = _vel(4, 5, 1), _vel(4, 5, 2)
+    d = horizontal_advection(f, u, v, dx=1.0, dy=1.0)
+    # sum over the two spatial axes (Y, X) is ~0 for every tracer (no-flux edges)
+    assert d.sum(dim=(-3, -2)).abs().max().item() < 1e-5
+    d.pow(2).sum().backward()
+    assert torch.isfinite(f.grad).all()
+
+
+def test_horizontal_advection_gradcheck():
+    """Exact-Jacobian gradcheck (fp64) w.r.t. the field AND the prescribed (u, v)
+    velocities — the operator must be autograd-clean for the transport UDE."""
+    torch.manual_seed(0)
+    f = (0.1 + torch.rand(3, 3, 2, dtype=torch.float64)).requires_grad_(True)
+    u = (torch.rand(3, 3, dtype=torch.float64) - 0.5).requires_grad_(True)
+    v = (torch.rand(3, 3, dtype=torch.float64) - 0.5).requires_grad_(True)
+    assert torch.autograd.gradcheck(
+        lambda ff, uu, vv: horizontal_advection(ff, uu, vv, dx=1.0, dy=1.0),
+        (f, u, v),
+    )
+
+
+def test_horizontal_advection_rollout_conserves_mass():
+    """A closed 2-D field advected under RK4 conserves the per-tracer domain total
+    to machine precision (the #7 budget invariant, horizontal edition)."""
+    f0 = _hfield(Y=6, X=6, T=2)
+    u, v = 0.5 * _vel(6, 6, 3), 0.5 * _vel(6, 6, 4)
+
+    def tend(s):
+        return horizontal_advection(s, u, v, dx=1.0, dy=1.0)
+
+    fN = integrate(tend, f0, dt=0.05, n_steps=60, method="rk4")
+    assert torch.isfinite(fN).all()
+    tot0 = f0.sum(dim=(-3, -2))
+    drift = (fN.sum(dim=(-3, -2)) - tot0).abs() / tot0.abs()
+    assert drift.max().item() < 1e-9
