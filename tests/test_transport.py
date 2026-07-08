@@ -12,6 +12,7 @@ from darwindiff.transport import (
     column_tendency,
     grid_tendency,
     horizontal_advection,
+    horizontal_diffusion,
     vertical_advection,
     vertical_diffusion,
     w_from_continuity,
@@ -118,17 +119,16 @@ def test_horizontal_advection_conserves_domain_and_flows_grad():
     assert torch.isfinite(f.grad).all()
 
 
-def test_horizontal_advection_gradcheck_field():
-    """Exact-Jacobian gradcheck (fp64) w.r.t. the field: with the upwind pattern
-    fixed by the (constant) velocities, the operator is linear in the field and
-    must be autograd-clean. Velocities are not gradchecked -- upwind's branch
-    selection is non-smooth at zero-velocity interfaces by construction."""
+def test_horizontal_advection_gradcheck():
+    """Exact-Jacobian gradcheck (fp64) w.r.t. the field AND the velocities: centered
+    advection is smooth (no upwind sign branch), so gradients flow cleanly to u, v
+    too (required if a velocity correction is ever learned)."""
     torch.manual_seed(0)
     f = (0.1 + torch.rand(3, 3, 2, dtype=torch.float64)).requires_grad_(True)
-    u = torch.rand(3, 3, dtype=torch.float64) - 0.5  # fixed constants
-    v = torch.rand(3, 3, dtype=torch.float64) - 0.5
+    u = (torch.rand(3, 3, dtype=torch.float64) - 0.5).requires_grad_(True)
+    v = (torch.rand(3, 3, dtype=torch.float64) - 0.5).requires_grad_(True)
     assert torch.autograd.gradcheck(
-        lambda ff: horizontal_advection(ff, u, v, dx=1.0, dy=1.0), (f,)
+        lambda ff, uu, vv: horizontal_advection(ff, uu, vv, dx=1.0, dy=1.0), (f, u, v)
     )
 
 
@@ -150,31 +150,63 @@ def test_horizontal_advection_rollout_conserves_mass():
     assert drift.max().item() < 1e-10
 
 
-def test_horizontal_advection_upwind_stable_long_horizon():
-    """Upwind is dissipative, so a divergent velocity field must NOT blow the tracer
-    up over a long rollout (centered-2nd grew to ~1e10 here -- the P1 regression)."""
-    f0 = _hfield(Y=6, X=6, T=2)
-    u, v = 0.5 * _vel(6, 6, 3), 0.5 * _vel(6, 6, 4)
+def test_centered_advection_diffusion_stable_long_horizon():
+    """A2: centered advection is non-diffusive but dispersively unstable ALONE
+    (kh=0 blows up to ~1e7 even on A1's divergence-free field); paired with the
+    explicit diffusion kh it stays bounded over a long rollout. This replaces the
+    over-diffusive upwind scheme with a controllable, physical diffusion knob."""
+    torch.manual_seed(0)
+    Y, X, Z = 8, 8, 3
+    u, v = 0.5 * (torch.rand(Y, X) - 0.5), 0.5 * (torch.rand(Y, X) - 0.5)
+    params = carroll6.CARROLL_VALUES
+    w = w_from_continuity(u, v, 1.0, 1.0, 25.0, Z)
+    f0 = 0.1 + torch.rand(Y, X, Z, 1)
 
-    def tend(s):
-        return horizontal_advection(s, u, v, dx=1.0, dy=1.0)
+    def tend(kh):
+        return lambda s: grid_tendency(
+            s, params, u=u, v=v, w=w, kh=kh, dx=1.0, dy=1.0, kz=0.0, bgc=False
+        )
 
-    fN = integrate(tend, f0, dt=0.05, n_steps=4000, method="rk4")  # t = 200
-    assert torch.isfinite(fN).all()
-    assert fN.abs().max().item() < 20.0 * f0.abs().max().item()
+    f_nodiff = integrate(tend(0.0), f0, dt=0.05, n_steps=4000, method="rk4")
+    f_diff = integrate(tend(0.1), f0, dt=0.05, n_steps=4000, method="rk4")
+    assert f_nodiff.abs().max().item() > 100.0                    # centered ALONE unstable
+    assert torch.isfinite(f_diff).all()
+    assert f_diff.abs().max().item() < 5.0 * f0.abs().max().item()  # kh stabilizes
 
 
-def test_horizontal_advection_upwind_direction():
-    """Upwind takes the up-current cell, and the front moves down-current: with u>0
-    (v=0) a step profile [1,1,0,0] loses on the left and gains on the right. A
-    wholesale sign flip inverts both signs and fails this gate."""
+def test_horizontal_advection_direction():
+    """Advection moves the tracer down-current: with u>0 (v=0) a step [1,1,0,0]
+    loses on the left and gains on the right (holds for centered too). A wholesale
+    sign flip inverts both signs and fails this gate."""
     f = torch.zeros(1, 4, 1)
     f[0, :2, 0] = 1.0
     u = torch.ones(1, 4)      # flow in +x everywhere
     v = torch.zeros(1, 4)
     d = horizontal_advection(f, u, v, dx=1.0, dy=1.0)[0, :, 0]
-    assert d[0].item() < 0.0   # leftmost (up-current) cell loses
+    assert d[0].item() < 0.0   # up-current cell loses
     assert d[2].item() > 0.0   # down-current cell gains
+
+
+def test_horizontal_advection_centered_linear_field_exact():
+    """Centered-2nd is exact for a linear field: interior tendency == -u*dC/dx.
+    Pins 2nd-order accuracy and direction; catches a sign or dx error."""
+    f = torch.arange(5.0).view(1, 5, 1).expand(3, 5, 1).contiguous()  # C(x)=x
+    d = horizontal_advection(f, torch.ones(3, 5), torch.zeros(3, 5), dx=1.0, dy=1.0)[..., 0]
+    torch.testing.assert_close(d[1, 1:4], torch.full((3,), -1.0))  # interior = -u
+
+
+def test_horizontal_diffusion_conserves_and_gradcheck():
+    """Explicit Laplacian horizontal diffusion conserves the domain total and is
+    autograd-clean (the physical + stabilizing companion to centered advection)."""
+    f = _hfield(4, 5, 2).requires_grad_(True)
+    d = horizontal_diffusion(f, kh=0.1, dx=1.0, dy=1.0)
+    assert d.sum(dim=(-3, -2)).abs().max().item() < 1e-5  # domain conserved
+    d.pow(2).sum().backward()
+    assert torch.isfinite(f.grad).all()
+    fd = (0.1 + torch.rand(3, 3, 2, dtype=torch.float64)).requires_grad_(True)
+    assert torch.autograd.gradcheck(
+        lambda ff: horizontal_diffusion(ff, kh=0.2, dx=1.0, dy=1.0), (fd,)
+    )
 
 
 def test_horizontal_advection_batched_velocity_broadcast():

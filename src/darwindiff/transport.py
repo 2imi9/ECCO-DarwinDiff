@@ -207,17 +207,21 @@ def horizontal_advection(
     a trailing tracer axis automatically, and a bare ``[Y, X]`` broadcasts over a
     batched field. ``dx``, ``dy`` are the grid spacings.
 
-    Reconstruction is **first-order upwind** -- the interface tracer is taken from
-    the up-current cell per the sign of the interface velocity, matching
-    :func:`vertical_advection`. Upwind is *dissipative* and therefore **stable**
-    over decadal rollouts; a naive centered-2nd scheme conserves mass but is
-    unconditionally unstable (non-normal exponential growth on divergent velocity
-    fields), so it is deliberately not used. Conservation is unchanged: the
-    interface flux ``F = v_face * C_up`` is shared between adjacent cells and both
-    edges carry zero flux, so the flux-difference tendency telescopes and the
-    domain-integrated tracer is conserved to machine precision. A smooth
-    higher-order/limited scheme can be layered later if upwind is too diffusive for
-    the target front sharpness.
+    Reconstruction is **centered-2nd** (``C_face = (C_i + C_{i+1})/2``): 2nd-order
+    accurate and, crucially, **non-diffusive** -- it adds no uncontrolled numerical
+    diffusion (unlike first-order upwind, whose ``K_num ~ 0.5|u|dx`` is 3-50x the
+    physical eddy value at target dt/dx and would bias the E2 gate). It is smooth for
+    autograd (no sign branch), so gradients flow to ``u, v`` too. Conservation is by
+    construction: ``F = u_face*C_face`` is shared between adjacent cells and both
+    edges carry zero flux, so the flux-difference tendency telescopes.
+
+    **Centered advection MUST be paired with** :func:`horizontal_diffusion` -- it is
+    dispersively unstable alone. Stability is provided by (a) A1's divergence-free
+    ``w`` (which removed the dominant blow-up source) plus (b) an explicit Laplacian
+    diffusion ``kh`` (grid-Peclet ``|u|dx/kh`` kept O(1), i.e. ``kh >~ 0.5|u|dx``).
+    Because that diffusion is now **explicit and tunable**, the total diffusion is
+    controllable and diagnosable -- enabling the E2 ``K_num`` ablation the deep review
+    requires (show R^2 does not track ``kh``).
 
     **Preconditions for a valid E2 result (deep review 2026-07-07 -- see
     docs/research_notes/2026-07-07_deep_review_e2_readiness.md):**
@@ -238,22 +242,53 @@ def horizontal_advection(
     if v.dim() < field.dim():
         v = v.unsqueeze(-1)
 
-    # --- advection along X (axis=-2): u, upwind ---
+    # --- advection along X (axis=-2): u, centered-2nd ---
     u_face = 0.5 * (u[..., :, :-1, :] + u[..., :, 1:, :])          # interface velocity
-    c_up_x = torch.where(u_face >= 0, field[..., :, :-1, :], field[..., :, 1:, :])
-    fx = u_face * c_up_x                                           # interior face flux
+    c_face_x = 0.5 * (field[..., :, :-1, :] + field[..., :, 1:, :])  # centered interface tracer
+    fx = u_face * c_face_x                                         # interior face flux
     zx = torch.zeros_like(field[..., :, :1, :])
     fx_full = torch.cat([zx, fx, zx], dim=-2)                      # [..., Y, X+1, T]
     d_x = -(fx_full[..., :, 1:, :] - fx_full[..., :, :-1, :]) / dx
 
-    # --- advection along Y (axis=-3): v, upwind ---
+    # --- advection along Y (axis=-3): v, centered-2nd ---
     v_face = 0.5 * (v[..., :-1, :, :] + v[..., 1:, :, :])          # interface velocity
-    c_up_y = torch.where(v_face >= 0, field[..., :-1, :, :], field[..., 1:, :, :])
-    fy = v_face * c_up_y
+    c_face_y = 0.5 * (field[..., :-1, :, :] + field[..., 1:, :, :])  # centered interface tracer
+    fy = v_face * c_face_y
     zy = torch.zeros_like(field[..., :1, :, :])
     fy_full = torch.cat([zy, fy, zy], dim=-3)                      # [..., Y+1, X, T]
     d_y = -(fy_full[..., 1:, :, :] - fy_full[..., :-1, :, :]) / dy
 
+    return d_x + d_y
+
+
+def horizontal_diffusion(
+    field: torch.Tensor, kh: float, dx: float, dy: float
+) -> torch.Tensor:
+    """Explicit flux-form Laplacian horizontal diffusion (no-flux edges) on the
+    (Y, X) axes -- the physical + stabilizing companion to centered
+    :func:`horizontal_advection`.
+
+    ``kh`` is the horizontal eddy diffusivity: set it to the physical value
+    (~1e2-1e3 m^2/s in real units) *and* large enough that centered advection is
+    stable (grid-Peclet ``|u|dx/kh`` of O(1), i.e. ``kh >~ 0.5|u|dx``). Conservative
+    by construction (shared interface flux ``-kh*grad`` + zero-flux edges).
+    Explicit-CFL: stable for ``kh*dt*(1/dx^2 + 1/dy^2) < 0.5`` (semi-implicit is a
+    later upgrade if that bites). ``field``: ``[..., Y, X, tracer]``.
+    """
+    if kh == 0.0:
+        return torch.zeros_like(field)
+    # X-diffusion (axis=-2)
+    gx = (field[..., :, 1:, :] - field[..., :, :-1, :]) / dx      # interior interface gradient
+    fx = -kh * gx
+    zx = torch.zeros_like(field[..., :, :1, :])
+    fx_full = torch.cat([zx, fx, zx], dim=-2)
+    d_x = -(fx_full[..., :, 1:, :] - fx_full[..., :, :-1, :]) / dx
+    # Y-diffusion (axis=-3)
+    gy = (field[..., 1:, :, :] - field[..., :-1, :, :]) / dy
+    fy = -kh * gy
+    zy = torch.zeros_like(field[..., :1, :, :])
+    fy_full = torch.cat([zy, fy, zy], dim=-3)
+    d_y = -(fy_full[..., 1:, :, :] - fy_full[..., :-1, :, :]) / dy
     return d_x + d_y
 
 
@@ -301,6 +336,7 @@ def grid_tendency(
     kz: float = 0.1,
     dz: float = 25.0,
     w: float | torch.Tensor = 0.0,
+    kh: float = 0.0,
     bgc: bool = True,
     ffe_closure: Callable[[torch.Tensor], torch.Tensor] | None = None,
     calcite_closure: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] | None = None,
@@ -308,7 +344,7 @@ def grid_tendency(
     dust: torch.Tensor | float | None = None,
     light: torch.Tensor | float | None = None,
 ) -> torch.Tensor:
-    """Full 3-D tendency: BGC + vertical mixing/advection + horizontal advection.
+    """Full 3-D tendency: BGC + vertical mixing/advection + horizontal advection+diffusion.
 
     ``state``: ``[..., Y, X, Z, tracer]`` -- horizontal axes (Y, X) then the depth
     axis Z then the tracer axis. This composes :func:`column_tendency` (which
@@ -334,8 +370,11 @@ def grid_tendency(
         ffe_closure=ffe_closure, calcite_closure=calcite_closure,
         scav_closure=scav_closure, dust=dust, light=light,
     )
-    # horizontal advection acts on (Y, X); move the depth axis (-2) to the front so
-    # horizontal_advection sees [Z, ..., Y, X, tracer], then move the result back.
+    # horizontal advection + diffusion act on (Y, X); move the depth axis (-2) to the
+    # front so they see [Z, ..., Y, X, tracer], then move the result back. Centered
+    # advection is paired with the explicit kh diffusion for stability (see A2).
     state_h = state.movedim(-2, 0)
-    d_h = horizontal_advection(state_h, u, v, dx, dy).movedim(0, -2)
-    return d + d_h
+    d_h = horizontal_advection(state_h, u, v, dx, dy)
+    if kh != 0.0:
+        d_h = d_h + horizontal_diffusion(state_h, kh, dx, dy)
+    return d + d_h.movedim(0, -2)
