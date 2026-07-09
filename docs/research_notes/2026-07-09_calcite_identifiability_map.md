@@ -265,6 +265,33 @@ env-source artifacts and do **not** constitute a robust finding. The defensible 
 closure at these sample sizes — consistent with Marañón 2016. eqpac is now *tested* (weak,
 FDR-non-significant), not untestable. The transport-E2 +0.245 is within small-n instability.
 This is an identifiability-**limits** result: a clean, honest bound on what real calcite obs
-can (cannot) constrain, which is itself the reportable Track-2 science.
+can (cannot) constrain, which is itself the reportable Track-2 science (see §10 for the iron
+counterexample, a *distinct* mechanism that completes the map).
+
+## 10. Iron counterexample — a SECOND, distinct non-identifiability mechanism
+
+`scripts/geotraces_glodap_identifiability.py`: the same env-regime hold-out floor (GLODAP env,
+permutation, BH-FDR) on **GEOTRACES IDP2025 surface dissolved iron** (4472 points, ~1300
+1-deg cells — *dense*, unlike calcite). Result: **DFe concentration IS env-predictable** where
+the sample is large — GLOBAL Ω +0.14 (perm-p 0.000, 1214 cells), tropics SST +0.28 (p 0.000,
+406 cells), N.Atl-subpolar SST +0.68 (p 0.014); null in the small-cell regions. Robust
+(hundreds–thousand cells, p≈0), not small-n.
+
+But env-predictability of the **concentration** does **not** identify the **scavenging rate**:
+DFe concentration is a low-information projection of `scav_rat` (Tagliabue 2016; and the
+Track-1 sloppiness/profile-likelihood result). A scavenging closure fit to held-out DFe would
+therefore "work" (the observable is fittable) with an **equifinal, meaningless** `scav_rat`.
+Concentration skill ≠ rate identifiability — the **information wall** — and because iron is
+dense, it is **structural / observability-limited, NOT data-limited.**
+
+**The two together are the Track-2 result — an identifiability MAP by mechanism:**
+
+| closure param | observable | why NOT identifiable |
+|---|---|---|
+| calcite `R_PICPOC` | PIC:POC (≈ the param) | **data-limited** — observable ≈ param, but obs too sparse/noisy (null; Marañón-consistent) |
+| iron `scav_rat` | DFe concentration (≠ the param) | **observability-limited** — observable densely env-predictable but a low-info projection of the rate → equifinal (information wall) |
+
+The honest, novel Track-2 science: *which* of Darwin's uncertain closures real observations can
+constrain, and — the useful part — the *distinct reasons* they cannot.
 
 Related: `2026-07-09_e2_calcite_preregistration.md`, `2026-07-07_deep_review_e2_readiness.md`.
