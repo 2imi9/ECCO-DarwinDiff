@@ -1,0 +1,165 @@
+# Calcite rain-ratio identifiability map — the real-data E2 outcome (2026-07-09)
+
+**Verdict (adversarially verified, HOLDS_WITH_QUALIFICATIONS):** the Track-2 real-data E2
+gate did **not** produce a clean "transport closes the surrogate gap" pass. It produced
+something more defensible — a **map of where real, direct, Darwin-independent calcite
+observations can constrain an environment-driven rain-ratio closure**, with a positive,
+mechanistic core. This is the "identifiability map" the E2 design named as the honest
+fallback (`2026-07-07_deep_review_e2_readiness.md`), realized with a positive centre.
+
+This note is the canonical record. Every number below was reproduced by an independent
+6-agent verification workflow (dimensions: statistics/permutation, carbonate/units,
+robustness, E2-consistency, honesty/over-reach → synthesis), which also **corrected four
+over-reaches** (§5).
+
+## 1. What the E2 gate asked, and the two independent lines of evidence
+
+E2: can a learned closure `g(env)`, fit on part of a real calcite observation and scored on
+**held-out** cells, beat a constant (null) closure — i.e. is there recoverable, non-circular
+env→rain-ratio signal? We answered it two independent ways:
+
+- **(A) Transport-free identifiability map** (`scripts/marsh_identifiability_map.py`): a
+  trivial OLS **floor** model at the exact 1° cells, with the E2's env-regime hold-out
+  (hold out the upper-quartile env band, predict it, anomaly-R² vs the train mean), a
+  **permutation null**, **BH-FDR** multiplicity correction, and **partial correlations** to
+  separate Ω from temperature. No model, no transport, no GPU — an upper bound on
+  feasibility. Uses Marsh's **own co-located** SST and Ω (from co-located DIC/AT/T/S).
+- **(B) The differentiable transport-UDE E2** (`scripts/e2_real_calcite_eqpac.py`): the full
+  windowed-BPTT closure fit through prescribed DB-1 dust + DB-2 velocity, learned-minus-null
+  held-out anomaly-R², with the K_num ablation.
+
+The two agree, which is the point: (A) bounds what is *in the data*; (B) shows the machinery
+recovers it.
+
+## 2. The data upgrade that was load-bearing
+
+**Marsh et al. 2025** (PANGAEA 10.1594/PANGAEA.987673) — the updated successor to Daniels/
+Poulton 2018, +400 CP measurements (n=3145 finite CP/PP), with co-located carbonate
+chemistry. It does **not** add eqpac cells (34 either way) but densifies natl (26→33) and
+the high-latitude bloom regions. Same-config controlled comparison at natl:
+
+| natl config (Ω-split, default) | cells | learned | null | DELTA |
+|---|---|---|---|---|
+| Daniels 2018 | 26 (19/7) | +0.359 | +0.594 | **−0.235** |
+| **Marsh 2025** | 33 (24/9) | +0.289 | +0.043 | **+0.245** |
+
+The learned value is similar (+0.36 vs +0.29); the **null** swings (a small-n instability —
+see caveats), and the Marsh split leaves the closure room to add skill.
+
+## 3. Results
+
+### 3a. The identifiability map (transport-free floor, BH-FDR over 9 tests, α=0.1)
+
+| region | axis | n | hold-out anomaly-R² | perm-p | verdict |
+|---|---|---|---|---|---|
+| Nordic/Iceland | **SST** | 27 | +0.74 | 0.001 | **IDENTIFIABLE** |
+| S.Atl/Patagonian | **Ω** | 14 | +0.86 | 0.001 | **IDENTIFIABLE** |
+| N.Atlantic bloom | **Ω** | 26 | +0.69 | 0.006 | **IDENTIFIABLE** |
+| natl (AOI) | SST | 29 | +0.22 | 0.070 | dies under FDR |
+| Nordic/Iceland | Ω | 13 | +0.38 | 0.082 | dies under FDR (single-cell artifact) |
+| S.Atl/Patagonian | SST | 42 | −0.40 | 0.782 | no |
+| GLOBAL | Ω | 48 | −0.57 | 0.818 | no |
+| GLOBAL | SST | 212 | −0.23 | 0.933 | no |
+| N.Atlantic bloom | SST | 44 | −1.08 | 0.965 | no |
+
+**Three survive multiplicity correction: N.Atlantic bloom (Ω), Patagonian/S.Atlantic (Ω),
+Nordic/Iceland (SST). Global is null on both axes.**
+
+### 3b. Ω vs temperature (partial correlations on matched cells — the confound test)
+
+Ω and SST are collinear within every region (r = +0.52 to +0.83), so a marginal Ω hit could
+be temperature in disguise. Partial-r isolates unique signal:
+
+| region | n | r(Ω,SST) | r(y,Ω\|SST) (p) | r(y,SST\|Ω) (p) |
+|---|---|---|---|---|
+| N.Atlantic bloom | 26 | +0.52 | **−0.34 (0.096)** | −0.16 (0.434) |
+| Patagonian/S.Atl | 14 | +0.83 | **−0.59 (0.035)** | +0.01 (0.981) |
+| GLOBAL (in-sample) | 48 | +0.74 | **−0.41 (0.004)** | +0.22 (0.130) |
+| Nordic/Iceland | 13 | +0.64 | −0.38 (0.219) | −0.13 (0.677) |
+
+**Where Ω and temperature can be separated, Ω_calcite carries the unique signal and
+temperature carries none** (S.Atl p=0.035, global in-sample p=0.004; SST|Ω never
+significant). Consistent with the literature carbonate mechanism (Ridgwell 2007; CESM/
+PISCES). **But** it is a tendency, not universal: in Nordic neither is separable (n=13,
+collinear) and the FDR-identifiable axis there is SST.
+
+### 3c. The transport-UDE E2 (natl, Marsh, ~9 held-out cells)
+
+All three configs are **positive**, all **flat in kh**:
+
+| config | learned | null | DELTA | K_num ladder (50/200/800) |
+|---|---|---|---|---|
+| N1 default (Ω-split) | +0.289 | +0.043 | +0.245 | 0.245 / 0.303 / 0.259 |
+| N2 regularized (hidden=4, wd=0.01) | +0.375 | +0.043 | +0.332 | 0.332 / 0.294 / 0.314 |
+| N3 SST-split | +0.244 | −0.045 | +0.289 | 0.289 / 0.289 / 0.289 |
+
+learned (+0.24 to +0.38) ≈ the transport-free cell ceiling (natl Ω +0.36, SST +0.37). The
+K_num ladder is **flat** — transport is inert in this surface-scored rollout — so it does
+**not** discriminate local-vs-transport (see §5).
+
+### 3d. eqpac — why it failed, and its proper scope
+
+eqpac transport-E2: default −1.064, regularized −0.583, SST-split −1.843 (all fail).
+Cell-level ceiling (cache env): eqpac Ω −0.41, SST +0.03. eqpac is data-sparse and
+env-uniform (warm, high-Ω, iron-limited). **Important scope:** Marsh has ~0 co-located
+carbonate chemistry below 23°N, so eqpac is **untestable on the Marsh-Ω axis** — the
+negative uses the model `.pt` cache env, so it is *suggestive*, not a demonstrated
+observation-derived null.
+
+## 4. The defensible statement
+
+> In the Marsh et al. 2025 direct, Darwin-independent CP:PP compilation, cell-binned
+> log PIC:POC carries real out-of-regime hold-out skill — recovered by both a transport-free
+> OLS floor and the full differentiable transport-UDE — in several cold high-latitude
+> coccolithophore-bloom regions but **not globally**: on the Ω_calcite axis the North
+> Atlantic bloom (+0.69, perm-p 0.006) and Patagonian/S.Atlantic (+0.86, p 0.001) beat the
+> basin-mean null (both survive BH-FDR); Nordic/Iceland is **SST**-identifiable (+0.74,
+> p 0.001). Where Ω and temperature can be separated, Ω carries the unique signal
+> (partial-r: S.Atl p=0.035, global in-sample p=0.004; SST never). This is a **local**
+> (env→ratio, transport-inert) rain-ratio closure, **non-circular** because the target is
+> ¹⁴C-incubation calcite production. It is a map of *where a real closure has signal to
+> recover* — not a validated closure and not a settled single driver.
+
+## 5. Retracted over-reaches (honesty — the verifier caught these)
+
+1. **NOT "E2 PASSED."** N2's nominal pass (delta>0 AND K_num-shrinks) is a **flag
+   technicality**: the ladder is flat (0.332/0.294/0.314), "shrinks" fired because
+   0.332 ≥ 0.314 after dipping. Transport is inert in this rollout, so the K_num control is
+   **toothless** here (it was designed to catch numerical passes assuming transport moves
+   the scored cells; it does not). The locality conclusion rests on **one** valid argument
+   (transport-free OLS ≈ full-transport learned), not two.
+2. **NOT "Ω, not temperature, is THE driver"** in general — only where separable (N.Atl
+   bloom, S.Atl, global in-sample). Nordic is SST-driven; the two are confounded elsewhere.
+3. **NOT "not identifiable in eqpac"** as a demonstrated negative — eqpac is *untestable* on
+   the Marsh-Ω axis (§3d).
+4. **NOT "transport closes the surrogate gap"** — the signal is **local** (transport inert).
+
+## 6. Caveats that must travel with this result
+
+- **Small n:** validation sets are ~4–9 held-out cells; hold-out R² sometimes exceeds
+  in-sample R² (S.Atl +0.86 vs +0.62) → high-variance point estimates, not stable magnitudes.
+- **Linear = floor:** the map bounds *where* signal exists; it is not a validated closure.
+- **The transport-E2 deltas have no permutation null** (the map's OLS does); the runner
+  numbers are now committed (`d78a210`) but the deltas were from local jobs.
+- **Ω/SST collinearity** (r 0.5–0.83) — "Ω-driven" is clean only in the N.Atl bloom + S.Atl.
+- **Box-fragility:** Patagonian sign-flips under a +5° northward shift; do not quote the
+  N.Atl-bloom SST=−1.08 as a stable number (q-specific). Only the *relative* Ω>SST result is
+  robust (Ω identifiable in 9/9 box shifts vs SST 4/9).
+- **Carbonate/units correct but not load-bearing:** the µmol/kg→mmol/m³ ×1.025 conversion is
+  right, and the hold-out test is rank/affine-invariant in the predictor, so the Ω result
+  depends only on the carbonate-chemistry **rank ordering** — any monotone carbonate proxy
+  gives the same split (do not oversell a calibrated Ω).
+
+## 7. Followups (before this is publishable)
+
+1. Add a **permutation null on the transport-E2 delta** (parity with the map).
+2. Build a **rollout config where transport actually moves the scored cells** so a K_num
+   sweep can genuinely discriminate local vs transport-mediated (currently trivially flat).
+3. **Spatial-block bootstrap** for Nordic/Patagonian (respect 1° autocorrelation; confirm
+   stability to MIN_CELLS and ±5° box shifts).
+4. **GLODAP co-location** to give eqpac a *tested* Ω negative on observation-derived env,
+   not the model cache.
+5. Build proper env caches for the bloom AOIs (N.Atl bloom ~61 cells, Patagonian ~62) to run
+   the transport-E2 in the regions the map says are identifiable, not just natl.
+
+Related: `2026-07-09_e2_calcite_preregistration.md`, `2026-07-07_deep_review_e2_readiness.md`.
