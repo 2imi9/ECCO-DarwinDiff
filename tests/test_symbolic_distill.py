@@ -146,6 +146,53 @@ def test_verdict_is_json_serializable():
     json.dumps(v.as_dict())  # must not raise (no numpy scalars leaking through)
 
 
+# --------------------------------------------------------------------------- #
+# Power-law / calcite oracle (is an Omega-driven rain-ratio law identifiable?)
+# --------------------------------------------------------------------------- #
+
+def test_powerlaw_wide_support_identifiable_and_recovers_exponent():
+    rng = np.random.default_rng(10)
+    om = np.exp(rng.uniform(np.log(0.5), np.log(6.0), 3000))
+    ratio = 0.0425 * om ** 0.5 * np.exp(0.03 * rng.standard_normal(om.size))
+    v = sd.distill_powerlaw(om, ratio, seed=10)
+    assert v.identifiable, v.reason
+    assert abs(v.n_hat - 0.5) < 0.10
+    assert v.n_ci_lo > 0.0  # CI excludes zero
+
+
+def test_powerlaw_flat_is_the_null():
+    """Omega-independent ratio (Maranon-2016 tropical calcification) -> the NULL."""
+    rng = np.random.default_rng(11)
+    om = np.exp(rng.uniform(np.log(0.5), np.log(6.0), 3000))
+    ratio = 0.0425 * np.exp(0.03 * rng.standard_normal(om.size))
+    v = sd.distill_powerlaw(om, ratio, seed=11)
+    assert not v.identifiable
+    assert abs(v.n_hat) < 0.1
+
+
+def test_powerlaw_narrow_support_is_underexcited():
+    rng = np.random.default_rng(12)
+    om = np.exp(rng.uniform(np.log(2.4), np.log(3.0), 3000))  # ~0.1 dex
+    ratio = 0.0425 * om ** 0.5 * np.exp(0.03 * rng.standard_normal(om.size))
+    v = sd.distill_powerlaw(om, ratio, seed=12)
+    assert not v.identifiable
+    assert v.driver_log_span < 0.30
+
+
+def test_calcite_panel_self_consistent():
+    out = sd._selftest_calcite_panel(seed=0)
+    assert out["_meta"]["verdicts_ok"]
+    assert out["_meta"]["n_recovery_ok"]
+
+
+def test_powerlaw_verdict_json_serializable():
+    import json
+    rng = np.random.default_rng(13)
+    om = np.exp(rng.uniform(np.log(0.5), np.log(6.0), 1000))
+    ratio = 0.0425 * om ** 0.5
+    json.dumps(sd.distill_powerlaw(om, ratio, seed=13).as_dict())
+
+
 def test_spatial_holdout_overlapping_groups_transfers():
     """Two spatial regimes that overlap in the DFe driver -> leave-one-group-out
     is a fair interpolation test, and a pure Monod transfers well."""

@@ -327,6 +327,105 @@ def distill(dfe: np.ndarray, y: np.ndarray, *, groups: np.ndarray | None = None,
 
 
 # ----------------------------------------------------------------------------- #
+# Power-law / calcite oracle: is an Omega-driven rain-ratio law identifiable?
+# ----------------------------------------------------------------------------- #
+#
+# The calcite closure (closures.EnvCalciteClosure) learns a multiplicative
+# modifier on R_PICPOC driven by env channels (SST, Omega_calcite, PAR). The
+# candidate mechanistic law is a power law in the calcite saturation state,
+# ``ratio = R0 * Omega**n`` -> ``log(ratio) = log(R0) + n*log(Omega)``. The
+# identifiability question that the real-data E2 raised (and that came back a
+# NULL: point-level corr(log-ratio, in-situ Omega) ~ 0.01, Maranon-2016-
+# consistent Omega-independent tropical calcification) is exactly: *is the
+# exponent n distinguishable from 0, stably, on the visited Omega support?*
+#
+# This is the same recovery + stability + support philosophy as the iron Monod
+# gate, in the log-log-linear setting: fit the slope, bootstrap it, and pass only
+# if it is significantly non-zero AND stable AND the driver actually spanned a
+# range. A flat (n~0) or narrow-support closure returns NON-IDENTIFIABLE -- the
+# honest verdict, and a second oracle agreeing with the correlation NULL.
+
+@dataclass
+class PowerlawVerdict:
+    identifiable: bool
+    reason: str
+    n_hat: float          # recovered exponent (slope of log ratio vs log driver)
+    n_ci_lo: float
+    n_ci_hi: float
+    n_rel_std: float
+    driver_log_span: float
+    r2: float
+    n_points: int
+
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+def distill_powerlaw(driver: np.ndarray, y: np.ndarray, *,
+                     n_boot: int = 300, min_log_span: float = 0.30,
+                     n_min_abs: float = 0.10, n_rel_std_tol: float = 0.50,
+                     seed: int = 0) -> PowerlawVerdict:
+    """Test whether ``y`` carries an identifiable power-law dependence on
+    ``driver`` (e.g. rain ratio vs Omega_calcite).
+
+    Verdict IDENTIFIABLE iff the log-log slope's bootstrap CI excludes 0 by
+    ``n_min_abs``, the slope is stable (rel.std <= tol), and the driver spanned
+    at least ``min_log_span`` decades of support. Otherwise NON-IDENTIFIABLE
+    (Omega-independent / too-narrow support) -- the honest NULL.
+    """
+    rng = np.random.default_rng(seed)
+    driver = np.asarray(driver, dtype=np.float64).reshape(-1)
+    y = np.asarray(y, dtype=np.float64).reshape(-1)
+    ok = (driver > 0) & (y > 0)
+    driver, y = driver[ok], y[ok]
+
+    m = support_mask(driver)
+    driver, y = driver[m], y[m]
+    X, Y = np.log(driver), np.log(y)
+    log_span = float(np.log10(driver.max()) - np.log10(driver.min())) if driver.size else 0.0
+
+    def slope(xs, ys):
+        A = np.column_stack([xs, np.ones_like(xs)])
+        sol, *_ = np.linalg.lstsq(A, ys, rcond=None)
+        return float(sol[0]), float(sol[1])
+
+    n_hat, b = slope(X, Y)
+    yhat = n_hat * X + b
+    r2 = _r2(Y, yhat)
+
+    nb = np.empty(n_boot)
+    N = X.size
+    for i in range(n_boot):
+        idx = rng.integers(0, N, N)
+        nb[i], _ = slope(X[idx], Y[idx])
+    lo, hi = np.quantile(nb, [0.025, 0.975])
+    rel_std = float(nb.std() / max(abs(nb.mean()), 1e-9))
+
+    ci_excludes_zero = (lo > n_min_abs) or (hi < -n_min_abs)
+    checks = {
+        "significant": bool(ci_excludes_zero),
+        "stable": bool(rel_std <= n_rel_std_tol),
+        "support": bool(log_span >= min_log_span),
+    }
+    ident = all(checks.values())
+    if ident:
+        reason = (f"IDENTIFIABLE: power-law exponent n={n_hat:.2f} "
+                  f"(95% CI [{lo:.2f},{hi:.2f}]) significant, stable, "
+                  f"driver span {log_span:.2f} dex")
+    else:
+        det = {
+            "significant": (f"exponent CI [{lo:.2f},{hi:.2f}] does not exclude 0 by "
+                            f"{n_min_abs} -> driver-independent (Maranon-consistent NULL)"),
+            "stable": f"exponent unstable (rel.std {rel_std:.2f} > {n_rel_std_tol})",
+            "support": (f"driver spanned only {log_span:.2f} dex (< {min_log_span}) "
+                        f"-> under-excited; widen the visited Omega range"),
+        }
+        reason = "NON-IDENTIFIABLE: " + "; ".join(det[k] for k, ok in checks.items() if not ok)
+    return PowerlawVerdict(ident, reason, n_hat, float(lo), float(hi), rel_std,
+                           log_span, r2, int(driver.size))
+
+
+# ----------------------------------------------------------------------------- #
 # Closure sampling helpers
 # ----------------------------------------------------------------------------- #
 
@@ -408,6 +507,41 @@ def _selftest_panel(seed: int = 0) -> dict:
     return out
 
 
+def _selftest_calcite_panel(seed: int = 0) -> dict:
+    """Three synthetic rain-ratio closures exercise the power-law oracle, mirroring
+    the calcite E2 question (is an Omega-driven ratio identifiable?):
+      * omega_power   -- ratio = R0*Omega^0.5, wide Omega  -> IDENTIFIABLE, recover n
+      * omega_flat    -- ratio = R0 (Omega-independent)     -> NON-IDENT (the NULL,
+                         Maranon-2016-consistent tropical calcification)
+      * omega_narrow  -- ratio = R0*Omega^0.5, narrow Omega -> NON-IDENT (under-excited)
+    """
+    rng = np.random.default_rng(seed)
+    R0, N_TRUE = 0.0425, 0.5
+    wide = np.exp(rng.uniform(np.log(0.5), np.log(6.0), 3000))   # Omega 0.5..6 (~1.1 dex)
+    narrow = np.exp(rng.uniform(np.log(2.4), np.log(3.0), 3000))  # ~0.1 dex, no range
+    cases = {
+        "omega_power": (wide, R0 * wide ** N_TRUE * np.exp(0.03 * rng.standard_normal(wide.size))),
+        "omega_flat": (wide, R0 * np.exp(0.03 * rng.standard_normal(wide.size))),
+        "omega_narrow": (narrow, R0 * narrow ** N_TRUE * np.exp(0.03 * rng.standard_normal(narrow.size))),
+    }
+    out = {}
+    for name, (om, ratio) in cases.items():
+        v = distill_powerlaw(om, ratio, seed=seed)
+        out[name] = v.as_dict()
+        tag = "IDENT" if v.identifiable else "NULL "
+        print(f"  [{tag}] {name:<12} n_hat={v.n_hat:+.2f} CI[{v.n_ci_lo:+.2f},{v.n_ci_hi:+.2f}] "
+              f"span={v.driver_log_span:.2f}dex r2={v.r2:.3f}")
+        print(f"         {v.reason}")
+    exp = {"omega_power": True, "omega_flat": False, "omega_narrow": False}
+    ok = all(out[n]["identifiable"] == exp[n] for n in exp)
+    nok = abs(out["omega_power"]["n_hat"] - N_TRUE) < 0.10
+    print(f"\n  calcite panel self-consistency: verdicts={'OK' if ok else 'MISMATCH'}, "
+          f"n-recovery={'OK' if nok else 'OFF'} (n_hat {out['omega_power']['n_hat']:.2f} "
+          f"vs true {N_TRUE})")
+    out["_meta"] = {"verdicts_ok": bool(ok), "n_recovery_ok": bool(nok), "n_true": N_TRUE}
+    return out
+
+
 def _train_demo(seed: int = 0) -> dict:
     """Train a tiny MonodAnchored closure on CPU (direct regression on the true
     ffe) and distill it -- an end-to-end demo on a real nn.Module. This is a
@@ -459,6 +593,8 @@ def main() -> int:
                     help="distill a real (dfe, y) closure dump: keys 'dfe','y'[,'groups']")
     ap.add_argument("--train-demo", action="store_true",
                     help="train a tiny MonodAnchored on CPU and distill it")
+    ap.add_argument("--calcite", action="store_true",
+                    help="run the power-law / Omega-driven rain-ratio oracle self-test")
     ap.add_argument("--out", type=str, default=None, help="write verdict JSON here")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
@@ -470,6 +606,9 @@ def main() -> int:
         v = distill(d["dfe"], d["y"], groups=groups, seed=args.seed)
         print(("PASS" if v.passed else "FAIL"), "-", v.reason)
         result = v.as_dict()
+    elif args.calcite:
+        print("== power-law oracle: Omega-driven rain-ratio identifiability ==")
+        result = _selftest_calcite_panel(args.seed)
     elif args.train_demo:
         print("== symbolic-distillation gate: trained-closure demo ==")
         result = _train_demo(args.seed)
