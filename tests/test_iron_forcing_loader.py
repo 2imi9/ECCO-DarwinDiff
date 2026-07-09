@@ -5,7 +5,7 @@ LLC270-compact binaries written to tmp (no 45 MB file needed), plus an integrati
 test that feeds the built dust field through the real transport consumer
 (``bgc_tendency_field``). Opt-in real tests (``DARWINDIFF_TEST_IRON=1``) validate
 against the on-disk LLC270 grid; the ones needing the actual ironfile skip cleanly
-when it is absent (it lives on the Earthdata-authenticated ECCO drive; see
+when it is absent (it is a public NAS download, input/darwin_forcing/; see
 scripts/fetch/iron_forcing.sh).
 """
 from __future__ import annotations

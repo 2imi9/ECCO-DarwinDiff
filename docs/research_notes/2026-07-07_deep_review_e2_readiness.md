@@ -150,9 +150,12 @@ leads, so it is shared infrastructure, not an iron-first commitment.
   ordered — **natl (Saharan) 1.9e-10 > eqpac 1.4e-10 > SO 5.1e-11 mmol/m²/s**, spatial CV 0.13–0.66.
   **FINDING:** the real local deposition runs **~200× BELOW the box's tuned `PHI_DUST=5e-5`** (eqpac vol@50m
   ~2.4e-7) — because dust-poor regions get their iron from lateral/vertical **transport** (the Equatorial
-  Undercurrent), which the 0-D box faked with an inflated scalar. **This is a clean confirmation of the
-  Track-2 thesis** (transport supplies the iron the box couldn't), not a load error. `phi_dust_sanity` was
-  therefore corrected from a ratio-vs-`PHI_DUST` gate to a **physical-range** check on the areal flux.
+  Undercurrent), which the 0-D box faked with an inflated scalar. This **motivates** the Track-2 thesis
+  (transport supplies the iron the box couldn't) — it is **not** a confirmation: the E2 gate is unrun, and by
+  source/sink equifinality (Tagliabue 2016, concentration under-constrains the rate) an inflated effective
+  source is *consistent with* but does not *uniquely establish* transport supply (it could be joint
+  source/`scav_rat` tuning). Not a load error. `phi_dust_sanity` was therefore corrected from a
+  ratio-vs-`PHI_DUST` gate to a **physical-range** check on the areal flux.
 - **Adversarial review** (workflow: 4 dims → per-finding verify): **physics/units and binary-IO came back
   clean** (empty, with concrete reproduction attempts); fixed 1 docstring overclaim (`interior_mask` excludes
   only the outer ring, *not* interior no-coverage bins → added `coverage_mask` for the E2 loss) + hardened 3
@@ -235,3 +238,53 @@ hardening: a leakage tripwire, all-params-moved, TBPTT-recovers-and-beats-null, 
 **Net:** the trainer machinery is complete and gated. The real E2 *number* now needs three inputs, not more
 machinery: **DB-2** (real v05 velocity → `w_from_continuity`), **DB-3** (real held-out obs — calcite first,
 per the E2 guardrails), and an **env-regime hold-out** with the K_num control on that out-of-class data.
+
+## DB-2 done + DB-3 unblocked/designed + verification pass (2026-07-09) — SESSION HANDOFF
+
+**DB-2 — v05 prescribed velocity loader — DONE + real-validated** (`src/darwindiff/velocity_loader.py`, commits
+`111b549` + review fixes `fc7c062`). v05 publishes velocities **cell-centered + already geographic** (`uVel_C` =
+`UE_VEL_C` eastward, `vVel_C` = `VN_VEL_C` northward) → no C-grid staggering / no rotation; `uVel_C` → transport
+zonal `u` **directly (do NOT negate** — a negation inverts the westward SEC; there is now a sign-convention
+comment + a **CI hermetic sign+unit test** after a working-tree negation slipped in). Partial top-`n_z` read of
+the LLC270 native mds, time-mean, AOI-bin to the shared 1° grid, m/s→m/day. `divfree_barotropic_velocity` =
+depth-mean → `w_from_continuity` → discretely div-free `(u,v,w)`. Validated: eqpac 12-mo climatology surface
+`u = −0.149 m/s` (westward **South Equatorial Current** — correct); div-free uniform-tracer tendency 6.25e-17.
+Data public on NAS `output/monthly/{uVel_C,vVel_C,wVel}` (+ staged locally). Scope: **barotropic** div-free
+(depth-mean); baroclinic depth-varying `w` is a follow-up. Adversarial review: all test-adequacy P2/P3 (load
+correct); fixed the CI sign/unit gap + the land-mask note (v05 land velocity is `0.0`, so `hFacC>0` — not the
+`-999` mask — excludes land).
+
+**DB-3 — held-out real-obs E2 harness — UNBLOCKED + DESIGNED (build is the next session).**
+- **Blocker cleared:** `daniels_loader.py` (the Daniels CP:PP calcite anchor) was **missing on this Track-2
+  branch** (only on `origin/main` + spine-d; the branches have diverged). **Ported** from `origin/main` (commit
+  `31f3bb4`); 13 tests pass; eqpac calcite target = **(21,51) grid, 34 cells, geomean 0.0392** — aligned to the
+  DB-1/DB-2 grid.
+- **Design (5-agent scout+design workflow):** new `src/darwindiff/held_out_obs.py` → `held_out_calcite_obs(aoi)`
+  returning `(target, train_mask, val_mask, coverage, env, …)` on the shared 1° grid for `train_ude_closure`.
+  **Calcite target = Daniels CP:PP** (Darwin-independent → non-circular; MODIS/Darwin-own excluded), **log-space**
+  observable; **env-regime hold-out = upper quartile of Ω_calcite** (via `carbonate.calcite_saturation` on the
+  `.pt` cache DIC/ALK/T/S) — beats spatial blocking for a per-cell env closure; **anomaly-R²** vs the train basin
+  mean; iron (GEOTRACES DFe) counterexample via the same methodology. Also build `geotraces_loader.dfe_aoi_1deg_grid`
+  (edge-align fix) + a runner `scripts/e2_real_calcite_eqpac.py`. Framing: calcite is **environment-dominated**
+  (Ω, SST) with **composition a minor modulation** (not "not composition").
+- **5 decisions flagged for the E2 RUN (not the build — the harness is parameterized/decision-free):**
+  (2) log-space scoring; (3) steady-state sinking identity `W_SINK_PIC == W_SINK` + cocco-off so standing-stock
+  PIC:POC == the production ratio Daniels measures — **JON**; (1) small `n_val`~9 eqpac → `q`, pool eqpac+natl;
+  (4) pre-register the split; (5) K_num as the load-bearing control on the real out-of-class target.
+
+**Verification pass (5-agent, this-session claims vs prior research):** **15/19 CONSISTENT, 4 OVERREACH,
+0 CONTRADICTS**; honesty guardrails (synthetic-not-real, no E2 number yet) confirmed respected. The 4 overreaches
+were **interpretive inflation** (a motivating result stated as a confirming one) and are **corrected in the docs**:
+(a) the DB-1 200× gap **motivates**, does not **confirm**, the thesis (E2 unrun + Tagliabue equifinality);
+(b) calcite is env-**dominated**, composition a **minor** modulation (not "not composition"); (c) the emulator is
+shelved for the **missing PPE (data scarcity)**, not "the fix needs a differentiable solver" (finite-diff labels
+work but need the PPE); (d) with DB-2 done, **DB-3 (incl. the env-regime hold-out) is unblocked, not done** — and
+the E2 *run* (runner + the 5 decisions) still follows. **Carry-forward caveats:** Daniels is non-circular but
+**low-powered** (eqpac 0.039 ≈ Darwin 0.042, ~1.6× global → corroborates, doesn't sharply validate); DB-2's
+validation is lighter than DB-1's (opt-in only + the CI guards).
+
+**NEXT SESSION starts here:** build `held_out_obs.py` per the design (parameterized, decision-free) +
+`geotraces_loader.dfe_aoi_1deg_grid`, adversarially review it, then wire the real-calcite E2 gate run
+(`e2_real_calcite_eqpac.py`) — surfacing decisions **#2 (log-space)** and **#3 (sinking config)** to Jon before
+pulling the trigger. AICR B200 is live for user-interactive runs (`p2026_0089_neu`, Duo-gated → Explorer stays
+automation). Suite **406**.

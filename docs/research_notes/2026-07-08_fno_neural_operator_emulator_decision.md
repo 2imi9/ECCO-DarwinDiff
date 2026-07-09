@@ -58,9 +58,14 @@ numerical solvers** or known analytical solutions." With such labels SC-FNO reac
 informed neural operator) learns the operator *and* its Fréchet derivative for exactly this purpose, at
 "16–25× lower cost in training-sample generation." [arXiv:2206.10745, arXiv:2403.08220]
 
-The catch for Track 2: producing those Jacobian labels needs an **adjoint / differentiable solver** — which
-*is the UDE*. So the published cure for the emulator's decisive defect **presupposes the mechanistic route
-rather than replacing it.**
+The catch for Track 2: producing those Jacobian labels needs *either* an adjoint / differentiable solver
+(*which is the UDE*) **or** finite-difference sensitivities — and finite differences mean re-running the GCM at
+perturbed parameters, i.e. the **same perturbed-parameter ensemble (PPE) Track 2 cannot afford**. So the
+dirty-gradient defect does not independently rescue the emulator: its fix collapses back onto the *decisive*
+blocker — **the missing PPE (data scarcity)** — or onto the mechanistic route. (This corrects an earlier
+overstatement that the fix "only" needs a differentiable solver; the A-vs-B decision note's verifier confirmed
+finite-difference sensitivities match autodiff, so the real, confirmed blocker for (A) is the unaffordable PPE,
+not a gradient-accuracy fix.)
 
 ---
 
