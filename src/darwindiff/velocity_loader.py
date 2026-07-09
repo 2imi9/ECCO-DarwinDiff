@@ -119,6 +119,8 @@ def velocity_aoi_grid(
     iters: int | list[int] | str = "all",
     max_iters: int | None = None,
     to_m_per_day: bool = True,
+    nx: int = LLC270_NX,
+    nface: int = LLC270_NFACE,
 ) -> dict:
     """AOI velocity field on the shared 1-deg grid, per level, ready for the transport.
 
@@ -128,16 +130,22 @@ def velocity_aoi_grid(
     converts **m/s -> m/day** to match the transport's day-based ``dt``. Land / no-coverage
     bins are filled with **0** (no flow through land). Returns a dict with ``u``/``v``
     (``[Y, X, n_z]``), ``dz`` (native ``DRF[:n_z]``, m), ``n_z``, and ``units``.
+    ``nx``/``nface`` are exposed for testing on a small synthetic grid.
+
+    Land note: v05 stores land velocity as exactly ``0.0`` (not the ``.meta``
+    ``missingValue``), so the **``hFacC>0`` ocean mask here** -- not the finite/-999 mask in
+    :func:`read_velocity_native_topz` -- is what actually excludes land from each bin.
     """
-    xc = np.fromfile(Path(grid_dir) / "XC.data", dtype=LLC_COMPACT_DTYPE).reshape(LLC270_NFACE, LLC270_NX, LLC270_NX)
-    yc = np.fromfile(Path(grid_dir) / "YC.data", dtype=LLC_COMPACT_DTYPE).reshape(LLC270_NFACE, LLC270_NX, LLC270_NX)
-    ocean = read_hfacc_topz(grid_dir, n_z) > 0.0                      # (n_z, nface, nx, nx)
+    xc = np.fromfile(Path(grid_dir) / "XC.data", dtype=LLC_COMPACT_DTYPE).reshape(nface, nx, nx)
+    yc = np.fromfile(Path(grid_dir) / "YC.data", dtype=LLC_COMPACT_DTYPE).reshape(nface, nx, nx)
+    ocean = read_hfacc_topz(grid_dir, n_z, nx=nx, nface=nface) > 0.0  # (n_z, nface, nx, nx)
     aoi_bbox = aoi_mask_from_xc_yc(xc, yc, aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
     drf = np.fromfile(Path(grid_dir) / "DRF.data", dtype=LLC_COMPACT_DTYPE)[:n_z].astype(float)
     scale = M_PER_S_TO_M_PER_DAY if to_m_per_day else 1.0
 
     def _grid(var: str) -> np.ndarray:
-        native = read_velocity_native_topz(monthly_root, var, n_z=n_z, iters=iters, max_iters=max_iters)
+        native = read_velocity_native_topz(monthly_root, var, n_z=n_z, iters=iters,
+                                           max_iters=max_iters, nx=nx, nface=nface)
         levels = []
         for k in range(n_z):
             fld = native[k]
@@ -147,6 +155,11 @@ def velocity_aoi_grid(
             levels.append(np.nan_to_num(g, nan=0.0))              # land/no-coverage -> no flow
         return np.stack(levels, axis=-1)                          # [Y, X, n_z]
 
+    # SIGN CONVENTION (do not negate): uVel_C is EASTWARD velocity (UE_VEL_C) and the
+    # transport's +u advects toward +lon (east, +X after bin_to_1deg_grid), so u maps to
+    # uVel_C directly. Negating it would invert every zonal flow -- e.g. flip the
+    # (westward) South Equatorial Current to eastward. Verified: eqpac climatology
+    # surface u = -0.149 m/s (westward SEC). Same for v (VN_VEL_C = northward = +y).
     return {
         "u": _grid("uVel_C"), "v": _grid("vVel_C"), "dz": drf, "n_z": n_z,
         "units": "m/day" if to_m_per_day else "m/s",

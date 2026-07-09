@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 import torch
 
-from darwindiff.ecco_darwin_loader import EQUATORIAL_PACIFIC_AOI
+from darwindiff.ecco_darwin_loader import AOI, EQUATORIAL_PACIFIC_AOI
 from darwindiff.transport import grid_tendency
 from darwindiff.velocity_loader import (
     LLC270_NFACE,
@@ -94,6 +94,41 @@ class TestDivFree:
         d = grid_tendency(state, params, u=u, v=v, w=w, dx=dx, dy=dy, kz=0.0, dz=10.0,
                           kh=0.0, bgc=False, include_vdiff=False)
         assert float(d.abs().max()) < 1e-10           # divergence-free to machine precision
+
+
+class TestSignAndUnits:
+    """CI-level guard (no real data) that velocity_aoi_grid preserves the EASTWARD sign
+    (no negation) AND applies the m/s->m/day conversion -- the two things the review found
+    were only checked in the opt-in real test, so a u-flip or a x86400 error shipped green."""
+
+    def _synth(self, tmp_path: Path, u_ms: float, v_ms: float, nx: int = 4, nz: int = 1):
+        grid = tmp_path / "grid"; grid.mkdir()
+        mon = tmp_path / "monthly"
+        n = LLC270_NFACE * nx * nx
+        # put every native cell at lon=0.3, lat=0.3 -> all land in AOI bin (0,0)
+        np.full(n, 0.3).astype(">f4").tofile(grid / "XC.data")
+        np.full(n, 0.3).astype(">f4").tofile(grid / "YC.data")
+        np.full(nz * n, 1.0).astype(">f4").tofile(grid / "hFacC.data")   # all ocean
+        np.full(50, 10.0).astype(">f4").tofile(grid / "DRF.data")
+        _write_native(mon, "uVel_C", 1, np.full((nz, LLC270_NFACE, nx, nx), u_ms))
+        _write_native(mon, "vVel_C", 1, np.full((nz, LLC270_NFACE, nx, nx), v_ms))
+        return mon, grid
+
+    def test_eastward_sign_and_conversion(self, tmp_path: Path) -> None:
+        mon, grid = self._synth(tmp_path, u_ms=0.5, v_ms=0.3)
+        aoi = AOI("t", 0.0, 1.0, 0.0, 1.0)
+        vf = velocity_aoi_grid(mon, grid, aoi, n_z=1, iters=[1], nx=4)
+        # +0.5 m/s eastward -> +0.5*86400 m/day: POSITIVE (no flip) AND unit-converted.
+        assert vf["u"][0, 0, 0] == pytest.approx(0.5 * M_PER_S_TO_M_PER_DAY)  # = 43200
+        assert vf["v"][0, 0, 0] == pytest.approx(0.3 * M_PER_S_TO_M_PER_DAY)
+        assert vf["u"][0, 0, 0] > 0                                           # kills a u-negation
+
+    def test_no_conversion_when_disabled(self, tmp_path: Path) -> None:
+        mon, grid = self._synth(tmp_path, u_ms=0.5, v_ms=0.3)
+        aoi = AOI("t", 0.0, 1.0, 0.0, 1.0)
+        vf = velocity_aoi_grid(mon, grid, aoi, n_z=1, iters=[1], nx=4, to_m_per_day=False)
+        assert vf["u"][0, 0, 0] == pytest.approx(0.5)   # raw m/s
+        assert vf["units"] == "m/s"
 
 
 @pytest.mark.skipif(not _RUN_REAL, reason="set DARWINDIFF_TEST_LLC270=1 to run")
