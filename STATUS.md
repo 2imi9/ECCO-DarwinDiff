@@ -1,166 +1,177 @@
 # DarwinDiff — Project Status
 
-Live status doc. Headlines reflect verified results at the current project version. Per-version technical detail lives in [`docs/findings/`](docs/findings/index.md) and individual PR threads.
+A snapshot of the **current best**, not a timeline. Per-config detail lives in the
+[Config / Results Matrix](docs/results_matrix.md); the chronological record is in
+[CHANGELOG.md](CHANGELOG.md) and the [archive](docs/archive/index.md).
 
-## Current state (2026-07-07) — the project is now TWO papers
+## What this is
 
-**Paper #1 (Track 1 identifiability study) is CLOSED as a reference write-up; Paper #2 (Track 2, the differentiable-Darwin "UDE") is in progress.** This section supersedes the Track-1 box-recovery detail below for "what shape are we in" questions.
+DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with gradient
+descent through a differentiable 0-D box model, predicted per grid cell by a small neural
+network (`DINN`). It is framed as a **surrogate-to-model identifiability study** — *which*
+of the six Carroll-6 parameters are identifiable from real ocean observations, *which* are
+not, and *why* — **not** a "6/6 recovery" chase. As a study, Track 1 is **scientifically
+complete**: the central, verified result is that the per-cell architecture is *load-bearing*
+— a per-cell DINN holds the target trio {`alpfe`, `scav_rat`, `R_PICPOC`} while a single
+global-scalar vector holds ~0 (disjoint CIs). What remains is manuscript finalization and the
+(separate) Track-2 build, not further recovery-chasing.
 
-### Paper #1 — Track 1 identifiability study (CLOSED)
-`docs/paper/main.tex` (**local-only, gitignored**; build `cd docs/paper && latexmk -pdf main.tex`). Shared with Jon Lauderdale (MIT) + the Explorer PI as a formatted **write-up for reference, NOT submitted** (frame it that way to them — not "paper"/"manuscript"). **Result:** replacing the non-differentiable GCM with a 0-D differentiable surrogate + per-cell DINN, the **demonstrated-observable set is the trio {alpfe, scav_rat, R_PICPOC}**. Per-cell architecture is load-bearing: holds the trio jointly **7/10 (n=10) and 33/50 (n=50)** vs **0/50** for a global-scalar vector (disjoint Wilson CIs). `alpfe` 10/10 both arms (mass-balance-identified); `scav_rat` (8/0) and `R_PICPOC` (9/0) require per-cell; `diatomgraz` observable-in-principle but not from staged data; growth pair unobservable by construction. Graded as an **honest consistency check** vs Carroll's published values, **not a discovery** — the *surrogate gap* (0-D box can't carry spatial structure) forces identification from real absolute anchors (GEOTRACES iron, Daniels calcite). Figures done (matplotlib data figs + TikZ schematics). The v3.2/v3.3 box-recovery detail below is the engineering under this paper.
+The honest target is **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}.
+The growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** — no real-world
+data constrains phytoplankton growth rates — so it is excluded from the target, not counted
+as a miss.
 
-### Paper #2 — Track 2 UDE / differentiable-Darwin (IN PROGRESS)
-Make Darwin's real BGC differentiable and learn its uncertain closures with small NNs; the UDE **is** the independent-inversion validation Paper #1 lacked (#163). **Foundation merged to `main` (#177):** `src/darwindiff/integrators.py` (RK4/Euler + gradient checkpointing + **time-aware forcing `f(t,x)`** + `relative_mass_drift`); `carroll6_tendency` + `carroll6_ude_tendency` (pluggable neural `ffe`/`calcite` closures; `carroll6_integrate(method="rk4")`, Euler default byte-identical); `src/darwindiff/transport.py` (mass-conserving batched-column vertical transport + dust/light forcing).
-**Night-1+2 H200 results (closure identifiability):** closure equifinality is a **support problem** (a neural closure fits the trajectory but recovers the true function only where the state visits). **Excitation ladder** (n=4, Monod-anchored closure, full-domain closure error): none **0.203** → transient(multi-IC) **0.173** → spatial(regime) **0.154** → **Fisher-designed drawdown 0.116**. Two levers: **structure (analytic Monod backbone + bounded NN correction) ≈ 15×** (free-MLP 2.5–2.9 vs anchored 0.12–0.20); **excitation monotonic with support depth** (must drive DFe → k). Forcing **designed offline for pennies** (`scripts/ude_forcing_design.py`, ~2-min CPU Fisher probe): the lever is **light-driven drawdown, not dust** (winner `drawdown_pulse`, design λ_min ↑330×). Free MLP NaN'd under strong forcing (structure buys stability). Numerics: transport conserves **~5 ppm over 68 yr**; checkpointing **~100× memory**; H200 feasible ceiling ~100k cells×12 layers×20k steps. Scripts: `ude_closure_identifiability_h200.py` (arms A–H: single/multi-IC/regime/forced × free/monod), `ude_transport_stress_h200.py`, `scripts/slurm/`.
+## Current best
 
-### The three components + the seam (re-grounded 2026-07-07)
-- **DINN (parameter learner)** — per-cell 1×1 convs → Carroll-6 field; per-cell, **not** spatially coupled.
-- **FNO emulator** (`src/darwindiff/emulator.py`) — Fourier Neural Operator forward surrogate `state→next state`, PhysicsNeMo/Earth-2 schema, spatially coupled, **scaffold, NOT parameter-aware**; for long climate rollouts (Jonathan's goal / NVIDIA-Nebius phase).
-- **UDE** — the mechanistic differentiable spatial model (the Track-2 work above).
-- **The seam / fix:** the parameter learner's ceiling is the surrogate gap (it backprops through the 0-D box). Fix = give it a **spatially-resolved differentiable forward model** to backprop through — the emulator IF **parameter-conditioned** (`FNO(state, Carroll-6 field) → next`: spatial structure + speed + differentiability, and doubles as the long-run emulator), or the UDE (mechanistic, interpretable, extrapolation-safe). **NOT yet built or researched** — the research-first task.
+The study operates at **3-AOI joint training** (Eq Pacific + N Atlantic Subpolar + Southern Ocean Pacific)
+on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All numbers below are
+`scripts/verify_run.py`-gated (exit 0 = re-derived from raw).
 
-### Compute / constraints (2026-07)
-**Explorer H200 is the main source** (`ssh explorer`, automated; repo `/projects/schultz/qi.zim/ecco-darwindiff` + `.venv`). **Local RTX 5090 is IN USE — cluster or CPU only for compute.** AICR B200 onboarding early July (first cohort; contact Devesh Tiwari, NU RC). A caught CUDA OOM in a sweep poisons the context (`CUBLAS_ALLOC_FAILED`) → isolate OOM-probing from training. Conventions: scope-prefixed PRs, **no Co-Authored-By**, non-squash, `2imi9/` branches, explicit paths (shared checkout switches branch mid-task); `verify_run.py`-gate recovery numbers; **research-first / cost-first**.
+- **Iron pair (`alpfe`, `scav_rat`) — recovers reproducibly, 38/40 (95 %)** at the best 3-AOI
+  config, from real GEOTRACES IDP2025 dissolved iron (~7 min/fit on one GPU).
+- **`R_PICPOC` — recovers** against a real calcite anchor (Daniels CP:PP / MODIS PIC), landing at the
+  real ~0.05 — *consistent with* Carroll within the wide Cal band, **not** a validation of 0.0425
+  (Carroll's value is itself under-constrained; see below).
+- **Best operating point `geo1`** (`GEOTRACES_W=1` + Daniels anchor) **holds {`alpfe`, `scav_rat`,
+  `R_PICPOC`} jointly in 7/10 seeds** — a **3-of-4-observable frontier**, statistically tied with
+  `base`/`dan2` at n=10. (A fresh identical-config re-run confirms 7/10; the original hold-together
+  sweep reported 8/10 — they differ by one band-edge seed.)
+- **`diatomgraz` — not recovered** in the real-data sweep (best 4/10 = chance). This is a
+  **settled identifiability verdict**, not an open task: it is profile-likelihood-flat /
+  structurally non-identifiable from the present staged data — [#152](https://github.com/2imi9/ECCO-DarwinDiff/issues/152).
+  In principle it is an **iron-pair tradeoff** recoverable via the dense Darwin POSi (`TRAC16`)
+  target, which is **not staged**; that is a future data-staging option, not a Track-1 blocker.
 
-### Immediate next steps
-1. **Research-first (cheap):** parameter-learner ↔ emulator coupling — parameter-conditioned differentiable emulator, amortized/simulation-based calibration, and where black-box FNO extrapolation risk (#6) forces the mechanistic UDE.
-2. **Build (autonomous):** symbolic distillation (save the trained closure, distill to a formula — the go/no-go); real Phase-1 transport (batched Thomas vertical diffusion + centered advection per the design brief); parameter-condition `emulator.py` + a DINN-backprop-through-emulator test.
-3. **Jon questions (Paper #2-defining):** iron vs calcite closure target; what drives calcification (SST/Ω/nutrients/which PFTs); offline transport scope OK; forcing realism (synthetic drawdown vs real seasonal cycle); what independent validation = discovery; his two R_PICPOC points.
-Design docs: `docs/research_notes/2026-07-06_ude_phase1_design_brief.md`, `..._closure_identifiability_recipe.md`, `..._implementation_brief.md`. Handoff prompt for a fresh session: `docs/NEXT_SESSION.md`. Tracker: #176 (Phase-1 UDE), #163 (validation→discovery = Paper #2), #124 (roadmap epic).
+→ Every config that produced these, and how each differs, is in the **[Config / Results Matrix](docs/results_matrix.md)**.
 
-## Track 1 box-scale recovery detail (v3.2/v3.3 — historical, the engineering under Paper #1)
+## Why these are the load-bearing facts
 
-DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with gradient descent through a differentiable box model, predicted by a per-cell neural network. Active at **3-AOI multi-AOI joint training** (Equatorial Pacific + N Atlantic Subpolar + Southern Ocean Pacific) on a single workstation (NVIDIA RTX 5090 32 GB).
+- **`R_PICPOC` was never a "6/6 wall."** The earlier "needs the differentiable Darwin calcite
+  port + native resolution" conclusion is **refuted** — both were tested and neither helped. The
+  real gap was the absence of a *direct, real calcite observation* (now supplied) plus a
+  contaminated Southern-Ocean ratio target (fixed by `RATIO_MAX=2`). Any ratio anchor recovers
+  `R_PICPOC` — Darwin's own does too — so the real anchor's value is **non-circularity**, not
+  recoverability. The recovery lands at the real ~0.05, consistent with Carroll's 0.0425 only within
+  the wide ±40 % Cal band — **not a validation of it**. The load-bearing spine-D point is that Carroll's
+  `R_PICPOC` is itself **under-constrained**, and a single **global** constant is mis-specified against a
+  regionally-variable rain ratio (Daniels eqpac ~0.039, ≈1.6× the global mean).
+  `docs/archive/findings/2026-06-26_rainratio_real_vs_darwin.md`.
+- **The surrogate gap is dimensional — and it is the rigorous foundation of the approach.** At
+  uniform Carroll parameters the 0-D box relaxes to a spatially near-uniform state (tracer
+  CV ~4e-5 @200 steps → ~1e-15 @6400, vs Darwin's O(1) CV 0.6–2.4). Box-vs-Darwin spatial-pattern
+  correlations are therefore **not** fidelity metrics; identifiability comes from real, absolute,
+  Darwin-independent observations. A direct **per-cell-vs-global-scalar ablation confirms the
+  per-cell DINN is load-bearing on real data**: at `geo1`, per-cell holds the trio 7/10 vs **0/10**
+  for a single global Carroll-6 vector (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01).
+  [PR #158](https://github.com/2imi9/ECCO-DarwinDiff/pull/158).
+- **Independent validation ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163)) is now addressed — and it decomposes cleanly.**
+  *Estimator-independence:* a **DINN-free** global-scalar recovery on real data reaches the same
+  optimum as the per-cell DINN for `alpfe` (Excellent, ≈ Carroll), and a **gradient-free** Nelder-Mead
+  estimator agrees too ([`scripts/independent_validation.py`](scripts/independent_validation.py), [PR #172](https://github.com/2imi9/ECCO-DarwinDiff/pull/172)) —
+  so **`alpfe`'s recovery is method-independent**, not a DINN/autograd artifact; `scav_rat` and
+  `R_PICPOC` genuinely *require* the per-cell structure (0/10 without it). *Independent-data:* a
+  held-out GEOTRACES cross-validation ([PR #173](https://github.com/2imi9/ECCO-DarwinDiff/pull/173) —
+  hold out 30 % of the iron cells, score the box's DFe at the **unseen** cells) returns **negative R²**:
+  the 0-D box homogenizes, so it has no spatial structure to predict per-cell iron. A faithful held-out
+  *data* validation is therefore **structurally blocked by the surrogate gap** and needs a model with
+  spatial dynamics (the Track-2 UDE / emulator). The recovery pins the iron *magnitude*; it cannot
+  predict *which* cell has *how much*.
+- **Statistical honesty.** In the hold-together sweep only two effects are real at n=10 — the
+  ratio anchor recovering `R_PICPOC` (3/10→10/10, Fisher p=0.003) and high iron weight collapsing
+  `scav_rat` (8/10→0, p=7e-4); differences among the high cells (7–10/10) are sampling noise. The
+  metric throughout is **per-AOI ≥2-AOI co-recovery** (avoids a cell-weighted straddle
+  false-positive). FIM/profile diagnostics independently agree.
+- **Honest scope of the completed study.** Track 1 is a **consistency check against Carroll's own
+  published values**, not a cross-validated discovery against the GCM. The surrogate gap (the 0-D box
+  homogenizes, held-out real-data R² is negative) means identifiability must come from real *absolute*
+  anchors, not pattern-matching — this is a **finding that bounds the claim**, and it is precisely what
+  motivates Track 2. With this, the Track-1 identifiability question is answered and the study is complete.
 
-**Box-science headline is v3.2** (mean 3.85/6, R_PICPOC the sole 6/6 wall — below). **v3.3 is the seasonal / native-resolution bridge infrastructure** (merged): the transient-seasonal integrator and runner are now seed-batched, `torch.compile`-ready, and emit `verify_run.py`-gateable per-seed JSON, so the first cluster seasonal fit is push-button and verifiable. Seasonal *recovery results* remain cluster-gated.
+## Architecture (brief)
 
-**Verified results from the v3.1 sweep set** (856 seeds across 86 configs, outputs in `D:\runs\bcr_*\`):
+A per-cell network `env → 6 Carroll-6 params` trained by gradient descent through a differentiable
+box model. Full detail in [docs/dinn_design.md](docs/dinn_design.md).
 
-- **Basin C iron-pair recovery is reproducible at n=40, 38/40 (95%).** Four independent 10-seed batches at the F2 Basin C config (POSI_W=1.0 + AOI_W_NATLSUBPOLAR=2.0 + AOI_W_SOUTHERNOCEANPAC=2.0 + CHL1_W_EXTRA=3.0). Per-batch iron-pair counts: 10/10, 10/10, 10/10, 8/10.
-- **Two 5/6 Cal-grade single-seed events** out of 856 seeds (0.23% break rate, both unreproduced at scale):
-  - `w2e_peraoi_lam0.1` seed 3: PER_AOI_DINN + CONSISTENCY_LAMBDA=0.1 at Basin C base. Recovers alpfe (Excellent) + scav_rat + Smallgrow + Biggrow + diatomgraz; R_PICPOC drifts. Wave 5 dose-response (CONSISTENCY_LAMBDA ∈ {0.05, 0.15, 0.20, 0.30}) and n=20 extension (seeds 10-19 at the same config) produced 0 additional 5/6.
-  - `c_chl40_posi15` seed 9: CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C base. Recovers alpfe + scav_rat (Excellent) + Smallgrow + Biggrow + R_PICPOC; diatomgraz drifts. n=20 retest at seeds 10-19 produced 0 additional 5/6 (combined: 1/20 at 5/6).
-- **Composition test of the two 5/6 recipes fails (Wave 6).** Combining PER_AOI_DINN + CONSISTENCY_LAMBDA=0.1 + CHL1_W_EXTRA=4.0 + POSI_W=1.5 at Basin C 3-AOI base yields 0/10 at 5/6, 0/10 at 4/6, mean_cal 2.00 — worse than either parent (2.40 / 2.70). Iron pair survives (9/10) but R_PICPOC and diatomgraz both drift; small-cell phyto params (Smallgrow, Biggrow) also regress. The two intervention families interfere.
-- **Binary mutex confirmed at low PIC dose.** Any nonzero `PIC_ABS_W` (tested down to 0.02) wipes iron-pair recovery → 0/10, regardless of POC pair. `POC_ABS_W` alone also kills iron pair, with different downstream basin geometry.
-
-The structural 5/6 ceiling holds at 2/856 across all v3.1 work. Five independent pieces of evidence now support parameter conservation as the binding limit: (1) 0 at 6/6 across 856 seeds and 86 configs of single-lever 3-AOI variation, (2) `w2e_peraoi_lam0.1` n=20 → 1/20 at 5/6, (3) `c_chl40_posi15` n=20 → 1/20 at 5/6 (both 5/6 events unreproduced), (4) the composition test of the two complementary 5/6 lever families produces 0/10 at 5/6, (5) the v3.1.1 AOI ablation (n=200) produces 0/80 at 5/6 in the best-mean-cal 2-AOI `eqp+natl` configuration despite 19/80 at 4/6 via a recovery route v3.1 never observed (R_PICPOC + diatomgraz both Cal+, iron pair drops). The 5/6 ceiling is the headline finding; AOI mix decides WHICH 4--5 params recover but never lifts the cap to 6.
-
-**v3.1.1 — AOI ablation** (PR #89 / paper §4.7, 200 fresh seeds). At the F2 Basin C lever set, four AOI configurations:
-
-| Config | n | iron-pair | diatomgraz | R_PICPOC | k≥4/n | mean_cal |
-|---|---|---|---|---|---|---|
-| 1-AOI eqpac | 40 | 0% | 100% | 8% | 0% | 2.08 |
-| 2-AOI eqp+natl (no SO) | 80 | 1% | 85% | 20% | **24%** | **3.20** |
-| 2-AOI eqp+SO (no natl) | 40 | 75% | 15% | 0% | 12% | 2.30 |
-| 3-AOI baseline (matched n=40) | 40 | 95% | 0% | 0% | 5% | 2.52 |
-
-Per-AOI attribution: eqpac carries `alpfe` + `diatomgraz`; natl carries `Biggrow` + `R_PICPOC`; SO carries `scav_rat`. The 3-AOI configuration is one of several Pareto-equivalent points; it trades `diatomgraz` + `R_PICPOC` recovery for `scav_rat` recovery. 16/80 seeds in `eqp+natl` recover R_PICPOC + diatomgraz Cal+ simultaneously --- a basin v3.1's 856-seed sweep never produced.
-
-**v3.2 — forward-model fidelity: Eppley temperature + dense POSi** (box scale, 3-AOI F2 Basin C, on main; `docs/findings/posi_dense_diatomgraz.md`). Two laptop-feasible forward-model edits from the 2026-06-11 utilization audit, behind default-OFF flags: (i) a **dense Darwin `POSi` (`TRAC16`) target** for `diatomgraz` (`POSI_DARWIN_W`, replacing the sparse GEOTRACES-bottle bSi proxy); (ii) **Eppley temperature limitation** of growth (`USE_EPPLEY_T`; the box previously had no `f(T)`, `LIGHT=1.0`). Result (n=20, seeds 0--19, reproducible by split-half 3.90/3.80):
-
-| param | `alpfe` | `scav_rat` | `Smallgrow` | `Biggrow` | `diatomgraz` | `R_PICPOC` |
-|---|---|---|---|---|---|---|
-| Cal+ | 18/20 | 20/20 | 15/20 | 4/20 | 20/20 | 0/20 |
-
-**mean 3.85/6 · ≥4/6 in 14/20 (70%) · 5/6 in 4/20 (20%, reproducible) · 6/6 in 0/20.** This is the **best multi-AOI recovery in the project** and the first *reproducible* 5/6 at 3-AOI (the two v3.1 5/6 events were 1/20 flukes). Mechanism: Eppley gives diatom biomass an SST handle independent of iron, so the dense-silica target no longer commandeers the iron budget --- breaking the `alpfe`↔silica mutex (dense POSi alone collapses `alpfe` 10/10→2/10) and letting the **iron pair *and* `diatomgraz` recover together**, which the v3.1.1 ablation had shown were mutually exclusive across regions. **`R_PICPOC` is now the entire 6/6 wall**: 0/20 and the sole miss in all four 5/6 seeds. Two box-scale cracks both fail by the same mutex: separate calcite sinking (`W_SINK_PIC`) did not move it (0/10); a PIC magnitude anchor on Eppley (`PIC_ABS_W ∈ {0.02, 0.1}`) *does* recover it (8/10) but wipes the iron pair (18→0, 20→0) **and** `diatomgraz` (20→1), net mean 3.85→2.5 — i.e. the binary PIC-anchor mutex is robust even to the temperature physics that broke the *other* mutex. This refines "parameter conservation": forward-model fidelity *raises* the effective recovered count (2.0→3.85) rather than reshuffling a fixed budget, but `R_PICPOC` ⊕ iron-pair is a genuine binary degeneracy at the box scale. **6/6 is foreclosed at the box scale by exhaustive exclusion** (loss weight, AOI mix, architecture, IC, Eppley physics, PIC anchor) — it is cluster-gated on the seasonal / native-resolution axis (the AICR case).
-
-## Headline results
-
-| Version | AOI | Config | Best result | Source |
-|---|---|---|---|---|
-| v3.2 (Eppley + dense POSi) | 3-AOI Basin C | `USE_EPPLEY_T` + `POSI_DARWIN_W=0.5` | mean 3.85/6; 14/20 at 4/6 (70%); 4/20 at 5/6 (reproducible); iron pair + diatomgraz recover together; R_PICPOC the sole 6/6 wall (0/20) | docs/findings/posi_dense_diatomgraz.md |
-| v3.1.1 (AOI ablation, PR #89) | 2-AOI eqp+natl | F2 base, no SO | 19/80 at 4/6 (24%, best 4+ rate in project); 16/80 with R_PICPOC + diatomgraz Cal+ together (v3.1 had 0 of 856) | bcr_5pft_eqp_natl_20260523_1058/ |
-| v3.1.1 (AOI ablation, PR #89) | 1-AOI eqpac | F2 base | 40/40 alpfe Cal+ (7 Excellent); 40/40 diatomgraz Cal+; iron pair 0/40 | bcr_eqp5_20260523_0242/ |
-| v3.1 (Wave 2) | 3-AOI | `w2e_peraoi_lam0.1` | 1/10 seeds at 5/6; alpfe Excellent + scav_rat + Smallgrow + Biggrow + diatomgraz Cal | bcr_w2_/w2e_peraoi_lam0.1/ |
-| v3.1 (Wave 3) | 3-AOI | `c_chl40_posi15` | 1/10 seeds at 5/6; alpfe + scav_rat Excellent + Smallgrow + Biggrow + R_PICPOC Cal | bcr_w3_/c_chl40_posi15/ |
-| v3.1 (n=40 extension) | 3-AOI | F2 Basin C base | 38/40 iron-pair Cal+ across four 10-seed batches | bcr_*/arc6_basinC_seeds10-19/, /w2f_basinC_seeds20-29/, /e_basinC_seeds30-39/ |
-| v3.0 baseline (PR #57) | 2-AOI | AOI ID + GEO POC=0.5 + hd=32 + NAtl_W=2.0 | 7/15 seeds at 5/6 Cal-grade; mean_cal=3.93 | nb32 |
-| v2.8 | Eq Pac | Darwin v5 ICs + L2 POC z-score | 7/10 Cal-grade scav_rat (4/10 Excellent); aggregate 6/10 at 4/6 | docs/findings/v2.8_darwin_ic_poc_sub.md |
-| v2.6 | Eq Pac | GEOTRACES_W=0.3 + PINN drift w=3.0 | 4/6 Cal-grade reproducible across n=10; Smallgrow 9/10 Cal+ | PR #40 |
-| v2.4 | Eq Pac | 5-PFT + PINN drift w=3.0 | 4/6 Cal-grade — project-first | nb29 |
-| v2.1 Phase 1 | Eq Pac | GLODAP DIC + ALK hybrid | R_PICPOC 360% → 74% off Carroll | PR #41 (nb22) |
-| v2.0 | Eq Pac | 7-tracer carbonate joint loss | Iron pair to 1.1% (alpfe) / 40% (scav_rat) off Carroll | nb20-21 |
-
-## Version chronology
-
-- **v0.x → v1.8** (nb 05–19): synthetic-truth methodology validation, real-data demos on GLODAP and Darwin Chl, cross-basin verification (Mid-Atl + N Pacific), iron-pair recovery via Darwin FeT in HNLC, multi-tracer joint loss partial collapse of parameter degeneracy.
-- **v2.0** (nb 20–21): carbonate cycle (`carbonate.py` Follows-2006 solver + Wanninkhof 2014 air-sea flux); 7-tracer joint loss moves iron pair to 1.1% / 40% off Carroll. Robust across DINN baseline + DINNDeep.
-- **v2.1 Phase 1** (nb 22, PR #41): GLODAPv2.2016b real-obs DIC + ALK hybrid; R_PICPOC dramatic improvement, iron pair degraded under obs swap.
-- **v2.2** (nb 23–29, PR #37): full 5-PFT box matching Darwin v05; 22 experiments; v2.4 PINN drift w=3.0 reaches 4/6 calibration-grade. `alpfe` confirmed structurally stuck under z-scored loss without absolute iron observations.
-- **v2.5** (PR #39): GEOTRACES IDP2025 loader scaffold validated against real NetCDF schema.
-- **v2.6** (PR #40): GEOTRACES dissolved-iron absolute-units MSE loss; 4/6 Cal-grade reproducibly across n=10; Smallgrow at 9/10 Cal+. Reframes v2.2's "alpfe + Smallgrow are structurally stuck" claim.
-- **v2.7** (PR #42): 2-layer (0–50 m + 50–1000 m) box with sinking-POC iron + Kz + subsurface remineralisation. Subsurface DFe anchoring alone does NOT unblock scav_rat.
-- **v2.8** (PR #45): Darwin v5 pickup ICs + L2 POC z-score loss. Project-first reproducible scav_rat recovery (7/10 Cal-grade, 4/10 Excellent). Reveals bimodal degeneracy in (alpfe, scav_rat) selected by `POC_SUB_W`.
-- **v3.0** (PRs #46–#59): joint multi-AOI training across Eq Pac + N Atl Subpolar with a shared Carroll-6. Establishes the 5/6 plateau across 50+ seeds. Architectural (PR #58: per-AOI DINNs falsified at 2-AOI) and observational-anchor (PR #59: PIC_ABS + POC_ABS paired anchors underperform baseline) break attempts all empirically falsified. 5/6 ceiling characterized as **parameter conservation**: the observations support ~5 effective constraints on 6 parameters; the 6th is always the residual sink, and loss weighting decides which.
-- **v3.1** (PR #64+): Southern Ocean Pacific added as 3rd AOI; Basin C iron-pair 38/40 at n=40; two complementary 5/6 paths via PER_AOI_DINN at low CONSISTENCY_LAMBDA and via CHL1_W + POSI_W combo tuning. PER_AOI_DINN was falsified at 2-AOI; 3-AOI behavior is new and material.
-- **v3.1.1** (PR #89): AOI ablation (4 configs × n=40-80 = n=200) decomposes the v3.1 recoverability gradient into per-AOI attribution. Dropping SO recovers `diatomgraz` (0→85%) and `R_PICPOC` (0→20%) at the cost of `scav_rat` (95→1%). Architecture-level Carroll-6 tradeoff: no single AOI mix reaches 6/6. Paper §4.7 in the same PR. 5/6 ceiling holds (0/80 at 5+ in `eqp+natl`).
-- **v3.2** (forward-model fidelity, box scale, on main): dense Darwin `POSi` (`TRAC16`) target + Eppley temperature limitation of growth, both from the 2026-06-11 utilization audit. Eppley breaks the `alpfe`↔silica mutex and recovers the iron pair + `diatomgraz` together — mean 2.0→3.85/6, 70% of seeds ≥4/6, first *reproducible* 5/6 at 3-AOI (n=20). `R_PICPOC` localized as the entire 6/6 wall (0/20). First gain via forward-model physics rather than loss-weight/architecture/IC levers. `docs/findings/posi_dense_diatomgraz.md`.
-- **v3.2 ALK anchor — R_PICPOC mutex test (2026-06-15, on main, default-OFF `ALK_ABS_W`/`ALK_ABS_SOURCE`): NULL, mutex holds.** Tested whether a real-GLODAP absolute-alkalinity anchor (calcite ⇒ 2:1 ALK signature) breaks `R_PICPOC ⊕ {iron pair}` without the iron-pair collapse the PIC anchor causes. Pre-registered (`docs/findings/alk_anchor_rpicpoc_mutex.md`); paired n=20 + split-half + 5-lens adversarial panel. An *apparent* co-recovery (a100: R_PICPOC joint 14/20, iron 14/20, co-rec 13/20 [split 6+7], 6/6 3/20) **passed the reproducibility gate but was falsified as a cell-weighted averaging artifact**: per-AOI decomposition shows `R_PICPOC` recovered in **no single AOI** (eqpac driven →0, natl/SO too-high, joint mean straddles Carroll; only 2/13 co-rec seeds have any AOI Cal). Confirmed generic (not real-obs) by the Darwin-ALK-source control (a100d reproduces the straddle) and dose (a300 deepens deflation, erodes iron pair). The iron pair / diatomgraz remain per-AOI genuine, so the metric is sound where parameters are identified — `R_PICPOC` is the lone per-AOI-unidentified parameter and thus the only one vulnerable to the straddle. **A 7th independent box-scale exclusion of `R_PICPOC`** (now: loss weight, AOI mix, architecture, IC, Eppley physics, PIC anchor, ALK anchor) — reinforces cluster-gated / AICR. Methodological note: report `R_PICPOC` per-AOI, not only joint cell-weighted.
-- **v3.2 R_PICPOC structural campaign (2026-06-15 night, on main, default-OFF `RATIO_W`): the wall is calcite forward-model fidelity, not the estimator/info/seasonal axis.** Adversarial code audit showed R_PICPOC's level is a provable null-space degeneracy of the z-scored loss (not a bug). A new **PIC:POC ratio loss** (mort_total cancels at steady state → orthogonal to the iron pair) **breaks the mutex**: recovers R_PICPOC in eqpac **10/10 without collapsing the iron pair** (dose-robust r0.5–r30) — the first lever to recover R_PICPOC and keep the iron pair. But it lands only in eqpac (Darwin realized PIC/POC ≈ Carroll there); natl/SO realized ratios are ~0.9/1.4 (coccolithophore blooms), which the box's rigid `PIC/POC=R_PICPOC` calcite can't match at a single value. **Exhaustive structural exclusion: 25 arms (ratio×dose×coccolith×W_SINK_PIC, paired PIC+POC per-AOI, gating, PER_AOI_DINN), 0/10 co-recovery in ≥2 AOIs**; every magnitude anchor still wipes the iron pair; coccolith-only backfires. A **1° seasonal fit is also excluded** (theory+probe: box has no seasonal biology — Eppley mean-neutralized, LIGHT constant — and PIC is phase-locked to mort). **Conclusion: R_PICPOC needs richer calcite physics (the differentiable Darwin port) + native resolution to resolve the bloom regimes — not the estimator, not seasonality, not more compute for the same box.** Sharpens the cluster ask. `docs/findings/rpicpoc_ratio_structural.md`.
-- **v3.3** (seasonal / native bridge — infrastructure; #115 / #126 / #127 merged, #131 in review): the transient-seasonal integrator (`carroll6_5pft_2layer_integrate_seasonal`) and `scripts/run_seasonal_recovery.py` are now **seed-batched + `torch.compile`-ready** (the per-cell seed axis folds into the spatial dims, proven seed-independent) and **emit `verify_run.py`-gateable per-seed JSON** — the AICR-readiness layer so the first H200/B200 seasonal fit saturates the GPU and is verifiable rather than idle-reaped. `#119` `--compile` flag added to the memory/wall-clock harnesses (compiled measurement pending a WSL run). No new science: seasonal *recovery results* stay cluster-gated (the 1° box has no seasonal biology — native resolution is the test).
-- **Cluster-gated**: full-ocean parameter recovery, time-resolved multi-year fitting, Track 2 emulator, forward Darwin validation. See [docs/cluster_setup.md](docs/cluster_setup.md).
-
-## Architecture
-
-DarwinDiff is a per-cell neural network `env → 6 Carroll-6 params` trained by gradient descent through a differentiable box model. Architecture details in [docs/dinn_design.md](docs/dinn_design.md).
-
-- **Networks**: `DINN` (~454 weights, SST-only, baseline for structural argument), `DINNDeep` (~9.4K weights, 4-channel, saturates on biomass tracers), `DINNRegional` (legacy, superseded).
-- **Box model**: 5-PFT 2-layer integrator (`src/darwindiff/carroll6_5pft_2layer.py`) extending the original 5-tracer proxy. Includes carbonate chemistry (`src/darwindiff/carbonate.py`, Follows 2006 solver + Wanninkhof 2014 air-sea flux).
-- **Multi-AOI joint training (v3.0+)**: shared DINN with optional per-AOI identity channel (`AOI_ID_CHANNEL=1`), per-AOI loss weights (`AOI_W_<KEY>`), optional per-AOI DINN architecture (`PER_AOI_DINN=1` + `CONSISTENCY_LAMBDA=λ`).
-- **Loss components**: z-scored MSE per-AOI per-tracer (`GEOTRACES_W`, `POC_SUB_W`, `NB23_PINN_WEIGHT`, `NB23_FET_WEIGHT`), absolute-units anchors (`PIC_ABS_W`, `POC_ABS_W`, `F_CO2_ABS_W`), biogenic silica MSE against GEOTRACES IDP2025 bSi observations (`POSI_W`, via the steady-state diagnostic in `src/darwindiff/silica.py`), extra diatom-chl weight (`CHL1_W_EXTRA`).
-- **Optimization**: Adam at lr=5e-3, 1500 epochs (extendable via `NB23_N_EPOCHS`). Forward-Euler integrator (`DT=0.25`, `N_STEPS=200`).
-- **Recovery scoring** (canonical `diagnostics.band_of`): Excellent if `|recovered − Carroll| / Carroll ≤ 0.05`; Cal-grade if `≤ 0.40`; Loose if `≤ 0.80`; Drifted otherwise. Six Carroll-6 params: `alpfe`, `scav_rat`, `Smallgrow`, `Biggrow`, `diatomgraz`, `R_PICPOC`. Carroll's published values bit-identical between v04 (JAMES) and v05 (GBC).
-
-## 5/6 ceiling — structural diagnosis
-
-Across 856 seeds in v3.1, only 2 broke the 5/6 ceiling. Different interventions shift WHICH parameter is the dominant 5/6 miss:
-
-| Family | Dominant 5/6 miss | Mechanism |
-|---|---|---|
-| Baseline (PR #57, 2-AOI) | `diatomgraz` | Chl1 z-score under-constrains diatom-specific growth |
-| Per-AOI DINN (PR #58, 2-AOI) | `R_PICPOC` | Shared-MLP regularization removed; basin selection collapses |
-| PIC alone (PR #59) | `alpfe + scav_rat` | Magnitude anchor on PIC competes with iron budget |
-| Paired POC+PIC (PR #59) | `alpfe + scav_rat` | Both anchors disturb iron budget |
-| PER_AOI + low λ at 3-AOI (v3.1 w2e) | `R_PICPOC` | Same family as PR #58 but the 3rd AOI breaks the basin lock |
-| CHL1 + POSI combo at 3-AOI (v3.1 c_chl40_posi15) | `diatomgraz` | Loss reweighting lands R_PICPOC while losing diatomgraz |
-| 2-AOI eqp+natl ablation (v3.1.1) | `scav_rat` + `Smallgrow` | Dropping SO recovers diatomgraz + R_PICPOC + Biggrow but iron pair collapses (no surface↔subsurface DFe contrast) |
-
-The two v3.1 5/6 paths recover complementary param subsets (one lands diatomgraz, the other lands R_PICPOC). Combining their interventions in a single config is the obvious next test for a 6/6 candidate.
-
-The mutex between iron-pair recovery and R_PICPOC recovery is binary in PIC anchor presence (not magnitude): any nonzero `PIC_ABS_W` wipes iron pair regardless of dose. The PER_AOI architectural lever produces 5/6 without invoking that mutex — orthogonal axis.
+- **Networks**: `DINN` (~454 weights, SST-only, baseline for the structural argument);
+  `DINNDeep` (~9.4K weights, saturates on biomass tracers — not default); `DINNRegional` (legacy).
+- **Box model**: 5-PFT 2-layer integrator (`src/darwindiff/carroll6_5pft_2layer.py`) with carbonate
+  chemistry (`carbonate.py`, Follows 2006 + Wanninkhof 2014).
+- **Recovery scoring** (`diagnostics.band_of`): *Excellent* ≤ 5 % off Carroll; *Cal-grade* ≤ 40 %;
+  *Loose* ≤ 80 %. Carroll's published values are bit-identical between v04 (JAMES) and v05 (GBC).
 
 ## Methodology rules
 
-- **Compare against Carroll's published Green's-functions optima**, not against prior notebooks. The headline is "did the parameter learner catch the goal?", not "did this version beat the previous one." Inter-version deltas are supplementary methodology context.
-- **Train DINN baseline only by default from v2.2.x onward.** DINNDeep saturates trivially on biomass tracers (r → 1.0) and recovers fewer calibration-grade Carroll-6 params than the baseline; halves wall-clock per fit. The dual-architecture framing remains useful for the v2.0 saturation-ceiling argument.
-- **Recovery analyses report n=10 minimum and disclose seed variance** in any headline claim. Avoid single-seed framing; n=5 medians can hide bimodality.
+- **Compare against Carroll's published Green's-functions optima**, not against prior notebooks.
+- **DINN baseline only by default** (v2.2.x onward); `DINNDeep` saturates and recovers fewer
+  Cal-grade params.
+- **Report n=10 minimum and disclose seed variance** in any headline claim.
 
 ## Cluster path
 
-Three clusters across **two institutions** — do not conflate (full table in [docs/cluster_setup.md](docs/cluster_setup.md)):
+Two Northeastern clusters (full table in [docs/cluster_setup.md](docs/cluster_setup.md)):
 
-- **Explorer** (Northeastern RC, H200 144 GB ×32) — **active near-term path**, access granted June 2026 (Cristina-sponsored). The first native-resolution prototype runs here.
-- **AICR** (Northeastern RC, B200) — future path via a PI **project proposal** (in prep); target for the global-native / seasonal sweep. (Earlier notes mis-framed AICR as an MIT-ORCD follow-on to Engaging — it is Northeastern's.)
-- **Engaging** (MIT ORCD) — Jon-side option, open to MIT users.
+- **Explorer** (H200 144 GB ×32) — active near-term path; the first native-resolution prototype runs here.
+- **AICR** (B200) — future path via a PI proposal; target for the global-native / seasonal sweep.
 
-Detailed setup, partitions, storage, and SLURM templates in [docs/cluster_setup.md](docs/cluster_setup.md).
+The cluster path unlocks native LLC270-resolution recovery, time-resolved multi-year fitting,
+and **Track-2** build-out. (A larger multi-seed ensemble has already been folded into the hardened
+Paper #1, so it is no longer a pending unlock — the verified n=10 headline numbers above stand as the
+reported values.) These remain legitimate cluster goals; they are **not** gated on `R_PICPOC` or "6/6",
+which are resolved/reframed at 1° box scale.
 
-The cluster path unlocks: native LLC270-resolution recovery (vs the 1° box-model proxy), time-resolved multi-year fitting, n=20–50 multi-seed ensembles, full-ocean parameter recovery sweeps, and Track 2 emulator development.
+## Track 2 — differentiable spatial model (status: foundation BUILT + synthetic closure-recovery result; real-data E2 gate unbuilt)
+
+**Update (2026-07-07) — the differentiable foundation is now built and merged (#177).** `integrators.py` (RK4 + gradient checkpointing + time-aware forcing `f(t,x)`), `carroll6_ude_tendency` (pluggable neural closures), and `transport.py` (mass-conserving batched-column vertical transport) are on `main`. On a **synthetic self-twin** (still not real Darwin, still transport-limited), closure equifinality was diagnosed as a **support problem** and cured: a **Monod-anchored closure** (~15x over a free MLP) plus an **excitation designed offline for pennies** (a ~2-min CPU Fisher probe found the lever is *light-driven drawdown, not dust*) recovers the closure over the widest domain -- excitation ladder, full-domain closure error `0.203 -> 0.173 -> 0.154 -> 0.116` (n=4). This is a **synthetic methods result, not a real-data claim**; the E2 gate below (held-out real-data R^2 > 0 with transport) remains the make-or-break and is still unbuilt. Design docs: `docs/research_notes/2026-07-06_*`. The three-component picture (DINN parameter learner / FNO emulator scaffold `emulator.py` / mechanistic UDE) and the parameter-learner<->emulator seam are in `docs/NEXT_SESSION.md`.
+
+**Update (2026-07-09) — Phase-1 tooling + an independent identifiability oracle (all local CPU).** Three additions, still synthetic self-twin: (1) the **time-aware integrator** `f(t,x)` landed (seasonal forcing evaluated at the RK4 stage times; legacy `f(x)` auto-wrapped; 12/12 tests) — the last plumbing Phase-1 forcing needed. (2) A **symbolic-distillation go/no-go gate** (`scripts/symbolic_distill_probe.py`, 13 tests) distills a trained closure's `(DFe→f_fe)` law by STLSQ against a fixed-k Monod bank + polynomial confounders on the *visited support*, and returns DISTILL-PASS/FAIL as a **second identifiability oracle** that must agree with the Fisher/profile diagnostics. Its load-bearing feature is an **aliasing guard**: a perfectly-Monod closure whose support never spanned the half-saturation knee correctly returns FAIL/non-identifiable — the honest verdict that says *add excitation*, not *spend H200 budget*. (3) That gate, run against the **real closure-training pipeline** (`scripts/symbolic_distill_dynamics_probe.py`: MonodAnchored trained through `column_tendency` on narrow single-IC vs excited multi-IC + seasonal-drawdown support), **lifts the verdict FAIL→PASS** as excitation widens the visited DFe span through the knee — Night-1's "excitation cures equifinality," now quantitatively gate-checked on the actual pipeline (`docs/findings/symbolic_distill_dynamics_probe.json`). Emulator route re-surveyed against the newest primary sources (`docs/research_notes/2026-07-09_parameter_conditioned_emulator_update.md`): stays shelved, UDE proceeds; Paper #2 reframed in the **BINN lineage**.
+
+_Original feasibility framing:_ differentiable spatial model (feasibility-proven on the 0-D box only)
+
+Track 2 (a UDE / differentiable spatial emulator) is **feasibility-proven on the 0-D box only** —
+self-twin, **synthetic**, transport-free; it is **not** real Darwin and **not** built at real scale.
+Nothing runs beyond synthetic self-twin probes. Its make-or-break gate is **E2: held-out real-data
+R² > 0 once transport is present** (this is what would turn the Track-1 consistency check into a genuine
+discovery); E2 is **unbuilt**. The build plan is gated, riskiest-assumption-first:
+
+- **Phase 1** — a minimal real-data transport UDE (regional 2-D, driven by ECCO-Darwin's own
+  velocities) fit to real GEOTRACES iron + calcite, held-out scored (does transport close the surrogate
+  gap on real data?).
+- **Phase 2** — a physical-backbone differentiability probe (do gradients flow through a real physical
+  backbone into a BGC UDE?).
+- **Phase 3+** — the full coupled build.
+
+Multi-month, gated on Paper #1 shipping. Backbone survey: **Samudra 2** (arXiv 2606.02610) is the
+leading physical backbone but worsens the sparse-obs tension; **SamudrACE** (arXiv 2509.12490) is
+differentiable coupled physics with an **explicit biogeochemistry hole** — the natural carbon-BGC-UDE
+slot; **ACE2** is atmosphere-only and **OlmoEarth** (land) is a poor fit.
+
+**Honesty guardrail:** Track-2 results to date are synthetic self-twin — do **not** say "made Darwin
+differentiable", "learned real biology", or "env-gated calcification proven".
 
 ## Known limitations
 
-- **Box model is a 5-tracer proxy** of full Darwin 3. The 5-PFT + 2-layer extensions close part of the gap; cluster-scale native-resolution recovery is the planned next reduction.
-- **DINN is per-cell, not spatially coupled.** Advection / diffusion between cells is ignored — appropriate for parameter recovery but not for the Track 2 emulator.
-- **DINNDeep does not extrapolate spatially.** Block CV gives held-out r=0.301 vs in-distribution r=1.000 on FeT. Use DINN baseline for cross-AOI extrapolation claims.
-- **Climatology, not time-resolved.** All current fits use 23-year time-mean Darwin output.
-- **Windows MAX_PATH=260.** Long config-name + filename combinations crash JSON writes after training succeeds. `scripts/recover_failed_config_log.py` reconstructs from `.log` files; sweep orchestration uses short OUTPUT_DIR prefixes (`D:\runs\bcr_<stamp>\`) to stay under the limit.
-- **Laptop sleep on Windows** suspends background Python processes during overnight runs. Use `powercfg /change standby-timeout-ac 0` for unattended runs.
+- **Box model is a 5-tracer proxy** of full Darwin 3 (the 5-PFT + 2-layer extensions close part of the gap).
+- **DINN is per-cell, not spatially coupled** — appropriate for parameter recovery, not the Track-2
+  spatial UDE. This transport-free limitation *is* the surrogate gap, and closing it on real data is
+  precisely Track-2's make-or-break gate (E2).
+- **The surrogate gap is dimensional** (see above) — pattern correlations are not fidelity metrics.
+  It also blocks held-out *data* validation: the held-out GEOTRACES test ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163))
+  returns negative R² because the box homogenizes — a faithful held-out validation needs the spatial UDE.
+- **The 1° `geo1` recovery does not transfer to native LLC270 via the shared DINN.** At native,
+  *per-AOI* recovery is strong (SO recovers the full iron pair 5/5 alone; eqpac recovers `alpfe`), but
+  the shared-DINN 3-AOI joint straddles: natl's native iron genuinely prefers a low `alpfe` (~0.1 — a
+  real regional divergence, not a fitting artifact) and SO has no Daniels coverage, so the joint iron
+  pair collapses to 0/10. Native *dilutes* the sparse real obs (GEOTRACES iron ≈ 14 surface cells for
+  ~10 k native cells). Verified (`verify_run` exit 0); PRs [#122](https://github.com/2imi9/ECCO-DarwinDiff/issues/122)/[#123](https://github.com/2imi9/ECCO-DarwinDiff/issues/123).
+- **Climatology, not time-resolved** — all current fits use 23-year time-mean Darwin output.
+- **Windows `MAX_PATH`=260** and **laptop sleep** can interrupt unattended overnight sweeps
+  (mitigations in the archive / `scripts/recover_failed_config_log.py`).
 
 ## Cross-references
 
-- [README](README.md) — project overview
-- [docs/dinn_design.md](docs/dinn_design.md) — DINN architecture, training loop, structural argument
-- [docs/cluster_setup.md](docs/cluster_setup.md) — Northeastern Explorer / AICR + MIT ORCD Engaging setup
-- [data/README.md](data/README.md) — dataset provenance and download mechanics
-- [.claude/skills/README.md](.claude/skills/README.md) — project-scoped Claude Code skill bundle
-- [docs/findings/](docs/findings/index.md) — per-version technical writeups
+- [Config / Results Matrix](docs/results_matrix.md) — the single source of truth for per-config results
+- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations + the verdict (box-tuning space exhausted)
+- [Emulator coupling plan](docs/emulator_coupling_plan.md) — the Track-2 off-box build plan (physical-backbone survey — Samudra 2 as leading backbone, SamudrACE's named biogeochemistry hole as the carbon-BGC-UDE slot — plus the gated Phase 1→3 plan)
+- [CHANGELOG.md](CHANGELOG.md) — chronological record (version-by-version)
+- [README](README.md) — project overview · [docs/dinn_design.md](docs/dinn_design.md) — architecture
+- [docs/cluster_setup.md](docs/cluster_setup.md) · [data/README.md](data/README.md) · [archive](docs/archive/index.md)
