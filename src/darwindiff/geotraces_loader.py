@@ -340,6 +340,78 @@ def bin_to_grid(
     )
 
 
+def dfe_aoi_1deg_grid(
+    geotraces_path: str | Path,
+    aoi: AOI,
+    *,
+    variable: str = "Fe_D",
+    depth_max: float = 50.0,
+    qc_flags: tuple[int, ...] = QC_GOOD,
+    to_mmol: bool = True,
+) -> np.ndarray:
+    """Bin GEOTRACES surface iron onto the **shared** integer-degree 1° grid (DB-3).
+
+    :func:`bin_to_grid` (above) places cell centers at integer **+ 0.5°**, so an AOI
+    like eqpac (``-5..15``, ``-160..-110``) lands on a **(20, 50)** grid — misaligned
+    with the DB-1 iron forcing, DB-2 velocity, and the Daniels calcite target, which all
+    use :func:`darwindiff.llc270_loader.bin_to_1deg_grid`'s **integer-degree** centers
+    (edges at ``min-0.5 .. max+0.5``) → **(21, 51)**. Binning the *same* discrete-bottle
+    samples through ``bin_to_1deg_grid`` re-registers iron onto that shared grid so
+    :func:`darwindiff.held_out_obs.held_out_iron_obs` can align it cell-for-cell with the
+    env fields. (``bin_to_grid`` is kept for the legacy loss path; use *this* for DB-3.)
+
+    Args:
+        geotraces_path: IDP2025 Seawater NetCDF.
+        aoi: target AOI (``-180..180`` lon convention).
+        variable: friendly iron name (default ``"Fe_D"`` — dissolved iron).
+        depth_max: surface cut (m), matching the Daniels / GEOTRACES surface convention.
+        qc_flags: SeaDataNet QC codes to keep (default good + probably-good).
+        to_mmol: convert nmol/kg → mmol/m³ (default True; DarwinDiff internal units).
+
+    Returns:
+        ``np.ndarray`` ``(n_lat, n_lon)`` = ``(lat_max-lat_min+1, lon_max-lon_min+1)``,
+        surface-mean iron, ``NaN`` at bins with no coverage — aligned to the shared grid.
+    """
+    from darwindiff.llc270_loader import bin_to_1deg_grid
+
+    if variable not in GEOTRACES_VAR_MAP:
+        raise KeyError(
+            f"unknown GEOTRACES variable {variable!r}; known: {sorted(GEOTRACES_VAR_MAP)}"
+        )
+    gvar = GEOTRACES_VAR_MAP[variable]
+    ds = subset_aoi_geotraces(open_geotraces_bottle(geotraces_path), aoi)
+    if gvar not in ds:
+        raise ValueError(f"variable {gvar!r} (friendly {variable!r}) absent from dataset")
+
+    n_stations, n_samples = ds[gvar].shape
+    lats = np.broadcast_to(ds.latitude.values[:, None], (n_stations, n_samples)).ravel()
+    lons = np.broadcast_to(ds.longitude.values[:, None], (n_stations, n_samples)).ravel()
+    depths = ds.DEPTH.values.ravel()
+    values = ds[gvar].values.ravel()
+
+    qc_var = f"{gvar}_qc"
+    if qc_var in ds and len(qc_flags) > 0:
+        qc = ds[qc_var].values.ravel()
+        in_qc = np.isin(qc, np.array(qc_flags, dtype=qc.dtype))
+    else:
+        in_qc = np.ones_like(values, dtype=bool)
+
+    keep = (
+        (depths <= depth_max)
+        & np.isfinite(values) & np.isfinite(lats) & np.isfinite(lons)
+        & in_qc
+    )
+    lats, lons, values = lats[keep], lons[keep], values[keep]
+
+    # bin_to_1deg_grid(xc=lon, yc=lat, ...) → same edges/centers as DB-1/DB-2/Daniels.
+    grid = bin_to_1deg_grid(
+        lons, lats, values, aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max,
+    )
+    if to_mmol:
+        grid = grid * _NMOL_PER_KG_TO_MMOL_PER_M3
+    return grid
+
+
 def to_mmol_per_m3(da_nmol_per_kg: xr.DataArray) -> xr.DataArray:
     """Convert nmol/kg → mmol/m³ via ρ_sw = 1025 kg/m³.
 
