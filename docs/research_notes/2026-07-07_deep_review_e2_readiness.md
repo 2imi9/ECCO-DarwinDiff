@@ -188,3 +188,45 @@ realistic diffusivity would have silently failed.
 
 This removes the last numerical blocker the deep review named; the windowed-BPTT trainer can now roll out
 at realistic `kz`. The trainer + DB-2/DB-3 data staging remain before an E2 *number*.
+
+## Windowed-BPTT trainer + synthetic-twin dry run (2026-07-08)
+
+The windowed-BPTT trainer is **built** (`src/darwindiff/trainer.py`, `tests/test_trainer.py`,
+`scripts/e2_synthetic_twin_h200.py` + sbatch). It fits a learned closure by rolling the spatial field
+through `imex_rollout` (prescribed transport, mass-conserving, no CFL wall) and backpropagating a masked
+observation loss to the closure's parameters. Two modes: **checkpointed full BPTT** (climatology
+steady-state, exact gradient) and **truncated BPTT** (`detach_window` — score only the final converged
+window). Built-in E2 controls: a **frozen-closure null baseline** (`rollout_field`) and **held-out** cell
+scoring (`masked_r2`).
+
+**Machinery validated on a synthetic self-twin (H200-runnable).** Recover a known env-driven calcite
+closure through genuine **divergence-free advective** transport (`w_from_continuity`) at eqpac scale, blocked
+49% hold-out: **learned held-out R² = +1.00, null = −0.31, DELTA = +1.31** — the trainer recovers the closure
+and beats the null baseline. Full suite **387**.
+
+**But the dry run surfaced E2-protocol findings that would have bitten the real run (the valuable part):**
+- **A synthetic self-twin cannot test the E2 *thesis*.** The closure is **per-cell in env** `g(env)`, so
+  held-out recovery comes from **env-interpolation**, not "transport closes the surrogate gap." A flexible
+  closure can **absorb** transport differences. So the twin validates the *machinery*, not the science.
+- **The K_num ablation is non-discriminating on a self-twin.** Sweeping `kh` (50→800) leaves the
+  learned-minus-null delta **flat** (1.306→1.307) — the closure re-fits to whatever transport it is given.
+  K_num only bites on **real, out-of-class** data (Darwin's field is not a per-cell env function). The
+  script reports K_num as a **non-gating diagnostic**, not a pass.
+- **`u=v=0` leaves the columns nearly decoupled** — the first script version had no advection, so `kh` did
+  almost nothing (correctly flagged by the review). Fixed: a prescribed **div-free** velocity so the rollout
+  genuinely transports.
+- **For a per-cell env closure, spatial blocking ≠ env-regime hold-out** — env interpolates across spatial
+  blocks. The real E2 needs an **env-regime** hold-out (hold out an env band), not just spatial blocks.
+
+**Adversarial review of the trainer** (4 dims → verify): training-correctness + autograd came back with
+hardening findings, all fixed — a **finite-guard** that aborts (preserving last-good params, records
+`aborted`) instead of a NaN gradient silently poisoning every parameter via `clip_grad_norm_` (**P2**, real
+hazard for autonomous sweeps); `weight_decay` restricted to the flexible MLP (not `ScavClosure`'s
+nonzero-anchored `log_r0`/`raw_p`, which would fabricate a rate/`p` signal); a **structural-coupling guard**
+(rejects a hook/observable pair the closure can't influence — e.g. `calcite_closure` vs `dfe_observable`);
+and the **TBPTT bias fix** (score only the final converged window — recovery jumped 0.04→0.999). Plus test
+hardening: a leakage tripwire, all-params-moved, TBPTT-recovers-and-beats-null, and a `ScavClosure` trainer test.
+
+**Net:** the trainer machinery is complete and gated. The real E2 *number* now needs three inputs, not more
+machinery: **DB-2** (real v05 velocity → `w_from_continuity`), **DB-3** (real held-out obs — calcite first,
+per the E2 guardrails), and an **env-regime hold-out** with the K_num control on that out-of-class data.
