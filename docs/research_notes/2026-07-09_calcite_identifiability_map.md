@@ -284,6 +284,19 @@ therefore "work" (the observable is fittable) with an **equifinal, meaningless**
 Concentration skill ≠ rate identifiability — the **information wall** — and because iron is
 dense, it is **structural / observability-limited, NOT data-limited.**
 
+**Demonstrated directly through the transport model** (`scripts/iron_scav_rat_profile.py`,
+`scripts/slurm/run_iron_wall.sbatch`, H200 job 8252388). A 2-D (`alpfe`, `scav_rat`) sweep,
+forward-rolling DFe to quasi-steady state on the real eqpac observing footprint (26 GEOTRACES
+cells) against a **self-twin** target (model DFe at Carroll, so it is reachable — isolating
+the degeneracy from the iron-starvation confound): the best fit recovers the truth
+(`alpfe`=0.99, `scav_rat`=7.9e-7), but the `scav_rat` profile (min misfit over `alpfe` at each
+`scav_rat`) is **flat within +0.02 log-MSE across a 32× range** (1e-7 … 3.2e-6), with best
+`alpfe` rising 0.77 → 1.63 to compensate. **`scav_rat` is unidentifiable over 32×** — the
+source offsets the sink; the information wall, shown numerically. (The GEOTRACES-target variant
+additionally pins `alpfe` at the grid max: with the real, ~200×-low DB-1 dust the model is
+iron-starved and cannot reach observed DFe — the DB-1 transport-supply issue, a *distinct*
+problem from the degeneracy.)
+
 **The two together are the Track-2 result — an identifiability MAP by mechanism:**
 
 | closure param | observable | why NOT identifiable |
