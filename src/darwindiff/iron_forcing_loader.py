@@ -67,10 +67,11 @@ LLC270_NFACE: int = 13
 LLC_COMPACT_DTYPE: str = ">f4"     # MITgcm mds/compact: big-endian single precision
 SECONDS_PER_DAY: float = 86400.0
 
-# Canonical source (Earthdata-authenticated ECCO drive; the NAS output mirror does
-# NOT host the forcing/input tree). See scripts/fetch/iron_forcing.sh.
+# Canonical source: PUBLIC on the NAS ECCO portal (no Earthdata login), in the
+# input/darwin_forcing/ subdir (confirmed from MITgcm-contrib/ecco_darwin
+# v05/llc270/readme.txt). See scripts/fetch/iron_forcing.sh.
 IRON_SOURCE_URL: str = (
-    "https://ecco.jpl.nasa.gov/drive/files/ECCO2/LLC270/ECCO-Darwin_extension/input/"
+    "https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/input/darwin_forcing/"
     + IRONFILE_NAME
 )
 
@@ -305,27 +306,35 @@ def phi_dust_sanity(
     *,
     dz: float = 50.0,
     reference: float = PHI_DUST,
-    tol_orders: float = 2.0,
+    areal_range: tuple[float, float] = (1.0e-12, 1.0e-7),
 ) -> dict:
-    """Units guard: compare the loaded field's mean volumetric rate to scalar ``PHI_DUST``.
+    """Units / endianness guard on a loaded soluble-Fe areal flux (physical-range check).
 
-    A correct load gives an AOI-mean volumetric source within a couple of orders of
-    magnitude of the box's tuned ``PHI_DUST = 5e-5 mmol/m^3/d`` (at ``dz = H_MLD =
-    50 m``). A wrong endianness / dtype / unit-scale error shows up here as a ratio
-    off by many orders (or NaN). Returns a dict with the mean, the reference, their
-    ratio, and ``within_tol`` (``|log10(ratio)| <= tol_orders``). The deep review
-    flagged that every conservation test is blind to a units bug -- this is the cheap
-    pre-flight that is not.
+    ``within_tol`` is True iff the AOI-mean **areal** flux sits in ``areal_range``
+    (default ``[1e-12, 1e-7] mmol Fe/m^2/s``), which spans dust-poor (Southern Ocean) to
+    dust-band (Saharan-outflow) ocean for the Mahowald-2009 soluble product. A wrong
+    endianness / dtype / missing-``inscal`` shows up as ``NaN`` or a many-orders miss and
+    fails the range.
+
+    **Do NOT gate on the ratio to ``PHI_DUST``.** The box's ``PHI_DUST = 5e-5`` is a
+    *tuned effective* source, and the REAL local deposition runs ~100-250x **below** it in
+    dust-poor regions (verified: eqpac vol@50m ~2.4e-7 vs PHI_DUST 5e-5) -- because those
+    regions get their iron from lateral/vertical **transport** (e.g. the Equatorial
+    Undercurrent), which the 0-D box faked with an inflated scalar. That gap is the point
+    of Track 2, not a load error. The ``ratio`` is returned for reference only.
     """
-    vol = flux_to_phi_dust(np.asarray(areal_flux_grid, dtype=np.float64), dz)
-    mean_vol = float(np.nanmean(vol))
-    ratio = mean_vol / reference if reference else float("inf")
-    within = bool(np.isfinite(ratio) and ratio > 0 and abs(np.log10(ratio)) <= tol_orders)
+    areal = np.asarray(areal_flux_grid, dtype=np.float64)
+    mean_areal = float(np.nanmean(areal))
+    mean_vol = float(np.nanmean(flux_to_phi_dust(areal, dz)))
+    lo, hi = areal_range
+    within = bool(np.isfinite(mean_areal) and lo <= mean_areal <= hi)
     return {
+        "mean_areal_mmol_m2_s": mean_areal,
         "mean_volumetric_mmol_m3_d": mean_vol,
         "reference_phi_dust": reference,
-        "ratio": ratio,
+        "ratio": (mean_vol / reference if reference else float("inf")),
         "within_tol": within,
+        "areal_range": areal_range,
         "dz": dz,
     }
 

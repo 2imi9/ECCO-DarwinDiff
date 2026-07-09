@@ -144,10 +144,15 @@ leads, so it is shared infrastructure, not an iron-first commitment.
   Z=0 only (composes **A4**). `hFacC` dropped — verified **exactly 1** at the LLC270 open-ocean surface.
 - **Ocean masking** uses grid `hFacC>0` (correct land/sea), *not* the tracer loader's `field!=0` (which would
   drop genuine low-deposition ocean and bias bin-means high). Bins onto the **same 1° grid as the DFe targets**.
-- **Validation:** the compact reader / hFacC mask / DRF / AOI-binning are verified against the **real on-disk
-  LLC270 grid**; only the iron *magnitudes/pattern* await the `.bin` (Earthdata-gated — not on the NAS output
-  mirror; `scripts/fetch/iron_forcing.sh` documents the fetch). A `phi_dust_sanity` units guard flags an
-  endianness/scale error as an N-orders ratio vs `PHI_DUST`.
+- **Validation — now against the REAL `.bin` (2026-07-09).** The file is **public on the NAS** ECCO portal
+  (no Earthdata login) in `input/darwin_forcing/` (my earlier "Earthdata-gated" claim was wrong — I'd missed
+  that subdir); downloaded (exact 45,489,600 B) and the real-file test passes. Real areal flux is physically
+  ordered — **natl (Saharan) 1.9e-10 > eqpac 1.4e-10 > SO 5.1e-11 mmol/m²/s**, spatial CV 0.13–0.66.
+  **FINDING:** the real local deposition runs **~200× BELOW the box's tuned `PHI_DUST=5e-5`** (eqpac vol@50m
+  ~2.4e-7) — because dust-poor regions get their iron from lateral/vertical **transport** (the Equatorial
+  Undercurrent), which the 0-D box faked with an inflated scalar. **This is a clean confirmation of the
+  Track-2 thesis** (transport supplies the iron the box couldn't), not a load error. `phi_dust_sanity` was
+  therefore corrected from a ratio-vs-`PHI_DUST` gate to a **physical-range** check on the areal flux.
 - **Adversarial review** (workflow: 4 dims → per-finding verify): **physics/units and binary-IO came back
   clean** (empty, with concrete reproduction attempts); fixed 1 docstring overclaim (`interior_mask` excludes
   only the outer ring, *not* interior no-coverage bins → added `coverage_mask` for the E2 loss) + hardened 3

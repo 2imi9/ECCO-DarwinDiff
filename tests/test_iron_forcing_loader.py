@@ -383,6 +383,11 @@ class TestRealGrid:
         )
         finite = grid[np.isfinite(grid)]
         assert finite.size > 0
-        assert np.all(finite >= 0.0)  # deposition is non-negative
-        # Units guard: mean volumetric rate within a couple orders of PHI_DUST.
-        assert phi_dust_sanity(grid, dz=50.0)["within_tol"] is True
+        assert np.all(finite >= 0.0)                     # deposition is non-negative
+        assert finite.std() / finite.mean() > 0.05       # real spatial structure, not flat
+        s = phi_dust_sanity(grid, dz=50.0)
+        assert s["within_tol"] is True                   # areal flux in the physical range
+        assert 1e-12 <= s["mean_areal_mmol_m2_s"] <= 1e-7
+        # Finding: the REAL local deposition runs far BELOW the tuned box PHI_DUST
+        # (dust-poor eqpac gets its iron from upwelling, not local dust) -- ratio << 1.
+        assert s["ratio"] < 0.1

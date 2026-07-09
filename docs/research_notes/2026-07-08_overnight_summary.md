@@ -9,9 +9,11 @@ call.
 
 ## TL;DR
 
-1. **DB-1 — spatial soluble-iron forcing loader** — done (`1098451`). Replaces the constant `PHI_DUST` with the
-   v05 Mahowald-2009 field. Validated against the real LLC270 grid; the 45 MB `.bin` is Earthdata-gated and
-   **needs you to stage it** (below).
+1. **DB-1 — spatial soluble-iron forcing loader** — done (`1098451`) + **real-data validated (2026-07-09)**.
+   Replaces the constant `PHI_DUST` with the v05 Mahowald-2009 field. The `.bin` turned out to be **public on
+   the NAS** (`input/darwin_forcing/`, no Earthdata login) — downloaded + real-file test passes. Finding: real
+   local deposition ~200× below the tuned `PHI_DUST` (transport, not local dust, supplies dust-poor regions —
+   a Track-2-thesis confirmation).
 2. **Semi-implicit vertical-diffusion CFL fix** — done (`a0e7a50` + `862f319`). Removes the explicit
    silent-NaN wall that would have sunk an E2 rollout at realistic mixed-layer `kz`. **Validated ALL-PASS on a
    real H200.**
@@ -118,11 +120,8 @@ closure** under blocked CV — not raw held-out R² > 0.
 
 ## Needs your call
 
-1. **Stage the Mahowald ironfile.** The 45 MB `.bin` is **Earthdata-gated on the ECCO drive** — not on the NAS
-   output mirror — so I couldn't fetch it non-interactively. Run `scripts/fetch/iron_forcing.sh` with
-   `EARTHDATA_TOKEN`, or download via a browser logged into Earthdata, then
-   `DARWINDIFF_TEST_IRON=1 pytest -k real` confirms the units gate on real data. **DB-2/DB-3 and the E2 run
-   need this.**
+1. ~~**Stage the Mahowald ironfile.**~~ **RESOLVED (2026-07-09).** It was public on the NAS all along
+   (`input/darwin_forcing/`, no Earthdata login — I'd had the path wrong); downloaded + real-file test passes.
 2. **STATUS.md has concurrent-session WIP** (uncommitted `M STATUS.md`, `NEXT_SESSION.md`, `integrators.py`
    from a parallel session in the shared checkout). I deliberately did **not** edit them to avoid clobbering
    that work — so this summary + the E2-readiness note are the current "where we are" record for Track 2 until
