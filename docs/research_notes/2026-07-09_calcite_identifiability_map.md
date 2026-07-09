@@ -1,5 +1,20 @@
 # Calcite rain-ratio identifiability map — the real-data E2 outcome (2026-07-09)
 
+> **REVISED CONCLUSION (2026-07-09, robustness checks — read this first).** The
+> region-specific "identifiability" positives in §3–§4 (N.Atlantic bloom / Patagonian Ω)
+> are **NOT robust** and should not be presented as a finding. Two independent checks
+> deflate them (§9): (1) swapping the environment source from Marsh's own in-situ carbonate
+> to the GLODAPv2.2016b Ω climatology (independent, observation-derived) **flips** the
+> N.Atlantic-bloom result from +0.69 to −2.27 and Patagonian from +0.86 to −1.07 — and the
+> two Ω sources agree only r=0.24 at the same cells; (2) at the **point level** the rain
+> ratio has ~zero correlation with in-situ Ω in the N.Atlantic bloom (r=0.011), matching
+> **Marañón et al. 2016** (tropical calcification independent of carbonate chemistry). The
+> binned positives are small-n / aggregation / env-source artifacts. **The robust,
+> defensible result is the NULL:** real direct calcite observations do **not** reliably
+> constrain an Ω-driven rain-ratio closure at these sample sizes — an identifiability-limits
+> result, consistent with the literature. The transport-E2 +0.245 (§3c) is within small-n
+> hold-out instability. §3–§8 are kept as the record of how the analysis got here.
+
 **Verdict (adversarially verified, HOLDS_WITH_QUALIFICATIONS):** the Track-2 real-data E2
 gate did **not** produce a clean "transport closes the surrogate gap" pass. It produced
 something more defensible — a **map of where real, direct, Darwin-independent calcite
@@ -158,6 +173,36 @@ observation-derived null.
   depends only on the carbonate-chemistry **rank ordering** — any monotone carbonate proxy
   gives the same split (do not oversell a calibrated Ω).
 
+## 6a. Literature context — independent corroboration AND a caution
+
+**Marañón et al. (2016), *Limnol. Oceanogr.* 61(4):1345–1357, "Coccolithophore calcification
+is independent of carbonate chemistry in the tropical ocean"** (Malaspina 2010
+circumnavigation; tropical Atlantic/Indian/Pacific; co-located primary production +
+calcification + PIC + **full carbonate chemistry**; co-authors incl. W.M. Balch and
+C. Pelejero). Their result: the CP/PP ratio and cell-specific calcification were **largely
+constant across Ω = 1.5–6.5 and pH = 7.6–8.1** — calcification independent of carbonate
+chemistry *in the tropics*.
+
+This cuts two ways for our map:
+
+- **Corroborates the tropical/global null.** We found the rain ratio Ω-**un**predictable
+  globally and (from Marsh) untestable at eqpac. An independent in-situ study across a wide
+  saturation gradient finds exactly no Ω dependence in the tropics. Our null is now backed by
+  published field data, not just an absence in one compilation.
+- **Cautions the "Ω-driven" mechanistic reading in the bloom regions.** Marañón's *controlled*
+  study found no *causal* Ω effect even across a wide Ω range. So our North-Atlantic-bloom Ω
+  correlation is plausibly **Ω acting as a proxy for the bloom regime** (species composition,
+  nutrient/light state), not causal carbonate chemistry — consistent with the Ω/SST/bloom
+  collinearity in §3b/§6. The honest reading is **"Ω is the best regional *predictor*,
+  causality unresolved,"** not "Ω is the mechanistic driver." The regional split (env-predictive
+  in cold bloom regions, not tropics) is itself coherent and may reflect a
+  bloom-assemblage-vs-tropical-assemblage difference rather than a universal Ω response.
+
+**Data that would convert eqpac from untestable to a tested negative:** the Malaspina 2010
+dataset (Marañón 2016; co-located tropical CP/PP + carbonate); JGOFS EqPac (Balch & Kilpatrick
+1996); or — fastest, no new data — **co-locating GLODAPv2.2016b OmegaC** (a public
+observation-derived climatology) to the Marsh tropical calcite points (followup #4).
+
 ## 7. Followups (before this is publishable)
 
 1. ~~Add a **permutation null on the transport-E2 delta** (parity with the map).~~
@@ -171,5 +216,55 @@ observation-derived null.
    not the model cache.
 5. Build proper env caches for the bloom AOIs (N.Atl bloom ~61 cells, Patagonian ~62) to run
    the transport-E2 in the regions the map says are identifiable, not just natl.
+
+## 8. Ω-vs-bloom-proxy (partial-out biomass) — a partial answer to Marañón
+
+`scripts/marsh_omega_vs_bloom.py`: on the Marsh cells with co-located ratio + Ω + SST + Chl-a,
+partial correlation of log(CP/PP) with Ω controlling for temperature and biomass (log Chl-a):
+
+| region | n | r(y,Ω) | Ω\|SST (p) | Ω\|Chl (p) | Ω\|SST,Chl (p) |
+|---|---|---|---|---|---|
+| N.Atl bloom | 25 | −0.56 | −0.43 (0.04) | −0.56 (0.00) | **−0.42 (0.05)** |
+| Nordic | 13 | −0.54 | −0.38 (0.22) | −0.47 (0.13) | −0.23 (0.49) |
+| S.Atl/Patagon | 14 | −0.79 | −0.59 (0.04) | −0.71 (0.01) | −0.13 (0.68) |
+| GLOBAL | 46 | −0.44 | −0.41 (0.01) | −0.52 (0.00) | −0.40 (0.01) |
+
+Cell-binned with Marsh in-situ env, Ω survives controlling for temperature AND biomass in the
+N.Atlantic bloom (p=0.05) and globally in-sample (p=0.01), but collapses in Patagonian
+(p=0.68). This looked like partial support for a carbonate reading — but §9 shows it does not
+survive the env-source robustness check, so it is not load-bearing.
+
+## 9. ROBUSTNESS — the positives do not survive (the decisive check)
+
+Two independent checks, run after the map, deflate the region-specific positives.
+
+**(a) GLODAP env swap** (`scripts/marsh_glodap_identifiability.py`). Co-locating the public,
+observation-derived **GLODAPv2.2016b OmegaC** climatology to every Marsh point (so env exists
+everywhere, including eqpac's ~128 previously-untestable points) and rerunning the identical
+hold-out:
+
+| region | axis | n | hold-out R² (GLODAP) | vs Marsh-env |
+|---|---|---|---|---|
+| **eqpac** | Ω | 32 | +0.18 (p=0.095, dies FDR) | (was untestable) |
+| N.Atlantic bloom | Ω | 59 | **−2.27** (p=0.98) | was +0.69 |
+| Patagonian/S.Atl | Ω | 62 | **−1.07** (p=0.92) | was +0.86 |
+| natl (AOI) | Ω | 34 | **−2.09** (p=0.98) | was +0.36 (cache env) |
+| tropics / GLOBAL | Ω/SST | 131/446 | null | null (robust) |
+
+The nulls (tropics, global, eqpac) are robust across env sources; **the positives invert.**
+
+**(b) In-situ env agreement + point level.** At the 129 N.Atlantic-bloom carbonate points:
+`corr(Marsh in-situ Ω, GLODAP climatology Ω) = 0.24` (the two env sources barely agree — a
+bloom's in-situ Ω, DIC-drawn-down, is not the annual mean), and `corr(log ratio, in-situ Ω) =
+0.011` — **no point-level Ω→ratio relationship**, exactly Marañón 2016. The binned +0.69 is a
+Simpson's-paradox-like aggregation artifact on 26 cells.
+
+**Conclusion:** the region-specific identifiability positives are small-n / aggregation /
+env-source artifacts and do **not** constitute a robust finding. The defensible result is the
+**NULL** — real direct calcite observations do not reliably constrain an Ω-driven rain-ratio
+closure at these sample sizes — consistent with Marañón 2016. eqpac is now *tested* (weak,
+FDR-non-significant), not untestable. The transport-E2 +0.245 is within small-n instability.
+This is an identifiability-**limits** result: a clean, honest bound on what real calcite obs
+can (cannot) constrain, which is itself the reportable Track-2 science.
 
 Related: `2026-07-09_e2_calcite_preregistration.md`, `2026-07-07_deep_review_e2_readiness.md`.
