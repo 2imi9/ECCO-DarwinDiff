@@ -1,0 +1,91 @@
+{
+  "config": {
+    "seeds": [
+      0,
+      1
+    ],
+    "n_cols": 48,
+    "n_z": 1,
+    "ns": 160,
+    "epochs": 150,
+    "dt_days": 0.25
+  },
+  "regimes": {
+    "narrow": {
+      "seeds": [
+        {
+          "seed": 0,
+          "train_loss": 0.0001300252042710781,
+          "n_visited": 480,
+          "dfe_min": 0.00016178704390767962,
+          "dfe_max": 0.00033088558120653033,
+          "log10_span": 0.3107340335845947,
+          "learned_k": 5.253401556669907e-05,
+          "passed": false,
+          "reason": "DISTILL-FAIL: Monod aliases linear on this support (|corr| 0.991 > 0.95); knee not visited -> add DFe excitation & retrain",
+          "monod_inclusion": 0.99,
+          "k_hat": 5.772713526262626e-05,
+          "monod_linear_alias": 0.9908470689772649,
+          "r2_holdout": 0.999999999999459
+        },
+        {
+          "seed": 1,
+          "train_loss": 2.1108149894644157e-07,
+          "n_visited": 480,
+          "dfe_min": 0.00016120840155053884,
+          "dfe_max": 0.0003322256961837411,
+          "log10_span": 0.31404542922973633,
+          "learned_k": 5.020739361360387e-05,
+          "passed": false,
+          "reason": "DISTILL-FAIL: Monod inclusion 0.84 < 0.85; Monod aliases linear on this support (|corr| 0.990 > 0.95); knee not visited -> add DFe excitation & retrain",
+          "monod_inclusion": 0.84,
+          "k_hat": 5.389412773533005e-05,
+          "monod_linear_alias": 0.990426768549046,
+          "r2_holdout": 0.9999999993389388
+        }
+      ],
+      "n_pass": 0
+    },
+    "excited": {
+      "seeds": [
+        {
+          "seed": 0,
+          "train_loss": 0.003130527213215828,
+          "n_visited": 480,
+          "dfe_min": 1.344625616184203e-05,
+          "dfe_max": 0.0008872619946487248,
+          "log10_span": 1.8194503784179688,
+          "learned_k": 4.245085655623857e-05,
+          "passed": true,
+          "reason": "DISTILL-PASS: Monod law recovered, identifiable on visited support",
+          "monod_inclusion": 1.0,
+          "k_hat": 3.9682337753255815e-05,
+          "monod_linear_alias": 0.8051403380331725,
+          "r2_holdout": 0.9999999940265247
+        },
+        {
+          "seed": 1,
+          "train_loss": 0.002046565292403102,
+          "n_visited": 480,
+          "dfe_min": 1.3379822121351026e-05,
+          "dfe_max": 0.0009186380193568766,
+          "log10_span": 1.8366937637329102,
+          "learned_k": 4.395673233880346e-05,
+          "passed": true,
+          "reason": "DISTILL-PASS: Monod law recovered, identifiable on visited support",
+          "monod_inclusion": 1.0,
+          "k_hat": 4.3007129593461576e-05,
+          "monod_linear_alias": 0.8126307823044251,
+          "r2_holdout": 0.999998822130466
+        }
+      ],
+      "n_pass": 2
+    }
+  },
+  "demonstration": {
+    "narrow_pass": 0,
+    "excited_pass": 2,
+    "n_seeds": 2,
+    "excitation_cures_equifinality": true
+  }
+}

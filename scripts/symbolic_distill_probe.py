@@ -337,7 +337,12 @@ def sample_closure(closure_fn, dfe: np.ndarray) -> np.ndarray:
         import torch
         if isinstance(closure_fn, torch.nn.Module) or hasattr(closure_fn, "parameters"):
             with torch.no_grad():
-                t = torch.as_tensor(np.asarray(dfe, dtype=np.float64))
+                # match the module's parameter dtype (float32 nets vs float64 input)
+                try:
+                    dtype = next(closure_fn.parameters()).dtype
+                except (StopIteration, AttributeError):
+                    dtype = torch.float64
+                t = torch.as_tensor(np.asarray(dfe), dtype=dtype)
                 return closure_fn(t).detach().cpu().numpy().reshape(-1)
     except ImportError:
         pass
