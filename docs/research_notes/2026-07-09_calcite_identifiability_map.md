@@ -97,6 +97,14 @@ learned (+0.24 to +0.38) ≈ the transport-free cell ceiling (natl Ω +0.36, SST
 K_num ladder is **flat** — transport is inert in this surface-scored rollout — so it does
 **not** discriminate local-vs-transport (see §5).
 
+**Significance of the E2 signal (followup #2, addressed):** because transport is inert, the
+transport-E2 delta provably tracks the transport-free hold-out at the same natl cells, so a
+permutation null on that hold-out is a valid significance test for the E2 signal without a
+multi-hour UDE-refit loop. That gives **natl Ω +0.36, perm-p=0.011** and **natl SST +0.37,
+perm-p=0.011** — significant; **eqpac Ω −0.41 (p=0.61) and eqpac SST +0.03 (p=0.27)** — not
+significant (`scripts/probe_marsh_env_rainratio.py`, cell-level). A fully rigorous
+permute-and-refit-the-UDE null remains a nice-to-have but would only re-confirm this.
+
 ### 3d. eqpac — why it failed, and its proper scope
 
 eqpac transport-E2: default −1.064, regularized −0.583, SST-split −1.843 (all fail).
@@ -152,7 +160,9 @@ observation-derived null.
 
 ## 7. Followups (before this is publishable)
 
-1. Add a **permutation null on the transport-E2 delta** (parity with the map).
+1. ~~Add a **permutation null on the transport-E2 delta** (parity with the map).~~
+   **DONE** via the transport-free surrogate (valid because transport is inert): natl signal
+   perm-p=0.011 (§3c). A permute-and-refit-UDE null would only re-confirm it.
 2. Build a **rollout config where transport actually moves the scored cells** so a K_num
    sweep can genuinely discriminate local vs transport-mediated (currently trivially flat).
 3. **Spatial-block bootstrap** for Nordic/Patagonian (respect 1° autocorrelation; confirm

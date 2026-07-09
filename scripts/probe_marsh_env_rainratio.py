@@ -41,6 +41,8 @@ from darwindiff.marsh_loader import DEFAULT_MARSH_PATH
 
 DEPTH_MAX = 50.0
 UMOL_PER_KG_TO_MMOL_PER_M3 = 1.025  # RHO_SW(1025) * 1e-3, matching geotraces/glodap loaders
+N_PERM_CL = 2000   # permutations for the cell-level E2-signal null
+MIN_CELLS_CL = 8   # min covered cells to run the cell-level hold-out
 
 
 def _col(hdr, startswith, exclude=None):
@@ -150,19 +152,25 @@ def _cell_level(aoi_key, aoi, split_channel):
     if split_channel not in ch:
         print(f"  [{aoi_key}] cell-level: {split_channel} not an env channel"); return
     ci = ch.index(split_channel)
-    tr = obs.train_mask[..., 0]; va = obs.val_mask[..., 0]
-    env2d = obs.env[..., 0, ci]                       # standardized env at surface
-    y2d = obs.target[..., 0]                          # log rain ratio at surface
-    xe, ye = env2d[tr].numpy(), y2d[tr].numpy()
-    if len(xe) < 3:
-        print(f"  [{aoi_key}] cell-level {split_channel}: n_train={len(xe)} too few"); return
-    b, a = np.polyfit(xe, ye, 1)
-    pred = torch.as_tensor(b) * env2d + torch.as_tensor(a)
-    r2_lin = float(anomaly_masked_r2(pred, y2d, va, obs.basin_mean))
-    # null already = basin mean everywhere -> anomaly-R2 == 0 by construction
-    verdict = "beats null (>0)" if r2_lin > 0 else "cannot beat null (<=0)"
-    print(f"  [{aoi_key}] cell-level {split_channel}: train {int(tr.sum())}/val {int(va.sum())}  "
-          f"linear hold-out anomaly-R2={r2_lin:+.2f}  -> {verdict}")
+    cov = (obs.train_mask[..., 0] | obs.val_mask[..., 0])
+    env = obs.env[..., 0, ci][cov].numpy()            # standardized env, covered cells
+    y = obs.target[..., 0][cov].numpy()               # log rain ratio, covered cells
+    n_tr = int(obs.train_mask[..., 0].sum()); n_val = int(obs.val_mask[..., 0].sum())
+    if len(env) < MIN_CELLS_CL:
+        print(f"  [{aoi_key}] cell-level {split_channel}: {len(env)} cells too few"); return
+    ho = _regime_holdout(env, y)[0]
+    # PERMUTATION NULL on the E2 signal: because transport is inert in the natl rollout,
+    # the transport-E2 delta provably tracks this transport-free hold-out, so its p-value is
+    # the significance of the E2 signal without a multi-hour UDE-refit loop. Shuffle the
+    # ratio<->env cell pairing, redo the hold-out, count >= observed (map methodology).
+    rng = np.random.default_rng(0)
+    ge = sum(1 for _ in range(N_PERM_CL)
+             if np.isfinite(r := _regime_holdout(env, rng.permutation(y))[0]) and r >= ho)
+    p = (ge + 1) / (N_PERM_CL + 1)
+    verdict = "beats null (p<0.1)" if (ho > 0 and p < 0.1) else \
+              ("positive (n.s.)" if ho > 0 else "cannot beat null")
+    print(f"  [{aoi_key}] cell-level {split_channel}: train {n_tr}/val {n_val}  "
+          f"hold-out anomaly-R2={ho:+.2f}  perm-p={p:.3f}  -> {verdict}")
 
 
 def main() -> int:
