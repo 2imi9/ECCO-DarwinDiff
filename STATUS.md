@@ -119,6 +119,31 @@ Paper #1, so it is no longer a pending unlock — the verified n=10 headline num
 reported values.) These remain legitimate cluster goals; they are **not** gated on `R_PICPOC` or "6/6",
 which are resolved/reframed at 1° box scale.
 
+## Track 2 — differentiable spatial model (status: **identifiability-limits map COMPLETE**; real-data E2 gate RUN → negative)
+
+**Update (2026-07-10) — the Track-2 result is a 3-closure identifiability-limits map, and the
+make-or-break E2 was run (decisive negative).** The original thesis — "make Darwin differentiable to
+*learn* real closures" — is honestly bounded: transport does **not** close the gap on real data, not
+because the method fails but because the observations lack the signal. That reframes Paper #2 as an
+**identifiability study**: *which* Darwin closures real obs can constrain and *why they can't*. The
+map (`docs/research_notes/2026-07-09_track2_identifiability_writeup.md`; reproducibility appendix
+`2026-07-10_reproducibility_appendix.md`):
+- **iron `scav_rat`** — observability-limited (structural information wall; a particulate:dissolved
+  observable does *not* rescue it — the initial "partitioning breaks the wall" claim was an artifact,
+  caught + retracted by adversarial verification);
+- **calcite Ω-modulation of `R_PICPOC`** (the scalar itself *is* recoverable) — data/support-limited:
+  within-region Ω support ≤0.16 dex everywhere, confirmed on independent in-situ **GLODAPv3** Ω
+  (838+1740 bottles), shown **driver-general** (SST/composition don't rescue it), and the
+  **make-or-break out-of-sample transport E2 fails** (learned closure can't beat a constant-through-
+  transport null; K_num non-discriminating; `docs/findings/2026-07-10_e2_powered_result.md`);
+- **growth `Smallgrow`/`Biggrow`** — structurally unobservable (total NPP gives only the biomass-
+  weighted mean → the pair stays degenerate).
+Hardened by an 8-reviewer adversarial panel (Simpson-artifact / CI / scope corrections applied) and a
+reproducibility appendix. The map's forward contribution is an **observing-system recommendation**
+(wider within-region Ω; pure scavenged Fe; per-PFT production). New method artifact: the
+**symbolic-distillation identifiability oracle** (`scripts/symbolic_distill_probe.py`). Everything on
+branch `2imi9/status-handoff-2026-07-07` (unmerged). _Prior Phase-1-tooling status below._
+
 ## Track 2 — differentiable spatial model (status: foundation BUILT + synthetic closure-recovery result; real-data E2 gate unbuilt)
 
 **Update (2026-07-07) — the differentiable foundation is now built and merged (#177).** `integrators.py` (RK4 + gradient checkpointing + time-aware forcing `f(t,x)`), `carroll6_ude_tendency` (pluggable neural closures), and `transport.py` (mass-conserving batched-column vertical transport) are on `main`. On a **synthetic self-twin** (still not real Darwin, still transport-limited), closure equifinality was diagnosed as a **support problem** and cured: a **Monod-anchored closure** (~15x over a free MLP) plus an **excitation designed offline for pennies** (a ~2-min CPU Fisher probe found the lever is *light-driven drawdown, not dust*) recovers the closure over the widest domain -- excitation ladder, full-domain closure error `0.203 -> 0.173 -> 0.154 -> 0.116` (n=4). This is a **synthetic methods result, not a real-data claim**; the E2 gate below (held-out real-data R^2 > 0 with transport) remains the make-or-break and is still unbuilt. Design docs: `docs/research_notes/2026-07-06_*`. The three-component picture (DINN parameter learner / FNO emulator scaffold `emulator.py` / mechanistic UDE) and the parameter-learner<->emulator seam are in `docs/NEXT_SESSION.md`.
