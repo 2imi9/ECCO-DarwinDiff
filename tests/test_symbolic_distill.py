@@ -179,6 +179,15 @@ def test_powerlaw_narrow_support_is_underexcited():
     assert v.driver_log_span < 0.30
 
 
+def test_powerlaw_too_few_points_is_non_identifiable_not_a_crash():
+    """Sparse real AOIs (e.g. an AOI with no calcite coverage) hand the oracle a
+    tiny/empty array; it must return NON-IDENTIFIABLE, not raise."""
+    for n in (0, 1, 4):
+        v = sd.distill_powerlaw(np.full(n, 4.0), np.full(n, 0.04), seed=0)
+        assert not v.identifiable
+        assert "usable points" in v.reason
+
+
 def test_calcite_panel_self_consistent():
     out = sd._selftest_calcite_panel(seed=0)
     assert out["_meta"]["verdicts_ok"]

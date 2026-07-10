@@ -69,6 +69,33 @@ correlation analysis found — a stronger identifiability claim than a raw
 correlation, and the natural quantitative backbone for the calcite
 identifiability-map fallback.
 
+## Real-data application: the oracle diagnoses the calcite E2 negative
+
+Running the power-law oracle **on the real data** (real Daniels CP:PP rain ratio ×
+real Ω_calcite derived from the v05 DIC/ALK/T/S cache;
+[`scripts/calcite_omega_identifiability_real.py`](../../scripts/calcite_omega_identifiability_real.py),
+findings [`calcite_omega_identifiability_real.json`](calcite_omega_identifiability_real.json))
+returns **NON-IDENTIFIABLE everywhere**, and — more usefully — says *why*:
+
+| AOI | n cells | Ω range | Ω span | exponent n (95% CI) | verdict |
+|---|---|---|---|---|---|
+| eqpac | 34 | 4.72–5.67 | **0.08 dex** | +6.4 [+1.8, +10.4] | under-excited |
+| natl | 26 | 3.14–4.21 | **0.08 dex** | +7.0 [+0.9, +13.0] | under-excited |
+| pooled | 60 | 3.14–5.67 | **0.25 dex** | +0.9 **[−0.23, +1.78]** | CI includes 0, unstable, under-excited |
+
+The load-bearing diagnosis: **the real Ω support is far too narrow** — each basin
+spans only ~0.08 dex (tropical/subpolar Ω_calcite barely varies), and even pooling
+two basins reaches only 0.25 dex, below the 0.30-dex identifiability threshold. The
+within-basin correlations look sizeable (eqpac +0.59, natl +0.31) but are
+small-range artifacts that the oracle correctly refuses to trust; pooling across a
+wider Ω collapses the exponent's CI across zero. So the calcite E2 negative is best
+read as a **non-identifiability from narrow real-Ω support and small n** — a ~600-
+parameter closure was asked to learn an Ω-dependence from data where Ω is nearly
+constant — *not* (necessarily) a wrong closure. That is the honest,
+**identifiability-limits** result, and it is the diagnosis the E2 negative-result
+thread needed. (Caveat: this Ω is derived from the v05 carbonate cache, not in-situ
+GLODAP; it complements, not duplicates, the earlier in-situ `corr ≈ 0.01` NULL.)
+
 ## Why this matters (Paper #2 framing)
 
 - It is the **quantitative successor to BINN's "visualize the learned term"**

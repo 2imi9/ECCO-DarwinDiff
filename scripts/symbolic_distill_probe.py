@@ -379,6 +379,12 @@ def distill_powerlaw(driver: np.ndarray, y: np.ndarray, *,
     ok = (driver > 0) & (y > 0)
     driver, y = driver[ok], y[ok]
 
+    if driver.size < 5:  # too few points to fit + bootstrap a slope
+        return PowerlawVerdict(False, f"NON-IDENTIFIABLE: only {driver.size} usable "
+                               f"points (need >= 5)", float("nan"), float("nan"),
+                               float("nan"), float("nan"), 0.0, float("nan"),
+                               int(driver.size))
+
     m = support_mask(driver)
     driver, y = driver[m], y[m]
     X, Y = np.log(driver), np.log(y)
