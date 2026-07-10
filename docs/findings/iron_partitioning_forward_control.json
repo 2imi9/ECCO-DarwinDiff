@@ -1,0 +1,23 @@
+{
+  "description": "REAL forward-model control for the iron-partitioning finding: varies W_SINK / alpfe INSIDE rollout_field (the original Control A used a frozen-POC algebraic identity). Confirms (scav_rat, W_SINK) are NOT perfectly degenerate and the pure pFe/DFe observable is NOT insensitive to the iron source; the paper-level negative (rate not cleanly identifiable) is unchanged.",
+  "config": {
+    "n_steps": 100,
+    "n_cells": 26,
+    "W_SINK0": 0.1,
+    "scav0_per_day": 0.05205620091146557,
+    "alpfe0": 0.928309977054596
+  },
+  "T1_wsink_x2_poc_ratio": 0.318,
+  "T2_equal_scaling_obs_ratio": 0.3096,
+  "T2_equal_scaling_pct_change": 69.0,
+  "T3_k2k_invariant_obs_ratio": 0.5965,
+  "T4_alpfe_x3_dex": 0.1109,
+  "T4_scav_x3_dex": 0.452,
+  "T4_alpfe_over_scav_sensitivity": 0.245,
+  "verdicts": {
+    "wsink_perfectly_degenerate": false,
+    "wsink_partially_self_identifying_via_poc": true,
+    "pure_obs_source_insensitive": false,
+    "clean_1d_degeneracy_of_pair": false
+  }
+}

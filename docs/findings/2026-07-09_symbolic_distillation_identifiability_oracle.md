@@ -58,16 +58,17 @@ analytic ground truth the oracle recovers the planted half-saturation to <1 %
 (pure Monod), passes the harder `Monod^0.7` twin with a reported (biased-low)
 effective k, and correctly fails flat and linear-confounder closures.
 
-**Calcite — the oracle reproduces the E2 NULL from ground truth.** On synthetic
-rain-ratio closures the power-law oracle: recovers `n=0.50` from `R0·Ω^0.5` over a
-wide Ω (IDENTIFIABLE); returns **NON-IDENTIFIABLE** for an Ω-independent ratio (the
-NULL — consistent with Marañón 2016 tropical calcification being Ω-independent, and
-with the real-data E2's point-level `corr(log-ratio, in-situ Ω) ≈ 0.01`); and
-returns **NON-IDENTIFIABLE / under-excited** for a narrow-Ω closure. So the oracle
-is a principled, bootstrap-based second statement of the same calcite NULL the
-correlation analysis found — a stronger identifiability claim than a raw
-correlation, and the natural quantitative backbone for the calcite
-identifiability-map fallback.
+**Calcite — a tool self-test on synthetic ground truth (validates the oracle; not itself
+evidence).** On *hand-constructed* synthetic rain-ratio closures the power-law oracle behaves
+correctly: it recovers `n=0.50` from `R0·Ω^0.5` over a wide Ω (IDENTIFIABLE — but this recovery is
+**guaranteed by construction**, a fitting sanity check, not evidence); returns **NON-IDENTIFIABLE**
+for a *planted* Ω-independent ratio (correctly flags a null); and returns **NON-IDENTIFIABLE /
+under-excited** for a *planted* narrow-Ω closure. This demonstrates the oracle *discriminates* the
+three cases on known ground truth — it is **not** a reproduction of, or independent corroboration of,
+the real-data calcite null. The actual independent statement of that null is the **separate** real-data
+run (`calcite_omega_identifiability_real.json`); the Marañón-2016 analogy and the point-level
+`corr(log-ratio, in-situ Ω) ≈ 0.01` belong to that real-data analysis, not to this synthetic panel.
+Committed as a passing pytest (`tests/test_symbolic_distill.py`).
 
 ## Real-data application: the oracle diagnoses the calcite E2 negative
 

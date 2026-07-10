@@ -141,10 +141,15 @@ map (`docs/research_notes/2026-07-09_track2_identifiability_writeup.md`; reprodu
 Hardened by an 8-reviewer adversarial panel (Simpson-artifact / CI / scope corrections applied) and a
 reproducibility appendix. The map's forward contribution is an **observing-system recommendation**
 (wider within-region Ω; pure scavenged Fe; per-PFT production). New method artifact: the
-**symbolic-distillation identifiability oracle** (`scripts/symbolic_distill_probe.py`). Everything on
-branch `2imi9/status-handoff-2026-07-07` (unmerged). _Prior Phase-1-tooling status below._
+**symbolic-distillation identifiability oracle** (`scripts/symbolic_distill_probe.py`). Merged to
+`main` via #180 (2026-07-10). _Prior Phase-1-tooling status below._
 
-## Track 2 — differentiable spatial model (status: foundation BUILT + synthetic closure-recovery result; real-data E2 gate unbuilt)
+## Track 2 — differentiable spatial model (status: foundation BUILT + synthetic closure-recovery result) — SUPERSEDED, see the section above
+
+> **SUPERSEDED (2026-07-10):** the "real-data E2 gate unbuilt" / "E2 is **unbuilt**" language in this
+> section is **historical**. The make-or-break out-of-sample transport E2 has since been **run**
+> (decisive negative for calcite at the available power) — see the "identifiability-limits map
+> COMPLETE" section above. This section is retained only for its Phase-1 build-plan detail.
 
 **Update (2026-07-07) — the differentiable foundation is now built and merged (#177).** `integrators.py` (RK4 + gradient checkpointing + time-aware forcing `f(t,x)`), `carroll6_ude_tendency` (pluggable neural closures), and `transport.py` (mass-conserving batched-column vertical transport) are on `main`. On a **synthetic self-twin** (still not real Darwin, still transport-limited), closure equifinality was diagnosed as a **support problem** and cured: a **Monod-anchored closure** (~15x over a free MLP) plus an **excitation designed offline for pennies** (a ~2-min CPU Fisher probe found the lever is *light-driven drawdown, not dust*) recovers the closure over the widest domain -- excitation ladder, full-domain closure error `0.203 -> 0.173 -> 0.154 -> 0.116` (n=4). This is a **synthetic methods result, not a real-data claim**; the E2 gate below (held-out real-data R^2 > 0 with transport) remains the make-or-break and is still unbuilt. Design docs: `docs/research_notes/2026-07-06_*`. The three-component picture (DINN parameter learner / FNO emulator scaffold `emulator.py` / mechanistic UDE) and the parameter-learner<->emulator seam are in `docs/NEXT_SESSION.md`.
 

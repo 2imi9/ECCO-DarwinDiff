@@ -32,6 +32,7 @@ an automation target; reference_aicr_usage.)
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 
@@ -99,7 +100,7 @@ def build_inputs() -> dict:
     }
 
 
-def run(inp: dict, mode: str, n_steps: int = 100) -> int:
+def run(inp: dict, mode: str, n_steps: int = 100, out: str | None = None) -> int:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dtype = torch.float32 if device.type == "cuda" else torch.float64
     to = lambda t: t.to(device=device, dtype=(torch.bool if t.dtype == torch.bool else dtype))
@@ -159,6 +160,35 @@ def run(inp: dict, mode: str, n_steps: int = 100) -> int:
               f"{ridge_alpfe[on].min():.2f} -> {ridge_alpfe[on].max():.2f} to offset the scav_rat "
               f"change: the source compensates the sink, so the RATE is unidentifiable from "
               f"concentration (a compensating source/sink ridge, not a clean constant ratio).")
+
+    def _band(thr):
+        w = scav_g[prof <= prof.min() + thr]
+        return float(w.max() / w.min()) if len(w) >= 2 else 1.0
+
+    if out:
+        rec = {
+            "description": ("scav_rat profile-likelihood through the prescribed-transport model on the "
+                            "eqpac footprint: dissolved-Fe CONCENTRATION constrains the alpfe/scav_rat "
+                            "source/sink COMBINATION, not the rate (the information wall). The flat-band "
+                            "multiple is threshold- and grid-sensitive, so it is reported at several "
+                            "log-MSE thresholds, not as a single number."),
+            "mode": mode, "n_steps": int(n_steps), "n_cells": int(mask.sum()),
+            "grid": {"scav_rat": [float(x) for x in scav_g], "alpfe": [float(x) for x in alpfe_g],
+                     "n_scav": len(scav_g), "n_alpfe": len(alpfe_g),
+                     "scav_step_ratio": float(scav_g[1] / scav_g[0])},
+            "best_fit": {"alpfe": float(alpfe_g[best[1]]), "scav_rat": float(scav_g[best[0]]),
+                         "misfit": float(misfit[best])},
+            "profile_misfit": [float(x) for x in prof],
+            "best_alpfe_ridge": [float(x) for x in ridge_alpfe],
+            "flat_band_multiple": {"thr_0.01": _band(0.01), "thr_0.02": _band(0.02),
+                                   "thr_0.05": _band(0.05)},
+            "note": ("the headline '32x' band is the +0.02-threshold value; the qualitative wall "
+                     "(concentration constrains the source/sink combination, not the rate) is "
+                     "threshold-independent, the specific multiple is not."),
+        }
+        Path(out).parent.mkdir(parents=True, exist_ok=True)
+        Path(out).write_text(json.dumps(rec, indent=2))
+        print(f"\n[iron-wall] wrote {out}")
     return 0
 
 
@@ -168,13 +198,14 @@ def main() -> int:
     ap.add_argument("--bundle", type=str, default=None, help="load inputs from a bundle + run")
     ap.add_argument("--mode", choices=("twin", "geotraces"), default="twin")
     ap.add_argument("--n-steps", type=int, default=100)
+    ap.add_argument("--out", default=None, help="write the profile + threshold-band JSON here")
     args = ap.parse_args()
     if args.build_bundle:
         torch.save(build_inputs(), args.build_bundle)
         print(f"[iron-wall] bundle saved: {args.build_bundle}")
         return 0
     inp = torch.load(args.bundle, weights_only=False) if args.bundle else build_inputs()
-    return run(inp, args.mode, args.n_steps)
+    return run(inp, args.mode, args.n_steps, args.out)
 
 
 if __name__ == "__main__":

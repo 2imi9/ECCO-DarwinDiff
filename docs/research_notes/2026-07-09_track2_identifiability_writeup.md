@@ -105,8 +105,11 @@ robust to them.)
 
 The symbolic-distillation oracle pins the *mechanism*, and it is a **support** limit, scoped to an
 **Ω-power-law closure** `ratio = R0·Ω^n`. Run on the real pairs (Daniels rain ratio × Ω_calcite),
-the exponent is **non-significant in every region because the within-region Ω support is far too
-narrow** — eqpac spans only 0.08 dex (Ω 4.72–5.67, n = 34 cells), natl 0.08 dex (n = 26). A
+the exponent is **not identifiable (under-excited) in every region because the within-region Ω support
+is far too narrow** — eqpac spans only 0.08 dex (Ω 4.72–5.67, n = 34 cells), natl 0.08 dex (n = 26).
+(This is *under-excitation*, not statistical non-significance: the cache-Ω per-basin exponents actually
+**exclude zero** — see the significantly-positive within-basin slopes below — but over ≤0.08 dex they
+cannot distinguish a power law from a line; the independent in-situ GLODAPv3 exponents span zero.) A
 locally-significant correlation does appear (eqpac Daniels r = +0.59, p < 0.001) but over so tiny an
 Ω range (0.08 dex) that it cannot distinguish a power law from a line — the oracle flags it as
 under-excited rather than trusting it, which is the honest call but should be read as *untestable
@@ -137,10 +140,12 @@ partial correlation, **no driver clears the bar** (a significant *and* sign-cons
 relationship). SST *is* well-excited within biomes (eqpac 4.8 °C, natl 8.3 °C, SO 9.7 °C, unlike Ω's
 0.08 dex) yet does no better than Ω: both show a weak positive within-biome trend in the two
 well-sampled biomes (eqpac r ≈ +0.4, natl ≈ +0.3) that the small Southern-Ocean sample (n = 12)
-reverses, so nothing is robust. So the calcite limit is **a fundamental property of the
-climatological record** — no candidate driver has consistent within-region variation — not an
-artifact of choosing Ω. (The faint 2-of-3-biome positive trend is a hint that more, denser
-co-located data could firm up, not a present constraint.)
+reverses, so nothing is robust. So the calcite limit is **a property of the current climatological
+record** — none of the drivers Darwin most plausibly keys on (Ω, SST, calcifier fraction) shows
+consistent within-region variation — not an artifact of choosing Ω. (Only these three drivers were
+tested; other plausible modulators — nutrient/light limitation, DIC/pCO₂ — were not, so this is a
+statement about the tested drivers, not a universal claim. The faint 2-of-3-biome positive trend is a
+hint that more, denser co-located data could firm up, not a present constraint.)
 
 **Iron — observability-limited (an information wall).** Unlike calcite, dissolved-iron
 *concentration* is a low-information projection of the scavenging *rate*: many `scav_rat`
@@ -150,7 +155,13 @@ env-predictable (global Ω hold-out +0.14, permutation-p ≈ 0 on 1214 cells; ir
 ~1300 cells) — so a scavenging closure fit to held-out DFe would *appear* to work. But that
 apparent skill does not identify the rate; it is the information wall in action. The
 non-identifiability here is **structural, not a data-quantity problem** — more *dissolved* iron
-data would not close it.
+data would not close it. The profile-likelihood through the transport model makes this quantitative
+(`scripts/iron_scav_rat_profile.py` → `docs/findings/iron_scav_rat_profile.json`): `scav_rat` sits in
+a **flat** profiled-misfit band because `alpfe` (the source) compensates the sink, so concentration
+constrains the source/sink *combination*, not the rate. The band's *width* is threshold-dependent
+(**25× / 32× / 100×** at +0.01 / +0.02 / +0.05 log-MSE; the headline "32×" is the +0.02 value) — the
+specific multiple is a grid+threshold artifact, but the **flatness itself is not**, which is the
+load-bearing point.
 
 **A particulate:dissolved observable was tested as a way to break this wall — and it does not.**
 The idea: the scavenging *sink flux* `scav_rat·DFe·POC` becomes particulate iron, so a

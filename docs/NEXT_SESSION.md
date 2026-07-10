@@ -56,9 +56,9 @@ scavenged-Fe observable; per-PFT production.
 - Paper #1: send the local `main.tex` draft.
 
 ## If continuing autonomously (non-Jon work only)
-1. Housekeeping the appendix flagged: **merge branch `2imi9/status-handoff-2026-07-07` → `main`**
-   (all this work is unmerged); regenerate/commit the iron env-predictability JSON (or drop the +0.14
-   claim). 2. A *positive* result now requires **new observing-system data** (the three levers above) —
+1. ~~Merge branch → `main`~~ **DONE** (#180, 2026-07-10) and ~~regenerate/commit the iron
+   env-predictability JSON~~ **DONE** (`21f238e`; R6-1 closed, GLOBAL-Ω +0.14 reproduced).
+   2. A *positive* result now requires **new observing-system data** (the three levers above) —
    none is a re-run; needs Jon's steer. 3. Optionally promote the write-up to a full manuscript.
 
 ## Hard constraints

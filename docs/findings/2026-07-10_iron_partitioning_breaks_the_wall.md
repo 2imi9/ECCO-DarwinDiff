@@ -30,12 +30,19 @@ The scout computes the observable as `pFe/DFe` where `pFe := scav_rat·DFe·POC/
    log-parabola, not earned identifiability. The reported "~1× band / 14× tighter" is a **grid +
    threshold artifact** — the well half-width is smaller than one grid step, and the `+0.02` band
    on a coarse grid manufactures the "1×."
-2. **Relocated degeneracy (decisive).** Because the observable is `scav_rat·POC/W_SINK`, the pair
-   `(scav_rat, W_SINK)` is **perfectly degenerate**: scaling both by any `k` leaves the observable
-   unchanged (control A: change = `0.00e+00` under `(scav, W_SINK)→(2·scav, 2·W_SINK)`). The
-   self-twin only reads a sharp `scav_rat` because `W_SINK` (a fixed constant) and `POC` are held
-   at truth. The wall was "concentration constrains `alpfe/scav`, not the rate"; partitioning
-   trades that for "`scav·POC/W_SINK`, not the rate" — the degeneracy is **relocated, not removed**.
+2. **Entangled with W_SINK and POC (not a clean relocated degeneracy).** The observable is
+   `scav_rat·POC/W_SINK`, so `scav_rat` is confounded with the sinking rate `W_SINK` and the POC
+   field. An earlier version of this note claimed `(scav_rat, W_SINK)` are *perfectly* degenerate (a
+   "control A" that reported `0.00e+00` change under `(scav, W_SINK)→(2·scav, 2·W_SINK)`) — **that was
+   wrong**: that control was an algebraic `(2x)/(2y)` identity on the **frozen** truth POC field, not a
+   forward run. A **real forward experiment** (`scripts/iron_partitioning_forward_control.py` →
+   `docs/findings/iron_partitioning_forward_control.json`) that actually varies `W_SINK` inside the
+   rollout shows the pair is **not** degenerate: `W_SINK` governs POC (`dPOC = mort − W_SINK·POC`, so
+   `W_SINK×2` drops POC to **0.32×**), so the equal-scaling `(2·scav, 2·W_SINK)` changes the observable
+   by **69%** (not 0), and even the naive `(k², k)` invariant is not clean (`scav×4, W×2 → 0.60×`).
+   `W_SINK` is therefore *partially self-identifying* through POC. The rate is still **not cleanly
+   identifiable** — it is entangled with `W_SINK`/POC (and, below, with `alpfe`) — but the mechanism is
+   **entanglement, not a perfect relocated degeneracy**.
 3. **Not a transported tracer.** `pFe` is reconstructed algebraically from the rolled field, not
    advected/mixed/sunk as a real particulate tracer. So the prescribed transport is decorative
    here (a 0-D box would give the same well), and the "19× (transported DFe) vs ~1× (algebraic
@@ -43,28 +50,37 @@ The scout computes the observable as `pFe/DFe` where `pFe := scav_rat·DFe·POC/
 
 ## What legitimately survives
 
-One real observability property: **alpfe cancels from the clean `pFe/DFe`.** So a *pure* scavenged
-particulate:dissolved observable is insensitive to the iron *source* while retaining sensitivity to
-the *sink* — it removes the alpfe confounder that half of the dissolved-only wall. That is a genuine
-(if modest) structural fact. It does **not** identify the rate, because of the relocated
-`scav·POC/W_SINK` degeneracy above.
+One narrow observability property: **the explicit dissolved-Fe source magnitude divides out of the
+clean `pFe/DFe`** (the `alpfe·dust` term is not a direct prefactor of the observable). But "insensitive
+to the iron *source*" is **too strong**: in the iron-limited box `alpfe` re-enters the *pure* observable
+indirectly through POC (more iron → more growth → more POC), which the same forward control measures at
+**+0.11 dex per 3× alpfe ≈ 25% of the sink sensitivity** (`scav×3 → +0.45 dex`). So partitioning removes
+the *direct* source prefactor but not the source's indirect POC channel, and it does **not** identify the
+rate (entangled with `W_SINK`/POC as above).
 
 ## Real-data contamination makes it worse (control B)
 
 Real `Fe_TP` (and even labile `Fe_TPL`) is not pure scavenged Fe — it includes **biogenic** cellular
 Fe (`Fe_CELL`, governed by growth/quota, not scav_rat) and **labile-lithogenic** Fe (dust coatings,
 scaling with deposition ∝ `alpfe`). Adding a moderate contamination (50% biogenic + 50% lithogenic
-of the scavenged pFe) to the twin numerator and re-profiling: the scav_rat band re-widens
-(1× → 2× on the coarse grid) and an **alpfe ridge returns** (1.5× → 2.4×) — the lithogenic term
-re-injects the source/sink degeneracy the clean observable appeared to remove. So `Fe_TPL` is
-**not** a clean scavenged-Fe proxy (correcting an earlier claim in this note), and the real
-observable both dilutes the signal and restores the alpfe dependence.
+of the scavenged pFe) to the twin numerator and re-profiling: the scav_rat band re-widens and an
+**alpfe ridge returns** — the lithogenic term re-injects the source/sink dependence the clean
+observable appeared to remove. (The specific magnitudes — band ~1×→2×, alpfe ridge ~1.5×→2.4× on the
+coarse grid — are **illustrative only**: they are functions of the *assumed* 50/50 biogenic/lithogenic
+split, not a measured `Fe_TP` composition, and the `alpfe` re-injection is definitional given that
+contamination model, so it **corroborates rather than demonstrates**.) So `Fe_TPL` is **not** a clean
+scavenged-Fe proxy (correcting an earlier claim in this note), and the real observable both dilutes the
+signal and restores the alpfe dependence.
 
 ## Coverage, for completeness
 
-Even setting the above aside, the co-located data are sparse: `Fe_D` dense (23,912) but surface
-co-located `Fe_TP`+`Fe_D` only ~94 global / 4 on eqpac; `Fe_TPL`+`Fe_D` 150 global surface. Where
-measured, the ratio spans a wide 2.59 dex.
+Even setting the above aside, the co-located data are sparse (reproduced with explicit cuts —
+surface ≤ 50 m, good QC {49,50} — in `scripts/iron_coverage_count.py` →
+`docs/findings/iron_coverage_count.json`): `Fe_D` is dense (**4,472 surface** samples; ~24k
+all-depth), but surface samples carrying **both** a particulate and a dissolved measurement are
+few — `Fe_TP`+`Fe_D` **76 global / 4 on eqpac**, `Fe_TPL`+`Fe_D` **130 global / 0 on eqpac**. Where
+both are measured the `pFe/DFe` ratio spans a wide **2.59 dex** (`Fe_TP`; 3.7 dex for `Fe_TPL`) — the
+partitioning observable is both sparse and noisy exactly where the dissolved field is dense.
 
 ## Honest place in the map
 
