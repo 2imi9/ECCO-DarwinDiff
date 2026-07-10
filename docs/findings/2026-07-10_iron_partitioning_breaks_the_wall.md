@@ -74,9 +74,13 @@ signal and restores the alpfe dependence.
 
 ## Coverage, for completeness
 
-Even setting the above aside, the co-located data are sparse: `Fe_D` dense (23,912) but surface
-co-located `Fe_TP`+`Fe_D` only ~94 global / 4 on eqpac; `Fe_TPL`+`Fe_D` 150 global surface. Where
-measured, the ratio spans a wide 2.59 dex.
+Even setting the above aside, the co-located data are sparse (reproduced with explicit cuts —
+surface ≤ 50 m, good QC {49,50} — in `scripts/iron_coverage_count.py` →
+`docs/findings/iron_coverage_count.json`): `Fe_D` is dense (**4,472 surface** samples; ~24k
+all-depth), but surface samples carrying **both** a particulate and a dissolved measurement are
+few — `Fe_TP`+`Fe_D` **76 global / 4 on eqpac**, `Fe_TPL`+`Fe_D` **130 global / 0 on eqpac**. Where
+both are measured the `pFe/DFe` ratio spans a wide **2.59 dex** (`Fe_TP`; 3.7 dex for `Fe_TPL`) — the
+partitioning observable is both sparse and noisy exactly where the dissolved field is dense.
 
 ## Honest place in the map
 
