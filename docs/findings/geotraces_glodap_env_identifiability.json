@@ -1,0 +1,152 @@
+{
+  "description": "DFe CONCENTRATION env-regime hold-out identifiability floor (the information-wall side of the iron verdict). Env-predictable concentration does NOT imply the scavenging RATE (scav_rat) is identifiable: concentration is a low-information projection of the rate (Tagliabue 2016). Iron is dense, so any null here is structural/observability, not data-limited (unlike calcite).",
+  "data": {
+    "iron": "GEOTRACES IDP2025 surface Fe_D (D:\\geotraces\\GEOTRACES_IDP2025_Seawater.nc)",
+    "env": "GLODAPv2.2016b mapped climatology OmegaC + temperature (data/glodap/GLODAPv2.2016b_MappedClimatologies); re-staged after the reproducibility-appendix R6-1 gap note, so this restores the original pre-branch +0.14 GLOBAL-Omega claim with its original source."
+  },
+  "config": {
+    "depth_max_m": 50.0,
+    "holdout_quantile": 0.25,
+    "n_perm": 2000,
+    "min_cells": 12,
+    "qc_good": [
+      49,
+      50
+    ],
+    "fdr_alpha": 0.1,
+    "perm_seed": 0
+  },
+  "surface_points": 4472,
+  "omega_finite": 4119,
+  "sst_finite": 4201,
+  "results": [
+    {
+      "region": "eqpac",
+      "axis": "Omega",
+      "cells": 25,
+      "holdout_r2": -0.1899,
+      "perm_p": 0.6022,
+      "verdict": "no"
+    },
+    {
+      "region": "eqpac",
+      "axis": "SST",
+      "cells": 25,
+      "holdout_r2": -0.7879,
+      "perm_p": 0.6787,
+      "verdict": "no"
+    },
+    {
+      "region": "natl (AOI)",
+      "axis": "Omega",
+      "cells": 13,
+      "holdout_r2": -0.9674,
+      "perm_p": 0.5107,
+      "verdict": "no"
+    },
+    {
+      "region": "natl (AOI)",
+      "axis": "SST",
+      "cells": 13,
+      "holdout_r2": -8.0398,
+      "perm_p": 0.909,
+      "verdict": "no"
+    },
+    {
+      "region": "N.Atl subpolar",
+      "axis": "Omega",
+      "cells": 19,
+      "holdout_r2": 0.2037,
+      "perm_p": 0.1139,
+      "verdict": "no"
+    },
+    {
+      "region": "N.Atl subpolar",
+      "axis": "SST",
+      "cells": 19,
+      "holdout_r2": 0.6792,
+      "perm_p": 0.014,
+      "verdict": "env-predictable"
+    },
+    {
+      "region": "S.Ocean Pac",
+      "axis": "Omega",
+      "cells": 14,
+      "holdout_r2": -1.634,
+      "perm_p": 0.4738,
+      "verdict": "no"
+    },
+    {
+      "region": "S.Ocean Pac",
+      "axis": "SST",
+      "cells": 14,
+      "holdout_r2": -1.2479,
+      "perm_p": 0.4743,
+      "verdict": "no"
+    },
+    {
+      "region": "S.Ocean(all)",
+      "axis": "Omega",
+      "cells": 228,
+      "holdout_r2": -1.4291,
+      "perm_p": 0.9895,
+      "verdict": "no"
+    },
+    {
+      "region": "S.Ocean(all)",
+      "axis": "SST",
+      "cells": 228,
+      "holdout_r2": -0.4923,
+      "perm_p": 0.902,
+      "verdict": "no"
+    },
+    {
+      "region": "N.Pacific",
+      "axis": "Omega",
+      "cells": 58,
+      "holdout_r2": -1.352,
+      "perm_p": 0.983,
+      "verdict": "no"
+    },
+    {
+      "region": "N.Pacific",
+      "axis": "SST",
+      "cells": 58,
+      "holdout_r2": -6.8226,
+      "perm_p": 0.999,
+      "verdict": "no"
+    },
+    {
+      "region": "tropics",
+      "axis": "Omega",
+      "cells": 406,
+      "holdout_r2": -0.285,
+      "perm_p": 1.0,
+      "verdict": "no"
+    },
+    {
+      "region": "tropics",
+      "axis": "SST",
+      "cells": 406,
+      "holdout_r2": 0.2847,
+      "perm_p": 0.0005,
+      "verdict": "env-predictable"
+    },
+    {
+      "region": "GLOBAL",
+      "axis": "Omega",
+      "cells": 1214,
+      "holdout_r2": 0.1362,
+      "perm_p": 0.0005,
+      "verdict": "env-predictable"
+    },
+    {
+      "region": "GLOBAL",
+      "axis": "SST",
+      "cells": 1220,
+      "holdout_r2": -0.1737,
+      "perm_p": 1.0,
+      "verdict": "no"
+    }
+  ]
+}

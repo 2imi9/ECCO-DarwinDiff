@@ -29,7 +29,9 @@ Needs D:\geotraces\GEOTRACES_IDP2025_Seawater.nc + data/glodap/.../OmegaC+temper
 """
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 
 import numpy as np
 
@@ -159,6 +161,48 @@ def main() -> int:
     print("held-out DFe can 'work' with an equifinal, meaningless scav_rat. Concentration skill")
     print("!= rate identifiability -- the information wall. Iron is DENSE, so any null here is")
     print("NOT data-limited (unlike calcite); the wall is structural/observability.")
+
+    def _verdict(name, axis, ho, p):
+        if not np.isfinite(p):
+            return "insufficient"          # n < MIN_CELLS or hold-out undefined
+        if keepmap.get((name, axis)) and ho > 0:
+            return "env-predictable"       # survives BH-FDR
+        if ho > 0 and p < 0.1:
+            return "uncorrected-only"
+        return "no"
+
+    out = {
+        "description": ("DFe CONCENTRATION env-regime hold-out identifiability floor (the "
+                        "information-wall side of the iron verdict). Env-predictable concentration "
+                        "does NOT imply the scavenging RATE (scav_rat) is identifiable: "
+                        "concentration is a low-information projection of the rate (Tagliabue 2016). "
+                        "Iron is dense, so any null here is structural/observability, not "
+                        "data-limited (unlike calcite)."),
+        "data": {
+            "iron": f"GEOTRACES IDP2025 surface Fe_D ({GEOTRACES})",
+            "env": (f"GLODAPv2.2016b mapped climatology OmegaC + temperature ({GLODAP_ROOT}); "
+                    "re-staged after the reproducibility-appendix R6-1 gap note, so this restores "
+                    "the original pre-branch +0.14 GLOBAL-Omega claim with its original source."),
+        },
+        "config": {"depth_max_m": DEPTH_MAX, "holdout_quantile": Q, "n_perm": N_PERM,
+                   "min_cells": MIN_CELLS, "qc_good": list(QC_GOOD), "fdr_alpha": 0.1,
+                   "perm_seed": 0},
+        "surface_points": int(len(lat)),
+        "omega_finite": int(np.isfinite(om).sum()),
+        "sst_finite": int(np.isfinite(sst).sum()),
+        "results": [
+            {"region": name, "axis": axis, "cells": int(n),
+             "holdout_r2": (None if not np.isfinite(ho) else round(float(ho), 4)),
+             "perm_p": (None if not np.isfinite(p) else round(float(p), 4)),
+             "verdict": _verdict(name, axis, ho, p)}
+            for name, axis, n, ho, p in results
+        ],
+    }
+    out_path = Path(os.environ.get(
+        "IRON_ENV_JSON", "docs/findings/geotraces_glodap_env_identifiability.json"))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(out, indent=2))
+    print(f"\nwrote {out_path}")
     return 0
 
 
