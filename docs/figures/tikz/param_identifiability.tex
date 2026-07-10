@@ -35,16 +35,16 @@
       |[fill=ddUnobsBg, text=ddUnobs, rounded corners=3pt]| unobservable & --- \\
   };
 
-  % header rule + outer frame
-  \draw[ddLine, line width=0.6pt] (m-1-1.south west) -- (m-1-5.south east);
-  \draw[ddLine, line width=0.6pt] (m-1-1.north west) rectangle (m-7-5.south east);
+  % header rule + outer frame -- span the FULL matrix so the wide recovery cell is enclosed
+  \draw[ddLine, line width=0.6pt] (m.west |- m-1-1.south) -- (m.east |- m-1-1.south);
+  \draw[ddLine, line width=0.6pt] (m.north west) rectangle (m.south east);
 
-  % footnote + summary
-  \node[anchor=north west, font=\sffamily\scriptsize, text=ddMuted, align=left, text width=13cm]
-    at ([yshift=-3mm]m-7-1.south west)
+  % footnote + summary (summary anchored BELOW the footnote node, so no overlap)
+  \node[anchor=north west, font=\sffamily\scriptsize, text=ddMuted, align=left, text width=14.5cm]
+    (fn) at ([yshift=-3.5mm]m.south west)
     {$^\ast$ the scalar \texttt{R\_PICPOC} recovers against any real ratio anchor; its \emph{$\Omega$-modulation} is support-limited (out-of-sample E2 negative).};
   \node[verdict=ddIdent, fill=ddIdentBg, anchor=north west, font=\sffamily\footnotesize,
-        text width=13cm, align=left] at ([yshift=-10mm]m-7-1.south west)
+        text width=14.5cm, align=left] at ([yshift=-4mm]fn.south west)
     {\textbf{Per-cell architecture is load-bearing.} The trio \{\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}\} holds jointly in \textbf{7/10} seeds per-cell, vs \textbf{0/10} for a single global-scalar vector. The binding constraint on the rest is the \emph{observing system}, not the method.};
 
 \end{tikzpicture}

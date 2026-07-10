@@ -10,7 +10,7 @@
 \begin{tikzpicture}[node distance=6mm and 9mm]
 
   % ---- DarwinDiff: differentiable autograd pipeline (top) ------------------------
-  \node[ddlabel, text=ddIdent, anchor=west] (t1) at (0,1.15) {DarwinDiff --- differentiable (PyTorch autograd)};
+  \node[ddlabel, text=ddIdent, anchor=west] (t1) at (0,2.25) {DarwinDiff --- differentiable (PyTorch autograd)};
   \node[stage, anchor=west]        (env)  at (0,0)      {environment\\[1pt]\ddsub{SST\,$\cdot$\,wind\,$\cdot$\,MLD}};
   \node[stage, right=of env]       (dinn) {DINN\\[1pt]\ddsub{per-cell net}};
   \node[stage, right=of dinn]      (par)  {$\theta$: 6 params\\[1pt]\ddsub{per grid cell}};
@@ -20,8 +20,8 @@
   \draw[flow] (dinn) -- (par);
   \draw[flow] (par) -- (box);
   \draw[flow] (box) -- (loss);
-  \draw[grad] (loss.north) to[out=90,in=90]
-        node[above=0.5pt, ddtiny, text=ddIdent] {one backward pass $\rightarrow$ all six $\partial\mathcal{L}/\partial\theta$}
+  \draw[grad] (loss.north) .. controls ([yshift=13mm]loss.north) and ([yshift=13mm]dinn.north) ..
+        node[midway, above=1.5pt, ddtiny, text=ddIdent] {one backward pass $\rightarrow$ all six $\partial\mathcal{L}/\partial\theta$}
         (dinn.north);
   \node[ddtiny, anchor=north] at ([yshift=-1mm]box.south) {5 tracers: DFe, P$_\mathrm{s}$, P$_\mathrm{l}$, POC, PIC};
 
