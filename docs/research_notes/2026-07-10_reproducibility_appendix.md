@@ -92,7 +92,7 @@ data) so the sweeps never touch the ~TB native tree — the data-discipline patt
 
 ## Open reproducibility items (before submission)
 
-1. ~~Merge `2imi9/status-handoff-2026-07-07` → `main`~~ — **DONE** (#180, 2026-07-10).
+1. ~~Merge `2imi9/status-handoff-2026-07-07` → `main`~~ — **DONE** (#180, 2026-07-10; all Track-2 code + findings now on `main`).
 2. ~~Regenerate + commit the iron env-predictability JSON~~ — **DONE** (`21f238e`; R6-1 closed above; v2.2016b re-staged, GLOBAL-Ω +0.14 reproduced exactly).
 3. ~~The load-bearing iron numbers (32× wall, partitioning degeneracy, coverage) were print-only~~ —
    **DONE** (2026-07-10 audit-hardening): committed JSONs + reproducers for the scav_rat profile
