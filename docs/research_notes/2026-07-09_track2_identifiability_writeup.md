@@ -60,8 +60,9 @@ and a separate verification workflow (both multi-agent) hardened the harness and
 
 | Darwin closure | observable | verdict | why |
 |---|---|---|---|
-| calcite `R_PICPOC` | PIC:POC (**≈ the parameter**) | not identifiable | **data-limited** |
-| iron `scav_rat` | DFe concentration (**≠ the parameter**) | not identifiable | **observability-limited** |
+| calcite `R_PICPOC` | PIC:POC (**≈ the parameter**) | not identifiable | **data-limited** (Ω support too narrow — confirmed on independent in-situ Ω) |
+| iron `scav_rat` | DFe concentration (**≠ the parameter**) | not identifiable | **observability-limited** (structural; not rescued by a particulate observable either) |
+| growth `Smallgrow`,`Biggrow` | phyto biomass / NPP | not identifiable | **structurally unobservable** (loss-degenerate; total NPP gives only the biomass-weighted mean) |
 
 **Calcite — data-limited.** The rain ratio *is* essentially the parameter (a steady-state
 identity makes standing-stock PIC:POC equal the production ratio Daniels/Marsh measure). But
@@ -72,7 +73,11 @@ chemistry across Ω = 1.5–6.5. An initial binned analysis looked regionally po
 **inverted** when the environment source was swapped from in-situ carbonate to the GLODAP
 climatology (the two agree only r = 0.24), so those positives were small-n / aggregation
 artifacts. Net: real calcite data cannot sharply constrain an environment-driven rain-ratio
-closure at present sample sizes.
+closure at present sample sizes. **This null holds on fully independent in-situ carbonate data:**
+recomputing Ω from GLODAPv3 bottle DIC/TAlk/T/S (NCEI 0315582, 2026; 838 eqpac + 1740 natl
+bottles) rather than the model cache, the power-law oracle is **NULL in every basin** (eqpac
+exponent CI [−0.57, +3.02], natl [−8.32, +4.47], pooled Ω span 0.29 dex, still below the
+identifiability threshold), so the calcite verdict does **not** depend on model-derived Ω.
 
 The symbolic-distillation oracle pins the *mechanism* of that data-limitation: run directly on
 the real pairs (Daniels rain ratio × Ω_calcite from the v05 carbonate cache), the power-law
@@ -123,6 +128,18 @@ angle (the rate is unidentifiable from concentration *and* from any realistic pa
 observable). This corrects an earlier over-claim in this write-up — a good example of why every
 numerical identifiability result here goes through adversarial verification before it is built on.
 
+**Growth — structurally unobservable, and a production observable does not rescue it.** Phytoplankton
+growth rates (`Smallgrow`, `Biggrow`) were "unobservable by construction" in Track-1 because standing-
+stock biomass is set by a growth-vs-loss balance. The natural fix — a *production* observable, since
+`NPP/biomass = μ·f_fe·LIGHT` is the specific growth rate with the loss terms cancelled (the same
+flux-over-stock idea as the iron partitioning attempt) — was scouted on the real eqpac footprint. It
+does not work for the *real* observable: total NPP (what 14C/satellite actually measure) constrains only
+the **biomass-weighted mean** growth rate, so the `{Smallgrow, Biggrow}` pair stays degenerate — in
+eqpac the large-phytoplankton rate is unidentifiable regardless (large phyto is negligible there), and
+total NPP adds nothing over biomass. Only a per-PFT production observable would split the pair, and no
+instrument measures it (and the self-twin per-PFT "pass" is the same construction tautology as the iron
+case). So growth is at best *aggregate*-observable-in-principle — the third closure, third limit.
+
 ## Honest scope
 
 - This is **not** a "transport closes the gap" pass, **not** a recovered parameter, and **not**
@@ -132,8 +149,9 @@ numerical identifiability result here goes through adversarial verification befo
   K_num control is non-discriminating (transport is inert in the surface-scored rollout). The
   robust evidence is the transport-free floor + the cross-source robustness, not any single UDE
   delta.
-- The result is corroborated by independent published field data (Marañón 2016) and by an
-  independent observation-derived environment product (GLODAPv2.2016b).
+- The result is corroborated by independent published field data (Marañón 2016) and by
+  **independent in-situ carbonate data** (GLODAPv3, 2026), on which the calcite oracle returns the
+  same null — so the calcite verdict does not depend on model-derived Ω.
 
 ## Why this is a useful result
 
@@ -173,5 +191,8 @@ oracle `scripts/symbolic_distill_probe.py` (+ `symbolic_distill_dynamics_probe.p
 `docs/research_notes/2026-07-09_{e2_calcite_preregistration, calcite_identifiability_map,
 parameter_conditioned_emulator_update}.md`; `docs/findings/2026-07-09_symbolic_distillation_identifiability_oracle.md`
 + `calcite_omega_identifiability_real.json`.
-Data (gitignored): Marsh 2025 (`data/marsh/`), GLODAPv2.2016b (`data/glodap/`), GEOTRACES
+Lever scouts: `scripts/{iron_partitioning_scout, iron_partitioning_controls, growth_npp_scout,
+glodap_omega_calcite}.py`; findings `docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md`,
+`calcite_omega_glodap_marsh.json`.
+Data (gitignored): Marsh 2025 (`data/marsh/`), GLODAPv3 (`D:\glodap\`), GEOTRACES
 IDP2025 + ECCO-Darwin v05 native (on `D:`).
