@@ -41,6 +41,7 @@ scavenging rate).
 | calcite: no driver (SST/composition) rescues it | `docs/findings/calcite_driver_scout_marsh.json` | `scripts/calcite_driver_scout.py` | `f8b9654` |
 | iron partitioning is a construction artifact (corrected) | `docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md` | `scripts/iron_partitioning_scout.py` + `iron_partitioning_controls.py` | `f99a470` / `8d9b0c2` |
 | iron scav_rat unidentifiable from DFe (32× wall) | (printed; bundle-driven) | `scripts/iron_scav_rat_profile.py` | (pre-branch) |
+| iron DFe concentration IS env-predictable (supporting; the wall side) | `docs/findings/geotraces_glodap_env_identifiability.json` | `scripts/geotraces_glodap_identifiability.py` | `21f238e` |
 | growth pair not split by total NPP | (printed) | `scripts/growth_npp_scout.py` | `04e43e4` |
 | make-or-break transport E2 → negative (calcite) | `docs/findings/2026-07-10_e2_powered_result.md` | `scripts/e2_real_calcite_eqpac.py` | `aa0cc1b` |
 | carbonate solver validated vs PyCO2SYS (independent) | `docs/findings/carbonate_pyco2sys_validation.json` | `scripts/validate_carbonate_pyco2sys.py` | `51e2cb0` |
@@ -52,17 +53,22 @@ median |rel diff| 1.3% (a constant ~1.4 % bias, harmless to the slope-based orac
 upstream component that same-model review could not independently confirm.
 | symbolic-distillation oracle (method + tests) | 22 tests | `scripts/symbolic_distill_probe.py`, `tests/test_symbolic_distill.py` | `c12fbf7` / `c4b8508` |
 
-**Known artifact gap (R6-1):** the supporting iron statement "DFe concentration is env-predictable
-(global Ω hold-out +0.14, p≈0)" was produced pre-branch by `scripts/geotraces_glodap_identifiability.py`
-against the **GLODAPv2.2016b mapped** OmegaC climatology, which is no longer staged (superseded here by
-GLODAPv3 bottle data). Its JSON is not committed. This number is *supporting* (it shows concentration
-carries env signal), **not** load-bearing for the wall itself (the wall is the 32× flat scav_rat
-profile from `iron_scav_rat_profile.py`). To restore it, either re-stage GLODAPv2.2016b or adapt the
-script to GLODAPv3; until then it should be cited as "prior-analysis, pending regeneration."
+**R6-1 (CLOSED 2026-07-10):** the supporting iron statement "DFe concentration is env-predictable
+(global Ω hold-out +0.14, p≈0)" is now backed by a committed artifact. The **GLODAPv2.2016b mapped**
+OmegaC + temperature climatologies were re-staged locally, so `scripts/geotraces_glodap_identifiability.py`
+now regenerates the original claim with its original data source and writes
+`docs/findings/geotraces_glodap_env_identifiability.json` (commit `21f238e`). The GLOBAL-Ω row
+reproduces exactly: 1214 cells, hold-out R² **+0.1362 (→ +0.14)**, perm-p **0.0005**, verdict
+env-predictable. This number is *supporting* (concentration carries env signal), **not** load-bearing
+for the wall itself (the wall is the 32× flat scav_rat profile from `iron_scav_rat_profile.py`).
+Re-staging v2.2016b was chosen over a GLODAPv3 re-adaptation deliberately: it restores the *exact*
+pre-branch number rather than producing a different one on a different Ω product.
 
 ## Reproduce the headline results (CPU, from staged data)
 
 ```bash
+# iron DFe concentration env-predictability floor (supporting; the wall side)
+CUDA_VISIBLE_DEVICES=-1 python scripts/geotraces_glodap_identifiability.py
 # calcite null on independent in-situ Omega (GLODAPv3)
 CUDA_VISIBLE_DEVICES=-1 python scripts/glodap_omega_calcite.py --source marsh
 # calcite null is not Omega-specific (SST / composition tested)
@@ -82,7 +88,7 @@ data) so the sweeps never touch the ~TB native tree — the data-discipline patt
 ## Open reproducibility items (before submission)
 
 1. Merge `2imi9/status-handoff-2026-07-07` → `main` (code currently on an unmerged branch).
-2. Regenerate + commit the iron env-predictability JSON (GLODAPv3-adapted), or drop the +0.14 claim.
+2. ~~Regenerate + commit the iron env-predictability JSON~~ — **DONE** (`21f238e`; R6-1 closed above; v2.2016b re-staged, GLOBAL-Ω +0.14 reproduced exactly).
 3. The make-or-break **out-of-sample transport E2 was run** for calcite (commit `aa0cc1b`) and
    returns a decisive negative (learned closure does not beat the constant-through-transport null;
    K_num non-discriminating). It has *not* been run for iron/growth (argued from their own
