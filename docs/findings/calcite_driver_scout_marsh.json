@@ -1,0 +1,88 @@
+{
+  "source": "marsh",
+  "n_total": 79,
+  "drivers": {
+    "logOmega": {
+      "pooled_r": -0.1334685929050956,
+      "within_r": 0.18416713403505625,
+      "within_ci": [
+        0.03101038008292952,
+        0.35389229756084506
+      ],
+      "within_significant": true,
+      "sign_consistent": false,
+      "per_biome": {
+        "eqpac": {
+          "n": 34,
+          "r": 0.4446610316123961,
+          "span": 0.18179400268048074
+        },
+        "natl": {
+          "n": 33,
+          "r": 0.3625024459436832,
+          "span": 0.2955537942446518
+        },
+        "so": {
+          "n": 12,
+          "r": -0.36770878300503723,
+          "span": 0.42820351130656287
+        }
+      }
+    },
+    "SST": {
+      "pooled_r": -0.18750650105391006,
+      "within_r": 0.1558168871292972,
+      "within_ci": [
+        0.005935508592771455,
+        0.3404620580003726
+      ],
+      "within_significant": true,
+      "sign_consistent": false,
+      "per_biome": {
+        "eqpac": {
+          "n": 34,
+          "r": 0.3945137015725963,
+          "span": 4.769498825073242
+        },
+        "natl": {
+          "n": 33,
+          "r": 0.31350143974744077,
+          "span": 8.276487350463867
+        },
+        "so": {
+          "n": 12,
+          "r": -0.40523493243108005,
+          "span": 9.704710725694895
+        }
+      }
+    },
+    "cocco_frac": {
+      "pooled_r": 0.16381973178134734,
+      "within_r": -0.13028574664959786,
+      "within_ci": [
+        -0.28348055536890127,
+        0.007652320009658946
+      ],
+      "within_significant": false,
+      "sign_consistent": false,
+      "per_biome": {
+        "eqpac": {
+          "n": 34,
+          "r": 0.1180472902040936,
+          "span": 0.368158879071221
+        },
+        "natl": {
+          "n": 33,
+          "r": -0.4763658937140302,
+          "span": 0.17448646972659665
+        },
+        "so": {
+          "n": 12,
+          "r": -0.19424075241687833,
+          "span": 0.4589507752323876
+        }
+      }
+    }
+  },
+  "verdict": "NO driver has a significant + sign-consistent within-biome partial correlation -- the calcite limit is not Omega-specific; the climatological data lack within-region driver variation for ALL candidates (fundamental, not fixable by picking a different driver)"
+}

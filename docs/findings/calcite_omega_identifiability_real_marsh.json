@@ -1,0 +1,71 @@
+{
+  "source": "marsh",
+  "aois": {
+    "eqpac": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: driver spanned only 0.08 dex (< 0.3) -> under-excited; widen the visited Omega range",
+      "n_hat": 3.4040877432064804,
+      "n_ci_lo": 0.22574200047447301,
+      "n_ci_hi": 6.475598083036215,
+      "n_rel_std": 0.47257782820092725,
+      "driver_log_span": 0.07682543072195269,
+      "r2": 0.14542313718290212,
+      "n_points": 32,
+      "n_cells": 34,
+      "omega_min": 4.724387168884277,
+      "omega_max": 5.666274547576904,
+      "ratio_geomean": 0.035442608480538075,
+      "corr_logratio_logomega": 0.4446610316123961
+    },
+    "natl": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: driver spanned only 0.08 dex (< 0.3) -> under-excited; widen the visited Omega range",
+      "n_hat": 11.096015809900763,
+      "n_ci_lo": 6.604382853072753,
+      "n_ci_hi": 17.64124773721649,
+      "n_rel_std": 0.2572174751939876,
+      "driver_log_span": 0.08443329902248514,
+      "r2": 0.20402863117264003,
+      "n_points": 31,
+      "n_cells": 33,
+      "omega_min": 3.135758638381958,
+      "omega_max": 4.214053153991699,
+      "ratio_geomean": 0.05584616448315999,
+      "corr_logratio_logomega": 0.3625024459436832
+    },
+    "so": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: exponent CI [-2.72,3.27] does not exclude 0 by 0.1 -> driver-independent (Maranon-consistent NULL); exponent unstable (rel.std 92.65 > 0.5); driver spanned only 0.16 dex (< 0.3) -> under-excited; widen the visited Omega range",
+      "n_hat": -0.04779326540751235,
+      "n_ci_lo": -2.7187330995774013,
+      "n_ci_hi": 3.272733060048906,
+      "n_rel_std": 92.64833400402112,
+      "driver_log_span": 0.161664186839871,
+      "r2": 0.00014174690778889776,
+      "n_points": 10,
+      "n_cells": 12,
+      "omega_min": 2.2568857669830322,
+      "omega_max": 3.4631874561309814,
+      "ratio_geomean": 0.04888589193039246,
+      "corr_logratio_logomega": -0.36770878300503723
+    }
+  },
+  "note": "identifiability-limits; not a physical Omega-independence claim",
+  "pooled": {
+    "identifiable": false,
+    "reason": "NON-IDENTIFIABLE: exponent CI [-1.16,0.16] does not exclude 0 by 0.1 -> driver-independent (Maranon-consistent NULL); exponent unstable (rel.std 0.71 > 0.5)",
+    "n_hat": -0.4705511869241636,
+    "n_ci_lo": -1.1621823167794838,
+    "n_ci_hi": 0.1631944795440379,
+    "n_rel_std": 0.7103886489518828,
+    "driver_log_span": 0.3784103541117953,
+    "r2": 0.014043991820494428,
+    "n_points": 77,
+    "n_cells": 79,
+    "omega_min": 2.2568857669830322,
+    "omega_max": 5.666274547576904,
+    "ratio_geomean": 0.04500140021529303,
+    "corr_logratio_logomega": -0.1334685929050956
+  },
+  "verdict": "NULL: real Daniels data does not constrain an Omega-power-law rain ratio (identifiability-limits; small n / narrow Omega support)"
+}

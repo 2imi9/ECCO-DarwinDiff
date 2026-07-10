@@ -1,0 +1,71 @@
+{
+  "source": "daniels",
+  "aois": {
+    "eqpac": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: driver spanned only 0.08 dex (< 0.3) -> under-excited; widen the visited Omega range",
+      "n_hat": 6.424611475806681,
+      "n_ci_lo": 1.832951215671795,
+      "n_ci_hi": 10.350545268976507,
+      "n_rel_std": 0.34807146644437886,
+      "driver_log_span": 0.07682543072195269,
+      "r2": 0.3131704325120068,
+      "n_points": 32,
+      "n_cells": 34,
+      "omega_min": 4.724387168884277,
+      "omega_max": 5.666274547576904,
+      "ratio_geomean": 0.03915111413816832,
+      "corr_logratio_logomega": 0.5933211663025371
+    },
+    "natl": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: driver spanned only 0.08 dex (< 0.3) -> under-excited; widen the visited Omega range",
+      "n_hat": 7.0100780495723525,
+      "n_ci_lo": 0.8567464406221034,
+      "n_ci_hi": 12.992286439117565,
+      "n_rel_std": 0.4347646080832736,
+      "driver_log_span": 0.08443329902248514,
+      "r2": 0.14744119309874093,
+      "n_points": 24,
+      "n_cells": 26,
+      "omega_min": 3.135758638381958,
+      "omega_max": 4.214053153991699,
+      "ratio_geomean": 0.033636020265256514,
+      "corr_logratio_logomega": 0.3071204021615126
+    },
+    "so": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: only 0 usable points (need >= 5)",
+      "n_hat": NaN,
+      "n_ci_lo": NaN,
+      "n_ci_hi": NaN,
+      "n_rel_std": NaN,
+      "driver_log_span": 0.0,
+      "r2": NaN,
+      "n_points": 0,
+      "n_cells": 0,
+      "omega_min": NaN,
+      "omega_max": NaN,
+      "ratio_geomean": NaN,
+      "corr_logratio_logomega": NaN
+    }
+  },
+  "note": "identifiability-limits; not a physical Omega-independence claim",
+  "pooled": {
+    "identifiable": false,
+    "reason": "NON-IDENTIFIABLE: exponent CI [-0.23,1.78] does not exclude 0 by 0.1 -> driver-independent (Maranon-consistent NULL); exponent unstable (rel.std 0.66 > 0.5); driver spanned only 0.25 dex (< 0.3) -> under-excited; widen the visited Omega range",
+    "n_hat": 0.8901947473307811,
+    "n_ci_lo": -0.22888956806346533,
+    "n_ci_hi": 1.7796402830617208,
+    "n_rel_std": 0.6623301042007079,
+    "driver_log_span": 0.2539244941755136,
+    "r2": 0.046067110971192315,
+    "n_points": 58,
+    "n_cells": 60,
+    "omega_min": 3.135758638381958,
+    "omega_max": 5.666274547576904,
+    "ratio_geomean": 0.03665813223205219,
+    "corr_logratio_logomega": 0.2148766303592998
+  },
+  "verdict": "NULL: real Daniels data does not constrain an Omega-power-law rain ratio (identifiability-limits; small n / narrow Omega support)"
+}

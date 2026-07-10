@@ -1,0 +1,175 @@
+{
+  "summary": "Deep research on the Phase-1 UDE design questions (transport, closures, checkpointing, conservation, calcite) -> a cited design brief",
+  "agentCount": 6,
+  "logs": [],
+  "result": {
+    "brief": "Read enough. The code confirms the brief's claims: `carroll6_ude_tendency` already has `ffe_closure` and `calcite_closure` hooks, `integrate()` has RK4 + `checkpoint_segment`, `relative_mass_drift` exists in integrators.py. This is a 0-D box today; Phase 1 extends the same tendency-function interface to 3-D offline transport. Here is the design brief.\n\n---\n\n# PHASE-1 DESIGN BRIEF — Differentiable Offline-Transport UDE\n\n**Scope of Phase 1:** Take the existing 0-D `carroll6_ude_tendency` + checkpointed `integrate()` machinery to a 3-D regional AOI (one v05 subregion) with prescribed ECCO-Darwin velocities, learn **environment-conditioned closures** (iron limitation and calcite/PIC:POC), and pass three make-or-break gates: held-out real-data R²>0, bounded decadal mass drift, and out-of-envelope physical realism. Everything below is the *differentiable* version of the already-proven MITgcm-offline configuration that produced v05 — we inherit its conservation and physics, and add only the autograd path.\n\n---\n\n## 1. Transport operator\n\n**THE decision:** Operator-split, flux-form finite-volume on the prescribed v05 grid velocities, differentiated by ordinary PyTorch autograd. Concretely:\n- **Advection:** explicit, flux-form **centered-2nd** + small explicit biharmonic/Laplacian horizontal diffusion for smoothing. Conservative by construction (face fluxes telescope), fully smooth for autograd, CFL-cheap. **Defer superbee/TVD.** If false extrema appear, upgrade to a *smooth, eps-guarded* limiter (tanh-blended minmod/superbee) — never raw `min`/`max`, never first-order upwind (too diffusive — it re-opens the surrogate gap we're trying to close).\n- **Vertical diffusion:** semi-implicit **backward-Euler batched tridiagonal (Thomas)** over water columns, differentiated by plain autograd. This is the single highest-leverage decision: it decouples `dt` from thin-surface-layer stiffness, is unconditionally stable, and is exactly conservative with no-flux BCs.\n- **Splitting:** Lie/Strang split — explicit advection then implicit vertical diffusion per step.\n- **Velocity:** recompute vertical velocity `w` from discrete continuity given prescribed `(u,v)` per cell — this, not a penalty, is what actually delivers the mass gate.\n\n**Why:** every differentiable ocean/atmosphere emulator uses flux form; conservation is a discretization property, orthogonal to autograd. Backward-Euler Thomas is a fixed differentiable op sequence needing no adjoint. This mirrors MITgcm-offline exactly, so it inherits conservation for free.\n\n**Explicitly reject:** spectral transport cores (NeuralGCM/Dinosaur) — not naturally positive/mass-local and incompatible with grid-native prescribed velocities.\n\n---\n\n## 2. Neural closures\n\n**THE decision:** Learn **closures/parameters, not tendencies.** Keep the full Darwin box RHS analytic and transport prescribed; replace only the two genuinely-uncertain closures via the hooks that *already exist* in `carroll6_ude_tendency`:\n- `ffe_closure`: iron-limitation multiplier → small MLP, sigmoid-squashed to **[0,1]**.\n- `calcite_closure`: PIC production as a **bounded multiplicative modifier on organic production**, structured `PIC_prod = R0 · g_θ(env, state) · mort_total`, with `R0` = Carroll baseline ratio (identifiability anchor: `g_θ≡1` recovers Paper #1's constant `R_PICPOC` exactly) and `g_θ` a small MLP squashed via scaled sigmoid into ~[0.1, 10].\n\n**Architecture:** each net **small and shallow** — 2–3 layers × 8–16 neurons, tanh/swish. Architecture is second-order; do **not** scale up the net to chase R². Feed **log-transformed** tracer concentrations and a compact physically-motivated input vector, not the full raw state.\n\n**Calcite input vector** (priority order, all offline-precomputable): **SST, Ω_calcite** (computed from prescribed v05 DIC/ALK/T/S), **Fe/nutrient-limitation factor, PAR**. This is the union of drivers across the three reference models (Darwin constant-fraction / PISCES Ω-scaled / MARBL growth×limitation), and PIC:POC is physiologically a *stress* ratio — the net must be able to raise it in oligotrophic/high-latitude-decline regimes and lower it in fast-growing upwelling (the eqpac-low / natl-high ~23× v05 contrast).\n\n**Regularization is the dominant knob** (larger effect than architecture): first-class tunable **L2 weight decay** on closure nets, swept on a log grid *before* touching architecture, plus a **soft-prior loss** anchoring each closure to its analytic Carroll form at reference conditions (net starts as a small correction, not a free function). Add a **Lipschitz/spectral-norm bound** on the nets so they cannot inject fast unstable modes.\n\n**Optimizer:** Adam warmup → L-BFGS polish, multi-start (Latin-hypercube the closure-net scaling so some seeds start near the Carroll closure), **select on held-out validation loss**, report **n≥10 seeds with variance** per existing `verify_run.py` discipline.\n\n---\n\n## 3. Gradient / checkpointing strategy\n\n**THE decision:** **Discretise-then-optimise** — plain PyTorch autograd through the existing checkpointed RK4 `integrate()`. This gives *exact* gradients of the actual discrete loss. **Reject continuous/backsolve adjoint** (`torchdiffeq odeint_adjoint`) as the primary path — it is documented unstable on stiff/PDE-like systems (exactly the advection + fast-BGC regime), and a biased/blown-up gradient directly threatens the R²>0 gate.\n\nGet memory tractability from two orthogonal levers, in order:\n1. **Truncated/windowed BPTT** — train on many overlapping short windows (**start 30–90 simulated days, tune upward until gradients stop helping**) with **detached** initial conditions. Caps activation memory independent of decade span and stabilizes optimization. Add a **rollout-length curriculum** (short windows first). It's a biased estimator, so window length is a first-class hyperparameter.\n2. **Nested (2-level, Revolve-style) checkpointing** *within* each window and over year→day loops for the eval rollout — a √N×√N scheme turns ~3650 daily steps into ~60 stored ocean states at ~2–3× recompute. The dominant memory cost is stored 3-D tracer **state**, not NN activations, so checkpoint at segment boundaries and recompute the cheap NN forward.\n\nThe full forward-only decade rollout is reserved for **evaluation only** (R² + mass gates), sidestepping long-horizon gradient degradation entirely.\n\nReversible solvers (McCallum–Foster) are a **Phase-2** speed/memory upgrade only, always gradient-checked against the trusted checkpointed-RK4 reference before any science claim.\n\n---\n\n## 4. Conservation (the make-or-break budget gate)\n\n**THE decision:** Conservation is **structural, not penalized** — a two-layer guarantee plus a hard reportable number.\n- **Layer 1 (transport):** flux-divergence update with face fluxes shared between adjacent cells (same tensor accumulated as +cell / −neighbor). Conserves the domain total to fp64 machine precision regardless of NN state.\n- **Layer 2 (biology):** neural closures emit **non-negative reaction rates/fluxes** mapped to tracer tendencies through Darwin's **fixed stoichiometry** (`dC = A·S`, A non-trainable). A single `PIC_prod` feeds **all three** of `dPIC`, `dDIC (−1×)`, `dALK (−2×)` — never three independent laws. Elemental conservation then holds exactly even mid-training.\n- **Positivity is a separate axis:** softplus/exp parameterization or a conservative FCT-style limiter — **never `torch.clamp(min=0)`** (silently injects mass). If you must clamp for stability, *log the clamped mass into the budget* so it shows up as drift rather than being laundered away.\n- **Projection layer** (closed-form mass-weighted redistribution, ~1e-6 residual, ~free per step) kept only as insurance for any term not yet expressible in flux/stoichiometric form.\n\n**Reportable gate:** extend the existing `relative_mass_drift` (integrators.py) into a running **per-element (C, N, P, Fe)** closed-budget accumulator that tags each boundary flux (dust in, export/burial out, air-sea CO₂), integrates over the rollout, and reports **relative drift/decade** *and* **absolute drift (Pg C or mol/m²/yr)** vs signal magnitude — all sums in **fp64**. Enable **deterministic kernels** so checkpoint recompute is bit-consistent. Claim exact **linear** conservation only (RK4 preserves linear invariants, not nonlinear ones). Explicitly avoid the reporting gap of the closest prior marine-BGC emulator (arXiv 2606.27168) — report a hard number, not \"we added a conservation loss.\"\n\n---\n\n## Biggest risks + mitigations\n\n**Risk 1 — Long-horizon gradient degradation / stiff-term blow-up over decade rollouts** (the Veros paper shows gradient error grows with rollout length; stiff calcification/scavenging is where instability lives). *Mitigation:* windowed BPTT with detached ICs + curriculum for training; forward-only decade rollout for eval; semi-implicit vertical diffusion + Lipschitz/spectral bound on closure nets; never bet the gate on backsolve adjoint or reversible solvers.\n\n**Risk 2 — Silent mass leak masquerading as physics** (fp32 accumulation drift ~1e-7/op over 3650 steps; `clamp(min=0)` injecting mass; non-deterministic checkpoint recompute violating the budget the forward pass respected; a time-averaged `w` from file breaking discrete non-divergence). *Mitigation:* fp64 budget accumulation, structural conservation (flux + stoichiometry), positivity via softplus not clamp, deterministic kernels, recompute `w` from continuity, conservation-residual diagnostic *in the training loop* not just final eval.\n\n**Risk 3 — In-sample fit that fails out-of-envelope** (UDEs recover dampened oscillations and drive species negative under perturbation even with good in-sample loss — the surrogate-gap risk). *Mitigation:* make the gate **adversarial and out-of-distribution** — held-out real-data R²>0 on an unseen region/period, bounded mass residual over a decade, and a hard non-negativity/closure-in-bounds check under *perturbed* forcing (warm/high-Fe). Reject any config that fits in-sample but drifts or goes negative, regardless of training loss. Aggressive L2 (dominant knob) + soft Carroll prior + small nets keep the closure a correction, not a free emulator.\n\n---\n\n## Questions genuinely needing Jon (domain science) vs. decidable ourselves\n\n**Need Jon:**\n1. **Which two closures first, and the exact analytic forms Ω_calcite / nutrient-limitation should take** — confirm the calcite input vector (SST, Ω, Fe-lim, PAR) is the physically defensible set for the Darwin/v05 lineage, and whether N/P limitation proxies are available or data-blocked in v05.\n2. **Reference `R0` / Carroll baseline ratio and its per-AOI plausibility band** for the calcite anchor, and whether the Southern-Ocean ratio target still needs the `RATIO_MAX` sanitization when building the calcite loss (to avoid chasing the known-contaminated signal).\n3. **Which AOI/region and decade for the held-out R² gate**, and what real datasets (v05 vs GLODAP) constitute a legitimate held-out target vs. training data — the science of what \"held-out\" means physically.\n4. **Whether freezing PIC dissolution/sinking (learning production only) is scientifically acceptable** for Phase 1, and the correct DIC(−1)/ALK(−2)-per-mole-PIC stoichiometry / boundary-flux sign conventions (dust in, export/burial out, air-sea CO₂) for the budget.\n5. **What absolute mass-drift magnitude is acceptable** — i.e., what \"<< the physical trend\" means in Pg C/decade for this system to count as passing.\n\n**We decide ourselves (engineering):**\n- Advection scheme choice (centered-2nd + biharmonic), splitting order, backward-Euler Thomas for vertical diffusion, `w`-from-continuity.\n- Discretise-then-optimise vs adjoint; window length, curriculum schedule, nested-checkpoint level sizing, fp64 budget, deterministic kernels.\n- Net size/depth/activation, bounding transforms, log-input normalization, L2 sweep grid, Adam→L-BFGS + multi-start, val-based selection, n≥10 seeds.\n- Structural conservation implementation (flux-share tensor, `dC=A·S`), positivity via softplus, projection-as-insurance, the `relative_mass_drift` extension.\n- All autograd-hygiene rules (functional kernel, 0/1 mask multiply, concatenated halos, eps-guarded divisions) and the `gradcheck` CI guard.\n\n---\n\n## Concrete build order for Phase 1\n\n1. **Autograd-clean 3-D transport kernel (functional).** Flux-form centered-2nd advection + biharmonic diffusion + batched backward-Euler Thomas vertical diffusion, on prescribed `(u,v)` with `w` recomputed from continuity. Land mask as 0/1 multiply, halos by concatenation, eps-guarded divisions, no in-place writes. Same `f(state)->dstate` tendency interface the existing `integrate()` already consumes.\n2. **Offline divergence check + preprocessing.** Compute per-cell divergence of the time-averaged v05 velocity; apply one-time cleanup / carry implied `w` so the field is discretely non-divergent *before* training. This proves the mass gate offline.\n3. **`gradcheck` CI guard.** `torch.autograd.gradcheck` on a tiny 3×3×3 box through one advection + vertical-mixing step. Catches NaN/dead-gradient constructs before they cost a training run. (Extend `tests/test_integrators.py`.)\n4. **Structural conservation wiring + fp64 budget accumulator.** Refactor the biology source/sink to `dC = A·S` with single `PIC_prod` feeding `dPIC`/`dDIC`/`dALK`; extend `relative_mass_drift` to a per-element closed-budget accumulator with boundary-flux tagging. Verify flat budget on a *fixed-parameter* forward decade rollout (no NN yet).\n5. **Precompute exogenous forcing channels.** Cache Ω_calcite (from v05 DIC/ALK/T/S), SST, PAR, Fe-limitation factor per cell/time as static input channels.\n6. **Wire the two bounded closures** into `carroll6_ude_tendency` (hooks already exist): `ffe_closure` → sigmoid[0,1]; `calcite_closure` → `R0·bounded(MLP(env,state))·mort_total`. Confirm `g_θ≡1` reproduces the constant-`R_PICPOC` baseline byte-for-byte.\n7. **Windowed-BPTT training harness.** Detached-IC short windows (30–90 d) + nested checkpointing within window + rollout-length curriculum. Adam→L-BFGS, multi-start, L2 as first-class swept hyperparameter + soft Carroll prior + spectral-norm bound.\n8. **Adversarial three-part gate.** (a) held-out real-data R²>0 on unseen region/period; (b) bounded per-element mass drift over forward-only decade rollout; (c) out-of-envelope physical-realism check (perturbed forcing, all tracers ≥0, closures in bounds). Report n≥10 seed variance, hard drift number, and the eqpac-low/natl-high PIC:POC contrast reproduction, gated through `verify_run.py`.\n\n**Files touched:** `src/darwindiff/integrators.py` (budget accumulator, deterministic kernels), new `src/darwindiff/transport.py` (3-D flux-form kernel), `src/darwindiff/carroll6.py` (closure wiring — hooks already present, lines ~228–286), `tests/test_integrators.py` (gradcheck guard). Steps 1–4 are the critical path to the mass gate; 5–8 to the R² and realism gates.",
+    "by_thread": [
+      {
+        "key": "transport",
+        "recommendation": "Build Phase-1 transport as an operator-split, flux-form finite-volume scheme on the prescribed v05 grid velocities, differentiated by ordinary PyTorch autograd (no custom adjoint needed): (1) EXPLICIT flux-form CENTERED-2nd advection with a small explicit biharmonic/Laplacian horizontal diffusion for smoothing — conservative by construction, fully smooth for autograd, CFL-cheap; defer superbee/TVD, and if false extrema appear use a SMOOTH eps-guarded limiter (tanh-blended minmod/superbee) rather than raw min/max. (2) SEMI-IMPLICIT (backward-Euler) vertical diffusion as a batched tridiagonal Thomas solve over water columns — unconditionally stable, exactly conservative, and differentiated exactly by autograd; this is the key move that decouples dt from thin-surface-layer stiffness and makes decade rollouts affordable on the H200. (3) Recompute vertical velocity w from discrete continuity given prescribed (u,v) so the discretization is divergence-free per cell — this is what actually delivers the mass-conservation gate. (4) Write everything functionally (0/1 land mask multiply, concatenated halos, eps-guarded divisions, softplus floors) to avoid the in-place/min-max/singular-gradient pitfalls the differentiable-Veros team documented. (5) For TRAINING, never backprop through the whole decade: use truncated/windowed BPTT (30-90 day segments) with your existing gradient checkpointing and a rollout-length curriculum; reserve the full forward-only decade rollout for the held-out-R^2 and mass-conservation EVALUATION gate, sidestepping the long-horizon gradient degradation that the Veros paper shows is real. Add a torch.autograd.gradcheck unit test on a tiny 3x3x3 box through one advection+mixing step as a CI guard. This recipe is the differentiable version of the well-proven MITgcm-offline configuration that produced v05 itself, so it inherits conservation and physical correctness while adding the autograd path Phase 1 needs. Stay grid-native flux-form; do NOT adopt a spectral transport core (NeuralGCM/Dinosaur-style) — it sacrifices positivity/locality and doesn't match your prescribed grid velocities.",
+        "n_findings": 7
+      },
+      {
+        "key": "closure",
+        "recommendation": "Build Phase 1 as a PARAMETER/CLOSURE-learning UDE, not a tendency-correcting one: keep the full Darwin box RHS analytic and transport prescribed, and replace only the two uncertain closures (iron-limitation multiplier and calcification rate) with small tanh nets (~2-3 layers x 8-16 neurons) whose outputs are sigmoid-squashed into bounded physical ranges centered on Carroll's values (guarantees non-negativity and prevents blow-up). This is exactly the BINN design that succeeded and the placement the systems-biology UDE review shows avoids the closure 'cheating'/non-identifiability failure. Regularize aggressively: L2 weight decay on the closure nets is the dominant knob (sweep it before touching architecture), plus a soft-prior loss anchoring each closure to its analytic Carroll form at reference conditions so the net begins as a small correction. Train Adam->L-BFGS with multi-start and select on held-out validation, reporting n>=10 seed variance per existing verify_run.py discipline. Because our RK4/Euler is explicit, treat stiffness as the real stability risk: add a Lipschitz/spectral-norm bound on the closure nets (structure-preserving-NODE result) and consider a semi-implicit step for fast reaction terms, then GATE on the make-or-break criteria as adversarial out-of-envelope tests — held-out real-data R^2>0 in an unseen region/period, bounded mass-conservation residual over a decade rollout, and a hard non-negativity/closure-in-bounds check under perturbed forcing. Reject any config that fits in-sample but drifts or produces negative tracers out-of-sample; that, not in-sample loss, is the surrogate-gap-closing signal.",
+        "n_findings": 7
+      },
+      {
+        "key": "checkpoint",
+        "recommendation": "Default to discretise-then-optimise: plain PyTorch autograd through your existing checkpointed RK4 integrator, giving exact gradients of the actual discrete loss. Do NOT use continuous/backsolve adjoint (torchdiffeq odeint_adjoint) as the primary path — it is documented to be numerically unstable on stiff/PDE-like systems, which is exactly the advection + fast-BGC regime of Darwin transport, and a biased/blown-up gradient directly threatens the make-or-break R^2>0 gate. Get memory tractability from two orthogonal levers, in this order: (1) truncated BPTT — train on many short overlapping windows (~30-90 simulated days, tuned) with detached initial conditions, which caps activation memory independent of the decade span and stabilizes optimization; (2) nested / multi-level (Revolve-style) checkpointing WITHIN each window and, for the full decade evaluation rollout, over year->day loops, mirroring MITgcm/ECCO adjoint checkpointing — a 2-level sqrt(N)xsqrt(N) scheme turns a ~3650-step rollout into ~60 stored ocean states at ~2-3x recompute, which is what fits a decade on one H200. Keep the mass-conservation gate as a forward-operator responsibility: flux-form conservative advection with the prescribed divergence-free ECCO velocities, fp64 accumulation of the global tracer budget, and deterministic kernels so checkpoint recompute is bit-consistent — no adjoint choice can rescue a non-conservative forward pass. Treat algebraically-reversible solvers (McCallum-Foster 2024: ~2.5x faster, ~22x less memory, exact gradients) as a Phase-2 speed/memory upgrade only after the gate is passed, always gradient-checked against the trusted checkpointed-RK4 reference because they trade away stability margin on stiff terms.",
+        "n_findings": 7
+      },
+      {
+        "key": "conservation",
+        "recommendation": "Make conservation STRUCTURAL, not penalized — a two-layer design that gives an exact guarantee by construction and a clean reportable number, with a soft penalty used (if at all) only as a training-time regularizer.\\n\\nLayer 1 (transport): implement the prescribed ECCO-Darwin transport as a flux-divergence update in PyTorch, with face fluxes shared between adjacent cells (accumulate the SAME face-flux tensor as +cell / -neighbor). This mirrors Darwin3's own finite-volume scheme and conserves the domain total to machine precision regardless of anything the NN does — and recent evidence (arXiv 2606.01366) shows this local conservative structure, not one-step accuracy, is what keeps decadal autoregressive rollouts from drifting.\\n\\nLayer 2 (biology): structure carroll6_ude_tendency so the neural closures (iron limitation, calcification) emit non-negative reaction RATES/fluxes that are mapped to tracer tendencies through Darwin's FIXED stoichiometry (Redfield C:N:P:Fe, PIC:POC as a partition of the same fixed C), i.e. dC = A·S with A non-trainable — the Sturm & Wexler (GMD 2022) / Beucler construction. Elemental conservation of the source/sink term then holds exactly even mid-training, and that paper shows it does not cost accuracy.\\n\\nHandle positivity separately from conservation: parameterize concentrations via softplus/exp or use a conservative FCT-style flux limiter, never torch.clamp(min=0) (which silently injects mass and defeats the budget).\\n\\nKeep a differentiable projection layer (arXiv 2511.09048, the closed-form additive/mass-weighted correction, ~1e-6 residual, essentially free per step here) ONLY as insurance for any term you can't yet express in flux/stoichiometric form.\\n\\nFor the make-or-break gate, extend the existing relative_mass_drift kernel into a running per-element (C,N,P,Fe) closed-budget accumulator that tags each boundary flux (dust in, export/burial out, air-sea CO2) and reports, in float64, both relative drift/decade and absolute drift (Pg C or mol/m^2/yr) against the signal magnitude. Explicitly avoid the reporting gap in the closest prior marine-BGC emulator (arXiv 2606.27168), which added a soft conservation loss but reported no conservation number and still diverged — report a hard number, and only claim exact LINEAR conservation (not nonlinear invariants).",
+        "n_findings": 7
+      },
+      {
+        "key": "calcite",
+        "recommendation": "Build the calcite closure as a bounded multiplicative modifier on organic production, not a free PIC source: PIC_prod = R0 * g_theta(env, state) * mort_total, where R0 is the Carroll/Darwin baseline ratio (identifiability anchor, so g_theta==1 recovers Paper #1's constant-R_PICPOC Darwin law exactly) and g_theta is a small MLP squashed through a scaled sigmoid into a strictly-positive bounded range (~[0.1, 10]). Feed g_theta a compact, offline-precomputable environmental input vector — SST, calcite saturation state Omega_calcite (computed from prescribed v05 DIC/ALK/T/S), the iron/nutrient-limitation factor, and PAR — plus the local state, since PIC:POC is physiologically a STRESS ratio (rises under nutrient/light limitation and with Omega, falls under high CO2 and at high T). This form (i) matches the structural convention shared by PISCES (Omega-scaled) and CESM-MARBL (growth x limitation-factor), (ii) preserves DIC/ALK conservation because a single PIC_prod feeds dPIC, dDIC(-1x) and dALK(-2x), protecting the decade-rollout mass-conservation gate, and (iii) directly targets the spatial surrogate gap, since the in-project per-cell ablation already showed R_PICPOC information lives in spatial/environmental contrast (per-cell 9/10 vs global-scalar 0/10). Evaluate against held-out v05/GLODAP by whether the closure reproduces the observed eqpac-low / natl-high (~23x) PIC:POC contrast with R^2>0, and reuse the existing RATIO_MAX sanitization on the Southern-Ocean ratio target so the calcite loss does not chase the known contaminated signal. Scope Phase 1 to learning PIC PRODUCTION only; keep dissolution/sinking fixed to keep the learnable surface small and the conservation proof tractable.",
+        "n_findings": 7
+      }
+    ]
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Research"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "research:transport",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "aecb0b2220cba4b79",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1783353144786,
+      "queuedAt": 1783353144762,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Build Phase-1 transport as an operator-split, flux-form fin…",
+      "promptPreview": "PROJECT: DarwinDiff. We are building Phase 1 of a differentiable ocean-biogeochemistry model (Track 2, \"UDE\"): the real Darwin BGC equations made differentiable in PyTorch on PRESCRIBED (offline) ECCO-Darwin v05 ocean transport, with uncertain closures (iron-limitation and/or calcification) replaced by small neural nets and trained end-to-end. It runs on H200 GPUs. The 0-D box worked (Track 1, ide…",
+      "lastProgressAt": 1783353344278,
+      "tokens": 58062,
+      "toolCalls": 11,
+      "durationMs": 199492,
+      "resultPreview": "{\"findings\":[{\"claim\":\"Flux-form (finite-volume) advection is mass-conserving BY CONSTRUCTION and is what every differentiable ocean/atmosphere emulator uses; conservation is a property of the discretization, not the autograd.\",\"detail\":\"In flux form, dC/dt = -(1/V)*sum(F_faces), where the flux leaving cell i across a face is EXACTLY the flux entering the neighbor. Global tracer is conserved to ma…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "research:closure",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "a951b91ad368bc7d9",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1783353144787,
+      "queuedAt": 1783353144762,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Build Phase 1 as a PARAMETER/CLOSURE-learning UDE, not a te…",
+      "promptPreview": "PROJECT: DarwinDiff. We are building Phase 1 of a differentiable ocean-biogeochemistry model (Track 2, \"UDE\"): the real Darwin BGC equations made differentiable in PyTorch on PRESCRIBED (offline) ECCO-Darwin v05 ocean transport, with uncertain closures (iron-limitation and/or calcification) replaced by small neural nets and trained end-to-end. It runs on H200 GPUs. The 0-D box worked (Track 1, ide…",
+      "lastProgressAt": 1783353365145,
+      "tokens": 59278,
+      "toolCalls": 11,
+      "durationMs": 220358,
+      "resultPreview": "{\"findings\":[{\"claim\":\"Predict PARAMETERS/closures, not raw tendencies — let the mechanistic ODE carry the state dynamics. This is the single design choice that made BINN work and prevents the NN from absorbing the whole system.\",\"detail\":\"BINN (Xu 2025, CLM5) has the NN output 21 spatially-varying biogeochemical parameters (via a positional encoder over lat/lon + embedding layers for categorical …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "research:checkpoint",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "abaa6eccb6c5f073e",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1783353144787,
+      "queuedAt": 1783353144762,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Default to discretise-then-optimise: plain PyTorch autograd…",
+      "promptPreview": "PROJECT: DarwinDiff. We are building Phase 1 of a differentiable ocean-biogeochemistry model (Track 2, \"UDE\"): the real Darwin BGC equations made differentiable in PyTorch on PRESCRIBED (offline) ECCO-Darwin v05 ocean transport, with uncertain closures (iron-limitation and/or calcification) replaced by small neural nets and trained end-to-end. It runs on H200 GPUs. The 0-D box worked (Track 1, ide…",
+      "lastProgressAt": 1783353270164,
+      "tokens": 52319,
+      "toolCalls": 6,
+      "durationMs": 125377,
+      "resultPreview": "{\"findings\":[{\"claim\":\"Continuous adjoint (torchdiffeq odeint_adjoint, especially the O(1)-memory 'backsolve' variant) is numerically unstable on stiff/PDE-like systems and re-integrating the state backward from the terminal value is the failure mode. Do NOT use it as the default for Darwin transport rollouts.\",\"detail\":\"The backsolve continuous adjoint reconstructs the forward trajectory by integ…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "research:conservation",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "a5fdc04b528cc9ce3",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1783353144788,
+      "queuedAt": 1783353144762,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Make conservation STRUCTURAL, not penalized — a two-layer d…",
+      "promptPreview": "PROJECT: DarwinDiff. We are building Phase 1 of a differentiable ocean-biogeochemistry model (Track 2, \"UDE\"): the real Darwin BGC equations made differentiable in PyTorch on PRESCRIBED (offline) ECCO-Darwin v05 ocean transport, with uncertain closures (iron-limitation and/or calcification) replaced by small neural nets and trained end-to-end. It runs on H200 GPUs. The 0-D box worked (Track 1, ide…",
+      "lastProgressAt": 1783353326501,
+      "tokens": 58281,
+      "toolCalls": 10,
+      "durationMs": 181713,
+      "resultPreview": "{\"findings\":[{\"claim\":\"Flux-form (divergence-form) transport gives EXACT discrete conservation for free — and Darwin3, our transport backend, is already a finite-volume flux-form model. Preserve that structure when porting transport to PyTorch.\",\"detail\":\"A tracer update written as C_new = C_old - dt * div(F), where F are fluxes defined on cell faces and each interior face flux is added to one cel…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "research:calcite",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "a4e931ef32877459f",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1783353144788,
+      "queuedAt": 1783353144762,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Build the calcite closure as a bounded multiplicative modif…",
+      "promptPreview": "PROJECT: DarwinDiff. We are building Phase 1 of a differentiable ocean-biogeochemistry model (Track 2, \"UDE\"): the real Darwin BGC equations made differentiable in PyTorch on PRESCRIBED (offline) ECCO-Darwin v05 ocean transport, with uncertain closures (iron-limitation and/or calcification) replaced by small neural nets and trained end-to-end. It runs on H200 GPUs. The 0-D box worked (Track 1, ide…",
+      "lastProgressAt": 1783353336035,
+      "tokens": 59727,
+      "toolCalls": 11,
+      "durationMs": 191247,
+      "resultPreview": "{\"findings\":[{\"claim\":\"Coccolithophore PIC:POC is a stress ratio, not a growth ratio: nutrient limitation (esp. P and N) and light stress RAISE PIC:POC even as absolute POC production falls, because calcification decouples from and outlasts photosynthesis under stress.\",\"detail\":\"Culture syntheses (Coccolithus pelagicus, E. huxleyi/Gephyrocapsa) show N- and P-limitation both increase per-cell PIC …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "synth:design-brief",
+      "phaseIndex": 2,
+      "phaseTitle": "Synthesize",
+      "agentId": "af9aea838ebc91afd",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1783353365152,
+      "queuedAt": 1783353365151,
+      "attempt": 1,
+      "lastToolName": "Bash",
+      "lastToolSummary": "cd \"C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\"…",
+      "promptPreview": "You are the lead architect. Synthesize the five research briefs below into a concrete PHASE-1 DESIGN BRIEF for the differentiable offline-transport UDE.\n\nFor each area state THE decision we should make and why, flag the 2-3 biggest risks with mitigations, and list the specific questions that genuinely need Jon the domain expert science input vs. the ones we can decide ourselves. End with a concret…",
+      "lastProgressAt": 1783353466187,
+      "tokens": 74509,
+      "toolCalls": 1,
+      "durationMs": 101034,
+      "resultPreview": "Read enough. The code confirms the brief's claims: `carroll6_ude_tendency` already has `ffe_closure` and `calcite_closure` hooks, `integrate()` has RK4 + `checkpoint_segment`, `relative_mass_drift` exists in integrators.py. This is a 0-D box today; Phase 1 extends the same tendency-function interface to 3-D offline transport. Here is the design brief.\n\n---\n\n# PHASE-1 DESIGN BRIEF — Differentiable …"
+    }
+  ],
+  "totalTokens": 362176,
+  "totalToolCalls": 50
+}

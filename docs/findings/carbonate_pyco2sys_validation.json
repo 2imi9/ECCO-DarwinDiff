@@ -1,0 +1,17 @@
+{
+  "n": 2000,
+  "r_omega": 0.9999249521702609,
+  "r_log_omega": 0.9999680739561339,
+  "mean_ratio_ours_over_ref": 1.0137752642434028,
+  "median_abs_rel_diff_pct": 1.2684766345952871,
+  "loglog_slope": 0.9820214529453215,
+  "ours_range": [
+    0.9671339988708496,
+    6.962854385375977
+  ],
+  "ref_range": [
+    0.9652439494702653,
+    6.738919902792294
+  ],
+  "verdict": "PASS: our carbonate solver matches PyCO2SYS in Omega structure (log-Omega r and slope ~1.0); constant ~1% bias is harmless to the slope-based oracle"
+}
