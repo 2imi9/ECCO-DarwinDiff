@@ -1,17 +1,17 @@
-# Cluster setup — DarwinDiff on Northeastern Explorer / AICR
+# Cluster setup — DarwinDiff on Explorer (Northeastern) + AICR (Massachusetts)
 
-Operational guide for running DarwinDiff on **Northeastern Research Computing** (Explorer + AICR). Companion to [README](../README.md) (project overview) and [STATUS](../STATUS.md) (live results).
+Operational guide for running DarwinDiff on **Northeastern's Explorer** and the **Massachusetts AI Compute Resource (AICR)**. Companion to [README](../README.md) (project overview) and [STATUS](../STATUS.md) (live results).
 
 ## Target clusters
 
-DarwinDiff runs on **Northeastern Research Computing** (Lucas's home institution, Cristina-sponsored). Two clusters are in play:
+Two clusters are in play — one Northeastern-owned, one a shared multi-institutional resource:
 
 | Cluster | Hardware | Status / when to use |
 |---|---|---|
-| **Explorer** | H200 144 GB (×32 RC-owned), A100 80 GB (×8), V100, L40S, t4 | **Active path.** General HPC, free to NU faculty/students, Cristina-sponsored. All current cluster runs (the n=10 ensembles, the per-cell ablation, the per-AOI identifiability map) run here. |
-| **AICR** | 248× B200 + 152× RTX Pro | Future path. NU's dedicated AI cluster; access via a PI **project proposal** (in prep). Target for the global-native / seasonal sweep. |
+| **Explorer** (Northeastern RC) | H200 144 GB (×32 RC-owned), A100 80 GB (×8), V100, L40S, t4 | **Active automation path.** General HPC, free to NU faculty/students, Cristina-sponsored. All current cluster runs (the n=10 ensembles, the per-cell ablation, the per-AOI identifiability map) run here. |
+| **AICR** (Massachusetts AI Compute Resource) | 248× B200 + 152× RTX Pro | **Active** (account created); B200 throughput. See below. |
 
-> **Note.** "AICR" is **Northeastern's** AI Compute Resource, accessed via a PI proposal — unrelated to any MIT path. **The project does not use MIT ORCD / Engaging** (an earlier exploratory option, since dropped in favour of Explorer).
+> **Note.** "AICR" is the **Massachusetts AI Compute Resource** — a *multi-institutional* GPU cluster (Boston University, Harvard, MIT, Northeastern, UMass, Yale) run under the **Massachusetts AI Hub**, **not** a Northeastern-owned cluster. Northeastern is one member institution and access is provisioned through NU (Cristina-sponsored). It is unrelated to any MIT path, and the project does **not** use MIT ORCD / Engaging (an earlier exploratory option, since dropped).
 
 ## Northeastern Explorer
 
@@ -117,7 +117,7 @@ Workloads that are infeasible or marginal locally and become routine on cluster:
 
 ## AICR — Massachusetts AI Compute Resource
 
-AICR is a multi-institution **B200 / RTX PRO 6000** GPU cluster at MGHPCC (Holyoke), serving ~7 institutions. Docs: <https://docs.aicr.ai>. DarwinDiff's **project was added 2026-07-07**. Per the compute budget a single fit is launch-bound (same speed on 5090 / H200 / B200), so AICR's role is **throughput — large sweeps + native/seasonal runs**, targeting `b200-batch`.
+AICR is the **Massachusetts AI Compute Resource** — a multi-institutional **B200 / RTX PRO 6000** GPU cluster at MGHPCC (Holyoke), run under the **Massachusetts AI Hub** and serving Boston University, Harvard, MIT, Northeastern, UMass (five campuses), and Yale. Docs: <https://docs.aicr.ai>. DarwinDiff's **AICR user account is created (active)**; access is provisioned through NU. Per the compute budget a single fit is launch-bound (same speed on 5090 / H200 / B200), so AICR's role is **throughput — large sweeps + native/seasonal runs**, targeting `b200-batch`.
 
 > **Onboarding status (2026-07-07) — first login blocked by provisioning lag.** OOD errors
 > `nginx_stage: can't find user for qi_zim_neu` — the individual account isn't provisioned/synced to the

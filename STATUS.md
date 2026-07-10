@@ -105,11 +105,13 @@ box model. Full detail in [docs/dinn_design.md](docs/dinn_design.md).
 
 ## Cluster path
 
-Two Northeastern clusters (full table in [docs/cluster_setup.md](docs/cluster_setup.md)):
+Two clusters — Explorer (Northeastern-owned) and AICR (the multi-institutional Massachusetts AI
+Compute Resource, accessed via NU) — full table in [docs/cluster_setup.md](docs/cluster_setup.md):
 
-- **Explorer** (H200) — the **automation** cluster (key-auth, non-interactive); use for any GPU job
-  that must run unattended, and for native/seasonal fits too big for the 5090's 24 GiB.
-- **AICR** (B200) — active but **interactive-only** (Duo 2FA → user-launched); use for **throughput**.
+- **Explorer** (Northeastern, H200) — the **automation** cluster (key-auth, non-interactive); use for
+  any GPU job that must run unattended, and for native/seasonal fits too big for the 5090's 24 GiB.
+- **AICR** (Massachusetts AI Compute Resource, B200) — account active but **interactive-only** (Duo 2FA
+  → user-launched); use for **throughput**.
 
 **When to use the B200:** for *many/large runs at once*, not for a single fit. A single fit is
 launch-bound (same wall-clock on 5090 / H200 / B200), so the B200 buys nothing there. Its genuine use

@@ -174,7 +174,8 @@ pass). CI runs the test suite on every PR; run it locally with `uv run pytest -q
 ## Acknowledgements
 
 - **MIT EAPS** — research collaboration on ECCO-Darwin and the differentiable-physics approach.
-- **Northeastern Research Computing** — the **Explorer** (H200) and **AICR** (B200) clusters.
+- **Northeastern Research Computing** — the **Explorer** (H200) cluster.
+- **Massachusetts AI Compute Resource (AICR)** / the **Massachusetts AI Hub** — **B200** GPU access on the multi-institutional cluster (Boston University, Harvard, MIT, Northeastern, UMass, Yale).
 - **JPL ECCO Group** + **NASA NAS** — ECCO-Darwin v05 outputs.
 - **GLODAP**, **GEOTRACES**, **NASA GHG Center** — observational data products (active recovery targets).
 
