@@ -109,6 +109,20 @@ GLODAP; it complements, not duplicates, the earlier in-situ `corr ≈ 0.01` NULL
   agreement (e.g. a flat profile ⇒ non-identifiable oracle verdict) is what turns a
   single-method identifiability claim into a robust one.
 
+## Decision implication for the calcite E2 rerun
+
+The E2 preregistration's fallback plan was to rerun with **pooled eqpac+natl** and a
+**smaller/regularized closure** to distinguish "underpowered+overfit config" from a
+"genuine negative." The real-data oracle says the binding constraint is neither
+sample size nor closure capacity but **Ω support**: pooling two basins already only
+reaches 0.25 dex (still below threshold), and a smaller closure cannot manufacture an
+Ω-dependence the data does not contain. So the oracle **predicts the pooled /
+smaller-closure rerun will not recover identifiability** — the honest terminal result
+is the **identifiability-limits write-up** (Daniels' real Ω is too narrow to constrain
+an Ω-power-law rain ratio), not more GPU E2 runs. Widening Ω support (more high-lat /
+Southern-Ocean calcite obs, or a genuinely Ω-variable dataset) is the only thing that
+would change the verdict — a data-staging question, not a compute one.
+
 ## Next
 
 Wire the oracle into the H200 arms (dump each trained closure's visited `(driver,
