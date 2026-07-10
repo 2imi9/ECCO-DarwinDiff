@@ -1,0 +1,54 @@
+{
+  "source": "marsh",
+  "omega": "GLODAPv3 in-situ bottle (NCEI 0315582)",
+  "aois": {
+    "eqpac": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: exponent CI [-0.57,3.02] does not exclude 0 by 0.1 -> driver-independent (Maranon-consistent NULL); exponent unstable (rel.std 0.72 > 0.5); driver spanned only 0.14 dex (< 0.3) -> under-excited; widen the visited Omega range",
+      "n_hat": 1.2800447073471002,
+      "n_ci_lo": -0.5686694531536731,
+      "n_ci_hi": 3.0173765465552824,
+      "n_rel_std": 0.7161270266807683,
+      "driver_log_span": 0.13789508927979321,
+      "r2": 0.06831751235139272,
+      "n_points": 20,
+      "n_cells": 22,
+      "omega_min": 4.2133498884016465,
+      "omega_max": 6.229002157847087,
+      "corr_logratio_logomega": 0.2468961707355124,
+      "n_bottles": 838
+    },
+    "natl": {
+      "identifiable": false,
+      "reason": "NON-IDENTIFIABLE: exponent CI [-8.32,4.47] does not exclude 0 by 0.1 -> driver-independent (Maranon-consistent NULL); exponent unstable (rel.std 2.21 > 0.5); driver spanned only 0.17 dex (< 0.3) -> under-excited; widen the visited Omega range",
+      "n_hat": -1.4044139797057686,
+      "n_ci_lo": -8.321956256976819,
+      "n_ci_hi": 4.469469228706956,
+      "n_rel_std": 2.207015003273437,
+      "driver_log_span": 0.17093501211124684,
+      "r2": 0.007931439326099854,
+      "n_points": 23,
+      "n_cells": 25,
+      "omega_min": 2.8562378883361816,
+      "omega_max": 4.634508371353149,
+      "corr_logratio_logomega": 0.1716018229107495,
+      "n_bottles": 1740
+    }
+  },
+  "pooled": {
+    "identifiable": false,
+    "reason": "NON-IDENTIFIABLE: driver spanned only 0.29 dex (< 0.3) -> under-excited; widen the visited Omega range",
+    "n_hat": -1.7957741035184105,
+    "n_ci_lo": -3.2000731331273964,
+    "n_ci_hi": -0.2745514766675027,
+    "n_rel_std": 0.3872424903874849,
+    "driver_log_span": 0.29259536769062167,
+    "r2": 0.09498462014907594,
+    "n_points": 45,
+    "n_cells": 47,
+    "omega_min": 2.8562378883361816,
+    "omega_max": 6.229002157847087,
+    "corr_logratio_logomega": -0.22107737062615443
+  },
+  "verdict": "NULL on independent in-situ GLODAPv3 Omega too -- the calcite null does NOT depend on the model cache"
+}
