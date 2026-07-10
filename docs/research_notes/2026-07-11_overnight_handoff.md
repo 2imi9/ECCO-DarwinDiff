@@ -69,3 +69,15 @@ groundwork (the power analysis) is laid, and the emulator is the natural next B2
 1. Aggregate the Fisher/CRLB results (`fim_peraoi.json`, `fim_native.json`) → the per-parameter
    uncertainty table for Jon; check the native recovery ensemble stats.
 2. The binding step remains: **get both papers to Jon** (the collaboration gate).
+
+---
+## RESULTS (all 3 jobs COMPLETED, exit 0) — added post-run, laptop-only
+
+- **fim_peraoi (8266733) + fim_native (8266734) DONE** → per-parameter identifiability map,
+  1-deg vs native, in `docs/findings/identifiability_map_1deg_vs_native.md` (+ the two JSONs).
+  Answers Jon's per-parameter-uncertainty ask: R_PICPOC null in the Southern Ocean (CRLB up to
+  77k at native); native inflates every CRLB (sparse obs diluted ~10x); iron pair best-constrained
+  in the SO. diatomgraz's low CRLB is the known residual-weighting artifact, not a real constraint.
+- **native_peraoi (8266735) DONE** (1h30m) → 5-seed native per-AOI recovery ensemble in
+  `docs/findings/native_peraoi/`. Detailed recovery scoring is a quick morning task (aggregate script).
+- All artifacts are **local only** (not committed to GitHub, per instruction).
