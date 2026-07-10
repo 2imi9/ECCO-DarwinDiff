@@ -203,7 +203,9 @@ case). So growth is at best *aggregate*-observable-in-principle — the third cl
   not the transport E2.
 - The result is corroborated by independent published field data (Marañón 2016) and by
   **independent in-situ carbonate data** (GLODAPv3, 2026), on which the calcite oracle returns the
-  same null — so the calcite verdict does not depend on model-derived Ω.
+  same null — so the calcite verdict does not depend on model-derived Ω. The Ω solver itself is
+  validated against the community-standard **PyCO2SYS** (log-Ω r = 1.0000 on 2000 real points),
+  closing the one upstream component that same-model review could not independently confirm.
 
 ## Why this is a useful result
 

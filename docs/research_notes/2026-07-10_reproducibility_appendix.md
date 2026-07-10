@@ -43,6 +43,13 @@ scavenging rate).
 | iron scav_rat unidentifiable from DFe (32× wall) | (printed; bundle-driven) | `scripts/iron_scav_rat_profile.py` | (pre-branch) |
 | growth pair not split by total NPP | (printed) | `scripts/growth_npp_scout.py` | `04e43e4` |
 | make-or-break transport E2 → negative (calcite) | `docs/findings/2026-07-10_e2_powered_result.md` | `scripts/e2_real_calcite_eqpac.py` | `aa0cc1b` |
+| carbonate solver validated vs PyCO2SYS (independent) | `docs/findings/carbonate_pyco2sys_validation.json` | `scripts/validate_carbonate_pyco2sys.py` | `51e2cb0` |
+
+**Independent (non-same-model) validation.** The Ω-calcite solver the calcite result depends on
+(`carbonate.calcite_saturation`, Follows 2006 + Lueker 2000) was checked against the community-standard
+**PyCO2SYS** on 2000 real GLODAPv3 surface points: r(Ω) = 0.9999, r(log Ω) = 1.0000, log-log slope 0.98,
+median |rel diff| 1.3% (a constant ~1.4 % bias, harmless to the slope-based oracle). This closes the one
+upstream component that same-model review could not independently confirm.
 | symbolic-distillation oracle (method + tests) | 22 tests | `scripts/symbolic_distill_probe.py`, `tests/test_symbolic_distill.py` | `c12fbf7` / `c4b8508` |
 
 **Known artifact gap (R6-1):** the supporting iron statement "DFe concentration is env-predictable
