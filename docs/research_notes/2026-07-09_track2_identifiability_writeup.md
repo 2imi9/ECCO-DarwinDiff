@@ -120,11 +120,18 @@ the within-region range is too small to fit a curve, not as a hard pass/fail.)
 
 **Honest calcite verdict, correcting an earlier over-statement.** Real calcite data — cache Ω *and*
 independent in-situ GLODAPv3 Ω alike — **cannot test a within-region Ω-power-law rain-ratio closure,
-because no region has enough within-region Ω range** (≤0.16 dex everywhere). This is an
-observing-system limit *for that closure form*; it does **not** rule out a rain ratio driven by
-temperature, coccolithophore fraction, or another variable that Darwin actually keys on (untested
-here). The corroboration with Marañón (2016) is directional (tropical calcification ≈ Ω-independent),
-not a within-regime replication.
+because no region has enough within-region Ω range** (≤0.16 dex everywhere). The corroboration with
+Marañón (2016) is directional (tropical calcification ≈ Ω-independent), not a within-regime
+replication. **And the limit is not Ω-specific:** testing the other drivers Darwin plausibly keys on
+— SST and coccolithophore (Chl2) fraction — with a Simpson-robust *within-biome* (biome-demeaned)
+partial correlation, **no driver clears the bar** (a significant *and* sign-consistent within-biome
+relationship). SST *is* well-excited within biomes (eqpac 4.8 °C, natl 8.3 °C, SO 9.7 °C, unlike Ω's
+0.08 dex) yet does no better than Ω: both show a weak positive within-biome trend in the two
+well-sampled biomes (eqpac r ≈ +0.4, natl ≈ +0.3) that the small Southern-Ocean sample (n = 12)
+reverses, so nothing is robust. So the calcite limit is **a fundamental property of the
+climatological record** — no candidate driver has consistent within-region variation — not an
+artifact of choosing Ω. (The faint 2-of-3-biome positive trend is a hint that more, denser
+co-located data could firm up, not a present constraint.)
 
 **Iron — observability-limited (an information wall).** Unlike calcite, dissolved-iron
 *concentration* is a low-information projection of the scavenging *rate*: many `scav_rat`
@@ -221,7 +228,7 @@ oracle `scripts/symbolic_distill_probe.py` (+ `symbolic_distill_dynamics_probe.p
 parameter_conditioned_emulator_update}.md`; `docs/findings/2026-07-09_symbolic_distillation_identifiability_oracle.md`
 + `calcite_omega_identifiability_real.json`.
 Lever scouts: `scripts/{iron_partitioning_scout, iron_partitioning_controls, growth_npp_scout,
-glodap_omega_calcite}.py`; findings `docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md`,
+glodap_omega_calcite, calcite_driver_scout}.py`; findings `docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md`,
 `calcite_omega_glodap_marsh.json`.
 Data (gitignored): Marsh 2025 (`data/marsh/`), GLODAPv3 (`D:\glodap\`), GEOTRACES
 IDP2025 + ECCO-Darwin v05 native (on `D:`).
