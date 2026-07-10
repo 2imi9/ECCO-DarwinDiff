@@ -105,24 +105,23 @@ apparent skill does not identify the rate; it is the information wall in action.
 non-identifiability here is **structural, not a data-quantity problem** — more *dissolved* iron
 data would not close it.
 
-**But the wall is specific to the *dissolved* observable, and it breaks with a particulate one.**
-The scavenging *sink flux* `scav_rat·DFe·POC` becomes particulate iron, so the particulate:
-dissolved partitioning ratio `pFe/DFe ≈ scav_rat·POC/W_SINK` has **no direct `alpfe` dependence**
-— it lies along the very axis the dissolved-only likelihood is flat along. A self-twin
-profile-likelihood on the real eqpac footprint through transport confirms it: dissolved DFe leaves
-`scav_rat` unidentifiable over a **19× band**, while the partitioning ratio collapses it to a sharp
-well at the true rate (**~14× tighter**;
+**A particulate:dissolved observable was tested as a way to break this wall — and it does not.**
+The idea: the scavenging *sink flux* `scav_rat·DFe·POC` becomes particulate iron, so a
+particulate:dissolved partitioning ratio might isolate the sink where concentration cannot. A
+self-twin probe initially looked like a dramatic pass, but adversarial verification (5 skeptics)
+showed it was **largely a construction artifact**: the observable `pFe/DFe` reduces algebraically to
+`scav_rat·POC/W_SINK` (DFe cancels exactly), so the swept parameter appears as an explicit prefactor
+— the "sharp well" is tautological and the apparent tightening is a grid artifact. Worse, the
+degeneracy is only *relocated*: `(scav_rat, W_SINK)` are perfectly degenerate in the ratio, and a
+real contaminated `Fe_TP` (biogenic Fe + labile-lithogenic Fe scaling with dust ∝ `alpfe`)
+re-injects the `alpfe` dependence (verified numerically:
 [`2026-07-10_iron_partitioning_breaks_the_wall.md`](../findings/2026-07-10_iron_partitioning_breaks_the_wall.md)).
-GEOTRACES IDP2025 measures exactly this observable (`Fe_TP_CONC` alongside `Fe_D_CONC`), so there
-is a **concrete positive-E2 lever**: fit the scavenging closure to the real partitioning ratio
-through transport, held-out scored. The binding risk is no longer identifiability but
-*contamination* — measured `Fe_TP` also includes biogenic and lithogenic particulate iron the box
-does not model, so a real E2 needs a scavenged-Fe proxy (e.g. the labile particulate `Fe_TPL`).
-This is a self-twin capacity result, not yet a real-data recovery — and a real E2 is currently
-**observing-coverage-limited**: GEOTRACES has dense dissolved Fe (23,912) but only ~94 surface
-co-located `Fe_TP`+`Fe_D` pairs globally (4 on the eqpac footprint), though where measured the
-partitioning ratio spans a wide 2.59 dex. So iron partitioning is *identifiable in principle,
-observing-coverage-limited in practice* — the same theme as calcite, one rung further along.
+What legitimately survives is only that `alpfe` cancels from a *pure* scavenged-Fe partitioning
+observable — it removes the source confounder in principle, but does **not** make the rate
+identifiable. So partitioning is **not** a positive-E2 lever; it reinforces the wall from a second
+angle (the rate is unidentifiable from concentration *and* from any realistic particulate:dissolved
+observable). This corrects an earlier over-claim in this write-up — a good example of why every
+numerical identifiability result here goes through adversarial verification before it is built on.
 
 ## Honest scope
 

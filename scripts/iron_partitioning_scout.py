@@ -1,6 +1,24 @@
 """E2-hunt lever 1 (iron): does the particulate:dissolved Fe PARTITIONING break the
 scavenging-rate information wall that dissolved concentration alone hits?
 
+    ****************************************************************************
+    ADVERSARIAL-VERIFICATION CORRECTION (2026-07-10). A 5-skeptic verification
+    pass found this scout's headline (~14x tighter / scav_rat "identifiable") is
+    LARGELY A CONSTRUCTION ARTIFACT. The observable pFe/DFe reduces ALGEBRAICALLY
+    to ``scav_per_day * POC / W_SINK`` -- DFe cancels EXACTLY -- so the swept
+    parameter appears as an explicit prefactor and the "sharp well" is a
+    tautological log-parabola (fitting c*scav to c*scav0); the ~1x band is a
+    grid+threshold artifact (well half-width < one grid step). What LEGITIMATELY
+    survives: alpfe cancels from pFe/DFe, so partitioning removes the *alpfe*
+    confounder -- but the rate stays degenerate with POC*W_SINK, and a real
+    contaminated Fe_TP (biogenic + alpfe-scaling lithogenic) re-injects alpfe. So
+    the honest claim is "a pure scavenged-Fe partitioning observable removes the
+    alpfe/scav degeneracy IN PRINCIPLE," NOT "the scavenging rate is identifiable"
+    and NOT a realizable positive E2. See scripts/iron_partitioning_controls.py
+    (quantifies the corrections) and docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md.
+    ****************************************************************************
+
+
 `iron_scav_rat_profile.py` showed the wall: steady-state DFe ~ alpfe*dust /
 (scav_rat*POC), so the (alpfe, scav_rat) misfit surface is a degenerate ridge and
 the scav_rat profile is FLAT -- concentration constrains the source/sink

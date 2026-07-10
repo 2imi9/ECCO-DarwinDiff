@@ -67,18 +67,25 @@ oracle shows Ω support, not sample size or closure size, is the binding constra
   lever is narrower than before: either an *independent* in-situ carbonate Ω (to rule out a
   cache-Ω artifact) or a fundamentally different, even-wider-Ω calcite record. Is either worth
   pursuing, or does the tested null settle the calcite closure?
-- *Iron lever — tested, PASSES the self-twin go/no-go (most promising).* The
-  particulate:dissolved partitioning ratio `pFe/DFe ≈ scav_rat·POC/W_SINK` has no `alpfe`
-  dependence, so it breaks the dissolved-only wall: on the real eqpac footprint + transport it
-  tightens the `scav_rat` band from 19× (dissolved) to ~1× (~14× tighter). GEOTRACES measures it
-  (`Fe_TP_CONC`/`Fe_D_CONC`). This is the strongest positive-E2 lead. The open question for the
-  real E2 is **contamination**: measured `Fe_TP` includes biogenic + lithogenic particulate iron,
-  not only scavenged Fe — is the labile particulate fraction (`Fe_TPL`), or another scavenged-Fe
-  proxy, the right target? (Fe isotopes / ligands are secondary fallbacks if partitioning is too
-  contaminated.)
-- *A third closure* with a real, Darwin-independent observation that is *both* environment-driven
-  *and* observed where the environment varies — is there a better-posed target than iron or
-  calcite?
+- *Iron lever — tested, FAILED verification (not a positive).* A particulate:dissolved partitioning
+  observable initially looked like a dramatic pass, but a 5-skeptic adversarial verification showed
+  it was largely a construction artifact: `pFe/DFe` reduces to `scav_rat·POC/W_SINK` (DFe cancels),
+  so the "sharp well" is tautological, `(scav_rat, W_SINK)` are perfectly degenerate, and a real
+  contaminated `Fe_TP` (biogenic + `alpfe`-scaling lithogenic) re-injects the source degeneracy.
+  Only the *alpfe* confounder legitimately cancels — the rate stays unidentifiable. So partitioning
+  reinforces the wall from a second angle rather than breaking it. Fe isotopes / ligands remain
+  untested fallbacks, but the bar is now higher (need a *pure* scavenged-Fe observable + independent
+  `POC`/`W_SINK`).
+- *A third closure — lever 3, scouted (growth via primary production).* Best candidate: the growth
+  closure (`Smallgrow`/`Biggrow`) via specific production `NPP/biomass = μ·f_fe·LIGHT` — the structural
+  twin of the iron trick (a flux/stock ratio cancels the loss terms that make standing-stock biomass
+  unobservable). Verification verdict: **feasible but not a clean positive.** It inherits the same
+  algebraic tautology (NPP computed from the candidate μ); *total* NPP — the only real observable —
+  gives only the biomass-weighted **mean** of `μ_s, μ_l`, so the `{Smallgrow, Biggrow}` **pair stays a
+  ridge** (Track-1's growth-pair ceiling, from a new angle), and per-PFT production (which would break
+  it) is unmeasured; satellite NPP is Chl-derived (partly circular), only sparse 14C is independent. So
+  growth becomes *aggregate*-observable-in-principle, not a positive E2. A ready self-twin scout design
+  exists (`scripts/growth_npp_scout.py`, unbuilt) to confirm the aggregate-vs-pair split concretely.
 
 **D3 — What counts as "independent validation = discovery"?** Track-1 was a consistency check
 against Carroll's (under-constrained) values. If we clear an E2 on some observable, is held-out

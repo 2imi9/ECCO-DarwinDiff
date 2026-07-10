@@ -1,87 +1,83 @@
-# Iron lever (E2 hunt): particulate:dissolved partitioning breaks the scavenging-rate wall
+# Iron partitioning and the scavenging-rate wall — a corrected (mostly-negative) result
 
-*Self-twin capacity result, 2026-07-10, local CPU. Lever 1 of the positive-E2 hunt (D2).*
+*Self-twin probe, 2026-07-10, local CPU. E2-hunt lever 1 (iron). **This finding was
+adversarially verified (5 skeptics) and substantially walked back** — the original headline
+("partitioning breaks the wall, scav_rat identifiable, ~14× tighter") was largely a construction
+artifact. This note records the corrected verdict; the verification transcript is in the
+workflow journal for run `wf_380272f4-652`.*
 
-## Result
+## Corrected verdict
 
-The iron **information wall** — dissolved-Fe concentration constrains only the source/sink
-*combination* `alpfe/scav_rat`, not the scavenging *rate* — is a property of the **dissolved
-observable**, not a fundamental limit. Adding the **particulate:dissolved partitioning ratio**
-(`pFe/DFe`) identifies `scav_rat` where concentration is flat.
+**QUALIFIED / mostly artifact.** A particulate:dissolved partitioning observable does **not** make
+the scavenging *rate* identifiable. What is true is narrower and weaker than first claimed: a
+*pure scavenged-Fe* partitioning observable removes the **alpfe** confounder *in principle* — but
+the rate stays degenerate with `POC·W_SINK`, the self-twin's apparent sharpness is tautological,
+and a real (contaminated) `Fe_TP` re-injects the alpfe degeneracy. This is **not** a realizable
+positive E2.
 
-On the same real equatorial-Pacific observing footprint and prescribed div-free transport as the
-wall demo (`scripts/iron_scav_rat_profile.py`), a self-twin (alpfe, scav_rat) sweep with the
-scav_rat likelihood profiled over alpfe:
+## Why the original claim was wrong
 
-| observable | scav_rat unidentifiable band | shape |
-|---|---|---|
-| dissolved DFe only | **19×** (1.0e-7 – 1.9e-6) | flat ridge (the wall) |
-| partitioning `pFe/DFe` | **~1×** (single grid point at the truth ~7e-7) | sharp well, ~14× tighter |
+The scout computes the observable as `pFe/DFe` where `pFe := scav_rat·DFe·POC/W_SINK`. Algebraically
+**DFe cancels exactly**, so the scored observable is
 
-The partitioning profile is a deep, curved well (misfit 0.014 at the truth → 6.1 at 1e-5, 1.0 at
-1e-7), minimized at the true Carroll `scav_rat` — identifiable *and* unbiased. `scripts/iron_partitioning_scout.py`.
+    pFe/DFe  =  scav_rat · POC / W_SINK
 
-## Why it works
+— the swept parameter times a near-fixed factor. Three consequences, all numerically confirmed by
+[`scripts/iron_partitioning_controls.py`](../../scripts/iron_partitioning_controls.py):
 
-The scavenging **sink flux** is `scav_rat·DFe·POC`, which becomes particulate iron. The
-particulate standing stock (sinking at `W_SINK`) is `pFe ≈ scav_rat·DFe·POC / W_SINK`, so the
-**partitioning ratio `pFe/DFe ≈ scav_rat·POC / W_SINK` has no direct `alpfe` dependence** — it
-lies along the exact axis the dissolved-only likelihood is flat along. Dissolved concentration
-sees `alpfe/scav_rat` (equifinal); the partitioning ratio sees `scav_rat` directly. The
-numerical run confirms POC's weak dependence on `scav_rat` (via iron limitation of growth) does
-**not** spoil the identification.
+1. **Tautology.** The observable is proportional to `scav_rat` by construction, so fitting it
+   recovers `scav_rat` trivially (fit `c·scav` to `c·scav0`). The "sharp well" is a definitional
+   log-parabola, not earned identifiability. The reported "~1× band / 14× tighter" is a **grid +
+   threshold artifact** — the well half-width is smaller than one grid step, and the `+0.02` band
+   on a coarse grid manufactures the "1×."
+2. **Relocated degeneracy (decisive).** Because the observable is `scav_rat·POC/W_SINK`, the pair
+   `(scav_rat, W_SINK)` is **perfectly degenerate**: scaling both by any `k` leaves the observable
+   unchanged (control A: change = `0.00e+00` under `(scav, W_SINK)→(2·scav, 2·W_SINK)`). The
+   self-twin only reads a sharp `scav_rat` because `W_SINK` (a fixed constant) and `POC` are held
+   at truth. The wall was "concentration constrains `alpfe/scav`, not the rate"; partitioning
+   trades that for "`scav·POC/W_SINK`, not the rate" — the degeneracy is **relocated, not removed**.
+3. **Not a transported tracer.** `pFe` is reconstructed algebraically from the rolled field, not
+   advected/mixed/sunk as a real particulate tracer. So the prescribed transport is decorative
+   here (a 0-D box would give the same well), and the "19× (transported DFe) vs ~1× (algebraic
+   local) " comparison is not apples-to-apples.
 
-## What this changes
+## What legitimately survives
 
-The identifiability map's iron entry was "observability-limited — DFe concentration is a
-low-information projection of the rate, so more iron data won't help." That stands **for the
-dissolved observable**, but the wall is **breakable with a different, real observable**:
-GEOTRACES IDP2025 measures total particulate iron (`Fe_TP_CONC`) alongside dissolved
-(`Fe_D_CONC`) at co-located cells. So there is a concrete **positive-E2 lever**: fit the
-scavenging closure to the real partitioning ratio through transport, held-out scored.
+One real observability property: **alpfe cancels from the clean `pFe/DFe`.** So a *pure* scavenged
+particulate:dissolved observable is insensitive to the iron *source* while retaining sensitivity to
+the *sink* — it removes the alpfe confounder that half of the dissolved-only wall. That is a genuine
+(if modest) structural fact. It does **not** identify the rate, because of the relocated
+`scav·POC/W_SINK` degeneracy above.
 
-## Honest scope + the caveat that gates a real E2
+## Real-data contamination makes it worse (control B)
 
-- **Self-twin capacity result**, not a real-data recovery: it shows the observable *can* identify
-  the rate in principle, on the real footprint/transport, not that real GEOTRACES Fe_TP recovers
-  it.
-- **The load-bearing caveat:** the box's `pFe` is *only* scavenged particulate iron, but measured
-  `Fe_TP_CONC` also includes **biogenic** particulate Fe (cellular uptake, `Fe_CELL_CONC`) and
-  **lithogenic** particles (undissolved dust). A real E2 must either (a) use a scavenged-Fe proxy
-  (e.g. `Fe_TP` minus biogenic/lithogenic estimates, or the labile/refractory split
-  `Fe_TPL`/`Fe_TPR`), or (b) model all particulate-Fe sources in the closure. This contamination,
-  not the identifiability, is now the binding risk.
-- The coarse 13×15 grid makes the partitioning band read as a single point; a finer grid would
-  give the true (still-much-tighter-than-19×) width. The 14× tightening is robust to grid.
+Real `Fe_TP` (and even labile `Fe_TPL`) is not pure scavenged Fe — it includes **biogenic** cellular
+Fe (`Fe_CELL`, governed by growth/quota, not scav_rat) and **labile-lithogenic** Fe (dust coatings,
+scaling with deposition ∝ `alpfe`). Adding a moderate contamination (50% biogenic + 50% lithogenic
+of the scavenged pFe) to the twin numerator and re-profiling: the scav_rat band re-widens
+(1× → 2× on the coarse grid) and an **alpfe ridge returns** (1.5× → 2.4×) — the lithogenic term
+re-injects the source/sink degeneracy the clean observable appeared to remove. So `Fe_TPL` is
+**not** a clean scavenged-Fe proxy (correcting an earlier claim in this note), and the real
+observable both dilutes the signal and restores the alpfe dependence.
 
-## Real-data coverage gate (checked 2026-07-10)
+## Coverage, for completeness
 
-The identifiability is there in principle; the **observing coverage is the binding limit for a
-real E2 now.** In GEOTRACES IDP2025, dissolved Fe is dense (`Fe_D_CONC` n = 23,912) but
-co-located *particulate* Fe is sparse, and co-located *pairs* sparser still:
+Even setting the above aside, the co-located data are sparse: `Fe_D` dense (23,912) but surface
+co-located `Fe_TP`+`Fe_D` only ~94 global / 4 on eqpac; `Fe_TPL`+`Fe_D` 150 global surface. Where
+measured, the ratio spans a wide 2.59 dex.
 
-| quantity | global | surface (≤50 m), co-located with Fe_D |
-|---|---|---|
-| `Fe_TP_CONC` (total particulate) | 1,784 | **94** |
-| `Fe_TPL_CONC` (labile particulate — the scavenged-Fe proxy) | 1,337 | **150** |
-| co-located on eqpac footprint | — | **4** (natl 0, SO 0) |
+## Honest place in the map
 
-The real partitioning ratio, where measured, does vary widely (`Fe_TP/Fe_D` surface: n = 79,
-median 2.56, p10–p90 = 0.37–11.9, **log-span 2.59 dex** — far wider than calcite's Ω), so the
-signal is there; there simply aren't enough co-located pairs on any single AOI footprint yet.
-So this lever mirrors the map's theme: **identifiable in principle, observing-coverage-limited in
-practice.** The actionable recommendation is an *observing-system* one — the labile particulate
-fraction `Fe_TPL` (150 surface pairs, and the right scavenged-Fe proxy) is the best available
-target, and depth-resolved (not surface-only) scoring would add more pairs. A well-powered real E2
-needs either the global `Fe_TPL`/`Fe_D` set (not one AOI) or more co-located particulate+dissolved
-Fe coverage.
+Lever 1 does **not** yield a positive E2. It reinforces the map's theme from a new angle: the
+scavenging *rate* is not identifiable from concentration (the wall) **nor** from a realistic
+particulate:dissolved observable (tautology + relocated `POC·W_SINK` degeneracy + contamination).
+The only thing that would help is a **pure authigenic/scavenged Fe** measurement co-modeled with
+independent `POC` and `W_SINK` — an observing-system + model-structure requirement, not a lever we
+can pull now.
 
-## Next (a real E2 on this lever)
+## Method lesson
 
-1. Build the real partitioning target from GEOTRACES: co-located `Fe_TP_CONC`/`Fe_D_CONC` on the
-   eqpac footprint, with a scavenged-Fe correction (start with the labile particulate `Fe_TPL`,
-   which excludes refractory lithogenic Fe).
-2. Fit `scav_rat` (or a scavenging closure) through transport to that target, held-out scored with
-   an env-regime split and a K_num control — the standard E2 protocol.
-3. If it clears held-out R² > 0, this is the first genuine positive E2, and it converts the iron
-   entry of the map from "walled" to "constrained by the right observable."
+This is exactly the failure mode the project has hit before (a sign-flip once survived every unit
+test): a numerical identifiability claim that passes because the observable was *constructed from*
+the parameter. The adversarial-verification workflow caught it where the tests could not — run it on
+any new identifiability/numerics claim before building on it.
