@@ -7,10 +7,13 @@ analysis got here, including a deflated over-claim) is in `2026-07-09_calcite_id
 ## Summary
 
 Track-2 asks whether real ocean observations can constrain the uncertain closures in
-ECCO-Darwin's biogeochemistry through a differentiable transport model. The answer, from the
-two closures we can target with real data, is a clean **identifiability-limits** result: real
-observations do **not** sharply constrain either closure — and, usefully, they fail for **two
-different reasons**. This is a map of *what is observable*, which is itself the contribution.
+ECCO-Darwin's biogeochemistry. The answer, across the **three** closures we can target — iron
+scavenging, calcite rain ratio, and phytoplankton growth — is a clean **identifiability-limits**
+result: real observations do **not** sharply constrain any of them, and, usefully, they fail for
+**three distinct reasons** (observability-, data/support-, and structural-limitation). This is a
+map of *what is observable*, which is itself the contribution. Caveat carried throughout: the
+make-or-break out-of-sample transport E2 was under-powered, so these verdicts rest on a
+transport-free floor + an in-sample identifiability oracle, not on the transport gate (still open).
 
 ## Motivation
 
@@ -23,12 +26,14 @@ closures where the box could not. The make-or-break test (E2): does a learned cl
 part of a real observation and scored on **held-out** cells through transport, beat a constant
 (null) closure?
 
-Two closures have real, Darwin-independent observations to target:
+Three closures have real, Darwin-independent observations to target:
 
 - **Calcite** — the rain ratio `R_PICPOC` (PIC:POC). Observation: direct ¹⁴C calcite-production
   measurements (Marsh et al. 2025, the updated Poulton/Daniels compilation).
 - **Iron** — the scavenging rate `scav_rat`. Observation: dissolved-iron concentration
   (GEOTRACES IDP2025).
+- **Growth** — the phytoplankton growth rates `Smallgrow`/`Biggrow`. Observation: primary
+  production (14C / satellite NPP).
 
 ## Method
 
