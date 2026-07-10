@@ -68,6 +68,8 @@ and a separate verification workflow (both multi-agent) hardened the harness and
 
 ## Result — an identifiability map, by mechanism
 
+**Figures:** `docs/findings/figures/fig1_identifiability_map.png` (the map), `fig2_calcite_support.png` (Ω support + the Simpson artifact), `fig3_e2_result.png` (the make-or-break E2). A shareable summary is in [`2026-07-10_track2_summary_for_discussion.md`](2026-07-10_track2_summary_for_discussion.md).
+
 | Darwin closure | observable | verdict | why |
 |---|---|---|---|
 | calcite: **Ω-modulation** of `R_PICPOC` (scalar `R_PICPOC` itself *is* recoverable) | PIC:POC production ratio | Ω-dependence **untestable** | **data-limited** (within-region Ω support ≤0.16 dex everywhere — confirmed on independent in-situ Ω) |
