@@ -4,6 +4,16 @@ A snapshot of the **current best**, not a timeline. Per-config detail lives in t
 [Config / Results Matrix](docs/results_matrix.md); the chronological record is in
 [CHANGELOG.md](CHANGELOG.md) and the [archive](docs/archive/index.md).
 
+> **Bottom line (2026-07-10).** Two papers, both at a **collaboration gate**, not a compute gate.
+> **Paper #1** (parameter learner) is submission-quality and *good enough*: it recovers the
+> identifiable parameters estimator-independently, and what it can't recover is an **identifiability
+> limit, not a method limit**. **Paper #2** (Track 2) is complete as a 3-closure
+> **identifiability-limits map**: real observations can't sharply constrain the closures, and the
+> binding constraint is the **observing system, not the method**. Next for both = a domain-expert
+> (Jon) read. **No pending compute** — the box is tuning-exhausted and a positive result needs *new
+> observations*, not more GPU; the **emulator** and the **B200** are parked accordingly
+> (see [Cluster path](#cluster-path)).
+
 ## What this is
 
 DarwinDiff replaces ECCO-Darwin's Green's-functions Carroll-6 calibration with gradient
@@ -46,46 +56,33 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
 
 ## Why these are the load-bearing facts
 
-- **`R_PICPOC` was never a "6/6 wall."** The earlier "needs the differentiable Darwin calcite
-  port + native resolution" conclusion is **refuted** — both were tested and neither helped. The
-  real gap was the absence of a *direct, real calcite observation* (now supplied) plus a
-  contaminated Southern-Ocean ratio target (fixed by `RATIO_MAX=2`). Any ratio anchor recovers
-  `R_PICPOC` — Darwin's own does too — so the real anchor's value is **non-circularity**, not
-  recoverability. The recovery lands at the real ~0.05, consistent with Carroll's 0.0425 only within
-  the wide ±40 % Cal band — **not a validation of it**. The load-bearing spine-D point is that Carroll's
-  `R_PICPOC` is itself **under-constrained**, and a single **global** constant is mis-specified against a
-  regionally-variable rain ratio (Daniels eqpac ~0.039, ≈1.6× the global mean).
-  `docs/archive/findings/2026-06-26_rainratio_real_vs_darwin.md`.
-- **The surrogate gap is dimensional — and it is the rigorous foundation of the approach.** At
-  uniform Carroll parameters the 0-D box relaxes to a spatially near-uniform state (tracer
-  CV ~4e-5 @200 steps → ~1e-15 @6400, vs Darwin's O(1) CV 0.6–2.4). Box-vs-Darwin spatial-pattern
-  correlations are therefore **not** fidelity metrics; identifiability comes from real, absolute,
-  Darwin-independent observations. A direct **per-cell-vs-global-scalar ablation confirms the
-  per-cell DINN is load-bearing on real data**: at `geo1`, per-cell holds the trio 7/10 vs **0/10**
-  for a single global Carroll-6 vector (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01).
-  [PR #158](https://github.com/2imi9/ECCO-DarwinDiff/pull/158).
-- **Independent validation ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163)) is now addressed — and it decomposes cleanly.**
-  *Estimator-independence:* a **DINN-free** global-scalar recovery on real data reaches the same
-  optimum as the per-cell DINN for `alpfe` (Excellent, ≈ Carroll), and a **gradient-free** Nelder-Mead
-  estimator agrees too ([`scripts/independent_validation.py`](scripts/independent_validation.py), [PR #172](https://github.com/2imi9/ECCO-DarwinDiff/pull/172)) —
-  so **`alpfe`'s recovery is method-independent**, not a DINN/autograd artifact; `scav_rat` and
-  `R_PICPOC` genuinely *require* the per-cell structure (0/10 without it). *Independent-data:* a
-  held-out GEOTRACES cross-validation ([PR #173](https://github.com/2imi9/ECCO-DarwinDiff/pull/173) —
-  hold out 30 % of the iron cells, score the box's DFe at the **unseen** cells) returns **negative R²**:
-  the 0-D box homogenizes, so it has no spatial structure to predict per-cell iron. A faithful held-out
-  *data* validation is therefore **structurally blocked by the surrogate gap** and needs a model with
-  spatial dynamics (the Track-2 UDE / emulator). The recovery pins the iron *magnitude*; it cannot
-  predict *which* cell has *how much*.
-- **Statistical honesty.** In the hold-together sweep only two effects are real at n=10 — the
-  ratio anchor recovering `R_PICPOC` (3/10→10/10, Fisher p=0.003) and high iron weight collapsing
-  `scav_rat` (8/10→0, p=7e-4); differences among the high cells (7–10/10) are sampling noise. The
-  metric throughout is **per-AOI ≥2-AOI co-recovery** (avoids a cell-weighted straddle
-  false-positive). FIM/profile diagnostics independently agree.
-- **Honest scope of the completed study.** Track 1 is a **consistency check against Carroll's own
-  published values**, not a cross-validated discovery against the GCM. The surrogate gap (the 0-D box
-  homogenizes, held-out real-data R² is negative) means identifiability must come from real *absolute*
-  anchors, not pattern-matching — this is a **finding that bounds the claim**, and it is precisely what
-  motivates Track 2. With this, the Track-1 identifiability question is answered and the study is complete.
+- **`R_PICPOC` was never a "6/6 wall."** The "needs a differentiable calcite port + native resolution"
+  conclusion is **refuted** (both tested, neither helped); the real gap was the absence of a direct real
+  calcite observation (now supplied) + a contaminated Southern-Ocean ratio target (fixed by
+  `RATIO_MAX=2`). Any ratio anchor recovers it — so the anchor's value is **non-circularity**, not
+  recoverability. It lands at the real ~0.05 (consistent with Carroll's 0.0425 only within the wide Cal
+  band, **not** a validation); the spine-D point is that Carroll's *global* `R_PICPOC` is itself
+  **under-constrained** and mis-specified against a regionally-variable rain ratio (Daniels eqpac ~0.039,
+  ≈1.6× the global mean) — `docs/archive/findings/2026-06-26_rainratio_real_vs_darwin.md`.
+- **The per-cell architecture is load-bearing (the surrogate gap is dimensional).** At uniform Carroll
+  parameters the 0-D box relaxes to a near-uniform state (tracer CV ~1e-15, vs Darwin's O(1)), so
+  box-vs-Darwin pattern correlations are **not** fidelity metrics and identifiability must come from real,
+  absolute anchors. A per-cell-vs-global ablation confirms it on real data: at `geo1`, per-cell holds the
+  trio **7/10 vs 0/10** for a single global vector (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01,
+  [#158](https://github.com/2imi9/ECCO-DarwinDiff/pull/158)). This is a **consistency check** against
+  Carroll's own values, not a cross-validated discovery — which is exactly what Track 2 tested.
+- **Independent validation ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163)) decomposes cleanly.**
+  *Estimator-independence:* a DINN-free global-scalar recovery and a gradient-free Nelder-Mead both reach
+  `alpfe`'s optimum ([#172](https://github.com/2imi9/ECCO-DarwinDiff/pull/172)) — so `alpfe` is
+  **method-independent**, while `scav_rat`/`R_PICPOC` genuinely require the per-cell structure.
+  *Independent-data:* held-out GEOTRACES cross-validation ([#173](https://github.com/2imi9/ECCO-DarwinDiff/pull/173))
+  returns **negative R²** — the box has no spatial structure to predict per-cell iron, so a faithful
+  held-out *data* validation is structurally blocked by the surrogate gap (needs the Track-2 UDE). The
+  recovery pins the iron *magnitude*, not *which cell has how much*.
+- **Statistical honesty.** In the hold-together sweep only two effects are real at n=10 — the ratio anchor
+  recovering `R_PICPOC` (3/10→10/10, p=0.003) and high iron weight collapsing `scav_rat` (8/10→0, p=7e-4);
+  differences among the high cells are sampling noise. Metric: **per-AOI ≥2-AOI co-recovery**; FIM/profile
+  diagnostics agree.
 
 ## Architecture (brief)
 
@@ -108,18 +105,22 @@ box model. Full detail in [docs/dinn_design.md](docs/dinn_design.md).
 
 ## Cluster path
 
-Two Northeastern clusters (full table in [docs/cluster_setup.md](docs/cluster_setup.md)):
+Two clusters — Explorer (Northeastern-owned) and AICR (the multi-institutional Massachusetts AI
+Compute Resource, accessed via NU) — full table in [docs/cluster_setup.md](docs/cluster_setup.md):
 
-- **Explorer** (H200 144 GB ×32) — active near-term path; the first native-resolution prototype runs here.
-- **AICR** (B200) — future path via a PI proposal; target for the global-native / seasonal sweep.
+- **Explorer** (Northeastern, H200) — the **automation** cluster (key-auth, non-interactive); use for
+  any GPU job that must run unattended, and for native/seasonal fits too big for the 5090's 24 GiB.
+- **AICR** (Massachusetts AI Compute Resource, B200) — account active but **interactive-only** (Duo 2FA
+  → user-launched); use for **throughput**.
 
-The cluster path unlocks native LLC270-resolution recovery, time-resolved multi-year fitting,
-and **Track-2** build-out. (A larger multi-seed ensemble has already been folded into the hardened
-Paper #1, so it is no longer a pending unlock — the verified n=10 headline numbers above stand as the
-reported values.) These remain legitimate cluster goals; they are **not** gated on `R_PICPOC` or "6/6",
-which are resolved/reframed at 1° box scale.
+**When to use the B200:** for *many/large runs at once*, not for a single fit. A single fit is
+launch-bound (same wall-clock on 5090 / H200 / B200), so the B200 buys nothing there. Its genuine use
+cases — the **emulator/UDE at real scale** and large native/seasonal ensembles — are all **future and
+gated** (Jon's direction / new data). **Nothing is compute-bound right now**, so keep dev + single fits
+on the local 5090/CPU. These cluster goals are legitimate but **not** gated on `R_PICPOC` or "6/6",
+which are resolved at 1° box scale.
 
-## Track 2 — differentiable spatial model (status: **identifiability-limits map COMPLETE**; real-data E2 gate RUN → negative)
+## Track 2 — identifiability-limits map (COMPLETE; real-data E2 run → negative)
 
 **Update (2026-07-10) — the Track-2 result is a 3-closure identifiability-limits map, and the
 make-or-break E2 was run (decisive negative).** The original thesis — "make Darwin differentiable to
@@ -144,38 +145,19 @@ reproducibility appendix. The map's forward contribution is an **observing-syste
 **symbolic-distillation identifiability oracle** (`scripts/symbolic_distill_probe.py`). Merged to
 `main` via #180 (2026-07-10). _Prior Phase-1-tooling status below._
 
-## Track 2 — differentiable spatial model (status: foundation BUILT + synthetic closure-recovery result) — SUPERSEDED, see the section above
+### Foundation + build path (if Track-2 is pursued further)
 
-> **SUPERSEDED (2026-07-10):** the "real-data E2 gate unbuilt" / "E2 is **unbuilt**" language in this
-> section is **historical**. The make-or-break out-of-sample transport E2 has since been **run**
-> (decisive negative for calcite at the available power) — see the "identifiability-limits map
-> COMPLETE" section above. This section is retained only for its Phase-1 build-plan detail.
+The differentiable foundation is built and merged (#177): `integrators.py` (RK4 + checkpointing +
+time-aware forcing), `carroll6_ude_tendency` (pluggable neural closures), `transport.py`
+(mass-conserving vertical transport). The identifiability map above is the **result**; a full
+emulator/UDE at real scale is a **forward / OSSE** tool (which new observations would break the limits),
+**not an identifiability rescue** — so it is gated on Jon's direction, not a current task. If pursued,
+the plan is riskiest-assumption-first: **Phase 1** minimal real-data transport UDE (regional 2-D on
+Darwin's own velocities) → **Phase 2** physical-backbone differentiability probe → **Phase 3+** full
+coupled build. Backbone survey ([emulator coupling plan](docs/emulator_coupling_plan.md)): **Samudra 2**
+leads; **SamudrACE** has an explicit biogeochemistry hole = the carbon-BGC-UDE slot.
 
-**Update (2026-07-07) — the differentiable foundation is now built and merged (#177).** `integrators.py` (RK4 + gradient checkpointing + time-aware forcing `f(t,x)`), `carroll6_ude_tendency` (pluggable neural closures), and `transport.py` (mass-conserving batched-column vertical transport) are on `main`. On a **synthetic self-twin** (still not real Darwin, still transport-limited), closure equifinality was diagnosed as a **support problem** and cured: a **Monod-anchored closure** (~15x over a free MLP) plus an **excitation designed offline for pennies** (a ~2-min CPU Fisher probe found the lever is *light-driven drawdown, not dust*) recovers the closure over the widest domain -- excitation ladder, full-domain closure error `0.203 -> 0.173 -> 0.154 -> 0.116` (n=4). This is a **synthetic methods result, not a real-data claim**; the E2 gate below (held-out real-data R^2 > 0 with transport) remains the make-or-break and is still unbuilt. Design docs: `docs/research_notes/2026-07-06_*`. The three-component picture (DINN parameter learner / FNO emulator scaffold `emulator.py` / mechanistic UDE) and the parameter-learner<->emulator seam are in `docs/NEXT_SESSION.md`.
-
-**Update (2026-07-09) — Phase-1 tooling + an independent identifiability oracle (all local CPU).** Three additions, still synthetic self-twin: (1) the **time-aware integrator** `f(t,x)` landed (seasonal forcing evaluated at the RK4 stage times; legacy `f(x)` auto-wrapped; 12/12 tests) — the last plumbing Phase-1 forcing needed. (2) A **symbolic-distillation go/no-go gate** (`scripts/symbolic_distill_probe.py`, 13 tests) distills a trained closure's `(DFe→f_fe)` law by STLSQ against a fixed-k Monod bank + polynomial confounders on the *visited support*, and returns DISTILL-PASS/FAIL as a **second identifiability oracle** that must agree with the Fisher/profile diagnostics. Its load-bearing feature is an **aliasing guard**: a perfectly-Monod closure whose support never spanned the half-saturation knee correctly returns FAIL/non-identifiable — the honest verdict that says *add excitation*, not *spend H200 budget*. (3) That gate, run against the **real closure-training pipeline** (`scripts/symbolic_distill_dynamics_probe.py`: MonodAnchored trained through `column_tendency` on narrow single-IC vs excited multi-IC + seasonal-drawdown support), **lifts the verdict FAIL→PASS** as excitation widens the visited DFe span through the knee — Night-1's "excitation cures equifinality," now quantitatively gate-checked on the actual pipeline (`docs/findings/symbolic_distill_dynamics_probe.json`). Emulator route re-surveyed against the newest primary sources (`docs/research_notes/2026-07-09_parameter_conditioned_emulator_update.md`): stays shelved, UDE proceeds; Paper #2 reframed in the **BINN lineage**.
-
-_Original feasibility framing:_ differentiable spatial model (feasibility-proven on the 0-D box only)
-
-Track 2 (a UDE / differentiable spatial emulator) is **feasibility-proven on the 0-D box only** —
-self-twin, **synthetic**, transport-free; it is **not** real Darwin and **not** built at real scale.
-Nothing runs beyond synthetic self-twin probes. Its make-or-break gate is **E2: held-out real-data
-R² > 0 once transport is present** (this is what would turn the Track-1 consistency check into a genuine
-discovery); E2 is **unbuilt**. The build plan is gated, riskiest-assumption-first:
-
-- **Phase 1** — a minimal real-data transport UDE (regional 2-D, driven by ECCO-Darwin's own
-  velocities) fit to real GEOTRACES iron + calcite, held-out scored (does transport close the surrogate
-  gap on real data?).
-- **Phase 2** — a physical-backbone differentiability probe (do gradients flow through a real physical
-  backbone into a BGC UDE?).
-- **Phase 3+** — the full coupled build.
-
-Multi-month, gated on Paper #1 shipping. Backbone survey: **Samudra 2** (arXiv 2606.02610) is the
-leading physical backbone but worsens the sparse-obs tension; **SamudrACE** (arXiv 2509.12490) is
-differentiable coupled physics with an **explicit biogeochemistry hole** — the natural carbon-BGC-UDE
-slot; **ACE2** is atmosphere-only and **OlmoEarth** (land) is a poor fit.
-
-**Honesty guardrail:** Track-2 results to date are synthetic self-twin — do **not** say "made Darwin
+**Honesty guardrail:** box-scale Track-2 probes are synthetic self-twin — do **not** say "made Darwin
 differentiable", "learned real biology", or "env-gated calcification proven".
 
 ## Known limitations
