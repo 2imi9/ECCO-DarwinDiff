@@ -78,6 +78,10 @@ recomputing Ω from GLODAPv3 bottle DIC/TAlk/T/S (NCEI 0315582, 2026; 838 eqpac 
 bottles) rather than the model cache, the power-law oracle is **NULL in every basin** (eqpac
 exponent CI [−0.57, +3.02], natl [−8.32, +4.47], pooled Ω span 0.29 dex, still below the
 identifiability threshold), so the calcite verdict does **not** depend on model-derived Ω.
+(The GLODAPv3 DIC/TAlk are internal-consistency-adjusted via the furthest-first crossover inversion
+of Humphreys et al. 2026; those per-cruise adjustments — ≲12 µmol kg⁻¹ — correct systematic offsets
+and *improve* consistency, so they cannot manufacture the narrow spatial Ω range, and the null is
+robust to them.)
 
 The symbolic-distillation oracle pins the *mechanism* of that data-limitation: run directly on
 the real pairs (Daniels rain ratio × Ω_calcite from the v05 carbonate cache), the power-law

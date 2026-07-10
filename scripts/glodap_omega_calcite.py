@@ -14,6 +14,16 @@ same cells -> distill_powerlaw. Honest: independent Omega, but still small-n (bo
 the calcite cells is finite); a scale offset between in-situ and cache Omega does not change the
 oracle (it tests the log-log SLOPE, invariant to an overall Omega scale).
 
+Data provenance: GLODAPv3 DIC/TAlk are INTERNALLY-CONSISTENCY-ADJUSTED values, not raw bottle
+measurements -- the per-cruise adjustments are computed by the furthest-first (FF) crossover
+inversion of Humphreys et al. 2026 (EGUsphere 2026-3063; magnitudes <~12 umol/kg, 2 umol/kg
+minimum cut-off, expert-committee reviewed). These are SYSTEMATIC per-cruise offset corrections
+that IMPROVE internal consistency; they do not manufacture spatial Omega variance across the
+calcite cells, so the narrow-Omega-support null here is robust to (and benefits from) them.
+Conceptual resonance worth citing: the FF inversion is itself validated on SIMULATED (self-twin)
+data and the authors note "no algorithm can completely replace expert judgement" -- the same
+honest bounding of an inverse method by what the data + judgement allow.
+
 CPU. Needs D:\glodap\GLODAPv3_{Pacific,Atlantic}_Ocean.csv + D: v05 caches + Daniels/Marsh .tab.
 """
 from __future__ import annotations
