@@ -11,9 +11,11 @@ ECCO-Darwin's biogeochemistry. The answer, across the **three** closures we can 
 scavenging, calcite rain ratio, and phytoplankton growth — is a clean **identifiability-limits**
 result: real observations do **not** sharply constrain any of them, and, usefully, they fail for
 **three distinct reasons** (observability-, data/support-, and structural-limitation). This is a
-map of *what is observable*, which is itself the contribution. Caveat carried throughout: the
-make-or-break out-of-sample transport E2 was under-powered, so these verdicts rest on a
-transport-free floor + an in-sample identifiability oracle, not on the transport gate (still open).
+map of *what is observable*, which is itself the contribution. The make-or-break out-of-sample
+transport E2 was **run** for calcite and returns a decisive **negative** (a learned closure through
+transport does not beat a constant null on held-out cells) — so the identifiability limit holds
+out-of-sample, not only in the in-sample oracle; the iron and growth verdicts rest on their own
+diagnostics.
 
 ## Motivation
 
@@ -182,14 +184,21 @@ case). So growth is at best *aggregate*-observable-in-principle — the third cl
 
 - This is **not** a "transport closes the gap" pass, **not** a recovered parameter, and **not**
   "made Darwin differentiable / learned real biology." It is a bound on observability.
-- **The differentiable-transport machinery did not contribute to any delivered verdict.** The
-  pre-registered make-or-break test (E2 — a learned closure fit on part of the data and scored on
-  *held-out* cells through transport) came back **under-powered and non-discriminating** at these n:
-  the transport-UDE deltas are within hold-out instability and the K_num control is inert (transport
-  is decorative in the surface-scored rollout). Every verdict in this map therefore rests on a
-  **transport-free floor + an *in-sample* bootstrap-CI oracle**, not on the out-of-sample transport
-  E2. The title/framing should be read as "an identifiability study *motivated by* the differentiable
-  approach," not "results obtained *through* it" — the make-or-break out-of-sample gate remains open.
+- **The make-or-break out-of-sample transport E2 was run, and returns a decisive negative for
+  calcite.** A learned `EnvCalciteClosure` fit through prescribed transport and scored on held-out
+  (upper-quartile-Ω) cells **does not beat a constant-through-transport null**: the default closure
+  overfits badly (learned R² −1.53 vs null +0.50, delta −2.03), and a properly *regularized* closure
+  (hidden 4, weight-decay 0.01) removes the overfit (learned R² → −0.05 ≈ learns nothing) yet still
+  cannot beat null (delta −0.55), with a **flat, non-discriminating K_num control** — the signature
+  of no real transport-mediated signal. Notably the **null itself scores +0.50**, so a constant
+  ratio advected through transport already captures the held-out structure; the learned environmental
+  modulation adds nothing. So transport does *not* close the gap for the calcite closure — the
+  identifiability limit holds **out-of-sample**, not only in the in-sample oracle
+  ([`2026-07-10_e2_powered_result.md`](../findings/2026-07-10_e2_powered_result.md)). Caveat: n_val = 6,
+  and a cleanly *powered* within-region E2 is structurally impossible here (the Ω-band hold-out
+  becomes a between-biome extrapolation when pooled) — a decisive negative *at the available power*.
+  The other two verdicts (iron, growth) still rest on their own diagnostics + the in-sample analyses,
+  not the transport E2.
 - The result is corroborated by independent published field data (Marañón 2016) and by
   **independent in-situ carbonate data** (GLODAPv3, 2026), on which the calcite oracle returns the
   same null — so the calcite verdict does not depend on model-derived Ω.
