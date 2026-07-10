@@ -27,6 +27,7 @@ Writes ``docs/findings/calcite_omega_identifiability_real.json``.
 """
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
 import sys
@@ -35,13 +36,18 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from darwindiff.daniels_loader import build_aoi_climatology
+from darwindiff import daniels_loader, marsh_loader
 from darwindiff.ecco_darwin_loader import (
     EQUATORIAL_PACIFIC_AOI,
     NORTH_ATLANTIC_SUBPOLAR_AOI,
     SOUTHERN_OCEAN_PACIFIC_AOI,
 )
 from darwindiff.held_out_obs import aoi_env_field
+
+# Ratio source: Daniels 2018 (default) or the denser high-lat Marsh 2025 compilation.
+# Both expose the same build_aoi_climatology(aoi) -> (values, mask, counts).
+_SOURCES = {"daniels": daniels_loader.build_aoi_climatology,
+            "marsh": marsh_loader.build_aoi_climatology}
 
 # Load the oracle module by path (scripts/, not an installed package).
 _GATE = Path(__file__).resolve().parent / "symbolic_distill_probe.py"
@@ -57,9 +63,9 @@ AOIS = {
 }
 
 
-def _pairs(aoi) -> tuple[np.ndarray, np.ndarray]:
+def _pairs(aoi, build_climatology) -> tuple[np.ndarray, np.ndarray]:
     """Return the covered (Omega, ratio) pairs for an AOI on the shared 1-deg grid."""
-    values, dmask, _counts = build_aoi_climatology(aoi)     # [Y,X] rain ratio, finite mask
+    values, dmask, _counts = build_climatology(aoi)          # [Y,X] rain ratio, finite mask
     values = np.asarray(values, dtype=np.float64)
     dmask = np.asarray(dmask, dtype=bool)
     env = aoi_env_field(aoi)
@@ -91,11 +97,19 @@ def _analyze(omega: np.ndarray, ratio: np.ndarray, seed: int = 0) -> dict:
 
 
 def main() -> int:
-    out: dict = {"aois": {}, "note": "identifiability-limits; not a physical Omega-independence claim"}
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--source", choices=sorted(_SOURCES), default="daniels",
+                    help="rain-ratio source: daniels (tropical) or marsh (denser high-lat)")
+    ap.add_argument("--out", type=str, default=None)
+    args = ap.parse_args()
+    build_climatology = _SOURCES[args.source]
+
+    out: dict = {"source": args.source, "aois": {},
+                 "note": "identifiability-limits; not a physical Omega-independence claim"}
     pooled_om, pooled_ra = [], []
     for key, aoi in AOIS.items():
         try:
-            om, ra = _pairs(aoi)
+            om, ra = _pairs(aoi, build_climatology)
         except Exception as e:  # noqa: BLE001 -- surface which AOI/data is missing
             out["aois"][key] = {"error": f"{type(e).__name__}: {e}"}
             print(f"[{key}] SKIP: {type(e).__name__}: {e}")
@@ -129,7 +143,9 @@ def main() -> int:
                       "ratio (identifiability-limits; small n / narrow Omega support)")
     print(f"\n== {out['verdict']} ==")
 
-    dest = Path("docs/findings/calcite_omega_identifiability_real.json")
+    default_name = ("docs/findings/calcite_omega_identifiability_real.json" if args.source == "daniels"
+                    else f"docs/findings/calcite_omega_identifiability_real_{args.source}.json")
+    dest = Path(args.out or default_name)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(out, indent=2))
     print(f"wrote {dest}")
