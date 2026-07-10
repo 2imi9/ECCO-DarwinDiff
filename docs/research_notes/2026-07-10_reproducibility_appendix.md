@@ -42,6 +42,7 @@ scavenging rate).
 | iron partitioning is a construction artifact (corrected) | `docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md` | `scripts/iron_partitioning_scout.py` + `iron_partitioning_controls.py` | `f99a470` / `8d9b0c2` |
 | iron scav_rat unidentifiable from DFe (32× wall) | (printed; bundle-driven) | `scripts/iron_scav_rat_profile.py` | (pre-branch) |
 | growth pair not split by total NPP | (printed) | `scripts/growth_npp_scout.py` | `04e43e4` |
+| make-or-break transport E2 → negative (calcite) | `docs/findings/2026-07-10_e2_powered_result.md` | `scripts/e2_real_calcite_eqpac.py` | `aa0cc1b` |
 | symbolic-distillation oracle (method + tests) | 22 tests | `scripts/symbolic_distill_probe.py`, `tests/test_symbolic_distill.py` | `c12fbf7` / `c4b8508` |
 
 **Known artifact gap (R6-1):** the supporting iron statement "DFe concentration is env-predictable
@@ -75,5 +76,9 @@ data) so the sweeps never touch the ~TB native tree — the data-discipline patt
 
 1. Merge `2imi9/status-handoff-2026-07-07` → `main` (code currently on an unmerged branch).
 2. Regenerate + commit the iron env-predictability JSON (GLODAPv3-adapted), or drop the +0.14 claim.
-3. The make-or-break **out-of-sample transport E2 remains open** — every verdict here rests on the
-   transport-free floor + in-sample identifiability oracle, not on the E2 gate.
+3. The make-or-break **out-of-sample transport E2 was run** for calcite (commit `aa0cc1b`) and
+   returns a decisive negative (learned closure does not beat the constant-through-transport null;
+   K_num non-discriminating). It has *not* been run for iron/growth (argued from their own
+   diagnostics). A cleanly *powered* within-region E2 is structurally impossible (the Ω-band hold-out
+   becomes a between-biome extrapolation when pooled), so the calcite E2 is a decisive negative at
+   n_val = 6, not a high-n rejection.
