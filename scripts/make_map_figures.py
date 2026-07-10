@@ -55,58 +55,47 @@ def _marsh_pairs():
 
 # --------------------------------------------------------------------------- #
 def fig1_map():
-    fig = plt.figure(figsize=(11.5, 4.6)); ax = fig.add_axes([0, 0, 1, 1]); ax.axis("off")
+    """Formal scientific table (booktabs rules, no color fills)."""
+    fig = plt.figure(figsize=(11, 3.7)); ax = fig.add_axes([0, 0, 1, 1]); ax.axis("off")
     ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-    # columns (left edge of each) — chosen wide apart, verified against label lengths
-    X_NAME, X_OBS, X_VB, X_WHY = 0.015, 0.20, 0.435, 0.665
-    VBW, VBH = 0.205, 0.115
+    L, R = 0.02, 0.985  # rule extent
+    XC, XP, XO, XV, XW = 0.02, 0.135, 0.30, 0.50, 0.635  # column anchors
+    cols = [(XC, "Closure"), (XP, "Parameter"), (XO, "Observable"),
+            (XV, "Verdict"), (XW, "Reason")]
     rows = [
-        ("Iron", "scav_rat", "dissolved Fe", "concentration\n(GEOTRACES)",
-         "observability wall",
-         ["dissolved Fe concentration is a low-information",
-          "projection of the rate; a particulate observable",
-          "does not rescue it — structural"]),
-        ("Calcite", "R_PICPOC", "PIC:POC ratio", "production ¹⁴C\n(Daniels / Marsh)",
-         "support-limited",
-         ["within-region Ω range ≤ 0.16 dex in every region;",
-          "null confirmed on independent in-situ Ω, shown",
-          "driver-general, and the transport E2 fails"]),
-        ("Growth", "Small/Big grow", "primary prod.", "¹⁴C / satellite\nNPP",
-         "unobservable",
-         ["total NPP gives only the biomass-weighted mean",
-          "growth rate → the {small, large} rate pair",
-          "stays degenerate (loss-degenerate)"]),
+        ("Iron", "scav_rat", "dissolved Fe conc. (GEOTRACES)", "observability wall",
+         "concentration is a low-information projection of the rate"),
+        ("Calcite", "R_PICPOC (Ω-mod.)", "PIC:POC ratio (Daniels / Marsh)", "support-limited",
+         "within-region Ω range ≤ 0.16 dex; transport E2 fails"),
+        ("Growth", "Smallgrow, Biggrow", "primary production (¹⁴C / NPP)", "unobservable",
+         "total NPP gives only the biomass-weighted mean rate"),
     ]
-    ax.text(X_NAME, 0.955, "Which ECCO-Darwin BGC closures can real observations constrain?",
-            fontsize=13.5, weight="bold", color=INK)
-    ax.text(X_NAME, 0.895, "None — for three distinct reasons.", fontsize=11, color=C["bad"], weight="bold")
-    hdr_y = 0.80
-    for x, h in [(X_NAME, "CLOSURE"), (X_OBS, "OBSERVABLE"), (X_VB, "VERDICT"), (X_WHY, "WHY")]:
-        ax.text(x, hdr_y, h, fontsize=8.5, weight="bold", color=MUTED)
-    band_top, band_h, gap = 0.72, 0.185, 0.045
-    for i, (name, param, obs1, obs2, verdict, why) in enumerate(rows):
-        yc = band_top - i * (band_h + gap) - band_h / 2
-        if i % 2 == 0:
-            ax.add_patch(mpl.patches.Rectangle((0, yc - band_h / 2), 1, band_h,
-                         facecolor="#F5F5F5", edgecolor="none", zorder=0))
-        ax.text(X_NAME, yc + 0.028, name, fontsize=12.5, weight="bold", color=INK, va="center")
-        ax.text(X_NAME, yc - 0.035, param, fontsize=8.5, color=MUTED, va="center", family="monospace")
-        ax.text(X_OBS, yc + 0.022, obs1, fontsize=10, color=INK, va="center")
-        ax.text(X_OBS, yc - 0.032, obs2, fontsize=8, color=MUTED, va="center")
-        ax.add_patch(FancyBboxPatch((X_VB, yc - VBH / 2), VBW, VBH,
-                     boxstyle="round,pad=0.006,rounding_size=0.02",
-                     facecolor=C["bad"], edgecolor="none", zorder=2))
-        ax.text(X_VB + VBW / 2, yc, verdict, fontsize=10.5, color="white", weight="bold",
-                ha="center", va="center", zorder=3)
-        for j, line in enumerate(why):
-            ax.text(X_WHY, yc + 0.045 - j * 0.045, line, fontsize=8.6, color=INK, va="center")
-    ax.text(X_NAME, 0.045,
-            "The method is ready; the observing system is the binding constraint — the map says what to measure:",
-            fontsize=8.8, style="italic", color=MUTED)
-    ax.text(X_NAME, 0.008,
-            "wider within-region Ω  ·  pure scavenged Fe  ·  per-PFT production.",
-            fontsize=8.8, style="italic", weight="bold", color=MUTED)
-    fig.savefig(OUT / "fig1_identifiability_map.png", bbox_inches="tight", pad_inches=0.15)
+    # caption (formal "Table N." style, left-aligned, above the rule)
+    ax.text(L, 0.95, "Table 1.", fontsize=11, weight="bold", color=INK, va="top")
+    ax.text(L + 0.075, 0.95,
+            "Which ECCO-Darwin biogeochemical closures real observations can constrain — none, "
+            "for three distinct reasons.", fontsize=10, color=INK, va="top")
+    y_toprule, y_header, y_midrule = 0.79, 0.72, 0.665
+    y_rows = [0.55, 0.40, 0.25]
+    y_botrule = 0.18
+    # rules (booktabs: heavier top/bottom, lighter mid; no vertical rules, no fills)
+    ax.plot([L, R], [y_toprule, y_toprule], color=INK, lw=1.4)
+    ax.plot([L, R], [y_midrule, y_midrule], color=INK, lw=0.8)
+    ax.plot([L, R], [y_botrule, y_botrule], color=INK, lw=1.4)
+    for x, h in cols:
+        ax.text(x, y_header, h, fontsize=9.5, weight="bold", color=INK, va="center")
+    for (name, param, obs, verdict, reason), y in zip(rows, y_rows):
+        ax.text(XC, y, name, fontsize=10, color=INK, va="center")
+        ax.text(XP, y, param, fontsize=8.5, color=INK, va="center", family="monospace")
+        ax.text(XO, y, obs, fontsize=9, color=INK, va="center")
+        ax.text(XV, y, verdict, fontsize=9.5, color=INK, va="center", style="italic")
+        ax.text(XW, y, reason, fontsize=8.7, color=INK, va="center")
+    ax.text(L, 0.10, "Notes: the scalar R_PICPOC is itself recoverable — only its Ω-modulation is "
+            "untestable. The method is not the limit; the observing system is.", fontsize=8,
+            style="italic", color=MUTED, va="top")
+    ax.text(L, 0.035, "Needed to break each limit: wider within-region Ω; a pure scavenged-Fe "
+            "observable; per-PFT production.", fontsize=8, style="italic", color=MUTED, va="top")
+    fig.savefig(OUT / "fig1_identifiability_map.png", bbox_inches="tight", pad_inches=0.12)
     plt.close(fig)
 
 
@@ -126,9 +115,9 @@ def fig2_calcite(pairs):
     ax1.barh(ys, vals, color=cols, height=0.62, zorder=3)
     for y, v in zip(ys, vals):
         ax1.text(v + 0.008, y, f"{v:.2f}", va="center", ha="left", fontsize=9.5, color=INK)
-    ax1.axvline(THRESH, ls=(0, (4, 3)), color=C["bad"], lw=1.8, zorder=2)
+    ax1.axvline(THRESH, ls=(0, (4, 3)), color=C["bad"], lw=1.8, zorder=6)
     ax1.text(THRESH + 0.016, 2.35, "identifiability\nthreshold\n(0.30 dex)",
-             color=C["bad"], fontsize=8.5, ha="left", va="center", weight="bold")
+             color=C["bad"], fontsize=8.5, ha="left", va="center", weight="bold", zorder=7)
     ax1.set_yticks(ys)
     ax1.set_yticklabels([f"{LBL[k]}  (n={pairs[k][0].size})" for k in order]
                         + ["pooled (between-biome)"], fontsize=9.5)
