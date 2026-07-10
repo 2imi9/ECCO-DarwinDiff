@@ -155,7 +155,13 @@ env-predictable (global Ω hold-out +0.14, permutation-p ≈ 0 on 1214 cells; ir
 ~1300 cells) — so a scavenging closure fit to held-out DFe would *appear* to work. But that
 apparent skill does not identify the rate; it is the information wall in action. The
 non-identifiability here is **structural, not a data-quantity problem** — more *dissolved* iron
-data would not close it.
+data would not close it. The profile-likelihood through the transport model makes this quantitative
+(`scripts/iron_scav_rat_profile.py` → `docs/findings/iron_scav_rat_profile.json`): `scav_rat` sits in
+a **flat** profiled-misfit band because `alpfe` (the source) compensates the sink, so concentration
+constrains the source/sink *combination*, not the rate. The band's *width* is threshold-dependent
+(**25× / 32× / 100×** at +0.01 / +0.02 / +0.05 log-MSE; the headline "32×" is the +0.02 value) — the
+specific multiple is a grid+threshold artifact, but the **flatness itself is not**, which is the
+load-bearing point.
 
 **A particulate:dissolved observable was tested as a way to break this wall — and it does not.**
 The idea: the scavenging *sink flux* `scav_rat·DFe·POC` becomes particulate iron, so a
