@@ -127,8 +127,8 @@ def fig2_calcite(pairs):
     for y, v in zip(ys, vals):
         ax1.text(v + 0.008, y, f"{v:.2f}", va="center", ha="left", fontsize=9.5, color=INK)
     ax1.axvline(THRESH, ls=(0, (4, 3)), color=C["bad"], lw=1.8, zorder=2)
-    ax1.text(THRESH, len(rows) - 0.35, "identifiability\nthreshold (0.30 dex)",
-             color=C["bad"], fontsize=8.5, ha="center", va="bottom", weight="bold")
+    ax1.text(THRESH + 0.016, 2.35, "identifiability\nthreshold\n(0.30 dex)",
+             color=C["bad"], fontsize=8.5, ha="left", va="center", weight="bold")
     ax1.set_yticks(ys)
     ax1.set_yticklabels([f"{LBL[k]}  (n={pairs[k][0].size})" for k in order]
                         + ["pooled (between-biome)"], fontsize=9.5)
