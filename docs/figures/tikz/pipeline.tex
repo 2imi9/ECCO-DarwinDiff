@@ -1,0 +1,50 @@
+% pipeline.tex -- the DarwinDiff differentiable parameter-learner pipeline, contrasted
+% with the traditional Green's-functions calibration. Scientifically faithful to the
+% implementation: three environmental covariates -> a per-cell DINN -> the six bounded
+% Carroll-6 parameters -> the differentiable 5-tracer carroll6 box -> an MSE loss vs
+% ECCO-Darwin v05, with gradients returned in one backward pass.
+% Standalone: `pdflatex pipeline.tex`.  In the paper: \usepackage{standalone}\input{pipeline}.
+\documentclass[border=8pt]{standalone}
+\usepackage{darwindiff-tikz}
+\begin{document}
+\begin{tikzpicture}[node distance=6mm and 9mm]
+
+  % ---- DarwinDiff: differentiable autograd pipeline (top) ------------------------
+  \node[ddlabel, text=ddIdent, anchor=west] (t1) at (0,1.15) {DarwinDiff --- differentiable (PyTorch autograd)};
+  \node[stage, anchor=west]        (env)  at (0,0)      {environment\\[1pt]\ddsub{SST\,$\cdot$\,wind\,$\cdot$\,MLD}};
+  \node[stage, right=of env]       (dinn) {DINN\\[1pt]\ddsub{per-cell net}};
+  \node[stage, right=of dinn]      (par)  {$\theta$: 6 params\\[1pt]\ddsub{per grid cell}};
+  \node[stage, right=of par]       (box)  {differentiable box\\[1pt]\ddsub{carroll6, 5 tracers}};
+  \node[stage, right=of box]       (loss) {MSE loss\\[1pt]\ddsub{vs ECCO-Darwin v05}};
+  \draw[flow] (env) -- (dinn);
+  \draw[flow] (dinn) -- (par);
+  \draw[flow] (par) -- (box);
+  \draw[flow] (box) -- (loss);
+  \draw[grad] (loss.north) to[out=90,in=90]
+        node[above=0.5pt, ddtiny, text=ddIdent] {one backward pass $\rightarrow$ all six $\partial\mathcal{L}/\partial\theta$}
+        (dinn.north);
+  \node[ddtiny, anchor=north] at ([yshift=-1mm]box.south) {5 tracers: DFe, P$_\mathrm{s}$, P$_\mathrm{l}$, POC, PIC};
+
+  % ---- Green's functions: traditional calibration (bottom) ----------------------
+  \node[ddlabel, text=ddMuted, anchor=west] (t2) at (0,-2.35) {Green's functions --- traditional (Menemenlis 2005; Carroll 2020)};
+  \node[stage, anchor=west]  (g0) at (0,-3.5)  {$\theta$ (6 params)};
+  \node[stage, right=of g0]  (g1) {perturb each\\parameter};
+  \node[stage, right=of g1, fill=ddAccentBg, draw=ddAccent] (g2) {$N$ full forward\\ECCO-Darwin runs};
+  \node[stage, right=of g2]  (g3) {linear\\least-squares};
+  \node[stage, right=of g3]  (g4) {global optimum\\[1pt]\ddsub{one value / param}};
+  \draw[flow] (g0) -- (g1);
+  \draw[flow] (g1) -- (g2);
+  \draw[flow] (g2) -- (g3);
+  \draw[flow] (g3) -- (g4);
+  \node[ddtiny, anchor=north] at ([yshift=-1mm]g2.south) {$\approx$ one full forward run per parameter};
+
+  % ---- the two contrasts --------------------------------------------------------
+  \node[verdict=ddIdent, fill=ddIdentBg, anchor=north west, font=\sffamily\scriptsize, text width=5.2cm]
+        at ([yshift=-9mm]g0.south west)
+        {\textbf{Cost:} 1 backward pass returns all six gradients, vs $\approx\!6$ forward GCM runs per Green's-functions iteration.};
+  \node[verdict=ddAccent, fill=ddAccentBg, anchor=north west, font=\sffamily\scriptsize, text width=5.2cm]
+        at ([xshift=6mm]$(g0.south west)+(5.2cm,-9mm)$)
+        {\textbf{Resolution:} $\theta$ is predicted \emph{per grid cell} from the local environment, vs one global scalar per parameter.};
+
+\end{tikzpicture}
+\end{document}

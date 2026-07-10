@@ -1,0 +1,51 @@
+% param_identifiability.tex -- the six Carroll-6 parameters, the real observable that
+% could constrain each, the identifiability verdict, and the verified recovery rate.
+% Numbers are the verified-experiment-loop record (verify_run exit 0): iron pair 38/40 at
+% the best 3-AOI config; the per-cell trio {alpfe, scav_rat, R_PICPOC} 7/10 vs 0/10 for a
+% single global-scalar vector; R_PICPOC 50/50 vs the Daniels calcite anchor.
+% Standalone: `pdflatex param_identifiability.tex`.
+\documentclass[border=8pt]{standalone}
+\usepackage{darwindiff-tikz}
+\usetikzlibrary{matrix}
+\begin{document}
+\begin{tikzpicture}
+
+  \matrix (m) [matrix of nodes, nodes in empty cells,
+      nodes={anchor=west, font=\sffamily\small, text=ddInk, minimum height=7.5mm,
+             inner xsep=7pt, text depth=0.5ex, text height=1.6ex},
+      column 1/.style={nodes={font=\ttfamily\small}},
+      column 5/.style={nodes={font=\sffamily\small}},
+      column sep=-\pgflinewidth, row sep=1.5pt] {
+    |[font=\sffamily\small\bfseries, text=ddMuted]| parameter &
+      |[font=\sffamily\small\bfseries, text=ddMuted]| process &
+      |[font=\sffamily\small\bfseries, text=ddMuted]| real observable &
+      |[font=\sffamily\small\bfseries, text=ddMuted]| verdict &
+      |[font=\sffamily\small\bfseries, text=ddMuted]| recovery \\
+    alpfe & iron dust solubility (source) & GEOTRACES DFe &
+      |[fill=ddIdentBg, text=ddIdent, rounded corners=3pt]| identifiable & 38/40 \\
+    scav\_rat & iron scavenging rate & GEOTRACES DFe &
+      |[fill=ddLimitBg, text=ddLimit, rounded corners=3pt]| observability wall & 8/10 cell, 0/10 global \\
+    R\_PICPOC & calcite rain ratio (PIC:POC) & Daniels/Marsh PIC:POC &
+      |[fill=ddIdentBg, text=ddIdent, rounded corners=3pt]| identifiable (scalar)$^\ast$ & 50/50 \\
+    diatomgraz & diatom palatability & Darwin POSi (not staged) &
+      |[fill=ddNonBg, text=ddNon, rounded corners=3pt]| non-identifiable & 4/10 (chance) \\
+    Smallgrow & small-phyto growth rate & NPP (aggregate only) &
+      |[fill=ddUnobsBg, text=ddUnobs, rounded corners=3pt]| unobservable & --- \\
+    Biggrow & large-phyto growth rate & NPP (aggregate only) &
+      |[fill=ddUnobsBg, text=ddUnobs, rounded corners=3pt]| unobservable & --- \\
+  };
+
+  % header rule + outer frame
+  \draw[ddLine, line width=0.6pt] (m-1-1.south west) -- (m-1-5.south east);
+  \draw[ddLine, line width=0.6pt] (m-1-1.north west) rectangle (m-7-5.south east);
+
+  % footnote + summary
+  \node[anchor=north west, font=\sffamily\scriptsize, text=ddMuted, align=left, text width=13cm]
+    at ([yshift=-3mm]m-7-1.south west)
+    {$^\ast$ the scalar \texttt{R\_PICPOC} recovers against any real ratio anchor; its \emph{$\Omega$-modulation} is support-limited (out-of-sample E2 negative).};
+  \node[verdict=ddIdent, fill=ddIdentBg, anchor=north west, font=\sffamily\footnotesize,
+        text width=13cm, align=left] at ([yshift=-10mm]m-7-1.south west)
+    {\textbf{Per-cell architecture is load-bearing.} The trio \{\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}\} holds jointly in \textbf{7/10} seeds per-cell, vs \textbf{0/10} for a single global-scalar vector. The binding constraint on the rest is the \emph{observing system}, not the method.};
+
+\end{tikzpicture}
+\end{document}

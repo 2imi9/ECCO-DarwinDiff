@@ -1,0 +1,49 @@
+% closure_map.tex -- the Track-2 (Paper #2) identifiability-limits map: the three BGC
+% closures real observations could target, and the distinct reason each cannot be sharply
+% constrained. Faithful to the write-up: iron = observability wall (structural), calcite
+% Omega-modulation = data/support-limited (within-region Omega <= 0.16 dex; out-of-sample
+% E2 negative), growth = structurally unobservable (NPP gives only the biomass-weighted mean).
+% Standalone: `pdflatex closure_map.tex`.
+\documentclass[border=8pt]{standalone}
+\usepackage{darwindiff-tikz}
+\begin{document}
+\begin{tikzpicture}
+
+  \tikzset{closurecard/.style={draw=ddLine, line width=0.6pt, rounded corners=3pt,
+    fill=white, text width=4.35cm, align=left, anchor=north west, inner sep=9pt}}
+
+  \node[ddlabel, text=ddMuted, anchor=west] at (0,3.35)
+    {Track 2 --- what real observations can (and cannot) constrain in Darwin's BGC closures};
+
+  % ---- iron: observability wall -------------------------------------------------
+  \node[closurecard] (iron) at (0,2.8) {%
+    {\sffamily\small\textbf{iron}}\hfill{\ttfamily\footnotesize scav\_rat}\\[3pt]
+    {\sffamily\scriptsize\bfseries\color{ddLimit} observability-limited (structural)}\\[5pt]
+    {\sffamily\footnotesize observable: DFe concentration}\\[4pt]
+    {\sffamily\scriptsize\color{ddMuted} concentration under-determines the scavenging \emph{rate} --- an information wall (Tagliabue 2016).}\\[4pt]
+    {\sffamily\scriptsize\color{ddMuted} \emph{evidence:} flat profile 25/32/100$\times$; a particulate:dissolved observable does not rescue it.}};
+
+  % ---- calcite: data / support-limited ------------------------------------------
+  \node[closurecard] (calc) at (4.85,2.8) {%
+    {\sffamily\small\textbf{calcite}}\hfill{\ttfamily\footnotesize R\_PICPOC} {\sffamily\scriptsize($\Omega$-modulation)}\\[3pt]
+    {\sffamily\scriptsize\bfseries\color{ddAccent} data / support-limited}\\[5pt]
+    {\sffamily\footnotesize observable: PIC:POC production ratio}\\[4pt]
+    {\sffamily\scriptsize\color{ddMuted} within-region $\Omega$ support $\le 0.16$ dex everywhere --- too narrow to fit $\mathrm{ratio}=R_0\,\Omega^{n}$.}\\[4pt]
+    {\sffamily\scriptsize\color{ddMuted} \emph{evidence:} independent GLODAPv3 $\Omega$ + driver test + out-of-sample E2 (negative).}};
+
+  % ---- growth: structurally unobservable ----------------------------------------
+  \node[closurecard] (grow) at (9.7,2.8) {%
+    {\sffamily\small\textbf{growth}}\hfill{\ttfamily\footnotesize Smallgrow, Biggrow}\\[3pt]
+    {\sffamily\scriptsize\bfseries\color{ddUnobs} structurally unobservable}\\[5pt]
+    {\sffamily\footnotesize observable: NPP / biomass}\\[4pt]
+    {\sffamily\scriptsize\color{ddMuted} total NPP constrains only the biomass-weighted \emph{mean} --- the pair stays degenerate.}\\[4pt]
+    {\sffamily\scriptsize\color{ddMuted} \emph{evidence:} loss-degenerate; needs a per-PFT production observable (none exists).}};
+
+  % ---- unifying verdict band ----------------------------------------------------
+  \node[verdict=ddAccent, fill=ddAccentBg, anchor=north west, font=\sffamily\footnotesize,
+        text width=14.05cm, align=left] at ([yshift=-6mm]iron.south west)
+    {Across all three, real observations do \textbf{not} sharply constrain the closure --- for \emph{three distinct reasons}. The binding constraint is the \textbf{observing system, not the method}. \\[3pt]
+     \textbf{Forward contribution:} an observing-system recommendation --- wider within-region $\Omega$ $\cdot$ pure scavenged Fe $\cdot$ per-PFT production.};
+
+\end{tikzpicture}
+\end{document}
