@@ -34,8 +34,11 @@ Two closures have real, Darwin-independent observations to target:
 
 For each closure we ran two mutually-checking analyses, all on the shared 1° grid, with the
 same honesty protocol (env-regime hold-out = extrapolate to an unseen environmental band;
-anomaly-R² against the train mean; permutation null; BH-FDR multiplicity correction; and a
-robustness sweep over the environment source, aggregation level, and box definition):
+anomaly-R² against the train mean; permutation null; a robustness sweep over the environment
+source, aggregation level, and box definition; and, for the earlier correlation-map analysis,
+BH-FDR multiplicity correction — note the distillation-oracle exponents below are reported as
+bootstrap CIs, *not* FDR-adjusted p-values, so the several per-basin/pooled oracle tests are not
+multiplicity-corrected):
 
 1. **Transport-free floor** — a trivial linear model at the observation cells. It bounds what
    signal is *in the data*, independent of the transport machinery.
@@ -60,49 +63,68 @@ and a separate verification workflow (both multi-agent) hardened the harness and
 
 | Darwin closure | observable | verdict | why |
 |---|---|---|---|
-| calcite `R_PICPOC` | PIC:POC (**≈ the parameter**) | not identifiable | **data-limited** (Ω support too narrow — confirmed on independent in-situ Ω) |
+| calcite: **Ω-modulation** of `R_PICPOC` (scalar `R_PICPOC` itself *is* recoverable) | PIC:POC production ratio | Ω-dependence **untestable** | **data-limited** (within-region Ω support ≤0.16 dex everywhere — confirmed on independent in-situ Ω) |
 | iron `scav_rat` | DFe concentration (**≠ the parameter**) | not identifiable | **observability-limited** (structural; not rescued by a particulate observable either) |
 | growth `Smallgrow`,`Biggrow` | phyto biomass / NPP | not identifiable | **structurally unobservable** (loss-degenerate; total NPP gives only the biomass-weighted mean) |
 
-**Calcite — data-limited.** The rain ratio *is* essentially the parameter (a steady-state
-identity makes standing-stock PIC:POC equal the production ratio Daniels/Marsh measure). But
-the observations are sparse and the environmental signal does not survive scrutiny: the rain
-ratio shows **no point-level correlation with in-situ Ω** in the best-sampled region (r = 0.01),
-matching Marañón et al. (2016), who found tropical calcification independent of carbonate
-chemistry across Ω = 1.5–6.5. An initial binned analysis looked regionally positive, but it
-**inverted** when the environment source was swapped from in-situ carbonate to the GLODAP
-climatology (the two agree only r = 0.24), so those positives were small-n / aggregation
-artifacts. Net: real calcite data cannot sharply constrain an environment-driven rain-ratio
+**Calcite — data-limited (specifically: the *Ω-dependence* of the rain ratio is untestable).**
+Two scopes must be kept separate. The **scalar** `R_PICPOC` is *already* recoverable — Track-1 lands
+it ≈ Carroll's value once the contaminated Southern-Ocean ratio target is sanitized. What real data
+cannot constrain is whether an **environmental driver modulates** it — the closure `ratio = R0·Ω^n`.
+`R_PICPOC` is a *production* parameter and the Daniels/Marsh 14C ratios are a matched *production*
+observable (unlike iron, no low-information projection), so the limit here is not the observable's
+kind but the environmental *excitation*. The correlation evidence is weak and underpowered, not a
+demonstrated absence: in the N. Atlantic-bloom cells corr(log ratio, in-situ Ω) = 0.01 (n ≈ 26, 95 %
+CI ≈ ±0.35 — a non-rejection), while in the best-sampled equatorial Pacific the in-situ correlation
+is actually *positive* (+0.25 GLODAP, +0.59 cache) but over a 0.08-dex Ω range too small to fit a
+curve. An initial binned analysis looked regionally positive but **inverted** when the environment
+source was swapped from in-situ carbonate to the GLODAP climatology (the two agree only r = 0.24),
+so those positives were small-n / aggregation artifacts. Net: real calcite data cannot constrain an
+Ω-driven rain-ratio
 closure at present sample sizes. **This null holds on fully independent in-situ carbonate data:**
 recomputing Ω from GLODAPv3 bottle DIC/TAlk/T/S (NCEI 0315582, 2026; 838 eqpac + 1740 natl
-bottles) rather than the model cache, the power-law oracle is **NULL in every basin** (eqpac
-exponent CI [−0.57, +3.02], natl [−8.32, +4.47], pooled Ω span 0.29 dex, still below the
-identifiability threshold), so the calcite verdict does **not** depend on model-derived Ω.
+bottles) rather than the model cache, the per-basin exponents are **non-significant** (eqpac CI
+[−0.57, +3.02], natl [−8.32, +4.47], both spanning zero on ≤0.17-dex within-basin support). The
+pooled fit's CI [−3.20, −0.27] formally *excludes* zero — a weak **negative** slope — but on only
+0.29-dex support and as a **between-basin contrast** (a Simpson slope across two biomes at
+different Ω levels; see below), so it is not evidence of a within-regime Ω-dependence. Either way,
+the calcite verdict does **not** depend on model-derived Ω.
 (The GLODAPv3 DIC/TAlk are internal-consistency-adjusted via the furthest-first crossover inversion
 of Humphreys et al. 2026; those per-cruise adjustments — ≲12 µmol kg⁻¹ — correct systematic offsets
 and *improve* consistency, so they cannot manufacture the narrow spatial Ω range, and the null is
 robust to them.)
 
-The symbolic-distillation oracle pins the *mechanism* of that data-limitation: run directly on
-the real pairs (Daniels rain ratio × Ω_calcite from the v05 carbonate cache), the power-law
-exponent `n` is **not identifiable in any basin, because the real Ω support is far too narrow**
-— eqpac spans only 0.08 dex (Ω 4.72–5.67, n = 34 cells), natl 0.08 dex (n = 26), and even
-pooling the two basins reaches just 0.25 dex (n = 60, exponent `n` = +0.89 with a 95 % bootstrap
-CI **[−0.23, +1.78]** that includes zero) — all below the 0.30-dex threshold at which a power
-law separates from a constant. The within-basin correlations look sizeable (eqpac r = +0.59)
-but are small-range artifacts that the oracle correctly refuses to trust. So the binding
-constraint is not sample size or closure capacity but **the observing system's Ω coverage**: the
-real records simply do not vary Ω enough, in these regions, to constrain an Ω-driven rain ratio.
+The symbolic-distillation oracle pins the *mechanism*, and it is a **support** limit, scoped to an
+**Ω-power-law closure** `ratio = R0·Ω^n`. Run on the real pairs (Daniels rain ratio × Ω_calcite),
+the exponent is **non-significant in every region because the within-region Ω support is far too
+narrow** — eqpac spans only 0.08 dex (Ω 4.72–5.67, n = 34 cells), natl 0.08 dex (n = 26). A
+locally-significant correlation does appear (eqpac Daniels r = +0.59, p < 0.001) but over so tiny an
+Ω range (0.08 dex) that it cannot distinguish a power law from a line — the oracle flags it as
+under-excited rather than trusting it, which is the honest call but should be read as *untestable
+here*, not *disproven*.
 
-Repeating the test on the **denser high-latitude Marsh et al. 2025 compilation** — which adds
-Southern-Ocean coverage Daniels lacks (12 cells at Ω 2.26–3.46) — pushes the pooled Ω support to
-**0.38 dex (n = 79), above the identifiability threshold**, and the answer becomes *sharper, not
-positive*: with adequate support the exponent is `n` = −0.47 with a 95 % CI **[−1.16, +0.16]**
-that straddles zero (and is, if anything, weakly negative). This **upgrades the calcite verdict
-from "under-excited / can't tell" to a tested null on adequate support** — the rain ratio is not
-an increasing power law of Ω even once Ω is varied enough to test it, consistent with Marañón's
-Ω-independence. (This uses the v05 cache Ω throughout and is a null, so it corroborates rather
-than resurrects the earlier in-situ positives that GLODAP deflated.)
+**The pooled tests do not rescue this, and must not be over-read.** Pooling basins raises the Ω
+*span* (Daniels 0.25 dex, Marsh + Southern Ocean 0.38 dex) but that span is **between-biome
+contrast** — each individual biome is ≤0.16 dex — so a pooled exponent (Daniels `n` = +0.89, CI
+[−0.23, +1.78]; Marsh `n` = −0.47, CI [−1.16, +0.16]; GLODAP `n` = −1.80, CI [−3.20, −0.27]) is a
+**Simpson cross-basin slope** across biomes sitting at different mean Ω *and* different mean rain
+ratio, not a within-regime Ω→ratio response. In fact the within-basin Marsh slopes are individually
+significantly **positive** (eqpac `n` = +3.40, CI [+0.23, +6.48]; natl `n` = +11.10, CI [+6.60,
++17.64]) — the pooled slope only flips negative because the lower-Ω subpolar basin has a *higher*
+mean rain ratio (geomean 0.056 at Ω ≈ 3.7) than the higher-Ω tropics (0.035 at Ω ≈ 5.2), i.e. a
+between-basin intercept ordering. So the pooled slopes disagreeing in sign is the signature of a
+between-group artifact, not a physical dependence, and we make **no** claim that the ratio is
+Ω-flat or Ω-decreasing. (The 0.30-dex
+"identifiability threshold" is a heuristic, not a power-analysis result; treat it as a flag that
+the within-region range is too small to fit a curve, not as a hard pass/fail.)
+
+**Honest calcite verdict, correcting an earlier over-statement.** Real calcite data — cache Ω *and*
+independent in-situ GLODAPv3 Ω alike — **cannot test a within-region Ω-power-law rain-ratio closure,
+because no region has enough within-region Ω range** (≤0.16 dex everywhere). This is an
+observing-system limit *for that closure form*; it does **not** rule out a rain ratio driven by
+temperature, coccolithophore fraction, or another variable that Darwin actually keys on (untested
+here). The corroboration with Marañón (2016) is directional (tropical calcification ≈ Ω-independent),
+not a within-regime replication.
 
 **Iron — observability-limited (an information wall).** Unlike calcite, dissolved-iron
 *concentration* is a low-information projection of the scavenging *rate*: many `scav_rat`
@@ -148,11 +170,14 @@ case). So growth is at best *aggregate*-observable-in-principle — the third cl
 
 - This is **not** a "transport closes the gap" pass, **not** a recovered parameter, and **not**
   "made Darwin differentiable / learned real biology." It is a bound on observability.
-- The differentiable machinery is sound and verified, but at these small calcite sample sizes
-  (validation sets ~4–9 cells) the transport-UDE deltas are within hold-out instability and the
-  K_num control is non-discriminating (transport is inert in the surface-scored rollout). The
-  robust evidence is the transport-free floor + the cross-source robustness, not any single UDE
-  delta.
+- **The differentiable-transport machinery did not contribute to any delivered verdict.** The
+  pre-registered make-or-break test (E2 — a learned closure fit on part of the data and scored on
+  *held-out* cells through transport) came back **under-powered and non-discriminating** at these n:
+  the transport-UDE deltas are within hold-out instability and the K_num control is inert (transport
+  is decorative in the surface-scored rollout). Every verdict in this map therefore rests on a
+  **transport-free floor + an *in-sample* bootstrap-CI oracle**, not on the out-of-sample transport
+  E2. The title/framing should be read as "an identifiability study *motivated by* the differentiable
+  approach," not "results obtained *through* it" — the make-or-break out-of-sample gate remains open.
 - The result is corroborated by independent published field data (Marañón 2016) and by
   **independent in-situ carbonate data** (GLODAPv3, 2026), on which the calcite oracle returns the
   same null — so the calcite verdict does not depend on model-derived Ω.
