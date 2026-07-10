@@ -1,8 +1,8 @@
 # Track-2 write-up — what real observations can (and cannot) constrain in Darwin's BGC closures
 
-*Reference write-up, 2026-07-09. A results summary in write-up format, not a submitted
-manuscript. The working record (how the analysis got here, including a deflated over-claim)
-is in `2026-07-09_calcite_identifiability_map.md`.*
+*Reference write-up, 2026-07-09 (symbolic-distillation oracle diagnosis added 2026-07-10). A
+results summary in write-up format, not a submitted manuscript. The working record (how the
+analysis got here, including a deflated over-claim) is in `2026-07-09_calcite_identifiability_map.md`.*
 
 ## Summary
 
@@ -42,6 +42,15 @@ robustness sweep over the environment source, aggregation level, and box definit
 2. **Differentiable transport-UDE** — the full windowed-BPTT closure fit through prescribed
    DB-1 iron forcing + DB-2 velocity, learned-minus-null held-out anomaly-R² with a K_num
    (numerical-diffusion) control.
+3. **Symbolic-distillation identifiability oracle** — an independent, gradient-free test of
+   whether the candidate mechanistic law is recoverable *on the support the data actually
+   span*. It distills the closure's driver→output law by bootstrap regression against a
+   physics-anchored candidate (a Monod bank for iron; a power law `ratio = R0·Ω^n` for
+   calcite) and returns a verdict only when the mechanism is (a) significant, (b) stable
+   across bootstraps, and (c) **distinguishable from its degenerate confounder on the visited
+   support** — a Monod from a straight line only above the half-saturation knee, a power law
+   from a constant only over a spanned driver range. Its role here is to convert "the signal
+   is weak" into a quantitative statement of *why* — is the driver even excited?
 
 The machinery is verified: div-free transport, mass-conserving semi-implicit vertical
 diffusion, a checkpointed BPTT trainer, and a full-suite gate. An adversarial-review workflow
@@ -64,6 +73,17 @@ chemistry across Ω = 1.5–6.5. An initial binned analysis looked regionally po
 climatology (the two agree only r = 0.24), so those positives were small-n / aggregation
 artifacts. Net: real calcite data cannot sharply constrain an environment-driven rain-ratio
 closure at present sample sizes.
+
+The symbolic-distillation oracle pins the *mechanism* of that data-limitation: run directly on
+the real pairs (Daniels rain ratio × Ω_calcite from the v05 carbonate cache), the power-law
+exponent `n` is **not identifiable in any basin, because the real Ω support is far too narrow**
+— eqpac spans only 0.08 dex (Ω 4.72–5.67, n = 34 cells), natl 0.08 dex (n = 26), and even
+pooling the two basins reaches just 0.25 dex (n = 60, exponent `n` = +0.89 with a 95 % bootstrap
+CI **[−0.23, +1.78]** that includes zero) — all below the 0.30-dex threshold at which a power
+law separates from a constant. The within-basin correlations look sizeable (eqpac r = +0.59)
+but are small-range artifacts that the oracle correctly refuses to trust. So the binding
+constraint is not sample size or closure capacity but **the observing system's Ω coverage**: the
+real records simply do not vary Ω enough, in these regions, to constrain an Ω-driven rain ratio.
 
 **Iron — observability-limited (an information wall).** Unlike calcite, dissolved-iron
 *concentration* is a low-information projection of the scavenging *rate*: many `scav_rat`
@@ -103,9 +123,13 @@ is the binding constraint.
 
 - Send this framing to the collaborators; confirm the identifiability-limits result is the
   target Track-2 contribution (vs pivoting to a different closure/observable).
-- Calcite: co-locate a denser tropical production+carbonate dataset (Malaspina 2010 / Marañón
-  2016; JGOFS EqPac) to convert the currently-weak equatorial-Pacific test into a firmer
-  tested negative.
+- Calcite: the oracle makes the lever explicit — the binding constraint is **Ω support**, not
+  sample size or closure size, so the pre-registered "pool basins + smaller closure" E2 rerun
+  will **not** recover identifiability (pooled Ω already spans only 0.25 dex), and is not worth
+  the GPU. The only thing that would change the verdict is **wider Ω coverage**: co-locate a
+  dataset that actually varies Ω (high-latitude / Southern-Ocean calcite, or a
+  production+carbonate compilation spanning Ω well beyond the tropical 4–6 band). This is a
+  data-staging question, not a compute or method one.
 - Iron: formalize the information wall with a `scav_rat` profile-likelihood through the
   transport model (the concentration→rate equifinality made explicit), rather than the
   concentration floor alone.
@@ -115,7 +139,11 @@ is the binding constraint.
 Harness + analyses (branch `2imi9/status-handoff-2026-07-07`): `src/darwindiff/held_out_obs.py`,
 `marsh_loader.py`, `geotraces_loader.dfe_aoi_1deg_grid`; `scripts/{e2_real_calcite_eqpac,
 marsh_identifiability_map, marsh_glodap_identifiability, marsh_omega_vs_bloom,
-geotraces_glodap_identifiability, probe_marsh_env_rainratio}.py`;
-`docs/research_notes/2026-07-09_{e2_calcite_preregistration, calcite_identifiability_map}.md`.
+geotraces_glodap_identifiability, probe_marsh_env_rainratio}.py`; the symbolic-distillation
+oracle `scripts/symbolic_distill_probe.py` (+ `symbolic_distill_dynamics_probe.py`,
+`calcite_omega_identifiability_real.py`, `tests/test_symbolic_distill.py`);
+`docs/research_notes/2026-07-09_{e2_calcite_preregistration, calcite_identifiability_map,
+parameter_conditioned_emulator_update}.md`; `docs/findings/2026-07-09_symbolic_distillation_identifiability_oracle.md`
++ `calcite_omega_identifiability_real.json`.
 Data (gitignored): Marsh 2025 (`data/marsh/`), GLODAPv2.2016b (`data/glodap/`), GEOTRACES
 IDP2025 + ECCO-Darwin v05 native (on `D:`).
