@@ -27,11 +27,14 @@ is framed as a **surrogate-to-model identifiability study** — which of the six
 identifiable from real ocean observations, which are not, and why. *The study is complete; paper #1 is in
 preparation.*
 
-Two tracks: **(1) Parameter learner** *(complete — paper #1 in preparation)* — a surrogate-to-model
-identifiability study that replaces Green's-functions calibration;
-**(2) Emulator / spatial UDE** *(feasibility-probed on the 0-D box; real-scale build gated on paper #1)* —
-a differentiable spatial model / neural stand-in for long-timescale climate runs. Box-scale probes are
-synthetic self-twin only (no transport, not real Darwin).
+Two tracks, both now at a **collaboration gate** (awaiting a domain-expert read, not more compute):
+**(1) Parameter learner** *(paper #1, in preparation)* — replaces Green's-functions calibration and
+recovers the *identifiable* Carroll-6 subset per cell; **(2) Track 2 — identifiability-limits map**
+*(paper #2, complete)* — with prescribed transport, it asks which BGC closures real observations can
+constrain, and finds they can't sharply constrain any of the three (iron, calcite, growth): the binding
+constraint is the **observing system, not the method**. A full spatial emulator/UDE would be a
+forward/OSSE tool (which observations would break the limits), **not** an identifiability rescue — gated
+on direction, not built.
 
 ## Installation
 
@@ -78,20 +81,24 @@ uv run python scripts/verify_run.py runs/eqpac          # exit 0 == trustworthy
 
 ## Headline result
 
-The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95 %)** at the best 3-AOI config
-(~7 min/fit) — and **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC).
-The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 7/10 seeds** — a
-3-of-4-observable frontier, driven by real, Darwin-independent anchors. This is a consistency check
-against Carroll's own values, not a cross-validated discovery against the GCM: the 0-D box homogenizes
-(no transport), so held-out real-data R² is negative and identifiability must come from real absolute
-anchors — closing that gap is Track 2's job.
+**Paper #1 (parameter learner).** The iron pair (`alpfe`, `scav_rat`) recovers reproducibly —
+**38/40 (95 %)** at the best 3-AOI config (~7 min/fit) — and the best config (`geo1`) holds
+**{`alpfe`, `scav_rat`, `R_PICPOC`} jointly 7/10 seeds** against real, Darwin-independent anchors (a
+3-of-4-observable frontier); a per-cell-vs-global ablation confirms the per-cell network is load-bearing
+(7/10 vs 0/10). This is a **consistency check** against Carroll's own values, not a cross-validated
+discovery — the 0-D box homogenizes, so held-out real-data R² is negative. The honest target is **4
+observable params**: the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction**, so
+"6/6" is the wrong frame, and `R_PICPOC` was never a wall (it recovers against real calcite; the deeper
+finding is that Carroll's *global* rain ratio is itself under-constrained and should be regional).
 
-The honest target is **4 observable params**; the growth pair {`Smallgrow`, `Biggrow`} is
-**unobservable by construction** (growth rates are not measured), so "6/6" is the wrong frame — and
-`R_PICPOC` was never a wall. It recovers against real calcite (consistent with Carroll within the wide
-Cal band, not a validation of 0.0425); the deeper result is that Carroll's *global* rain ratio is itself
-under-constrained and should be regional. **The full per-config record is the [Config / Results Matrix][matrix_url]**;
-current best + known limits live in **[STATUS.md][status_url]**.
+**Paper #2 (identifiability-limits map).** Adding prescribed transport does **not** turn the consistency
+check into a discovery: across the three targetable closures, real observations fail to constrain them
+for three distinct reasons — iron `scav_rat` = observability wall, calcite Ω-modulation = support-limited
+(the out-of-sample E2 is a decisive negative), growth = structurally unobservable. The binding
+constraint is the **observing system, not the method** — a map of *what is observable* is the contribution.
+
+**The full per-config record is the [Config / Results Matrix][matrix_url]**; current best + known limits
+live in **[STATUS.md][status_url]**.
 
 ## Documentation
 
