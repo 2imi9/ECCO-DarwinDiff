@@ -118,7 +118,7 @@ agg = aggregate_config(OUTPUT_ROOT / name)
 ```
 
 Headline metrics for the Carroll-6 framework:
-- `n_at_6` — full recovery (rare; the 5/6 ceiling is the structural mutex)
+- `n_at_6` — full recovery (historical metric; honest target is 4 observable params, growth pair unobservable — see STATUS.md)
 - `n_at_5` — methodological success
 - `iron_pair_joint` — both alpfe AND scav_rat Cal+ (the historically hard pair)
 - `mean_cal` — average params recovered across seeds

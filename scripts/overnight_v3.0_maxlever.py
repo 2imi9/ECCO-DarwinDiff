@@ -1,6 +1,6 @@
 """Overnight v3.0 max-lever stack sweep.
 
-Hypothesis: the 5/6 ceiling is a 2-basin observation lock-in diagnosed at
+Hypothesis: the 5/6 ceiling [historical framing, superseded — see STATUS.md] is a 2-basin observation lock-in diagnosed at
 pairs / triples of levers (PR #61-#63). The full superset has never been
 tested. If 6/6 is reachable without satellite data, it lives at the stack
 of every basin-A and basin-B lever simultaneously.

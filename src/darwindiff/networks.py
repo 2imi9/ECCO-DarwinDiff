@@ -241,3 +241,42 @@ class DINNDeep(nn.Module):
         if squeeze:
             x = x.squeeze(0)
         return x
+
+
+class GlobalScalarNet(nn.Module):
+    """Ablation control: a single GLOBAL parameter vector applied to every cell.
+
+    Drop-in replacement for :class:`DINN` with the identical call signature
+    (``env -> [n_outputs, H, W]``), but the output is **constant across cells**:
+    one learnable ``n_outputs``-vector broadcast to the whole grid. Pair with
+    :func:`darwindiff.carroll6.bounded_params` exactly like ``DINN`` (the raw
+    vector is unbounded; the sigmoid map is applied downstream).
+
+    This is the control for the per-cell-vs-global-scalar ablation. It is the
+    differentiable analogue of Carroll's actual calibration, which produces a
+    *single* global Carroll-6 parameter set (one Green's-functions optimum), not
+    a per-cell field. Holding the forcing, the forward integrator, the loss, and
+    the scoring byte-identical and swapping ONLY the parameter source isolates
+    what the per-cell predictor buys: if per-cell does not beat this control on
+    the real-anchor loss, the per-cell architecture is not load-bearing.
+
+    The forward ignores the per-cell content of ``env`` (by construction — a
+    global scalar cannot use per-cell covariates) but still reads its spatial
+    shape so the broadcast matches whatever grid the runner feeds in.
+    """
+
+    def __init__(self, n_input_channels: int = 3, hidden_dim: int = 16,
+                 n_outputs: int = 6, n_hidden_layers: int = 2) -> None:
+        # Signature mirrors DINN so the runner can construct it the same way;
+        # only n_outputs is used. theta starts near 0 (-> mid-bounds via sigmoid),
+        # with small per-seed jitter for ensemble spread (seed set by the caller).
+        super().__init__()
+        self.theta = nn.Parameter(0.01 * torch.randn(n_outputs))
+
+    def forward(self, env: torch.Tensor) -> torch.Tensor:
+        n = self.theta.shape[0]
+        if env.ndim == 3:
+            h, w = env.shape[-2], env.shape[-1]
+            return self.theta.view(n, 1, 1).expand(n, h, w)
+        b, h, w = env.shape[0], env.shape[-2], env.shape[-1]
+        return self.theta.view(1, n, 1, 1).expand(b, n, h, w)
