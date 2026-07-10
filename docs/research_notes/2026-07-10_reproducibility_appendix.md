@@ -11,8 +11,11 @@ reproducibility gap; merge before submission.
 
 **Software.** Python 3.11.9; torch 2.11.0+cu128, numpy 2.3.5, scipy 1.16.0, scikit-learn 1.7.0,
 pandas 2.2.3. All identifiability numbers here run **CPU-only** (`CUDA_VISIBLE_DEVICES=-1`); no GPU
-or cluster is needed to reproduce the map (the transport-UDE E2, which did not contribute to any
-verdict, is the only GPU piece).
+or cluster is needed to reproduce the in-sample identifiability map. The real-data transport **E2** —
+the make-or-break out-of-sample check that confirms the *calcite* verdict — is the one GPU piece (and
+its specific numbers are, as of this writing, single-seed and not yet emitted to a committed JSON; see
+the E2 finding note). The earlier *synthetic* transport-UDE closure-recovery did not feed any map
+verdict.
 
 ## Input datasets (all gitignored — too large / redistribution-restricted)
 
