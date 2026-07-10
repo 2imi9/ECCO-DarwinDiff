@@ -37,7 +37,7 @@ Three closures have real, Darwin-independent observations to target:
 
 ## Method
 
-For each closure we ran two mutually-checking analyses, all on the shared 1° grid, with the
+For each closure we ran up to three mutually-checking analyses, all on the shared 1° grid, with the
 same honesty protocol (env-regime hold-out = extrapolate to an unseen environmental band;
 anomaly-R² against the train mean; permutation null; a robustness sweep over the environment
 source, aggregation level, and box definition; and, for the earlier correlation-map analysis,
