@@ -87,7 +87,7 @@ data) so the sweeps never touch the ~TB native tree — the data-discipline patt
 
 ## Open reproducibility items (before submission)
 
-1. Merge `2imi9/status-handoff-2026-07-07` → `main` (code currently on an unmerged branch).
+1. ~~Merge `2imi9/status-handoff-2026-07-07` → `main`~~ — **DONE** (#180, 2026-07-10; all Track-2 code + findings now on `main`).
 2. ~~Regenerate + commit the iron env-predictability JSON~~ — **DONE** (`21f238e`; R6-1 closed above; v2.2016b re-staged, GLOBAL-Ω +0.14 reproduced exactly).
 3. The make-or-break **out-of-sample transport E2 was run** for calcite (commit `aa0cc1b`) and
    returns a decisive negative (learned closure does not beat the constant-through-transport null;

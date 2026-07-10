@@ -141,8 +141,8 @@ map (`docs/research_notes/2026-07-09_track2_identifiability_writeup.md`; reprodu
 Hardened by an 8-reviewer adversarial panel (Simpson-artifact / CI / scope corrections applied) and a
 reproducibility appendix. The map's forward contribution is an **observing-system recommendation**
 (wider within-region Ω; pure scavenged Fe; per-PFT production). New method artifact: the
-**symbolic-distillation identifiability oracle** (`scripts/symbolic_distill_probe.py`). Everything on
-branch `2imi9/status-handoff-2026-07-07` (unmerged). _Prior Phase-1-tooling status below._
+**symbolic-distillation identifiability oracle** (`scripts/symbolic_distill_probe.py`). Merged to
+`main` via #180 (2026-07-10). _Prior Phase-1-tooling status below._
 
 ## Track 2 — differentiable spatial model (status: foundation BUILT + synthetic closure-recovery result; real-data E2 gate unbuilt)
 
