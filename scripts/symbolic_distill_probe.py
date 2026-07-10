@@ -435,6 +435,44 @@ def distill_powerlaw(driver: np.ndarray, y: np.ndarray, *,
 # Closure sampling helpers
 # ----------------------------------------------------------------------------- #
 
+def gather_visited_support(closure_fn, trajectory, tracer_index: int = 0):
+    """Extract the ``(driver, y)`` pairs a trained closure actually visited.
+
+    ``trajectory`` is an integrated field ``[..., tracer]`` (any leading shape:
+    snapshots, columns, depth, grid). The driver is tracer ``tracer_index``
+    (DFe=0 for the iron Monod closure) flattened over every visited cell, kept
+    strictly positive; ``y`` is the frozen closure evaluated on it. Returns numpy
+    ``(driver, y)`` ready for :func:`distill` / :func:`distill_powerlaw` or
+    :func:`dump_support_npz`.
+
+    Wire into a training arm in one line after the eval rollout, e.g.::
+
+        driver, y = gather_visited_support(net, eval_traj)   # DFe closure
+        dump_support_npz(out / f"support_{tag}.npz", driver, y)
+        # then, offline / post-hoc:
+        #   python scripts/symbolic_distill_probe.py --npz support_<tag>.npz --kind monod
+    """
+    import torch
+    t = trajectory.detach() if torch.is_tensor(trajectory) else torch.as_tensor(trajectory)
+    driver = t[..., tracer_index].reshape(-1)
+    driver = driver[driver > 0]
+    driver_np = driver.cpu().numpy()
+    y = sample_closure(closure_fn, driver_np)
+    return driver_np, y
+
+
+def dump_support_npz(path, driver: np.ndarray, y: np.ndarray,
+                     groups: np.ndarray | None = None) -> None:
+    """Save a closure's visited ``(driver, y)`` support to an ``.npz`` the ``--npz``
+    CLI reads. Keys: ``driver``, ``y`` (and optional ``groups`` for a spatial
+    split). ``dfe`` is accepted as an alias for ``driver`` on read."""
+    arrs = {"driver": np.asarray(driver), "y": np.asarray(y)}
+    if groups is not None:
+        arrs["groups"] = np.asarray(groups)
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    np.savez(path, **arrs)
+
+
 def sample_closure(closure_fn, dfe: np.ndarray) -> np.ndarray:
     """Evaluate a frozen closure (numpy callable or torch nn.Module) on the
     visited DFe samples, returning numpy ``y``."""
@@ -596,7 +634,9 @@ def _train_demo(seed: int = 0) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--npz", type=str, default=None,
-                    help="distill a real (dfe, y) closure dump: keys 'dfe','y'[,'groups']")
+                    help="distill a closure dump: keys 'driver'(or 'dfe'),'y'[,'groups']")
+    ap.add_argument("--kind", choices=["monod", "powerlaw"], default="monod",
+                    help="oracle for --npz: 'monod' (iron ffe) or 'powerlaw' (calcite ratio~Omega^n)")
     ap.add_argument("--train-demo", action="store_true",
                     help="train a tiny MonodAnchored on CPU and distill it")
     ap.add_argument("--calcite", action="store_true",
@@ -608,9 +648,14 @@ def main() -> int:
     result: dict
     if args.npz:
         d = np.load(args.npz)
-        groups = d["groups"] if "groups" in d else None
-        v = distill(d["dfe"], d["y"], groups=groups, seed=args.seed)
-        print(("PASS" if v.passed else "FAIL"), "-", v.reason)
+        driver = d["driver"] if "driver" in d else d["dfe"]  # 'dfe' alias
+        if args.kind == "powerlaw":
+            v = distill_powerlaw(driver, d["y"], seed=args.seed)
+            print(("IDENTIFIABLE" if v.identifiable else "NON-IDENTIFIABLE"), "-", v.reason)
+        else:
+            groups = d["groups"] if "groups" in d else None
+            v = distill(driver, d["y"], groups=groups, seed=args.seed)
+            print(("PASS" if v.passed else "FAIL"), "-", v.reason)
         result = v.as_dict()
     elif args.calcite:
         print("== power-law oracle: Omega-driven rain-ratio identifiability ==")

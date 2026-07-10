@@ -202,6 +202,48 @@ def test_powerlaw_verdict_json_serializable():
     json.dumps(sd.distill_powerlaw(om, ratio, seed=13).as_dict())
 
 
+# --------------------------------------------------------------------------- #
+# H200-arm seam: gather visited support + npz dump/read roundtrip
+# --------------------------------------------------------------------------- #
+
+def test_gather_visited_support_from_trajectory():
+    """Extract positive (driver, y) pairs a closure visited over a trajectory."""
+    import torch
+    # a [snapshots, cells, tracer] field; tracer 0 = DFe (some non-positive to drop)
+    traj = torch.zeros(3, 5, 5)
+    traj[..., 0] = torch.tensor([1e-5, 1e-4, 1e-3, 0.0, -1.0]).reshape(1, 5).expand(3, 5)
+    closure = lambda dfe: dfe / (dfe + 8e-5)  # numpy/torch-agnostic
+    driver, y = sd.gather_visited_support(closure, traj, tracer_index=0)
+    assert (driver > 0).all()
+    assert driver.size == 3 * 3  # 3 positive DFe values x 3 snapshots
+    assert y.shape == driver.shape
+
+
+def test_dump_and_read_npz_roundtrip_monod(tmp_path):
+    rng = np.random.default_rng(20)
+    dfe = np.logspace(-5, -3, 2000)
+    y = _monod(dfe) + 0.002 * rng.standard_normal(dfe.size)
+    p = tmp_path / "support.npz"
+    sd.dump_support_npz(p, dfe, y)
+    d = np.load(p)
+    assert "driver" in d and "y" in d
+    v = sd.distill(d["driver"], d["y"], seed=20)
+    assert v.passed
+
+
+def test_npz_dfe_alias_still_reads():
+    """Legacy dumps keyed 'dfe' must still work via the read alias."""
+    import io
+    dfe = np.logspace(-5, -3, 500)
+    y = _monod(dfe)
+    buf = io.BytesIO()
+    np.savez(buf, dfe=dfe, y=y)
+    buf.seek(0)
+    d = np.load(buf)
+    driver = d["driver"] if "driver" in d else d["dfe"]
+    assert driver.shape == dfe.shape
+
+
 def test_spatial_holdout_overlapping_groups_transfers():
     """Two spatial regimes that overlap in the DFe driver -> leave-one-group-out
     is a fair interpolation test, and a pure Monod transfers well."""
