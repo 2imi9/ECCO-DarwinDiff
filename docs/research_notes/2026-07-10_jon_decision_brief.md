@@ -6,6 +6,17 @@ have narrowed to a small number of genuine decisions. This is the internal drive
 conversation; the shareable version is the write-up
 ([`2026-07-09_track2_identifiability_writeup.md`](2026-07-09_track2_identifiability_writeup.md)).
 
+## Decisions taken (2026-07-10, internal)
+
+- **D1 — Both, in parallel.** The identifiability map is the baseline Track-2 deliverable; in
+  parallel, hunt a positive E2 by trying the levers **one at a time**, cost-first (CPU
+  transport-free floor + distillation oracle *before* any GPU E2), using best-judgment targets
+  since the specific datasets are not yet documented.
+- **D2 — Try levers one by one, best guess.** Order by tractability on data we can actually reach.
+- **D3 — The map is the contribution.** Paper #2's validation claim is the honest identifiability
+  bound (what real obs can/cannot constrain, and why), **not** contingent on an E2 pass. A
+  positive E2, if one is found, is upside on top of the map.
+
 ## TL;DR — the one decision
 
 Track-2's honest result is an **identifiability-limits map**: real observations do **not**
@@ -56,9 +67,15 @@ oracle shows Ω support, not sample size or closure size, is the binding constra
   lever is narrower than before: either an *independent* in-situ carbonate Ω (to rule out a
   cache-Ω artifact) or a fundamentally different, even-wider-Ω calcite record. Is either worth
   pursuing, or does the tested null settle the calcite closure?
-- *Iron lever:* an observable **closer to the scavenging rate** than concentration — e.g.
-  dissolved/particulate Fe partitioning, ligand concentrations, or Fe isotopes. Does an
-  accessible product exist that constrains the rate rather than the pool?
+- *Iron lever — tested, PASSES the self-twin go/no-go (most promising).* The
+  particulate:dissolved partitioning ratio `pFe/DFe ≈ scav_rat·POC/W_SINK` has no `alpfe`
+  dependence, so it breaks the dissolved-only wall: on the real eqpac footprint + transport it
+  tightens the `scav_rat` band from 19× (dissolved) to ~1× (~14× tighter). GEOTRACES measures it
+  (`Fe_TP_CONC`/`Fe_D_CONC`). This is the strongest positive-E2 lead. The open question for the
+  real E2 is **contamination**: measured `Fe_TP` includes biogenic + lithogenic particulate iron,
+  not only scavenged Fe — is the labile particulate fraction (`Fe_TPL`), or another scavenged-Fe
+  proxy, the right target? (Fe isotopes / ligands are secondary fallbacks if partitioning is too
+  contaminated.)
 - *A third closure* with a real, Darwin-independent observation that is *both* environment-driven
   *and* observed where the environment varies — is there a better-posed target than iron or
   calcite?

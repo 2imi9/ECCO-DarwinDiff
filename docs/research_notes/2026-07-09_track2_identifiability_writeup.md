@@ -102,8 +102,23 @@ profile-likelihood diagnostics). Empirically, DFe concentration **is** robustly
 env-predictable (global Ω hold-out +0.14, permutation-p ≈ 0 on 1214 cells; iron is dense,
 ~1300 cells) — so a scavenging closure fit to held-out DFe would *appear* to work. But that
 apparent skill does not identify the rate; it is the information wall in action. The
-non-identifiability here is **structural, not a data-quantity problem** — more iron data would
-not close it.
+non-identifiability here is **structural, not a data-quantity problem** — more *dissolved* iron
+data would not close it.
+
+**But the wall is specific to the *dissolved* observable, and it breaks with a particulate one.**
+The scavenging *sink flux* `scav_rat·DFe·POC` becomes particulate iron, so the particulate:
+dissolved partitioning ratio `pFe/DFe ≈ scav_rat·POC/W_SINK` has **no direct `alpfe` dependence**
+— it lies along the very axis the dissolved-only likelihood is flat along. A self-twin
+profile-likelihood on the real eqpac footprint through transport confirms it: dissolved DFe leaves
+`scav_rat` unidentifiable over a **19× band**, while the partitioning ratio collapses it to a sharp
+well at the true rate (**~14× tighter**;
+[`2026-07-10_iron_partitioning_breaks_the_wall.md`](../findings/2026-07-10_iron_partitioning_breaks_the_wall.md)).
+GEOTRACES IDP2025 measures exactly this observable (`Fe_TP_CONC` alongside `Fe_D_CONC`), so there
+is a **concrete positive-E2 lever**: fit the scavenging closure to the real partitioning ratio
+through transport, held-out scored. The binding risk is no longer identifiability but
+*contamination* — measured `Fe_TP` also includes biogenic and lithogenic particulate iron the box
+does not model, so a real E2 needs a scavenged-Fe proxy (e.g. the labile particulate `Fe_TPL`).
+This is a self-twin capacity result, not yet a real-data recovery.
 
 ## Honest scope
 
