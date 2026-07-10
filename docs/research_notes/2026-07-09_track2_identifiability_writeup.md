@@ -223,6 +223,9 @@ is the binding constraint.
 
 ## Provenance
 
+Full data checksums, findings→commit mapping, software versions, and reproduction commands are in the [reproducibility appendix](2026-07-10_reproducibility_appendix.md).
+
+
 Harness + analyses (branch `2imi9/status-handoff-2026-07-07`): `src/darwindiff/held_out_obs.py`,
 `marsh_loader.py`, `geotraces_loader.dfe_aoi_1deg_grid`; `scripts/{e2_real_calcite_eqpac,
 marsh_identifiability_map, marsh_glodap_identifiability, marsh_omega_vs_bloom,
