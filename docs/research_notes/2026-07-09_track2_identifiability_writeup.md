@@ -85,6 +85,16 @@ but are small-range artifacts that the oracle correctly refuses to trust. So the
 constraint is not sample size or closure capacity but **the observing system's Ω coverage**: the
 real records simply do not vary Ω enough, in these regions, to constrain an Ω-driven rain ratio.
 
+Repeating the test on the **denser high-latitude Marsh et al. 2025 compilation** — which adds
+Southern-Ocean coverage Daniels lacks (12 cells at Ω 2.26–3.46) — pushes the pooled Ω support to
+**0.38 dex (n = 79), above the identifiability threshold**, and the answer becomes *sharper, not
+positive*: with adequate support the exponent is `n` = −0.47 with a 95 % CI **[−1.16, +0.16]**
+that straddles zero (and is, if anything, weakly negative). This **upgrades the calcite verdict
+from "under-excited / can't tell" to a tested null on adequate support** — the rain ratio is not
+an increasing power law of Ω even once Ω is varied enough to test it, consistent with Marañón's
+Ω-independence. (This uses the v05 cache Ω throughout and is a null, so it corroborates rather
+than resurrects the earlier in-situ positives that GLODAP deflated.)
+
 **Iron — observability-limited (an information wall).** Unlike calcite, dissolved-iron
 *concentration* is a low-information projection of the scavenging *rate*: many `scav_rat`
 values reproduce the same concentration field (Tagliabue 2016; and Track-1's sloppiness /

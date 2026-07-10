@@ -48,9 +48,14 @@ re-run. (The pre-registered "pool basins + smaller closure" calcite rerun will n
 oracle shows Ω support, not sample size or closure size, is the binding constraint.)
 
 **D2 — If we chase a positive result, which lever?** Each is a data/observable question:
-- *Calcite lever:* a dataset that actually **varies Ω** — high-latitude / Southern-Ocean calcite
-  production + carbonate (well beyond the tropical Ω 4–6 band). Is there one you'd trust and can
-  point us to? This is the single change that could flip the calcite verdict.
+- *Calcite lever — now partly tested, and it did not flip.* The denser high-latitude Marsh 2025
+  compilation adds Southern-Ocean coverage (Ω down to ~2.3), pushing the pooled Ω support above
+  the identifiability threshold (0.38 dex, n = 79) — and the exponent comes back **consistent
+  with zero** (CI [−1.16, +0.16]), i.e. a *tested* null, not merely an under-excited one. So more
+  Ω range from the existing compilations does **not** produce a positive. The remaining calcite
+  lever is narrower than before: either an *independent* in-situ carbonate Ω (to rule out a
+  cache-Ω artifact) or a fundamentally different, even-wider-Ω calcite record. Is either worth
+  pursuing, or does the tested null settle the calcite closure?
 - *Iron lever:* an observable **closer to the scavenging rate** than concentration — e.g.
   dissolved/particulate Fe partitioning, ligand concentrations, or Fe isotopes. Does an
   accessible product exist that constrains the rate rather than the pool?
