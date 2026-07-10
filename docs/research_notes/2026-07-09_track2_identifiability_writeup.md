@@ -118,7 +118,11 @@ is a **concrete positive-E2 lever**: fit the scavenging closure to the real part
 through transport, held-out scored. The binding risk is no longer identifiability but
 *contamination* — measured `Fe_TP` also includes biogenic and lithogenic particulate iron the box
 does not model, so a real E2 needs a scavenged-Fe proxy (e.g. the labile particulate `Fe_TPL`).
-This is a self-twin capacity result, not yet a real-data recovery.
+This is a self-twin capacity result, not yet a real-data recovery — and a real E2 is currently
+**observing-coverage-limited**: GEOTRACES has dense dissolved Fe (23,912) but only ~94 surface
+co-located `Fe_TP`+`Fe_D` pairs globally (4 on the eqpac footprint), though where measured the
+partitioning ratio spans a wide 2.59 dex. So iron partitioning is *identifiable in principle,
+observing-coverage-limited in practice* — the same theme as calcite, one rung further along.
 
 ## Honest scope
 

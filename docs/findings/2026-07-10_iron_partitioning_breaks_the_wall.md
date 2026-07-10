@@ -54,6 +54,28 @@ scavenging closure to the real partitioning ratio through transport, held-out sc
 - The coarse 13×15 grid makes the partitioning band read as a single point; a finer grid would
   give the true (still-much-tighter-than-19×) width. The 14× tightening is robust to grid.
 
+## Real-data coverage gate (checked 2026-07-10)
+
+The identifiability is there in principle; the **observing coverage is the binding limit for a
+real E2 now.** In GEOTRACES IDP2025, dissolved Fe is dense (`Fe_D_CONC` n = 23,912) but
+co-located *particulate* Fe is sparse, and co-located *pairs* sparser still:
+
+| quantity | global | surface (≤50 m), co-located with Fe_D |
+|---|---|---|
+| `Fe_TP_CONC` (total particulate) | 1,784 | **94** |
+| `Fe_TPL_CONC` (labile particulate — the scavenged-Fe proxy) | 1,337 | **150** |
+| co-located on eqpac footprint | — | **4** (natl 0, SO 0) |
+
+The real partitioning ratio, where measured, does vary widely (`Fe_TP/Fe_D` surface: n = 79,
+median 2.56, p10–p90 = 0.37–11.9, **log-span 2.59 dex** — far wider than calcite's Ω), so the
+signal is there; there simply aren't enough co-located pairs on any single AOI footprint yet.
+So this lever mirrors the map's theme: **identifiable in principle, observing-coverage-limited in
+practice.** The actionable recommendation is an *observing-system* one — the labile particulate
+fraction `Fe_TPL` (150 surface pairs, and the right scavenged-Fe proxy) is the best available
+target, and depth-resolved (not surface-only) scoring would add more pairs. A well-powered real E2
+needs either the global `Fe_TPL`/`Fe_D` set (not one AOI) or more co-located particulate+dissolved
+Fe coverage.
+
 ## Next (a real E2 on this lever)
 
 1. Build the real partitioning target from GEOTRACES: co-located `Fe_TP_CONC`/`Fe_D_CONC` on the
