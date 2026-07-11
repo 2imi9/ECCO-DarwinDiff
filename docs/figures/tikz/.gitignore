@@ -1,0 +1,12 @@
+# LaTeX / TikZ build artifacts (figures are source-only; compile locally)
+*.aux
+*.log
+*.out
+*.pdf
+*.png
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.nav
+*.snm
+*.toc
