@@ -40,6 +40,17 @@ control**. Notably a *constant* ratio advected through transport already capture
 structure — the learned environmental modulation adds nothing. So transport does not close the gap
 for the calcite closure; the identifiability limit holds **out-of-sample**, not just in-sample.
 
+**Hardened to a seed ensemble (n=10, Explorer H200; `docs/findings/e2_seed_ensemble_scored.md`).**
+The single-seed negative is now replicated across 10 random closure inits: delta = (learned − null)
+anomaly-R² = **−0.482 ± 0.0003**, **10/10 seeds negative**, with a **flat K_num ladder**
+(−0.48 at kh 50/200/800 — non-discriminating, the signature of no transport-mediated signal). The
+negative is robust to random init, not a single unlucky seed — the seed variance sits only in the
+learned R² (the zero-initialized null is seed-independent by construction). (This ensemble runs the
+regularized closure on the Marsh target at float32; its delta is slightly milder than the −0.55
+first reported single-seed, consistent to within the frozen-velocity-bundle numerics — same robust
+negative.) This replication is a *seed* robustness check, **not** a power increase: n_val≈6 stays
+structurally fixed by the ≤0.16-dex within-region Ω range.
+
 ## Honesty guardrails
 
 Not a "transport closes the gap" pass, not a recovered closure, not "learned real biology." An early
