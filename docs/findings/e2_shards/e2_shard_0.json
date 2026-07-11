@@ -1,0 +1,65 @@
+{
+  "experiment": "e2_real_calcite_seed_ensemble",
+  "config": {
+    "aoi": "eqpac",
+    "calcite_source": "daniels",
+    "split_channel": "omega_c",
+    "q": 0.25,
+    "hidden": 4,
+    "weight_decay": 0.01,
+    "epochs": 200,
+    "n_steps": 120,
+    "kh_physical": 50.0,
+    "n_z": 6,
+    "device": "cuda",
+    "dtype": "torch.float32"
+  },
+  "n_seeds": 2,
+  "n_val": 6,
+  "n_train": 18,
+  "delta_mean": -0.4823097586631775,
+  "delta_std": 9.5367431640625e-07,
+  "delta_min": -0.4823107123374939,
+  "delta_max": -0.4823088049888611,
+  "n_delta_negative": 2,
+  "n_delta_positive": 0,
+  "n_full_pass_delta_and_shrinks": 0,
+  "n_ladder_seeds": 1,
+  "verdict": "ROBUST NEGATIVE (no seed passes)",
+  "wall_s_total": 2060.018024174962,
+  "seeds": [
+    {
+      "seed": 0,
+      "r2_learned": -0.016934871673583984,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.4823088049888611,
+      "ladder": [
+        [
+          50.0,
+          -0.4823088049888611
+        ],
+        [
+          200.0,
+          -0.4824255108833313
+        ],
+        [
+          800.0,
+          -0.4823404550552368
+        ]
+      ],
+      "knum_shrinks": true,
+      "is_pass": false,
+      "wall_s": 1564.7702592399437
+    },
+    {
+      "seed": 1,
+      "r2_learned": -0.016936779022216797,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.4823107123374939,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 495.1711556171067
+    }
+  ]
+}

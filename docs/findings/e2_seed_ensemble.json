@@ -1,0 +1,146 @@
+{
+  "experiment": "e2_real_calcite_seed_ensemble",
+  "status": "COMPLETE",
+  "platform": "Explorer H200 (cuda/float32), portable AOI bundle",
+  "config": {
+    "aoi": "eqpac",
+    "calcite_source": "daniels",
+    "split_channel": "omega_c",
+    "q": 0.25,
+    "hidden": 4,
+    "weight_decay": 0.01,
+    "epochs": 200,
+    "n_steps": 120,
+    "kh_physical": 50.0,
+    "n_z": 6,
+    "device": "cuda",
+    "dtype": "torch.float32"
+  },
+  "n_seeds": 10,
+  "n_val": 6,
+  "n_train": 18,
+  "delta_mean": -0.48235671520233153,
+  "delta_std": 0.0002518837080669598,
+  "delta_min": -0.48266512155532837,
+  "delta_max": -0.4819491505622864,
+  "n_delta_negative": 10,
+  "n_delta_positive": 0,
+  "n_full_pass": 0,
+  "n_ladder_seeds": 1,
+  "verdict": "ROBUST NEGATIVE (no seed beats the null)",
+  "seeds": [
+    {
+      "seed": 0,
+      "r2_learned": -0.016934871673583984,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.4823088049888611,
+      "ladder": [
+        [
+          50.0,
+          -0.4823088049888611
+        ],
+        [
+          200.0,
+          -0.4824255108833313
+        ],
+        [
+          800.0,
+          -0.4823404550552368
+        ]
+      ],
+      "knum_shrinks": true,
+      "is_pass": false,
+      "wall_s": 1564.7702592399437
+    },
+    {
+      "seed": 1,
+      "r2_learned": -0.016936779022216797,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.4823107123374939,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 495.1711556171067
+    },
+    {
+      "seed": 2,
+      "r2_learned": -0.016575217247009277,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.4819491505622864,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 458.76326137199067
+    },
+    {
+      "seed": 3,
+      "r2_learned": -0.016701698303222656,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.48207563161849976,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 452.6912515978329
+    },
+    {
+      "seed": 4,
+      "r2_learned": -0.016664624214172363,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.48203855752944946,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 511.2463713181205
+    },
+    {
+      "seed": 5,
+      "r2_learned": -0.01726055145263672,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.4826344847679138,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 506.6552889510058
+    },
+    {
+      "seed": 6,
+      "r2_learned": -0.017089009284973145,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.48246294260025024,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 523.5643376789521
+    },
+    {
+      "seed": 7,
+      "r2_learned": -0.017095327377319336,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.48246926069259644,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 516.2128930811305
+    },
+    {
+      "seed": 8,
+      "r2_learned": -0.017278552055358887,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.482652485370636,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 539.6610645940527
+    },
+    {
+      "seed": 9,
+      "r2_learned": -0.01729118824005127,
+      "r2_null": 0.4653739333152771,
+      "delta": -0.48266512155532837,
+      "ladder": null,
+      "knum_shrinks": null,
+      "is_pass": null,
+      "wall_s": 536.6491361020599
+    }
+  ]
+}
