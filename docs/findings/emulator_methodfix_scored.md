@@ -30,6 +30,26 @@ Headline = **skill over persistence** (>0 beats copying x(t)); mean across seeds
   from the PoC, solved).
 - With **residual + rollout-k4, all six tracers beat persistence**, overall +0.265.
 
+## Confirmation (2026-07-12) — robustness (n=6) + depth (L3)
+
+Ran the winning config (residual + rollout-k4, 500 ep, T4) at higher seed count and with 3 depth
+levels (job 8305687). Both hold:
+
+| config | n | overall | DIC | ALK | PIC | POC | FeT | Chl1 | rollout final |
+|---|---|---|---|---|---|---|---|---|---|
+| **surface** (L1) | 6 | **+0.268 ± 0.014** | +0.126 | +0.234 | +0.292 | +0.280 | +0.188 | +0.403 | **6/6** |
+| **depth** (L3, 3 levels) | 4 | **+0.259 ± 0.019** | +0.054 | +0.161 | +0.288 | +0.252 | +0.154 | +0.432 | 3/4 |
+
+- **Surface robust at n=6:** all six tracers beat persistence, tight variance (σ=0.014), rollout beats
+  persistence at the final step in **6/6** seeds. The earlier FeT dip (n=2) was noise — FeT is +0.188.
+- **Depth works:** the method **generalizes to a real 3-D field** (18 channels) — overall skill holds
+  (+0.259 vs +0.268 surface), every tracer still beats persistence (DIC weaker at depth, +0.054,
+  consistent with even-slower subsurface carbonate), rollout robust 3/4.
+
+**De-risking conclusion:** residual + rollout-aware is robust across seeds *and* generalizes to depth,
+on the tractable eqpac subset. That clears the last cheap-Explorer checks before the B200 scale-up to
+native LLC270 / global / full-depth — which would now scale a *proven* method.
+
 ## Why this is honest (adversarial check)
 
 - **The persistence yardstick is a fixed constant across the entire ablation.** The temporal split
