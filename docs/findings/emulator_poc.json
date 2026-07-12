@@ -1,6 +1,6 @@
 {
   "experiment": "emulator_poc_next_state_vs_persistence_ensemble",
-  "platform": "Explorer H200 (cuda/float32)",
+  "platform": "Explorer T4 (cuda/float32)",
   "verdict": "MAKE \u2014 FNO beats persistence across all prognostic seeds",
   "prognostic_skill": {
     "mean": 0.17649661625468885,

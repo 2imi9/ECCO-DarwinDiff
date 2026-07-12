@@ -94,7 +94,7 @@ def main() -> int:
 
     summary = {
         "experiment": "emulator_poc_next_state_vs_persistence_ensemble",
-        "platform": "Explorer H200 (cuda/float32)",
+        "platform": "Explorer cluster GPU (cuda/float32)",  # GPU tier recorded in the run's config/writeup
         "verdict": verdict,
         "prognostic_skill": prog_skill, "forcing_skill": forc_skill,
         "forcing_helps": bool(forcing_helps),

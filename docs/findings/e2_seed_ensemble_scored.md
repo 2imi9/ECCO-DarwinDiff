@@ -2,7 +2,10 @@
 
 **Source:** Explorer H200 seed array (job 8285893), portable AOI bundle (cuda/float32),
 regularized closure (hidden 4, wd 0.01), epochs 200,
-Marsh calcite target, eqpac upper-quartile-Ω hold-out (n_val=6, n_train=18).
+**Marsh** calcite target (bundle basin log-ratio −3.469 confirms Marsh, not Daniels' −3.419; note the
+per-run JSON `calcite_source` field reads `daniels` — a `--load-bundle` default-arg artifact, not the
+actual data — and Marsh ≡ Daniels on this eqpac split anyway: identical 24/18/6 coverage),
+eqpac upper-quartile-Ω hold-out (n_val=6, n_train=18).
 **Local-only — not committed to GitHub.**
 
 This hardens the single-seed make-or-break negative (`docs/findings/2026-07-10_e2_powered_result.md`)
@@ -12,7 +15,7 @@ delta = (learned − null) anomaly-R² **> 0** AND the K_num ladder shrinking as
 
 ## Verdict: ROBUST NEGATIVE (no seed beats the null)
 
-- delta (learned − null) = **-0.482 ± 0.000**  (range [-0.483, -0.482])
+- delta (learned − null) = **-0.482 ± 0.00025**  (range [-0.483, -0.482])
 - seeds with delta < 0 (closure loses to null): **10/10**
 - seeds with delta > 0: 0/10 · full-pass (delta>0 AND K_num-shrinks): 0/1
 
@@ -23,7 +26,7 @@ identifiability limit on the Ω-modulation of `R_PICPOC` holds out-of-sample and
 **Read the seed variance correctly:** the null R² is seed-*independent* by construction (the
 `EnvCalciteClosure` is zero-initialized, so the untrained null is the constant g=1 closure
 regardless of seed). The seed variance lives in the *learned* R² (different inits → slightly
-different converged closures), and it is tiny (delta σ ~5e-5) — training consistently moves the
+different converged closures), and it is tiny (delta σ ~2.5e-4) — training consistently moves the
 closure *away* from g=1 to fit the train cells and *hurts* held-out prediction (learned R² < 0,
 below the basin-mean baseline), because there is no within-region Ω signal to learn.
 
