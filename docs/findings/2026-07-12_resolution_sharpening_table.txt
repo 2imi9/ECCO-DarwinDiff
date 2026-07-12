@@ -1,0 +1,341 @@
+# 180 runs -> 37 config groups
+
+      grid mod wid  forcing  k    ep  n            skill  cells stable beats@f
+------------------------------------------------------------------------------
+    81x201   8  32 SST+wspeed+mldDepth  4   500  5 +0.2163±0.0310   9750   1.00    1.00
+    81x201   8  32     none  4   500 13 +0.2542±0.0170   9750   1.00    0.92
+    81x201   8  32     none  4  1500  3 +0.2681±0.0060   9750   1.00    1.00
+    81x201   8  32     none  4  2500  3 +0.2689±0.0139   9750   1.00    1.00
+    81x201   8  48     none  4   500  3 +0.2793±0.0146   9750   1.00    1.00
+    81x201  16  32     none  4   500  3 +0.2708±0.0089   9750   1.00    1.00
+    81x201  16  48      SST  4   500  3 +0.2796±0.0273   9750   1.00    1.00
+    81x201  16  48 SST+wspeed+mldDepth  4   500  6 +0.2978±0.0212   9750   1.00    1.00
+    81x201  16  48 mldDepth  4   500  3 +0.2609±0.0041   9750   1.00    1.00
+    81x201  16  48     none  1   500  3 +0.2966±0.0173   9750   1.00    0.00
+    81x201  16  48     none  4   500 19 +0.2897±0.0133   9750   1.00    1.00
+    81x201  16  48     none  4  1500  6 +0.3108±0.0151   9750   1.00    1.00
+    81x201  16  48     none  4  2500  3 +0.3130±0.0130   9750   1.00    1.00
+    81x201  16  48     none  8   500  3 +0.2701±0.0024   9750   1.00    1.00
+    81x201  16  48   wspeed  4   500  3 +0.2774±0.0016   9750   1.00    1.00
+    81x201  16  64     none  4   500  3 +0.3083±0.0090   9750   1.00    1.00
+    81x201  24  32     none  4   500  3 +0.2744±0.0214   9750   1.00    0.67
+    81x201  24  64     none  4   500  3 +0.3142±0.0133   9750   1.00    1.00
+    81x201  32  32     none  4   500  3 +0.2716±0.0161   9750   1.00    1.00
+    81x201  32  64     none  4   500  3 +0.3157±0.0055   9750   1.00    1.00
+    81x201  32  64     none  8   500  3 +0.2879±0.0047   9750   1.00    1.00
+    61x121   8  32     none  4   500  5 +0.4848±0.0146   5409   1.00    0.20
+    61x121  16  48     none  4   500  5 +0.5076±0.0200   5409   1.00    0.20
+    41x101   8  32     none  4   500 10 +0.2426±0.0211   4141   1.00    1.00
+    41x101   8  32     none  4  1500  3 +0.2733±0.0073   4141   1.00    1.00
+    41x101  16  32     none  4   500  3 +0.2718±0.0068   4141   1.00    1.00
+    41x101  16  48     none  4   500  5 +0.2866±0.0093   4141   1.00    1.00
+    41x101  20  32     none  4   500  3 +0.2524±0.0231   4141   1.00    1.00
+     21x51   4  32     none  4   500  3 +0.2114±0.0147   1071   1.00    1.00
+     21x51   8  32 SST+wspeed+mldDepth  4   500  3 +0.2181±0.0131   1071   1.00    1.00
+     21x51   8  32     none  4   500 16 +0.2610±0.0140   1071   1.00    1.00
+     21x51   8  32     none  4  1500  3 +0.2862±0.0106   1071   1.00    1.00
+     21x51   8  32     none  4  2500  3 +0.2895±0.0065   1071   1.00    1.00
+     21x51  10  32     none  4   500  3 +0.2639±0.0150   1071   1.00    1.00
+     21x51  10  48     none  4   500 10 +0.2953±0.0051   1071   1.00    1.00
+     21x51  10  48     none  4  1500  3 +0.3101±0.0101   1071   1.00    1.00
+     16x31   8  32     none  4   500  5 +0.4933±0.0220    486   1.00    0.40
+
+
+# PER-TRACER: skill / model-RMSE / persistence-RMSE (mean over seeds)
+# denominator-trap check: is higher skill from LOWER model RMSE or HIGHER persistence RMSE?
+
+[81x201 m8 w32 f=SST+wspeed+mldDepth k4 ep500 n=5]
+    DIC   skill=+0.271  rmse_model=14.99  rmse_persist=17.56
+    ALK   skill=+0.349  rmse_model=14.97  rmse_persist=18.55
+    PIC   skill=+0.185  rmse_model=0.00256  rmse_persist=0.002837
+    POC   skill=+0.210  rmse_model=0.06313  rmse_persist=0.07102
+    FeT   skill=+0.144  rmse_model=1.107e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.313  rmse_model=0.05925  rmse_persist=0.07154
+
+[81x201 m8 w32 f=none k4 ep500 n=13]
+    DIC   skill=+0.214  rmse_model=15.57  rmse_persist=17.56
+    ALK   skill=+0.297  rmse_model=15.56  rmse_persist=18.55
+    PIC   skill=+0.328  rmse_model=0.002326  rmse_persist=0.002837
+    POC   skill=+0.310  rmse_model=0.05899  rmse_persist=0.07102
+    FeT   skill=+0.109  rmse_model=1.13e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.387  rmse_model=0.056  rmse_persist=0.07154
+
+[81x201 m8 w32 f=none k4 ep1500 n=3]
+    DIC   skill=+0.225  rmse_model=15.46  rmse_persist=17.56
+    ALK   skill=+0.327  rmse_model=15.22  rmse_persist=18.55
+    PIC   skill=+0.337  rmse_model=0.00231  rmse_persist=0.002837
+    POC   skill=+0.318  rmse_model=0.05865  rmse_persist=0.07102
+    FeT   skill=+0.119  rmse_model=1.124e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.411  rmse_model=0.05492  rmse_persist=0.07154
+
+[81x201 m8 w32 f=none k4 ep2500 n=3]
+    DIC   skill=+0.221  rmse_model=15.5  rmse_persist=17.56
+    ALK   skill=+0.329  rmse_model=15.2  rmse_persist=18.55
+    PIC   skill=+0.334  rmse_model=0.002316  rmse_persist=0.002837
+    POC   skill=+0.319  rmse_model=0.05862  rmse_persist=0.07102
+    FeT   skill=+0.121  rmse_model=1.123e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.415  rmse_model=0.05472  rmse_persist=0.07154
+
+[81x201 m8 w48 f=none k4 ep500 n=3]
+    DIC   skill=+0.231  rmse_model=15.41  rmse_persist=17.56
+    ALK   skill=+0.325  rmse_model=15.25  rmse_persist=18.55
+    PIC   skill=+0.361  rmse_model=0.002268  rmse_persist=0.002837
+    POC   skill=+0.315  rmse_model=0.05876  rmse_persist=0.07102
+    FeT   skill=+0.136  rmse_model=1.113e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.423  rmse_model=0.05434  rmse_persist=0.07154
+
+[81x201 m16 w32 f=none k4 ep500 n=3]
+    DIC   skill=+0.233  rmse_model=15.38  rmse_persist=17.56
+    ALK   skill=+0.311  rmse_model=15.41  rmse_persist=18.55
+    PIC   skill=+0.344  rmse_model=0.002298  rmse_persist=0.002837
+    POC   skill=+0.326  rmse_model=0.0583  rmse_persist=0.07102
+    FeT   skill=+0.136  rmse_model=1.113e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.385  rmse_model=0.05609  rmse_persist=0.07154
+
+[81x201 m16 w48 f=SST k4 ep500 n=3]
+    DIC   skill=+0.243  rmse_model=15.28  rmse_persist=17.56
+    ALK   skill=+0.319  rmse_model=15.31  rmse_persist=18.55
+    PIC   skill=+0.372  rmse_model=0.002248  rmse_persist=0.002837
+    POC   skill=+0.363  rmse_model=0.0567  rmse_persist=0.07102
+    FeT   skill=+0.110  rmse_model=1.129e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.413  rmse_model=0.05481  rmse_persist=0.07154
+
+[81x201 m16 w48 f=SST+wspeed+mldDepth k4 ep500 n=6]
+    DIC   skill=+0.303  rmse_model=14.66  rmse_persist=17.56
+    ALK   skill=+0.379  rmse_model=14.62  rmse_persist=18.55
+    PIC   skill=+0.300  rmse_model=0.002373  rmse_persist=0.002837
+    POC   skill=+0.331  rmse_model=0.05809  rmse_persist=0.07102
+    FeT   skill=+0.207  rmse_model=1.066e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.418  rmse_model=0.05458  rmse_persist=0.07154
+
+[81x201 m16 w48 f=mldDepth k4 ep500 n=3]
+    DIC   skill=+0.265  rmse_model=15.06  rmse_persist=17.56
+    ALK   skill=+0.344  rmse_model=15.02  rmse_persist=18.55
+    PIC   skill=+0.350  rmse_model=0.002287  rmse_persist=0.002837
+    POC   skill=+0.339  rmse_model=0.05773  rmse_persist=0.07102
+    FeT   skill=+0.091  rmse_model=1.142e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.375  rmse_model=0.05657  rmse_persist=0.07154
+
+[81x201 m16 w48 f=none k4 ep500 n=19]
+    DIC   skill=+0.228  rmse_model=15.43  rmse_persist=17.56
+    ALK   skill=+0.314  rmse_model=15.36  rmse_persist=18.55
+    PIC   skill=+0.356  rmse_model=0.002276  rmse_persist=0.002837
+    POC   skill=+0.338  rmse_model=0.05776  rmse_persist=0.07102
+    FeT   skill=+0.163  rmse_model=1.095e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.403  rmse_model=0.05525  rmse_persist=0.07154
+
+[81x201 m16 w48 f=none k4 ep1500 n=6]
+    DIC   skill=+0.256  rmse_model=15.15  rmse_persist=17.56
+    ALK   skill=+0.341  rmse_model=15.06  rmse_persist=18.55
+    PIC   skill=+0.362  rmse_model=0.002267  rmse_persist=0.002837
+    POC   skill=+0.331  rmse_model=0.05809  rmse_persist=0.07102
+    FeT   skill=+0.198  rmse_model=1.072e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.412  rmse_model=0.05487  rmse_persist=0.07154
+
+[81x201 m16 w48 f=none k4 ep2500 n=3]
+    DIC   skill=+0.277  rmse_model=14.93  rmse_persist=17.56
+    ALK   skill=+0.356  rmse_model=14.89  rmse_persist=18.55
+    PIC   skill=+0.360  rmse_model=0.00227  rmse_persist=0.002837
+    POC   skill=+0.337  rmse_model=0.05781  rmse_persist=0.07102
+    FeT   skill=+0.202  rmse_model=1.07e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.439  rmse_model=0.0536  rmse_persist=0.07154
+
+[81x201 m16 w48 f=none k1 ep500 n=3]
+    DIC   skill=+0.151  rmse_model=16.18  rmse_persist=17.56
+    ALK   skill=+0.268  rmse_model=15.88  rmse_persist=18.55
+    PIC   skill=+0.325  rmse_model=0.002331  rmse_persist=0.002837
+    POC   skill=+0.309  rmse_model=0.05903  rmse_persist=0.07102
+    FeT   skill=+0.267  rmse_model=1.025e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.359  rmse_model=0.05729  rmse_persist=0.07154
+
+[81x201 m16 w48 f=none k8 ep500 n=3]
+    DIC   skill=+0.164  rmse_model=16.06  rmse_persist=17.56
+    ALK   skill=+0.226  rmse_model=16.33  rmse_persist=18.55
+    PIC   skill=+0.309  rmse_model=0.002357  rmse_persist=0.002837
+    POC   skill=+0.261  rmse_model=0.06104  rmse_persist=0.07102
+    FeT   skill=+0.203  rmse_model=1.069e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.409  rmse_model=0.05501  rmse_persist=0.07154
+
+[81x201 m16 w48 f=wspeed k4 ep500 n=3]
+    DIC   skill=+0.267  rmse_model=15.03  rmse_persist=17.56
+    ALK   skill=+0.362  rmse_model=14.82  rmse_persist=18.55
+    PIC   skill=+0.285  rmse_model=0.002398  rmse_persist=0.002837
+    POC   skill=+0.284  rmse_model=0.0601  rmse_persist=0.07102
+    FeT   skill=+0.190  rmse_model=1.078e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.388  rmse_model=0.05598  rmse_persist=0.07154
+
+[81x201 m16 w64 f=none k4 ep500 n=3]
+    DIC   skill=+0.268  rmse_model=15.03  rmse_persist=17.56
+    ALK   skill=+0.346  rmse_model=15  rmse_persist=18.55
+    PIC   skill=+0.364  rmse_model=0.002262  rmse_persist=0.002837
+    POC   skill=+0.336  rmse_model=0.05786  rmse_persist=0.07102
+    FeT   skill=+0.189  rmse_model=1.078e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.439  rmse_model=0.05359  rmse_persist=0.07154
+
+[81x201 m24 w32 f=none k4 ep500 n=3]
+    DIC   skill=+0.209  rmse_model=15.62  rmse_persist=17.56
+    ALK   skill=+0.296  rmse_model=15.57  rmse_persist=18.55
+    PIC   skill=+0.327  rmse_model=0.002328  rmse_persist=0.002837
+    POC   skill=+0.326  rmse_model=0.05829  rmse_persist=0.07102
+    FeT   skill=+0.152  rmse_model=1.102e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.404  rmse_model=0.05525  rmse_persist=0.07154
+
+[81x201 m24 w64 f=none k4 ep500 n=3]
+    DIC   skill=+0.256  rmse_model=15.15  rmse_persist=17.56
+    ALK   skill=+0.340  rmse_model=15.07  rmse_persist=18.55
+    PIC   skill=+0.373  rmse_model=0.002247  rmse_persist=0.002837
+    POC   skill=+0.341  rmse_model=0.05767  rmse_persist=0.07102
+    FeT   skill=+0.207  rmse_model=1.066e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.432  rmse_model=0.05393  rmse_persist=0.07154
+
+[81x201 m32 w32 f=none k4 ep500 n=3]
+    DIC   skill=+0.199  rmse_model=15.72  rmse_persist=17.56
+    ALK   skill=+0.300  rmse_model=15.52  rmse_persist=18.55
+    PIC   skill=+0.346  rmse_model=0.002293  rmse_persist=0.002837
+    POC   skill=+0.300  rmse_model=0.05941  rmse_persist=0.07102
+    FeT   skill=+0.157  rmse_model=1.099e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.388  rmse_model=0.05597  rmse_persist=0.07154
+
+[81x201 m32 w64 f=none k4 ep500 n=3]
+    DIC   skill=+0.239  rmse_model=15.32  rmse_persist=17.56
+    ALK   skill=+0.330  rmse_model=15.18  rmse_persist=18.55
+    PIC   skill=+0.367  rmse_model=0.002257  rmse_persist=0.002837
+    POC   skill=+0.343  rmse_model=0.05756  rmse_persist=0.07102
+    FeT   skill=+0.215  rmse_model=1.061e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.437  rmse_model=0.05371  rmse_persist=0.07154
+
+[81x201 m32 w64 f=none k8 ep500 n=3]
+    DIC   skill=+0.158  rmse_model=16.11  rmse_persist=17.56
+    ALK   skill=+0.244  rmse_model=16.14  rmse_persist=18.55
+    PIC   skill=+0.331  rmse_model=0.002321  rmse_persist=0.002837
+    POC   skill=+0.263  rmse_model=0.06098  rmse_persist=0.07102
+    FeT   skill=+0.258  rmse_model=1.031e-05  rmse_persist=1.197e-05
+    Chl1  skill=+0.377  rmse_model=0.05644  rmse_persist=0.07154
+
+[61x121 m8 w32 f=none k4 ep500 n=5]
+    DIC   skill=+0.528  rmse_model=16.24  rmse_persist=23.65
+    ALK   skill=+0.205  rmse_model=8.31  rmse_persist=9.323
+    PIC   skill=+0.541  rmse_model=0.02079  rmse_persist=0.0307
+    POC   skill=+0.546  rmse_model=0.2343  rmse_persist=0.3478
+    FeT   skill=+0.573  rmse_model=0.0001169  rmse_persist=0.0001789
+    Chl1  skill=+0.245  rmse_model=0.05676  rmse_persist=0.06533
+
+[61x121 m16 w48 f=none k4 ep500 n=5]
+    DIC   skill=+0.540  rmse_model=16.03  rmse_persist=23.65
+    ALK   skill=+0.243  rmse_model=8.111  rmse_persist=9.323
+    PIC   skill=+0.574  rmse_model=0.02003  rmse_persist=0.0307
+    POC   skill=+0.580  rmse_model=0.2253  rmse_persist=0.3478
+    FeT   skill=+0.589  rmse_model=0.0001147  rmse_persist=0.0001789
+    Chl1  skill=+0.246  rmse_model=0.05672  rmse_persist=0.06533
+
+[41x101 m8 w32 f=none k4 ep500 n=10]
+    DIC   skill=+0.118  rmse_model=16.37  rmse_persist=17.43
+    ALK   skill=+0.235  rmse_model=16.13  rmse_persist=18.45
+    PIC   skill=+0.272  rmse_model=0.0024  rmse_persist=0.002814
+    POC   skill=+0.254  rmse_model=0.06082  rmse_persist=0.07042
+    FeT   skill=+0.150  rmse_model=1.144e-05  rmse_persist=1.241e-05
+    Chl1  skill=+0.397  rmse_model=0.0554  rmse_persist=0.07139
+
+[41x101 m8 w32 f=none k4 ep1500 n=3]
+    DIC   skill=+0.141  rmse_model=16.15  rmse_persist=17.43
+    ALK   skill=+0.257  rmse_model=15.9  rmse_persist=18.45
+    PIC   skill=+0.315  rmse_model=0.002328  rmse_persist=0.002814
+    POC   skill=+0.296  rmse_model=0.05909  rmse_persist=0.07042
+    FeT   skill=+0.187  rmse_model=1.119e-05  rmse_persist=1.241e-05
+    Chl1  skill=+0.400  rmse_model=0.05526  rmse_persist=0.07139
+
+[41x101 m16 w32 f=none k4 ep500 n=3]
+    DIC   skill=+0.130  rmse_model=16.25  rmse_persist=17.43
+    ALK   skill=+0.243  rmse_model=16.04  rmse_persist=18.45
+    PIC   skill=+0.309  rmse_model=0.002338  rmse_persist=0.002814
+    POC   skill=+0.303  rmse_model=0.05879  rmse_persist=0.07042
+    FeT   skill=+0.187  rmse_model=1.119e-05  rmse_persist=1.241e-05
+    Chl1  skill=+0.399  rmse_model=0.05532  rmse_persist=0.07139
+
+[41x101 m16 w48 f=none k4 ep500 n=5]
+    DIC   skill=+0.177  rmse_model=15.82  rmse_persist=17.43
+    ALK   skill=+0.287  rmse_model=15.58  rmse_persist=18.45
+    PIC   skill=+0.323  rmse_model=0.002316  rmse_persist=0.002814
+    POC   skill=+0.301  rmse_model=0.05888  rmse_persist=0.07042
+    FeT   skill=+0.207  rmse_model=1.105e-05  rmse_persist=1.241e-05
+    Chl1  skill=+0.404  rmse_model=0.05512  rmse_persist=0.07139
+
+[41x101 m20 w32 f=none k4 ep500 n=3]
+    DIC   skill=+0.146  rmse_model=16.11  rmse_persist=17.43
+    ALK   skill=+0.250  rmse_model=15.97  rmse_persist=18.45
+    PIC   skill=+0.289  rmse_model=0.002371  rmse_persist=0.002814
+    POC   skill=+0.275  rmse_model=0.05995  rmse_persist=0.07042
+    FeT   skill=+0.163  rmse_model=1.135e-05  rmse_persist=1.241e-05
+    Chl1  skill=+0.377  rmse_model=0.05635  rmse_persist=0.07139
+
+[21x51 m4 w32 f=none k4 ep500 n=3]
+    DIC   skill=+0.101  rmse_model=16.28  rmse_persist=17.18
+    ALK   skill=+0.187  rmse_model=16.41  rmse_persist=18.19
+    PIC   skill=+0.204  rmse_model=0.002406  rmse_persist=0.002697
+    POC   skill=+0.230  rmse_model=0.05924  rmse_persist=0.0675
+    FeT   skill=+0.088  rmse_model=1.198e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.429  rmse_model=0.04913  rmse_persist=0.06503
+
+[21x51 m8 w32 f=SST+wspeed+mldDepth k4 ep500 n=3]
+    DIC   skill=+0.180  rmse_model=15.56  rmse_persist=17.18
+    ALK   skill=+0.279  rmse_model=15.45  rmse_persist=18.19
+    PIC   skill=+0.215  rmse_model=0.002389  rmse_persist=0.002697
+    POC   skill=+0.188  rmse_model=0.06078  rmse_persist=0.0675
+    FeT   skill=+0.177  rmse_model=1.138e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.300  rmse_model=0.05439  rmse_persist=0.06503
+
+[21x51 m8 w32 f=none k4 ep500 n=16]
+    DIC   skill=+0.119  rmse_model=16.12  rmse_persist=17.18
+    ALK   skill=+0.237  rmse_model=15.89  rmse_persist=18.19
+    PIC   skill=+0.278  rmse_model=0.002291  rmse_persist=0.002697
+    POC   skill=+0.274  rmse_model=0.0575  rmse_persist=0.0675
+    FeT   skill=+0.182  rmse_model=1.135e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.399  rmse_model=0.05041  rmse_persist=0.06503
+
+[21x51 m8 w32 f=none k4 ep1500 n=3]
+    DIC   skill=+0.122  rmse_model=16.1  rmse_persist=17.18
+    ALK   skill=+0.262  rmse_model=15.64  rmse_persist=18.19
+    PIC   skill=+0.325  rmse_model=0.002215  rmse_persist=0.002697
+    POC   skill=+0.314  rmse_model=0.05589  rmse_persist=0.0675
+    FeT   skill=+0.195  rmse_model=1.126e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.415  rmse_model=0.04974  rmse_persist=0.06503
+
+[21x51 m8 w32 f=none k4 ep2500 n=3]
+    DIC   skill=+0.131  rmse_model=16.01  rmse_persist=17.18
+    ALK   skill=+0.262  rmse_model=15.63  rmse_persist=18.19
+    PIC   skill=+0.325  rmse_model=0.002215  rmse_persist=0.002697
+    POC   skill=+0.322  rmse_model=0.05558  rmse_persist=0.0675
+    FeT   skill=+0.198  rmse_model=1.123e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.416  rmse_model=0.04969  rmse_persist=0.06503
+
+[21x51 m10 w32 f=none k4 ep500 n=3]
+    DIC   skill=+0.115  rmse_model=16.15  rmse_persist=17.18
+    ALK   skill=+0.222  rmse_model=16.05  rmse_persist=18.19
+    PIC   skill=+0.293  rmse_model=0.002267  rmse_persist=0.002697
+    POC   skill=+0.293  rmse_model=0.05675  rmse_persist=0.0675
+    FeT   skill=+0.179  rmse_model=1.137e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.393  rmse_model=0.05065  rmse_persist=0.06503
+
+[21x51 m10 w48 f=none k4 ep500 n=10]
+    DIC   skill=+0.157  rmse_model=15.77  rmse_persist=17.18
+    ALK   skill=+0.270  rmse_model=15.54  rmse_persist=18.19
+    PIC   skill=+0.329  rmse_model=0.002209  rmse_persist=0.002697
+    POC   skill=+0.319  rmse_model=0.0557  rmse_persist=0.0675
+    FeT   skill=+0.202  rmse_model=1.121e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.430  rmse_model=0.04908  rmse_persist=0.06503
+
+[21x51 m10 w48 f=none k4 ep1500 n=3]
+    DIC   skill=+0.200  rmse_model=15.36  rmse_persist=17.18
+    ALK   skill=+0.303  rmse_model=15.19  rmse_persist=18.19
+    PIC   skill=+0.347  rmse_model=0.002179  rmse_persist=0.002697
+    POC   skill=+0.344  rmse_model=0.05468  rmse_persist=0.0675
+    FeT   skill=+0.205  rmse_model=1.118e-05  rmse_persist=1.255e-05
+    Chl1  skill=+0.438  rmse_model=0.04874  rmse_persist=0.06503
+
+[16x31 m8 w32 f=none k4 ep500 n=5]
+    DIC   skill=+0.542  rmse_model=15.93  rmse_persist=23.55
+    ALK   skill=+0.163  rmse_model=8.655  rmse_persist=9.461
+    PIC   skill=+0.559  rmse_model=0.02008  rmse_persist=0.03026
+    POC   skill=+0.567  rmse_model=0.2253  rmse_persist=0.3424
+    FeT   skill=+0.600  rmse_model=0.0001113  rmse_persist=0.0001761
+    Chl1  skill=+0.231  rmse_model=0.05866  rmse_persist=0.06692

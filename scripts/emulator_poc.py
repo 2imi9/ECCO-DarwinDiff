@@ -864,13 +864,29 @@ def main(argv=None) -> int:
         print(f"[1/5] loading pre-extracted AOI cube from {args.load_cube} ...", flush=True)
         z = np.load(args.load_cube, allow_pickle=True)
         # load the cube's forcing ONLY if this run requests forcing (else run pure prognostic)
+        cube_forc_names = [str(x) for x in z["forc_names"]]
         _use_forc = bool(forcings) and "forcing" in z.files and z["forcing"].ndim == 4
+        if _use_forc:
+            # Select ONLY the requested forcing channels from the cube (a cube may bake in
+            # more forcings than a given run uses, e.g. a single-variable ablation). Match by
+            # name so the model's forcing-channel count equals len(forcings), not the cube's.
+            missing = [f for f in forcings if f not in cube_forc_names]
+            if missing:
+                raise SystemExit(
+                    f"requested forcing {missing} not in cube forc_names {cube_forc_names}"
+                )
+            sel = [cube_forc_names.index(f) for f in forcings]
+            forc_arr = np.asarray(z["forcing"])[:, sel]
+            forc_names_out = list(forcings)
+        else:
+            forc_arr = None
+            forc_names_out = []
         data = {
             "state": z["state"], "valid_mask": z["valid_mask"].astype(bool),
-            "forcing": (z["forcing"] if _use_forc else None),
+            "forcing": forc_arr,
             "iters": [int(x) for x in z["iters"]], "times_days": z["times_days"],
             "chan_names": [str(x) for x in z["chan_names"]],
-            "forc_names": [str(x) for x in z["forc_names"]],
+            "forc_names": forc_names_out,
             "grid_shape": tuple(int(x) for x in z["grid_shape"]), "n_z": int(z["n_z"]),
         }
     else:
@@ -933,9 +949,11 @@ def main(argv=None) -> int:
         true_phys = data["state"][val_m + 1]                                          # physical, NaN=land
         persist_phys = data["state"][val_m]
         vm = data["valid_mask"]
-        # real AOI 1-deg cell centers (bin_to_1deg_grid convention)
-        lats = np.arange(aoi.lat_min, aoi.lat_max + 1, dtype=float)                    # [H]
-        lons = np.arange(aoi.lon_min, aoi.lon_max + 1, dtype=float)                    # [W]
+        # real AOI cell centers at the cube's actual resolution: the binning places
+        # centers at lat_min..lat_max (H of them) / lon_min..lon_max (W of them), so
+        # linspace over the grid shape is correct for 1deg AND finer (0.5/0.25deg) grids.
+        lats = np.linspace(aoi.lat_min, aoi.lat_max, vm.shape[0], dtype=float)          # [H]
+        lons = np.linspace(aoi.lon_min, aoi.lon_max, vm.shape[1], dtype=float)          # [W]
         Path(args.dump_fields).parent.mkdir(parents=True, exist_ok=True)
         np.savez_compressed(
             args.dump_fields,
