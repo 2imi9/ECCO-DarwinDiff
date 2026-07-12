@@ -149,6 +149,19 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--width", type=int, default=32, help="FNO latent channels.")
     p.add_argument("--layers", type=int, default=4, help="FNO blocks.")
     p.add_argument("--rollout-steps", type=int, default=6, help="Max autoregressive rollout steps.")
+    p.add_argument(
+        "--residual",
+        action="store_true",
+        help="Predict the tendency: x_hat(t+1) = x(t) + FNO(input). The model starts AT persistence "
+        "and learns only the correction — the fix for slow tracers (DIC/ALK) where full-next-state hurt.",
+    )
+    p.add_argument(
+        "--rollout-train-k",
+        type=int,
+        default=1,
+        help="Rollout-aware training: accumulate the loss over K autoregressive steps (1 = single-step). "
+        "Fixes multi-step rollout degradation.",
+    )
     p.add_argument("--seed", type=int, default=0, help="Random seed (determinism).")
     p.add_argument("--cpu", action="store_true", help="Force CPU (fp64 smoke).")
     p.add_argument(
@@ -564,30 +577,58 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
             return torch.cat([xs, zf[month_idx]], dim=1)
         return xs
 
-    train_m = splits["train_pairs"]
     val_m = splits["val_pairs"]
-    train_in = make_input(train_m)
-    train_tgt = zt[train_m + 1]
-    n_train = train_in.shape[0]
+    residual = bool(args.residual)
+    K = max(1, int(args.rollout_train_k))
+    adjacent = splits["adjacent"]           # adjacent[m] links month m -> m+1
+    split_idx = splits["split_idx"]
+
+    def predict_next(inp, prev_tracers):
+        """One prognostic step. Residual mode adds the learned tendency to x(t) (the tracer
+        part), so the model starts at persistence and learns only the correction."""
+        out = model(inp)
+        return prev_tracers + out if residual else out
+
+    def step_input(x_tracers, month):
+        """Model input at a given month: [tracers, forcing] (forcing input-only)."""
+        if zf is None:
+            return x_tracers
+        return torch.cat([x_tracers, zf.index_select(0, torch.as_tensor(month, device=device))], dim=1)
+
+    # K-step training starts: months m where m..m+K are all consecutive-adjacent and inside train.
+    train_starts = [m for m in range(split_idx - K)
+                    if all(adjacent[m + j] for j in range(K))]
+    if not train_starts:                    # no K-length run -> fall back to single-step
+        K = 1
+        train_starts = [m for m in range(split_idx - 1) if adjacent[m]]
+    train_starts = np.asarray(train_starts)
+    n_train = len(train_starts)
 
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
     rng = np.random.default_rng(args.seed)
     denom = float(mask_t.sum().item()) * C
 
+    def masked_mse_t(pred, tgt):
+        d = (pred - tgt) * mask_t
+        return (d * d).sum() / (pred.shape[0] * denom)
+
+    print(f"  training: residual={residual} rollout_train_k={K} n_starts={n_train}", flush=True)
     model.train()
     hist = []
     for epoch in range(args.epochs):
         perm = rng.permutation(n_train)
         ep_loss = 0.0
         for s in range(0, n_train, args.batch_size):
-            idx = perm[s : s + args.batch_size]
-            bt = torch.as_tensor(idx, device=device)
-            xb = train_in.index_select(0, bt)
-            yb = train_tgt.index_select(0, bt)
+            idx = train_starts[perm[s : s + args.batch_size]]
             opt.zero_grad()
-            pred = model(xb)
-            diff = (pred - yb) * mask_t  # zero out land in the loss
-            loss = (diff * diff).sum() / (xb.shape[0] * denom)
+            x = zt.index_select(0, torch.as_tensor(idx, device=device))   # tracers at t [B,C,H,W]
+            loss = 0.0
+            for j in range(1, K + 1):
+                inp = step_input(x, idx + (j - 1))                        # forcing at the current step
+                x = predict_next(inp, x)                                  # autoregressive
+                tgt = zt.index_select(0, torch.as_tensor(idx + j, device=device))
+                loss = loss + masked_mse_t(x, tgt)
+            loss = loss / K
             loss.backward()
             opt.step()
             ep_loss += float(loss.item()) * len(idx)
@@ -596,13 +637,15 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
         if (epoch + 1) % max(1, args.epochs // 10) == 0 or epoch == 0:
             print(f"  epoch {epoch + 1}/{args.epochs}  train_mse(z)={ep_loss:.5f}", flush=True)
 
-    # --- validation predictions (chunked) ---
+    # --- validation predictions (chunked); 1-step, residual-aware ---
     model.eval()
     val_in = make_input(val_m)
     preds = []
     with torch.no_grad():
         for s in range(0, val_in.shape[0], max(1, args.batch_size)):
-            preds.append(model(val_in[s : s + args.batch_size]).detach().to("cpu").numpy())
+            chunk = val_in[s : s + args.batch_size]
+            pnext = predict_next(chunk, chunk[:, :C])   # residual adds x(t) (tracer part = first C chans)
+            preds.append(pnext.detach().to("cpu").numpy())
     pred_z = np.concatenate(preds, axis=0).astype(np.float64)  # [Nval,C,H,W]
 
     tgt_z = z_state[val_m + 1]
@@ -690,7 +733,8 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
                 inp = torch.cat([x, zf[best[j - 1] : best[j - 1] + 1]], dim=1)
             else:
                 inp = x
-            x = model(inp)
+            out = model(inp)
+            x = (x + out) if args.residual else out   # residual-aware autoregressive step
             tj = zt[best[j] : best[j] + 1]
             step_mse_model.append(masked_mse(x, tj, mask_t))
             step_mse_persist.append(masked_mse(x0, tj, mask_t))
@@ -860,6 +904,8 @@ def main(argv=None) -> int:
             "layers": args.layers,
             "operator": op_kind,
             "n_params": int(n_params),
+            "residual": bool(args.residual),
+            "rollout_train_k": int(args.rollout_train_k),
             "seed": args.seed,
             "device": str(device),
             "dtype": str(dtype).replace("torch.", ""),
