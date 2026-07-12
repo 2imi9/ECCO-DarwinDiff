@@ -6,14 +6,18 @@ have narrowed to a small number of genuine decisions. This is the internal drive
 conversation; the shareable version is the write-up
 ([`2026-07-09_track2_identifiability_writeup.md`](2026-07-09_track2_identifiability_writeup.md)).
 
-## Decisions taken (2026-07-10, internal)
+> **Role: decisions only.** The map's derivation and all identifiability numbers are **canonical in
+> the write-up** (linked above) — this brief carries the *decisions*, not restated numbers. Cite the
+> write-up for any figure.
 
-- **D1 — Both, in parallel.** The identifiability map is the baseline Track-2 deliverable; in
+## Provisional calls already made (2026-07-10, internal) — *distinct from the open D1–D3 below*
+
+- **P1 — Both, in parallel.** The identifiability map is the baseline Track-2 deliverable; in
   parallel, hunt a positive E2 by trying the levers **one at a time**, cost-first (CPU
   transport-free floor + distillation oracle *before* any GPU E2), using best-judgment targets
   since the specific datasets are not yet documented.
-- **D2 — Try levers one by one, best guess.** Order by tractability on data we can actually reach.
-- **D3 — The map is the contribution.** Paper #2's validation claim is the honest identifiability
+- **P2 — Try levers one by one, best guess.** Order by tractability on data we can actually reach.
+- **P3 — The map is the contribution.** Paper #2's validation claim is the honest identifiability
   bound (what real obs can/cannot constrain, and why), **not** contingent on an E2 pass. A
   positive E2, if one is found, is upside on top of the map.
 

@@ -4,6 +4,12 @@
 results summary in write-up format, not a submitted manuscript. The working record (how the
 analysis got here, including a deflated over-claim) is in `2026-07-09_calcite_identifiability_map.md`.*
 
+> **⟢ Canonical source.** This write-up is the **single authoritative source** for the Track-2
+> identifiability numbers (the map + the E2 result). The 1-page `2026-07-10_track2_summary_for_discussion.md`
+> (abstract), the `2026-07-10_jon_decision_brief.md` (decisions), and `STATUS.md` state only headlines
+> and **cite this doc** — update any identifiability number **here**, not in those. The full per-seed
+> **n=10 E2 ensemble** numbers are local-only: `docs/findings/e2_seed_ensemble_scored.md`.
+
 ## Summary
 
 Track-2 asks whether real ocean observations can constrain the uncertain closures in

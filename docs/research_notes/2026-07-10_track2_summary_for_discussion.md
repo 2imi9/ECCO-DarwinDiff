@@ -5,6 +5,10 @@ write-up form, for a decision on direction, not a submission. Full detail:
 [`2026-07-09_track2_identifiability_writeup.md`](2026-07-09_track2_identifiability_writeup.md);
 reproducibility: [`2026-07-10_reproducibility_appendix.md`](2026-07-10_reproducibility_appendix.md).*
 
+> **Role: 1-page abstract.** Headlines only — the **canonical** map/E2 numbers live in the write-up
+> above. State results qualitatively here and cite the write-up, so any number is updated in **one**
+> place (this de-duplication is what let the n=10 E2 update drift before).
+
 ## The result in one line
 
 Track-2 asked whether adding prescribed spatial transport lets real observations constrain
