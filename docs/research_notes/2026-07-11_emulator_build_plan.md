@@ -2,8 +2,12 @@
 
 **Decision (this session):** the **forward / OSSE neural-operator emulator** is the next Track-2
 workstream, targeting **native LLC270 full resolution at B200 scale**. This note is the plan; no
-code is written until it's reviewed. It supersedes nothing — it operationalizes ADR-0002 and the
-[2026-07-09 emulator update](2026-07-09_parameter_conditioned_emulator_update.md).
+code is written until it's reviewed. It supersedes nothing — it operationalizes ADR-0002 (which lives
+in worktree `.claude/worktrees/competent-stonebraker-a9c3c0/docs/adr/0002-track2-emulator-scope.md`,
+not yet on this branch) and the
+[2026-07-09 emulator update](2026-07-09_parameter_conditioned_emulator_update.md). Cross-refs to
+`docs/findings/emulator_poc_scored.md` and the `native_peraoi` results point to **local-only**
+worktree artifacts (`dd_overnight_wt`), not files on this branch.
 
 > Draft for review — not committed/pushed. Forward plan, not a result.
 

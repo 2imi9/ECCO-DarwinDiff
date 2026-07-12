@@ -50,6 +50,14 @@ out-of-sample, not just in-sample — consistent with, and now demonstrated thro
 oracle (no within-region Ω support), the driver scout (no driver rescues it), the correlation
 analysis, and Marañón (2016).
 
+## Update (2026-07-11) — hardened to a seed ensemble
+
+This single-seed negative was replicated across a **10-seed ensemble** (Explorer H200): the learned
+closure loses to the null in **every** seed, robust to random init (the "Reproduction status (open)"
+request below is thereby satisfied). Full per-seed numbers are local-only:
+`docs/findings/e2_seed_ensemble_scored.md`. The −0.55 single-seed figures above stand as this record's
+point-in-time result; the ensemble is the current strongest evidence.
+
 ## Honest caveats (unchanged)
 
 - Small **n_val = 6** (single-AOI upper-quartile-Ω split). A cleanly *powered* within-region E2 is

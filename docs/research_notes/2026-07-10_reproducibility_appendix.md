@@ -11,8 +11,8 @@ reproducibility gap; merge before submission.
 
 **Software.** Python 3.11.9; torch 2.11.0+cu128, numpy 2.3.5, scipy 1.16.0, scikit-learn 1.7.0,
 pandas 2.2.3. All identifiability numbers here run **CPU-only** (`CUDA_VISIBLE_DEVICES=-1`); no GPU
-or cluster is needed to reproduce the map (the transport-UDE E2, which did not contribute to any
-verdict, is the only GPU piece).
+or cluster is needed to reproduce the map (the transport-UDE E2 — which *corroborates* the calcite
+verdict out-of-sample but which no verdict *depends* on — is the only GPU piece).
 
 ## Input datasets (all gitignored — too large / redistribution-restricted)
 
@@ -94,4 +94,5 @@ data) so the sweeps never touch the ~TB native tree — the data-discipline patt
    K_num non-discriminating). It has *not* been run for iron/growth (argued from their own
    diagnostics). A cleanly *powered* within-region E2 is structurally impossible (the Ω-band hold-out
    becomes a between-biome extrapolation when pooled), so the calcite E2 is a decisive negative at
-   n_val = 6, not a high-n rejection.
+   n_val = 6, not a high-n rejection. **Hardened 2026-07-11 to a 10-seed ensemble** (robust negative
+   — every seed loses to null; local-only `docs/findings/e2_seed_ensemble_scored.md`, pending commit).
