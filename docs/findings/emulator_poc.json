@@ -1,0 +1,189 @@
+{
+  "experiment": "emulator_poc_next_state_vs_persistence_ensemble",
+  "platform": "Explorer H200 (cuda/float32)",
+  "verdict": "MAKE \u2014 FNO beats persistence across all prognostic seeds",
+  "prognostic_skill": {
+    "mean": 0.17649661625468885,
+    "min": 0.16049951197907109,
+    "max": 0.19325077767266274,
+    "std": 0.013381360239045277,
+    "n": 3,
+    "n_positive": 3
+  },
+  "forcing_skill": {
+    "mean": 0.19195494378774103,
+    "min": 0.16232965618247197,
+    "max": 0.22158023139301009,
+    "std": 0.029625287605269057,
+    "n": 2,
+    "n_positive": 2
+  },
+  "forcing_helps": true,
+  "per_tracer_skill_prognostic": {
+    "DIC": {
+      "mean": -0.2451320420571462,
+      "min": -0.2949921691542212,
+      "max": -0.18718188978581551,
+      "std": 0.044383559004534466,
+      "n": 3,
+      "n_positive": 0
+    },
+    "ALK": {
+      "mean": -0.05137635751529257,
+      "min": -0.08583322099027524,
+      "max": 0.006259026977332827,
+      "std": 0.04101364335076668,
+      "n": 3,
+      "n_positive": 1
+    },
+    "PIC": {
+      "mean": 0.18548994082440687,
+      "min": 0.18022771294962214,
+      "max": 0.18955393394196163,
+      "std": 0.003900549055330879,
+      "n": 3,
+      "n_positive": 3
+    },
+    "POC": {
+      "mean": 0.1733836465218822,
+      "min": 0.15593387134877457,
+      "max": 0.18996748995381207,
+      "std": 0.01390765202262345,
+      "n": 3,
+      "n_positive": 3
+    },
+    "FeT": {
+      "mean": 0.17625313651078514,
+      "min": 0.14511591708753147,
+      "max": 0.2040259216096868,
+      "std": 0.02416728811075347,
+      "n": 3,
+      "n_positive": 3
+    },
+    "Chl1": {
+      "mean": 0.3497534643707864,
+      "min": 0.3324977286995813,
+      "max": 0.361720006847455,
+      "std": 0.012502454652981096,
+      "n": 3,
+      "n_positive": 3
+    }
+  },
+  "runs": [
+    {
+      "file": "emu_forc_s0.json",
+      "tag": "forc",
+      "seed": 0,
+      "skill": 0.16232965618247197,
+      "beats": true,
+      "anom_r2": 0.36552823293546066,
+      "persist_vs_clim": 0.2425758274155303,
+      "per_tracer": {
+        "DIC": -0.0643939856769491,
+        "ALK": 0.09960318513527122,
+        "PIC": 0.14649006129052433,
+        "POC": 0.12543138354624694,
+        "FeT": 0.11999211435930013,
+        "Chl1": 0.3542179010112255
+      },
+      "rollout_stable": true,
+      "rollout_beats_final": true,
+      "max_mass_drift": 0.24819262811328327,
+      "verdict": "MAKE",
+      "n_val_pairs": 40,
+      "epochs": 500
+    },
+    {
+      "file": "emu_forc_s1.json",
+      "tag": "forc",
+      "seed": 1,
+      "skill": 0.22158023139301009,
+      "beats": true,
+      "anom_r2": 0.41040605083945636,
+      "persist_vs_clim": 0.2425758274155303,
+      "per_tracer": {
+        "DIC": -0.09943906089613752,
+        "ALK": 0.026106697619838193,
+        "PIC": 0.17658257938234212,
+        "POC": 0.2673141405842402,
+        "FeT": 0.1831058593068371,
+        "Chl1": 0.4218412658247144
+      },
+      "rollout_stable": true,
+      "rollout_beats_final": true,
+      "max_mass_drift": 0.28985162718618973,
+      "verdict": "MAKE",
+      "n_val_pairs": 40,
+      "epochs": 500
+    },
+    {
+      "file": "emu_prog_s0.json",
+      "tag": "prog",
+      "seed": 0,
+      "skill": 0.16049951197907109,
+      "beats": true,
+      "anom_r2": 0.3633224174007367,
+      "persist_vs_clim": 0.24159950865521007,
+      "per_tracer": {
+        "DIC": -0.25322206723140184,
+        "ALK": -0.0745548785329353,
+        "PIC": 0.18022771294962214,
+        "POC": 0.17424957826305998,
+        "FeT": 0.14511591708753147,
+        "Chl1": 0.3324977286995813
+      },
+      "rollout_stable": true,
+      "rollout_beats_final": false,
+      "max_mass_drift": 0.4102366100088186,
+      "verdict": "MAKE",
+      "n_val_pairs": 40,
+      "epochs": 500
+    },
+    {
+      "file": "emu_prog_s1.json",
+      "tag": "prog",
+      "seed": 1,
+      "skill": 0.17573955911233274,
+      "beats": true,
+      "anom_r2": 0.37488047663472,
+      "persist_vs_clim": 0.24159950865521007,
+      "per_tracer": {
+        "DIC": -0.18718188978581551,
+        "ALK": -0.08583322099027524,
+        "PIC": 0.18955393394196163,
+        "POC": 0.15593387134877457,
+        "FeT": 0.17961757083513719,
+        "Chl1": 0.35504265756532294
+      },
+      "rollout_stable": true,
+      "rollout_beats_final": true,
+      "max_mass_drift": 0.18401174715845098,
+      "verdict": "MAKE",
+      "n_val_pairs": 40,
+      "epochs": 500
+    },
+    {
+      "file": "emu_prog_s2.json",
+      "tag": "prog",
+      "seed": 2,
+      "skill": 0.19325077767266274,
+      "beats": true,
+      "anom_r2": 0.3881609933949203,
+      "persist_vs_clim": 0.24159950865521007,
+      "per_tracer": {
+        "DIC": -0.2949921691542212,
+        "ALK": 0.006259026977332827,
+        "PIC": 0.18668817558163686,
+        "POC": 0.18996748995381207,
+        "FeT": 0.2040259216096868,
+        "Chl1": 0.361720006847455
+      },
+      "rollout_stable": true,
+      "rollout_beats_final": true,
+      "max_mass_drift": 0.16988016780762247,
+      "verdict": "MAKE",
+      "n_val_pairs": 40,
+      "epochs": 500
+    }
+  ]
+}

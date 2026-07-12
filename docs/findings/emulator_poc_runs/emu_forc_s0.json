@@ -1,0 +1,224 @@
+{
+  "verdict": "MAKE",
+  "question": "Can an FNO beat persistence on ECCO-Darwin v05 next-month state?",
+  "headline_overall_skill_vs_persistence": 0.16232965618247197,
+  "beats_persistence": true,
+  "config": {
+    "aoi": "eqpac",
+    "aoi_bounds": {
+      "lat_min": -5.0,
+      "lat_max": 15.0,
+      "lon_min": -160.0,
+      "lon_max": -110.0
+    },
+    "tracers": [
+      "DIC",
+      "ALK",
+      "PIC",
+      "POC",
+      "FeT",
+      "Chl1"
+    ],
+    "forcing": [
+      "SST",
+      "wspeed",
+      "mldDepth"
+    ],
+    "levels": 1,
+    "grid_shape": [
+      21,
+      51
+    ],
+    "channel_names": [
+      "DIC",
+      "ALK",
+      "PIC",
+      "POC",
+      "FeT",
+      "Chl1"
+    ],
+    "epochs": 500,
+    "batch_size": 8,
+    "lr": 0.001,
+    "val_frac": 0.3,
+    "modes": 8,
+    "width": 32,
+    "layers": 4,
+    "operator": "fallback-FNO2d(forcing-augmented)",
+    "n_params": 531334,
+    "seed": 0,
+    "device": "cuda",
+    "dtype": "float32",
+    "adjacency_tol": 1.6,
+    "median_step_days": 44.25,
+    "dt_hours": 1062.0
+  },
+  "data": {
+    "n_shared_months": 156,
+    "n_train_months": 109,
+    "n_val_months": 47,
+    "n_train_pairs": 92,
+    "n_val_pairs": 40,
+    "n_valid_ocean_cells": 1071,
+    "first_iter": 2232,
+    "last_iter": 707832
+  },
+  "metrics": {
+    "overall_skill_vs_persistence": 0.16232965618247197,
+    "overall_anomaly_r2_vs_climatology": 0.36552823293546066,
+    "persistence_skill_vs_climatology": 0.2425758274155303,
+    "per_tracer": {
+      "DIC": {
+        "skill_vs_persistence": -0.0643939856769491,
+        "anomaly_r2_vs_climatology": 0.5812321842419095,
+        "rmse_z": 0.3334465939951319,
+        "rmse_physical": 17.72126193993132,
+        "physical_std": 53.14572785886678
+      },
+      "ALK": {
+        "skill_vs_persistence": 0.09960318513527122,
+        "anomaly_r2_vs_climatology": 0.6154175900195435,
+        "rmse_z": 0.40659656674239775,
+        "rmse_physical": 17.26509491619104,
+        "physical_std": 42.4624709807977
+      },
+      "PIC": {
+        "skill_vs_persistence": 0.14649006129052433,
+        "anomaly_r2_vs_climatology": 0.3876005832099413,
+        "rmse_z": 0.5916689068896103,
+        "rmse_physical": 0.002491752157309841,
+        "physical_std": 0.004211396151284887
+      },
+      "POC": {
+        "skill_vs_persistence": 0.12543138354624694,
+        "anomaly_r2_vs_climatology": 0.14605677913291992,
+        "rmse_z": 0.6449642504890806,
+        "rmse_physical": 0.06312327260040822,
+        "physical_std": 0.09787096347207062
+      },
+      "FeT": {
+        "skill_vs_persistence": 0.11999211435930013,
+        "anomaly_r2_vs_climatology": 0.3177826850563874,
+        "rmse_z": 0.813529840956919,
+        "rmse_physical": 1.177170026484038e-05,
+        "physical_std": 1.4469905923787445e-05
+      },
+      "Chl1": {
+        "skill_vs_persistence": 0.3542179010112255,
+        "anomaly_r2_vs_climatology": 0.31144165727364903,
+        "rmse_z": 0.5536697939980142,
+        "rmse_physical": 0.05226156946434624,
+        "physical_std": 0.09439122385017393
+      }
+    },
+    "final_train_mse_z": 0.004710688559419435,
+    "n_metric_cells": 1071
+  },
+  "rollout": {
+    "ran": true,
+    "run_length_months": 12,
+    "n_steps": 6,
+    "step_mse_z_model": [
+      0.19633625447750092,
+      0.12150029838085175,
+      0.13339586555957794,
+      0.21232354640960693,
+      0.35463276505470276,
+      0.34370675683021545
+    ],
+    "step_mse_z_persistence": [
+      0.1534862518310547,
+      0.374220609664917,
+      0.1970415860414505,
+      0.5155715942382812,
+      0.5215516090393066,
+      0.45443931221961975
+    ],
+    "finite": true,
+    "bounded": true,
+    "stable": true,
+    "beats_persistence_at_final_step": true,
+    "positivity": {
+      "DIC": {
+        "min_value": 1935.819091796875,
+        "frac_negative": 0.0
+      },
+      "ALK": {
+        "min_value": 2267.227783203125,
+        "frac_negative": 0.0
+      },
+      "PIC": {
+        "min_value": -0.0003167521208524704,
+        "frac_negative": 0.013071895424836602
+      },
+      "POC": {
+        "min_value": 0.04999879002571106,
+        "frac_negative": 0.0
+      },
+      "FeT": {
+        "min_value": 8.870551937434357e-07,
+        "frac_negative": 0.0
+      },
+      "Chl1": {
+        "min_value": -0.004919599741697311,
+        "frac_negative": 0.0196078431372549
+      }
+    },
+    "mass_drift": {
+      "DIC": {
+        "pred_domain_mean": 2026.6475830078125,
+        "true_domain_mean": 2013.7227398179502,
+        "relative_drift": 0.006418382697029445
+      },
+      "ALK": {
+        "pred_domain_mean": 2345.853515625,
+        "true_domain_mean": 2330.99857628327,
+        "relative_drift": 0.006372779242712403
+      },
+      "PIC": {
+        "pred_domain_mean": 0.0017932774499058723,
+        "true_domain_mean": 0.00232188423338836,
+        "relative_drift": -0.22766285066292216
+      },
+      "POC": {
+        "pred_domain_mean": 0.129719540476799,
+        "true_domain_mean": 0.12812449084696295,
+        "relative_drift": 0.012449217314285768
+      },
+      "FeT": {
+        "pred_domain_mean": 3.556153387762606e-06,
+        "true_domain_mean": 4.73013902329552e-06,
+        "relative_drift": -0.24819262811328327
+      },
+      "Chl1": {
+        "pred_domain_mean": 0.04455363377928734,
+        "true_domain_mean": 0.04469713967523747,
+        "relative_drift": -0.003210628174259481
+      }
+    },
+    "max_frac_negative": 0.0196078431372549,
+    "max_abs_relative_mass_drift": 0.24819262811328327
+  },
+  "honesty_notes": [
+    "Skill = 1 - MSE(model)/MSE(persistence); >0 means it beats copying x(t).",
+    "Persistence is a strong baseline on an autocorrelated ocean; raw R^2 is not reported as headline.",
+    "Standardization statistics use TRAIN months only; pairs never cross the split and never span a missing-month gap.",
+    "Only the fixed valid-ocean mask (finite across all months/channels) is scored; land is fill-zero input only.",
+    "Single AOI, single seed: treat as a go/no-go signal, not a converged benchmark. Repeat over seeds/AOIs before any claim.",
+    "Model predicts the FULL next state directly (not a persistence residual), so positive skill reflects learned month-to-month change."
+  ],
+  "generated_utc": "2026-07-12T06:39:24.053525+00:00",
+  "argv": [
+    "scripts/emulator_poc.py",
+    "--tracers",
+    "DIC,ALK,PIC,POC,FeT,Chl1",
+    "--forcing",
+    "SST,wspeed,mldDepth",
+    "--epochs",
+    "500",
+    "--seed",
+    "0",
+    "--out",
+    "runs/emu_forc_s0.json"
+  ]
+}
