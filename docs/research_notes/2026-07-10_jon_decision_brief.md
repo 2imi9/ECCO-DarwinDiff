@@ -20,7 +20,7 @@ conversation; the shareable version is the write-up
 ## TL;DR — the one decision
 
 Track-2's honest result is an **identifiability-limits map**: real observations do **not**
-sharply constrain either closure we can target, for **two distinct reasons** (below). The
+sharply constrain the Darwin closures we target, for **three distinct reasons** (below). The
 machinery works; the observing system is the binding constraint. **The decision to make: is that
 map the Track-2 contribution we write up, or do we spend cluster budget chasing a positive E2 on
 a different observable?** Everything else is downstream of that call.
@@ -31,6 +31,7 @@ a different observable?** Everything else is downstream of that call.
 |---|---|---|---|
 | calcite `R_PICPOC` | PIC:POC rain ratio (**≈ the parameter**) | not identifiable | **data/support-limited** |
 | iron `scav_rat` | dissolved-Fe concentration (**≠ the parameter**) | not identifiable | **observability-limited** |
+| growth `Smallgrow`/`Biggrow` | net primary production (aggregate) | not identifiable | **structurally unobservable** — total NPP gives only the biomass-weighted mean, so the pair stays degenerate (per-PFT production is the only lever; see D2) |
 
 - **Calcite is Ω-support-limited.** The rain ratio essentially *is* the parameter, so if the
   environment drove it we could recover it. But three independent analyses agree it does not:
@@ -76,7 +77,7 @@ oracle shows Ω support, not sample size or closure size, is the binding constra
   reinforces the wall from a second angle rather than breaking it. Fe isotopes / ligands remain
   untested fallbacks, but the bar is now higher (need a *pure* scavenged-Fe observable + independent
   `POC`/`W_SINK`).
-- *A third closure — lever 3, scouted (growth via primary production).* Best candidate: the growth
+- *The growth closure's per-PFT lever (D2), scouted (growth via primary production).* Best candidate: the growth
   closure (`Smallgrow`/`Biggrow`) via specific production `NPP/biomass = μ·f_fe·LIGHT` — the structural
   twin of the iron trick (a flux/stock ratio cancels the loss terms that make standing-stock biomass
   unobservable). Verification verdict: **feasible but not a clean positive.** It inherits the same

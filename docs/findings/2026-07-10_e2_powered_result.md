@@ -30,10 +30,14 @@ criteria**.
   there is no within-region Ω dependence to learn, so any Ω-modulation the closure adds only hurts
   out-of-sample prediction relative to a constant. The K_num ladder is **flat** (−0.552 / −0.553 /
   −0.553) — non-discriminating, the signature of no real transport-mediated signal.
-- **The null itself scores +0.50**, i.e. a constant R_PICPOC advected through transport already
-  predicts the held-out rain-ratio anomalies at R² = +0.5. Transport *does* carry predictive
-  structure — but a **constant** closure captures it; the learned environmental modulation adds
-  nothing. (This is the "transport did the work, not the closure" point, made concrete.)
+- **The null itself scores +0.50**, i.e. a **constant** R_PICPOC through the full forward model
+  (real Darwin IC climatology + Carroll-6 biology + transport) already predicts the held-out
+  rain-ratio anomalies at R² = +0.5 — so the learned environmental modulation adds nothing over a
+  constant. (*Which* component carries the +0.50 — IC climatology, biology, or transport — is **not**
+  isolated here: no transport-off / IC-only control was run, and the K_num ladder was recorded only
+  for the learned−null *delta*, not for the null. So the supported statement is "a constant closure
+  already predicts the held-out anomalies"; **"transport *specifically* did the work" is not
+  established and should not be asserted.**)
 
 ## What it establishes
 

@@ -192,7 +192,10 @@ case). So growth is at best *aggregate*-observable-in-principle — the third cl
   overfits badly (learned R² −1.53 vs null +0.50, delta −2.03), and a properly *regularized* closure
   (hidden 4, weight-decay 0.01) removes the overfit (learned R² → −0.05 ≈ learns nothing) yet still
   cannot beat null (delta −0.55), with a **flat, non-discriminating K_num control** — the signature
-  of no real transport-mediated signal. Notably the **null itself scores +0.50**, so a constant
+  of no real transport-mediated signal. **This single-seed diagnostic was hardened (2026-07-11) to a
+  10-seed ensemble — the learned closure loses to the null in every seed, robust to random init; full
+  per-seed numbers in the local-only `docs/findings/e2_seed_ensemble_scored.md`.** Notably the
+  **null itself scores +0.50**, so a constant
   ratio advected through transport already captures the held-out structure; the learned environmental
   modulation adds nothing. So transport does *not* close the gap for the calcite closure — the
   identifiability limit holds **out-of-sample**, not only in the in-sample oracle

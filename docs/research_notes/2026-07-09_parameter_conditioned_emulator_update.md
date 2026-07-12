@@ -1,5 +1,10 @@
 # Parameter-conditioned differentiable emulators — a 2026-07-09 update to the shelving decision
 
+> **Scope note (added 2026-07-11):** "shelved" here = the **parameter-conditioned CALIBRATION**
+> emulator only. A separate non-parameter-conditioned **forward/OSSE** emulator (no perturbed-parameter
+> ensemble needed) was greenlit 2026-07-11 and **passed its beat-persistence PoC** — see
+> `2026-07-11_emulator_build_plan.md` §0/§0b. This shelving does not apply to it.
+
 **Why this note.** `NEXT_SESSION.md` action 1 asks to "dive on parameter-conditioned
 differentiable emulators for gradient-based calibration (BINN, NeuralGCM, neural-operator
 conditioning, amortized / simulation-based inference)." The prior note
