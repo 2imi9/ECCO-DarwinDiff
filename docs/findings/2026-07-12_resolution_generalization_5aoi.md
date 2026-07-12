@@ -11,10 +11,11 @@ self-consistency vs ECCO-Darwin v05, NOT real obs.
    aggregate own-grid skill-over-persistence.** Δ = native−1° m8w32 ≈ 0 in eqpac (−0.007, n=10),
    natlsubpolar (−0.008, n=5), midatl (−0.002, n=5). This replicates the eqpac finding that the anchor
    gap was CAPACITY, not resolution. **High confidence.**
-2. **The common-grid absolute-RMSE advantage (native more accurate on the identical smoothed field) is
-   robust ONLY in eqpac (n=10, all seeds) and midatl (5/5 seeds).** It is NOT robust in npac (2/5) or
-   sopac (3/5) once firmed to n=5 — the single-seed "native wins" there was not representative.
-   natlsubpolar has no common-grid control yet. So this is a "large-scale-skill regimes" effect, not universal.
+2. **The common-grid absolute-RMSE advantage is regime-specific in SIGN, not universal.** Native beats
+   1° robustly in eqpac (10/10) and midatl (5/5), but **LOSES robustly in natlsubpolar (0/5 — coarse is
+   more accurate)**, and is noisy in npac (2/5) and sopac (3/5). So there is no "finer resolution → more
+   accurate" law; the effect helps in some regimes, hurts in another, and is noise in the rest. The
+   single-seed "native wins everywhere" (earlier read) was wrong.
 3. **npac is a DIAGNOSTIC exception, not a counter-example.** Its own-grid z-skill does rise with
    resolution (+0.089, n=5), carried by bio/particulate tracers — but this is fine-scale, single-step,
    NON-durable (rollout fails, beats@final 0/5), sits BELOW persistence on the common grid, and its
@@ -37,12 +38,16 @@ self-consistency vs ECCO-Darwin v05, NOT real obs.
 
 **Common-grid control (native area-averaged → 1°; native RMSE < 1°-origin RMSE across seeds):**
 
-| regime | native RMSE (n=5) | 1° RMSE | native beats in | robust? |
+| regime | native RMSE (n=5) | 1° RMSE | native beats in | verdict |
 |---|---|---|---|---|
-| eqpac | 8.63 (m16w48) / 8.80 (m8w32) | 9.274 | 10/10 (n=10) | **YES** |
-| midatl | 8.43–8.65 | 8.984 | **5/5** | **YES** |
-| npac | 6.11–6.71 | 6.269 | **2/5** | NO |
-| sopac | 4.15–5.48 | 4.577 | 3/5 | NO (noisy) |
+| eqpac | 8.63 (m16w48) / 8.80 (m8w32) | 9.274 | 10/10 (n=10) | **native wins (robust)** |
+| midatl | 8.43–8.65 | 8.984 | **5/5** | **native wins (robust)** |
+| natlsubpolar | 7.17–7.58 | 7.143 | **0/5** | **native LOSES (robust)** |
+| npac | 6.11–6.71 | 6.269 | 2/5 | noisy / no effect |
+| sopac | 4.15–5.48 | 4.577 | 3/5 | noisy (PIC artifact) |
+
+Direction is NOT consistent across regimes: native is more accurate in eqpac/midatl, LESS accurate in
+natlsubpolar, and indistinguishable in npac/sopac. Resolution has no universal absolute-accuracy sign.
 
 ## Mechanism (medium confidence): predictability scale-locality
 Where each regime's month-to-month predictability lives sets both whether resolution helps z-skill and
@@ -72,10 +77,20 @@ which tracers carry it:
   the subtropics (Rossby radius ~30 km vs ~25 km grid) is assumed, not shown.
 - All resolution effects are one-month-horizon.
 
+## Forecast-horizon decay (per-step rollout skill, existing data)
+Resolution gives NO durable multi-step benefit in any regime. Per-step rollout skill native vs 1° m8w32:
+eqpac native≈1° (both oscillate ~0); midatl marginal native edge late; sopac native≈1° (both high/rising,
+strong seasonal cycle); **npac collapses — native −4.7 at step 6 vs 1° −2.4, i.e. resolution WORSENS the
+rollout.** The one-step fine-scale "gain" in npac actively destabilizes multi-step forecasting. Any
+resolution effect is a one-month, single-step phenomenon.
+
 ## Bottom line
-The **eqpac null-z-skill result generalizes** (finer resolution ≠ higher aggregate skill-over-persistence;
-the anchor gap was capacity). The **absolute-accuracy resolution benefit is real but confined to
-large-scale-skill regimes** (robust in eqpac + midatl), not universal. **npac is a clean diagnostic of
-predictability scale-locality**, not evidence that resolution buys durable skill. This is the honest,
-de-hyped generalization — the adversarial synthesis + n=5 firm-up caught an initial over-read (that npac
-"sharpened" and native "won everywhere").
+The **one robust, universal result: at matched capacity, finer resolution does NOT raise aggregate
+next-month skill-over-persistence in any of the 5 regimes** — the anchor's apparent sharpening was
+CAPACITY, and this replicates everywhere. Beyond that, resolution's effect is **regime-idiosyncratic in
+sign**: on the common grid native is more accurate in eqpac/midatl, LESS accurate in natlsubpolar, and
+noise in npac/sopac; at multi-step horizons it helps nowhere and hurts npac. The naive "finer resolution →
+better" intuition is not supported at this scale/horizon for this emulator. The npac contrast remains a
+useful diagnostic of predictability scale-locality (large-scale carbon vs fine-scale bio), but is not
+evidence of durable resolution skill. The adversarial synthesis + n=5 firm-up + the natlsubpolar control
+were each load-bearing in walking back an initial over-read (npac "sharpens", native "wins everywhere").
