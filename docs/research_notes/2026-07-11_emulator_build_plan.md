@@ -39,6 +39,24 @@ direction is viable and worth the B200 scale-up.** Next experiments (for review 
 residual formulation for DIC/ALK, rollout-aware loss, more AOIs. (GPU note: the `cu128` build has no
 V100/CC-7.0 kernels — pin T4/A100/H200; the tiny grid is launch-bound so tier is immaterial.)
 
+## 0c. UPDATE 2026-07-12 — the method-fix is CONFIRMED (local, `docs/findings/emulator_methodfix_scored.md`)
+
+The §0b "next experiments" were run (Explorer T4), and both bounds are resolved:
+- **Residual/tendency formulation** — the model predicts Δx and returns `x(t) + FNO(x(t))`, so it starts
+  *at* persistence and learns only the correction. The slow carbonate tracers **DIC/ALK now beat
+  persistence too** (the §0b failure is fixed).
+- **Rollout-aware training** (K-step loss) — makes the multi-step autoregressive rollout robust.
+- **Confirmed robust:** all six tracers beat persistence across **n=6 seeds**, rollout beats persistence
+  at the final step in **6/6**; and the method **generalizes to depth** (3 levels — overall skill holds,
+  every tracer positive). Verified honest (fixed persistence yardstick; leak-free pipeline inherited from
+  the audited PoC; residual is not a free lunch — a positive skill still requires the learned Δ to help
+  out-of-sample). Full numbers are local-only in the scored doc.
+
+**The cheap-Explorer de-risking is complete.** The residual + rollout-aware method is proven on the
+eqpac subset at surface and depth, so the B200 scale-up (§2, §3) would now scale a *proven* method, not
+a guess. Next is the scale-up itself (native LLC270 / global / full-depth), gated only on the practical
+850 GB→AICR staging (+ Jon on the OSSE framing) — not on any remaining method risk.
+
 ## 1. The make-or-break gate (analogous to the UDE's E2) — PASSED, see §0b
 
 Before any scale-up, one question decides the whole thing: **can a neural operator learn v05
@@ -137,9 +155,9 @@ The **PoC gate is DONE and PASSED** (§0b — built, run on **T4** job 8302950, 
 climatology guard; single-AOI/low-seed caveats stand). The remaining open items are therefore:
 
 1. ~~Go/no-go on the PoC~~ — **done**; the beat-persistence PoC passed (eqpac, surface, 6 tracers).
-2. **Next live gate — the method-fix + pipeline rung (§3):** residual/tendency formulation for the
-   slow carbonate tracers (DIC/ALK not beaten) + rollout-aware training, proven cheaply on Explorer
-   *before* any B200 spend; then the Earth-2 coord/depth/DataSource adapters.
+2. ~~Method-fix (residual + rollout-aware)~~ — **DONE + CONFIRMED** (§0c): both bounds resolved, robust
+   at n=6 surface + generalizes to depth. **Next live rung — the pipeline (§3):** the Earth-2
+   coord/depth/DataSource adapters (native-grid loader) + a modest scale-up on Explorer if wanted.
 3. **Production target confirmation:** native LLC270 full-res on B200 (assumed per "utilize B200").
 4. **B200 data path:** how the 850 GB reaches AICR (your Duo transfer vs a shared mount).
 5. **Jon greenlight** on observing-system design (gates the OSSE ensembles, not the infra).
