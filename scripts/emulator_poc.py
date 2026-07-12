@@ -140,6 +140,9 @@ def parse_args(argv=None) -> argparse.Namespace:
         help="Cap on number of shared monthly snapshots to load (0 = all available).",
     )
     p.add_argument("--levels", type=int, default=1, help="Number of top depth levels per tracer.")
+    p.add_argument("--grid-res", type=float, default=1.0,
+                   help="AOI rectangular-grid resolution in degrees (1.0=1deg; 0.25~LLC270 native, "
+                   "finer resolves more structure). Larger grid -> B200-scale.")
     p.add_argument("--aoi", default="eqpac", help=f"AOI key. One of {sorted(AOI_BY_KEY)}.")
     p.add_argument("--epochs", type=int, default=250, help="Training epochs.")
     p.add_argument("--batch-size", type=int, default=8, help="Minibatch size (pairs).")
@@ -163,6 +166,23 @@ def parse_args(argv=None) -> argparse.Namespace:
         "Fixes multi-step rollout degradation.",
     )
     p.add_argument("--seed", type=int, default=0, help="Random seed (determinism).")
+    p.add_argument(
+        "--dump-fields",
+        default=None,
+        help="Save the held-out spatial fields (physical pred/true/persistence + lat/lon + rollout) "
+        "to this .npz for visualization. No effect on metrics.",
+    )
+    p.add_argument(
+        "--dump-cube",
+        default=None,
+        help="Extract the AOI state/forcing cube to this .npz (a few MB) and exit — ship it to a "
+        "cluster with no native-tree access and train there via --load-cube.",
+    )
+    p.add_argument(
+        "--load-cube",
+        default=None,
+        help="Load the AOI cube from a --dump-cube .npz instead of reading the native LLC270 tree.",
+    )
     p.add_argument("--cpu", action="store_true", help="Force CPU (fp64 smoke).")
     p.add_argument(
         "--no-physicsnemo",
@@ -210,10 +230,24 @@ def _resolve_tracer_dir(name: str) -> str:
     return TRACER_ALIASES.get(name, TRACER_ALIASES.get(name.upper(), name))
 
 
-def _aoi_grid_shape(aoi: AOI) -> tuple[int, int]:
-    n_lat = int(round(aoi.lat_max - aoi.lat_min)) + 1
-    n_lon = int(round(aoi.lon_max - aoi.lon_min)) + 1
+def _aoi_grid_shape(aoi: AOI, res: float = 1.0) -> tuple[int, int]:
+    n_lat = int(round((aoi.lat_max - aoi.lat_min) / res)) + 1
+    n_lon = int(round((aoi.lon_max - aoi.lon_min) / res)) + 1
     return n_lat, n_lon
+
+
+def _bin_grid(xc, yc, values, lat_min, lat_max, lon_min, lon_max, res: float = 1.0) -> np.ndarray:
+    """Bin scattered native cells onto a ``res``-degree lat/lon grid. ``res=1.0`` reproduces
+    ``bin_to_1deg_grid``; finer ``res`` (e.g. 0.25 ~ LLC270 native) resolves finer structure.
+    Edge count is derived from :func:`_aoi_grid_shape` so shapes always agree."""
+    from scipy.stats import binned_statistic_2d
+    n_lat = int(round((lat_max - lat_min) / res)) + 1
+    n_lon = int(round((lon_max - lon_min) / res)) + 1
+    lat_edges = np.linspace(lat_min - res / 2, lat_max + res / 2, n_lat + 1)
+    lon_edges = np.linspace(lon_min - res / 2, lon_max + res / 2, n_lon + 1)
+    binned, _, _, _ = binned_statistic_2d(
+        yc.ravel(), xc.ravel(), values.ravel(), statistic="mean", bins=[lat_edges, lon_edges])
+    return binned
 
 
 def _common_iterations(monthly: Path, channels: list[str]) -> list[int]:
@@ -237,8 +271,9 @@ def _read_tracer_month(
     aoi_bbox: np.ndarray,
     aoi: AOI,
     shape2d: tuple[int, int],
+    res: float = 1.0,
 ) -> np.ndarray:
-    """Return a tracer's AOI 1-deg field for one month: ``[Y, X, n_z]`` (NaN=land).
+    """Return a tracer's AOI field for one month: ``[Y, X, n_z]`` (NaN=land).
 
     Partial read of the first ``n_z`` levels only (``k`` outermost). Land is
     dropped via ``!= 0`` + finite (the tracer land-fill is exactly 0.0), then the
@@ -256,8 +291,8 @@ def _read_tracer_month(
         good = aoi_bbox & ocean[k] & np.isfinite(a[k]) & (a[k] != 0.0)
         if not good.any():
             continue
-        out[:, :, k] = bin_to_1deg_grid(
-            xc[good], yc[good], a[k][good], aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max
+        out[:, :, k] = _bin_grid(
+            xc[good], yc[good], a[k][good], aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max, res
         )
     return out
 
@@ -271,6 +306,7 @@ def _read_forcing_month(
     ocean0: np.ndarray,
     aoi_bbox: np.ndarray,
     aoi: AOI,
+    res: float = 1.0,
 ) -> np.ndarray:
     """Return a 2-D surface forcing field on the AOI grid ``[Y, X]`` (NaN=land).
 
@@ -285,8 +321,8 @@ def _read_forcing_month(
         raise ValueError(f"short read {a.size}<{count} from {path}")
     a = a.reshape(NFACE, NX, NX).astype(np.float64)
     good = aoi_bbox & ocean0 & np.isfinite(a)
-    return bin_to_1deg_grid(
-        xc[good], yc[good], a[good], aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max
+    return _bin_grid(
+        xc[good], yc[good], a[good], aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max, res
     )
 
 
@@ -320,7 +356,8 @@ def load_dataset(args, aoi: AOI, tracers: list[str], forcings: list[str]):
     xc, yc = load_grid_lonlat(grid)  # (13,270,270) each
     ocean = read_hfacc_topz(grid, n_z) > 0.0  # (n_z,13,270,270)
     aoi_bbox = aoi_mask_from_xc_yc(xc, yc, aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
-    shape2d = _aoi_grid_shape(aoi)
+    res = float(getattr(args, "grid_res", 1.0))
+    shape2d = _aoi_grid_shape(aoi, res)
     ny, nx = shape2d
 
     M = len(common)
@@ -339,7 +376,7 @@ def load_dataset(args, aoi: AOI, tracers: list[str], forcings: list[str]):
         ci = 0
         for tdir in tracer_dirs:
             field = _read_tracer_month(
-                monthly, tdir, it, n_z, xc, yc, ocean, aoi_bbox, aoi, shape2d
+                monthly, tdir, it, n_z, xc, yc, ocean, aoi_bbox, aoi, shape2d, res
             )  # [Y,X,n_z]
             for k in range(n_z):
                 state[m, ci] = field[:, :, k]
@@ -347,7 +384,7 @@ def load_dataset(args, aoi: AOI, tracers: list[str], forcings: list[str]):
         if forcing is not None:
             for fi, fvar in enumerate(forcings):
                 forcing[m, fi] = _read_forcing_month(
-                    monthly, fvar, it, xc, yc, ocean[0], aoi_bbox, aoi
+                    monthly, fvar, it, xc, yc, ocean[0], aoi_bbox, aoi, res
                 )
         if (m + 1) % 20 == 0 or m == M - 1:
             print(
@@ -690,7 +727,7 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
         "final_train_mse_z": hist[-1] if hist else None,
         "n_metric_cells": int(mask_np.sum()),
     }
-    return metrics, zt, zf, mask_t
+    return metrics, zt, zf, mask_t, pred_z
 
 
 # ---------------------------------------------------------------------------
@@ -823,8 +860,33 @@ def main(argv=None) -> int:
         flush=True,
     )
 
-    print("[1/5] loading native LLC270 monthly fields -> AOI 1-deg grid ...", flush=True)
-    data = load_dataset(args, aoi, tracers, forcings)
+    if args.load_cube:
+        print(f"[1/5] loading pre-extracted AOI cube from {args.load_cube} ...", flush=True)
+        z = np.load(args.load_cube, allow_pickle=True)
+        # load the cube's forcing ONLY if this run requests forcing (else run pure prognostic)
+        _use_forc = bool(forcings) and "forcing" in z.files and z["forcing"].ndim == 4
+        data = {
+            "state": z["state"], "valid_mask": z["valid_mask"].astype(bool),
+            "forcing": (z["forcing"] if _use_forc else None),
+            "iters": [int(x) for x in z["iters"]], "times_days": z["times_days"],
+            "chan_names": [str(x) for x in z["chan_names"]],
+            "forc_names": [str(x) for x in z["forc_names"]],
+            "grid_shape": tuple(int(x) for x in z["grid_shape"]), "n_z": int(z["n_z"]),
+        }
+    else:
+        print("[1/5] loading native LLC270 monthly fields -> AOI 1-deg grid ...", flush=True)
+        data = load_dataset(args, aoi, tracers, forcings)
+    if args.dump_cube:
+        f = data["forcing"]
+        np.savez_compressed(
+            args.dump_cube, state=data["state"], valid_mask=data["valid_mask"],
+            forcing=(f if f is not None else np.zeros((0,))), times_days=data["times_days"],
+            iters=np.array(data["iters"]), chan_names=np.array(data["chan_names"]),
+            forc_names=np.array(data["forc_names"]), grid_shape=np.array(data["grid_shape"]),
+            n_z=data["n_z"])
+        print(f"[dump-cube] wrote portable AOI cube -> {args.dump_cube} "
+              f"(state {data['state'].shape}); ship this + run with --load-cube.", flush=True)
+        return 0
     grid_shape = data["grid_shape"]
     M = len(data["iters"])
     print(
@@ -855,7 +917,7 @@ def main(argv=None) -> int:
     print(f"      operator={op_kind}  params={n_params:,}", flush=True)
 
     print(f"[4/5] training {args.epochs} epochs (masked next-state MSE) ...", flush=True)
-    metrics, zt, zf, mask_t = train_and_eval(
+    metrics, zt, zf, mask_t, pred_z = train_and_eval(
         args, data, splits, z_state, means, stds, z_forcing, model, device, dtype
     )
 
@@ -863,6 +925,28 @@ def main(argv=None) -> int:
     rollout = rollout_check(
         args, data, splits, zt, zf, means, stds, model, mask_t, device, dtype
     )
+
+    # --- optional: dump held-out spatial fields (physical) for visualization ---
+    if args.dump_fields:
+        val_m = splits["val_pairs"]
+        pred_phys = pred_z * stds[None, :, None, None] + means[None, :, None, None]  # [Nval,C,H,W]
+        true_phys = data["state"][val_m + 1]                                          # physical, NaN=land
+        persist_phys = data["state"][val_m]
+        vm = data["valid_mask"]
+        # real AOI 1-deg cell centers (bin_to_1deg_grid convention)
+        lats = np.arange(aoi.lat_min, aoi.lat_max + 1, dtype=float)                    # [H]
+        lons = np.arange(aoi.lon_min, aoi.lon_max + 1, dtype=float)                    # [W]
+        Path(args.dump_fields).parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            args.dump_fields,
+            pred=pred_phys.astype(np.float32), true=true_phys.astype(np.float32),
+            persistence=persist_phys.astype(np.float32), valid_mask=vm,
+            lats=lats, lons=lons, chan_names=np.array(data["chan_names"]),
+            val_iters=np.array([data["iters"][m + 1] for m in val_m]),
+            aoi=args.aoi, residual=bool(args.residual), rollout_train_k=int(args.rollout_train_k),
+        )
+        print(f"[dump] wrote held-out fields -> {args.dump_fields} "
+              f"({pred_phys.shape[0]} months x {pred_phys.shape[1]} chans, grid {vm.shape})", flush=True)
 
     # --- verdict ---
     skill = metrics["overall_skill_vs_persistence"]
@@ -931,7 +1015,14 @@ def main(argv=None) -> int:
             "Standardization statistics use TRAIN months only; pairs never cross the split and never span a missing-month gap.",
             "Only the fixed valid-ocean mask (finite across all months/channels) is scored; land is fill-zero input only.",
             "Single AOI, single seed: treat as a go/no-go signal, not a converged benchmark. Repeat over seeds/AOIs before any claim.",
-            "Model predicts the FULL next state directly (not a persistence residual), so positive skill reflects learned month-to-month change.",
+            (
+                "Residual mode: the model predicts the TENDENCY added to x(t) (it starts AT persistence and "
+                "learns only the correction), so positive skill reflects a learned month-to-month change that "
+                "improves on copying."
+                if bool(args.residual)
+                else "Model predicts the FULL next state directly (not a persistence residual), so positive "
+                "skill reflects learned month-to-month change."
+            ),
         ],
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "argv": sys.argv,
