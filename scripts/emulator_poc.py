@@ -200,6 +200,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     )
     p.add_argument("--grid-dir", default=None, help="Override grid dir (defaults to <root>/grid).")
     p.add_argument(
+        "--data-subdir", default="output/monthly",
+        help="Subpath under --data-root that holds the per-variable dirs. Default "
+        "'output/monthly' (v05 monthly tree). The daily surface layout is flat "
+        "(<root>/<var>/), so pass '.' for daily cubes.",
+    )
+    p.add_argument(
         "--adjacency-tol",
         type=float,
         default=1.6,
@@ -229,10 +235,11 @@ def _resolve_roots(args) -> tuple[Path, Path]:
 
     root = args.data_root or os.environ.get("DARWIN_DATA_ROOT") or r"D:\ecco_darwin_v5"
     root = Path(root)
-    monthly = root / "output" / "monthly"
+    subdir = getattr(args, "data_subdir", "output/monthly") or "output/monthly"
+    monthly = (root / subdir).resolve() if subdir != "." else root
     grid = Path(args.grid_dir) if args.grid_dir else root / "grid"
     if not monthly.is_dir():
-        raise FileNotFoundError(f"monthly root not found: {monthly}")
+        raise FileNotFoundError(f"data dir not found: {monthly} (root={root}, subdir={subdir!r})")
     if not grid.is_dir():
         raise FileNotFoundError(f"grid dir not found: {grid}")
     return monthly, grid
