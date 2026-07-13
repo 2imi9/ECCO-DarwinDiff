@@ -24,6 +24,52 @@ cubes extracted on Explorer. Harness `scripts/emulator_poc.py` (residual + rollo
 
 ---
 
+## R0 — What "skill" means (metric definition + terminology)
+
+Every number in this doc is a **skill-over-persistence** score — a deliberately strict metric,
+not a raw accuracy:
+
+    skill = 1 − MSE(model) / MSE(persistence)
+
+computed in **per-channel z-scored space** (each tracer standardized to unit variance so no
+single tracer dominates the mean).
+
+- **Baseline = persistence**, the "do nothing" forecast: predict next month's state = this
+  month's state, `x̂(t+1) = x(t)`. On a strongly autocorrelated ocean the state barely changes
+  month-to-month, so copying is *already* accurate — persistence is a **hard** baseline. That is
+  precisely why we use it instead of a raw R²: a raw R² near 1 is trivially achievable by
+  near-copying the input and tells you nothing about learned dynamics. Skill-over-persistence
+  only rewards the model for the *change* it predicts correctly.
+- **How to read it:** `skill = 0` → no better than copying last month; `skill > 0` → beats
+  persistence, i.e. it has learned something about the month-to-month evolution (+0.27 means MSE
+  cut to 73% of persistence's); `skill < 0` → worse than copying.
+- **Verdict thresholds** (in `emulator_poc.py`): `skill > 0.02` **and** stable rollout = **MAKE**;
+  positive but tiny = **MARGINAL**; `skill ≤ 0` = **BREAK**.
+- **Companion metrics** reported alongside: **anomaly-R² vs climatology** (beats the seasonal
+  average — an easier baseline than persistence) and **rollout stability / beats@final** (whether,
+  feeding the model's own output back in for 6 autoregressive steps, it stays physical and still
+  beats persistence at step 6 — this is where k=1 training passes 1-step skill but fails rollout).
+
+**The load-bearing subtlety — skill is doubly relative.** It is normalized to (i) *each grid's own*
+persistence denominator and (ii) *each grid's own* z-scoring. So `skill(native)` and `skill(1°)`
+are **not on a common scale**: a higher native skill does not by itself prove a better model. This
+is exactly why R2's common-grid control (comparing *absolute physical error on the identical field*)
+is the decisive test — and why the apparent resolution "sharpening" in the raw skill number turned
+out to be a capacity artifact rather than a genuine resolution effect (R1). Any cross-resolution
+comparison must go through R2, not the bare skill score.
+
+**Terminology — why "skill", not "ability".** "Skill" is a term of art in forecast verification: a
+*skill score* means performance measured against a reference baseline, and `1 − MSE(model)/MSE(ref)`
+is the textbook MSE skill score. Ocean/weather/climate readers see "skill" and immediately read
+"improvement over a baseline" — the exact thing measured. "Ability" would be *worse*: vaguer, and it
+reads as more *absolute* (a raw competence score), which is the misreading we most need to avoid;
+it is also non-standard and would make a reviewer stop to decode it. The right fix for the faint
+anthropomorphism is not a new word but **always stating the baseline**: write **"skill over
+persistence"**, which is unambiguous and standard. Plain-language gloss for a non-specialist
+paragraph: *"fractional error reduction vs. persistence."* Do not rename the metric.
+
+---
+
 ## R1 — Own-grid z-skill: no aggregate resolution sharpening
 
 De-confound table (n=10, m=modes w=width, `--residual --rollout-train-k 4 --epochs 500`):
@@ -39,7 +85,7 @@ De-confound table (n=10, m=modes w=width, `--residual --rollout-train-k 4 --epoc
   resolutions. The confounded anchor gap was entirely capacity.
 - **3-point curve @ m8w32:** 1° +0.2600 / 0.5° +0.2426 / native +0.2535 — flat-to-declining.
 - **Convergence (closes "native converges slower"):** m8w32 skill at 500/1500/2500 ep —
-  native +0.254/+0.268/+0.259; 1° +0.260/+0.286/**+0.2895**. The 1° model gains MORE with
+  native +0.254/+0.268/+0.269; 1° +0.260/+0.286/**+0.2895**. The 1° model gains MORE with
   epochs and pulls further ahead. Native never closes the gap.
 
 ## R2 — Common-grid control: native IS more accurate in absolute terms (the real resolution benefit)
