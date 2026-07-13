@@ -144,6 +144,10 @@ def parse_args(argv=None) -> argparse.Namespace:
                    help="AOI rectangular-grid resolution in degrees (1.0=1deg; 0.25~LLC270 native, "
                    "finer resolves more structure). Larger grid -> B200-scale.")
     p.add_argument("--aoi", default="eqpac", help=f"AOI key. One of {sorted(AOI_BY_KEY)}.")
+    p.add_argument("--aoi-bounds", default=None,
+                   help="Custom AOI 'lat_min,lat_max,lon_min,lon_max' (-180..180 lon). Overrides "
+                   "--aoi's bounds while keeping --aoi as the label; enables whole-globe runs, "
+                   "e.g. --aoi global --aoi-bounds -80,89.75,-180,180.")
     p.add_argument("--epochs", type=int, default=250, help="Training epochs.")
     p.add_argument("--batch-size", type=int, default=8, help="Minibatch size (pairs).")
     p.add_argument("--lr", type=float, default=1e-3, help="Adam learning rate.")
@@ -206,6 +210,14 @@ def parse_args(argv=None) -> argparse.Namespace:
         default=str(_REPO_ROOT / "docs" / "findings" / "emulator_poc.json"),
         help="Path for the JSON summary.",
     )
+    p.add_argument(
+        "--save-model",
+        default=None,
+        help="Save the trained model to this path (.safetensors preferred, else torch .pt): "
+        "weights + standardization means/stds + the full config needed to rebuild the "
+        "architecture (modes/width/layers/grid/channels). Portable across GPUs "
+        "(load on H200 with map_location); no effect on metrics.",
+    )
     return p.parse_args(argv)
 
 
@@ -230,21 +242,45 @@ def _resolve_tracer_dir(name: str) -> str:
     return TRACER_ALIASES.get(name, TRACER_ALIASES.get(name.upper(), name))
 
 
+def _lon_axis(lon_min: float, lon_max: float, res: float) -> tuple[int, np.ndarray, bool]:
+    """Longitude bin count + edges, periodic-aware.
+
+    A full 360-deg span is periodic: the +180 and -180 meridians are the SAME
+    line, so the inclusive-endpoint ``+1`` would create a redundant half-width
+    column at the seam. For a global span we drop it (1440 cols at 0.25deg, not
+    1441). Regional AOIs keep the inclusive-endpoint behavior unchanged.
+    """
+    is_global = abs((lon_max - lon_min) - 360.0) < res / 2
+    if is_global:
+        n_lon = int(round((lon_max - lon_min) / res))
+        lon_edges = np.linspace(lon_min - res / 2, lon_max - res / 2, n_lon + 1)
+    else:
+        n_lon = int(round((lon_max - lon_min) / res)) + 1
+        lon_edges = np.linspace(lon_min - res / 2, lon_max + res / 2, n_lon + 1)
+    return n_lon, lon_edges, is_global
+
+
 def _aoi_grid_shape(aoi: AOI, res: float = 1.0) -> tuple[int, int]:
     n_lat = int(round((aoi.lat_max - aoi.lat_min) / res)) + 1
-    n_lon = int(round((aoi.lon_max - aoi.lon_min) / res)) + 1
+    n_lon, _, _ = _lon_axis(aoi.lon_min, aoi.lon_max, res)
     return n_lat, n_lon
 
 
 def _bin_grid(xc, yc, values, lat_min, lat_max, lon_min, lon_max, res: float = 1.0) -> np.ndarray:
     """Bin scattered native cells onto a ``res``-degree lat/lon grid. ``res=1.0`` reproduces
     ``bin_to_1deg_grid``; finer ``res`` (e.g. 0.25 ~ LLC270 native) resolves finer structure.
-    Edge count is derived from :func:`_aoi_grid_shape` so shapes always agree."""
+    Edge count is derived from :func:`_aoi_grid_shape` so shapes always agree. A global
+    longitude span is treated as periodic (no duplicated antimeridian column)."""
     from scipy.stats import binned_statistic_2d
     n_lat = int(round((lat_max - lat_min) / res)) + 1
-    n_lon = int(round((lon_max - lon_min) / res)) + 1
     lat_edges = np.linspace(lat_min - res / 2, lat_max + res / 2, n_lat + 1)
-    lon_edges = np.linspace(lon_min - res / 2, lon_max + res / 2, n_lon + 1)
+    n_lon, lon_edges, is_global = _lon_axis(lon_min, lon_max, res)
+    xc = np.asarray(xc)
+    if is_global:
+        # fold cells in the wrapped-away last half-bin (near +180) onto the -180
+        # column so the seam is a single column, not two half-width ones.
+        xc = xc.copy()
+        xc[xc >= lon_max - res / 2] -= 360.0
     binned, _, _, _ = binned_statistic_2d(
         yc.ravel(), xc.ravel(), values.ravel(), statistic="mean", bins=[lat_edges, lon_edges])
     return binned
@@ -584,11 +620,30 @@ def build_model(args, chan_names, n_forcing, grid_shape, dt_hours, dtype, device
 # ---------------------------------------------------------------------------
 # Metric helpers (all in z-space; skill ratios are per-channel scale-invariant)
 # ---------------------------------------------------------------------------
-def _sse_per_channel(pred, target, mask2d):
-    """Sum of squared error per channel over pairs & valid cells. [C]."""
+def _area_weights(lats, width):
+    """cos(lat) per-cell area weight ``[H, W]`` for a regular lat/lon grid.
+
+    On a regular lat/lon grid cell area scales as cos(lat); without this weight an
+    unweighted cell sum over-counts high-latitude cells (a 89.75N cell has cos~0.004
+    the area of an equatorial one). Clipped to >=0 so a pole row never goes negative.
+    """
+    w = np.clip(np.cos(np.deg2rad(np.asarray(lats, dtype=np.float64))), 0.0, None)
+    return w[:, None] * np.ones((1, int(width)), dtype=np.float64)
+
+
+def _sse_per_channel(pred, target, mask2d, w2d=None):
+    """Sum of squared error per channel over pairs & valid cells. [C].
+
+    ``w2d`` is an optional ``[H, W]`` per-cell area weight (e.g. from
+    :func:`_area_weights`); when given, cells are area-weighted so the skill ratio
+    is not polar-biased at global scale. ``None`` reproduces the unweighted sum.
+    """
     d = pred - target  # [N,C,H,W]
     d = d[:, :, mask2d]  # [N,C,Nvalid]
-    return (d * d).sum(axis=(0, 2))
+    d2 = d * d
+    if w2d is not None:
+        d2 = d2 * w2d[mask2d]  # [Nvalid] broadcasts over [N,C,Nvalid]
+    return d2.sum(axis=(0, 2))
 
 
 def masked_mse(pred, target, mask_t):
@@ -694,10 +749,15 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
     clim_z = np.nan_to_num(clim_z, nan=0.0, posinf=0.0, neginf=0.0)
     clim_z_b = np.broadcast_to(clim_z[None], pred_z.shape)
 
-    sse_model = _sse_per_channel(pred_z, tgt_z, mask_np)
-    sse_persist = _sse_per_channel(persist_z, tgt_z, mask_np)
-    sse_clim = _sse_per_channel(clim_z_b, tgt_z, mask_np)
-    n_elem = pred_z.shape[0] * int(mask_np.sum())
+    # Area-weight the metric so the headline skill is not polar-biased on the
+    # global --aoi-bounds path (cos(lat) cell weight). Negligible for a narrow
+    # AOI (near-uniform lat); load-bearing whole-globe. lats set in main().
+    lats = data.get("lats")
+    w2d = _area_weights(lats, valid_mask.shape[1]) if lats is not None else None
+    sse_model = _sse_per_channel(pred_z, tgt_z, mask_np, w2d)
+    sse_persist = _sse_per_channel(persist_z, tgt_z, mask_np, w2d)
+    sse_clim = _sse_per_channel(clim_z_b, tgt_z, mask_np, w2d)
+    n_elem = pred_z.shape[0] * (float(w2d[mask_np].sum()) if w2d is not None else int(mask_np.sum()))
 
     eps = 1e-30
     skill_c = 1.0 - sse_model / (sse_persist + eps)
@@ -831,6 +891,55 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+def save_checkpoint(path, model, config, means, stds):
+    """Persist the trained model to `path` for reuse / cross-cluster transfer.
+
+    Writes the weights, the per-channel standardization stats (means/stds — needed to
+    map model z-space back to physical units at inference), and the full `config`
+    (modes/width/layers/grid/channels/operator/residual) required to rebuild the
+    architecture. Prefers safetensors (Hub-native, no pickle) when the path ends in
+    .safetensors and the package is importable; else falls back to a torch .pt dict.
+    State is moved to CPU so the checkpoint loads on any GPU (map_location).
+    """
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    sd = {k: v.detach().cpu().contiguous() for k, v in model.state_dict().items()}
+    means_t = torch.as_tensor(np.asarray(means), dtype=torch.float32)
+    stds_t = torch.as_tensor(np.asarray(stds), dtype=torch.float32)
+
+    use_safetensors = p.suffix == ".safetensors"
+    if use_safetensors:
+        try:
+            from safetensors.torch import save_file
+        except Exception:
+            print("  [save-model] safetensors not importable; falling back to torch .pt", flush=True)
+            use_safetensors = False
+
+    if use_safetensors:
+        # safetensors has no complex dtype; the fallback FNO2d stores spectral
+        # weights as complex64. Store those as a real view (last dim = 2) and
+        # record their keys so a loader can rebuild them via view_as_complex.
+        tensors, complex_keys = {}, []
+        for k, v in sd.items():
+            if v.is_complex():
+                tensors[f"model.{k}"] = torch.view_as_real(v).contiguous()
+                complex_keys.append(k)
+            else:
+                tensors[f"model.{k}"] = v
+        tensors["stats.means"] = means_t
+        tensors["stats.stds"] = stds_t
+        save_file(
+            tensors,
+            str(p),
+            metadata={"config": json.dumps(config), "complex_keys": json.dumps(complex_keys)},
+        )
+    else:
+        torch.save(
+            {"state_dict": sd, "means": means_t, "stds": stds_t, "config": config}, str(p)
+        )
+    return p
+
+
 def main(argv=None) -> int:
     args = parse_args(argv)
 
@@ -842,9 +951,20 @@ def main(argv=None) -> int:
     device = torch.device("cuda" if use_cuda else "cpu")
     dtype = torch.float32 if use_cuda else torch.float64  # CUDA fp32, CPU fp64
 
-    if args.aoi not in AOI_BY_KEY:
+    if args.aoi_bounds:
+        try:
+            _b = [float(x) for x in args.aoi_bounds.split(",")]
+            if len(_b) != 4:
+                raise ValueError
+        except ValueError:
+            raise SystemExit(
+                f"--aoi-bounds must be 'lat_min,lat_max,lon_min,lon_max'; got {args.aoi_bounds!r}"
+            )
+        aoi = AOI(args.aoi, _b[0], _b[1], _b[2], _b[3])  # AOI validates ranges
+    elif args.aoi not in AOI_BY_KEY:
         raise SystemExit(f"unknown --aoi {args.aoi!r}; choose from {sorted(AOI_BY_KEY)}")
-    aoi = AOI_BY_KEY[args.aoi]
+    else:
+        aoi = AOI_BY_KEY[args.aoi]
     tracers = [t.strip() for t in args.tracers.split(",") if t.strip()]
     forcings = [f.strip() for f in args.forcing.split(",") if f.strip()]
     for f in forcings:
@@ -879,6 +999,14 @@ def main(argv=None) -> int:
             forc_arr = np.asarray(z["forcing"])[:, sel]
             forc_names_out = list(forcings)
         else:
+            # Requested forcing but the cube baked none -> the model would expect
+            # forcing channels it can never be fed. Fail loudly instead.
+            if forcings:
+                raise SystemExit(
+                    f"--forcing {forcings} requested but cube {args.load_cube} has no forcing "
+                    f"channels (forc_names={cube_forc_names}); re-dump the cube with --forcing "
+                    f"or drop --forcing."
+                )
             forc_arr = None
             forc_names_out = []
         data = {
@@ -889,6 +1017,16 @@ def main(argv=None) -> int:
             "forc_names": forc_names_out,
             "grid_shape": tuple(int(x) for x in z["grid_shape"]), "n_z": int(z["n_z"]),
         }
+        # Reconcile the recorded tracer list with the cube's real channels so the
+        # summary config.tracers matches config.channel_names (mirrors the forcing
+        # reconciliation above). Strip any depth-level "_k<n>" suffix.
+        cube_tracers = list(dict.fromkeys(c.split("_k")[0] for c in data["chan_names"]))
+        if tracers and set(tracers) != set(cube_tracers):
+            print(
+                f"  [warn] --tracers {tracers} != cube channels {cube_tracers}; using the cube's.",
+                flush=True,
+            )
+        tracers = cube_tracers
     else:
         print("[1/5] loading native LLC270 monthly fields -> AOI 1-deg grid ...", flush=True)
         data = load_dataset(args, aoi, tracers, forcings)
@@ -904,6 +1042,9 @@ def main(argv=None) -> int:
               f"(state {data['state'].shape}); ship this + run with --load-cube.", flush=True)
         return 0
     grid_shape = data["grid_shape"]
+    # AOI cell-center latitudes (regular grid) -> cos(lat) area weight for the
+    # metric, so global-scale skill is area-correct rather than polar-biased.
+    data["lats"] = np.linspace(aoi.lat_min, aoi.lat_max, int(grid_shape[0]), dtype=float)
     M = len(data["iters"])
     print(
         f"      loaded M={M} shared months, grid={grid_shape}, "
@@ -1049,6 +1190,14 @@ def main(argv=None) -> int:
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(summary, indent=2))
+
+    if args.save_model:
+        ckpt = save_checkpoint(args.save_model, model, summary["config"], means, stds)
+        print(
+            f"[save-model] wrote checkpoint -> {ckpt} "
+            f"({n_params:,} params + standardization stats + rebuild config)",
+            flush=True,
+        )
 
     # --- console report ---
     print("\n" + "=" * 72, flush=True)
