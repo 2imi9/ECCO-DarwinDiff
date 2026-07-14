@@ -192,6 +192,21 @@ def test_save_checkpoint_pt_roundtrip(tmp_path):
     assert all(v.device.type == "cpu" for v in blob["state_dict"].values())
 
 
+def test_rollout_positivity_projection():
+    """The rollout positivity fix de-standardizes, clamps physical >=0, re-standardizes.
+    It must remove negative concentrations while leaving already-positive tracers untouched."""
+    import torch
+
+    means = torch.tensor([2000.0, 0.01]).view(1, 2, 1, 1)  # DIC-like (large), PIC-like (near 0)
+    stds = torch.tensor([50.0, 0.02]).view(1, 2, 1, 1)
+    x = torch.tensor([[[[-1.0]], [[-2.0]]]])  # DIC z=-1 -> 1950 (ok); PIC z=-2 -> -0.03 (negative)
+    x_proj = ((x * stds + means).clamp(min=0.0) - means) / stds
+    phys = x_proj * stds + means
+    assert (phys >= -1e-6).all(), "projection left a negative physical concentration"
+    assert torch.allclose(x_proj[0, 0], x[0, 0]), "already-positive tracer must be unchanged"
+    assert phys[0, 1].item() == pytest.approx(0.0, abs=1e-6), "negative tracer must clamp to 0"
+
+
 def test_save_checkpoint_safetensors_roundtrip(tmp_path):
     import json
 

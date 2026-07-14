@@ -157,6 +157,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--layers", type=int, default=4, help="FNO blocks.")
     p.add_argument("--rollout-steps", type=int, default=6, help="Max autoregressive rollout steps.")
     p.add_argument(
+        "--rollout-positivity",
+        action="store_true",
+        help="Enforce the physical nonnegativity invariant (concentrations >= 0) between autoregressive "
+        "rollout steps, so negative values cannot compound. Fixes the negative-concentration rollout.",
+    )
+    p.add_argument(
         "--residual",
         action="store_true",
         help="Predict the tendency: x_hat(t+1) = x(t) + FNO(input). The model starts AT persistence "
@@ -839,6 +845,10 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
                 inp = x
             out = model(inp)
             x = (x + out) if args.residual else out   # residual-aware autoregressive step
+            if getattr(args, "rollout_positivity", False):
+                # Project onto the physical feasible set: concentrations are >= 0.
+                # Enforced BETWEEN steps so negatives cannot compound down the rollout.
+                x = ((x * stds_t + means_t).clamp(min=0.0) - means_t) / stds_t
             tj = zt[best[j] : best[j] + 1]
             step_mse_model.append(masked_mse(x, tj, mask_t))
             step_mse_persist.append(masked_mse(x0, tj, mask_t))
@@ -892,6 +902,7 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
         "mass_drift": mass_drift,
         "max_frac_negative": float(max_abs_neg_frac),
         "max_abs_relative_mass_drift": float(max_abs_drift),
+        "positivity_enforced": bool(getattr(args, "rollout_positivity", False)),
     }
 
 
