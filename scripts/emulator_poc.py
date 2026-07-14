@@ -163,6 +163,18 @@ def parse_args(argv=None) -> argparse.Namespace:
         "rollout steps, so negative values cannot compound. Fixes the negative-concentration rollout.",
     )
     p.add_argument(
+        "--rollout-mass-conserve",
+        action="store_true",
+        help="With --rollout-positivity: after clamping to >=0, rescale each tracer to its pre-clamp "
+        "domain mean, so enforcing positivity does not inject mass (fixes the positivity/mean tension).",
+    )
+    p.add_argument(
+        "--time-encoding",
+        action="store_true",
+        help="Add sin/cos(day-of-year) as 2 input-only channels so the model can place itself in the "
+        "annual cycle (seasonal phase). Treated like forcing; no effect on outputs/metrics scope.",
+    )
+    p.add_argument(
         "--residual",
         action="store_true",
         help="Predict the tendency: x_hat(t+1) = x(t) + FNO(input). The model starts AT persistence "
@@ -848,7 +860,19 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
             if getattr(args, "rollout_positivity", False):
                 # Project onto the physical feasible set: concentrations are >= 0.
                 # Enforced BETWEEN steps so negatives cannot compound down the rollout.
-                x = ((x * stds_t + means_t).clamp(min=0.0) - means_t) / stds_t
+                x_phys = x * stds_t + means_t
+                if getattr(args, "rollout_mass_conserve", False):
+                    # Mass-conserving positivity: clamp to >=0, then rescale each tracer to
+                    # its pre-clamp domain mean, so enforcing positivity does not inject mass
+                    # (resolves the positivity-vs-mean-conservation tension).
+                    pre = x_phys[..., mask_t].mean(dim=-1).view(1, -1, 1, 1)
+                    x_phys = x_phys.clamp(min=0.0)
+                    post = x_phys[..., mask_t].mean(dim=-1).view(1, -1, 1, 1)
+                    scale = (pre / post.clamp(min=1e-30)).clamp(min=0.0, max=10.0)
+                    x_phys = x_phys * scale
+                else:
+                    x_phys = x_phys.clamp(min=0.0)
+                x = (x_phys - means_t) / stds_t
             tj = zt[best[j] : best[j] + 1]
             step_mse_model.append(masked_mse(x, tj, mask_t))
             step_mse_persist.append(masked_mse(x0, tj, mask_t))
@@ -903,6 +927,7 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
         "max_frac_negative": float(max_abs_neg_frac),
         "max_abs_relative_mass_drift": float(max_abs_drift),
         "positivity_enforced": bool(getattr(args, "rollout_positivity", False)),
+        "mass_conserve_enforced": bool(getattr(args, "rollout_mass_conserve", False)),
     }
 
 
@@ -1072,6 +1097,17 @@ def main(argv=None) -> int:
         flush=True,
     )
 
+    if args.time_encoding:
+        # Seasonal phase as 2 input-only channels: the model otherwise cannot tell where in the
+        # annual cycle it is, yet monthly next-state is largely seasonal. Treated like forcing.
+        doy = (np.asarray(data["times_days"], dtype=float) % 365.25) / 365.25  # [M] year fraction
+        tenc = np.stack([np.sin(2 * np.pi * doy), np.cos(2 * np.pi * doy)], axis=1)  # [M,2]
+        H, W = grid_shape
+        tf = np.broadcast_to(tenc[:, :, None, None], (M, 2, H, W)).astype(np.float64)
+        data["forcing"] = tf if data["forcing"] is None else np.concatenate([data["forcing"], tf], axis=1)
+        data["forc_names"] = list(data["forc_names"]) + ["sin_doy", "cos_doy"]
+        print("      [time-encoding] +2 seasonal input channels (sin/cos day-of-year)", flush=True)
+
     print("[2/5] temporal split + leak-free standardization + pairing ...", flush=True)
     splits = build_splits(data, args.val_frac, args.adjacency_tol)
     z_state, means, stds = standardize(data["state"], splits["train_months"], data["valid_mask"])
@@ -1085,8 +1121,9 @@ def main(argv=None) -> int:
 
     dt_hours = max(1.0, splits["median_step_days"] * 24.0)
     print("[3/5] building FNO emulator ...", flush=True)
+    n_forcing = data["forcing"].shape[1] if data["forcing"] is not None else 0
     model, op_kind = build_model(
-        args, data["chan_names"], len(forcings), grid_shape, dt_hours, dtype, device
+        args, data["chan_names"], n_forcing, grid_shape, dt_hours, dtype, device
     )
     n_params = sum(p.numel() for p in model.parameters())
     print(f"      operator={op_kind}  params={n_params:,}", flush=True)

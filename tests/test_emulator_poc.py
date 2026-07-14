@@ -207,6 +207,25 @@ def test_rollout_positivity_projection():
     assert phys[0, 1].item() == pytest.approx(0.0, abs=1e-6), "negative tracer must clamp to 0"
 
 
+def test_rollout_mass_conserve_projection():
+    """Mass-conserving positivity: clamp to >=0 then rescale to the pre-clamp domain mean.
+    Must remove negatives AND preserve the domain mean (when the mean is positive)."""
+    import torch
+
+    means = torch.tensor([0.05]).view(1, 1, 1, 1)
+    stds = torch.tensor([0.02]).view(1, 1, 1, 1)
+    # physical [-0.03, 0.06, 0.08, 0.02] -> mean 0.0325 > 0, one negative cell
+    x = torch.tensor([[[[-4.0, 0.5], [1.5, -1.5]]]])
+    mask = torch.ones(2, 2, dtype=torch.bool)
+    x_phys = x * stds + means
+    pre = x_phys[..., mask].mean().view(1, 1, 1, 1)
+    xc = x_phys.clamp(min=0.0)
+    post = xc[..., mask].mean().view(1, 1, 1, 1)
+    xc = xc * (pre / post.clamp(min=1e-30)).clamp(min=0.0, max=10.0)
+    assert (xc >= -1e-6).all(), "positivity violated"
+    assert torch.allclose(xc[..., mask].mean(), pre.squeeze(), atol=1e-6), "domain mean not conserved"
+
+
 def test_save_checkpoint_safetensors_roundtrip(tmp_path):
     import json
 
