@@ -17,7 +17,7 @@ surface-monthly emulator is already near-optimal for its formulation.
 | **Seasonal time-encoding** (sin/cos day-of-year) | eqpac +0.212 vs +0.285 (−0.073) | **Rejected** — hurts |
 | **Rollout mass-conserve** (clamp + rescale to mean) | eqpac neg 0.103 / drift 0.482 — worse than positivity | **Rejected** |
 | **Rollout positivity** (clamp ≥0 between steps) | eqpac neg 0.182→0.083, drift 0.482→0.401 | **Kept** — fixes negatives |
-| Longer rollout-k (k=8) | pending | — |
+| Longer rollout-k (k=8) | global +0.432 (−0.088) | **Rejected** — k=4 optimal |
 
 **Interpretation.** Two independent "add-information" ideas (forcing, seasonal phase) both *hurt*.
 Under the residual formulation with a strong persistence baseline, the model already extracts the
