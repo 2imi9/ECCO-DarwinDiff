@@ -30,6 +30,26 @@ output, not agreement with real observations.
   equatorial-Pacific case, in which some regimes failed the rollout check outright.
 - A portable safetensors checkpoint was saved.
 
+## Robustness and rollout physics (2026-07-14 follow-up)
+
+**Seed variance — the headline is bankable.** Five seeds at modes 32 / width 64 give
+**+0.5165 ± 0.0023** (seeds: +0.5204, +0.5139, +0.5165, +0.5146, +0.5170). The result is not a
+lucky seed; the spread is ±0.5% of the mean.
+
+**Capacity saturates.** A capacity ladder (all seed 0) gives m48w96 +0.522, m64w96 +0.525,
+m64w128 +0.526, m32w128 **+0.527** — the best config beats the modes32/width64 baseline (+0.520)
+by only +0.007 despite ~4× the parameters. Capacity is not the bottleneck; the ~+0.52 level is
+close to the ceiling for this data and formulation, consistent with the earlier resolution study.
+
+**Rollout positivity fix — partial, and it exposes a real tension.** Adding `--rollout-positivity`
+(project concentrations to ≥ 0 between autoregressive steps, same seed-0 model) cuts the maximum
+negative-cell fraction from **0.411 → 0.062** (an 85% reduction) and leaves single-step skill
+unchanged (+0.5204 → +0.5206, as expected). However, it *worsens* the maximum relative mass drift
+(**1.008 → 1.324**): clamping negatives to zero only ever *adds* mass, pushing the domain mean up.
+Positivity and mean-conservation are therefore in tension under a naive projection. The honest next
+step (#7) is a **mass-conserving positivity** operator (clamp, then redistribute the added mass) or
+a log-space parameterization for the nonnegative tracers.
+
 ## Interpretation
 
 Two points are essential to reading the +0.520 figure correctly.
