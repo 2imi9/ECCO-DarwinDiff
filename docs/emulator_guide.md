@@ -1,76 +1,118 @@
-# Track-2 emulator — how to run it (contributor guide)
+# Track-2 Neural Emulator — Developer Guide
 
-A next-state FNO surrogate of ECCO-Darwin **v05**: given this month's (or day's) ocean-BGC
-surface state, predict the next one, scored by **skill over persistence** on a leak-free
-temporal hold-out. This guide is the fast path for a new contributor (or a future session).
-All skill numbers are **LOCAL** (self-consistency vs the v05 *model*, not real obs) — see the
-honesty note at the end.
+## Overview
 
-## Where the pieces live
+The Track-2 emulator is a Fourier Neural Operator (FNO) surrogate of ECCO-Darwin v05. Given the
+ocean-biogeochemistry surface state at one time step, it predicts the state at the next step. Model
+quality is measured as **skill relative to a persistence baseline** on a leak-free temporal
+hold-out. This guide describes how to extract training data, train and score a model, and interpret
+the results. It is intended for new contributors and for automated agents resuming the project.
 
-| Piece | Path |
+All skill values reported by the pipeline are **local**: they measure self-consistency against the
+ECCO-Darwin v05 *model output*, not agreement with real observations. See
+[Interpreting results](#interpreting-results) and [Scope and limitations](#scope-and-limitations).
+
+## Repository layout
+
+| Component | Path |
 |---|---|
-| Model (FNO2d / DarwinEmulator, Earth-2 prognostic contract) | `src/darwindiff/emulator.py` |
-| Runner (extract → train → score → save) | `scripts/emulator_poc.py` |
-| HF checkpoint publish (private-by-default) | `scripts/hf_upload_model.py` |
-| Tests (model + leak-free helpers) | `tests/test_emulator.py`, `tests/test_emulator_poc.py` |
-| Findings (local) | `docs/findings/emulator_*_scored.md`, `docs/findings/2026-07-12_resolution_sharpening.md` |
-| Tracker epic | GitHub #185 |
+| Model — `FNO2d`, `DarwinEmulator` (Earth-2 prognostic interface) | `src/darwindiff/emulator.py` |
+| Runner — extraction, training, scoring, checkpointing | `scripts/emulator_poc.py` |
+| Checkpoint publishing (private HuggingFace repo by default) | `scripts/hf_upload_model.py` |
+| Tests — model and leak-free data helpers | `tests/test_emulator.py`, `tests/test_emulator_poc.py` |
+| Results (local) | `docs/findings/emulator_*_scored.md`, `docs/findings/2026-07-*.md` |
+| Roadmap epic | GitHub issue #185 |
 
-## Two-stage workflow: extract a cube, then train
+## Workflow
 
-Extraction reads native LLC270 fields (surface partial-read), bins to a regular lat/lon grid,
-and writes a portable `.npz` cube. Training loads the cube — so extraction (CPU/IO, where the
-data lives) and training (GPU) can run on different machines.
+The pipeline runs in two stages — data extraction and model training — connected by a portable cube
+file (`.npz`). Extraction reads native LLC270 fields with surface partial reads, bins them onto a
+regular latitude/longitude grid, and writes the cube. Training loads the cube. Because the two
+stages are decoupled, extraction (CPU- and I/O-bound, run where the raw data resides) and training
+(GPU-bound) may run on different machines.
 
-**1. Extract a cube** (CPU; on the cluster holding the raw data):
+### Stage 1 — Extract a data cube (CPU)
+
 ```bash
 python scripts/emulator_poc.py \
-  --data-root <v05 root> --grid-dir <grid> \
+  --data-root <v05 root> --grid-dir <grid dir> \
   --tracers DIC,ALK,PIC,POC,FeT,Chl1 --aoi eqpac --grid-res 0.25 --levels 1 \
   --dump-cube eqpac_native_cube.npz
 ```
-- `--aoi` picks a named region; `--aoi-bounds lat0,lat1,lon0,lon1` overrides for any box —
-  including whole-globe: `--aoi global --aoi-bounds=-80,89.75,-180,180` (note the `=`, the
-  leading `-` needs it). A full 360° span is treated as periodic (no duplicated antimeridian col).
-- `--grid-res 1.0` is 1°, `0.25` ≈ LLC270 native (holey — oversamples the native grid).
-- `--data-subdir` sets the per-variable subpath under `--data-root`. Default `output/monthly`
-  (v05 monthly tree). **Daily** surface vars are flat, so pass `--data-subdir .`.
+
+Key options:
+
+- `--aoi` selects a named region. `--aoi-bounds lat_min,lat_max,lon_min,lon_max` overrides the
+  bounds for an arbitrary box, including the whole globe:
+  `--aoi global --aoi-bounds=-80,89.75,-180,180`. The `=` is required because the value begins
+  with a minus sign. A full 360° longitude span is treated as periodic, so the current extractor does
+  not duplicate the antimeridian. This seam de-duplication is a recent addition; cubes extracted
+  earlier — including the 2026-07-13 global cube — carry a redundant ±180° column (1441 longitudes
+  rather than 1440).
+- `--grid-res` sets the target grid resolution in degrees (`1.0` for 1°; `0.25` approximates the
+  LLC270 native resolution, which oversamples the native grid and therefore leaves unfilled cells).
+- `--data-subdir` sets the per-variable subpath beneath `--data-root`. The default,
+  `output/monthly`, matches the v05 monthly tree; the daily surface variables are stored flat, so
+  pass `--data-subdir .` for daily cubes.
 - `--forcing SST,wspeed,mldDepth` bakes input-only forcing channels into the cube.
 
-**2. Train + score** (GPU):
+### Stage 2 — Train and score (GPU)
+
 ```bash
 python scripts/emulator_poc.py \
   --load-cube eqpac_native_cube.npz --aoi eqpac \
   --epochs 150 --residual --rollout-train-k 4 --modes 16 --width 48 --seed 0 \
   --save-model model.safetensors --out run.json
 ```
-- `--residual` predicts the tendency (x(t+1)−x(t)); `--rollout-train-k K` adds a K-step
-  autoregressive loss. **These two are the method-fix** — without them DIC/ALK fail and rollout
-  is marginal. `k=4` is the sweet spot (k=1 wins 1-step skill but fails multi-step rollout).
-- `--save-model *.safetensors` writes weights (complex spectral weights stored as real views +
-  `complex_keys` metadata) + standardization stats + rebuild config. Portable across GPUs.
 
-## Cluster patterns
+Key options:
 
-- **Explorer (H200, `c.schultz`)** holds the raw v05 data at `/projects/schultz/qi.zim/ecco_darwin_v5`.
-  `/projects` is quota-limited — extract cubes onto `/scratch/qi.zim/` (huge).
-- **AICR (B200, `p2026_0089_neu`)** — your own allocation, `/scratch` 2.6 PB, direct NAS egress.
-  Download data straight here (parallel per-variable wget beats NAS's per-connection throttle).
-- Cross-cluster transfer of a cube is slow through a laptop relay (<1 MB/s to AICR) — prefer
-  extracting/downloading **where the GPU is**, or Globus for large moves.
+- `--residual` trains the model to predict the tendency, `x(t+1) − x(t)`; `--rollout-train-k K`
+  adds a K-step autoregressive term to the loss. Together these constitute the method fix:
+  without them the slow carbon tracers (DIC, ALK) fail and multi-step rollout is unstable. `k=4`
+  is the recommended value — `k=1` maximizes single-step skill but destabilizes rollout.
+- `--save-model <path>.safetensors` writes the model weights, the per-channel standardization
+  statistics, and the architecture configuration required to rebuild the model. Complex spectral
+  weights are stored as real views with a `complex_keys` entry in the file metadata so they can be
+  reconstructed. Tensors are moved to CPU, so the checkpoint loads on any GPU.
 
-## Reading the result
+## Interpreting results
 
-- **skill = 1 − MSE(model)/MSE(persistence)**, per-channel z-scored, **cos(lat) area-weighted**
-  (so global skill isn't polar-biased). `>0` beats persistence; `MAKE` if `>0.02` + stable rollout.
-- Persistence is a *hard* baseline and gets harder as the step shrinks: monthly persistence-vs-
-  climatology ≈ +0.22, but **daily ≈ +0.98** — so a daily next-step emulator is a much harder
-  target than monthly, and its value is more in multi-day rollout / anomaly skill.
-- Also reported: anomaly-R² vs climatology, and a 6-step rollout stability + mass-drift check.
+The headline metric is **skill over persistence**, computed per channel in z-scored space and
+weighted by grid-cell area (cos-latitude), so that global-scale skill is not biased toward the
+poles:
 
-## Honesty guardrail
+```
+skill = 1 − MSE(model) / MSE(persistence)
+```
 
-Skill numbers stay LOCAL. This is a next-state surrogate of the v05 **model output**, scored by
-skill-over-persistence with a climatology guard — **not** validated against real observations
-(that is #163, deferred) and **not** "making Darwin differentiable" or "learning real biology".
+A value above zero indicates that the model outperforms the persistence forecast `x(t+1) = x(t)`.
+The runner emits a verdict of `MAKE` when overall skill exceeds 0.02 with a stable rollout,
+`MARGINAL` when skill is small but positive, and `BREAK` when skill is non-positive.
+
+Persistence is a strong baseline, and it strengthens as the time step shortens: persistence skill
+relative to climatology is approximately +0.22 at monthly cadence over the equatorial Pacific,
+compared with approximately +0.98 at daily cadence. A daily next-step emulator therefore faces a
+substantially harder target than a monthly one, and its value lies more in multi-day rollout and
+anomaly skill than in single-step prediction. The runner also reports the anomaly-R² against
+climatology and a six-step rollout stability and mass-drift check.
+
+## Cluster environments
+
+- **NU Explorer (H200, account `c.schultz`)** holds the raw v05 data at
+  `/projects/schultz/qi.zim/ecco_darwin_v5`. The `/projects` filesystem is quota-limited, so write
+  cubes to `/scratch/qi.zim/`.
+- **NU AICR (B200, account `p2026_0089_neu`)** provides 2.6 PB of `/scratch` and direct egress to
+  the NASA data portal. Download data directly to this cluster (parallel per-variable transfers
+  exceed the portal's per-connection throttle) and train there.
+- Cross-cluster transfer of a cube through a local relay is slow (under 1 MB/s to AICR). Prefer
+  extracting or downloading data on the cluster where the GPU resides, or use Globus for large
+  transfers.
+
+## Scope and limitations
+
+Reported skill measures self-consistency against the ECCO-Darwin v05 model output; it is not a
+validation against real observations, which is the project's primary open question (issue #163).
+The emulator is a next-state surrogate of the model — it does not render Darwin differentiable and
+does not learn biology from data. External validation against SOCAT and GLODAP is the step that
+would elevate these results from a model surrogate to a scientific finding.
