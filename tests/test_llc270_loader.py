@@ -158,10 +158,23 @@ class TestLLC270Config:
     def test_default_matches_v05(self) -> None:
         # Carroll 2022 v05/llc270 setup uses these. If they change in v06+
         # we'll need a separate config preset.
-        assert DEFAULT_CONFIG.delta_t == 900
+        #
+        # This asserted delta_t == 900 until 2026-07-19, which is part of why the
+        # wrong value survived: the constant was incorrect, the docstring stated
+        # it was correct, and this test pinned it. Assert the physical invariant
+        # below as well, so a wrong timestep fails loudly instead of silently
+        # skewing every derived date.
+        assert DEFAULT_CONFIG.delta_t == 1200
         assert DEFAULT_CONFIG.ref_date == "1992-01-01"
         assert DEFAULT_CONFIG.nx == 270
         assert DEFAULT_CONFIG.nz == 50
+
+    def test_daily_output_stride_is_exactly_one_day(self) -> None:
+        # v05 daily output is written every 72 iterations. That stride must be
+        # exactly 86400 s of model time; at the old delta_t=900 it is 0.75 day,
+        # which is not a daily cadence. This is the invariant that actually pins
+        # the timestep down, and it is what the original test was missing.
+        assert 72 * DEFAULT_CONFIG.delta_t == 86400
 
     def test_custom_config_constructs(self) -> None:
         cfg = LLC270Config(delta_t=600, ref_date="1995-01-01", nx=270, nz=75)
