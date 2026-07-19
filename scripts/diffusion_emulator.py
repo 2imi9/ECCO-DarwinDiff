@@ -454,6 +454,14 @@ def main(argv=None):
                    help="train ONLY the FNO regression backbone, save it, and exit (no diffusion). "
                         "Used to build DEEP ENSEMBLES: run N seeds in parallel, then aggregate with "
                         "scripts/deep_ensemble_eval.py — the control baseline for the diffusion's UQ.")
+    p.add_argument("--uniform-dt-only", action="store_true",
+                   help="keep only training pairs whose REAL elapsed time is ~1 month "
+                        "(tests pair QUALITY; the learning curve already showed pair COUNT "
+                        "saturates at n~55, so quantity is not the lever)")
+    p.add_argument("--uniform-dt-range", type=float, nargs=2, default=(25.0, 36.0),
+                   metavar=("LO", "HI"), help="day range counted as 'one month'")
+    p.add_argument("--dt-seconds", type=float, default=1200.0,
+                   help="v05 LLC270 timestep (72 iters/day). NOT 900 -- see llc270_loader.")
     p.add_argument("--smoke", action="store_true", help="tiny synthetic run on CPU")
     p.add_argument("--save-model", default=None, help="path to save regression+diffusion state dicts (.pt)")
     p.add_argument("--ckpt-every", type=int, default=0, help="save a checkpoint every N diffusion epochs (kill-safe)")
@@ -496,6 +504,35 @@ def main(argv=None):
     del state
     Z = torch.from_numpy(z)  # CPU tensor; batches move to GPU
     tr_t, va_t = time_split(T)
+
+    # --- uniform-dt ablation -------------------------------------------------
+    # The cube is NOT a contiguous monthly series: only ~48% of consecutive index
+    # pairs are truly one month apart; the rest span 2-7 months and are trained as
+    # if they were single steps. The learned operator is therefore a BLEND of
+    # 1-to-7-month transitions rather than a monthly operator.
+    #
+    # A learning curve over pair COUNT saturates at n~55, so quantity is not the
+    # lever. This flag tests the other axis -- pair QUALITY -- by keeping only the
+    # pairs whose real elapsed time is ~1 month. Compare against the quantity-
+    # matched random subsample from the learning curve to separate the two.
+    #
+    # Time is derived from `iters` (x 1200 s), never from the stored `times_days`,
+    # which was written with a wrong 900 s timestep.
+    if getattr(args, "uniform_dt_only", False):
+        _z = np.load(args.cube, allow_pickle=True)
+        if "iters" not in _z:
+            raise SystemExit("--uniform-dt-only needs `iters` in the cube")
+        _days = np.asarray(_z["iters"], dtype=float) * args.dt_seconds / 86400.0
+        _gap = np.diff(_days)                      # gap[t] = days between t and t+1
+        lo, hi = args.uniform_dt_range
+        keep = [t for t in tr_t if t + 1 < len(_days) and lo <= _gap[t] <= hi]
+        print(f"[ablation] uniform-dt filter [{lo},{hi}] d: "
+              f"{len(tr_t)} -> {len(keep)} train pairs "
+              f"(median gap kept {np.median([_gap[t] for t in keep]):.1f} d, "
+              f"dropped median {np.median([_gap[t] for t in tr_t if t not in keep]):.1f} d)",
+              flush=True)
+        tr_t = keep
+
     if args.n_train and args.n_train < len(tr_t):
         # evenly spaced -> preserves the training time span; only DENSITY varies (clean ablation)
         idx = np.linspace(0, len(tr_t) - 1, args.n_train).astype(int)
