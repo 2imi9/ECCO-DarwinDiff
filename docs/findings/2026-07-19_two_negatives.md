@@ -187,19 +187,62 @@ The design measured one column of a 2×2:
 | **mixed train** | +0.4700 | *pending* |
 | **uniform train** | +0.4508 | *pending* |
 
-The unconfounded comparison is the **uniform-val column** — both models judged on the transitions the
-uniform model was actually trained for. That is evaluation-only (no retraining) and is running as
-Slurm job `168428`.
+### THE 2×2 — completed (job `168428`), and it inverts the reading
 
-Three outcomes, all informative:
+Single-step skill vs persistence, log space, 3 seeds per cell, evaluation only:
 
-- **uniform-train wins on uniform-val** ⇒ Δt quality *is* a lever, and the −0.0192 was mismatch.
-  A uniform cube is worth building.
-- **no difference on uniform-val** ⇒ Δt quality is not a lever; the −0.0192 was purely mismatch.
-  Aleatoric limit stands.
-- **uniform-train still loses on uniform-val** ⇒ the mixed-Δt pairs are **informative, not noise** —
-  the long-gap transitions teach something the 1-month pairs alone do not. That would be the most
-  interesting outcome, and it would argue *against* rebuilding a uniform cube.
+| | mixed val (n=47) | **uniform val (n=21)** |
+|---|---|---|
+| **mixed train** *(the flagship configuration)* | +0.4700 | **+0.0026** |
+| **uniform train** | +0.4508 | **+0.4756** |
+| Δ (uniform − mixed) | −0.0192 | **+0.4730** |
 
-Recording the confound rather than the headline: −0.0192 on its own would have read as "uniform
-training hurts," which is not a claim the design can support.
+Per-seed on uniform-val: mixed-train `[0.0107, 0.0314, −0.0344]` · uniform-train `[0.4827, 0.4650, 0.4791]`.
+
+**On genuine one-month transitions, the flagship configuration has essentially no skill over
+persistence** — +0.0026, with one seed negative. A model trained on the *same number* of pairs, all
+of them true one-month, scores **+0.4756** on that identical validation subset.
+
+So Δt quality is not merely *a* lever. It is the difference between a working monthly operator and
+one that is indistinguishable from doing nothing at monthly cadence.
+
+### What is actually going on
+
+The flagship is **not a monthly operator**. Its training pairs have a median gap of ~61 days, so it
+has learned the *average* transition — roughly two months. Applied to a one-month gap it **overshoots**,
+predicting more change than occurred. Symmetrically, the uniform-trained model applied to the
+longer-gap mixed set **undershoots**, which is the modest −0.0192 penalty in the left column.
+
+**Mechanism (hypothesis, not yet measured):** the residual magnitude grows with Δt, so long-gap pairs
+carry much larger targets and therefore dominate an MSE training loss. Mixed training is then
+*effectively* long-gap training, and the one-month pairs contribute little gradient. If that is right,
+a 1/Δt loss weighting would recover most of the benefit without rebuilding anything — a cheap test
+worth running before any cube work.
+
+### Caveats
+
+- **n=21 on the uniform validation subset**, and its per-seed spread for the mixed-trained arm is
+  wide (0.066 range vs 0.018 for the uniform arm). The *sign* and magnitude are unambiguous; the
+  precise value is not.
+- **The uniform subset has no winter.** It spans March–November only (the 1-month gaps happen to fall
+  outside Dec–Feb). Both arms are scored on the identical subset so the comparison is fair, but the
+  result does not cover the winter regime — which is also where the MODIS comparison found v05's
+  largest chlorophyll errors.
+- Single-step only. Whether the same gap appears in rollout is untested.
+
+### Consequence
+
+This reopens the cube rebuild, but **for uniformity rather than volume** — the opposite of the
+original justification, and a much cheaper target. The learning curve says more timesteps buy nothing
+(§1); this says *uniform* timesteps buy a great deal. The union cube (323 steps at 100% uniform
+spacing) would deliver both, but the uniformity is what matters.
+
+It also means **every single-step skill number this project has reported is for a ~2-month operator,
+not a monthly one** — including the +0.497 in the published v0.1.0 model card. The number is not
+wrong, but its label is: it is skill on a mixed-Δt validation set with a median 61-day gap.
+
+### On the confound
+
+Reported alone, −0.0192 would have read as "uniform training hurts." The unconfounded column shows
+the reverse, by a factor of 25. The design measured one column of a 2×2 and the missing column
+carried the result — worth remembering as a design failure, not just a lucky catch.
