@@ -134,14 +134,39 @@ class LLC270Config:
     in ``MITgcm-contrib/ecco_darwin/v05/llc270/``.
 
     Attributes:
-        delta_t: MITgcm timestep in seconds. v05 LLC270 uses 900 (15 min).
+        delta_t: MITgcm timestep in seconds. v05 LLC270 uses **1200** (20 min).
+
+            CORRECTED 2026-07-19 -- this was 900 and it was wrong. Every
+            ``times_days`` value written into every cube built before this date is
+            therefore exactly 0.75x the true model time, which silently corrupted
+            any analysis mapping cube indices to calendar dates (month-of-year
+            climatology bins, seasonal-cycle checks, satellite-era overlap).
+
+            Five independent lines of evidence for 1200 s:
+              1. Daily output iterates by exactly 72 steps; 72 x 1200 s = 86400 s
+                 = exactly one day. At 900 s it would be 0.75 day, which is not a
+                 daily cadence.
+              2. ``times_days * 86400 / iters`` returns exactly 900.0 for every
+                 stored timestep, confirming the stored axis used this constant.
+              3. v05 daily then spans 1992-01-03 .. 2018-12-31 -- a clean year
+                 boundary. At 900 s it ends mid-month on 2012-03-31.
+              4. An independent FFT of subpolar-North-Atlantic chlorophyll finds
+                 the spring bloom recurring every 9.25 stored-months; 12/9.25 =
+                 1.30 ~ 4/3 = 1200/900, and the corrected axis restores a
+                 12-month bloom cycle.
+              5. Carroll et al. 2020 (JAMES) documents a 1200 s timestep for the
+                 ECCO-Darwin LLC270 configuration.
+
+            Existing cubes are NOT retroactively fixed by this change. Derive time
+            from the raw ``iters`` instead (see ``scripts/rollout_verify.py
+            --calendar iters``), or rebuild the cube.
         ref_date: simulation start date for converting iter -> calendar time.
             v05 starts 1992-01-01 per the v05 namelist.
         nx: horizontal tile size. LLC270 = 270.
         nz: vertical levels. v05 = 50.
     """
 
-    delta_t: int = 900
+    delta_t: int = 1200
     ref_date: str = "1992-01-01"
     nx: int = 270
     nz: int = 50
