@@ -181,3 +181,21 @@ the Massachusetts AI Compute Resource (AICR) B200 cluster. FNO after Li et al. 2
 *Card revised 2026-07-19. It supersedes an earlier draft that described a daily global chlorophyll
 model, quoted a ~9-month horizon, and asserted an intrinsic skill ceiling — all three of which have
 since been measured to be wrong.*
+
+---
+
+## Release record
+
+**Published `v0.1.0` on 2026-07-19** to `2imi9/darwindiff-emulator` (Hugging Face, **private**).
+
+| | |
+|---|---|
+| Repo SHA | `2c0f3ff795` |
+| Tag | `v0.1.0` (commit `ec38546f6c`) |
+| Contents | 6 checkpoints (947 MB) + this card + `release_results.json` + 4 verification scripts |
+
+Uploaded directly from the AICR cluster (19.3 MB/s); the local path was unusable at 12 KB/s.
+
+The four verification scripts ship alongside the weights deliberately: `rollout_verify.py`,
+`physics_verify.py`, `deep_ensemble_eval.py`, and `calendar_ab.py` reproduce every number in this
+card, including the calendar A/B that produced the horizon retraction.
