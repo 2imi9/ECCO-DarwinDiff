@@ -11,7 +11,15 @@ tags:
 library_name: pytorch
 ---
 
-# DarwinDiff `opt3d` — depth-resolved global monthly ocean-biogeochemistry emulator (FNO, log-space, rollout-trained, 6-member ensemble)
+# DarwinDiff `opt3d` — depth-resolved global ocean-biogeochemistry emulator (FNO, log-space, rollout-trained, 6-member ensemble)
+
+**Release `v0.1.0`** · 2026-07-19 · ECCO-Darwin v05 surrogate
+
+> **Why `0.1.0` and not `1.0.0`.** This is a real, working, reproducible artifact — but it is not a
+> stable product. Its useful horizon is one step; it has never been compared against an
+> observation; its uncertainty is uncalibrated; and its training series has non-uniform spacing.
+> The version number reflects that honestly rather than implying a validation that has not happened.
+> A `1.0.0` is reserved for a model that has been checked against the real ocean.
 
 A neural-operator surrogate of **ECCO-Darwin v05** biogeochemistry. Given the 3-D biogeochemical
 state of the global ocean, it predicts the **next state one output-step ahead** (~2 months of model
