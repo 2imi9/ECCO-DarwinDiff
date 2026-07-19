@@ -213,9 +213,18 @@ Provenance: `physics_3d.json` (8-member 3-D deep ensemble vs v05 control).
 1. **The benchmark caught what skill cannot.** This model scores **+0.43 (linear)** while emitting
    **4.5% negative iron where v05 emits numerically none**. The control column is what makes
    "invented" separable from "inherited".
-2. **Genuine good news:** the carbonate system is chemically valid. (DIC, ALK) pairs are 100%
-   physical and solve to a median pCO₂ 0.51 µatm from v05's. The emulator learned valid seawater
-   without being told chemistry exists.
+2. ~~**Genuine good news:** the carbonate system is chemically valid ... the emulator learned valid
+   seawater without being told chemistry exists.~~
+   **RETRACTED 2026-07-19 — this reads the number backwards.** The Revelle factor is ~10, so a 0.1%
+   error in DIC propagates to ~1% in pCO₂ (~4 µatm). Agreement to **0.51 µatm** therefore implies a
+   DIC error of roughly **0.05% over one step** — which is not evidence of learned chemistry, it is
+   evidence that **DIC and ALK are very nearly persistent at monthly cadence**. The emulator is
+   reproducing a field that barely moved. The honest reading: the carbonate check **passes but is
+   uninformative**, because it cannot distinguish "learned the chemistry" from "copied the input."
+   The corollary is a prediction to test: the same low tendency-to-variance ratio that makes DIC/ALK
+   look excellent against climatology should make them score **poorly against persistence** — and
+   indeed the 3-D per-tracer split shows DIC 0.376 / ALK 0.305, the two *lowest* of the six tracers.
+   A physics check needs a baseline column too, exactly as the positivity check has v05 as a control.
 3. **Convergence.** Log-space training fixes this by construction — exp(·) > 0 always. The optimized
    log-space package measures **0.0000 negatives on all tracers**. `--log-transform` fixes both the
    metric artifact and the invented-negative violation.
@@ -334,6 +343,41 @@ another's is a false correction.
 | monthly **3-D** depth-resolved | +0.507; and separately +0.432 (the single member the log/ensemble controls were run against) |
 | **daily eqpac** | +0.30 |
 | **daily global** | +0.408 |
+
+## The data deficit is self-inflicted — and it is the highest-value fix available
+
+The binding constraint on everything (capacity saturates, two "add information" attempts hurt,
+calibration stuck at 0.24, diffusion adds nothing) is **~110 training pairs**. That constraint is
+**not** a property of the archive. Measured against the NASA v05 monthly listing on 2026-07-19:
+
+| tracer set | timesteps | % truly 1 month apart |
+|---|---|---|
+| **all 6 (the current cube)** | **158** | **48.4%** (median 59 d) |
+| drop any single tracer | 170–183 | marginal |
+| carbon-only (DIC, ALK, PIC, POC) | 187 | — |
+| bio-only (FeT, Chl1) | **262** | — |
+| **union of all 6** | **323** | **100.0%** (median 31 d) |
+
+Per-tracer availability is DIC 279, ALK 284, PIC 280, POC 287, FeT 291, Chl1 289. The cube takes the
+**intersection**, and the intersection collapses to 158 because **the tracers were written on
+different output schedules** (e.g. FeT and Chl1 have iteration 6552; DIC does not — DIC has 8712).
+
+Two consequences:
+
+1. **The low-data constraint and the non-uniform-Δt defect have the same root cause and the same
+   fix.** Requiring all six tracers at every timestep is what produced both the 158-step count *and*
+   the 1-to-7-month gap structure. Relax it and both improve together: the union is 323 steps at
+   **perfectly uniform monthly spacing**.
+2. **A tracer-subset model roughly doubles the data today, with no new download.** Bio-only
+   (FeT, Chl1) gives **262 steps (+66%)**; carbon-only gives 187. A per-channel-availability design
+   (masked loss over the union) gives 323.
+
+This should be tested before any further architecture work, and it is cheap. It also supplies the
+one experiment that would actually settle whether we are data-bound: a **learning curve** — train at
+25/50/75/100% of available pairs and plot skill vs N. If the curve is still rising at 100%, more data
+is the lever and this fix is decisive; if it is flat, the ceiling is architectural or aleatoric and
+no amount of cube rebuilding helps. That single experiment gates everything downstream, and nothing
+we have run so far tests it.
 
 ## Conclusion
 
