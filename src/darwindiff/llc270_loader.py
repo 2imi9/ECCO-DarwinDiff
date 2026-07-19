@@ -134,14 +134,35 @@ class LLC270Config:
     in ``MITgcm-contrib/ecco_darwin/v05/llc270/``.
 
     Attributes:
-        delta_t: MITgcm timestep in seconds. v05 LLC270 uses 900 (15 min).
+        delta_t: MITgcm timestep in seconds. v05 LLC270 uses **1200** (20 min).
+
+            CORRECTED 2026-07-19 -- this default was 900 s, which is wrong. Any
+            ``times_days`` derived with the old value is exactly 0.75x the true
+            model time, and because the error grows with elapsed time (rather than
+            being a constant offset) it silently corrupts anything that maps an
+            iteration to a calendar date: month-of-year binning, seasonal-cycle
+            diagnostics, and overlap windows against observational records.
+
+            Evidence for 1200 s:
+              1. v05 daily output is written every 72 iterations, and
+                 72 x 1200 s = 86400 s = exactly one day. At 900 s the same
+                 stride is 0.75 day, which is not a daily cadence.
+              2. Carroll et al. 2020 (JAMES, doi:10.1029/2019MS001888) documents a
+                 1200 s timestep for the ECCO-Darwin LLC270 configuration.
+              3. On the corrected axis the v05 daily record ends on a clean
+                 year boundary; on the 900 s axis it ends mid-month.
+
+            NOTE: cubes and derived products built before this change are not
+            retroactively corrected. Either rebuild them, or derive model time
+            straight from the raw ``iters`` (``iters * delta_t / 86400`` days)
+            rather than trusting a stored ``times_days`` array.
         ref_date: simulation start date for converting iter -> calendar time.
             v05 starts 1992-01-01 per the v05 namelist.
         nx: horizontal tile size. LLC270 = 270.
         nz: vertical levels. v05 = 50.
     """
 
-    delta_t: int = 900
+    delta_t: int = 1200
     ref_date: str = "1992-01-01"
     nx: int = 270
     nz: int = 50
