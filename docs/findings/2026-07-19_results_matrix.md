@@ -68,15 +68,29 @@ not skill, at 256× the forward passes (2,048/field vs 8).
 **Rollout-aware training is the #1 horizon lever.** k1 does not merely degrade — it **diverges**.
 `neg_frac = 0.000` at every horizon in both arms.
 
-### Calendar A/B — how much did the corrupted climatology inflate this?
+### Calendar A/B — RESULT (job 167823, `cal_ab.json`)
 
-| arm | calendar | provenance | status |
-|---|---|---|---|
-| k8 | `times_days` (900 s, **wrong**) | `cal_k8_OLD.json` | job 167819 |
-| k8 | `iters` (1200 s, **correct**) | `cal_k8_NEW.json` | job 167819 |
-| k1 | `iters` (correct) | `cal_k1_NEW.json` | job 167819 |
+Same checkpoints, same trajectories, scored against both climatologies in one process.
 
-*Same checkpoints, same data, only the calendar differs — this isolates the baseline error exactly.*
+| steps | ~mo | k8 OLD | **k8 NEW** | infl. | k1 OLD | **k1 NEW** | infl. |
+|---|---|---|---|---|---|---|---|
+| 1 | 2.0 | +0.614 | **+0.240** | +0.374 | +0.546 | **+0.108** | +0.439 |
+| 2 | 3.9 | +0.469 | **−0.018** | +0.488 | +0.129 | **−0.672** | +0.801 |
+| 3 | 5.9 | +0.432 | **−0.012** | +0.444 | −0.373 | **−1.444** | +1.071 |
+| 6 | 11.8 | +0.259 | **−0.420** | +0.680 | −1.911 | **−4.582** | +2.671 |
+| 9 | 17.7 | +0.253 | **−0.292** | +0.545 | −5.097 | **−9.542** | +4.444 |
+| 12 | 23.7 | +0.028 | **−0.748** | +0.777 | −14.598 | **−27.065** | +12.467 |
+
+**⇒ THE "~9-MONTH HORIZON" IS RETRACTED.** Corrected, k8 beats a true seasonal climatology at
+**1 step (~2 months)** only. Inflation +0.374 to +0.777 (k8), up to +12.5 (k1). 93.7% of month bins
+differ between calendars.
+
+**Survives:** rollout-aware training as the #1 lever — k8 mass ratio **1.000** at every horizon vs
+k1 diverging to **3.05 × 10⁸**. And `neg_frac = 0.000` throughout both arms.
+
+**Also note:** corrected k8 skill-vs-persistence is non-monotone (+0.583, +0.682, +0.685, +0.201,
++0.595, +0.191) — a baseline that wanders like that cannot support a horizon claim in either
+direction, which is exactly why climatology must be co-reported.
 
 ---
 

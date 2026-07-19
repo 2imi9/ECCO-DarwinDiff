@@ -2,9 +2,13 @@
 
 ## The defensible claim
 
-> A **~9-month, ensembled, rollout-trained, log-space, physically-valid seasonal BGC surrogate of
-> ECCO-Darwin v05** — 0% negative concentrations, useful skill above climatology to ~9 months,
-> stable mass (ratio 1.0002 at 9 months).
+> **RETRACTED AND RESTATED 2026-07-19 (job 167823).** The claim below previously read *"a ~9-month
+> ... surrogate ... useful skill above climatology to ~9 months."* Measured against a **correctly
+> binned** seasonal climatology, that is **false**. See *The calendar bug* and *Rollout horizon*.
+
+> A **~1-step (~2-month), ensembled, rollout-trained, log-space, physically-valid BGC surrogate of
+> ECCO-Darwin v05** — 0% negative concentrations, stable mass (ratio 1.000 at every horizon tested),
+> beating a true seasonal climatology at **one step only** (+0.240), and at or below it thereafter.
 
 The caveat is not a footnote. Every number in this document is **self-consistency against the v05
 model output**. The emulator has **never** been validated against real observations (issue #163).
@@ -72,19 +76,46 @@ Two implications:
    | "6 mo" | ~12.0 months |
    | "9 mo" | **~18.0 months** |
 
-### Net effect on the headline claim
+### Root cause, located and fixed
 
-The two defects push in **opposite directions** and do not cancel — they act on different axes:
+`LLC270Config.delta_t` in `src/darwindiff/llc270_loader.py` was **900**. It is **1200**. The docstring
+asserted the wrong value was right, and `tests/test_llc270_loader.py` asserted `delta_t == 900` — so a
+wrong constant was documented as correct and locked in by a passing test. Fixed, with a regression
+test on the invariant that actually pins it down: `72 * delta_t == 86400` (daily output steps by 72
+iterations, which must be exactly one day).
 
-| defect | axis affected | direction |
+Independently confirmed by two different routes: arithmetically
+(`times_days * 86400 / iters` = exactly 900.0), and physically (an FFT of subpolar-North-Atlantic
+chlorophyll found the spring bloom recurring every **9.25 stored-months**; 12/9.25 = 1.30 ≈ 4/3 =
+1200/900, and a v05 chlorophyll climatology on the bad axis showed **no annual cycle at all**).
+
+### Net effect on the headline claim — MEASURED (job 167823)
+
+The two defects act on **different axes** and do not cancel:
+
+| defect | axis | direction |
 |---|---|---|
-| corrupted climatology bins (94.9% wrong) | **skill magnitude** | baseline too weak ⇒ **skill overstated** |
-| horizons are steps, ~61 d each | **duration** | ⇒ **elapsed time understated (~2×)** |
+| corrupted climatology bins (93.7% differ between calendars) | **skill magnitude** | baseline too weak ⇒ **skill overstated** |
+| horizons are steps, ~60 d each | **duration** | ⇒ **elapsed time understated ~2×** |
 
-Until the corrected-calendar re-evaluation is complete, **the "~9-month" claim should be treated as
-unverified in both magnitude and units.** `rollout_verify.py` now derives the calendar from `iters`
-by default (`--calendar iters --dt-seconds 1200`), reports true elapsed months per horizon, and
-retains `--calendar times_days` solely to reproduce the old, wrong behaviour for comparison.
+`scripts/calendar_ab.py` measured the first exactly: same checkpoints, same trajectories, scored
+against both climatologies. **Inflation ranges +0.374 to +0.777** (k8) and up to **+12.5** (k1).
+The corrected numbers are in *Rollout horizon* below. **The "~9-month useful horizon" is retracted.**
+
+### A second-order consequence: two prior negatives are now confounded
+
+The **seasonal sin/cos time-encoding** experiment (rejected at −0.073) computed day-of-year from the
+0.75× axis, so it encoded a phase the field was not in — it was told the wrong season for ~94% of
+samples. **That negative is confounded and is probably a false negative; it should be re-run.** Any
+other experiment whose inputs were derived from wall-clock time is similarly suspect. The
+forcing-concat negative (−0.010) is *not* affected if the forcing was matched by iteration rather
+than by date — verify before relying on it.
+
+### And a downstream data-era correction
+
+"v05 daily ends 2012-03-31" was itself an artifact of this bug. Corrected, v05 daily spans
+**1992-01-03 → 2018-12-31** — a clean year boundary. This nearly doubles the MODIS-Aqua overlap
+(9.2 → 16 years). The "use MODIS, not PACE" conclusion still holds (PACE launched 2024).
 
 **This defect affects every skill-vs-climatology number this project has reported.** It does not
 affect skill-vs-persistence (which needs no calendar), nor the log-space controls, nor the physics
@@ -208,29 +239,51 @@ climatology** (worse than the seasonal mean). Every long-horizon Track-2 number 
 is vs persistence. **Long-horizon skill reported against persistence alone is misleading and must
 co-report climatology.**
 
-### Matched k1-vs-k8 comparison
+### Matched k1-vs-k8, CORRECTED CALENDAR (job 167823, `cal_ab.json`)
 
-Provenance: `matched_k1.json`, `matched_k8.json`. Both LOG space, **n_starts = 15**, **n_members = 6**,
-skill vs **CLIMATOLOGY**. This matched design removed two confounds that fooled an earlier look:
-a log-vs-linear space mismatch between arms, and n_starts=6 on a 47-month split (rollouts overlapping
-by 35/36 steps, effectively n≈1 at long lead).
+LOG space, **n_starts = 15**, **n_members = 6**, skill vs **CLIMATOLOGY**, one cube load, the *same*
+trajectories scored against both calendars. Horizons are **steps**; elapsed months are given.
 
-| horizon | k1 single-step | k8 rollout-trained |
-|---|---|---|
-| 1 mo | +0.5465 | **+0.6139** |
-| 2 mo | +0.1286 | **+0.4694** |
-| 3 mo | **−0.3725** (dead) | **+0.4318** |
-| 6 mo | **−1.9110** (catastrophic) | **+0.2594** |
-| 9 mo | −5.0974, mass ratio **99.58** (diverging) | **+0.2527**, mass **1.0002** |
-| 12 mo | −14.5976, mass ratio **30,536** (fully diverged) | **+0.0283** (at the climatology floor), mass **1.0002** |
+**k8 — the artifact:**
 
-**Rollout-aware training is the #1 horizon lever: useful horizon ~2 months → ~9 months** — larger
-than any other lever tried. Single-step training does not merely degrade, it **diverges**; the
-rollout-trained model stays stable and above climatology throughout. `neg_frac = 0.000` at every
-horizon in both arms.
+| steps | ~months | OLD (buggy bins) | **NEW (correct bins)** | inflation | mass |
+|---|---|---|---|---|---|
+| 1 | 2.0 | +0.614 | **+0.240** | +0.374 | 1.000 |
+| 2 | 3.9 | +0.469 | **−0.018** | +0.488 | 1.000 |
+| 3 | 5.9 | +0.432 | **−0.012** | +0.444 | 1.000 |
+| 6 | 11.8 | +0.259 | **−0.420** | +0.680 | 1.000 |
+| 9 | 17.7 | +0.253 | **−0.292** | +0.545 | 1.000 |
+| 12 | 23.7 | +0.028 | **−0.748** | +0.777 | 1.000 |
 
-The 12-month row is why **~9 months** is the right claim rather than ~12: k8 is still marginally
-positive at 12 months (+0.028), but that is the climatology floor, not useful skill.
+**k1 — the single-step control:**
+
+| steps | ~months | OLD | **NEW** | inflation | mass |
+|---|---|---|---|---|---|
+| 1 | 2.0 | +0.546 | **+0.108** | +0.439 | 1.000 |
+| 2 | 3.9 | +0.129 | **−0.672** | +0.801 | 1.000 |
+| 3 | 5.9 | −0.373 | **−1.444** | +1.071 | 1.000 |
+| 6 | 11.8 | −1.911 | **−4.582** | +2.671 | 1.049 |
+| 9 | 17.7 | −5.097 | **−9.542** | +4.444 | **99.58** |
+| 12 | 23.7 | −14.598 | **−27.065** | +12.467 | **305,368,586** |
+
+**What this changes.** Against a correctly-binned seasonal climatology the emulator beats the
+baseline at **one step only** (~2 months, +0.240). By two steps it is at zero (−0.018) and it is
+negative thereafter. **The "~9-month useful horizon" is retracted.** The inflation was large because
+a true seasonal climatology is a *much* stronger baseline in ocean BGC than the near-time-mean that
+scrambled bins produce — the seasonal cycle carries most of the variance.
+
+**What survives, and it is not nothing.**
+1. **Rollout-aware training remains the #1 lever**, and the corrected numbers make the case *more*
+   starkly, not less: k8 holds mass ratio 1.000 at every horizon while k1 diverges to
+   **3.05 × 10⁸**. That is the difference between a stable-but-unremarkable model and a catastrophic
+   one. The lever is real; what it buys is *stability*, not the horizon we claimed.
+2. **Physics holds:** `neg_frac = 0.000` at every horizon in both arms.
+3. Everything calendar-free is untouched: skill-vs-persistence, the log-space controls, the deep
+   ensemble gains, capacity saturation.
+
+**A caution on persistence.** In the corrected run, skill-vs-persistence for k8 is non-monotone
+(+0.583, +0.682, +0.685, +0.201, +0.595, +0.191). A baseline that wanders like that cannot support a
+horizon claim in either direction — which is precisely why climatology must be co-reported.
 
 ## Levers: load-bearing vs not
 
@@ -284,11 +337,15 @@ another's is a false correction.
 
 ## Conclusion
 
-The arc cost us three claims and bought one defensible artifact. The emulator worth keeping is the
-**k8-log diverse ensemble** (`opt3d_seed*.pt`): ~9-month useful horizon above climatology, 0%
-negative concentrations, valid carbonate chemistry, stable mass. Its skill is real in log space at
-monthly cadence and largely an artifact at daily cadence. It is calibrated badly and validated
-against nothing but the model it imitates.
+The arc cost us four claims and bought one modest artifact. The emulator worth keeping is the
+**k8-log diverse ensemble** (`opt3d_seed*.pt`): it beats a true seasonal climatology at **one step
+(~2 months)**, emits **0% negative concentrations**, keeps valid carbonate chemistry, and conserves
+mass (1.000) where the single-step control diverges by eight orders of magnitude. Its skill is real
+in log space at monthly cadence and largely an artifact at daily cadence. It is badly calibrated and
+validated against nothing but the model it imitates.
+
+That is a much smaller claim than the one we started the day with. It is also the first one that has
+survived every control we know how to run.
 
 The controls that produced every correction above — a seed ensemble, a transform swap, a climatology
 baseline, a physics check with a truth control column — were each cheap and each overturned something
