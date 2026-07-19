@@ -159,10 +159,47 @@ So: train on the 54 uniform-Δt pairs and compare against random-55. Same count,
 everything — **only Δt quality differs**. Launched as Slurm array `168351`
 (`--uniform-dt-only`, 3 seeds).
 
-- **uniform-54 ≫ +0.4700** ⇒ quality is the lever. The cube rebuild is worth it — but for
+- **uniform ≫ +0.4700** ⇒ quality is the lever. The cube rebuild is worth it — but for
   *uniformity*, not volume, which is a different (and cheaper) target than the union cube.
-- **uniform-54 ≈ +0.4700** ⇒ quality is not the lever either, and we are at an aleatoric limit for
-  this formulation. That would be the strongest statement this project could make about the ceiling,
-  and it would redirect everything toward external validation and the protocol paper.
+- **uniform ≈ +0.4700** ⇒ quality is not the lever either, and we are at an aleatoric limit for
+  this formulation.
 
-Either outcome is decisive. Neither requires new data.
+### RESULT — and my own experiment was confounded
+
+| arm | skill | n pairs |
+|---|---|---|
+| uniform-Δt (all ~1 month) | **+0.4508 ± 0.0021** | 55 |
+| random-55 control | **+0.4700 ± 0.0051** | 55 |
+| **Δ** | **−0.0192** | — |
+
+Training *only* on true 1-month pairs is **worse** — about 4σ of the control's spread, so a real
+difference rather than noise.
+
+**But this comparison does not mean what it appears to.** The validation set carries the *same*
+mixed-Δt structure. A uniform-trained model is therefore evaluated on 2-to-7-month transitions it
+never saw during training. That is a **distribution mismatch**, and it is sufficient on its own to
+produce −0.0192 without saying anything at all about data quality.
+
+The design measured one column of a 2×2:
+
+| | mixed val | uniform val |
+|---|---|---|
+| **mixed train** | +0.4700 | *pending* |
+| **uniform train** | +0.4508 | *pending* |
+
+The unconfounded comparison is the **uniform-val column** — both models judged on the transitions the
+uniform model was actually trained for. That is evaluation-only (no retraining) and is running as
+Slurm job `168428`.
+
+Three outcomes, all informative:
+
+- **uniform-train wins on uniform-val** ⇒ Δt quality *is* a lever, and the −0.0192 was mismatch.
+  A uniform cube is worth building.
+- **no difference on uniform-val** ⇒ Δt quality is not a lever; the −0.0192 was purely mismatch.
+  Aleatoric limit stands.
+- **uniform-train still loses on uniform-val** ⇒ the mixed-Δt pairs are **informative, not noise** —
+  the long-gap transitions teach something the 1-month pairs alone do not. That would be the most
+  interesting outcome, and it would argue *against* rebuilding a uniform cube.
+
+Recording the confound rather than the headline: −0.0192 on its own would have read as "uniform
+training hurts," which is not a claim the design can support.
