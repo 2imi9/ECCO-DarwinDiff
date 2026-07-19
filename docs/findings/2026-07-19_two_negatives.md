@@ -15,15 +15,20 @@ pairs, everything else matched (same cube, same split, same optimizer steps, log
 `rollout_train_k 8`, `modes 24`, `width 64`, 150 epochs). 3 seeds per point.
 Provenance: Slurm array `168270`, `lcurve_n{27,55,82,110}_s{0,1,2}.json`.
 
-| n_train | mean skill (log, vs persistence) | std | Δ vs previous |
-|---|---|---|---|
-| 27 | +0.4167 | 0.0180 | — |
-| 55 | **+0.4700** | 0.0051 | **+0.0532** |
-| 82 | **+0.4701** | 0.0108 | **+0.0001** |
-| 110 (all) | +0.4577 | (see note) | −0.0124 |
+| n_train | mean skill (log, vs persistence) | std | seeds | Δ vs previous |
+|---|---|---|---|---|
+| 27 | +0.4167 | 0.0180 | 3 | — |
+| 55 | **+0.4700** | 0.0051 | 3 | **+0.0532** |
+| 82 | **+0.4701** | 0.0108 | 3 | **+0.0001** |
+| 110 (all) | **+0.4657** | 0.0080 | 2 | −0.0044 |
 
-**The curve is flat from n=55 onward.** Doubling the data from 55 to 110 pairs buys nothing —
-+0.0001 from 55→82, and 82→110 is slightly *negative*.
+**The curve is flat from n=55 onward.** Doubling the data from 55 to 110 pairs buys nothing:
++0.0001 from 55→82, and −0.0044 from 82→110, both well inside the seed spread (σ ≈ 0.005–0.011).
+
+> **Speculation retracted.** On the first partial read, n=110 showed a single seed at +0.4577 and I
+> floated that *removing* data might be actively helping — i.e. that the long-gap pairs were harmful.
+> With the second seed in, n=110 is +0.4657 ± 0.0080 and the 82→110 difference is well within noise.
+> **That hypothesis is not supported.** The honest statement is saturation, not degradation.
 
 ### Why this matters more than it looks
 
