@@ -81,6 +81,24 @@ All skill = `1 − MSE_model / MSE_baseline`, **log space**, 6-member ensemble m
 | Skill vs persistence, ensemble | **+0.497** |
 | Skill vs **seasonal climatology**, ensemble | **+0.240** |
 
+> **⚠️ These are for a ~2-month operator, not a monthly one. Added 2026-07-19.**
+>
+> The validation set has a **median gap of 61 days**, because the training series is not uniformly
+> monthly (see *Known defects* #2). So "one step" means *the average transition in this cube*, which
+> is about two months — not one.
+>
+> This matters more than a labelling quibble. Evaluated on the subset of validation pairs that are
+> **genuinely ~1 month apart** (n=21, gaps 30–31 d), this model scores **+0.0026** — i.e. **no skill
+> over persistence at true monthly cadence**. A model trained on the *same number* of pairs, all of
+> them true one-month, scores **+0.4756** on that identical subset.
+>
+> The model has learned the *average* Δt of its training data and **overshoots on a one-month step**.
+> If your application needs a monthly operator, this checkpoint is not it — retrain on uniform-Δt
+> pairs, or weight the loss by 1/Δt.
+>
+> Caveats on that measurement: n=21, and the uniform subset spans March–November only (no winter).
+> The sign and magnitude are unambiguous; the precise value is not.
+
 ### Rollout (horizons are **steps**; one step ≈ 60 days)
 
 | Steps | ≈ Months | vs climatology | Negative fraction | Mass ratio |
