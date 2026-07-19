@@ -21,6 +21,70 @@ The growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** —
 data constrains phytoplankton growth rates — so it is excluded from the target, not counted
 as a miss.
 
+> **⚠️ `diatomgraz` framing — corrected 2026-07-19.** Do **not** write that `diatomgraz` "carries
+> no observational signal." Three problems: (i) the FLAT profile-likelihood result (span 0.039)
+> exists in project memory but **no artifact is committed to this repo** — the 07-07 profiles doc
+> mentions it only in a *threshold-legend caption*, while three downstream documents cite it as
+> established, one as a gate on H200 spend; (ii) FLAT was measured on the loss **without** dense
+> Darwin POSi, and adding that observable recovers the parameter **10/10** (20/20 under Eppley) —
+> those are consistent, not contradictory, and the profile *predicted* it; (iii) our bSi observable
+> is a **steady-state diagnostic back-solved from diatom biomass** (`silica.py:78`), i.e. partly
+> circular — the box has 15 tracers, **no dissolved SiO₂**, no Si co-limitation — whereas
+> ECCO-Darwin fits *dissolved* SiO₂ against GLODAP, a different quantity.
+> **Defensible instead:** `diatomgraz` is constrained only through a steady-state biogenic-silica
+> diagnostic, not a prognostic silicate cycle. Re-run the profile with `--out` and commit the JSON
+> before the manuscript leans on it. See `docs/findings/2026-07-19_diatomgraz_claim_audit.md`.
+
+## Track 2 — forward emulator: current state (2026-07-19)
+
+A separate build from the UDE/identifiability work below. **All numbers are self-consistency
+against v05 output; nothing here has been validated against observations except the chlorophyll
+comparison in the last row.**
+
+| | |
+|---|---|
+| Artifact | `opt3d_seed{0..5}.pt` — FNO2d residual, log-space, rollout-k8, 6-member diverse ensemble |
+| Released | 🤗 `2imi9/darwindiff-emulator` **v0.1.0, PRIVATE** (947 MB, tagged) |
+| Useful horizon | **1 step**, +0.240 vs a correctly-binned seasonal climatology; at/below it thereafter |
+| Physics | 0% negative concentrations, mass ratio 1.000 at every horizon tested |
+| Speed | 7.45 ms/global step, 2.29 GB inference |
+
+### Four things that were wrong and are now corrected
+
+1. **`delta_t` was 900 s; v05 runs at 1200 s.** Every pre-2026-07-19 cube's `times_days` is 0.75×
+   truth. Fixed at the root (PR #186, merged to `main`). **Derive time from `iters`, never from
+   `times_days` on an old cube.** 94% of month-of-year bins were wrong, which weakened the
+   climatology baseline and inflated skill-vs-climatology by +0.37 to +0.78.
+2. **The "~9-month horizon" is RETRACTED.** Against a correct seasonal climatology it is 1 step.
+3. **"v05 daily ends 2012-03-31" was an artifact of #1.** It ends **2018-12-31**, which nearly
+   doubles the MODIS overlap.
+4. **The single-step numbers describe a ~2-month operator, not a monthly one.** The validation set
+   has a median gap of 61 days. On genuinely-monthly pairs the flagship scores **+0.0026** — no
+   skill over persistence — while a model trained only on 1-month pairs scores **+0.4756**.
+
+### What is and is not a lever (all measured)
+
+| lever | effect | verdict |
+|---|---|---|
+| **Δt uniformity** | **+0.4730** in-distribution | **THE lever** — found 2026-07-19 |
+| Rollout-aware training (k8) | mass 1.000 vs k1 diverging to 3.05e8 | load-bearing (stability) |
+| Log-space | 0% negatives by construction; correct metric | load-bearing |
+| Deep ensembling (8 seeds) | +0.14 / +0.05 | load-bearing |
+| Data **quantity** | flat from n=55 | **not a lever** |
+| Capacity (~4× params) | +0.007 | **not a lever** |
+| EDM diffusion | 0 to −0.026 | **not a lever** for skill |
+| Physical-state conditioning | +0.0041 oracle bound | **not a lever** |
+
+### First observational result
+
+**v05 chlorophyll vs MODIS-Aqua**, subpolar N. Atlantic, 176 months: v05 is **~5× low**
+(−0.696 dex), but reproduces the **May–June bloom peak inside the satellite's own retrieval
+uncertainty** and ends its bloom two months early (v05 peaks June, MODIS August). Novel —
+chlorophyll is not evaluated in ECCO-Darwin's own 135-figure white paper. The all-month r = 0.78 is
+seasonal-cycle-driven; **growing-season r = 0.016**, so quote both.
+
+Detail: `docs/findings/2026-07-19_{emulator_honest_bounds,results_matrix,two_negatives,v05_chlorophyll_vs_modis}.md`.
+
 ## Current best
 
 The study operates at **3-AOI joint training** (Eq Pacific + N Atlantic Subpolar + Southern Ocean Pacific)

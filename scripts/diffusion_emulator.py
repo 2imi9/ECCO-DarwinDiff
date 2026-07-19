@@ -233,7 +233,7 @@ def _light_eval(model, fno, Z, va_t, C, mask_t, device, n_ens=8, steps=16, bs=4,
 
 # ---------------------------------------------------------- regression ------
 def train_regression(Z, tr_t, C, mask_t, device, epochs, modes, width, bs, lr=1e-3, log_every=25,
-                     va_t=None, history_every=10, rollout_k=1):
+                     va_t=None, history_every=10, rollout_k=1, dt_months=None):
     """FNO predicting next-state as persistence + correction (matches emulator_poc --residual).
 
     rollout_k>1 = ROLLOUT-AWARE training: unroll k autoregressive steps and average the per-step loss,
@@ -253,17 +253,35 @@ def train_regression(Z, tr_t, C, mask_t, device, epochs, modes, width, bs, lr=1e
         tot = 0.0
         for k in range(0, len(perm), bs):
             bt = perm[k : k + bs]
+            # dt_months is not None => DT-SCALED RESIDUAL. The network predicts a
+            # PER-MONTH tendency and the applied step is tendency * dt. Without this the
+            # cube's non-uniform spacing (median 61 d, range 30-212) makes the model learn
+            # the AVERAGE transition, so it overshoots on a true one-month step: measured
+            # +0.0026 skill on genuinely-monthly val pairs versus +0.4756 for a model
+            # trained only on them. Scaling by dt lets the long-gap pairs teach the monthly
+            # rate instead of drowning it out.
+            # Caveat: assumes the tendency is ~constant over the gap. That is a decent
+            # approximation at 1-2 months and a poor one at 7; it is still far better than
+            # treating every gap as identical, which is the current behaviour.
             if rollout_k > 1:
                 x = Z[bt].to(device)
                 loss = 0.0
                 for j in range(1, rollout_k + 1):
-                    x = x + fno(x)                      # autoregressive; grad flows through all k steps
+                    if dt_months is None:
+                        x = x + fno(x)                  # autoregressive; grad flows through all k steps
+                    else:
+                        s = dt_months[bt + j - 1].to(device).view(-1, 1, 1, 1)
+                        x = x + fno(x) * s
                     y = Z[bt + j].to(device)
                     loss = loss + (((x - y) ** 2) * mask_t).mean()
                 loss = loss / rollout_k
             else:
                 xt, yt = _batch(Z, bt, device)
-                mu = xt + fno(xt)
+                if dt_months is None:
+                    mu = xt + fno(xt)
+                else:
+                    s = dt_months[bt].to(device).view(-1, 1, 1, 1)
+                    mu = xt + fno(xt) * s
                 loss = (((mu - yt) ** 2) * mask_t).mean()
             opt.zero_grad(); loss.backward(); opt.step()
             tot += loss.item() * len(bt)
@@ -454,6 +472,9 @@ def main(argv=None):
                    help="train ONLY the FNO regression backbone, save it, and exit (no diffusion). "
                         "Used to build DEEP ENSEMBLES: run N seeds in parallel, then aggregate with "
                         "scripts/deep_ensemble_eval.py — the control baseline for the diffusion's UQ.")
+    p.add_argument("--dt-scaled-residual", action="store_true",
+                   help="network predicts a PER-MONTH tendency; the applied step is tendency*dt. "
+                        "Fixes the blended-operator defect without discarding the long-gap pairs.")
     p.add_argument("--uniform-dt-only", action="store_true",
                    help="keep only training pairs whose REAL elapsed time is ~1 month "
                         "(tests pair QUALITY; the learning curve already showed pair COUNT "
@@ -543,7 +564,15 @@ def main(argv=None):
 
     t0 = time.time()
     print("[1/3] training regression backbone (FNO)…", flush=True)
-    fno, reg_hist = train_regression(Z, tr_t, C, mask_t, device, args.regression_epochs, args.modes, args.reg_width, args.batch_size, lr=args.lr, va_t=va_t, history_every=args.history_every, rollout_k=args.rollout_train_k)
+    dt_m = None
+    if args.dt_scaled_residual:
+        _zz = np.load(args.cube, allow_pickle=True)
+        _dd = np.asarray(_zz["iters"], dtype=float) * args.dt_seconds / 86400.0
+        _gm = np.diff(_dd) / 30.4375                      # gap in months, per pair index t
+        dt_m = torch.tensor(np.concatenate([_gm, [_gm[-1]]]), dtype=torch.float32)
+        print(f"[dt-scaled] per-month tendency; train-pair gaps median {np.median(_gm[tr_t]):.2f} mo "
+              f"range {_gm[tr_t].min():.2f}-{_gm[tr_t].max():.2f}", flush=True)
+    fno, reg_hist = train_regression(Z, tr_t, C, mask_t, device, args.regression_epochs, args.modes, args.reg_width, args.batch_size, lr=args.lr, va_t=va_t, history_every=args.history_every, rollout_k=args.rollout_train_k, dt_months=dt_m)
     print(f"      regression done ({time.time()-t0:.0f}s)", flush=True)
     if args.regression_only:
         # Report skill vs persistence IN THIS TRANSFORM'S SPACE. Required for cross-transform
