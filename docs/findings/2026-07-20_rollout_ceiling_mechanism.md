@@ -96,21 +96,52 @@ amplitude, mass 1.000, 0% negatives, decorrelated). This is why the dt-scaled mo
 *worse*: multiplying the per-step correction by Δt≈2 doubles the systematic drift. Error scaling with
 correction size is the fingerprint of systematic — not random, not chaotic — error.
 
+### Final piece: the bias is STATE-DEPENDENT, and therefore irreducible here (job 169630)
+
+"Systematic" splits two ways, and the split decides whether Track-2 is a product or a paper:
+
+- **constant** `F(x) = F_true(x) + b` → estimate `b`, subtract it, free horizon gain
+- **state-dependent** `F(x) = F_true(x) + e(x)` → no constant correction helps
+
+Tested non-circularly: `b` estimated on the 110 **training** pairs, evaluated on the 46 held-out
+**validation** pairs, at two levels of expressiveness.
+
+| | value | as % of error RMS |
+|---|---|---|
+| raw one-step error RMS | **0.3112** | (58% of saturation) |
+| ‖b_field‖ (per-cell, 60×680×1440) | 0.0213 | 6.8% |
+| ‖b_chan‖ (per-channel, 60 numbers) | 0.0043 | 1.4% |
+| held-out variance explained by `b_chan` | **−0.01%** | |
+| held-out variance explained by `b_field` | **+0.22%** | |
+
+**The one-step error has essentially zero mean.** A constant correction explains 0.2% of it. And
+subtracting the over-parameterised `b_field` makes the rollout *worse* beyond step 2 (−0.377 vs
+−0.305 at step 6) — 58.7M values estimated from 110 samples fit noise, and injecting that noise every
+step compounds. The held-out design is what exposed this; on training-derived numbers it would have
+looked helpful.
+
+So `e(x)` is state-dependent with near-zero mean and large variance. That is the one case where
+nothing cheap helps — and `e(x)` is exactly what a neural network exists to learn. It had the
+capacity and the data, and did not. Together with the two levers already measured — **capacity
+(4× params → +0.007)** and **data volume (flat from n=55)** — the one-step error is **at the floor
+for this architecture and this dataset**.
+
 ### What this means for the plan
 
-- **The ceiling is not fundamental.** It is a fixable-in-principle bias, not a predictability
-  horizon. "Structural" was right that no lever tried has moved it; "chaos" would have been wrong.
-- **Probabilistic rollout is the WRONG prescription.** Ensemble spread addresses chaos (amplified IC
-  uncertainty). There is no such amplification here, so it cannot help — correcting the earlier draft
-  of this document, which named it as the remaining candidate.
-- **The correct target is the systematic one-step bias itself** — reduce err(1) = 0.55·saturation
-  *without* enlarging per-step corrections (which is why dt-scaling backfired). This has never been
-  isolated as the optimisation target; every prior lever aimed at capacity, data, conditioning, or
-  single-step *skill* on a subset. A bias-corrected or drift-penalised rollout loss is the untried
-  direction.
-- **For the write-up:** a stronger characterisation, not a weaker one. Ruling out both collapse and
-  chaos and pinning the failure to a measured contractive systematic bias is a complete mechanistic
-  account of why a physically-valid BGC emulator has a one-step horizon.
+- **The ceiling is real, and the cheap route is closed.** Not chaos, not variance collapse, not a
+  subtractable bias: it is irreducible approximation error. Three named mechanisms tested, three
+  eliminated.
+- **Probabilistic rollout is the WRONG prescription** (it addresses chaos, which is absent) —
+  correcting an earlier draft of this document, which named it as the remaining candidate.
+- **Post-hoc bias correction is also dead**, measured, not assumed.
+- **What would remain** is a different hypothesis class or a genuinely different observable set —
+  not more capacity, more data, ensembling, diffusion, conditioning, Δt-scaling, or bias correction.
+  All of those are now measured at ~0.
+- **For the write-up:** this is the strongest form of the result. A physically-valid BGC emulator
+  (0% negatives, mass 1.000, full amplitude retention) with a one-step useful horizon, where the
+  limit has been traced to irreducible state-dependent approximation error and *four* candidate
+  explanations have been eliminated by measurement. That is a complete negative result, which is
+  publishable and honest, and it says stop optimising this configuration.
 
 ## Caveats
 
@@ -123,8 +154,7 @@ correction size is the fingerprint of systematic — not random, not chaotic —
 - Growth rates are fit over the first 4 steps (log-linear); the error curve is so flat the fit is
   dominated by the step-1 offset, which is the point.
 
-Artifacts: [`track2_runs/season_diag.json`](track2_runs/season_diag.json),
-[`track2_runs/lyapunov.json`](track2_runs/lyapunov.json) · jobs 169498, 169528.
+Artifacts: [`track2_runs/season_diag.json`](track2_runs/season_diag.json), [`track2_runs/lyapunov.json`](track2_runs/lyapunov.json), [`track2_runs/bias_decomp.json`](track2_runs/bias_decomp.json) · jobs 169498, 169528, 169630.
 
 Artifact: [`track2_runs/season_diag.json`](track2_runs/season_diag.json) · script
 `/scratch/qi_zim_neu/season_diag.py` · job 169498.
