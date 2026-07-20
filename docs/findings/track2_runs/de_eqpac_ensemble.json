@@ -1,0 +1,21 @@
+{
+  "deep_ensemble": {
+    "n_members": 8,
+    "persistence_mse": 0.031955240800493966,
+    "single_model_skill": 0.3038703833193961,
+    "ensemble_mean_skill": 0.44540195651745773,
+    "ensemble_spread": 0.037968383544220434,
+    "rmse_ensemble_mean": 0.13312518179130298,
+    "calib_ratio": 0.28520812541493856
+  },
+  "members": [
+    "/scratch/qi_zim_neu/de_eqpac_seed0.pt",
+    "/scratch/qi_zim_neu/de_eqpac_seed1.pt",
+    "/scratch/qi_zim_neu/de_eqpac_seed2.pt",
+    "/scratch/qi_zim_neu/de_eqpac_seed3.pt",
+    "/scratch/qi_zim_neu/de_eqpac_seed4.pt",
+    "/scratch/qi_zim_neu/de_eqpac_seed5.pt",
+    "/scratch/qi_zim_neu/de_eqpac_seed6.pt",
+    "/scratch/qi_zim_neu/de_eqpac_seed7.pt"
+  ]
+}

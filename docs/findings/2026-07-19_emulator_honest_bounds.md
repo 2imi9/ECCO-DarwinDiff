@@ -17,14 +17,22 @@ It is a surrogate of a model, not a model of the ocean.
 All numbers below were re-derived from the raw result JSONs on `/scratch/qi_zim_neu/` on 2026-07-19,
 not copied from prior prose. Provenance is given per section.
 
-> **⚠️ Reproducibility gap — the source JSONs are NOT in this repo.** `physics_3d.json`,
-> `cal_ab.json`, `de3d_ensemble.json`, `de_eqpac_ensemble.json`, `eqpac_ctl_linear.json`,
-> `eqpac_ctl_log.json`, `d3_ctl_log.json` and `bench.json` live only on `/scratch/qi_zim_neu/`,
-> which is subject to a 30-day purge. "Re-derived from the raw JSONs" is true but currently
-> unverifiable by anyone but the author, and unverifiable by the author too once the purge runs.
-> These must be pulled down and committed before the manuscript cites any number in this document.
-> (The chlorophyll-validation and silicate-scope artifacts were committed for exactly this reason —
-> see `chl_val/` and `silicate_scope/`.)
+> **✅ Provenance CLOSED and VERIFIED (2026-07-19).** All eight source JSONs are now committed under
+> [`track2_runs/`](track2_runs/) — they previously lived only on `/scratch/qi_zim_neu/`, which is
+> subject to a 30-day purge, so the claim above was true but uncheckable by anyone including the
+> author once the purge ran. Recomputed from the committed files, the headline numbers match this
+> document **exactly**:
+>
+> | check | artifact | recomputed | as written |
+> |---|---|---|---|
+> | eqpac daily, linear | `eqpac_ctl_linear.json` | **+0.3000** | +0.3000 |
+> | eqpac daily, log | `eqpac_ctl_log.json` | **+0.0361** | +0.0361 |
+> | throughput / memory | `bench.json` | **7.45 ms/step, 2.29 GB** | 7.45 ms, 2.29 GB |
+> | calendar ratio | `cal_ab.json` | 45.0 → 60.0 d = **4/3** | `delta_t` 900 → 1200 s |
+> | training pairs | `d3_ctl_log.json` | **110** train / 46 val | ~110 |
+>
+> Worth stating plainly: unlike the silicate-scope artifact — which arrived and **failed** its
+> convergence check — these corroborate the document they support.
 
 ## What this session-arc disproved
 
