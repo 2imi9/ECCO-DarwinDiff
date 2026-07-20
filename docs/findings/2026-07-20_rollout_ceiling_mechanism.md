@@ -52,20 +52,79 @@ now quantified and separated from the damping alternative.
    attractor while decorrelating from truth is behaving the way a chaotic system does. If that is
    the right reading, no amount of capacity, data, or single-step accuracy extends the deterministic
    horizon — which is consistent with every lever we have measured returning ~0.
-3. **It changes what would help.** Not a bigger model and not phase/forcing inputs (the model is not
-   flattening, so it is not obviously missing phase). The candidates that remain are **ensemble
-   spread / probabilistic rollout** — i.e. predict a distribution rather than a trajectory — which
-   is also the only lever that has ever helped the rollout (deep ensembling).
+3. **It changes what would help — and the follow-up test (below) sharpens this further.**
+
+## Follow-up: it is NOT chaos either — it is systematic bias (job 169528)
+
+The decorrelation was *consistent* with chaos, so I ran the perturbation-growth test that separates
+the two. Roll the flagship ensemble from a true start, and from the same start plus a small
+perturbation (ε = 0.01 and 0.05 of a channel std, z-space, ocean cells only). Compare how fast the
+operator **amplifies the perturbation** against how fast the rollout **leaves the truth**.
+
+| z-RMS | step 1 | step 6 | step 12 | growth rate |
+|---|---|---|---|---|
+| error vs truth | 0.298 (0.55·sat) | 0.384 | 0.466 (0.87·sat) | +0.0007/day (doubling ~984 d) |
+| perturbation ε=0.01 | 0.010 | 0.010 | **0.010** | ≈ 0 |
+| perturbation ε=0.05 | 0.049 | 0.048 | **0.048** | ≈ 0 |
+
+(saturation = distance between two unrelated states = 0.538 z-RMS.)
+
+**The operator does not amplify perturbations at all.** A 1% perturbation stays 1% out to 12 steps;
+5% stays 5%. The growth rate is ≈ 0 (slightly *contractive*), so the spectral radius of the map's
+Jacobian is ≈ 1 — exactly what a residual operator `F = I + small correction` should give, which is
+why this is a real property and not an artifact. There is **no positive Lyapunov exponent, so this is
+not chaos.**
+
+Yet the error is **0.55·saturation at step 1** and only creeps to 0.87 by step 12 — a plateau, not
+exponential growth. And the single-step error (0.298) is **30× the 0.01 perturbation**: it cannot be
+amplified initial-condition uncertainty, because that uncertainty does not amplify. It is a
+**systematic offset in F itself**, present from the first step.
+
+### The complete mechanism
+
+Three hypotheses, two refuted by data:
+
+| hypothesis | prediction | result |
+|---|---|---|
+| variance collapse | amplitude → 0 | **refuted** — amplitude 0.95–0.99 held |
+| chaos / predictability limit | perturbations amplify to saturation | **refuted** — perturbations stay flat |
+| **systematic single-step bias** | large step-1 error, contractive, plateaus | **confirmed** |
+
+The emulator's learned map has a large systematic one-step error. Because the map is contractive it
+does not explode; the bias accumulates to a plateau on a wrong-but-plausible attractor (full
+amplitude, mass 1.000, 0% negatives, decorrelated). This is why the dt-scaled model rolls out
+*worse*: multiplying the per-step correction by Δt≈2 doubles the systematic drift. Error scaling with
+correction size is the fingerprint of systematic — not random, not chaotic — error.
+
+### What this means for the plan
+
+- **The ceiling is not fundamental.** It is a fixable-in-principle bias, not a predictability
+  horizon. "Structural" was right that no lever tried has moved it; "chaos" would have been wrong.
+- **Probabilistic rollout is the WRONG prescription.** Ensemble spread addresses chaos (amplified IC
+  uncertainty). There is no such amplification here, so it cannot help — correcting the earlier draft
+  of this document, which named it as the remaining candidate.
+- **The correct target is the systematic one-step bias itself** — reduce err(1) = 0.55·saturation
+  *without* enlarging per-step corrections (which is why dt-scaling backfired). This has never been
+  isolated as the optimisation target; every prior lever aimed at capacity, data, conditioning, or
+  single-step *skill* on a subset. A bias-corrected or drift-penalised rollout loss is the untried
+  direction.
+- **For the write-up:** a stronger characterisation, not a weaker one. Ruling out both collapse and
+  chaos and pinning the failure to a measured contractive systematic bias is a complete mechanistic
+  account of why a physically-valid BGC emulator has a one-step horizon.
 
 ## Caveats
 
-- Amplitude retention is measured as spatial standard deviation over ocean cells, ensemble-mean
-  prediction. An ensemble mean is *expected* to be smoother than a member; that it is **not**
-  smoother here (0.95–1.0) makes the no-collapse conclusion stronger, not weaker.
-- The chlorophyll correlation is across 15 starts at fixed horizon, not a within-trajectory time
-  correlation; it is sensitive to start sampling. n_eff is small.
-- "Chaotic" is an interpretation, not a measurement. A Lyapunov-style estimate (perturbation growth
-  rate on the emulator vs on v05 itself) would test it, and has not been run.
+- Amplitude retention and perturbation RMS are ensemble-mean, masked over ocean cells; an ensemble
+  mean is *expected* to be smoother than a member, so measuring no smoothing strengthens the
+  no-collapse conclusion.
+- The perturbation test uses the emulator's OWN dynamics; it shows the learned map is non-chaotic,
+  which does not by itself prove v05 is non-chaotic on these timescales — but since the emulator is a
+  good single-step operator, a chaotic v05 would have had to induce a chaotic emulator, and it did not.
+- Growth rates are fit over the first 4 steps (log-linear); the error curve is so flat the fit is
+  dominated by the step-1 offset, which is the point.
+
+Artifacts: [`track2_runs/season_diag.json`](track2_runs/season_diag.json),
+[`track2_runs/lyapunov.json`](track2_runs/lyapunov.json) · jobs 169498, 169528.
 
 Artifact: [`track2_runs/season_diag.json`](track2_runs/season_diag.json) · script
 `/scratch/qi_zim_neu/season_diag.py` · job 169498.
