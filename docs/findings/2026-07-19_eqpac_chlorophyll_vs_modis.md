@@ -95,7 +95,7 @@ observed sensitivity**. Both survive the effective-N correction.
 
 ---
 
-## 4. NEW — a ~3-month phase error in the ENSO response
+## 4. NEW — a ~2-month timing difference in the ENSO response (measurement is robust; interpretation is not)
 
 Lag scan of chlorophyll anomaly against Niño-3.4 (lag > 0 means chlorophyll *lags* ENSO):
 
@@ -108,8 +108,39 @@ Lag scan of chlorophyll anomaly against Niño-3.4 (lag > 0 means chlorophyll *la
   expected: SST/upwelling anomaly → nutrient supply change → biological response with a delay.
 - **v05 peaks at lag −2** — modelled chlorophyll *leads* Niño-3.4 by two months.
 
-That is a **~3-month phase error**, and by lag +2 the two have diverged almost completely (v05
-−0.168, MODIS −0.641).
+By lag +2 the two have diverged almost completely (v05 −0.168, MODIS −0.641).
+
+### Is it resolvable? Yes — tested three ways
+
+The lag curves are broad and both series are heavily autocorrelated (n_eff ≈ 14–34), so an argmax
+difference could easily be sampling noise. It is not. Moving-block bootstrap, 24-month blocks
+(preserving ENSO-band autocorrelation), 4000 resamples:
+
+| test | result |
+|---|---|
+| bootstrap CI of each peak lag | v05 **[−3, −1]**, MODIS **[0, +2]** — **do not overlap** |
+| bootstrap of the difference | median **−2.0 mo**, 95% CI **[−4, −1]**, P(diff < 0) = **0.977** |
+| smooth asymmetry `D = r(+1) − r(−2)` | v05 **+0.332**, MODIS **−0.128**, difference **+0.460**, 95% CI **[+0.246, +0.710]**, P(>0) = **1.000** |
+
+The third test is the one to quote: it is a smooth statistic that never takes an argmax on a flat
+curve, so it is immune to the failure mode that makes the first two fragile.
+
+**Correction to an earlier draft of this document, which said "~3-month phase error."** The
+full-sample argmax difference is 3 months (−2 vs +1), but the *bootstrap median difference is 2
+months*, 95% CI [1, 4]. The honest figure is **~2 months (95% CI 1–4)**, not 3. The 3 was a
+point estimate from an argmax on a broad curve — exactly the statistic the third test exists to
+avoid.
+
+Artifact: `chl_val/eqpac_lag_resolvability.json`.
+
+> **⚠️ The interpretation below is under active review and may be retracted.** A literature check
+> (2026-07-19, in progress) surfaced Park et al. 2018 GRL *"Ocean Chlorophyll as a Precursor of
+> ENSO"* and Park et al. 2011 JGR Oceans, which appear to argue that equatorial Pacific chlorophyll
+> anomalies can **lead** SST as a genuine physical mode — particularly during ENSO decay — rather
+> than only as a model defect. If a chlorophyll lead is a documented real-ocean feature, the
+> "v05 has a phase error" framing is too strong. **The measurement above stands regardless**; it is
+> the causal story that is in question. Do not repeat the paragraph below to collaborators until
+> this resolves.
 
 **Interpretation (hypothesis, not established).** ECCO-Darwin's physical state is data-constrained,
 and in ENSO dynamics thermocline-depth anomalies *lead* the Niño-3.4 SST peak. If v05's biology

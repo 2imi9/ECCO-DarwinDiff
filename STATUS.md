@@ -104,11 +104,15 @@ real — against the downloaded NOAA PSL Niño-3.4 index, **r = +0.524 in ENSO-a
 −0.052 in neutral months**, with v05 capturing **0.89×** the observed ENSO sensitivity at the correct
 sign. **Quote n_eff alongside any r from this analysis.**
 
-**New — a ~3-month phase error.** MODIS chlorophyll peaks at lag +1 (responds *after* the SST
-anomaly); v05 peaks at lag −2, i.e. it *leads* Niño-3.4. Hypothesis, **not established**: v05's
-biology tracks modelled upwelling near-instantaneously and inherits the thermocline lead, while real
-phytoplankton add growth/grazing inertia — so the missing quantity may be a **biological rate**,
-which is directly relevant to the UDE track.
+**New — a ~2-month timing difference (95% CI 1–4).** MODIS chlorophyll peaks at lag +1 (*after* the
+SST anomaly); v05 peaks at lag −2, i.e. it *leads* Niño-3.4. The **measurement is robust** despite
+n_eff ≈ 14–34: bootstrap peak-lag CIs do not overlap, and a smooth asymmetry statistic
+`r(+1) − r(−2)` separates them by +0.460, 95% CI [+0.246, +0.710], P = 1.000.
+
+> **The INTERPRETATION is under review.** Park et al. (2018 GRL, 2011 JGR) appear to document a
+> chlorophyll **lead** over ENSO SST as a real physical mode, not only a model defect. Until that
+> resolves, do **not** call this "v05 has a phase error" to collaborators — the timing *difference*
+> is measured; the causal story is not settled.
 
 Detail: `docs/findings/2026-07-19_{emulator_honest_bounds,results_matrix,two_negatives,v05_chlorophyll_vs_modis,eqpac_chlorophyll_vs_modis}.md`.
 Artifacts `docs/findings/chl_val/`; script `scripts/compare_v05_modis_aoi.py` (reproduces the

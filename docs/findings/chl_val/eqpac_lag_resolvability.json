@@ -1,0 +1,30 @@
+{
+ "full_argmax_v05": -2,
+ "full_argmax_modis": 1,
+ "boot_lag_v05": [
+  -3.0,
+  -2.0,
+  -1.0
+ ],
+ "boot_lag_modis": [
+  0.0,
+  0.0,
+  2.0
+ ],
+ "boot_diff": [
+  -4.0,
+  -2.0,
+  -1.0
+ ],
+ "p_diff_negative": 0.977,
+ "asym_v05": 0.33214944965944787,
+ "asym_modis": -0.12805168934157762,
+ "asym_diff_ci": [
+  0.24636474455678148,
+  0.4606882380650501,
+  0.7098252293917405
+ ],
+ "p_asym_positive": 1.0,
+ "block_months": 24,
+ "n_boot": 4000
+}
