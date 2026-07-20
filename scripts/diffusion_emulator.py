@@ -584,7 +584,19 @@ def main(argv=None):
             for _k in range(0, len(_va), 8):
                 _bt = _va[_k : _k + 8]
                 _xt, _yt = _batch(Z, _bt, device)
-                _mu = _xt + fno(_xt)
+                # BUGFIX 2026-07-19: apply the SAME forward map the model was trained with.
+                # Under --dt-scaled-residual, train_regression uses mu = x + fno(x) * dt_months
+                # (the network emits a PER-MONTH TENDENCY). This block previously used the plain
+                # residual x + fno(x) regardless, so a per-month tendency was applied as if it
+                # were a full-step correction. On the mixed val set (median gap ~2 months) that
+                # under-predicts the change by ~2x and understates the model badly. Every
+                # skill/metrics value written by a --dt-scaled-residual --regression-only run
+                # BEFORE this fix is invalid; recompute from the checkpoint.
+                if dt_m is None:
+                    _mu = _xt + fno(_xt)
+                else:
+                    _s = dt_m[_bt].to(device).view(-1, 1, 1, 1)
+                    _mu = _xt + fno(_xt) * _s
                 _sp += float((((_xt - _yt) ** 2) * mask_t).sum())
                 _rg += float((((_mu - _yt) ** 2) * mask_t).sum())
                 _n += len(_bt)
@@ -593,7 +605,8 @@ def main(argv=None):
         _skill = 1 - _rm / max(_pm, 1e-12)
         reg_skill_info = {"persistence_mse": _pm, "regression_mse": _rm,
                           "regression_skill": _skill,
-                          "space": "log" if args.log_transform else "linear"}
+                          "space": "log" if args.log_transform else "linear",
+                          "forward_map": "x + f(x) * dt_months" if dt_m is not None else "x + f(x)"}
         print(f"[reg-only] space={reg_skill_info['space']}  persistence_mse={_pm:.6f}  "
               f"reg_mse={_rm:.6f}  SKILL vs persistence = {_skill:+.4f}", flush=True)
         if args.save_model:
