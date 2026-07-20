@@ -57,7 +57,7 @@ comparison in the last row.**
 |---|---|
 | Artifact | `opt3d_seed{0..5}.pt` — FNO2d residual, log-space, rollout-k8, 6-member diverse ensemble |
 | Released | 🤗 `2imi9/darwindiff-emulator` **v0.1.0, PRIVATE** (947 MB, tagged) |
-| Useful horizon | **1 step**, +0.240 vs a correctly-binned seasonal climatology; at/below it thereafter |
+| Useful horizon | **1 step**, +0.240 vs a correctly-binned seasonal climatology; at/below it thereafter. *(Measured on the flagship; the Δt-scaled model below has not yet been rollout-tested.)* |
 | Physics | 0% negative concentrations, mass ratio 1.000 at every horizon tested |
 | Speed | 7.45 ms/global step, 2.29 GB inference |
 
@@ -74,10 +74,37 @@ comparison in the last row.**
    has a median gap of 61 days. On genuinely-monthly pairs the flagship scores **+0.0026** — no
    skill over persistence — while a model trained only on 1-month pairs scores **+0.4756**.
 
+### FIXED (2026-07-20) — `--dt-scaled-residual` recovers the monthly operator
+
+The network predicts a **per-month tendency** applied as `x + f(x)·Δt_months`, so all 110 training
+pairs teach the monthly rate instead of the long-gap pairs drowning it out. Evaluated with each arm
+applied the way it was trained (`scripts/../dt2x2b.py`; artifact
+`docs/findings/track2_runs/dt_2x2b.json`), 3 seeds, single-step skill vs persistence in log space:
+
+| arm | mixed val (n=46) | uniform val (n=21) |
+|---|---|---|
+| mixed train — the flagship | +0.4700 | **+0.0026** (σ 0.0275) |
+| uniform train (n=55, half the data discarded) | +0.4508 | +0.4756 (σ 0.0076) |
+| **Δt-scaled residual (n=110)** | **+0.4969** | **+0.4801** (σ **0.0005**) |
+
+It **beats both targets at once**: it matches/exceeds the uniform-trained model on true monthly
+steps **without discarding half the data** (+0.4801 vs +0.4756), and beats the flagship
+in-distribution (+0.4969 vs +0.4700). Seed spread on uniform-val collapses from σ 0.0275 to
+**σ 0.0005** — the flagship was not merely poor at monthly cadence, it was *unstable* there.
+
+**No cube rebuild is required.** Cost was ~1 GPU-hour per seed.
+
+> **⚠️ Skill numbers written by `--dt-scaled-residual --regression-only` runs BEFORE commit
+> `79717cc` are INVALID.** The reporting block applied the plain residual `x + f(x)` regardless of
+> the flag, scoring a per-month tendency as a full-step correction — which understates the model by
+> roughly 2× on mixed val (it read +0.384/+0.394 where the truth is +0.4969). Training was always
+> correct; only the reported metric was wrong. Recompute from the checkpoints.
+
 ### What is and is not a lever (all measured)
 
 | lever | effect | verdict |
 |---|---|---|
+| **Δt-scaled residual** | **+0.4801 on true monthly steps** (flagship: +0.0026) and **+0.4969** in-distribution (flagship: +0.4700) | **THE FIX — landed 2026-07-20** |
 | **Δt uniformity** | **+0.4730** in-distribution | **THE lever** — found 2026-07-19 |
 | Rollout-aware training (k8) | mass 1.000 vs k1 diverging to 3.05e8 | load-bearing (stability) |
 | Log-space | 0% negatives by construction; correct metric | load-bearing |

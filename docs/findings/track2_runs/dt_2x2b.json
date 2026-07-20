@@ -1,0 +1,79 @@
+{
+ "n_val_mixed": 46,
+ "n_val_uniform": 21,
+ "arms": {
+  "mixed_train(n55)": {
+   "mixed_val": {
+    "per_seed": [
+     0.47372027398110517,
+     0.47346529229901946,
+     0.46273093630679685
+    ],
+    "mean": 0.4699721675289738,
+    "std": 0.005121381722694427,
+    "n_models": 3,
+    "dt_scaled": false
+   },
+   "uniform_val": {
+    "per_seed": [
+     0.010708252323300527,
+     0.03142808466596725,
+     -0.03443596638583113
+    ],
+    "mean": 0.002566790201145549,
+    "std": 0.027498252785141813,
+    "n_models": 3,
+    "dt_scaled": false
+   }
+  },
+  "uniform_train(n55)": {
+   "mixed_val": {
+    "per_seed": [
+     0.4524118969659695,
+     0.4521715025732608,
+     0.44777085912116577
+    ],
+    "mean": 0.4507847528867987,
+    "std": 0.0021334032419121915,
+    "n_models": 3,
+    "dt_scaled": false
+   },
+   "uniform_val": {
+    "per_seed": [
+     0.4826601340259682,
+     0.46497517431466184,
+     0.4790817567919332
+    ],
+    "mean": 0.47557235504418777,
+    "std": 0.007634412244040853,
+    "n_models": 3,
+    "dt_scaled": false
+   }
+  },
+  "dt_scaled(n110)": {
+   "mixed_val": {
+    "per_seed": [
+     0.5094233837916913,
+     0.4751853628505226,
+     0.5060101318086356
+    ],
+    "mean": 0.4968729594836165,
+    "std": 0.015398624572015036,
+    "n_models": 3,
+    "dt_scaled": true
+   },
+   "uniform_val": {
+    "per_seed": [
+     0.47981493360115546,
+     0.48087574855709503,
+     0.47974591804034894
+    ],
+    "mean": 0.4801455333995331,
+    "std": 0.0005171082537587964,
+    "n_models": 3,
+    "dt_scaled": true
+   }
+  }
+ },
+ "note": "dt_scaled applied as x+m(x)*gap_months; the JSONs written by diffusion_emulator.py --regression-only omit that factor and are NOT usable."
+}
