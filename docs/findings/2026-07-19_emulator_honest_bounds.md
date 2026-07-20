@@ -17,6 +17,15 @@ It is a surrogate of a model, not a model of the ocean.
 All numbers below were re-derived from the raw result JSONs on `/scratch/qi_zim_neu/` on 2026-07-19,
 not copied from prior prose. Provenance is given per section.
 
+> **⚠️ Reproducibility gap — the source JSONs are NOT in this repo.** `physics_3d.json`,
+> `cal_ab.json`, `de3d_ensemble.json`, `de_eqpac_ensemble.json`, `eqpac_ctl_linear.json`,
+> `eqpac_ctl_log.json`, `d3_ctl_log.json` and `bench.json` live only on `/scratch/qi_zim_neu/`,
+> which is subject to a 30-day purge. "Re-derived from the raw JSONs" is true but currently
+> unverifiable by anyone but the author, and unverifiable by the author too once the purge runs.
+> These must be pulled down and committed before the manuscript cites any number in this document.
+> (The chlorophyll-validation and silicate-scope artifacts were committed for exactly this reason —
+> see `chl_val/` and `silicate_scope/`.)
+
 ## What this session-arc disproved
 
 Three claims we had made in our own findings docs are now wrong. Each was disproved by a control we
@@ -26,7 +35,7 @@ had never run. They are recorded here as results, not as damage.
 |---|---|---|---|
 | "+0.52 is a hard, intrinsic ceiling" | `2026-07-14_emulator_loop.md` | **REFUTED** | An 8-seed deep ensemble lifts skill (+0.14 daily eqpac, +0.05 monthly 3-D). The plateau was epistemic, not aleatoric. |
 | "the daily emulator beats persistence, verdict MAKE (+0.408)" | `2026-07-13_daily_surface_emulator.md` | **LARGELY A LINEAR-METRIC ARTIFACT** | Same config, only the transform differs: +0.3000 linear → **+0.0361 log**. Global daily log: **+0.005** (a null). |
-| "the rollout is dead by 6 months" | scratch, 2026-07-17 | **PARTIALLY WALKED BACK** | True for single-step training. Rollout-aware k8 training reaches ~9 months above climatology. |
+| "the rollout is dead by 6 months" | scratch, 2026-07-17 | **SUBSTANTIALLY CONFIRMED** | The counter-claim (k8 reaches ~9 months) was itself a calendar artifact and is **retracted**. Against a correctly-binned climatology, k8 wins at **one step only** (+0.240) and is at/below climatology from step 2. |
 
 A fourth prior claim was tested and **survives unchanged** — capacity saturation. It is listed
 separately below because it is the one thing in this cluster that did not move.
@@ -248,6 +257,12 @@ climatology** (worse than the seasonal mean). Every long-horizon Track-2 number 
 is vs persistence. **Long-horizon skill reported against persistence alone is misleading and must
 co-report climatology.**
 
+> **Note on the −0.265.** That specific value is a *buggy-calendar* climatology number — computed
+> before the `delta_t` fix, when 94% of month-of-year bins were mis-assigned. The qualitative point
+> (persistence flatters; climatology is the honest baseline) is what survives and is confirmed by
+> the corrected tables; the **magnitude** should not be quoted. The corrected k1 numbers are the
+> ones to use.
+
 ### Matched k1-vs-k8, CORRECTED CALENDAR (job 167823, `cal_ab.json`)
 
 LOG space, **n_starts = 15**, **n_members = 6**, skill vs **CLIMATOLOGY**, one cube load, the *same*
@@ -298,7 +313,7 @@ horizon claim in either direction — which is precisely why climatology must be
 
 | lever | effect | verdict |
 |---|---|---|
-| **Rollout-aware training (k8)** | useful horizon ~2 mo → ~9 mo (log, vs climatology) | **LOAD-BEARING — #1** |
+| **Rollout-aware training (k8)** | stability: mass ratio 1.000 vs k1 diverging to 3.05e8. **NOT** a horizon extension — the ~9 mo figure is retracted (1 step, +0.240) | **LOAD-BEARING (stability only)** |
 | **Deep ensembling (8 seeds)** | +0.14 / +0.05 linear skill; keeps rollout alive; 3× fewer negatives | **LOAD-BEARING** |
 | **Log-space transform** | fixes the metric artifact; 0% negatives by construction | **LOAD-BEARING** |
 | Capacity (modes/width, up to ~4×) | +0.007 | **Not a lever** — saturated |
@@ -312,7 +327,8 @@ Provenance: `bench.json`. One next-month global state (680×1440, 60 channels, 1
 throughput, not capability. One simulated century is ~9 s.
 
 **This does not matter.** A century in 9 seconds is worthless when the trajectory reaches the
-climatology floor at ~9–12 months. Speed was never the bottleneck; rollout fidelity is.
+climatology floor at **step 2** (−0.018, ~4 months elapsed on the corrected calendar). Speed was
+never the bottleneck; rollout fidelity is.
 
 ## What is NOT established
 
@@ -325,9 +341,11 @@ climatology floor at ~9–12 months. Speed was never the bottleneck; rollout fid
   over-confident and we have no fix.** A deep-ensemble-mean + diffusion-spread hybrid is the
   untested candidate.
 - **The aleatoric limit is unknown.** We know we were not at it. We do not know where it is.
-- **The long-horizon numbers rest on limited independent starts.** n_starts=15 on a 47-month val
-  split still means overlapping trajectories at 9 months. The ~9-month figure is a bound to be
-  re-measured on a longer split, not a precision estimate.
+- **The ~9-month figure is RETRACTED, not imprecise.** It was a calendar artifact (`delta_t` 900 s
+  vs the true 1200 s), and against a correctly-binned climatology the corrected table is deeply
+  negative from step 2. It is not a bound awaiting a longer split. Separately, the long-horizon
+  numbers do also rest on limited independent starts (n_starts=15 on a 47-month val split gives
+  overlapping trajectories), but that is a second-order caveat on a retracted number.
 - **No physical state is used at all.** The emulator receives only BGC tracers — no temperature,
   velocity, mixed-layer depth, light, or sea ice. Given that transport dominates the monthly tendency
   (see check D above), it is currently inferring circulation from tracer patterns alone.
@@ -346,9 +364,17 @@ another's is a false correction.
 
 ## The data deficit is self-inflicted — and it is the highest-value fix available
 
+> **⚠️ SUPERSEDED the same day.** The data-volume diagnosis below was **tested and refuted**: the
+> learning curve is **flat from n=55** (+0.4700 → +0.4701 → +0.4657), so the project is **not
+> data-bound** and rebuilding the cube for volume would not have helped. The actual lever is **Δt
+> uniformity** (+0.4730). Retained because the archive sizing is still correct and useful, and
+> because it records a plausible single-cause diagnosis that four independent negative results were
+> wrongly attributed to.
+
 The binding constraint on everything (capacity saturates, two "add information" attempts hurt,
-calibration stuck at 0.24, diffusion adds nothing) is **~110 training pairs**. That constraint is
-**not** a property of the archive. Measured against the NASA v05 monthly listing on 2026-07-19:
+calibration stuck at 0.24, diffusion adds nothing) was believed to be **~110 training pairs**. That
+constraint is **not** a property of the archive. Measured against the NASA v05 monthly listing on
+2026-07-19:
 
 | tracer set | timesteps | % truly 1 month apart |
 |---|---|---|
@@ -376,17 +402,20 @@ This should be tested before any further architecture work, and it is cheap. It 
 one experiment that would actually settle whether we are data-bound: a **learning curve** — train at
 25/50/75/100% of available pairs and plot skill vs N. If the curve is still rising at 100%, more data
 is the lever and this fix is decisive; if it is flat, the ceiling is architectural or aleatoric and
-no amount of cube rebuilding helps. That single experiment gates everything downstream, and nothing
-we have run so far tests it.
+no amount of cube rebuilding helps. **That experiment has since been RUN** (array 168270): the curve
+is **flat from n=55**, so more data is *not* the lever and no cube rebuild is warranted for volume.
+The sentence that once read "nothing we have run so far tests it" no longer holds.
 
 ## Conclusion
 
 The arc cost us four claims and bought one modest artifact. The emulator worth keeping is the
 **k8-log diverse ensemble** (`opt3d_seed*.pt`): it beats a true seasonal climatology at **one step
 (~2 months)**, emits **0% negative concentrations**, keeps valid carbonate chemistry, and conserves
-mass (1.000) where the single-step control diverges by eight orders of magnitude. Its skill is real
-in log space at monthly cadence and largely an artifact at daily cadence. It is badly calibrated and
-validated against nothing but the model it imitates.
+mass (1.000) where the single-step control diverges by eight orders of magnitude. **Its skill is not
+real at true monthly cadence:** on genuinely-1-month pairs it scores **+0.0026** versus **+0.4756**
+for a uniform-Δt-trained model — the validation set's median gap is 61 days, so every "single-step"
+number here describes a ~2-month operator. Its daily-cadence skill is largely a linear-metric
+artifact. It is badly calibrated and validated against nothing but the model it imitates.
 
 That is a much smaller claim than the one we started the day with. It is also the first one that has
 survived every control we know how to run.
