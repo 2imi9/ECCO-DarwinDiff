@@ -77,6 +77,11 @@ def main(argv=None):
     p.add_argument("--calendar", choices=["iters", "times_days"], default="iters",
                    help="source of model time. 'iters' is ground truth; 'times_days' reproduces "
                         "the pre-2026-07-19 behaviour and is WRONG (0.75x, see elapsed_days docstring).")
+    p.add_argument("--dt-scaled-residual", action="store_true",
+                   help="the checkpoints emit a PER-MONTH TENDENCY (trained with "
+                        "diffusion_emulator.py --dt-scaled-residual); apply each step as "
+                        "x + f(x)*dt_months instead of x + f(x). Rolling such a model out with "
+                        "the plain map under-predicts every step and compounds over the horizon.")
     p.add_argument("--dt-seconds", type=float, default=1200.0,
                    help="ECCO-Darwin v05 timestep (72 iters/day). Only used with --calendar iters.")
     args = p.parse_args(argv)
@@ -104,6 +109,13 @@ def main(argv=None):
           f"median val step = {_step_days:.1f} days ({_step_days/30.4375:.2f} months)")
     print("[calendar] horizon k = k STEPS, i.e. "
           + ", ".join(f"{h}->{h*_step_days/30.4375:.1f}mo" for h in H_LIST))
+    # Per-step gap in months, used only by --dt-scaled-residual. Padded to length T so an
+    # index at the final step is safe.
+    _gm = np.diff(_days) / 30.4375
+    _gap_mo = np.concatenate([_gm, [_gm[-1]]]) if len(_gm) else np.ones(T)
+    if args.dt_scaled_residual:
+        print(f"[dt-scaled] applying x + f(x)*dt_months | val-step gaps "
+              f"median {np.median(_gm[min(_va):]) if len(_va) else float('nan'):.2f} mo")
 
     # ---- climatology from TRAINING period only (no leakage) ----
     clim = np.zeros((12, C, Hh, Ww), dtype=np.float32)
@@ -135,11 +147,19 @@ def main(argv=None):
             x0 = Z[s : s + 1].to(device)
             x = x0.clone()
             for k in range(1, maxh + 1):
-                # autoregressive step: x_{t+1} = x_t + f(x_t); ensemble = mean of member steps
+                # autoregressive step; ensemble = mean of member steps.
+                #   plain              : x_{t+1} = x_t + f(x_t)
+                #   --dt-scaled-residual: x_{t+1} = x_t + f(x_t) * dt_months(t)
+                # The dt-scaled model emits a PER-MONTH TENDENCY, so rolling it out with the
+                # plain map applies a one-month rate across a ~2-month step and under-predicts
+                # every step, compounding over the horizon. Matches train_regression's
+                # dt_months branch in diffusion_emulator.py. See commit 79717cc for the same
+                # bug in the single-step reporting path.
+                _s = float(_gap_mo[s + k - 1]) if args.dt_scaled_residual else 1.0
                 if len(models) > 1:
-                    x = torch.stack([x + m(x) for m in models]).mean(0)
+                    x = torch.stack([x + m(x) * _s for m in models]).mean(0)
                 else:
-                    x = x + models[0](x)
+                    x = x + models[0](x) * _s
                 if k in acc:
                     y = Z[s + k : s + k + 1].to(device)
                     cb = clim_t[moy[s + k]].unsqueeze(0).to(device)
