@@ -106,6 +106,11 @@ def main() -> int:
     ap.add_argument("--opt-steps", type=int, default=400,
                     help="Adam steps to find theta* (profile re-opt uses opt-steps//2)")
     ap.add_argument("--lr", type=float, default=5e-2, help="Adam lr in unconstrained space")
+    ap.add_argument("--max-refine", type=int, default=3,
+                    help="max rounds of adopting a better profile point as theta* and re-optimising. "
+                         "The profile starts FROM theta* and runs opt_steps//2 MORE steps, so it can "
+                         "beat theta* whenever theta* has not converged -- which inflates the span "
+                         "against a too-high baseline. 0 restores the pre-2026-07-19 behaviour.")
     ap.add_argument("--out", default=None, help="write JSON verdict here")
     args = ap.parse_args()
 
@@ -379,9 +384,42 @@ def main() -> int:
     grid = torch.logspace(float(torch.log10(lo[pidx, 0])),
                           float(torch.log10(hi[pidx, 0])), args.grid).to(dev).float()  # [G]
     G = grid.numel()
-    u0 = to_uncon(theta_star.reshape(6, 1)).expand(6, G).contiguous()
-    _, prof_losses = optimise(u0, steps=max(150, args.opt_steps // 2),
-                              fixed_idx=pidx, fixed_vals=grid)
+    # NOTE ON THE STEP BUDGET (2026-07-19). The profile starts FROM theta_star and then runs
+    # further steps, so each grid point receives opt_steps + prof_steps of optimisation against
+    # theta_star's opt_steps. That makes min(profile) < loss_star GUARANTEED whenever theta_star
+    # has not converged -- and rel_span, normalised by that too-high baseline, is inflated by the
+    # same amount. On 2026-07-19 this silently manufactured a silicate-ablation conclusion.
+    # The loop below closes the asymmetry: whenever the profile finds something better, we adopt
+    # it as the new theta_star, re-optimise, and recompute. See
+    # docs/findings/2026-07-19_silicate_fim_artifact_audit.md.
+    prof_steps = max(150, args.opt_steps // 2)
+    conv_tol0 = 1e-3 * abs(loss_star)
+    prof_theta = prof_losses = None
+    for _round in range(args.max_refine + 1):
+        u0 = to_uncon(theta_star.reshape(6, 1)).expand(6, G).contiguous()
+        prof_theta, prof_losses = optimise(u0, steps=prof_steps,
+                                           fixed_idx=pidx, fixed_vals=grid)
+        bi = int(torch.argmin(prof_losses))
+        gap = float(prof_losses[bi]) - loss_star
+        if gap >= -conv_tol0 or _round == args.max_refine:
+            if gap < -conv_tol0:
+                print(f"\n[refine] EXHAUSTED {args.max_refine} rounds, residual gap {gap:.4g} "
+                      f"-- theta_star still under-converged; raise --opt-steps/--max-refine")
+            break
+        # The profile beat theta_star: adopt its best point and re-optimise from there.
+        print(f"\n[refine round {_round}] profile beat theta* by {-gap:.4g} "
+              f"(loss_star={loss_star:.6g} -> re-optimising from grid point {bi})")
+        theta_seed = prof_theta[:, bi].reshape(6, 1)
+        th_new, l_new = optimise(to_uncon(theta_seed), steps=args.opt_steps)
+        if float(l_new[0]) < loss_star:
+            theta_star, loss_star = th_new[:, 0], float(l_new[0])
+            conv_tol0 = 1e-3 * abs(loss_star)
+        else:
+            break
+    # theta_star may have moved; refresh everything derived from it.
+    grad_norm = float((grad_at(theta_star) * theta_star).norm())
+    hess_star = hess_report(theta_star, "theta*")
+
     prof = [(float(grid[i]), float(prof_losses[i])) for i in range(G)]
     best = min(l for _, l in prof)
     print(f"\n-- profile-likelihood over {args.param} (fix on grid, re-optimise other 5) --")

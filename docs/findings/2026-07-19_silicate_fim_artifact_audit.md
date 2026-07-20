@@ -34,7 +34,32 @@ That reading does not survive a convergence check.
 
 ---
 
-## 2. BLOCKER — θ\* is under-converged, and it manufactures the silicate signal
+## 2. BLOCKER — the design *guarantees* the profile out-optimises θ\*, and that manufactures the silicate signal
+
+### Root cause (found 2026-07-19, later than the rest of this document)
+
+This is not bad luck in one arm. It is structural:
+
+```python
+# theta_star: 600 steps from Carroll
+theta1, l1 = optimise(to_uncon(carroll.reshape(6, 1)), steps=args.opt_steps)   # --opt-steps 600
+
+# profile: starts FROM theta_star, then optimises 300 MORE steps per grid point
+u0 = to_uncon(theta_star.reshape(6, 1)).expand(6, G)
+_, prof_losses = optimise(u0, steps=max(150, args.opt_steps // 2))             # = 300
+```
+
+Every profile grid point receives **600 + 300 = 900 steps** of optimisation, starting from θ\*,
+while θ\* itself receives **600**. The profile is therefore *strictly better optimised than the
+baseline it is compared against*. `min(profile) < loss_star` is **guaranteed** whenever those extra
+300 steps still make progress — i.e. whenever θ\* has not converged at 600 steps.
+
+So the measured "convergence gap" is a direct readout of **how far θ\* was from convergence in that
+arm**, and `rel_span`, which is normalised by that too-high baseline, is inflated by the same amount.
+
+This makes the conclusion below stronger, not weaker: the silicate "improvement" is a measurement of
+optimiser shortfall, and the harder `si` loss (more terms, `POSI_W=1.0`, `POSI_DARWIN_W=0.5`)
+converges *less* well in 600 steps than the `nosi` loss — which is exactly the observed pattern.
 
 The profile likelihood fixes the profiled parameter on a grid and re-optimises the other five. By
 construction its minimum **cannot** be below `loss_star` — at `p = θ*_p` it must return `loss_star`
@@ -91,6 +116,17 @@ bound and its verdict is not trustworthy:
 `diatomgraz` is the worst case: **the `nosi` arm puts its optimum at the bottom of the range and the
 `si` arm puts it at the top.** Adding silicate flips the preferred value from one extreme to the
 other. That is not a refinement of an estimate; it is an unstable fit.
+
+**Resolved: the upper edge is physical, the lower edge is not.** `diatomgraz` is a *palatability* —
+dimensionless, a multiplier on `G0_GRAZE` — with `bounds=(0.05, 1.0)` in the `carroll6.PARAMS`
+registry. **1.0 is a genuine physical ceiling** (fully palatable), so `diatomgraz_si`'s right-edge
+minimum must be reported as **"optimum at the upper physical bound"** — widening the grid past 1.0
+would be meaningless. The lower bound 0.05 is a *search* bound with no physical basis (palatability
+can approach 0), so the three left-edge cases (`diatomgraz_nosi`, `diatomgraz_realbsi`, `alpfe_si`)
+genuinely do need wider grids.
+
+These are different defects requiring different fixes, and the raw "4 profiles on an edge" count
+conflates them.
 
 `theta_star` also disagrees with the profile argmin by up to 11× (`alpfe_nosi`: θ\* = 0.9994 vs
 argmin 0.0910), which is the same under-convergence seen from another angle.
@@ -151,16 +187,22 @@ about.
 
 ## 6. Required before any of this enters Paper #1
 
-1. **Re-run with a convergence assertion.** The script must check `min(profile) >= loss_star - tol`
-   and refuse to emit a `verdict` otherwise. A guard has been added — see §7.
-2. **Widen the grids** so every profile minimum is interior. `diatomgraz` needs to extend past 1.0
-   (or its upper bound needs justifying as physical, in which case an edge minimum should be
+1. **Fix the step-budget asymmetry — this is the actual bug.** θ\* must be optimised at least as hard
+   as any profile point. Three options, cheapest first:
+   - raise `--opt-steps` until θ\* converges (the profile then cannot beat it), and/or
+   - after computing the profile, adopt `min(profile)` as the new baseline and re-optimise θ\* from
+     the best profile point until the gap closes;
+   - run the profile from a *fresh* init rather than from θ\*, so the two are optimised
+     symmetrically.
+2. **Re-run with the convergence assertion.** Added — see §7. It will now refuse to emit a verdict
+   rather than emitting a wrong one.
+3. **Widen the grids** so every profile minimum is interior. `diatomgraz` needs to extend past 1.0
+   (or its upper bound must be justified as physical, in which case an edge minimum should be
    reported as "at bound", not as a span).
-3. **Harden `theta_star`.** The `si` arm needs materially more optimiser steps, or multi-start, before
-   its Hessian spectrum means anything. One negative eigenvalue at θ\* in every run (and 2–3 at
-   Carroll's values) is consistent with not being at a minimum.
 4. **Re-run the silicate ablation** once 1–3 hold. Only then is "does silicate improve
-   identifiability" answerable.
+   identifiability" answerable. Note one negative eigenvalue at θ\* in every run (and 2–3 at
+   Carroll's values), consistent with not being at a minimum — the Hessian spectrum is not
+   interpretable until θ\* converges either.
 
 ---
 
