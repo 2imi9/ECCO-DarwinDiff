@@ -1,0 +1,17 @@
+{
+ "r_anomaly": 0.3307023580948515,
+ "n": 192,
+ "n_eff": 33.958317701265315,
+ "t": 1.9809756438645516,
+ "p": 0.047594005046584426,
+ "lag1_v05": 0.7699200934865957,
+ "lag1_modis": 0.9084429464453779,
+ "block_boot_ci": [
+  0.04960297941781875,
+  0.5767503491346162
+ ],
+ "phase_null_95": 0.3297864718726413,
+ "seas_amp_v05": 0.22078244440106443,
+ "seas_amp_modis": 0.08130608902525749,
+ "_note": "Statistical-significance diagnostics only (effective-N, moving-block bootstrap, phase-randomised surrogate null). An earlier version of this file also carried ENSO composites built from hand-entered event dates; those were SUPERSEDED by eqpac_enso_diagnostics.json, which uses the downloaded NOAA PSL Nino3.4 index. Do not reintroduce hand-listed ENSO events."
+}
