@@ -21,19 +21,31 @@ The growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** —
 data constrains phytoplankton growth rates — so it is excluded from the target, not counted
 as a miss.
 
-> **⚠️ `diatomgraz` framing — corrected 2026-07-19.** Do **not** write that `diatomgraz` "carries
-> no observational signal." Three problems: (i) the FLAT profile-likelihood result (span 0.039)
-> exists in project memory but **no artifact is committed to this repo** — the 07-07 profiles doc
-> mentions it only in a *threshold-legend caption*, while three downstream documents cite it as
-> established, one as a gate on H200 spend; (ii) FLAT was measured on the loss **without** dense
-> Darwin POSi, and adding that observable recovers the parameter **10/10** (20/20 under Eppley) —
-> those are consistent, not contradictory, and the profile *predicted* it; (iii) our bSi observable
-> is a **steady-state diagnostic back-solved from diatom biomass** (`silica.py:78`), i.e. partly
-> circular — the box has 15 tracers, **no dissolved SiO₂**, no Si co-limitation — whereas
-> ECCO-Darwin fits *dissolved* SiO₂ against GLODAP, a different quantity.
-> **Defensible instead:** `diatomgraz` is constrained only through a steady-state biogenic-silica
-> diagnostic, not a prognostic silicate cycle. Re-run the profile with `--out` and commit the JSON
-> before the manuscript leans on it. See `docs/findings/2026-07-19_diatomgraz_claim_audit.md`.
+> **⚠️ `diatomgraz` framing — corrected 2026-07-19, then corrected again later the same day.**
+> Do **not** write that `diatomgraz` "carries no observational signal", and do **not** cite its FLAT
+> profile-likelihood as evidence of structural non-identifiability. Four points:
+>
+> 1. **The artifact now EXISTS and is committed** — `docs/findings/silicate_scope/` (13 JSONs,
+>    Explorer arrays `8479481` + `8482504`). The remembered numbers were *not* fabricated: the
+>    bSi-alone span 0.118 reproduced as **0.1177**.
+> 2. **But 9 of the 13 runs FAIL a convergence guard**, and the failure manufactured the headline.
+>    The profile starts *from* θ\* and runs further steps, so it out-optimises θ\* by construction;
+>    the four parameters that appeared to gain from adding silicate are exactly the four whose
+>    profile escaped an unconverged θ\*, while both converged parameters gained nothing. The
+>    silicate ablation **cannot currently answer its own question**.
+>    See `docs/findings/2026-07-19_silicate_fim_artifact_audit.md`.
+> 3. **FLAT does not imply unrecoverable.** In the better-converged arm, four of six parameters are
+>    FLAT (span < 0.05) — including **`alpfe` at 0.0235, which this project recovers 9–10/10**.
+>    That is the inference the `diatomgraz` claim rested on, and our own data falsifies it.
+> 4. FLAT was measured **without** dense Darwin POSi; adding that observable recovers the parameter
+>    **10/10** (20/20 under Eppley). Consistent, not contradictory — the profile *predicted* it.
+>
+> **Defensible framing:** `diatomgraz` is constrained only through a **steady-state biogenic-silica
+> diagnostic back-solved from diatom biomass** (`silica.py:78`), not a prognostic silicate cycle —
+> the box has 15 tracers, no dissolved SiO₂, no Si co-limitation, whereas ECCO-Darwin fits
+> *dissolved* SiO₂ against GLODAP, a different quantity. It is **not recovered on real data**
+> (best 4/10 = chance). Say that; do not reach for a structural-identifiability claim.
+> See also `docs/findings/2026-07-19_diatomgraz_claim_audit.md`.
 
 ## Track 2 — forward emulator: current state (2026-07-19)
 
