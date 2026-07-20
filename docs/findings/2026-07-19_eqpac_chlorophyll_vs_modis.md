@@ -6,8 +6,10 @@ Same method, same satellite product, same corrected calendar (`delta_t = 1200 s`
 Atlantic numbers exactly as a regression check — see §5).
 
 **Headline: v05 chlorophyll is essentially unbiased in the equatorial Pacific, and its interannual
-variability there is ENSO — captured at ~89% of the observed sensitivity but with the response
-arriving about three months too early.**
+variability there is ENSO — captured at ~89% of the observed sensitivity, but its response is
+offset from the satellite's by ~2 months (v05 leads Niño-3.4, MODIS lags it). The offset is
+statistically resolvable; its cause is not established, and the "missing biological rate"
+explanation given in an earlier draft is withdrawn (§4).**
 
 ---
 
@@ -133,27 +135,56 @@ avoid.
 
 Artifact: `chl_val/eqpac_lag_resolvability.json`.
 
-> **⚠️ The interpretation below is under active review and may be retracted.** A literature check
-> (2026-07-19, in progress) surfaced Park et al. 2018 GRL *"Ocean Chlorophyll as a Precursor of
-> ENSO"* and Park et al. 2011 JGR Oceans, which appear to argue that equatorial Pacific chlorophyll
-> anomalies can **lead** SST as a genuine physical mode — particularly during ENSO decay — rather
-> than only as a model defect. If a chlorophyll lead is a documented real-ocean feature, the
-> "v05 has a phase error" framing is too strong. **The measurement above stands regardless**; it is
-> the causal story that is in question. Do not repeat the paragraph below to collaborators until
-> this resolves.
+### Interpretation — the "missing biological rate" reading is WITHDRAWN
 
-**Interpretation (hypothesis, not established).** ECCO-Darwin's physical state is data-constrained,
-and in ENSO dynamics thermocline-depth anomalies *lead* the Niño-3.4 SST peak. If v05's biology
-tracks modelled upwelling essentially instantaneously, it will inherit that lead, whereas real
-phytoplankton add biological inertia — growth timescales, grazing adjustment, community succession —
-that delays the observed response. In short, **v05 may be missing a biological response timescale**,
-not a physical one.
+An earlier draft of this document explained the offset as v05 "missing a biological response
+timescale": modelled biology tracking upwelling instantaneously and inheriting the thermocline lead,
+while real phytoplankton add growth/grazing inertia. **That is refuted and is withdrawn.**
 
-That is a testable and directly relevant hypothesis for the UDE track: the missing quantity is a
-*rate*, which is exactly the kind of term a learned closure is positioned to supply. It should not
-be stated as established until it is tested — e.g. by lag-scanning v05's own modelled nutrient or
-upwelling fields against its chlorophyll to see whether the lead originates in the physics or in the
-biological response to it.
+A literature pass (2026-07-19) established:
+
+- **The intrinsic phytoplankton adjustment timescale is 1–7 days** (Shi & Wang 2021), not months. A
+  multi-month offset therefore **cannot** be a growth or grazing rate in either direction. This kills
+  the mechanism outright, independently of everything else.
+- **Documented equatorial-Pacific chlorophyll leads are driven by iron *supply*** — thermocline depth
+  and Equatorial Undercurrent iron advection (Lim et al. 2022 GRL) — i.e. a *transport* timescale,
+  not a biological one.
+- **Our AOI is the wrong region for the "lead" literature.** The documented lead is a western/central
+  near-equatorial (2°S–2°N) feature. Our box is **eastern and off-equatorial (−5..15°N)**, where the
+  observational literature instead reports that chlorophyll responds only weakly and near-linearly to
+  ENSO (Tian et al. 2021 ERL; Chen et al. 2023). **Our MODIS +1 is consistent with that**, which
+  means **v05's −2 is the number requiring explanation, not MODIS.**
+- **Park et al. 2018 GRL does not say what an earlier draft implied.** Its lead is an
+  event-composite sign-reversal delay of chlorophyll vs *SST* in the **western/central** Pacific, not
+  a cross-correlation peak against Niño-3.4, and the study is model-weighted (its own subtitle: *"An
+  Earth System Modeling Study"*). **It was paywalled and has not been read first-hand** — the
+  "1.5–3 month" figure reaches us only via Tian et al. 2021/2025. Do not cite it as a first-hand
+  number.
+
+The cleanest available comparison, Tian, Zhang & Wang 2025 (J. Climate), reports chlorophyll vs
+Niño-3.4 at **zero lag**: r = −0.78 (western 2°S–2°N) and −0.45 (eastern). No published peak-lag
+exists for a box like ours, so our MODIS +1 cannot be checked against a literature value — but it is
+not a red flag either.
+
+### What we can say
+
+**v05 and MODIS disagree in phase within an identical AOI, index and period, and the disagreement is
+statistically resolvable (§ above).** That is a model–observation discrepancy worth reporting. We do
+**not** currently have a supported mechanism for it.
+
+**The most promising remaining hypothesis is iron supply, not biology** — which is unusually relevant
+here, since iron-cycle parameters (`alpfe`, `scav_rat`) are exactly what Track 1 recovers. If v05's
+equatorial iron supply responds to thermocline displacement too promptly, that would produce an early
+chlorophyll response through a transport pathway with a plausible multi-month timescale, unlike a
+growth rate. **Untested.**
+
+### Two caveats on our own setup, flagged by the same pass
+
+- **Index-vs-SST convention mismatch.** We correlate against the Niño-3.4 *index*; the cited studies
+  correlate against local SST *responses*. Related, not identical.
+- **Our AOI is asymmetric about the equator** (−5..15°N), so it is not the box any of this literature
+  uses. A symmetric 5°S–5°N recomputation, against both Niño-3.4 and local box SST, would show
+  whether the offset is partly an AOI-geometry artifact. **This is the cheapest next test.**
 
 ### Secondary: the seasonal cycle is over-expressed and anti-phased
 

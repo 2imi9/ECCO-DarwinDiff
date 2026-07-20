@@ -121,10 +121,15 @@ SST anomaly); v05 peaks at lag −2, i.e. it *leads* Niño-3.4. The **measuremen
 n_eff ≈ 14–34: bootstrap peak-lag CIs do not overlap, and a smooth asymmetry statistic
 `r(+1) − r(−2)` separates them by +0.460, 95% CI [+0.246, +0.710], P = 1.000.
 
-> **The INTERPRETATION is under review.** Park et al. (2018 GRL, 2011 JGR) appear to document a
-> chlorophyll **lead** over ENSO SST as a real physical mode, not only a model defect. Until that
-> resolves, do **not** call this "v05 has a phase error" to collaborators — the timing *difference*
-> is measured; the causal story is not settled.
+> **The CAUSE is not established, and the first explanation was wrong.** The "v05 is missing a
+> biological response timescale" reading is **withdrawn**: intrinsic phytoplankton adjustment is
+> **1–7 days** (Shi & Wang 2021), so a multi-month offset cannot be a growth/grazing rate.
+> Documented equatorial chlorophyll *leads* are **iron-supply** driven (thermocline depth, EUC iron
+> advection) and are a **western/central** 2°S–2°N feature — our box is eastern and off-equatorial,
+> where the literature reports only a weak ENSO response, consistent with our MODIS +1. So **v05's
+> −2 is the number needing explanation, not MODIS.** Report it as a model–observation phase
+> discrepancy, not as a diagnosed defect. Most promising untested hypothesis: **iron supply**, which
+> ties directly to Track-1's `alpfe`/`scav_rat`.
 
 Detail: `docs/findings/2026-07-19_{emulator_honest_bounds,results_matrix,two_negatives,v05_chlorophyll_vs_modis,eqpac_chlorophyll_vs_modis}.md`.
 Artifacts `docs/findings/chl_val/`; script `scripts/compare_v05_modis_aoi.py` (reproduces the
