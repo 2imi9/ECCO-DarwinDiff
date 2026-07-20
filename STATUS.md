@@ -75,15 +75,44 @@ comparison in the last row.**
 | EDM diffusion | 0 to −0.026 | **not a lever** for skill |
 | Physical-state conditioning | +0.0041 oracle bound | **not a lever** |
 
-### First observational result
+### First observational result — TWO regions, and the bias is regime-specific
 
-**v05 chlorophyll vs MODIS-Aqua**, subpolar N. Atlantic, 176 months: v05 is **~5× low**
-(−0.696 dex), but reproduces the **May–June bloom peak inside the satellite's own retrieval
-uncertainty** and ends its bloom two months early (v05 peaks June, MODIS August). Novel —
-chlorophyll is not evaluated in ECCO-Darwin's own 135-figure white paper. The all-month r = 0.78 is
-seasonal-cycle-driven; **growing-season r = 0.016**, so quote both.
+**v05 chlorophyll vs MODIS-Aqua**, 2003–2018. Novel — chlorophyll is not evaluated at all in
+ECCO-Darwin's own 135-figure white paper.
 
-Detail: `docs/findings/2026-07-19_{emulator_honest_bounds,results_matrix,two_negatives,v05_chlorophyll_vs_modis}.md`.
+| | subpolar N. Atlantic (176 mo) | equatorial Pacific (192 mo) |
+|---|---|---|
+| bias | **−0.696 dex (5.0× low)** | **−0.077 dex (0.84×)** — INSIDE the 0.130 noise floor |
+| coverage | 78.5% mean, 1.5% min | **98.6% mean, 90.9% min**, zero cells clipped |
+| r all-months | +0.779 | +0.034 |
+| r deseasonalised | +0.044 | **+0.331** |
+
+**Do not say "v05 chlorophyll is 5× low" unqualified.** It is unbiased in the oligotrophic regime —
+on the best-observed data in the comparison — and 5× low in the **bloom** regime. That points at
+bloom dynamics, not a global scaling error. In the Atlantic v05 still reproduces the May–June bloom
+peak inside the satellite's own retrieval uncertainty, and ends its bloom two months early.
+
+> **⚠️ The all-months Pearson r is uninformative and misleads in BOTH directions** — flattered in the
+> Atlantic by a shared seasonal cycle (+0.779 vs anomaly +0.044), maligned at the equator by the
+> absence of one (+0.034 vs anomaly +0.331). **Report the deseasonalised anomaly r.** It is
+> regime-independent, unlike a growing-season window (May–Sep is meaningless at the equator). The
+> existing growing-season r = 0.016 for natl stands and is corroborated by anomaly r = +0.044.
+
+**eqpac interannual skill is ENSO and nothing else,** and is marginal as an aggregate: lag-1
+autocorrelation puts effective N at **34, not 192** (p ≈ 0.048). It is the mechanism that makes it
+real — against the downloaded NOAA PSL Niño-3.4 index, **r = +0.524 in ENSO-active months vs
+−0.052 in neutral months**, with v05 capturing **0.89×** the observed ENSO sensitivity at the correct
+sign. **Quote n_eff alongside any r from this analysis.**
+
+**New — a ~3-month phase error.** MODIS chlorophyll peaks at lag +1 (responds *after* the SST
+anomaly); v05 peaks at lag −2, i.e. it *leads* Niño-3.4. Hypothesis, **not established**: v05's
+biology tracks modelled upwelling near-instantaneously and inherits the thermocline lead, while real
+phytoplankton add growth/grazing inertia — so the missing quantity may be a **biological rate**,
+which is directly relevant to the UDE track.
+
+Detail: `docs/findings/2026-07-19_{emulator_honest_bounds,results_matrix,two_negatives,v05_chlorophyll_vs_modis,eqpac_chlorophyll_vs_modis}.md`.
+Artifacts `docs/findings/chl_val/`; script `scripts/compare_v05_modis_aoi.py` (reproduces the
+committed natl numbers exactly as a regression check).
 
 ## Current best
 
