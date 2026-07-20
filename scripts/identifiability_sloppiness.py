@@ -106,6 +106,13 @@ def main() -> int:
     ap.add_argument("--opt-steps", type=int, default=400,
                     help="Adam steps to find theta* (profile re-opt uses opt-steps//2)")
     ap.add_argument("--lr", type=float, default=5e-2, help="Adam lr in unconstrained space")
+    ap.add_argument("--seed", type=int, default=0,
+                    help="RNG seed for the multi-start random initialisations (reproducibility)")
+    ap.add_argument("--n-starts", type=int, default=1,
+                    help="multi-start global search for theta*: start 0 is Carroll, the rest are "
+                         "log-uniform random inside PARAM_BOUNDS. All starts are optimised in ONE "
+                         "batched integration (optimise() treats columns independently), so the "
+                         "cost is ~flat in n_starts. 1 = the pre-2026-07-20 single-start behaviour.")
     ap.add_argument("--max-refine", type=int, default=3,
                     help="max rounds of adopting a better profile point as theta* and re-optimising. "
                          "The profile starts FROM theta* and runs opt_steps//2 MORE steps, so it can "
@@ -344,10 +351,35 @@ def main() -> int:
             Hm[:, j] = (grad_at(ap) - grad_at(am)) / (2 * eps)
         return 0.5 * (Hm + Hm.T)
 
-    # ---- 1. shared-theta optimum from Carroll init ----
-    theta1, l1 = optimise(to_uncon(carroll.reshape(6, 1)), steps=args.opt_steps)
-    theta_star = theta1[:, 0]
-    loss_star = float(l1[0])
+    # ---- 1. shared-theta optimum: MULTI-START from Carroll + random inits ----
+    # Mechanistic-model calibration conventionally uses GLOBAL optimisation, while
+    # gradient-trained hybrid models use local methods; that mismatch is a known source
+    # of spurious non-identifiability verdicts. Until 2026-07-20 this was a SINGLE start
+    # from Carroll, and the profile search (which continues from theta_star) routinely
+    # beat it -- see docs/findings/2026-07-19_silicate_fim_artifact_audit.md.
+    # optimise() already treats each column as an independent theta, so extra starts cost
+    # one batched integration rather than N sequential fits.
+    g0 = torch.Generator(device="cpu").manual_seed(args.seed)
+    inits = [to_uncon(carroll.reshape(6, 1))]
+    if args.n_starts > 1:
+        # log-uniform inside the physical bounds: parameters span decades
+        llo, lhi = torch.log10(lo), torch.log10(hi)
+        u = torch.rand(6, args.n_starts - 1, generator=g0).to(lo.device)
+        rand_theta = torch.pow(10.0, llo + (lhi - llo) * u)
+        inits.append(to_uncon(rand_theta))
+    u_all = torch.cat(inits, dim=1).contiguous()
+    theta1, l1 = optimise(u_all, steps=args.opt_steps)
+    _b = int(torch.argmin(l1))
+    if args.n_starts > 1:
+        _ls = [float(v) for v in l1]
+        print(f"\n-- multi-start ({args.n_starts}) losses: "
+              f"best={min(_ls):.6g} (start {_b}, {'Carroll' if _b == 0 else 'random'}) "
+              f"worst={max(_ls):.6g} spread={max(_ls)-min(_ls):.4g} --")
+        if _b != 0:
+            print(f"   NOTE: a RANDOM start beat the Carroll start by "
+                  f"{_ls[0]-min(_ls):.4g} -- the single-start fit was in a worse basin.")
+    theta_star = theta1[:, _b]
+    loss_star = float(l1[_b])
     grad_norm = float((grad_at(theta_star) * theta_star).norm())
     print(f"\n-- shared-theta optimum (loss={loss_star:.5e}, rel|grad|={grad_norm:.2e}) --")
     print(f"{'param':<11}{'theta*':>13}{'Carroll':>13}{'rel.off':>9}")
