@@ -31,9 +31,9 @@ ECCO-Darwin (Carroll et al. 2020, *JAMES*; 2022, *GBC*) calibrates its ocean-bio
 DarwinDiff is organized into two tracks:
 
 1. **Parameter learner** *(active)* — learns a per-cell function from local environment to the six Carroll-6 parameters by gradient descent through the differentiable box model, replacing Green's-functions calibration.
-2. **Emulator** *(not started)* — a neural stand-in for ECCO-Darwin for long-timescale climate runs.
+2. **Emulator** *(active)* — a neural stand-in for ECCO-Darwin. A global single-step forward operator exists and is characterised; it is **not** a validated multi-month rollout emulator. See the Track-2 section of **[STATUS.md][status_url]** for what it does and does not do.
 
-The differentiable box model (`darwindiff.carroll6`), the per-cell networks (`darwindiff.networks`), and the ECCO-Darwin / GLODAP / GEOTRACES data loaders are all importable as the `darwindiff` package. The canonical results — including the first full six-parameter (6/6) recovery, with R_PICPOC unblocked by the `RATIO_MAX` ratio-target fix — and the known limits live in **[STATUS.md][status_url]** and `docs/findings/`.
+The differentiable box model (`darwindiff.carroll6`), the per-cell networks (`darwindiff.networks`), and the ECCO-Darwin / GLODAP / GEOTRACES data loaders are all importable as the `darwindiff` package. Track 1 is framed as a surrogate-to-model **identifiability study** over the four observable parameters — *which* of the Carroll-6 are identifiable from real ocean observations, which are not, and why — **not** a "6/6 recovery" chase. The canonical results and the known limits live in **[STATUS.md][status_url]** and `docs/findings/`.
 
 ## Installation
 
@@ -87,8 +87,9 @@ uv run python scripts/verify_run.py runs/eqpac
 
 **Known limits**
 
-- A **structural 6/6 wall**: 0/856 seeds recover all six jointly across **856 seeds / 86 configs** — `R_PICPOC` (3%) is the lone unrecovered parameter. 5/6 now reproduces (above); breaking to 6/6 is the open problem.
-- `R_PICPOC` needs **richer calcite physics**: the box's rigid-ratio calcite can't match Darwin's ~23× coccolithophore-driven spatial PIC/POC variation. A PIC:POC ratio loss recovers it per-cell where the box matches Darwin (eqpac), but ≥2-AOI recovery needs the differentiable Darwin calcite port + native resolution — not a box-scale estimator or seasonal lever.
+- **Not a 6/6 chase — an identifiability study.** The honest target is **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real-world data constrains phytoplankton growth rates), so it is excluded from the target rather than counted as a miss. A joint 6/6 has been reached but is **not robust** (3/10 seeds).
+- **`R_PICPOC` was never the wall.** The earlier "needs the differentiable Darwin calcite port + native resolution" conclusion is **refuted** — both were tested and neither helped. The real gaps were the absence of a direct, real calcite observation (now supplied) and a contaminated Southern-Ocean ratio target (fixed by `RATIO_MAX=2`). Note that *any* ratio anchor recovers `R_PICPOC`, including Darwin's own — so the real anchor's value is **non-circularity**, not recoverability.
+- **`diatomgraz` is the unrecovered parameter** on real data (best 4/10 = chance). It is constrained only through a *steady-state biogenic-silica diagnostic* back-solved from diatom biomass, not a prognostic silicate cycle. Adding the dense Darwin `POSi` target recovers it 10/10 — a data-staging limit. Do **not** cite its flat profile-likelihood as structural non-identifiability: `alpfe` is equally flat by that diagnostic and recovers 9–10/10 (see `docs/findings/2026-07-19_silicate_fim_artifact_audit.md`).
 - 1° box-model proxy; 23-year climatology, not time-resolved; single-method (no forward-Darwin held-out validation yet); single-GPU prototype.
 
 The full evidence table, per-version findings, and the cluster-scale sweep plan are in **[STATUS.md][status_url]**; the per-task GPU / memory / wall-clock budget is in [the compute-budget note][budget_url].

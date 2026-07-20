@@ -15,7 +15,7 @@ DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistr
 ## Two tracks
 
 1. **Parameter learner** *(active)* — learns a per-cell function from local environment to the six Carroll parameters by gradient descent through the differentiable box model, replacing Green's-functions calibration.
-2. **Emulator** *(not started)* — a neural stand-in for ECCO-Darwin for long-timescale climate runs.
+2. **Emulator** *(active)* — a neural stand-in for ECCO-Darwin. A global single-step forward operator exists and is characterised; it is **not** a validated multi-month rollout emulator. See the Track-2 section of **[Project Status](status.md)**.
 
 ## What works · what's blocked
 
@@ -26,8 +26,9 @@ DarwinDiff is a PyTorch reimplementation of the ECCO-Darwin ocean biogeochemistr
 
 === "Blocked"
 
-    - A **structural 6/6 wall**: 0/856 seeds recover all six jointly — `R_PICPOC` (3%) is the lone unrecovered parameter.
-    - `R_PICPOC` needs **richer calcite physics**: the box's rigid-ratio calcite can't match Darwin's ~23× coccolithophore-driven spatial PIC/POC variation. Resolving it needs the differentiable Darwin calcite port + native resolution — not a box-scale estimator or seasonal lever.
+    - **Not a 6/6 chase.** The honest target is **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`} — the growth pair {`Smallgrow`, `Biggrow`} is unobservable by construction. A joint 6/6 has been reached but is **not robust** (3/10 seeds).
+    - **`R_PICPOC` was never the wall.** The earlier "needs the differentiable Darwin calcite port + native resolution" conclusion is **refuted** — both were tested and neither helped. The real gaps were the absence of a direct, real calcite observation (now supplied) and a contaminated Southern-Ocean ratio target (fixed by `RATIO_MAX=2`).
+    - **`diatomgraz` is the unrecovered parameter** on real data (best 4/10 = chance), constrained only through a steady-state biogenic-silica diagnostic. Adding the dense Darwin `POSi` target recovers it 10/10 — a data-staging limit, not a structural wall.
     - 1° box-model proxy; 23-year climatology, not time-resolved; single-GPU prototype. Full evidence → **[Project Status](status.md)**.
 
 ## Documentation map
