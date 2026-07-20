@@ -29,13 +29,29 @@ import torch
 from torch import nn
 
 from darwindiff import carroll6
-from darwindiff.carroll6 import K_FE
+from darwindiff.carroll6 import K_FE, LIGHT, PHI_DUST
 from darwindiff.integrators import integrate
 from darwindiff.transport import column_tendency
 
 
 def _true_ffe(dfe: torch.Tensor) -> torch.Tensor:
     return (dfe / (dfe + 8.0e-5)) ** 0.7
+
+
+# Fisher-optimal excitation (drawdown_pulse, winner of ude_forcing_design):
+# strong seasonal light + low/pulsed dust draws DFe down through the half-sat k.
+_PULSE_T = [120.0, 300.0, 500.0, 640.0]
+
+
+def _dust_m(t: float) -> float:
+    v = 0.2 * math.exp(1.2 * math.sin(2 * math.pi * t / 365.0))
+    for tp in _PULSE_T:
+        v *= 1.0 - 0.9 * math.exp(-((t - tp) / 15.0) ** 2)
+    return v
+
+
+def _light_m(t: float) -> float:
+    return math.exp(2.5 * math.sin(2 * math.pi * t / 365.0))
 
 
 class FreeMLP(nn.Module):
@@ -81,13 +97,33 @@ def _visited_range(traj):
     return lo, hi
 
 
-def _train_seed(closure_cls, multi, seed, n_cols, n_z, ns, epochs, device):
+def _train_seed(closure_cls, excite, seed, n_cols, n_z, ns, epochs, device):
+    """excite in {'single', 'multi_ic', 'regime'}. 'regime' = spatially
+    heterogeneous forcing (per-column iron-dust input via alpfe) so columns reach
+    *different equilibria* -> the shared closure sees a range of DFe at steady
+    state (robust support), the multi-AOI lesson applied to the closure."""
     torch.manual_seed(seed)
-    params = carroll6.CARROLL_VALUES.to(device)
-    f0 = _make_ic(n_cols, n_z, device, multi, seed)
-    snaps = list(range(ns // 10, ns + 1, ns // 10)) if multi else None
+    forced = (excite == "forced")
+    if forced:                       # seasonal drawdown needs a long span; the snapshot
+        n_cols = min(n_cols, 250)    # loss keeps the full graph, so bound the grid,
+        ns = ns * 4                  # span the cycle, and cap epochs (each is 4x longer)
+        epochs = min(epochs, 120)
+    base = carroll6.CARROLL_VALUES.to(device)
+    if excite == "regime":
+        params = base.reshape(1, 1, 6).repeat(n_cols, 1, 1).clone()  # [n_cols,1,6]
+        params[:, 0, carroll6.P.alpfe] = torch.logspace(
+            math.log10(0.2), math.log10(1.0), n_cols, device=device)
+    else:
+        params = base
+    f0 = _make_ic(n_cols, n_z, device, excite == "multi_ic", seed)
+    snaps = list(range(ns // 10, ns + 1, ns // 10)) if excite != "single" else None
 
     def tend_with(ffe):
+        if forced:  # Fisher-optimal drawdown_pulse forcing (time-aware tendency)
+            def tf(tt, s):
+                return column_tendency(s, params, kz=0.1, dz=25.0, ffe_closure=ffe,
+                                       dust=PHI_DUST * _dust_m(tt), light=LIGHT * _light_m(tt))
+            return tf
         def t(s):
             return column_tendency(s, params, kz=0.1, dz=25.0, ffe_closure=ffe)
         return t
@@ -115,12 +151,12 @@ def _train_seed(closure_cls, multi, seed, n_cols, n_z, ns, epochs, device):
     return net, last, lo, hi
 
 
-def run_arm(out, tag, closure_cls, multi, seeds, n_cols, n_z, ns, epochs, device):
+def run_arm(out, tag, closure_cls, excite, seeds, n_cols, n_z, ns, epochs, device):
     if (out / f".done_{tag}").exists() or (out / "STOP").exists():
         return
     nets, losses, los, his = [], [], [], []
     for s in seeds:
-        net, loss, lo, hi = _train_seed(closure_cls, multi, s, n_cols, n_z, ns, epochs, device)
+        net, loss, lo, hi = _train_seed(closure_cls, excite, s, n_cols, n_z, ns, epochs, device)
         nets.append(net)
         losses.append(loss)
         los.append(lo)
@@ -138,7 +174,7 @@ def run_arm(out, tag, closure_cls, multi, seeds, n_cols, n_z, ns, epochs, device
     ens_mean = preds.mean(0)
     per_seed_err = [((p - true).abs() / true.clamp_min(1e-8)).mean().item() for p in preds]
     rec = {
-        "arm": tag, "closure": closure_cls.__name__, "multi_ic": multi,
+        "arm": tag, "closure": closure_cls.__name__, "excite": excite,
         "n_seeds": len(seeds), "n_cols": n_cols, "n_z": n_z, "n_steps": ns, "epochs": epochs,
         "status": "ok", "visited_dfe": [lo, hi],
         "on_support_ensemble_err": ((ens_mean - true).abs() / true.clamp_min(1e-8)).mean().item(),
@@ -177,13 +213,17 @@ def main() -> int:
     n_cols, n_z, ns, epochs = (300, 6, 100, 100) if args.quick else (1000, 8, 300, 300)
 
     arms = [
-        ("A_free_singleIC", FreeMLP, False),
-        ("B_monod_singleIC", MonodAnchored, False),
-        ("C_free_multiIC", FreeMLP, True),
-        ("D_monod_multiIC", MonodAnchored, True),
+        ("A_free_singleIC", FreeMLP, "single"),
+        ("B_monod_singleIC", MonodAnchored, "single"),
+        ("C_free_multiIC", FreeMLP, "multi_ic"),
+        ("D_monod_multiIC", MonodAnchored, "multi_ic"),
+        ("E_free_regime", FreeMLP, "regime"),
+        ("F_monod_regime", MonodAnchored, "regime"),
+        ("G_free_forced", FreeMLP, "forced"),
+        ("H_monod_forced", MonodAnchored, "forced"),
     ]
-    for tag, cls, multi in arms:
-        run_arm(out, tag, cls, multi, seeds, n_cols, n_z, ns, epochs, device)
+    for tag, cls, excite in arms:
+        run_arm(out, tag, cls, excite, seeds, n_cols, n_z, ns, epochs, device)
     print("ABLATION COMPLETE", flush=True)
     return 0
 

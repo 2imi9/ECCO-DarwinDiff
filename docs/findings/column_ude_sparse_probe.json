@@ -1,0 +1,30 @@
+{
+  "full": {
+    "Smallgrow": 4.748070240020752,
+    "Biggrow": 0.03769053518772125,
+    "alpfe": 0.5182524919509888,
+    "Smallgrow_flat": false,
+    "alpfe_flat": false
+  },
+  "surface_3tracer": {
+    "Smallgrow": 6.428693771362305,
+    "Biggrow": 0.0639096051454544,
+    "alpfe": 0.27370092272758484,
+    "Smallgrow_flat": false,
+    "alpfe_flat": false
+  },
+  "iron_all_levels": {
+    "Smallgrow": 12.378666877746582,
+    "Biggrow": 0.007769538555294275,
+    "alpfe": 1.4531818628311157,
+    "Smallgrow_flat": false,
+    "alpfe_flat": false
+  },
+  "iron_surf_sparse": {
+    "Smallgrow": 12.373175621032715,
+    "Biggrow": 0.003374579595401883,
+    "alpfe": 0.5476265549659729,
+    "Smallgrow_flat": false,
+    "alpfe_flat": false
+  }
+}
