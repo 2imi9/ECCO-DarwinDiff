@@ -147,8 +147,13 @@ At long rollout horizons the persistence baseline fails in the opposite directio
 monthly-cadence rollout diagnostic, at a 12-month horizon persistence reads +0.441 (apparently
 strong) while climatology reads −0.265 (dead) — both linear-space skill scores against their
 respective baselines. **Long-horizon skill must always be co-reported against climatology, never
-against persistence alone.** Rollout-aware training (`--rollout-train-k`) is the single largest
-horizon lever measured so far, extending the useful horizon from ~2 months to ~9 months.
+against persistence alone.** Rollout-aware training (`--rollout-train-k`) is load-bearing for
+**stability** — without it the rollout diverges (mass ratio 3.05e8 vs 1.000). It is **not** a
+horizon extension: the "~2 months to ~9 months" claim was a calendar artifact and is **retracted**.
+Against a correctly-binned seasonal climatology the emulator wins at **one step only** (+0.240) and
+is at/below climatology from step 2. A Δt-scaled residual with genuine skill at true monthly cadence
+(+0.4801 vs the flagship's +0.0026) does **not** extend it either — so the 1-step ceiling is
+structural, not a single-step-accuracy problem. See `findings/2026-07-19_emulator_honest_bounds.md`.
 
 ## Cluster environments
 

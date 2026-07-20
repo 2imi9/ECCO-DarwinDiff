@@ -1,5 +1,22 @@
 # Dense Darwin POSi target for `diatomgraz` (box scale)
 
+> **⚠️ SUPERSEDED 2026-06-24 / re-checked 2026-07-20 — the `R_PICPOC` conclusions below are
+> FALSIFIED, and one of them was used to justify paid cluster time.** Retained as the record of what
+> was believed. Three corrections:
+> 1. **`R_PICPOC` is not "the entire 6/6 wall" and it was never cluster-gated.** A *laptop-scale*
+>    loss lever — the PIC:POC **ratio** observable (`rpicpoc_ratio_structural.md`) — recovers it
+>    **10/10** in eqpac, and a laptop-scale target fix (`RATIO_MAX=2`,
+>    `2026-06-24_rpicpoc_ratio_target_fix.md`) recovers it **10/10 joint**.
+> 2. **"The AICR case, backed by an exhaustive box-scale exclusion" does not hold.** The exclusion
+>    was not exhaustive: the ratio observable — the lever that actually worked, on a laptop — had
+>    not been tried when that sentence was written. Do not re-use this passage as a spend
+>    justification.
+> 3. **`diatomgraz`, not `R_PICPOC`, is the unrecovered parameter** on real data (best 4/10 =
+>    chance). And do **not** cite its flat profile-likelihood as structural non-identifiability:
+>    `alpfe` is equally flat (span 0.0235) and this project recovers it 9–10/10
+>    (`2026-07-19_silicate_fim_artifact_audit.md`). The 10/10 POSi recovery reported in this
+>    document does stand.
+
 **Date:** 2026-06-11 · **Status:** result established. Dense POSi recovers `diatomgraz` (n=10 dose sweep); **Eppley temperature limitation breaks the `alpfe`↔silica mutex and recovers the iron pair + `diatomgraz` together — best 3-AOI recovery in the project, reproducible at n=20.**
 
 ## Hypothesis
