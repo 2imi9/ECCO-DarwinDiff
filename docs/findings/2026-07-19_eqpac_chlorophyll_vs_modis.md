@@ -182,9 +182,33 @@ growth rate. **Untested.**
 
 - **Index-vs-SST convention mismatch.** We correlate against the Niño-3.4 *index*; the cited studies
   correlate against local SST *responses*. Related, not identical.
-- **Our AOI is asymmetric about the equator** (−5..15°N), so it is not the box any of this literature
-  uses. A symmetric 5°S–5°N recomputation, against both Niño-3.4 and local box SST, would show
-  whether the offset is partly an AOI-geometry artifact. **This is the cheapest next test.**
+- **Index-vs-SST convention** (above) remains untested.
+- **AOI geometry — TESTED, and the offset is NOT an artifact of it.** Our box is asymmetric about the
+  equator (−5..15°N) and is not the box the lead literature uses. We cannot build a true 5°S–5°N box
+  (the data starts at −5°N), but splitting the existing box into an equatorial band and an
+  off-equatorial band and recomputing gives:
+
+  | band | bias (dex) | v05 peak lag | MODIS peak lag | asymmetry difference `D_v05 − D_MODIS` |
+  |---|---|---|---|---|
+  | full (−5..15°N) | −0.077 | −2 | +1 | **+0.460** |
+  | equatorial (−5..5°N) | −0.114 | −3 | **0** | **+0.344** |
+  | off-equatorial (5..15°N) | −0.038 | −1 | +5 | **+0.221** |
+
+  **The v05-more-lead-like asymmetry survives in both bands** (both `D` differences positive), so it
+  is a property of the model's ENSO response, not of our box choice. Its *structure* does vary: in
+  the equatorial band v05 leads most strongly (peak −3) against a near-zero-lag MODIS, while in the
+  off-equatorial band v05 is nearly symmetric (peak −1) and MODIS lags strongly (peak +5, plausible
+  for an indirect subtropical teleconnection).
+
+  **An independent corroboration falls out of this.** In the equatorial band **MODIS peaks at exactly
+  lag 0** — which is what Tian, Zhang & Wang (2025) report for equatorial boxes (zero-lag r = −0.45
+  eastern, −0.78 western). Our satellite pipeline reproduces the published lag structure where a
+  published value exists, which is the strongest available check that the MODIS side is sound and
+  that **v05's lead is the anomaly**.
+
+  The bias is also band-dependent (−0.114 equatorial vs −0.038 off-equatorial), so the headline
+  −0.077 dex is a mix; both remain inside the 0.130 dex noise floor.
+  Artifact: `chl_val/eqpac_latband_lag.json`.
 
 ### Secondary: the seasonal cycle is over-expressed and anti-phased
 
