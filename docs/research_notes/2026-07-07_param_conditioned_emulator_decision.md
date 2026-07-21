@@ -2,6 +2,13 @@
 
 **Date:** 2026-07-07
 **Author:** Lead architect (Track 2 / Paper #2)
+
+> **Scope note (added 2026-07-11):** "emulator (A)" / any "shelved" verdict here = the
+> **parameter-conditioned CALIBRATION** emulator, and its forward-rollout use is gated on a Darwin
+> perturbed-parameter ensemble (PPE). A *separate* non-parameter-conditioned **forward/OSSE** emulator
+> — which needs **no PPE** (it learns from the single v05 trajectory under a temporal split) — was
+> greenlit 2026-07-11 and **passed its beat-persistence PoC**; it is *not* the PPE-gated path here.
+> See `2026-07-11_emulator_build_plan.md` §0/§0b.
 **Scope:** The single decision — what spatially-resolved differentiable forward model do we backprop the Carroll-6 calibration loss through to clear the E2 gate (held-out real-data R² > 0), cost-first, no local GPU.
 
 ---

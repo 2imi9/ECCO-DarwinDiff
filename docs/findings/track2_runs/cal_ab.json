@@ -1,0 +1,129 @@
+{
+ "n_starts": 15,
+ "month_bin_mismatch": 148,
+ "T": 158,
+ "step_days": {
+  "OLD_times_days": 45.0,
+  "NEW_iters_1200s": 60.0
+ },
+ "arms": {
+  "k8": {
+   "members": 6,
+   "horizons": {
+    "1": {
+     "skill_vs_persistence": 0.5827053297996265,
+     "skill_vs_clim_OLD": 0.6138587939176169,
+     "skill_vs_clim_NEW": 0.24023475664212213,
+     "inflation_OLD_minus_NEW": 0.37362403727549476,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0000908090653045,
+     "elapsed_months_NEW": 1.9712525667351128
+    },
+    "2": {
+     "skill_vs_persistence": 0.6819098622197541,
+     "skill_vs_clim_OLD": 0.4694318269724147,
+     "skill_vs_clim_NEW": -0.018069660535179333,
+     "inflation_OLD_minus_NEW": 0.48750148750759403,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0002252340196374,
+     "elapsed_months_NEW": 3.9425051334702257
+    },
+    "3": {
+     "skill_vs_persistence": 0.684580064522956,
+     "skill_vs_clim_OLD": 0.43183174259670953,
+     "skill_vs_clim_NEW": -0.011693629457341759,
+     "inflation_OLD_minus_NEW": 0.4435253720540513,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0002068078633168,
+     "elapsed_months_NEW": 5.9137577002053385
+    },
+    "6": {
+     "skill_vs_persistence": 0.2010963320389827,
+     "skill_vs_clim_OLD": 0.25935738851059487,
+     "skill_vs_clim_NEW": -0.4202880751275073,
+     "inflation_OLD_minus_NEW": 0.6796454636381022,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0002782768060932,
+     "elapsed_months_NEW": 11.827515400410677
+    },
+    "9": {
+     "skill_vs_persistence": 0.5950520480897215,
+     "skill_vs_clim_OLD": 0.2526682118566135,
+     "skill_vs_clim_NEW": -0.2920485803583064,
+     "inflation_OLD_minus_NEW": 0.5447167922149199,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0002201848284704,
+     "elapsed_months_NEW": 17.741273100616016
+    },
+    "12": {
+     "skill_vs_persistence": 0.19088947486508634,
+     "skill_vs_clim_OLD": 0.028282774645458364,
+     "skill_vs_clim_NEW": -0.7483994026945091,
+     "inflation_OLD_minus_NEW": 0.7766821773399675,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.000214160875437,
+     "elapsed_months_NEW": 23.655030800821354
+    }
+   }
+  },
+  "k1": {
+   "members": 6,
+   "horizons": {
+    "1": {
+     "skill_vs_persistence": 0.5098943553411392,
+     "skill_vs_clim_OLD": 0.5464835804265515,
+     "skill_vs_clim_NEW": 0.1076683672798665,
+     "inflation_OLD_minus_NEW": 0.43881521314668503,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0000733036576308,
+     "elapsed_months_NEW": 1.9712525667351128
+    },
+    "2": {
+     "skill_vs_persistence": 0.4775507018308859,
+     "skill_vs_clim_OLD": 0.12856471576420714,
+     "skill_vs_clim_NEW": -0.6721353995619048,
+     "inflation_OLD_minus_NEW": 0.800700115326112,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0000850302181332,
+     "elapsed_months_NEW": 3.9425051334702257
+    },
+    "3": {
+     "skill_vs_persistence": 0.238048669194998,
+     "skill_vs_clim_OLD": -0.372508554967679,
+     "skill_vs_clim_NEW": -1.4439206931106194,
+     "inflation_OLD_minus_NEW": 1.0714121381429405,
+     "neg_fraction": 0.0,
+     "mass_ratio": 0.9998984029439567,
+     "elapsed_months_NEW": 5.9137577002053385
+    },
+    "6": {
+     "skill_vs_persistence": -2.140023897968575,
+     "skill_vs_clim_OLD": -1.9110336993021124,
+     "skill_vs_clim_NEW": -4.582323222125666,
+     "inflation_OLD_minus_NEW": 2.6712895228235536,
+     "neg_fraction": 0.0,
+     "mass_ratio": 1.0485050918963004,
+     "elapsed_months_NEW": 11.827515400410677
+    },
+    "9": {
+     "skill_vs_persistence": -2.3039361350134366,
+     "skill_vs_clim_OLD": -5.097416934802057,
+     "skill_vs_clim_NEW": -9.54171523204651,
+     "inflation_OLD_minus_NEW": 4.444298297244453,
+     "neg_fraction": 0.0,
+     "mass_ratio": 99.57566091918079,
+     "elapsed_months_NEW": 17.741273100616016
+    },
+    "12": {
+     "skill_vs_persistence": -11.98748799193605,
+     "skill_vs_clim_OLD": -14.597579568928731,
+     "skill_vs_clim_NEW": -27.06454191634302,
+     "inflation_OLD_minus_NEW": 12.46696234741429,
+     "neg_fraction": 0.0,
+     "mass_ratio": 305368586.4681231,
+     "elapsed_months_NEW": 23.655030800821354
+    }
+   }
+  }
+ }
+}

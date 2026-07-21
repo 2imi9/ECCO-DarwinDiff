@@ -1,0 +1,92 @@
+{
+  "config": {
+    "Z": 8,
+    "DZ": 25.0,
+    "KZ": 0.1,
+    "years": 3
+  },
+  "conditions": {
+    "constant_light(climatology)": {
+      "profile_growth_pair": {
+        "Smallgrow": {
+          "well_depth": 10.4778470993042,
+          "flat": false
+        },
+        "Biggrow": {
+          "well_depth": 0.05327277630567551,
+          "flat": false
+        }
+      },
+      "calibration": {
+        "alpfe": {
+          "rel_offset": 0.1163,
+          "band": "Cal"
+        },
+        "scav_rat": {
+          "rel_offset": 0.2382,
+          "band": "Cal"
+        },
+        "Smallgrow": {
+          "rel_offset": 0.0039,
+          "band": "Excellent"
+        },
+        "Biggrow": {
+          "rel_offset": 0.0503,
+          "band": "Cal"
+        },
+        "diatomgraz": {
+          "rel_offset": 0.894,
+          "band": "Drift"
+        },
+        "R_PICPOC": {
+          "rel_offset": 0.0103,
+          "band": "Excellent"
+        }
+      }
+    },
+    "seasonal_light": {
+      "profile_growth_pair": {
+        "Smallgrow": {
+          "well_depth": 4.748070240020752,
+          "flat": false
+        },
+        "Biggrow": {
+          "well_depth": 0.03769053518772125,
+          "flat": false
+        }
+      },
+      "calibration": {
+        "alpfe": {
+          "rel_offset": 0.0003,
+          "band": "Excellent"
+        },
+        "scav_rat": {
+          "rel_offset": 0.0005,
+          "band": "Excellent"
+        },
+        "Smallgrow": {
+          "rel_offset": 0.0,
+          "band": "Excellent"
+        },
+        "Biggrow": {
+          "rel_offset": 0.0086,
+          "band": "Excellent"
+        },
+        "diatomgraz": {
+          "rel_offset": 0.9798,
+          "band": "Drift"
+        },
+        "R_PICPOC": {
+          "rel_offset": 0.0001,
+          "band": "Excellent"
+        }
+      }
+    }
+  },
+  "verdict": {
+    "smallgrow_well_constant": 10.4778470993042,
+    "smallgrow_well_seasonal": 4.748070240020752,
+    "seasonal_over_constant_ratio": 0.4531532284276277,
+    "seasonal_unlocks_growth": false
+  }
+}

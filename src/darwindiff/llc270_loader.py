@@ -136,26 +136,30 @@ class LLC270Config:
     Attributes:
         delta_t: MITgcm timestep in seconds. v05 LLC270 uses **1200** (20 min).
 
-            CORRECTED 2026-07-19 -- this default was 900 s, which is wrong. Any
-            ``times_days`` derived with the old value is exactly 0.75x the true
-            model time, and because the error grows with elapsed time (rather than
-            being a constant offset) it silently corrupts anything that maps an
-            iteration to a calendar date: month-of-year binning, seasonal-cycle
-            diagnostics, and overlap windows against observational records.
+            CORRECTED 2026-07-19 -- this was 900 and it was wrong. Every
+            ``times_days`` value written into every cube built before this date is
+            therefore exactly 0.75x the true model time, which silently corrupted
+            any analysis mapping cube indices to calendar dates (month-of-year
+            climatology bins, seasonal-cycle checks, satellite-era overlap).
 
-            Evidence for 1200 s:
-              1. v05 daily output is written every 72 iterations, and
-                 72 x 1200 s = 86400 s = exactly one day. At 900 s the same
-                 stride is 0.75 day, which is not a daily cadence.
-              2. Carroll et al. 2020 (JAMES, doi:10.1029/2019MS001888) documents a
+            Five independent lines of evidence for 1200 s:
+              1. Daily output iterates by exactly 72 steps; 72 x 1200 s = 86400 s
+                 = exactly one day. At 900 s it would be 0.75 day, which is not a
+                 daily cadence.
+              2. ``times_days * 86400 / iters`` returns exactly 900.0 for every
+                 stored timestep, confirming the stored axis used this constant.
+              3. v05 daily then spans 1992-01-03 .. 2018-12-31 -- a clean year
+                 boundary. At 900 s it ends mid-month on 2012-03-31.
+              4. An independent FFT of subpolar-North-Atlantic chlorophyll finds
+                 the spring bloom recurring every 9.25 stored-months; 12/9.25 =
+                 1.30 ~ 4/3 = 1200/900, and the corrected axis restores a
+                 12-month bloom cycle.
+              5. Carroll et al. 2020 (JAMES, doi:10.1029/2019MS001888) documents a
                  1200 s timestep for the ECCO-Darwin LLC270 configuration.
-              3. On the corrected axis the v05 daily record ends on a clean
-                 year boundary; on the 900 s axis it ends mid-month.
 
-            NOTE: cubes and derived products built before this change are not
-            retroactively corrected. Either rebuild them, or derive model time
-            straight from the raw ``iters`` (``iters * delta_t / 86400`` days)
-            rather than trusting a stored ``times_days`` array.
+            Existing cubes are NOT retroactively fixed by this change. Derive time
+            from the raw ``iters`` instead (see ``scripts/rollout_verify.py
+            --calendar iters``), or rebuild the cube.
         ref_date: simulation start date for converting iter -> calendar time.
             v05 starts 1992-01-01 per the v05 namelist.
         nx: horizontal tile size. LLC270 = 270.

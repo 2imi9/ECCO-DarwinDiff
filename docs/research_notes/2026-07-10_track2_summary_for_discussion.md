@@ -5,6 +5,10 @@ write-up form, for a decision on direction, not a submission. Full detail:
 [`2026-07-09_track2_identifiability_writeup.md`](2026-07-09_track2_identifiability_writeup.md);
 reproducibility: [`2026-07-10_reproducibility_appendix.md`](2026-07-10_reproducibility_appendix.md).*
 
+> **Role: 1-page abstract.** Headlines only — the **canonical** map/E2 numbers live in the write-up
+> above. State results qualitatively here and cite the write-up, so any number is updated in **one**
+> place (this de-duplication is what let the n=10 E2 update drift before).
+
 ## The result in one line
 
 Track-2 asked whether adding prescribed spatial transport lets real observations constrain
@@ -34,11 +38,17 @@ the make-or-break out-of-sample transport E2 (below). It is consistent with Mara
 ## The make-or-break test — run, decisive negative
 
 `docs/findings/figures/fig3_e2_result.png`: a learned calcite closure fit through prescribed
-transport and scored on held-out cells **does not beat a constant-through-transport null** (learned
-R² −0.05 regularized, or −1.53 when it overfits; null +0.50), with a **non-discriminating K_num
-control**. Notably a *constant* ratio advected through transport already captures the held-out
-structure — the learned environmental modulation adds nothing. So transport does not close the gap
-for the calcite closure; the identifiability limit holds **out-of-sample**, not just in-sample.
+transport and scored on held-out cells **does not beat a constant-through-transport null**, with a
+**non-discriminating K_num control**. Notably a *constant* ratio advected through transport already
+captures the held-out structure — the learned environmental modulation adds nothing. So transport
+does not close the gap for the calcite closure; the identifiability limit holds **out-of-sample**,
+not just in-sample.
+
+**Hardened (2026-07-11):** this negative was replicated across a **10-seed ensemble** (Explorer H200)
+— the learned closure loses to the null in **every** seed, robust to random init (the single-seed
+default closure overfits far worse than the regularized one). Full per-seed numbers live in the
+local-only `docs/findings/e2_seed_ensemble_scored.md`. *(Number kept out of this shareable summary per
+the local-only policy — cite the scored doc.)*
 
 ## Honesty guardrails
 

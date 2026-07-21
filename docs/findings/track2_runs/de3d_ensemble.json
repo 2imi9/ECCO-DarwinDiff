@@ -1,0 +1,21 @@
+{
+  "deep_ensemble": {
+    "n_members": 8,
+    "persistence_mse": 0.4635841493776941,
+    "single_model_skill": 0.4321835378521237,
+    "ensemble_mean_skill": 0.4837105217301415,
+    "ensemble_spread": 0.1129533132999349,
+    "rmse_ensemble_mean": 0.489227573442448,
+    "calib_ratio": 0.23088092215477415
+  },
+  "members": [
+    "/scratch/qi_zim_neu/de3d_seed0.pt",
+    "/scratch/qi_zim_neu/de3d_seed1.pt",
+    "/scratch/qi_zim_neu/de3d_seed2.pt",
+    "/scratch/qi_zim_neu/de3d_seed3.pt",
+    "/scratch/qi_zim_neu/de3d_seed4.pt",
+    "/scratch/qi_zim_neu/de3d_seed5.pt",
+    "/scratch/qi_zim_neu/de3d_seed6.pt",
+    "/scratch/qi_zim_neu/de3d_seed7.pt"
+  ]
+}

@@ -129,3 +129,14 @@ scripts/*.npz
 containers/*.sif
 containers/build_*.out
 containers/.sif_jobid
+
+# Local probe/diagnostic netCDF dumps written to the repo root by the UDE and
+# emulator probe scripts (183 MB as of 2026-07-19). Regenerate with the probe
+# scripts in scripts/; never commit.
+/probe_*.nc
+
+# Manuscript is LOCAL-ONLY by user directive (see also /docs/paper/ above).
+# A root-level copy kept appearing as untracked and was one `git add .` away
+# from being committed against that directive.
+/main.tex
+/main.pdf

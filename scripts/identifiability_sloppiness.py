@@ -106,7 +106,26 @@ def main() -> int:
     ap.add_argument("--opt-steps", type=int, default=400,
                     help="Adam steps to find theta* (profile re-opt uses opt-steps//2)")
     ap.add_argument("--lr", type=float, default=5e-2, help="Adam lr in unconstrained space")
+    ap.add_argument("--seed", type=int, default=0,
+                    help="RNG seed for the multi-start random initialisations (reproducibility)")
+    ap.add_argument("--n-starts", type=int, default=1,
+                    help="multi-start global search for theta*: start 0 is Carroll, the rest are "
+                         "log-uniform random inside PARAM_BOUNDS. All starts are optimised in ONE "
+                         "batched integration (optimise() treats columns independently), so the "
+                         "cost is ~flat in n_starts. 1 = the pre-2026-07-20 single-start behaviour.")
+    ap.add_argument("--max-refine", type=int, default=3,
+                    help="max rounds of adopting a better profile point as theta* and re-optimising. "
+                         "The profile starts FROM theta* and runs opt_steps//2 MORE steps, so it can "
+                         "beat theta* whenever theta* has not converged -- which inflates the span "
+                         "against a too-high baseline. 0 restores the pre-2026-07-19 behaviour.")
     ap.add_argument("--out", default=None, help="write JSON verdict here")
+    ap.add_argument("--iron-residence", action="store_true",
+                    help="After the profile, compute iron residence time tau = DFe/(alpfe*PHI_DUST) "
+                         "per AOI at each profile grid point. The alpfe profile (loss=realiron) "
+                         "re-optimises scav_rat at each fixed alpfe, so this traces tau along the "
+                         "sloppy (degenerate) iron direction the data leaves free -- the local "
+                         "signature of the field's 100x residence-time spread (Tagliabue 2016). "
+                         "Use with --param alpfe --loss realiron.")
     args = ap.parse_args()
 
     import torch
@@ -339,10 +358,35 @@ def main() -> int:
             Hm[:, j] = (grad_at(ap) - grad_at(am)) / (2 * eps)
         return 0.5 * (Hm + Hm.T)
 
-    # ---- 1. shared-theta optimum from Carroll init ----
-    theta1, l1 = optimise(to_uncon(carroll.reshape(6, 1)), steps=args.opt_steps)
-    theta_star = theta1[:, 0]
-    loss_star = float(l1[0])
+    # ---- 1. shared-theta optimum: MULTI-START from Carroll + random inits ----
+    # Mechanistic-model calibration conventionally uses GLOBAL optimisation, while
+    # gradient-trained hybrid models use local methods; that mismatch is a known source
+    # of spurious non-identifiability verdicts. Until 2026-07-20 this was a SINGLE start
+    # from Carroll, and the profile search (which continues from theta_star) routinely
+    # beat it -- see docs/findings/2026-07-19_silicate_fim_artifact_audit.md.
+    # optimise() already treats each column as an independent theta, so extra starts cost
+    # one batched integration rather than N sequential fits.
+    g0 = torch.Generator(device="cpu").manual_seed(args.seed)
+    inits = [to_uncon(carroll.reshape(6, 1))]
+    if args.n_starts > 1:
+        # log-uniform inside the physical bounds: parameters span decades
+        llo, lhi = torch.log10(lo), torch.log10(hi)
+        u = torch.rand(6, args.n_starts - 1, generator=g0).to(lo.device)
+        rand_theta = torch.pow(10.0, llo + (lhi - llo) * u)
+        inits.append(to_uncon(rand_theta))
+    u_all = torch.cat(inits, dim=1).contiguous()
+    theta1, l1 = optimise(u_all, steps=args.opt_steps)
+    _b = int(torch.argmin(l1))
+    if args.n_starts > 1:
+        _ls = [float(v) for v in l1]
+        print(f"\n-- multi-start ({args.n_starts}) losses: "
+              f"best={min(_ls):.6g} (start {_b}, {'Carroll' if _b == 0 else 'random'}) "
+              f"worst={max(_ls):.6g} spread={max(_ls)-min(_ls):.4g} --")
+        if _b != 0:
+            print(f"   NOTE: a RANDOM start beat the Carroll start by "
+                  f"{_ls[0]-min(_ls):.4g} -- the single-start fit was in a worse basin.")
+    theta_star = theta1[:, _b]
+    loss_star = float(l1[_b])
     grad_norm = float((grad_at(theta_star) * theta_star).norm())
     print(f"\n-- shared-theta optimum (loss={loss_star:.5e}, rel|grad|={grad_norm:.2e}) --")
     print(f"{'param':<11}{'theta*':>13}{'Carroll':>13}{'rel.off':>9}")
@@ -379,9 +423,42 @@ def main() -> int:
     grid = torch.logspace(float(torch.log10(lo[pidx, 0])),
                           float(torch.log10(hi[pidx, 0])), args.grid).to(dev).float()  # [G]
     G = grid.numel()
-    u0 = to_uncon(theta_star.reshape(6, 1)).expand(6, G).contiguous()
-    _, prof_losses = optimise(u0, steps=max(150, args.opt_steps // 2),
-                              fixed_idx=pidx, fixed_vals=grid)
+    # NOTE ON THE STEP BUDGET (2026-07-19). The profile starts FROM theta_star and then runs
+    # further steps, so each grid point receives opt_steps + prof_steps of optimisation against
+    # theta_star's opt_steps. That makes min(profile) < loss_star GUARANTEED whenever theta_star
+    # has not converged -- and rel_span, normalised by that too-high baseline, is inflated by the
+    # same amount. On 2026-07-19 this silently manufactured a silicate-ablation conclusion.
+    # The loop below closes the asymmetry: whenever the profile finds something better, we adopt
+    # it as the new theta_star, re-optimise, and recompute. See
+    # docs/findings/2026-07-19_silicate_fim_artifact_audit.md.
+    prof_steps = max(150, args.opt_steps // 2)
+    conv_tol0 = 1e-3 * abs(loss_star)
+    prof_theta = prof_losses = None
+    for _round in range(args.max_refine + 1):
+        u0 = to_uncon(theta_star.reshape(6, 1)).expand(6, G).contiguous()
+        prof_theta, prof_losses = optimise(u0, steps=prof_steps,
+                                           fixed_idx=pidx, fixed_vals=grid)
+        bi = int(torch.argmin(prof_losses))
+        gap = float(prof_losses[bi]) - loss_star
+        if gap >= -conv_tol0 or _round == args.max_refine:
+            if gap < -conv_tol0:
+                print(f"\n[refine] EXHAUSTED {args.max_refine} rounds, residual gap {gap:.4g} "
+                      f"-- theta_star still under-converged; raise --opt-steps/--max-refine")
+            break
+        # The profile beat theta_star: adopt its best point and re-optimise from there.
+        print(f"\n[refine round {_round}] profile beat theta* by {-gap:.4g} "
+              f"(loss_star={loss_star:.6g} -> re-optimising from grid point {bi})")
+        theta_seed = prof_theta[:, bi].reshape(6, 1)
+        th_new, l_new = optimise(to_uncon(theta_seed), steps=args.opt_steps)
+        if float(l_new[0]) < loss_star:
+            theta_star, loss_star = th_new[:, 0], float(l_new[0])
+            conv_tol0 = 1e-3 * abs(loss_star)
+        else:
+            break
+    # theta_star may have moved; refresh everything derived from it.
+    grad_norm = float((grad_at(theta_star) * theta_star).norm())
+    hess_star = hess_report(theta_star, "theta*")
+
     prof = [(float(grid[i]), float(prof_losses[i])) for i in range(G)]
     best = min(l for _, l in prof)
     print(f"\n-- profile-likelihood over {args.param} (fix on grid, re-optimise other 5) --")
@@ -389,6 +466,27 @@ def main() -> int:
     for val, lmin in prof:
         print(f"{val:>13.4g}{lmin:>14.5e}{lmin - best:>14.3e}")
     rel_span = (max(l for _, l in prof) - best) / max(best, 1e-30)
+
+    # ---- validity guards (see docs/findings/2026-07-19_silicate_fim_artifact_audit.md) ----
+    # The profile fixes the profiled parameter on a grid and re-optimises the other
+    # five, so its minimum CANNOT legitimately fall below the joint optimum: at
+    # p = theta*_p it must return loss_star itself. When it does fall below,
+    # theta_star is under-converged and rel_span is measured against a wrong
+    # baseline. On 2026-07-19 this silently inverted a silicate-ablation
+    # conclusion -- the four parameters that appeared to gain from adding
+    # silicate were exactly the four whose profile escaped a bad theta_star, and
+    # both parameters whose fits had converged showed no gain at all. Every job
+    # exited 0 and emitted a confident verdict string.
+    conv_tol = 1e-3 * abs(loss_star)
+    conv_gap = best - loss_star
+    converged = bool(conv_gap >= -conv_tol)
+
+    # A profile whose minimum sits on a grid endpoint has not bracketed the
+    # optimum: rel_span is then only a lower bound and the verdict is not
+    # meaningful. Report "at bound" rather than a span.
+    amin = min(range(len(prof)), key=lambda i: prof[i][1])
+    bracketed = bool(0 < amin < len(prof) - 1)
+
     if rel_span < 0.05:
         verdict = "FLAT -> STRUCTURAL non-identifiability (reweighting dead; need new observable/structure)"
     elif rel_span < 0.5:
@@ -396,6 +494,27 @@ def main() -> int:
     else:
         verdict = "CURVED -> PRACTICAL non-identifiability (routing/pooling/seeds licensed; param IS constrained)"
     print(f"\n   profile span (max-min)/best = {rel_span:.3f}  =>  {verdict}")
+
+    problems = []
+    if not converged:
+        problems.append(
+            f"theta_star UNDER-CONVERGED: min(profile)={best:.6g} is {-conv_gap:.6g} BELOW "
+            f"loss_star={loss_star:.6g} (tol {conv_tol:.3g}). The profile search beat the joint "
+            f"fit, so rel_span is measured against a wrong baseline."
+        )
+    if not bracketed:
+        side = "LOWER" if amin == 0 else "UPPER"
+        problems.append(
+            f"profile minimum is ON THE {side} GRID EDGE (value={prof[amin][0]:.6g}); the optimum "
+            f"is not bracketed, so rel_span is a lower bound only."
+        )
+    if problems:
+        verdict = "INVALID -> " + " | ".join(problems)
+        print("\n" + "=" * 78)
+        print("  PROFILE INVALID -- do not quote this span or verdict:")
+        for p in problems:
+            print(f"    * {p}")
+        print("=" * 78)
 
     out = {
         "aois": aois, "weights": weights, "profiled_param": args.param,
@@ -405,7 +524,92 @@ def main() -> int:
         "hessian_at_theta_star": hess_star, "hessian_at_carroll": hess_carroll,
         "profile": [{"value": v, "min_loss": l} for v, l in prof],
         "profile_rel_span": rel_span, "verdict": verdict,
+        "valid": bool(converged and bracketed),
+        "convergence": {
+            "converged": converged, "profile_min": best, "conv_gap": conv_gap,
+            "tol": conv_tol,
+            "note": "conv_gap = min(profile) - loss_star; must be >= -tol. Negative means "
+                    "theta_star is under-converged and the span is untrustworthy.",
+        },
+        "bracketing": {
+            "bracketed": bracketed, "argmin_index": amin, "n_grid": len(prof),
+            "argmin_value": prof[amin][0],
+            "note": "False means the profile minimum is on a grid endpoint; the optimum is not "
+                    "bracketed and rel_span is a lower bound only.",
+        },
     }
+
+    # ---- 4. iron residence time along the sloppy (degenerate) direction (#163 / research Q1) ----
+    # At steady state the box's iron budget balances alpfe*PHI_DUST (source) against scavenging +
+    # biological uptake (sink), so tau = [DFe] / (alpfe * PHI_DUST) [days]. The alpfe profile fixes
+    # alpfe on the grid and RE-OPTIMISES scav_rat (+ the rest) at each point -- i.e. it walks the
+    # sloppy iron eigenvector the real GEOTRACES concentration data leaves free. Tracing tau along
+    # that walk shows how far residence time roams while the observable ([DFe]) stays pinned: the
+    # LOCAL analogue of the 5-500 yr (100x) inter-model spread in Tagliabue et al. 2016 (GBC,
+    # 10.1002/2015GB005289), which agrees on concentration. Reported per AOI, over the full grid and
+    # over the data-consistent band {loss <= loss_star*(1+band)}. CAVEAT: the box is a 0-D surface
+    # mixed layer with constant PHI_DUST=5e-5 mmol/m^3/d; Tagliabue's spread is whole-ocean, so this
+    # is a structural analogy (concentration-pinned, residence-time-free), NOT a like-for-like tau.
+    if args.iron_residence:
+        import math as _math
+        phi = float(R.PHI_DUST)
+        idfe = R.I_DFE_1
+        alpfe_idx = PARAM_NAMES.index("alpfe")
+        per_aoi_tau = {b["key"]: [] for b in bundles}
+        with torch.no_grad():
+            for gi in range(G):
+                theta_gp = prof_theta[:, gi].reshape(6, 1)          # re-optimised params at grid alpfe
+                alpfe_gp = float(grid[gi])
+                set_seeds(1)
+                for b in bundles:
+                    H, W = b["mask_f"].shape
+                    pb = theta_gp.reshape(6, 1, 1, 1).expand(6, 1, H, W)
+                    _, state = aoi_loss(b, pb)
+                    dfe = state[idfe][0]                            # [H,W] surface DFe (mmol/m^3)
+                    ocean = (b["mask_f"] > 0)
+                    dfe_ocean = float((dfe * ocean).sum() / ocean.sum().clamp(min=1))
+                    rec = {"alpfe": alpfe_gp, "loss": float(prof_losses[gi]),
+                           "dfe_ocean_mean": dfe_ocean,
+                           "tau_days": dfe_ocean / max(alpfe_gp * phi, 1e-30),
+                           "tau_years": dfe_ocean / max(alpfe_gp * phi, 1e-30) / 365.25}
+                    if b["n_geo_surf"] > 0:
+                        gm = (b["geo_surf_mask_f"] > 0)
+                        rec["dfe_geo_mean"] = float((dfe * gm).sum() / gm.sum().clamp(min=1))
+                    per_aoi_tau[b["key"]].append(rec)
+
+        def _band_summary(recs, band):
+            keep = [r for r in recs if r["loss"] <= loss_star * (1.0 + band)] or recs
+            taus = [r["tau_years"] for r in keep]
+            dfes = [r["dfe_ocean_mean"] for r in keep]
+            tmin, tmax = min(taus), max(taus)
+            dmin, dmax = min(dfes), max(dfes)
+            return {"band": band, "n_grid_in_band": len(keep),
+                    "alpfe_range": [min(r["alpfe"] for r in keep), max(r["alpfe"] for r in keep)],
+                    "tau_years_min": tmin, "tau_years_max": tmax,
+                    "tau_fold": (tmax / tmin) if tmin > 0 else float("inf"),
+                    "dfe_min": dmin, "dfe_max": dmax,
+                    "dfe_fold": (dmax / dmin) if dmin > 0 else float("inf")}
+
+        iron_res = {"phi_dust_mmol_m3_day": phi,
+                    "note": "tau = dfe_ocean_mean / (alpfe * PHI_DUST). Profile re-optimises scav_rat "
+                            "at each fixed alpfe, so the grid IS the sloppy iron direction. Compare "
+                            "tau_fold (residence time roams) against dfe_fold (observable pinned).",
+                    "tagliabue_2016_ref": {"doi": "10.1002/2015GB005289",
+                                           "reported_spread": "whole-ocean model residence time "
+                                                              "~5-500 yr (100x) at agreed concentration",
+                                           "caveat": "0-D surface box vs whole-ocean: analogy of "
+                                                     "structure, not a like-for-like tau"},
+                    "per_aoi": {}}
+        print("\n-- iron residence time tau = DFe/(alpfe*PHI_DUST) along the sloppy direction --")
+        for k, recs in per_aoi_tau.items():
+            s10 = _band_summary(recs, 0.10)
+            s_all = _band_summary(recs, 1e9)
+            iron_res["per_aoi"][k] = {"grid": recs, "band_10pct": s10, "full_grid": s_all}
+            print(f"   {k:20s} band(+10% loss, n={s10['n_grid_in_band']}): "
+                  f"tau {s10['tau_years_min']:.2f}-{s10['tau_years_max']:.2f} yr "
+                  f"({s10['tau_fold']:.1f}x) while DFe moves {s10['dfe_fold']:.2f}x")
+        out["iron_residence"] = iron_res
+
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(out, indent=1), encoding="utf-8")

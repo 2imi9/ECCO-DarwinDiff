@@ -12,10 +12,10 @@ reproducibility gap; merge before submission.
 **Software.** Python 3.11.9; torch 2.11.0+cu128, numpy 2.3.5, scipy 1.16.0, scikit-learn 1.7.0,
 pandas 2.2.3. All identifiability numbers here run **CPU-only** (`CUDA_VISIBLE_DEVICES=-1`); no GPU
 or cluster is needed to reproduce the in-sample identifiability map. The real-data transport **E2** —
-the make-or-break out-of-sample check that confirms the *calcite* verdict — is the one GPU piece (and
-its specific numbers are, as of this writing, single-seed and not yet emitted to a committed JSON; see
-the E2 finding note). The earlier *synthetic* transport-UDE closure-recovery did not feed any map
-verdict.
+the make-or-break out-of-sample check that confirms the *calcite* verdict — is the one GPU piece (the
+negative is now seed-stable across a 10-seed ensemble, but its specific per-seed numbers remain
+local-only and not yet emitted to a committed JSON; see the E2 finding note). The earlier *synthetic*
+transport-UDE closure-recovery did not feed any map verdict.
 
 ## Input datasets (all gitignored — too large / redistribution-restricted)
 
@@ -103,11 +103,13 @@ data) so the sweeps never touch the ~TB native tree — the data-discipline patt
    K_num non-discriminating). It has *not* been run for iron/growth (argued from their own
    diagnostics). A cleanly *powered* within-region E2 is structurally impossible (the Ω-band hold-out
    becomes a between-biome extrapolation when pooled), so the calcite E2 is a decisive negative at
-   n_val = 6, not a high-n rejection.
-   **OPEN:** `e2_real_calcite_eqpac.py` does not yet emit a committed JSON, `fig3` is rendered from
-   hard-coded literals, and there is no seed ensemble — the E2 number is a single-seed point estimate.
-   Emit a JSON (config + learned/null/delta + K_num ladder + input checksums), render the figure from
-   it, and show the negative seed-stable over ≥ 3–10 seeds. (Needs the local-only `D:\` native tree.)
+   n_val = 6, not a high-n rejection. **Hardened 2026-07-11 to a 10-seed ensemble** (robust negative
+   — every seed loses to null; per-seed numbers local-only in
+   `docs/findings/e2_seed_ensemble_scored.md`, pending commit).
+   **OPEN:** `e2_real_calcite_eqpac.py` does not yet emit a committed JSON and `fig3` is rendered from
+   hard-coded literals. Emit a JSON (config + learned/null/delta + K_num ladder + input checksums),
+   render the figure from it, and commit the 10-seed per-seed record. (Needs the local-only `D:\`
+   native tree.)
 5. **OPEN:** `growth_npp_scout.py` is still print-only — emit a committed growth-pair JSON.
 6. **OPEN (strengthens the forward contribution):** quantify the observing-system recommendation — a
    synthetic power analysis (plant `ratio = R0·Ω^n` with realistic scatter, sweep Ω-span × n_samples)

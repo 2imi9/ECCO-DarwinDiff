@@ -1,0 +1,101 @@
+{
+  "v05_truth": {
+    "tag": "v05_truth",
+    "A_positivity": {
+      "ALK": {
+        "neg_fraction": 0.0,
+        "min": 1649.204345703125
+      },
+      "Chl1": {
+        "neg_fraction": 0.04459727573498618,
+        "min": -0.06716190278530121
+      },
+      "DIC": {
+        "neg_fraction": 0.0,
+        "min": 1582.6427001953125
+      },
+      "FeT": {
+        "neg_fraction": 1.8903965528473444e-07,
+        "min": -6.064452463760972e-06
+      },
+      "PIC": {
+        "neg_fraction": 0.12517614133418953,
+        "min": -0.0012557972222566605
+      },
+      "POC": {
+        "neg_fraction": 0.005949397865073382,
+        "min": -0.011632494628429413
+      }
+    },
+    "B_alk_dic_ratio": {
+      "median": 1.108156442642212,
+      "frac_in_physical_band_1.0_1.25": 1.0,
+      "p1": 1.032339096069336,
+      "p99": 1.1782491207122803
+    },
+    "C_carbonate_closure": {
+      "n": 20000,
+      "frac_finite": 1.0,
+      "frac_physical_50_2000uatm": 1.0,
+      "median_pco2_uatm": 380.3349914550781,
+      "note": "nominal T=15C S=35 \u2014 tests the (DIC,ALK) PAIR's validity, not actual pCO2"
+    }
+  },
+  "emulator": {
+    "tag": "emulator",
+    "A_positivity": {
+      "ALK": {
+        "neg_fraction": 0.0,
+        "min": 1639.0238037109375
+      },
+      "Chl1": {
+        "neg_fraction": 0.25154334882876844,
+        "min": -1.3294786214828491
+      },
+      "DIC": {
+        "neg_fraction": 0.0,
+        "min": 1578.5533447265625
+      },
+      "FeT": {
+        "neg_fraction": 0.045107042977729384,
+        "min": -0.00017072117771022022
+      },
+      "PIC": {
+        "neg_fraction": 0.17745959495490968,
+        "min": -0.044433292001485825
+      },
+      "POC": {
+        "neg_fraction": 0.08053996705475054,
+        "min": -0.4476414918899536
+      }
+    },
+    "B_alk_dic_ratio": {
+      "median": 1.108000636100769,
+      "frac_in_physical_band_1.0_1.25": 1.0,
+      "p1": 1.0321710109710693,
+      "p99": 1.1784557104110718
+    },
+    "C_carbonate_closure": {
+      "n": 20000,
+      "frac_finite": 1.0,
+      "frac_physical_50_2000uatm": 1.0,
+      "median_pco2_uatm": 380.84368896484375,
+      "note": "nominal T=15C S=35 \u2014 tests the (DIC,ALK) PAIR's validity, not actual pCO2"
+    }
+  },
+  "stoichiometry_v05": {
+    "tag": "v05_truth",
+    "slope_dALK_vs_dPIC": 13.805388450622559,
+    "corr": 0.01802785270946751,
+    "expected_slope_CaCO3": -2.0,
+    "note": "v05 is the CONTROL \u2014 compare emulator slope to v05's, not to -2 in the abstract"
+  },
+  "stoichiometry_emulator": {
+    "tag": "emulator",
+    "slope_dALK_vs_dPIC": 3.3494648933410645,
+    "corr": 0.005685943188800428,
+    "expected_slope_CaCO3": -2.0,
+    "note": "v05 is the CONTROL \u2014 compare emulator slope to v05's, not to -2 in the abstract"
+  },
+  "n_members": 8
+}

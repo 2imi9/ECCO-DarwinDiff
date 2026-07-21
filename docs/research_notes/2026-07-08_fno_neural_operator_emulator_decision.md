@@ -1,5 +1,12 @@
 # FNO / neural-operator canon vs the DarwinDiff emulator route — a cited decision (2026-07-08)
 
+> **Scope note (added 2026-07-11):** throughout this note, "the emulator" / "shelved" refers **only**
+> to the **parameter-conditioned CALIBRATION emulator** (`FNO(state, Carroll-6) → next`). A *separate*
+> non-parameter-conditioned **forward/OSSE emulator** (learns from the single v05 trajectory under a
+> temporal split — no perturbed-parameter ensemble needed) was greenlit 2026-07-11 and **PASSED its
+> beat-persistence PoC**. "Shelved" here does **not** apply to that forward emulator — see
+> `2026-07-11_emulator_build_plan.md` §0/§0b.
+
 **Question.** Does the Fourier-neural-operator family (FNO, Neural-Operator framework, Geo-FNO, PINO,
 GINO, AFNO/FourCastNet, U-FNO) or NVIDIA's PhysicsNeMo / Earth2Studio change the earlier decision to
 **shelve the parameter-conditioned black-box emulator** (`FNO(state, Carroll-6) → next state`, as a

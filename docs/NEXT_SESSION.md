@@ -38,7 +38,9 @@ distinct reasons (`docs/findings/figures/fig1_identifiability_map.png`):
   confirmed **four ways** — the in-sample distillation oracle; independent in-situ **GLODAPv3** Ω
   (838+1740 bottles; not the model cache); a driver test (SST/composition don't rescue it → not
   Ω-specific); and the **make-or-break out-of-sample transport E2** (learned closure does NOT beat a
-  constant-through-transport null; default overfits −1.53, regularized −0.05, null +0.50, K_num flat).
+  constant-through-transport null; default overfits −1.53, regularized −0.05, null +0.50, K_num flat;
+  **hardened 2026-07-11 to a 10-seed ensemble — robust negative, every seed loses to null**; local
+  `docs/findings/e2_seed_ensemble_scored.md`).
   Consistent with Marañón 2016. The pooled "0.38-dex" signal is a **Simpson artifact** (within-basin
   slopes positive, pooled negative via a between-biome intercept ordering) — never over-read it.
 - **growth `Smallgrow`/`Biggrow` — structurally unobservable**: total NPP gives only the

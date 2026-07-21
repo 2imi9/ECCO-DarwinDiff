@@ -1,0 +1,76 @@
+{
+  "horizons": {
+    "1": {
+      "skill_vs_persistence": 0.5827053297996265,
+      "skill_vs_climatology": 0.24023475664212213,
+      "neg_fraction": 0.0,
+      "mass_ratio": 1.0000908090653045,
+      "mse_model": 0.04127982258796692,
+      "mse_persist": 0.09892247741421063,
+      "mse_clim": 0.05433233877023061,
+      "elapsed_months": 1.9712525667351128
+    },
+    "2": {
+      "skill_vs_persistence": 0.6819098622197541,
+      "skill_vs_climatology": -0.018069660535179333,
+      "neg_fraction": 0.0,
+      "mass_ratio": 1.0002252340196374,
+      "mse_model": 0.057260491574803986,
+      "mse_persist": 0.18001341372728347,
+      "mse_clim": 0.05624417836467425,
+      "elapsed_months": 3.9425051334702257
+    },
+    "3": {
+      "skill_vs_persistence": 0.684580064522956,
+      "skill_vs_climatology": -0.011693629457341759,
+      "neg_fraction": 0.0,
+      "mass_ratio": 1.0002068078633168,
+      "mse_model": 0.05731610121826331,
+      "mse_persist": 0.18171362926562626,
+      "mse_clim": 0.05665361483891805,
+      "elapsed_months": 5.9137577002053385
+    },
+    "4": {
+      "skill_vs_persistence": 0.5132704310526264,
+      "skill_vs_climatology": -0.09073488595909063,
+      "neg_fraction": 0.0,
+      "mass_ratio": 1.0001925535217437,
+      "mse_model": 0.06052904240787029,
+      "mse_persist": 0.12435867115855218,
+      "mse_clim": 0.05549381723006566,
+      "elapsed_months": 7.885010266940451
+    },
+    "6": {
+      "skill_vs_persistence": 0.2010963320389827,
+      "skill_vs_climatology": -0.4202880751275073,
+      "neg_fraction": 0.0,
+      "mass_ratio": 1.0002782768060932,
+      "mse_model": 0.07628985022505125,
+      "mse_persist": 0.09549317806959152,
+      "mse_clim": 0.053714349617560705,
+      "elapsed_months": 11.827515400410677
+    },
+    "9": {
+      "skill_vs_persistence": 0.5950520480897215,
+      "skill_vs_climatology": -0.2920485803583064,
+      "neg_fraction": 0.0,
+      "mass_ratio": 1.0002201848284704,
+      "mse_model": 0.07663009067376454,
+      "mse_persist": 0.18923441966374716,
+      "mse_clim": 0.059308985620737074,
+      "elapsed_months": 17.741273100616016
+    },
+    "12": {
+      "skill_vs_persistence": 0.19088947486508634,
+      "skill_vs_climatology": -0.7483994026945091,
+      "neg_fraction": 0.0,
+      "mass_ratio": 1.000214160875437,
+      "mse_model": 0.10471918831268946,
+      "mse_persist": 0.12942507242163023,
+      "mse_clim": 0.05989431714018186,
+      "elapsed_months": 23.655030800821354
+    }
+  },
+  "n_members": 6,
+  "n_starts": 15
+}

@@ -22,7 +22,7 @@ matches the ``Chl1``..``Chl5`` index convention exposed by
 Carroll-6 → PFT mapping (Option A: 6 learnable parameters, each governing
 a single specific PFT instead of an average over multiple species):
 
-    1. alpfe       — iron dust solubility               (global, unchanged)
+    1. alpfe       — scalar on already-soluble Fe flux   (global; ≈1, NOT a solubility)
     2. scav_rat    — iron scavenging rate               (global, unchanged)
     3. Smallgrow   — growth rate of **Pro-HL** specifically
                      (dominant small PFT — 47% of total Chl in Eq Pacific
