@@ -5,7 +5,7 @@ forcing. Exposes the exact six parameters Carroll et al. 2020 (JAMES) tuned via 
 functions for ECCO-Darwin (Darwin 1 source build at MITgcm-contrib/ecco_darwin/v04/
 llc270_JAMES_paper):
 
-    1. alpfe       — iron dust solubility (–)
+    1. alpfe       — scalar on the already-soluble Fe deposition flux (≈1, –); NOT a solubility
     2. scav_rat    — iron scavenging rate (s⁻¹)
     3. Smallgrow   — small phytoplankton growth rate (d⁻¹)
     4. Biggrow     — large phytoplankton growth rate (d⁻¹)
@@ -120,7 +120,13 @@ PARAMS: tuple[Param, ...] = (
         bounds=(0.05, 1.0),
         carroll_value=0.92831,
         units="-",
-        description="iron dust solubility",
+        # NOT a physical solubility despite Darwin's legacy label. Darwin forces iron with the
+        # ALREADY-SOLUBLE Mahowald-2009 product (llc270_Mahowald_2009_soluble_iron_dust.bin), and
+        # Darwin3's own docs say alpfe should be "set to 1 if the deposition rate in ironfile is
+        # already of soluble iron" -> it is a near-unity dimensionless correction on an already-
+        # soluble flux (Carroll GF optimum 0.928), not the ~1-2% fractional solubility of dust iron.
+        # See docs/research_notes/2026-07-20_external_validation_iron_residence_alpfe.md.
+        description="scalar on already-soluble Fe deposition (~1)",
     ),
     Param(
         name="scav_rat",
