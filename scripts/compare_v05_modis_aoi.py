@@ -140,8 +140,15 @@ def main():
             mod["%04d-%02d" % (tt.year, tt.month)] = np.ma.filled(ch[i], np.nan)
         ds.close()
 
-    lat_edges = np.linspace(aoi.lat_min, aoi.lat_max, H + 1)
-    lon_edges = np.linspace(aoi.lon_min, aoi.lon_max, W + 1)
+    # The v05 AOI grid cells are CENTERED on [lat_min, lat_max] (H centers span the
+    # inclusive bounds; cf. daniels_loader/geotraces_loader `arange(lat_min, lat_max+res/2, res)`),
+    # so the H+1 bin edges must bracket those centers by half a cell on each side.
+    # Using the centers themselves as edges packs H bins into (lat_max-lat_min) deg —
+    # a half-cell shift that clips MODIS pixels into the edge bins and biases the map.
+    lat_res = (aoi.lat_max - aoi.lat_min) / max(H - 1, 1)
+    lon_res = (aoi.lon_max - aoi.lon_min) / max(W - 1, 1)
+    lat_edges = np.linspace(aoi.lat_min - lat_res / 2.0, aoi.lat_max + lat_res / 2.0, H + 1)
+    lon_edges = np.linspace(aoi.lon_min - lon_res / 2.0, aoi.lon_max + lon_res / 2.0, W + 1)
     ilat = np.clip(np.digitize(mlat, lat_edges) - 1, 0, H - 1)
     ilon = np.clip(np.digitize(mlon, lon_edges) - 1, 0, W - 1)
 
