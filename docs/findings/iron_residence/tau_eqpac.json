@@ -1,0 +1,273 @@
+{
+ "aois": [
+  "eqpac"
+ ],
+ "weights": {
+  "eqpac": 1.0
+ },
+ "profiled_param": "alpfe",
+ "theta_star": {
+  "alpfe": 0.8263482451438904,
+  "scav_rat": 1.763710315572098e-07,
+  "Smallgrow": 0.16693589091300964,
+  "Biggrow": 0.11067009717226028,
+  "diatomgraz": 0.9927905797958374,
+  "R_PICPOC": 0.30917125940322876
+ },
+ "carroll": {
+  "alpfe": 0.928309977054596,
+  "scav_rat": 6.025023253641848e-07,
+  "Smallgrow": 0.6609799861907959,
+  "Biggrow": 0.4314799904823303,
+  "diatomgraz": 0.8300300240516663,
+  "R_PICPOC": 0.04244999960064888
+ },
+ "loss_star": 0.1106637567281723,
+ "rel_grad_norm": 0.00022670607722830027,
+ "hessian_at_theta_star": {
+  "eigenvalues": [
+   -0.00046306493459269404,
+   0.0,
+   3.457507773418911e-05,
+   7.686369644943625e-05,
+   0.05268432945013046,
+   0.5832257270812988
+  ],
+  "sloppy_vector": {
+   "alpfe": 0.044885434210300446,
+   "scav_rat": -0.08881552517414093,
+   "Smallgrow": 0.009440677240490913,
+   "Biggrow": 0.004257695749402046,
+   "diatomgraz": -0.9949824213981628,
+   "R_PICPOC": 0.0
+  },
+  "stiff_vector": {
+   "alpfe": -0.7765863537788391,
+   "scav_rat": 0.6218780875205994,
+   "Smallgrow": 0.04268283769488335,
+   "Biggrow": 0.01569451205432415,
+   "diatomgraz": -0.09007202833890915,
+   "R_PICPOC": 0.0
+  }
+ },
+ "hessian_at_carroll": {
+  "eigenvalues": [
+   -0.2270766794681549,
+   -0.05573694780468941,
+   0.0,
+   0.029757646843791008,
+   0.0788542702794075,
+   0.19868983328342438
+  ],
+  "sloppy_vector": {
+   "alpfe": -0.6428030133247375,
+   "scav_rat": 0.7631863951683044,
+   "Smallgrow": 0.05214112251996994,
+   "Biggrow": 0.029654521495103836,
+   "diatomgraz": -0.027440957725048065,
+   "R_PICPOC": 0.0
+  },
+  "stiff_vector": {
+   "alpfe": 0.5751046538352966,
+   "scav_rat": 0.43378788232803345,
+   "Smallgrow": 0.6885183453559875,
+   "Biggrow": 0.08333513140678406,
+   "diatomgraz": -0.008987397886812687,
+   "R_PICPOC": 0.0
+  }
+ },
+ "profile": [
+  {
+   "value": 0.04999999329447746,
+   "min_loss": 0.3078009784221649
+  },
+  {
+   "value": 0.06746413558721542,
+   "min_loss": 0.29325932264328003
+  },
+  {
+   "value": 0.09102820605039597,
+   "min_loss": 0.2694224715232849
+  },
+  {
+   "value": 0.12282279133796692,
+   "min_loss": 0.23786652088165283
+  },
+  {
+   "value": 0.16572269797325134,
+   "min_loss": 0.19852283596992493
+  },
+  {
+   "value": 0.22360678017139435,
+   "min_loss": 0.15824338793754578
+  },
+  {
+   "value": 0.30170881748199463,
+   "min_loss": 0.13887393474578857
+  },
+  {
+   "value": 0.40709051489830017,
+   "min_loss": 0.12790626287460327
+  },
+  {
+   "value": 0.5492802858352661,
+   "min_loss": 0.11780408024787903
+  },
+  {
+   "value": 0.7411344647407532,
+   "min_loss": 0.11120983958244324
+  },
+  {
+   "value": 1.0,
+   "min_loss": 0.11132693290710449
+  }
+ ],
+ "profile_rel_span": 1.76774950470082,
+ "verdict": "CURVED -> PRACTICAL non-identifiability (routing/pooling/seeds licensed; param IS constrained)",
+ "valid": true,
+ "convergence": {
+  "converged": true,
+  "profile_min": 0.11120983958244324,
+  "conv_gap": 0.0005460828542709351,
+  "tol": 0.0001106637567281723,
+  "note": "conv_gap = min(profile) - loss_star; must be >= -tol. Negative means theta_star is under-converged and the span is untrustworthy."
+ },
+ "bracketing": {
+  "bracketed": true,
+  "argmin_index": 9,
+  "n_grid": 11,
+  "argmin_value": 0.7411344647407532,
+  "note": "False means the profile minimum is on a grid endpoint; the optimum is not bracketed and rel_span is a lower bound only."
+ },
+ "iron_residence": {
+  "phi_dust_mmol_m3_day": 5e-05,
+  "note": "tau = dfe_ocean_mean / (alpfe * PHI_DUST). Profile re-optimises scav_rat at each fixed alpfe, so the grid IS the sloppy iron direction. Compare tau_fold (residence time roams) against dfe_fold (observable pinned).",
+  "tagliabue_2016_ref": {
+   "doi": "10.1002/2015GB005289",
+   "reported_spread": "whole-ocean model residence time ~5-500 yr (100x) at agreed concentration",
+   "caveat": "0-D surface box vs whole-ocean: analogy of structure, not a like-for-like tau"
+  },
+  "per_aoi": {
+   "eqpac": {
+    "grid": [
+     {
+      "alpfe": 0.04999999329447746,
+      "loss": 0.3078009784221649,
+      "dfe_ocean_mean": 2.4342893084394746e-05,
+      "tau_days": 9.737158539612619,
+      "tau_years": 0.02665888717210847,
+      "dfe_geo_mean": 2.3498065274907276e-05
+     },
+     {
+      "alpfe": 0.06746413558721542,
+      "loss": 0.29325932264328003,
+      "dfe_ocean_mean": 4.5383902033790946e-05,
+      "tau_days": 13.454230648259065,
+      "tau_years": 0.036835675970592924,
+      "dfe_geo_mean": 4.29596911999397e-05
+     },
+     {
+      "alpfe": 0.09102820605039597,
+      "loss": 0.2694224715232849,
+      "dfe_ocean_mean": 5.780237552244216e-05,
+      "tau_days": 12.699882383805525,
+      "tau_years": 0.034770382980987065,
+      "dfe_geo_mean": 5.440920722321607e-05
+     },
+     {
+      "alpfe": 0.12282279133796692,
+      "loss": 0.23786652088165283,
+      "dfe_ocean_mean": 7.629211177118123e-05,
+      "tau_days": 12.42311967348976,
+      "tau_years": 0.034012647976700235,
+      "dfe_geo_mean": 7.140894012991339e-05
+     },
+     {
+      "alpfe": 0.16572269797325134,
+      "loss": 0.19852283596992493,
+      "dfe_ocean_mean": 0.0001044128293870017,
+      "tau_days": 12.600908706404786,
+      "tau_years": 0.03449940782041009,
+      "dfe_geo_mean": 9.72953494056128e-05
+     },
+     {
+      "alpfe": 0.22360678017139435,
+      "loss": 0.15824338793754578,
+      "dfe_ocean_mean": 0.00014744910004083067,
+      "tau_days": 13.188249473277251,
+      "tau_years": 0.03610745920130664,
+      "dfe_geo_mean": 0.00013719497655984014
+     },
+     {
+      "alpfe": 0.30170881748199463,
+      "loss": 0.13887393474578857,
+      "dfe_ocean_mean": 0.00018354285566601902,
+      "tau_days": 12.166887079922514,
+      "tau_years": 0.033311121368713247,
+      "dfe_geo_mean": 0.00017119206313509494
+     },
+     {
+      "alpfe": 0.40709051489830017,
+      "loss": 0.12790626287460327,
+      "dfe_ocean_mean": 0.00018264463869854808,
+      "tau_days": 8.973170929525418,
+      "tau_years": 0.024567203092472054,
+      "dfe_geo_mean": 0.00017092929920181632
+     },
+     {
+      "alpfe": 0.5492802858352661,
+      "loss": 0.11780408024787903,
+      "dfe_ocean_mean": 0.0001831035187933594,
+      "tau_days": 6.667034063125787,
+      "tau_years": 0.01825334445756547,
+      "dfe_geo_mean": 0.00017256524006370455
+     },
+     {
+      "alpfe": 0.7411344647407532,
+      "loss": 0.11120983958244324,
+      "dfe_ocean_mean": 0.0001886987593024969,
+      "tau_days": 5.092159878666639,
+      "tau_years": 0.013941573932009963,
+      "dfe_geo_mean": 0.00017948757158592343
+     },
+     {
+      "alpfe": 1.0,
+      "loss": 0.11132693290710449,
+      "dfe_ocean_mean": 0.0001935993495862931,
+      "tau_days": 3.871986991725862,
+      "tau_years": 0.010600922633061909,
+      "dfe_geo_mean": 0.0001848224928835407
+     }
+    ],
+    "band_10pct": {
+     "band": 0.1,
+     "n_grid_in_band": 3,
+     "alpfe_range": [
+      0.5492802858352661,
+      1.0
+     ],
+     "tau_years_min": 0.010600922633061909,
+     "tau_years_max": 0.01825334445756547,
+     "tau_fold": 1.7218637555789122,
+     "dfe_min": 0.0001831035187933594,
+     "dfe_max": 0.0001935993495862931,
+     "dfe_fold": 1.0573218410115794
+    },
+    "full_grid": {
+     "band": 1000000000.0,
+     "n_grid_in_band": 11,
+     "alpfe_range": [
+      0.04999999329447746,
+      1.0
+     ],
+     "tau_years_min": 0.010600922633061909,
+     "tau_years_max": 0.036835675970592924,
+     "tau_fold": 3.4747613246143954,
+     "dfe_min": 2.4342893084394746e-05,
+     "dfe_max": 0.0001935993495862931,
+     "dfe_fold": 7.953013181921334
+    }
+   }
+  }
+ }
+}

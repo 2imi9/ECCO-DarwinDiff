@@ -119,6 +119,13 @@ def main() -> int:
                          "beat theta* whenever theta* has not converged -- which inflates the span "
                          "against a too-high baseline. 0 restores the pre-2026-07-19 behaviour.")
     ap.add_argument("--out", default=None, help="write JSON verdict here")
+    ap.add_argument("--iron-residence", action="store_true",
+                    help="After the profile, compute iron residence time tau = DFe/(alpfe*PHI_DUST) "
+                         "per AOI at each profile grid point. The alpfe profile (loss=realiron) "
+                         "re-optimises scav_rat at each fixed alpfe, so this traces tau along the "
+                         "sloppy (degenerate) iron direction the data leaves free -- the local "
+                         "signature of the field's 100x residence-time spread (Tagliabue 2016). "
+                         "Use with --param alpfe --loss realiron.")
     args = ap.parse_args()
 
     import torch
@@ -531,6 +538,78 @@ def main() -> int:
                     "bracketed and rel_span is a lower bound only.",
         },
     }
+
+    # ---- 4. iron residence time along the sloppy (degenerate) direction (#163 / research Q1) ----
+    # At steady state the box's iron budget balances alpfe*PHI_DUST (source) against scavenging +
+    # biological uptake (sink), so tau = [DFe] / (alpfe * PHI_DUST) [days]. The alpfe profile fixes
+    # alpfe on the grid and RE-OPTIMISES scav_rat (+ the rest) at each point -- i.e. it walks the
+    # sloppy iron eigenvector the real GEOTRACES concentration data leaves free. Tracing tau along
+    # that walk shows how far residence time roams while the observable ([DFe]) stays pinned: the
+    # LOCAL analogue of the 5-500 yr (100x) inter-model spread in Tagliabue et al. 2016 (GBC,
+    # 10.1002/2015GB005289), which agrees on concentration. Reported per AOI, over the full grid and
+    # over the data-consistent band {loss <= loss_star*(1+band)}. CAVEAT: the box is a 0-D surface
+    # mixed layer with constant PHI_DUST=5e-5 mmol/m^3/d; Tagliabue's spread is whole-ocean, so this
+    # is a structural analogy (concentration-pinned, residence-time-free), NOT a like-for-like tau.
+    if args.iron_residence:
+        import math as _math
+        phi = float(R.PHI_DUST)
+        idfe = R.I_DFE_1
+        alpfe_idx = PARAM_NAMES.index("alpfe")
+        per_aoi_tau = {b["key"]: [] for b in bundles}
+        with torch.no_grad():
+            for gi in range(G):
+                theta_gp = prof_theta[:, gi].reshape(6, 1)          # re-optimised params at grid alpfe
+                alpfe_gp = float(grid[gi])
+                set_seeds(1)
+                for b in bundles:
+                    H, W = b["mask_f"].shape
+                    pb = theta_gp.reshape(6, 1, 1, 1).expand(6, 1, H, W)
+                    _, state = aoi_loss(b, pb)
+                    dfe = state[idfe][0]                            # [H,W] surface DFe (mmol/m^3)
+                    ocean = (b["mask_f"] > 0)
+                    dfe_ocean = float((dfe * ocean).sum() / ocean.sum().clamp(min=1))
+                    rec = {"alpfe": alpfe_gp, "loss": float(prof_losses[gi]),
+                           "dfe_ocean_mean": dfe_ocean,
+                           "tau_days": dfe_ocean / max(alpfe_gp * phi, 1e-30),
+                           "tau_years": dfe_ocean / max(alpfe_gp * phi, 1e-30) / 365.25}
+                    if b["n_geo_surf"] > 0:
+                        gm = (b["geo_surf_mask_f"] > 0)
+                        rec["dfe_geo_mean"] = float((dfe * gm).sum() / gm.sum().clamp(min=1))
+                    per_aoi_tau[b["key"]].append(rec)
+
+        def _band_summary(recs, band):
+            keep = [r for r in recs if r["loss"] <= loss_star * (1.0 + band)] or recs
+            taus = [r["tau_years"] for r in keep]
+            dfes = [r["dfe_ocean_mean"] for r in keep]
+            tmin, tmax = min(taus), max(taus)
+            dmin, dmax = min(dfes), max(dfes)
+            return {"band": band, "n_grid_in_band": len(keep),
+                    "alpfe_range": [min(r["alpfe"] for r in keep), max(r["alpfe"] for r in keep)],
+                    "tau_years_min": tmin, "tau_years_max": tmax,
+                    "tau_fold": (tmax / tmin) if tmin > 0 else float("inf"),
+                    "dfe_min": dmin, "dfe_max": dmax,
+                    "dfe_fold": (dmax / dmin) if dmin > 0 else float("inf")}
+
+        iron_res = {"phi_dust_mmol_m3_day": phi,
+                    "note": "tau = dfe_ocean_mean / (alpfe * PHI_DUST). Profile re-optimises scav_rat "
+                            "at each fixed alpfe, so the grid IS the sloppy iron direction. Compare "
+                            "tau_fold (residence time roams) against dfe_fold (observable pinned).",
+                    "tagliabue_2016_ref": {"doi": "10.1002/2015GB005289",
+                                           "reported_spread": "whole-ocean model residence time "
+                                                              "~5-500 yr (100x) at agreed concentration",
+                                           "caveat": "0-D surface box vs whole-ocean: analogy of "
+                                                     "structure, not a like-for-like tau"},
+                    "per_aoi": {}}
+        print("\n-- iron residence time tau = DFe/(alpfe*PHI_DUST) along the sloppy direction --")
+        for k, recs in per_aoi_tau.items():
+            s10 = _band_summary(recs, 0.10)
+            s_all = _band_summary(recs, 1e9)
+            iron_res["per_aoi"][k] = {"grid": recs, "band_10pct": s10, "full_grid": s_all}
+            print(f"   {k:20s} band(+10% loss, n={s10['n_grid_in_band']}): "
+                  f"tau {s10['tau_years_min']:.2f}-{s10['tau_years_max']:.2f} yr "
+                  f"({s10['tau_fold']:.1f}x) while DFe moves {s10['dfe_fold']:.2f}x")
+        out["iron_residence"] = iron_res
+
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(out, indent=1), encoding="utf-8")
