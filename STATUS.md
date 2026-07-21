@@ -177,13 +177,48 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   `R_PICPOC`} jointly in 7/10 seeds** — a **3-of-4-observable frontier**, statistically tied with
   `base`/`dan2` at n=10. (A fresh identical-config re-run confirms 7/10; the original hold-together
   sweep reported 8/10 — they differ by one band-edge seed.)
-- **`diatomgraz` — not recovered** in the real-data sweep (best 4/10 = chance). This is a
-  **settled identifiability verdict**, not an open task: it is profile-likelihood-flat /
-  structurally non-identifiable from the present staged data — [#152](https://github.com/2imi9/ECCO-DarwinDiff/issues/152).
-  In principle it is an **iron-pair tradeoff** recoverable via the dense Darwin POSi (`TRAC16`)
+- **`diatomgraz` — not recovered** in the real-data sweep (best 4/10 = chance). Do **not** call this
+  "structurally non-identifiable" on the strength of a FLAT profile — `alpfe` is FLAT (0.0235) and
+  recovers 9–10/10, so FLAT-implies-unrecoverable is falsified by our own data (see the warning box
+  above, and `docs/findings/2026-07-19_diatomgraz_claim_audit.md`). The **structural-vs-practical
+  question is open**, and is exactly what the multi-start identifiability array (pilot `8503326` →
+  13-task array, `docs/findings/silicate_scope_v2/`) is running to answer — [#152](https://github.com/2imi9/ECCO-DarwinDiff/issues/152).
+  Defensible now: it is constrained only through a steady-state biogenic-silica diagnostic
+  back-solved from diatom biomass, not a prognostic silicate cycle, and is **not recovered on real
+  data**. In principle it is an **iron-pair tradeoff** recoverable via the dense Darwin POSi (`TRAC16`)
   target, which is **not staged**; that is a future data-staging option, not a Track-1 blocker.
 
 → Every config that produced these, and how each differs, is in the **[Config / Results Matrix](docs/results_matrix.md)**.
+
+## External validation (2026-07-20) — the iron pair grounds against the published literature
+
+A hostile-verified literature pass (`docs/research_notes/2026-07-20_external_validation_iron_residence_alpfe.md`)
+lands two settled results, independent of the identifiability array:
+
+- **The iron `alpfe`/`scav_rat` degeneracy we recover IS the published FeMIP problem.** Tagliabue et al.
+  2016 (GBC, [10.1002/2015GB005289](https://doi.org/10.1002/2015GB005289)): across 13 models, dissolved-Fe
+  residence time roams **3.7–626 yr (~170×)** while concentration stays pinned at **0.58 ± 0.14 nM (~24%)**
+  and input flux roams **~100%** — "sources compensated by variable scavenging rates to reproduce the observed
+  DFe concentration." Somes et al. 2021 ([10.1029/2021GB006948](https://doi.org/10.1029/2021GB006948)) is a
+  controlled 5-run demonstration. The field measures this but **never names it as identifiability/sloppiness**
+  (soil/terrestrial biogeochem do) — so framing it via a profile-likelihood is a contribution *to their field*.
+  The observable that breaks it is the GEOTRACES **section gradient**, not the global mean (which the 0-D box
+  homogenizes away — re-motivating Track-2). **Derived + validated against Tagliabue's own Table 2**
+  (`docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md`, reproducible
+  `scripts/analysis/iron_degeneracy_math.py`): the single-box Fisher is rank-1 (concentration stiff,
+  residence time sloppy), and the 169× residence spread decomposes as **130× from input flux × 1.3× from
+  inventory** — input-dominated (sediment source spans 0–194 Gmol/yr), inventory pinned to ~2×. A tempting
+  "deep-inventory second degeneracy" was falsified by the data (inventory varies only 2×) and discarded.
+- **`alpfe` is a near-unity scalar on already-soluble iron, NOT a solubility.** Darwin3's own docs: `alpfe`
+  "set to 1 if the ironfile is already soluble"; v05 forces with the soluble Mahowald-2009 product and sets
+  `ALPFE = 0.928`. Published dust-Fe solubility is <1–2% — not ~0.93. The "iron dust solubility" label is fixed
+  in `carroll6.py`/`carroll6_5pft.py`. (Citation fix: Darwin's iron model is Parekh, Follows & Boyle **2005**,
+  GBC 19 GB2020 — *not* the "2006" DOI `10.1029/2005PA001258`, which is a different paper.)
+- **Quantitative companion (Explorer `8510828`, `docs/findings/iron_residence/`):** our recovered surface iron
+  residence time is **~1–8 days** across the three AOIs — the order of the *observed upper-ocean* envelope
+  (Black 2020: 10–100 d), not the whole-ocean model range. Within the data-consistent band τ barely roams
+  (1.1–1.7×) because the real section structure constrains `alpfe` per-AOI (0.83–1.00 ≈ Carroll) — the per-cell
+  fit escapes the global-mean-only degeneracy, concretely realizing Somes 2021.
 
 ## Why these are the load-bearing facts
 
