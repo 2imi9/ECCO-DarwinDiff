@@ -46,13 +46,15 @@ GB2020 — the "2006" DOI in circulation is a different paper.)
 ## 3. What is identifiable, what isn't, and how robustly
 
 The honest map, from real GEOTRACES iron + a real calcite anchor, cross-checked with per-AOI Fisher/CRLB and
-a multi-seed sweep (seed-variance in progress; verdicts so far are **seed-robust**):
+a multi-seed sweep (Explorer `8512053`, ~20/30 tasks in; verdicts are **seed-robust** — each parameter
+passes or fails *tightly*: Smallgrow 7/7 at rel-err 0.001–0.009, Biggrow 0/7 at 0.68–0.71, so the
+pass/fail is not seed-luck):
 
 | parameter | recovers? | identifiability | notes |
 |---|---|---|---|
 | **alpfe** | yes, ≈Carroll | **method-independent** — a DINN-free global scalar *and* a gradient-free Nelder-Mead estimator both reach it | near-saturated across configs (passes ~100%), so it contributes little discriminating info to the joint count |
 | **scav_rat** | yes (Cal-grade) | **requires the per-cell architecture** — 0/10 under a global-scalar estimator; recovers in-band (CV ~43%), *not point-identified* | scav_rat is the parameter actually driving the "38/40" joint number; movement is bound-to-bound with loss weighting, not a curved re-optimisation |
-| **R_PICPOC** | **yes, 10/10** | most strongly identified of the three (profile span 46.6); requires per-cell | vs a real calcite anchor; lands ~0.05 — consistent with Carroll only within the wide ±40% Cal band, **not a validation of 0.0425** (Carroll's own value is under-constrained; a single global constant is mis-specified against a regionally-variable rain ratio) |
+| **R_PICPOC** | **yes, 9/10** (geo1; 10/10 in the RATIO_MAX config) | most strongly identified of the three (profile span 46.6); requires per-cell | vs a real calcite anchor; lands ~0.05 — consistent with Carroll only within the wide ±40% Cal band, **not a validation of 0.0425** (Carroll's own value is under-constrained; a single global constant is mis-specified against a regionally-variable rain ratio) |
 | **diatomgraz** | no (best 4/10 = chance) | not identified from the staged data | constrained only via a back-solved biogenic-silica diagnostic, not a prognostic silicate cycle |
 | **Smallgrow, Biggrow** (growth pair) | partial in synthetic | **unobservable by construction** | confirmed externally: no observing-system product isolates size-class growth rate from biomass |
 

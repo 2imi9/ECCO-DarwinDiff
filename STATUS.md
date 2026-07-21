@@ -188,6 +188,28 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   data**. In principle it is an **iron-pair tradeoff** recoverable via the dense Darwin POSi (`TRAC16`)
   target, which is **not staged**; that is a future data-staging option, not a Track-1 blocker.
 
+### Accuracy & quality matrix (per parameter — current best)
+
+Recovery is against Carroll's published value. Two configs feed this: **`geo1`** fits *real* GEOTRACES
+iron + a real calcite anchor (the headline); **`silicate_scope`** is *synthetic* self-recovery (growth/Si).
+
+| param | recovers? | best | config | identifiability class | seed-robust |
+|---|---|---|---|---|---|
+| **alpfe** | ✅ ≈Carroll | 10/10 | geo1 (real Fe) | method-independent (DINN-free + Nelder-Mead), near-saturated | ✅ tight |
+| **scav_rat** | 🟡 in-band | 8/10 | geo1 (real Fe) | **not point-identified** (CV≈43%); needs per-cell (0/10 global) | ✅ verdict-tight |
+| **R_PICPOC** | ✅ ~0.05 | 9/10 (10/10 RATIO_MAX) | geo1 (real calcite) | point-identified; needs per-cell (0/10 global); **≠ validation of 0.0425** | ✅ |
+| **diatomgraz** | ❌ (best 4/10 = chance) | — | geo1 | not identified on real data; structural-vs-practical **open** | ✅ fails-tight |
+| **Smallgrow** | ❌ real / ✅ synth+Si | 7/7 synth | silicate_scope | real-unobservable (excluded from target); synthetic-ID with Si | ✅ 7/7 (rel-err 0.001–0.009) |
+| **Biggrow** | ❌ | 0/7 | silicate_scope | not identified (synthetic or real) | ✅ fails-tight (0.68–0.71) |
+| **Trio {alpfe,scav_rat,R_PICPOC}** | ✅ per-cell | **7/10** (0/10 global) | geo1 | **per-cell load-bearing** — cleanest quantitative result | ✅ |
+
+Supporting: **per-AOI Fisher** — Eq. Pacific & N. Atlantic carry the iron information, Southern Ocean
+does not; per-AOI sloppiness ≈3.96 decades (Eq. Pac) is **provisional** — θ\* is a saddle (non-positive
+Hessian eigenvalue), so the decade-span needs the multi-start re-run ([#120](https://github.com/2imi9/ECCO-DarwinDiff/issues/120)/[#187](https://github.com/2imi9/ECCO-DarwinDiff/issues/187)) before it is quotable.
+**FeMIP framing** — external-validated (Tagliabue Table 2, above). Seed-tightness for the iron trio is the
+`geo1` 38/40 & 7/10 counts; for the growth/Si params it is the synthetic `silicate_scope_v2_seeds` sweep
+(Explorer `8512053`). Improvement path: [#187](https://github.com/2imi9/ECCO-DarwinDiff/issues/187).
+
 → Every config that produced these, and how each differs, is in the **[Config / Results Matrix](docs/results_matrix.md)**.
 
 ## External validation (2026-07-20) — the iron pair grounds against the published literature
