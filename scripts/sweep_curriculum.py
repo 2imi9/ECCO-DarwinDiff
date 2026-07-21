@@ -19,7 +19,7 @@ Stage 2 (4 variants): + Darwin paired anchor (PIC_ABS + POC_ABS, PR #63-style).
 
 If ANY config keeps alpfe + scav_rat + diatomgraz Cal-grade (from Stage 1 basin A)
 WHILE recovering R_PICPOC + Biggrow (from Stage 2 basin B anchor) — that's the
-first 6/6 path in the project. Smallgrow is recoverable in both basins.
+first 6/6 path in the project. [NOTE 2026-06-27: '6/6' framing superseded — see STATUS.md] Smallgrow is recoverable in both basins.
 
 Wall-clock budget:
   Stage 1: 1 run × n=10 seeds × ~5 min = 5 min

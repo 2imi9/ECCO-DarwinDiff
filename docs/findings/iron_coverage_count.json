@@ -1,0 +1,43 @@
+{
+  "description": "Co-located particulate:dissolved iron coverage in GEOTRACES IDP2025, surface (<=50 m), good QC {49,50}, finite>0. Co-location = Fe_D and Fe_TP(/Fe_TPL) both present at the same station+sample. Confirms the partitioning observable is sparse where the dissolved field is dense.",
+  "cuts": {
+    "depth_max_m": 50.0,
+    "qc_good": [
+      49,
+      50
+    ],
+    "eqpac_box": {
+      "lat0": -5,
+      "lat1": 15,
+      "lon0": -160,
+      "lon1": -110
+    }
+  },
+  "surface_counts": {
+    "Fe_D": 4472,
+    "Fe_TP": 273,
+    "Fe_TPL": 254
+  },
+  "colocated_surface": {
+    "Fe_TP_and_Fe_D_global": 76,
+    "Fe_TP_and_Fe_D_eqpac": 4,
+    "Fe_TPL_and_Fe_D_global": 130,
+    "Fe_TPL_and_Fe_D_eqpac": 0
+  },
+  "ratio_pFe_over_DFe": {
+    "Fe_TP": {
+      "n": 76,
+      "log10_span": 2.593867540359497,
+      "p10": 0.389057457447052,
+      "p50": 2.5055131912231445,
+      "p90": 12.346196174621582
+    },
+    "Fe_TPL": {
+      "n": 130,
+      "log10_span": 3.6936092376708984,
+      "p10": 0.03023284301161766,
+      "p50": 0.47885680198669434,
+      "p90": 8.699723243713379
+    }
+  }
+}

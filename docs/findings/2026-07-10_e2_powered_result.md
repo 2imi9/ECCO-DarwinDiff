@@ -68,3 +68,11 @@ point-in-time result; the ensemble is the current strongest evidence.
 - This is the **calcite** closure specifically. Iron (structural wall) and growth (loss-degenerate)
   are argued separately; the E2 was not run for them (iron has its own information-wall
   demonstration; growth is unobservable by construction).
+- **Reproduction status (open):** the numbers above are transcribed from a **single-seed** stdout
+  print — `e2_real_calcite_eqpac.py` does not yet write a committed JSON, and `fig3_e2_result.png`
+  is currently rendered from **hard-coded literals** in `make_map_figures.py`, not regenerated from a
+  run. There is no seed ensemble or bootstrap CI on the delta (n_val = 6). Before this is cited as a
+  headline, the script should emit a JSON (config + learned/null/delta + full K_num ladder + input
+  checksums), the figure should read that JSON, and the negative should be shown seed-stable over
+  ≥ 3–10 seeds. Until then treat the specific deltas as a **point estimate**, and the verdict as
+  "decisive *at the available power*," per the caveat above.

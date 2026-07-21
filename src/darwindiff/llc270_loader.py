@@ -154,8 +154,8 @@ class LLC270Config:
                  the spring bloom recurring every 9.25 stored-months; 12/9.25 =
                  1.30 ~ 4/3 = 1200/900, and the corrected axis restores a
                  12-month bloom cycle.
-              5. Carroll et al. 2020 (JAMES) documents a 1200 s timestep for the
-                 ECCO-Darwin LLC270 configuration.
+              5. Carroll et al. 2020 (JAMES, doi:10.1029/2019MS001888) documents a
+                 1200 s timestep for the ECCO-Darwin LLC270 configuration.
 
             Existing cubes are NOT retroactively fixed by this change. Derive time
             from the raw ``iters`` instead (see ``scripts/rollout_verify.py

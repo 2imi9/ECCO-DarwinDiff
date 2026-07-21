@@ -11,8 +11,11 @@ reproducibility gap; merge before submission.
 
 **Software.** Python 3.11.9; torch 2.11.0+cu128, numpy 2.3.5, scipy 1.16.0, scikit-learn 1.7.0,
 pandas 2.2.3. All identifiability numbers here run **CPU-only** (`CUDA_VISIBLE_DEVICES=-1`); no GPU
-or cluster is needed to reproduce the map (the transport-UDE E2 — which *corroborates* the calcite
-verdict out-of-sample but which no verdict *depends* on — is the only GPU piece).
+or cluster is needed to reproduce the in-sample identifiability map. The real-data transport **E2** —
+the make-or-break out-of-sample check that confirms the *calcite* verdict — is the one GPU piece (the
+negative is now seed-stable across a 10-seed ensemble, but its specific per-seed numbers remain
+local-only and not yet emitted to a committed JSON; see the E2 finding note). The earlier *synthetic*
+transport-UDE closure-recovery did not feed any map verdict.
 
 ## Input datasets (all gitignored — too large / redistribution-restricted)
 
@@ -40,9 +43,11 @@ scavenging rate).
 | calcite null, cache Ω (Daniels + Marsh) | `docs/findings/calcite_omega_identifiability_real*.json` | `scripts/calcite_omega_identifiability_real.py` | `a7a1634` / `798451f` |
 | calcite: no driver (SST/composition) rescues it | `docs/findings/calcite_driver_scout_marsh.json` | `scripts/calcite_driver_scout.py` | `f8b9654` |
 | iron partitioning is a construction artifact (corrected) | `docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md` | `scripts/iron_partitioning_scout.py` + `iron_partitioning_controls.py` | `f99a470` / `8d9b0c2` |
-| iron scav_rat unidentifiable from DFe (32× wall) | (printed; bundle-driven) | `scripts/iron_scav_rat_profile.py` | (pre-branch) |
+| iron partitioning: (scav_rat, W_SINK) NOT perfectly degenerate (real forward control) | `docs/findings/iron_partitioning_forward_control.json` | `scripts/iron_partitioning_forward_control.py` | `b7ea9a3` |
+| iron scav_rat unidentifiable from DFe (flat band 25×/32×/100× at +0.01/+0.02/+0.05) | `docs/findings/iron_scav_rat_profile.json` | `scripts/iron_scav_rat_profile.py --out` | `e21ea99` |
+| iron co-located pFe:DFe coverage (sparse where DFe is dense) | `docs/findings/iron_coverage_count.json` | `scripts/iron_coverage_count.py` | `372812c` |
 | iron DFe concentration IS env-predictable (supporting; the wall side) | `docs/findings/geotraces_glodap_env_identifiability.json` | `scripts/geotraces_glodap_identifiability.py` | `21f238e` |
-| growth pair not split by total NPP | (printed) | `scripts/growth_npp_scout.py` | `04e43e4` |
+| growth pair not split by total NPP | (printed; JSON pending) | `scripts/growth_npp_scout.py` | `04e43e4` |
 | make-or-break transport E2 → negative (calcite) | `docs/findings/2026-07-10_e2_powered_result.md` | `scripts/e2_real_calcite_eqpac.py` | `aa0cc1b` |
 | carbonate solver validated vs PyCO2SYS (independent) | `docs/findings/carbonate_pyco2sys_validation.json` | `scripts/validate_carbonate_pyco2sys.py` | `51e2cb0` |
 
@@ -87,12 +92,25 @@ data) so the sweeps never touch the ~TB native tree — the data-discipline patt
 
 ## Open reproducibility items (before submission)
 
-1. Merge `2imi9/status-handoff-2026-07-07` → `main` (code currently on an unmerged branch).
+1. ~~Merge `2imi9/status-handoff-2026-07-07` → `main`~~ — **DONE** (#180, 2026-07-10; all Track-2 code + findings now on `main`).
 2. ~~Regenerate + commit the iron env-predictability JSON~~ — **DONE** (`21f238e`; R6-1 closed above; v2.2016b re-staged, GLOBAL-Ω +0.14 reproduced exactly).
-3. The make-or-break **out-of-sample transport E2 was run** for calcite (commit `aa0cc1b`) and
+3. ~~The load-bearing iron numbers (32× wall, partitioning degeneracy, coverage) were print-only~~ —
+   **DONE** (2026-07-10 audit-hardening): committed JSONs + reproducers for the scav_rat profile
+   (`e21ea99`; threshold-honest band 25×/32×/100×), the real-forward partitioning control (`b7ea9a3`;
+   corrects the "perfectly degenerate" over-claim), and the co-located coverage (`372812c`).
+4. The make-or-break **out-of-sample transport E2 was run** for calcite (commit `aa0cc1b`) and
    returns a decisive negative (learned closure does not beat the constant-through-transport null;
    K_num non-discriminating). It has *not* been run for iron/growth (argued from their own
    diagnostics). A cleanly *powered* within-region E2 is structurally impossible (the Ω-band hold-out
    becomes a between-biome extrapolation when pooled), so the calcite E2 is a decisive negative at
    n_val = 6, not a high-n rejection. **Hardened 2026-07-11 to a 10-seed ensemble** (robust negative
-   — every seed loses to null; local-only `docs/findings/e2_seed_ensemble_scored.md`, pending commit).
+   — every seed loses to null; per-seed numbers local-only in
+   `docs/findings/e2_seed_ensemble_scored.md`, pending commit).
+   **OPEN:** `e2_real_calcite_eqpac.py` does not yet emit a committed JSON and `fig3` is rendered from
+   hard-coded literals. Emit a JSON (config + learned/null/delta + K_num ladder + input checksums),
+   render the figure from it, and commit the 10-seed per-seed record. (Needs the local-only `D:\`
+   native tree.)
+5. **OPEN:** `growth_npp_scout.py` is still print-only — emit a committed growth-pair JSON.
+6. **OPEN (strengthens the forward contribution):** quantify the observing-system recommendation — a
+   synthetic power analysis (plant `ratio = R0·Ω^n` with realistic scatter, sweep Ω-span × n_samples)
+   converting the 0.30-dex heuristic into "need ≥ X dex Ω over ≥ Y co-located samples at Z precision."

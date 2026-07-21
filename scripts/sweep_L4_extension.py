@@ -17,7 +17,7 @@ Configs (n=10 each, ~5 min/config, ~20 min total):
   E3: MODIS=0.1 + POSI=1.0 + Darwin PIC=0.3
   E4: MODIS=0.1 + POSI=1.0 + Darwin PIC=0.5  (PR #63's weight — locates breaking point)
 
-If basin A survives in any config + R_PICPOC lands Cal → first 6/6.
+If basin A survives in any config + R_PICPOC lands Cal → first 6/6. [NOTE 2026-06-27: '6/6' framing superseded — honest target is 4 observable params; see STATUS.md]
 """
 from __future__ import annotations
 import io, os, subprocess, sys, time, json, glob

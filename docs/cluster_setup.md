@@ -1,20 +1,17 @@
-# Cluster setup — DarwinDiff on Northeastern RC + MIT ORCD
+# Cluster setup — DarwinDiff on Explorer (Northeastern) + AICR (Massachusetts)
 
-Operational guide for running DarwinDiff on Northeastern RC (Explorer / AICR) and MIT ORCD clusters. Companion to [README](../README.md) (project overview) and [STATUS](../STATUS.md) (live results).
+Operational guide for running DarwinDiff on **Northeastern's Explorer** and the **Massachusetts AI Compute Resource (AICR)**. Companion to [README](../README.md) (project overview) and [STATUS](../STATUS.md) (live results).
 
 ## Target clusters
 
-DarwinDiff has compute paths across **two institutions** — Northeastern RC (Lucas's home institution, Cristina-sponsored) and MIT ORCD (Jon's). Three distinct clusters are in play; do not conflate them:
+Two clusters are in play — one Northeastern-owned, one a shared multi-institutional resource:
 
-| Cluster | Institution | Hardware | Status / when to use |
-|---|---|---|---|
-| **Explorer** | Northeastern RC | H200 144 GB (×32 RC-owned), A100 80 GB (×8), V100, L40S | **Active near-term path.** General HPC, free to NU faculty/students, Cristina-sponsored. The first native-resolution prototype runs here. |
-| **AICR** | Northeastern RC | 248× B200 + 152× RTX Pro | Future path. NU's dedicated AI cluster; access via a PI **project proposal** (the `AICR_proposal.docx` in prep). Target for the global-native / seasonal sweep. |
-| **Engaging** | MIT ORCD | A100, L40S, H100 80 GB, H200 140 GB | Jon-side option. Open to MIT users. |
+| Cluster | Hardware | Status / when to use |
+|---|---|---|
+| **Explorer** (Northeastern RC) | H200 144 GB (×32 RC-owned), A100 80 GB (×8), V100, L40S, t4 | **Active automation path.** General HPC, free to NU faculty/students, Cristina-sponsored. All current cluster runs (the n=10 ensembles, the per-cell ablation, the per-AOI identifiability map) run here. |
+| **AICR** (Massachusetts AI Compute Resource) | 248× B200 + 152× RTX Pro | **Active** (account created); B200 throughput. See below. |
 
-> **Naming note.** "AICR" here is **Northeastern's** AI Compute Resource (B200 + RTX Pro). Earlier project notes framed AICR as an MIT ORCD follow-on to Engaging — that conflated two things. The B200 proposal Cristina and Jon are reviewing is NU's AICR; MIT Engaging is a separate, Jon-side path.
-
-Explorer is the de-facto near-term path (access granted June 2026, Cristina-sponsored). The Engaging section below is retained for the MIT-side option.
+> **Note.** "AICR" is the **Massachusetts AI Compute Resource** — a *multi-institutional* GPU cluster (Boston University, Harvard, MIT, Northeastern, UMass, Yale) run under the **Massachusetts AI Hub**, **not** a Northeastern-owned cluster. Northeastern is one member institution and access is provisioned through NU (Cristina-sponsored). It is unrelated to any MIT path, and the project does **not** use MIT ORCD / Engaging (an earlier exploratory option, since dropped).
 
 ## Northeastern Explorer
 
@@ -26,23 +23,23 @@ Explorer is Northeastern RC's general HPC cluster (<https://rc.northeastern.edu>
 2. The sponsor approves via the emailed link; the account provisions within ~24 h.
 3. Current NU students already have credentials — no separate "external user" step.
 
-> **MGHPCC shutdown.** All RC services are down for the annual MGHPCC shutdown **June 15–19 2026**; Explorer returns Friday June 19. Submit access during the downtime; first login after it returns.
-
 ### Hardware (RC-owned, generally schedulable)
 
 | GPU | VRAM | Count | Notes |
 |---|---|---|---|
-| H200 | 144 GB | 4 nodes × 8 = 32 | Ideal tier; holds a native-resolution fit (LLC270 time-mean ~63 GB, measured in [`memory_scaling.md`](findings/memory_scaling.md)) on one card |
+| H200 | 144 GB | 4 nodes × 8 = 32 | Ideal tier; holds a native-resolution fit (LLC270 time-mean ~63 GB, measured in [`memory_scaling.md`](archive/findings/memory_scaling.md)) on one card |
 | A100 | 80 GB | 2 nodes × 4 = 8 | Workable fallback |
-| V100 | 16–32 GB | many | Too small for native-resolution reverse-mode AD |
+| t4 | 16 GB | many | Small but schedulable — fine for the box-scale recovery / Fisher / ablation jobs (used for the per-cell ablation + identifiability map) |
+| V100 | 16–32 GB | many | **Avoid: the cluster torch (cu128) has no kernels for V100 (CC 7.0).** Use t4 (7.5) / a100 / h200 instead |
 
 H100 / L40S exist but are PI-owned (need that PI's permission). Cluster totals: 45k+ CPU cores, 525+ GPUs, 6 PB storage, InfiniBand (200/100 Gbps).
 
 ### Partitions & GPU request
 
-- Batch: `--partition=gpu`; interactive: `--partition=gpu-interactive`.
-- Type-pinned request: `--gres=gpu:h200:1` — documented **verbatim** in the [H200 quick-start guide](https://rc-docs.northeastern.edu/en/explorer-main/gpus/quickstart-h200.html) (verified 2026-06-23), which also confirms the `gpu` (batch) / `gpu-interactive` (srun) partitions. Still confirm on first login: the A100 fallback token (`gpu:a100:1`) and the partition wall-time cap (`sinfo -o "%P %l %G"`).
+- Batch: `--partition=gpu`; interactive: `--partition=gpu-interactive`; short jobs: `--partition=gpu-short` (2 h cap, often better backfill).
+- Type-pinned request: `--gres=gpu:h200:1` — documented **verbatim** in the [H200 quick-start guide](https://rc-docs.northeastern.edu/en/explorer-main/gpus/quickstart-h200.html). Fallback tokens: `--gres=gpu:a100:1`, `--gres=gpu:t4:1`.
 - The `gpu` partition caps at **1 GPU per request** — fine for one native fit (1× H200 = 144 GB ≥ the ~63 GB LLC270 time-mean peak); the later multi-GPU seasonal sweep needs a different partition (ask `rchelp@northeastern.edu`).
+- **Fairshare note:** a sponsored account can sit `PENDING(Priority)` behind higher-priority work for hours; short (`--time`) jobs on `gpu-short` backfill best.
 
 ### Storage
 
@@ -52,7 +49,7 @@ H100 / L40S exist but are PI-owned (need that PI's permission). Cluster totals: 
 | `/scratch/$USER` | Temp / intermediate | **Purged monthly**, not backed up |
 | `/home/$USER` | Configs, small files | Fixed quota, cannot increase — do **not** build envs or caches here |
 
-The LLC270 monthly tracer tree (~1.5 TB, the only large input) fits comfortably under the Schultz allocation; per-run JSON outputs are small. If space is tight, `/scratch` + a local master copy also works — the project's disk-temporary workflow already matches this.
+The LLC270 monthly tracer tree (~1.5 TB, the only large input) fits comfortably under the Schultz allocation; per-run JSON outputs are small.
 
 ### Setup & run
 
@@ -62,133 +59,32 @@ cd /projects/schultz && git clone https://github.com/2imi9/ECCO-DarwinDiff.git
 cd ECCO-DarwinDiff
 bash scripts/explorer_quickstart.sh                       # module load anaconda3 + uv sync + pytest
 
-export DARWIN_DATA_ROOT=/projects/schultz/ecco_darwin_v5  # LLC270 tree
-sbatch scripts/slurm/run_explorer_gpu.sbatch              # H200 job (defaults to the multi-AOI trainer)
+export DARWIN_DATA_ROOT=/projects/schultz/qi.zim/ecco_darwin_v5    # LLC270 tree
+export GEOTRACES_DATA_ROOT=/projects/schultz/qi.zim/geotraces
+sbatch scripts/slurm/run_explorer_gpu.sbatch              # GPU training job (defaults to the multi-AOI trainer)
 ```
 
-> **Python pin (required).** The repo commits `.python-version` = `3.12`, which `uv`
-> honors for both `uv sync` and `uv run`. Do **not** remove it: with only
-> `requires-python = ">=3.11"`, a fresh `uv sync` selects Python 3.14, where
-> `aiohttp` (pulled in transitively by `argopy`) has no cp314 wheel and its sdist
-> build fails — this is what broke the first Explorer build (unblocked by
-> `uv python pin 3.12`, now committed). Under 3.12, `uv sync --all-extras` resolves
-> to all-binary wheels (no source builds). `pyproject.toml` also caps
-> `requires-python` at `<3.14` so the constraint holds even without the pin file.
+> **Build gotchas (learned the hard way).** (1) **Python pin** — the repo commits `.python-version` = `3.12`; do **not** remove it. With only `requires-python = ">=3.11"`, a fresh `uv sync` selects 3.14, where `aiohttp` (via `argopy`) has no cp314 wheel and the sdist build fails. (2) **Build inside a Slurm job, not the login node** — the Arbiter watchdog SIGKILLs a heavy `uv sync` on the login node. (3) **`eol=lf`** + `build-essential` available for `torch.compile`.
 
 ### Data transfer (~1.5 TB tree → Explorer)
 
-- **Globus** is the practical path for the full tree (NU has a Globus endpoint; confirm the collection name with RC). Destination: `/projects/schultz/ecco_darwin_v5`.
+- **Globus** is the practical path for the full tree (NU has a Globus endpoint; confirm the collection name with RC). Destination: `/projects/schultz/qi.zim/ecco_darwin_v5`.
 - `scp` / `rsync` works for subsets; impractical for the full tree.
-- Transfers cannot run during the June 15–19 shutdown — stage the job for Friday.
 
-## Engaging — access path
+## SLURM scripts
 
-Engaging is "openly available to all research projects at MIT" per the [ORCD docs](https://orcd-docs.mit.edu). Account auto-activates on first OnDemand login. For non-MIT collaborators (e.g. Northeastern affiliates), an MIT Sponsored Account is the prerequisite.
+The repo's cluster scripts live in [`scripts/slurm/`](../scripts/slurm/). The active Explorer entry points:
 
-### Onboarding for non-MIT collaborators
+- [`scripts/explorer_quickstart.sh`](../scripts/explorer_quickstart.sh) — one-time setup (module load anaconda3 + `uv sync` + pytest).
+- [`scripts/slurm/run_explorer_gpu.sbatch`](../scripts/slurm/run_explorer_gpu.sbatch) — the H200/GPU training job. Override the GPU type and wall-time at submit (`--gres=gpu:a100:1` / `--gres=gpu:t4:1`, `--partition=gpu-short --time=...`) without editing the script.
 
-1. **MIT host initiates a Sponsored Account request** via MIT IS&T's standard form (Atlas or equivalent). The host must have an active MIT appointment.
-2. **Complete Kerberos ID + Duo 2FA setup** per the account-activation email.
-3. **Log in to https://orcd-ood.mit.edu** (OnDemand). Engaging account auto-provisions on first login (typically within an hour).
-4. **Run a test job** via `sbatch scripts/slurm/run_tests.sbatch` to confirm the environment.
-
-### Onboarding for MIT-affiliated users
-
-Skip the sponsorship step. Kerberos ID + Duo + OnDemand login activates Engaging directly.
-
-### Quickstart
-
-```bash
-# 1. SSH login (Duo MFA required)
-ssh <kerb>@orcd-login.mit.edu
-
-# 2. Clone the repo
-git clone https://github.com/2imi9/ECCO-DarwinDiff.git
-cd ECCO-DarwinDiff
-
-# 3. One-time environment setup
-bash scripts/orcd_quickstart.sh   # loads miniforge, installs uv, syncs deps, runs pytest
-
-# 4. Submit jobs
-sbatch scripts/slurm/run_tests.sbatch                                        # CPU sanity (~30s)
-sbatch scripts/slurm/run_notebook.sbatch notebooks/15_dinn_deep_eqpac_fet.ipynb   # GPU notebook
-```
-
-To run anything that loads the LLC270 monthly tracer tree, set `DARWIN_DATA_ROOT` to the data root (see [Storage](#storage)).
-
-## Engaging — resources
-
-| Resource | Value |
-|---|---|
-| Login | `ssh <kerb>@orcd-login.mit.edu` or https://orcd-ood.mit.edu (Duo MFA + Kerberos) |
-| GPU partition (open) | `mit_normal_gpu` — L40S 44 GB (49 nodes × 4), H100 80 GB (1 node × 4), H200 140 GB (11 nodes × 8) |
-| GPU partition (A100, preemptable) | `mit_preemptable` — A100-SXM4-80 GB (6 nodes × 8) + A100-PCIe-80 GB. Requires `--requeue` |
-| Module system | Lmod (`module load/avail/purge`). Recommended: `module load miniforge/24.3.0-0` |
-| `--account` flag | Not required for general Engaging access |
-| Personal scratch | `$HOME/orcd/scratch` — 1 TB flash, purged if no login for 6 months, no backup |
-| Home | `$HOME` — 200 GB flash, snapshot-backed |
-| Personal pool | `$HOME/orcd/pool` — 1 TB HDD, no backup |
-| PI shared pool | `/orcd/pool/<num>/<pi>_shared` — 5 TB+, requested via orcd-help |
-| Globus collection | "MIT ORCD Engaging Collection", endpoint `ec54b570-cac5-47f7-b2a1-100c2078686f` |
-| Support email | orcd-help-engaging@mit.edu |
-| Maintenance | 3rd Tuesday monthly (~1 day); login-node restart Monday 7am (~15 min) |
-
-## Storage
-
-The LLC270 monthly tracer tree is ~1.5 TB and is the only large dataset.
-
-| Path | Size | Use |
-|---|---|---|
-| Personal scratch | 1 TB cap | Insufficient for the full tree; usable for smoke tests + subsets |
-| PI shared pool (`/orcd/pool/<num>/<pi>_shared`) | 5 TB+ | Recommended. Requested by PI via orcd-help-engaging. Persistent. Shareable across the PI's group. |
-
-After provisioning, set:
-
-```bash
-export DARWIN_DATA_ROOT=/orcd/pool/<num>/<pi>_shared/ecco_darwin_v5
-```
-
-SLURM templates fall back to `$HOME/orcd/scratch/ecco_darwin_v5` if `DARWIN_DATA_ROOT` is unset — fine for the test suite, fails with a clear error for data-loading scripts.
-
-## Data transfer
-
-### Globus (recommended for the full 1.5 TB tree)
-
-- Source: NAS endpoint (re-download from NASA), or Globus Personal Connect on a workstation that already has the tree.
-- Destination: "MIT ORCD Engaging Collection" (endpoint `ec54b570-cac5-47f7-b2a1-100c2078686f`), under the PI-shared pool path.
-
-### rsync (subsets only)
-
-```bash
-rsync -avh --progress /local/ecco_darwin_v5/ <kerb>@orcd-login.mit.edu:/orcd/pool/<num>/<pi>_shared/ecco_darwin_v5/
-```
-
-Duo prompts on every connection make this impractical for the full tree.
-
-## SLURM templates
-
-Three pre-filled scripts in [`scripts/slurm/`](../scripts/slurm/):
-
-| Script | Defaults | Wall-time |
-|---|---|---|
-| [`run_tests.sbatch`](../scripts/slurm/run_tests.sbatch) | `--partition=mit_normal`, miniforge module, 8 GB RAM | 30 min |
-| [`run_notebook.sbatch`](../scripts/slurm/run_notebook.sbatch) | `--partition=mit_normal_gpu`, `--gres=gpu:1`, miniforge, 32 GB RAM | 4 h |
-| [`run_array.sbatch`](../scripts/slurm/run_array.sbatch) | `--partition=mit_normal_gpu`, array `0-9%1`, miniforge | 30 min per array task |
-
-All three:
-
-- Use `${DARWIN_DATA_ROOT:-$HOME/orcd/scratch/ecco_darwin_v5}` so users override with `export` instead of editing the script.
-- Auto-install `uv` if missing.
-- Auto-run `uv sync --all-extras` to materialize the venv.
-- Write logs to `logs/<jobname>_<jobid>.{out,err}` (gitignored).
-
-[`scripts/orcd_quickstart.sh`](../scripts/orcd_quickstart.sh) wraps the one-time setup (miniforge load + uv install + sync + pytest) as a single entry point.
+All scripts read `${DARWIN_DATA_ROOT}` / `${GEOTRACES_DATA_ROOT}` from the environment, auto-install `uv`, run `uv sync`, and write logs to `logs/<jobname>_<jobid>.{out,err}` (gitignored).
 
 ## Compute requirements
 
 | Resource | Minimum | Recommended |
 |---|---|---|
-| GPU | NVIDIA L40S 44 GB (CUDA 12.x) | A100/H100 80 GB for native-resolution multi-tracer + time-resolved Track 2 |
+| GPU | NVIDIA t4 16 GB (CUDA 12.x, CC ≥ 7.5) | A100/H100/H200 80–144 GB for native-resolution multi-tracer + time-resolved Track 2 |
 | CPU | Any modern node | — |
 | RAM | 32 GB per job | — |
 | Scratch | 2 TB | LLC270 monthly tracer tree is ~1.5 TB |
@@ -196,7 +92,7 @@ All three:
 
 ## Local baseline (for comparison)
 
-DarwinDiff also runs on a single workstation (NVIDIA RTX 5090 32 GB, Windows 11) against the LLC270 tree on external storage. The single-laptop workflow drove all v0.x–v3.1 results; cluster scale-up is for production.
+DarwinDiff also runs on a single workstation (NVIDIA RTX 5090 32 GB, Windows 11) against the LLC270 tree on external storage. The single-laptop workflow drove all v0.x–v3.1 results; cluster scale-up is for ensembles, sweeps, and native resolution.
 
 | Workload | Wall-clock (RTX 5090) | Peak GPU mem |
 |---|---|---|
@@ -214,14 +110,14 @@ Workloads that are infeasible or marginal locally and become routine on cluster:
 |---|---|---|
 | Multi-seed ensembles (n=20–50 per config) | Sequential, ~25–50 min | Parallel array job, ~5–10 min wall-clock |
 | Cross-basin DINNDeep redo at multiple AOIs | Sequential, ~30 min per AOI | Parallel jobs, ~10 min wall-clock |
-| Multi-tracer joint loss at LLC270 native resolution | Tight on 32 GB at full AOI | Comfortable on 80 GB A100 / H100 |
+| Multi-tracer joint loss at LLC270 native resolution | Tight on 32 GB at full AOI | Comfortable on 80 GB A100 / H100 / H200 |
 | Time-resolved fitting (~300 monthly snapshots × per-fit cost) | Infeasible (~25 h sequential) | Multi-GPU data-parallel; opens Track 2 emulator |
 | Full-ocean parameter recovery sweep | Infeasible | Embarrassingly parallel across AOIs |
-| Native-resolution Carroll-6 recovery (vs box-model proxy) | Untested; box-model state grows ~3× | Headroom matters once architecture grows |
+| Native-resolution parameter maps + forward Darwin validation (vs box-model proxy) | Tested: native res selects *which* iron-pair param recovers but does **not** lift the recovery count, and did **not** help `R_PICPOC` — identifiability comes from real absolute anchors, not resolution (the surrogate gap is dimensional, not resolution-limited). Value is per-cell parameter maps + forward validation. | Headroom for the maps + validation |
 
 ## AICR — Massachusetts AI Compute Resource
 
-AICR is a multi-institution **B200 / RTX PRO 6000** GPU cluster at MGHPCC (Holyoke), serving ~7 institutions. Docs: <https://docs.aicr.ai>. DarwinDiff's **project was added 2026-07-07**. Per the compute budget a single fit is launch-bound (same speed on 5090 / H200 / B200), so AICR's role is **throughput — large sweeps + native/seasonal runs**, targeting `b200-batch`.
+AICR is the **Massachusetts AI Compute Resource** — a multi-institutional **B200 / RTX PRO 6000** GPU cluster at MGHPCC (Holyoke), run under the **Massachusetts AI Hub** and serving Boston University, Harvard, MIT, Northeastern, UMass (five campuses), and Yale. Docs: <https://docs.aicr.ai>. DarwinDiff's **AICR user account is created (active)**; access is provisioned through NU. Per the compute budget a single fit is launch-bound (same speed on 5090 / H200 / B200), so AICR's role is **throughput — large sweeps + native/seasonal runs**, targeting `b200-batch`.
 
 > **Onboarding status (2026-07-07) — first login blocked by provisioning lag.** OOD errors
 > `nginx_stage: can't find user for qi_zim_neu` — the individual account isn't provisioned/synced to the

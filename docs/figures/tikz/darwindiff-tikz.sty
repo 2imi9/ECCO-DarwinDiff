@@ -1,0 +1,46 @@
+% darwindiff-tikz.sty -- shared TikZ styles + palette for the DarwinDiff figures.
+% Each figure is a self-contained `standalone' document that loads this package, so
+% every figure compiles on its own (pdflatex figure.tex) AND can be embedded in the
+% paper with \usepackage{standalone} + \input{...}. Keep the palette colourblind-safe
+% and legible in greyscale (verdict is encoded by fill tint + a text label, not hue
+% alone).
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{darwindiff-tikz}[2026/07/10 DarwinDiff figure styles]
+
+\RequirePackage{tikz}
+\RequirePackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,backgrounds,fit,calc,%
+  decorations.pathreplacing,decorations.pathmorphing}
+
+% -- palette (Okabe-Ito-adjacent; each verdict = a stroke + a light fill tint) --------
+\definecolor{ddInk}{HTML}{1A1A1A}      % primary text
+\definecolor{ddMuted}{HTML}{6B6B6B}    % secondary text
+\definecolor{ddLine}{HTML}{9AA0A6}     % hairline / neutral stroke
+\definecolor{ddSurface}{HTML}{F5F4F0}  % neutral node fill
+\definecolor{ddIdent}{HTML}{1D6E56}    \definecolor{ddIdentBg}{HTML}{E1F5EE}  % identifiable
+\definecolor{ddLimit}{HTML}{9A6100}    \definecolor{ddLimitBg}{HTML}{FAEEDA}  % observability / support-limited
+\definecolor{ddNon}{HTML}{A32D2D}      \definecolor{ddNonBg}{HTML}{FCEBEB}    % structurally non-identifiable
+\definecolor{ddUnobs}{HTML}{5F5E5A}    \definecolor{ddUnobsBg}{HTML}{F1EFE8}  % unobservable by construction
+\definecolor{ddAccent}{HTML}{185FA5}   \definecolor{ddAccentBg}{HTML}{E6F1FB} % neutral accent (data / anchors)
+
+% -- shared node + edge styles -------------------------------------------------------
+\tikzset{
+  ddfont/.style        = {font=\sffamily},
+  ddtiny/.style        = {font=\sffamily\scriptsize, text=ddMuted},
+  ddlabel/.style       = {font=\sffamily\footnotesize, text=ddMuted},
+  stage/.style         = {ddfont, draw=ddLine, line width=0.6pt, rounded corners=2pt,
+                          fill=ddSurface, inner sep=5pt, align=center, text=ddInk,
+                          minimum height=10mm, minimum width=22mm, font=\sffamily\small},
+  mono/.style          = {font=\ttfamily\small, text=ddInk},
+  verdict/.style       = {ddfont, draw=#1, line width=0.7pt, rounded corners=3pt,
+                          inner sep=6pt, align=left, text=ddInk},
+  flow/.style          = {-{Stealth[length=2.4mm]}, draw=ddMuted, line width=0.8pt},
+  grad/.style          = {-{Stealth[length=2.4mm]}, draw=ddIdent, line width=0.8pt,
+                          dashed, dash pattern=on 2.4pt off 1.8pt},
+  pill/.style 2 args   = {ddfont, font=\sffamily\scriptsize, draw=#1, fill=#2,
+                          rounded corners=5pt, inner xsep=5pt, inner ysep=2pt, text=#1},
+}
+
+% in-node sub-label text (small, muted) -- use inside a node body, e.g. \ddsub{detail}
+\newcommand{\ddsub}[1]{{\normalfont\sffamily\scriptsize\color{ddMuted}#1}}
+\endinput

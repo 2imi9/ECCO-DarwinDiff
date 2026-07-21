@@ -1,0 +1,189 @@
+{
+  "device": "NVIDIA GeForce RTX 5090 Laptop GPU",
+  "total_mem_gb": 23.88922119140625,
+  "records": [
+    {
+      "n_cells": 2000,
+      "n_steps": 50,
+      "train_peak_bytes": 36872704,
+      "forward_peak_bytes": 969216,
+      "oom": false
+    },
+    {
+      "n_cells": 2000,
+      "n_steps": 100,
+      "train_peak_bytes": 73199104,
+      "forward_peak_bytes": 969216,
+      "oom": false
+    },
+    {
+      "n_cells": 2000,
+      "n_steps": 200,
+      "train_peak_bytes": 145851904,
+      "forward_peak_bytes": 969216,
+      "oom": false
+    },
+    {
+      "n_cells": 2000,
+      "n_steps": 400,
+      "train_peak_bytes": 291157504,
+      "forward_peak_bytes": 969216,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 50,
+      "train_peak_bytes": 73711616,
+      "forward_peak_bytes": 1933312,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 100,
+      "train_peak_bytes": 146338816,
+      "forward_peak_bytes": 1933312,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 200,
+      "train_peak_bytes": 291593216,
+      "forward_peak_bytes": 1933312,
+      "oom": false
+    },
+    {
+      "n_cells": 4000,
+      "n_steps": 400,
+      "train_peak_bytes": 582102016,
+      "forward_peak_bytes": 1933312,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 50,
+      "train_peak_bytes": 145557504,
+      "forward_peak_bytes": 3829248,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 100,
+      "train_peak_bytes": 288917504,
+      "forward_peak_bytes": 3829248,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 200,
+      "train_peak_bytes": 575637504,
+      "forward_peak_bytes": 3829248,
+      "oom": false
+    },
+    {
+      "n_cells": 8000,
+      "n_steps": 400,
+      "train_peak_bytes": 1149077504,
+      "forward_peak_bytes": 3829248,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 50,
+      "train_peak_bytes": 289221120,
+      "forward_peak_bytes": 7619584,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 100,
+      "train_peak_bytes": 574021120,
+      "forward_peak_bytes": 7619584,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 200,
+      "train_peak_bytes": 1143621120,
+      "forward_peak_bytes": 7619584,
+      "oom": false
+    },
+    {
+      "n_cells": 16000,
+      "n_steps": 400,
+      "train_peak_bytes": 2282821120,
+      "forward_peak_bytes": 7619584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 50,
+      "train_peak_bytes": 578565120,
+      "forward_peak_bytes": 15235584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 100,
+      "train_peak_bytes": 1148165120,
+      "forward_peak_bytes": 15235584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 200,
+      "train_peak_bytes": 2287365120,
+      "forward_peak_bytes": 15235584,
+      "oom": false
+    },
+    {
+      "n_cells": 32000,
+      "n_steps": 400,
+      "train_peak_bytes": 4565765120,
+      "forward_peak_bytes": 15235584,
+      "oom": false
+    }
+  ],
+  "fit": {
+    "a_bytes": 4756307.73219614,
+    "b_bytes_per_cellstep": 356.4394774485178,
+    "r2": 0.9999939362076801,
+    "n": 20.0
+  },
+  "extrapolation": [
+    {
+      "label": "LLC90 global  \u00b7 time-mean",
+      "cells": 105300.0,
+      "steps": 200.0,
+      "pred_bytes": 7511371702.79798,
+      "pred_gb": 6.995510033143666
+    },
+    {
+      "label": "LLC90 global  \u00b7 seasonal",
+      "cells": 105300.0,
+      "steps": 2000.0,
+      "pred_bytes": 75070910258.39003,
+      "pred_gb": 69.91523342057134
+    },
+    {
+      "label": "LLC270 global \u00b7 time-mean",
+      "cells": 947700.0,
+      "steps": 200.0,
+      "pred_bytes": 67564294863.32425,
+      "pred_gb": 62.92415304419049
+    },
+    {
+      "label": "LLC270 global \u00b7 seasonal",
+      "cells": 947700.0,
+      "steps": 2000.0,
+      "pred_bytes": 675600141863.6528,
+      "pred_gb": 629.2016635310397
+    },
+    {
+      "label": "3-AOI native  \u00b7 seasonal (~20k cells)",
+      "cells": 20000.0,
+      "steps": 2000.0,
+      "pred_bytes": 14262335405.672909,
+      "pred_gb": 13.282834930040789
+    }
+  ]
+}

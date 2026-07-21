@@ -53,21 +53,25 @@ def run(inp, n_steps=100, n_alpfe=15, n_scav=21, bio_frac=0.5, lith_frac=0.5):
     bio_scale = bio_frac * float(scavenged0[mask].median()) / float(bio0[mask].median())
     lith_scale = lith_frac * float(scavenged0[mask].median()) / float(lith0[mask].median())
 
-    # ---- Control A: cancellation + W_SINK degeneracy (exact algebra) -------------
+    # ---- Control A: DFe cancels (the construction tautology) ---------------------
     ratio0 = scavenged0 / dfe0
-    # corr(pFe/DFe, DFe) is NOT the cancellation test: since pFe/DFe = scav*POC/W_SINK,
-    # this correlation is just corr(POC, DFe) (both track the iron state) -- it does NOT
-    # mean the observable carries DFe info. The DEFINITIVE cancellation proof is the
-    # W_SINK-invariance below: the observable is unchanged under (scav, W_SINK) scaling.
+    # pFe/DFe = scav*POC/W_SINK, so DFe cancels EXACTLY -- the observable carries no DFe
+    # information (this is the tautology behind the retracted "sharp well").
+    # corr(pFe/DFe, DFe) is just corr(POC, DFe) (both track the iron state), NOT DFe info.
     corr_poc_dfe = float(torch.corrcoef(torch.stack([torch.log(ratio0[mask]),
                                                      torch.log(dfe0[mask])]))[0, 1])
-    ratio_2x = (2 * scav0) * dfe0 * poc0 / (2 * w_sink) / dfe0     # scav,Wsink both x2
-    rel = float((ratio_2x[mask] / ratio0[mask] - 1).abs().max())
-    print("== Control A: cancellation / W_SINK degeneracy ==")
-    print(f"  corr(log pFe/DFe, log DFe) = {corr_poc_dfe:+.3f}  (this is just corr(POC,DFe); NOT a cancellation test)")
-    print(f"  DEFINITIVE: (scav, W_SINK)->(2scav, 2W_SINK) changes the observable by {rel:.2e}")
-    print(f"  => the observable = scav*POC/W_SINK: DFe cancels, and (scav, W_SINK) are perfectly")
-    print(f"     degenerate. The self-twin's sharp scav well only exists because W_SINK is fixed at truth.")
+    # NOTE (corrected): this does NOT make (scav_rat, W_SINK) *perfectly* degenerate. An
+    # earlier version tested (2*scav)*poc0/(2*W_SINK) == scav*poc0/W_SINK -- a (2x)/(2y)
+    # algebraic identity on the FROZEN truth POC, not a model property. W_SINK is not an
+    # inert divisor: it sets POC (dPOC = mort - W_SINK*POC). The REAL forward experiment
+    # (scripts/iron_partitioning_forward_control.py) varies W_SINK inside the rollout and
+    # finds equal-scaling (2*scav, 2*W_SINK) changes the observable by ~69% (POC -> ~0.32x),
+    # so the pair is only PARTIALLY degenerate (W_SINK is partly self-identifying via POC).
+    print("== Control A: DFe cancellation (the construction tautology) ==")
+    print(f"  observable pFe/DFe = scav*POC/W_SINK -> DFe cancels exactly (no DFe information).")
+    print(f"  corr(log pFe/DFe, log DFe) = {corr_poc_dfe:+.3f}  (this is corr(POC,DFe), not DFe info)")
+    print(f"  (scav_rat, W_SINK) are NOT perfectly degenerate -- W_SINK sets POC; see the REAL")
+    print(f"   forward run in scripts/iron_partitioning_forward_control.py (~69% change, not 0).")
 
     # ---- Control B: contamination re-profile -------------------------------------
     def obs(field, scav_per_day, alpfe, contaminate):

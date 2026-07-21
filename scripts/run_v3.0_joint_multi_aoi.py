@@ -211,8 +211,12 @@ from darwindiff.glodap_loader import (
     surface_layer_glodap,
     to_mmol_per_m3,
 )
+from darwindiff.daniels_loader import (
+    bin_to_grid as bin_daniels_to_grid,
+    load_daniels_points,
+)
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
-from darwindiff.networks import DINN
+from darwindiff.networks import DINN, GlobalScalarNet
 from darwindiff.gating import (
     GATING_POLICIES,
     apply_gate,
@@ -243,12 +247,22 @@ GLODAP_ROOT = Path(os.environ.get(
     str(Path(__file__).resolve().parents[1] / "data" / "glodap"
         / "GLODAPv2.2016b_MappedClimatologies"),
 ))
+# Daniels et al. 2018 CP:PP compilation (PANGAEA 888182) — the real,
+# Darwin-INDEPENDENT R_PICPOC (rain-ratio) anchor. Used ONLY when
+# DANIELS_RPICPOC_W>0. Default follows the repo data/ convention; override with
+# DANIELS_DATA_PATH for the on-disk / cluster copy (/projects/schultz/qi.zim).
+DANIELS_PATH = Path(os.environ.get(
+    "DANIELS_DATA_PATH",
+    str(Path(__file__).resolve().parents[1] / "data" / "daniels"
+        / "Daniels_etal_2018_PANGAEA_888182.tab"),
+))
 CACHE_DIR = DATA_ROOT / "cache"
 
 IC_CACHE_NAME = {
     "eqpac": "darwin_ic_cache.npz",
     "natlsubpolar": "darwin_ic_cache_natlsubpolar.npz",
     "southernoceanpac": "darwin_ic_cache_southernoceanpac.npz",
+    "npsg": "darwin_ic_cache_npsg.npz",
 }
 
 AOIS_KEYS = [s.strip() for s in os.environ.get("AOIS", "eqpac,natlsubpolar").split(",") if s.strip()]
@@ -268,6 +282,11 @@ GEOTRACES_W = float(os.environ.get("GEOTRACES_W", "0.3"))
 GEOTRACES_SUB_W = float(os.environ.get("GEOTRACES_SUB_W", "1.0"))
 SUB_DEPTH_MIN = float(os.environ.get("GEOTRACES_SUB_DEPTH_MIN", "50.0"))
 SUB_DEPTH_MAX = float(os.environ.get("GEOTRACES_SUB_DEPTH_MAX", "1000.0"))
+# #163 independent-DATA validation: hold out this spatial fraction of surface GEOTRACES
+# iron cells from the TRAINING loss; after training, score the box's predicted DFe at
+# those unseen cells vs real held-out iron. 0 = off (default; byte-identical behaviour).
+GEOTRACES_HOLDOUT_FRAC = float(os.environ.get("GEOTRACES_HOLDOUT_FRAC", "0"))
+GEOTRACES_HOLDOUT_SEED = int(os.environ.get("GEOTRACES_HOLDOUT_SEED", "12345"))
 N_EPOCHS = int(os.environ.get("NB23_N_EPOCHS", "1500"))
 USE_DARWIN_IC = os.environ.get("DARWIN_IC", "1") == "1"   # default ON for v3.0
 # O7: NATIVE_RES=1 fits at full LLC270 native resolution (~9.8k cells/AOI) instead
@@ -313,7 +332,27 @@ CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
 # lambda lets each regime fit its preferred parameters while staying in the
 # same neighborhood, breaking the 5/6 shared-MLP architectural ceiling.
 USE_PER_AOI_DINN = os.environ.get("PER_AOI_DINN", "0") == "1"
+# Ablation control: GLOBAL_SCALAR=1 replaces the per-cell DINN with a single
+# global Carroll-6 vector per seed (shared across AOIs) — the differentiable
+# analogue of one Green's-functions parameter set. Everything else (forcing,
+# integrator, loss, scoring) is identical, so per-cell-vs-global is a clean A/B.
+# Takes precedence over PER_AOI_DINN (a global scalar is global by construction).
+USE_GLOBAL_SCALAR = os.environ.get("GLOBAL_SCALAR", "0") == "1"
 CONSISTENCY_LAMBDA = float(os.environ.get("CONSISTENCY_LAMBDA", "0.0"))
+# POOL_PARAMS (partial pooling): which Carroll-6 params are pulled toward cross-AOI
+# agreement by CONSISTENCY_LAMBDA; the rest stay fully per-AOI free. Implements the
+# 2026-06-25 diagnostic's structural prescription -- pool the FLAT growth pair
+# {Smallgrow, Biggrow} while FREEING the regime-dependent iron/grazing params per-AOI
+# (issue #143). Empty (default) = pool ALL six with uniform CONSISTENCY_LAMBDA, which
+# reproduces the prior penalty bitwise. Only active with PER_AOI_DINN=1.
+_CONS_PARAM_ORDER = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
+_pool_spec = [s.strip() for s in os.environ.get("POOL_PARAMS", "").split(",") if s.strip()]
+_bad_pool = [p for p in _pool_spec if p not in _CONS_PARAM_ORDER]
+if _bad_pool:
+    raise ValueError(f"POOL_PARAMS has unknown param(s) {_bad_pool}; valid: {_CONS_PARAM_ORDER}")
+_pool_set = set(_pool_spec) if _pool_spec else set(_CONS_PARAM_ORDER)
+# Per-parameter consistency weight (list of 6, canonical param order).
+CONSISTENCY_LAMBDA_VEC = [CONSISTENCY_LAMBDA if p in _pool_set else 0.0 for p in _CONS_PARAM_ORDER]
 # PIC_ABS_W: absolute-units MSE loss weight on surface PIC against the Darwin
 # pic_binned target. The existing pic_z term (line ~660) constrains spatial
 # pattern only; with z-score normalisation the per-cell R_PICPOC and biomass
@@ -374,6 +413,32 @@ RATIO_MAX = float(os.environ.get("RATIO_MAX", "inf"))
 # settled params). Default 0.0 = ratio loss on from epoch 0 (constant = legacy).
 RATIO_SCHED_START = float(os.environ.get("RATIO_SCHED_START", "0.0"))
 _RATIO_W_NOW = RATIO_W  # mutable per-epoch effective ratio weight (updated in the loop)
+# DANIELS_RPICPOC_W: scale-normalized MSE on the box's surface PIC:POC ratio vs
+# the REAL, Darwin-INDEPENDENT rain ratio from the Daniels et al. 2018 CP:PP
+# incubation compilation (PANGAEA 888182). Unlike RATIO_W -- whose target is
+# Darwin's OWN per-cell PIC/POC, making any R_PICPOC recovery graded against it
+# circular (Carroll never tuned R_PICPOC to rain-ratio data) -- this target is
+# direct calcite:primary-production observations binned per-AOI to a geometric-
+# mean rain ratio (CP/PP is log-normal). It breaks the circularity and tests the
+# regional-variability hypothesis: the real eqpac surface rain ratio (~0.04
+# geomean, 1.6x the global ~0.025) exceeds the global mean, so a single global
+# constant is mis-specified in our constraining AOI. Same orthogonal handle on
+# R_PICPOC as RATIO_W (mort_total cancels in the box ratio). Coverage is sparse;
+# AOIs with no Daniels samples (e.g. southernoceanpac, npsg) get an empty mask
+# and the term auto-gates off there. Default 0 = off (legacy reproduces bitwise).
+DANIELS_RPICPOC_W = float(os.environ.get("DANIELS_RPICPOC_W", "0.0"))
+# DANIELS_DEPTH_MAX: surface depth cut (m) for Daniels samples. The box is a
+# surface mixed-layer model and the rain ratio shoals with light, so a surface
+# cut keeps the target comparable to the box's surface PIC:POC. Default 50 m
+# (matches the box H_MLD and the GEOTRACES surface cut). Only used when
+# DANIELS_RPICPOC_W>0; cached Daniels points are loaded once when first needed.
+DANIELS_DEPTH_MAX = float(os.environ.get("DANIELS_DEPTH_MAX", "50.0"))
+# Per-AOI multiplier on the DANIELS term ONLY (parity with RATIO_AOI_W). Lets the
+# Daniels anchor act where it has coverage and be tuned per-region. Default 1.0.
+DANIELS_AOI_W = {k: float(os.environ.get(f"DANIELS_AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
+# Lazily-loaded global Daniels point cloud (parsed once, binned per-AOI). None
+# until the first AOI bundle that needs it; stays None when the term is off.
+_DANIELS_POINTS = None
 # POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
 # diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
 # observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
@@ -450,6 +515,9 @@ print(f"Seeds: {SEEDS} (N={N_SEEDS})")
 print(f"Config: fet_w={FET_W}, pinn_w={PINN_W}, geo_surf_w={GEOTRACES_W}, "
       f"geo_sub_w={GEOTRACES_SUB_W}, poc_sub_w={POC_SUB_W}, darwin_ic={USE_DARWIN_IC}")
 print(f"        epochs={N_EPOCHS}, subsurface depth: [{SUB_DEPTH_MIN}, {SUB_DEPTH_MAX}] m")
+if DANIELS_RPICPOC_W > 0:
+    print(f"        daniels_rpicpoc_w={DANIELS_RPICPOC_W} (real CP:PP anchor, "
+          f"depth<={DANIELS_DEPTH_MAX}m), per-AOI mult={DANIELS_AOI_W}")
 print()
 
 
@@ -779,6 +847,9 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         "poc_abs_target_t": oa_t, "poc_abs_mask_t": oa_mk, "poc_abs_mask_f": oa_mf, "n_poc_abs_f": oa_nf, "n_poc_abs": 0,
         "alk_abs_target_t": aa_t, "alk_abs_mask_t": aa_mk, "alk_abs_mask_f": aa_mf, "n_alk_abs_f": aa_nf, "n_alk_abs": 0,
         "ratio_target_t": rt_, "ratio_mask_t": rmk, "ratio_mask_f": rmf, "n_ratio_f": rnf, "n_ratio": 0,
+        # Native path builds no Daniels target (1deg-only); reuse the ratio zero
+        # stub since n_daniels=0 gates the term off (tensors never read).
+        "daniels_target_t": rt_, "daniels_mask_t": rmk, "daniels_mask_f": rmf, "n_daniels_f": rnf, "n_daniels": 0,
         "posi_target_t": ps_t, "posi_mask_t": ps_mk, "posi_mask_f": ps_mf, "n_posi_f": ps_nf, "n_posi": 0,
         "posi_dw_target_t": pd_t, "posi_dw_mask_t": pd_mk, "posi_dw_mask_f": pd_mf, "n_posi_dw_f": pd_nf, "n_posi_dw": n_posi_dw,
         "f_co2_abs_target_t": fc_t, "f_co2_abs_mask_t": fc_mk, "f_co2_abs_mask_f": fc_mf, "n_f_co2_abs_f": fc_nf, "n_f_co2_abs": 0,
@@ -968,6 +1039,51 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                   f"mean={float(ratio_target_t[ratio_mask_t].mean()):.4f} (Carroll R_PICPOC=0.04245)")
         else:
             print(f"  [warn] RATIO_W={RATIO_W} but no finite-positive PIC&POC cells in AOI; loss term will be skipped")
+
+    # REAL R_PICPOC rain-ratio target (DANIELS_RPICPOC_W): the Daniels et al.
+    # 2018 CP:PP incubation compilation (PANGAEA 888182) binned to this AOI's
+    # 1deg grid as a per-cell GEOMETRIC-MEAN rain ratio (CP/PP is log-normal).
+    # Unlike RATIO_W (whose target is Darwin's OWN PIC/POC -> circular), this is
+    # a direct, Darwin-INDEPENDENT observation of calcite:primary production, so
+    # it breaks the circularity in grading R_PICPOC. Same scale-normalized MSE
+    # prep + bin convention as the GEOTRACES surface iron term (point cloud ->
+    # darwin_lats/lons cells). Built only when DANIELS_RPICPOC_W>0 (needs the
+    # external .tab); a zero target + empty mask reproduces legacy bitwise when
+    # off, and AOIs with no Daniels coverage get an empty mask (term gates off).
+    daniels_target_np = np.zeros_like(sst, dtype=np.float32)
+    daniels_mask_np = np.zeros_like(ocean_mask, dtype=bool)
+    n_daniels_pts = 0
+    if DANIELS_RPICPOC_W > 0:
+        global _DANIELS_POINTS
+        try:
+            if _DANIELS_POINTS is None:
+                _DANIELS_POINTS = load_daniels_points(DANIELS_PATH)
+            d_vals, d_mask, d_counts = bin_daniels_to_grid(
+                _DANIELS_POINTS,
+                np.asarray(targets["darwin_lats"]),
+                np.asarray(targets["darwin_lons"]),
+                depth_max=DANIELS_DEPTH_MAX,
+            )
+            if d_vals.shape == sst.shape:
+                daniels_mask_np = ocean_mask & d_mask & np.isfinite(d_vals) & (d_vals > 0)
+                daniels_target_np = np.where(daniels_mask_np, d_vals, 0.0).astype(np.float32)
+                n_daniels_pts = int(d_counts[daniels_mask_np].sum())
+            else:
+                print(f"  [warn] Daniels bin shape {d_vals.shape} != AOI {sst.shape}; skipping")
+        except Exception as e:
+            print(f"  [warn] DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} but Daniels load failed ({e}); loss term will be skipped")
+    daniels_target_t = torch.tensor(daniels_target_np).to(device)
+    daniels_mask_t = torch.tensor(daniels_mask_np, dtype=torch.bool).to(device)
+    daniels_mask_f = daniels_mask_t.to(torch.float32)
+    n_daniels = int(daniels_mask_np.sum())
+    n_daniels_f = daniels_mask_f.sum().clamp(min=1.0)
+    if DANIELS_RPICPOC_W > 0:
+        if n_daniels > 0:
+            print(f"  Daniels R_PICPOC target: {n_daniels} cells ({n_daniels_pts} samples), "
+                  f"geomean={float(np.exp(np.log(daniels_target_np[daniels_mask_np]).mean())):.4f} "
+                  f"(Darwin R_PICPOC=0.04245)")
+        else:
+            print(f"  [warn] DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} but no Daniels coverage in AOI; loss term will be skipped")
 
     # Dense Darwin POSi target (POSI_DARWIN_W). Darwin's own surface biogenic
     # silica (TRAC16, mmol Si/m^3) binned to the AOI 1deg grid -- a dense,
@@ -1181,6 +1297,19 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         np.where(geo_surf_loss_mask, geo_surf_target, 0.0).astype(np.float32)
     ).to(device)
     geo_surf_mask_t = torch.tensor(geo_surf_loss_mask, dtype=torch.bool).to(device)
+    # #163 held-out split: pull a spatial fraction of the iron cells OUT of the training
+    # mask; keep them for post-training scoring against real held-out iron.
+    geo_surf_holdout_mask_t = torch.zeros_like(geo_surf_mask_t)
+    if GEOTRACES_HOLDOUT_FRAC > 0:
+        _true = geo_surf_mask_t.nonzero(as_tuple=False)
+        if len(_true) > 0:
+            _n_hold = max(1, int(round(len(_true) * GEOTRACES_HOLDOUT_FRAC)))
+            _perm = torch.randperm(len(_true), generator=torch.Generator().manual_seed(GEOTRACES_HOLDOUT_SEED))
+            _hi = _true[_perm[:_n_hold]]
+            geo_surf_holdout_mask_t[_hi[:, 0], _hi[:, 1]] = True
+            geo_surf_mask_t = geo_surf_mask_t & ~geo_surf_holdout_mask_t
+            print(f"  [HOLDOUT] surface iron: {int(geo_surf_holdout_mask_t.sum())} of "
+                  f"{len(_true)} obs cells held out of training (frac={GEOTRACES_HOLDOUT_FRAC})")
     geo_surf_mask_f = geo_surf_mask_t.to(torch.float32)
     n_geo_surf_f = geo_surf_mask_f.sum().clamp(min=1.0)
 
@@ -1257,6 +1386,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
         "geo_surf_target_t": geo_surf_target_t, "geo_surf_mask_t": geo_surf_mask_t,
         "geo_surf_mask_f": geo_surf_mask_f, "n_geo_surf_f": n_geo_surf_f,
+        "geo_surf_holdout_mask_t": geo_surf_holdout_mask_t,
         "geo_sub_target_t": geo_sub_target_t, "geo_sub_mask_t": geo_sub_mask_t,
         "geo_sub_mask_f": geo_sub_mask_f, "n_geo_sub_f": n_geo_sub_f,
         "n_geo_surf": int(geo_surf_loss_mask.sum()),
@@ -1276,6 +1406,9 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "ratio_target_t": ratio_target_t, "ratio_mask_t": ratio_mask_t,
         "ratio_mask_f": ratio_mask_f, "n_ratio_f": n_ratio_f,
         "n_ratio": n_ratio,
+        "daniels_target_t": daniels_target_t, "daniels_mask_t": daniels_mask_t,
+        "daniels_mask_f": daniels_mask_f, "n_daniels_f": n_daniels_f,
+        "n_daniels": n_daniels,
         "posi_target_t": posi_target_t, "posi_mask_t": posi_mask_t,
         "posi_mask_f": posi_mask_f, "n_posi_f": n_posi_f,
         "n_posi": n_posi_in_ocean,
@@ -1367,7 +1500,18 @@ for i, b in enumerate(bundles):
 # matching prior behavior. In per-AOI mode each (seed, AOI) gets an
 # independent DINN, seeded as (seed + aoi_idx * 10000) for determinism.
 nets_per_aoi: dict[str, list[DINN]] = {}
-if USE_PER_AOI_DINN:
+if USE_GLOBAL_SCALAR:
+    print(f"\n[ABLATION] Building {N_SEEDS} GLOBAL-SCALAR nets (one global 6-vector "
+          f"per seed, shared across all AOIs — the single-Green's-functions control)...")
+    shared_nets = []
+    for s in SEEDS:
+        torch.manual_seed(s)
+        n = GlobalScalarNet(n_input_channels=n_input_channels,
+                            hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
+        shared_nets.append(n)
+    for k in AOIS_KEYS:
+        nets_per_aoi[k] = shared_nets  # alias: one global vector applied to every AOI/cell
+elif USE_PER_AOI_DINN:
     print(f"\nBuilding {N_SEEDS * N_AOIS} per-AOI DINN networks "
           f"(one per (seed, AOI); lambda_consistency={CONSISTENCY_LAMBDA})...")
     for aoi_idx, k in enumerate(AOIS_KEYS):
@@ -1561,6 +1705,22 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_ratio_f"] / scale
         z = z + _RATIO_W_NOW * RATIO_AOI_W[bundle["key"]] * l
 
+    # REAL R_PICPOC rain-ratio term (DANIELS_RPICPOC_W). Identical estimator to
+    # RATIO_W -- the box's per-cell surface PIC:POC ratio against a scale-
+    # normalized MSE target -- but the target is the Darwin-INDEPENDENT Daniels
+    # 2018 CP:PP observation (geometric-mean rain ratio per cell), not Darwin's
+    # own PIC/POC. This is the term that breaks the circularity: it asks the box
+    # to match REAL calcite-production data, per AOI, rather than the model whose
+    # calibration we are trying to recover. mort_total cancels in the box ratio,
+    # so it pins R_PICPOC orthogonally to the iron pair, exactly like RATIO_W.
+    # Gated on DANIELS_RPICPOC_W>0 AND in-AOI Daniels coverage (n_daniels>0).
+    if DANIELS_RPICPOC_W > 0 and bundle["n_daniels"] > 0:
+        daniels_pred = pic / poc.clamp(min=1e-9)
+        residual = (daniels_pred - bundle["daniels_target_t"][None]) * bundle["daniels_mask_f"][None]
+        scale = (bundle["daniels_target_t"][bundle["daniels_mask_t"]] ** 2).mean().clamp(min=1e-30)
+        l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_daniels_f"] / scale
+        z = z + DANIELS_RPICPOC_W * DANIELS_AOI_W[bundle["key"]] * l
+
     # POSi absolute-units MSE on a steady-state biogenic-silica diagnostic.
     # Compute bsi_1 = R_SI_C * (mort_diatom + graze_diatom) / W_SINK from the
     # integrated state's diatom biomass and the seed's per-cell diatomgraz
@@ -1611,305 +1771,341 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
 
 # ============================== Training ==================================
 
-print(f"\n=== v3.0 joint training: {N_AOIS} AOIs, {N_SEEDS} seeds, {N_EPOCHS} epochs ===")
-t0 = time.time()
-loss_history = torch.full((N_EPOCHS, N_SEEDS), float("nan"), dtype=torch.float32, device=device)
-per_aoi_history = {k: torch.full((N_EPOCHS, N_SEEDS), float("nan"),
-                                  dtype=torch.float32, device=device) for k in AOIS_KEYS}
+if __name__ == "__main__":
 
-_apply_consistency_penalty = USE_PER_AOI_DINN and CONSISTENCY_LAMBDA > 0
-for epoch in range(N_EPOCHS):
-    optimizer.zero_grad()
-    total_loss_per_seed = torch.zeros(N_SEEDS, device=device)
+    print(f"\n=== v3.0 joint training: {N_AOIS} AOIs, {N_SEEDS} seeds, {N_EPOCHS} epochs ===")
+    t0 = time.time()
+    loss_history = torch.full((N_EPOCHS, N_SEEDS), float("nan"), dtype=torch.float32, device=device)
+    per_aoi_history = {k: torch.full((N_EPOCHS, N_SEEDS), float("nan"),
+                                      dtype=torch.float32, device=device) for k in AOIS_KEYS}
 
-    # Ratio-loss warmup schedule (RATIO_SCHED_START > 0): hold the ratio term at 0
-    # until that fraction of epochs, then ramp linearly to full RATIO_W -- lets the
-    # growth/iron params settle before R_PICPOC's ratio constraint engages. Default
-    # 0.0 leaves _RATIO_W_NOW == RATIO_W (constant) so legacy reproduces bitwise.
-    if RATIO_SCHED_START > 0.0:
-        _frac = epoch / max(1, N_EPOCHS - 1)
-        _ramp = min(1.0, max(0.0, (_frac - RATIO_SCHED_START) / max(1e-9, 1.0 - RATIO_SCHED_START)))
-        _RATIO_W_NOW = RATIO_W * _ramp
+    _apply_consistency_penalty = USE_PER_AOI_DINN and CONSISTENCY_LAMBDA > 0
+    for epoch in range(N_EPOCHS):
+        optimizer.zero_grad()
+        total_loss_per_seed = torch.zeros(N_SEEDS, device=device)
 
-    # For each AOI, forward that AOI's nets (per seed) on its env input,
-    # integrate, compute loss, accumulate weighted. In shared mode the
-    # per-AOI lists alias the same set of per-seed nets (same parameters
-    # touched across AOIs), reproducing prior behavior bit-identically.
-    last_states_per_aoi = {}
-    last_params_per_aoi = {}
-    per_aoi_param_means = {} if _apply_consistency_penalty else None
-    for bundle in bundles:
-        env = bundle["env_1ch_dev"]
-        aoi_nets = nets_per_aoi[bundle["key"]]
-        per_seed_params = [bounded_params(net(env), bounds_dev) for net in aoi_nets]
-        params_b = torch.stack(per_seed_params, dim=1)  # [6, N_seeds, H, W]
-        # Stage 1 gating: route each parameter's gradient to only its AOI
-        # loss(es). Straight-through, so forward values (hence the per-AOI
-        # losses + the consistency penalty below) are bitwise identical to
-        # ungated; only the backward pass is masked.
-        params_for_loss = (
-            apply_gate(params_b, gate_vectors[bundle["key"]]) if USE_GATING else params_b
-        )
-        aoi_l, state_final = aoi_loss(bundle, params_for_loss)
-        total_loss_per_seed = total_loss_per_seed + bundle["weight"] * aoi_l
-        per_aoi_history[bundle["key"]][epoch] = aoi_l.detach()
-        last_states_per_aoi[bundle["key"]] = state_final.detach()
-        last_params_per_aoi[bundle["key"]] = params_b.detach()
+        # Ratio-loss warmup schedule (RATIO_SCHED_START > 0): hold the ratio term at 0
+        # until that fraction of epochs, then ramp linearly to full RATIO_W -- lets the
+        # growth/iron params settle before R_PICPOC's ratio constraint engages. Default
+        # 0.0 leaves _RATIO_W_NOW == RATIO_W (constant) so legacy reproduces bitwise.
+        if RATIO_SCHED_START > 0.0:
+            _frac = epoch / max(1, N_EPOCHS - 1)
+            _ramp = min(1.0, max(0.0, (_frac - RATIO_SCHED_START) / max(1e-9, 1.0 - RATIO_SCHED_START)))
+            _RATIO_W_NOW = RATIO_W * _ramp
+
+        # For each AOI, forward that AOI's nets (per seed) on its env input,
+        # integrate, compute loss, accumulate weighted. In shared mode the
+        # per-AOI lists alias the same set of per-seed nets (same parameters
+        # touched across AOIs), reproducing prior behavior bit-identically.
+        last_states_per_aoi = {}
+        last_params_per_aoi = {}
+        per_aoi_param_means = {} if _apply_consistency_penalty else None
+        for bundle in bundles:
+            env = bundle["env_1ch_dev"]
+            aoi_nets = nets_per_aoi[bundle["key"]]
+            per_seed_params = [bounded_params(net(env), bounds_dev) for net in aoi_nets]
+            params_b = torch.stack(per_seed_params, dim=1)  # [6, N_seeds, H, W]
+            # Stage 1 gating: route each parameter's gradient to only its AOI
+            # loss(es). Straight-through, so forward values (hence the per-AOI
+            # losses + the consistency penalty below) are bitwise identical to
+            # ungated; only the backward pass is masked.
+            params_for_loss = (
+                apply_gate(params_b, gate_vectors[bundle["key"]]) if USE_GATING else params_b
+            )
+            aoi_l, state_final = aoi_loss(bundle, params_for_loss)
+            total_loss_per_seed = total_loss_per_seed + bundle["weight"] * aoi_l
+            per_aoi_history[bundle["key"]][epoch] = aoi_l.detach()
+            last_states_per_aoi[bundle["key"]] = state_final.detach()
+            last_params_per_aoi[bundle["key"]] = params_b.detach()
+            if per_aoi_param_means is not None:
+                mask_f = bundle["mask_f"]; n_ocean_f = bundle["n_ocean_f"]
+                sums = (params_b * mask_f[None, None]).flatten(2).sum(dim=2)  # [6, N_seeds]
+                per_aoi_param_means[bundle["key"]] = sums / n_ocean_f
+
+        # Consistency penalty: sum_aoi sum_p ((mean_aoi_p - mean_avg_p) / mean_avg_p)^2
+        # per seed, then scaled by CONSISTENCY_LAMBDA. For 2 AOIs this differs
+        # from the literal (mean_A - mean_B)^2 / mean_avg^2 form by a factor of
+        # 1/2 -- absorbed into the lambda scale chosen at sweep time. Generalizes
+        # naturally to >2 AOIs once a 3rd AOI (e.g., SO Pacific) is added.
         if per_aoi_param_means is not None:
-            mask_f = bundle["mask_f"]; n_ocean_f = bundle["n_ocean_f"]
-            sums = (params_b * mask_f[None, None]).flatten(2).sum(dim=2)  # [6, N_seeds]
-            per_aoi_param_means[bundle["key"]] = sums / n_ocean_f
+            stacked = torch.stack([per_aoi_param_means[k] for k in AOIS_KEYS], dim=0)
+            # [N_AOIS, 6, N_seeds]
+            mean_over_aois = stacked.mean(dim=0)  # [6, N_seeds]
+            denom = mean_over_aois.abs().clamp(min=1e-30)
+            rel_dev_sq = ((stacked - mean_over_aois[None]) / denom[None]) ** 2  # [N_AOIS,6,N_seeds]
+            if len(set(CONSISTENCY_LAMBDA_VEC)) == 1:
+                # uniform lambda (default / POOL_PARAMS unset) -> exact legacy path (bitwise)
+                penalty_per_seed = CONSISTENCY_LAMBDA_VEC[0] * rel_dev_sq.sum(dim=(0, 1))
+            else:
+                # partial pooling: weight each param by its lambda before summing
+                lam = torch.tensor(CONSISTENCY_LAMBDA_VEC, device=rel_dev_sq.device,
+                                   dtype=rel_dev_sq.dtype)
+                penalty_per_seed = (lam[None, :, None] * rel_dev_sq).sum(dim=(0, 1))  # [N_seeds]
+            total_loss_per_seed = total_loss_per_seed + penalty_per_seed
 
-    # Consistency penalty: sum_aoi sum_p ((mean_aoi_p - mean_avg_p) / mean_avg_p)^2
-    # per seed, then scaled by CONSISTENCY_LAMBDA. For 2 AOIs this differs
-    # from the literal (mean_A - mean_B)^2 / mean_avg^2 form by a factor of
-    # 1/2 -- absorbed into the lambda scale chosen at sweep time. Generalizes
-    # naturally to >2 AOIs once a 3rd AOI (e.g., SO Pacific) is added.
-    if per_aoi_param_means is not None:
-        stacked = torch.stack([per_aoi_param_means[k] for k in AOIS_KEYS], dim=0)
-        # [N_AOIS, 6, N_seeds]
-        mean_over_aois = stacked.mean(dim=0)  # [6, N_seeds]
-        denom = mean_over_aois.abs().clamp(min=1e-30)
-        rel_dev_sq = ((stacked - mean_over_aois[None]) / denom[None]) ** 2
-        penalty_per_seed = rel_dev_sq.sum(dim=(0, 1))  # [N_seeds]
-        total_loss_per_seed = total_loss_per_seed + CONSISTENCY_LAMBDA * penalty_per_seed
+        total_loss = total_loss_per_seed.sum()
+        total_loss.backward()
+        optimizer.step()
+        loss_history[epoch] = total_loss_per_seed.detach()
 
-    total_loss = total_loss_per_seed.sum()
-    total_loss.backward()
-    optimizer.step()
-    loss_history[epoch] = total_loss_per_seed.detach()
+        if (epoch + 1) % 250 == 0 or epoch + 1 == N_EPOCHS:
+            mean_l = float(total_loss_per_seed.mean().item())
+            print(f"  epoch {epoch+1:4d}  per-seed joint loss: mean={mean_l:.3e}")
 
-    if (epoch + 1) % 250 == 0 or epoch + 1 == N_EPOCHS:
-        mean_l = float(total_loss_per_seed.mean().item())
-        print(f"  epoch {epoch+1:4d}  per-seed joint loss: mean={mean_l:.3e}")
-
-if device == "cuda":
-    torch.cuda.synchronize()
-elapsed = time.time() - t0
-print(f"\nDone in {elapsed:.0f}s ({elapsed/N_SEEDS:.1f}s amortized per seed)")
+    if device == "cuda":
+        torch.cuda.synchronize()
+    elapsed = time.time() - t0
+    print(f"\nDone in {elapsed:.0f}s ({elapsed/N_SEEDS:.1f}s amortized per seed)")
 
 
-# ============================== Recovery report ===========================
+    # ============================== Recovery report ===========================
 
-# PARAM_NAMES + CARROLL_VALUES come from the carroll6.PARAMS registry (imported
-# above) — the single source of truth for the parameter layout + Carroll optima.
-carroll_published = CARROLL_VALUES  # tensor of length 6
+    # PARAM_NAMES + CARROLL_VALUES come from the carroll6.PARAMS registry (imported
+    # above) — the single source of truth for the parameter layout + Carroll optima.
+    carroll_published = CARROLL_VALUES  # tensor of length 6
 
-all_results = []
-for seed_idx, seed in enumerate(SEEDS):
-    print(f"\n=== Seed {seed} recovery ===")
-    per_aoi_means = {}
-    # Cache per-AOI per-cell sums + cell counts in one forward pass each,
-    # then reuse for both per-AOI means and joint mean (Greptile P2 PR #48).
-    weighted_sum = torch.zeros(6, device=device)
-    weighted_count = torch.zeros((), device=device)
-    for bundle in bundles:
-        with torch.no_grad():
-            net = nets_per_aoi[bundle["key"]][seed_idx]
-            params_b = bounded_params(net(bundle["env_1ch_dev"]), bounds_dev)
-        mask_f = bundle["mask_f"]
-        n_ocean_f = bundle["n_ocean_f"]
-        per_cell_sum = (params_b * mask_f[None]).flatten(1).sum(dim=1)  # [6]
-        per_aoi_means[bundle["key"]] = (per_cell_sum / n_ocean_f).cpu().numpy()
-        weighted_sum = weighted_sum + per_cell_sum
-        weighted_count = weighted_count + mask_f.sum()
-    # Two joint-recovery interpretations:
-    #   cellweighted: cell-weighted mean across all AOIs combined (AOIs with
-    #     more cells dominate; previously the only definition).
-    #   aoiweighted:  equal-weight mean over per-AOI means (each AOI
-    #     contributes the same regardless of cell count). For regime-
-    #     specific parameters this honors N Atl's recovery quality even
-    #     though it has fewer cells than Eq Pac.
-    joint_means_cellweighted = (weighted_sum / weighted_count).cpu().numpy()
-    joint_means_aoiweighted = np.mean(
-        [per_aoi_means[k] for k in AOIS_KEYS], axis=0
-    )
-    # The "primary" joint_means used for n_cal_grade reporting is configurable
-    # via JOINT_RECOVERY_MODE; default "cellweighted" so previously-reported
-    # joint_recovered values reproduce bit-identically. Set to "aoiweighted"
-    # to use the equal-weight-per-AOI mean (better when one AOI has fewer
-    # cells but stronger constraint on a regime-specific parameter).
-    JOINT_RECOVERY_MODE = os.environ.get("JOINT_RECOVERY_MODE", "cellweighted")
-    if JOINT_RECOVERY_MODE == "cellweighted":
-        joint_means = joint_means_cellweighted
-    elif JOINT_RECOVERY_MODE == "aoiweighted":
-        joint_means = joint_means_aoiweighted
-    else:
-        raise ValueError(f"JOINT_RECOVERY_MODE={JOINT_RECOVERY_MODE!r}; "
-                         f"expected 'aoiweighted' or 'cellweighted'")
+    # #163 independent-DATA validation: score the box's final predicted DFe at the
+    # HELD-OUT iron cells (never seen in training) vs real GEOTRACES iron. Good skill =>
+    # the recovered params generalise to unseen real data (discovery, not just Carroll-consistency).
+    if GEOTRACES_HOLDOUT_FRAC > 0:
+        print()
+        print("=== HELD-OUT GEOTRACES iron validation (cells excluded from training) ===")
+        for _b in bundles:
+            _hm = _b.get("geo_surf_holdout_mask_t")
+            _sf = last_states_per_aoi.get(_b["key"]) if _hm is not None else None
+            if _hm is None or int(_hm.sum()) == 0 or _sf is None:
+                continue
+            _pred = _sf[I_DFE_1][:, _hm]                 # [N_seeds, n_hold]
+            _real = _b["geo_surf_target_t"][_hm]         # [n_hold]
+            _relerr = ((_pred - _real[None]).abs() / _real[None].clamp(min=1e-30)).mean(dim=1)
+            _ssr = ((_pred - _real[None]) ** 2).sum(dim=1)
+            _sst = ((_real - _real.mean()) ** 2).sum().clamp(min=1e-30)
+            _r2 = 1.0 - _ssr / _sst
+            print(f"  {_b['key']}: n_holdout={int(_hm.sum())}  "
+                  f"held-out rel-err mean={float(_relerr.mean()):.3f} (best {float(_relerr.min()):.3f})  "
+                  f"R2 mean={float(_r2.mean()):.3f} (best {float(_r2.max()):.3f})")
 
-    # Print per-AOI + joint table.
-    print(f"{'Param':<12} " + "  ".join(f"{k[:8]:>10s}" for k in AOIS_KEYS) + f"  {'JOINT':>10s}  {'Carroll':>10s}")
-    n_cal_joint = 0; n_exc_joint = 0
-    result_params = {}
-    for i, name in enumerate(PARAM_NAMES):
-        pub = float(carroll_published[i])
-        joint_val = float(joint_means[i])
-        joint_rel = abs(joint_val - pub) / abs(pub)
-        joint_band = band_of(joint_rel)
-        if joint_band == "Excellent": n_cal_joint += 1; n_exc_joint += 1
-        elif joint_band == "Cal-grade": n_cal_joint += 1
-        per_aoi_str = "  ".join(
-            f"{per_aoi_means[k][i]:>10.4g}" for k in AOIS_KEYS
+    all_results = []
+    for seed_idx, seed in enumerate(SEEDS):
+        print(f"\n=== Seed {seed} recovery ===")
+        per_aoi_means = {}
+        # Cache per-AOI per-cell sums + cell counts in one forward pass each,
+        # then reuse for both per-AOI means and joint mean (Greptile P2 PR #48).
+        weighted_sum = torch.zeros(6, device=device)
+        weighted_count = torch.zeros((), device=device)
+        for bundle in bundles:
+            with torch.no_grad():
+                net = nets_per_aoi[bundle["key"]][seed_idx]
+                params_b = bounded_params(net(bundle["env_1ch_dev"]), bounds_dev)
+            mask_f = bundle["mask_f"]
+            n_ocean_f = bundle["n_ocean_f"]
+            per_cell_sum = (params_b * mask_f[None]).flatten(1).sum(dim=1)  # [6]
+            per_aoi_means[bundle["key"]] = (per_cell_sum / n_ocean_f).cpu().numpy()
+            weighted_sum = weighted_sum + per_cell_sum
+            weighted_count = weighted_count + mask_f.sum()
+        # Two joint-recovery interpretations:
+        #   cellweighted: cell-weighted mean across all AOIs combined (AOIs with
+        #     more cells dominate; previously the only definition).
+        #   aoiweighted:  equal-weight mean over per-AOI means (each AOI
+        #     contributes the same regardless of cell count). For regime-
+        #     specific parameters this honors N Atl's recovery quality even
+        #     though it has fewer cells than Eq Pac.
+        joint_means_cellweighted = (weighted_sum / weighted_count).cpu().numpy()
+        joint_means_aoiweighted = np.mean(
+            [per_aoi_means[k] for k in AOIS_KEYS], axis=0
         )
-        print(f"{name:<12} {per_aoi_str}  {joint_val:>10.4g}  {pub:>10.4g}  joint={joint_band} ({joint_rel:.3f})")
-        # Also store both joint interpretations so analysis is not locked
-        # into the choice of JOINT_RECOVERY_MODE made at training time.
-        cw_val = float(joint_means_cellweighted[i])
-        cw_rel = abs(cw_val - pub) / abs(pub)
-        cw_band = band_of(cw_rel)
-        aw_val = float(joint_means_aoiweighted[i])
-        aw_rel = abs(aw_val - pub) / abs(pub)
-        aw_band = band_of(aw_rel)
-        result_params[name] = {
-            "joint_recovered": joint_val,
-            "joint_carroll_published": pub,
-            "joint_abs_rel_offset": joint_rel,
-            "joint_band": joint_band,
-            "joint_cellweighted_recovered": cw_val,
-            "joint_cellweighted_abs_rel_offset": cw_rel,
-            "joint_cellweighted_band": cw_band,
-            "joint_aoiweighted_recovered": aw_val,
-            "joint_aoiweighted_abs_rel_offset": aw_rel,
-            "joint_aoiweighted_band": aw_band,
-            "per_aoi_recovered": {k: float(per_aoi_means[k][i]) for k in AOIS_KEYS},
+        # The "primary" joint_means used for n_cal_grade reporting is configurable
+        # via JOINT_RECOVERY_MODE; default "cellweighted" so previously-reported
+        # joint_recovered values reproduce bit-identically. Set to "aoiweighted"
+        # to use the equal-weight-per-AOI mean (better when one AOI has fewer
+        # cells but stronger constraint on a regime-specific parameter).
+        JOINT_RECOVERY_MODE = os.environ.get("JOINT_RECOVERY_MODE", "cellweighted")
+        if JOINT_RECOVERY_MODE == "cellweighted":
+            joint_means = joint_means_cellweighted
+        elif JOINT_RECOVERY_MODE == "aoiweighted":
+            joint_means = joint_means_aoiweighted
+        else:
+            raise ValueError(f"JOINT_RECOVERY_MODE={JOINT_RECOVERY_MODE!r}; "
+                             f"expected 'aoiweighted' or 'cellweighted'")
+
+        # Print per-AOI + joint table.
+        print(f"{'Param':<12} " + "  ".join(f"{k[:8]:>10s}" for k in AOIS_KEYS) + f"  {'JOINT':>10s}  {'Carroll':>10s}")
+        n_cal_joint = 0; n_exc_joint = 0
+        result_params = {}
+        for i, name in enumerate(PARAM_NAMES):
+            pub = float(carroll_published[i])
+            joint_val = float(joint_means[i])
+            joint_rel = abs(joint_val - pub) / abs(pub)
+            joint_band = band_of(joint_rel)
+            if joint_band == "Excellent": n_cal_joint += 1; n_exc_joint += 1
+            elif joint_band == "Cal-grade": n_cal_joint += 1
+            per_aoi_str = "  ".join(
+                f"{per_aoi_means[k][i]:>10.4g}" for k in AOIS_KEYS
+            )
+            print(f"{name:<12} {per_aoi_str}  {joint_val:>10.4g}  {pub:>10.4g}  joint={joint_band} ({joint_rel:.3f})")
+            # Also store both joint interpretations so analysis is not locked
+            # into the choice of JOINT_RECOVERY_MODE made at training time.
+            cw_val = float(joint_means_cellweighted[i])
+            cw_rel = abs(cw_val - pub) / abs(pub)
+            cw_band = band_of(cw_rel)
+            aw_val = float(joint_means_aoiweighted[i])
+            aw_rel = abs(aw_val - pub) / abs(pub)
+            aw_band = band_of(aw_rel)
+            result_params[name] = {
+                "joint_recovered": joint_val,
+                "joint_carroll_published": pub,
+                "joint_abs_rel_offset": joint_rel,
+                "joint_band": joint_band,
+                "joint_cellweighted_recovered": cw_val,
+                "joint_cellweighted_abs_rel_offset": cw_rel,
+                "joint_cellweighted_band": cw_band,
+                "joint_aoiweighted_recovered": aw_val,
+                "joint_aoiweighted_abs_rel_offset": aw_rel,
+                "joint_aoiweighted_band": aw_band,
+                "per_aoi_recovered": {k: float(per_aoi_means[k][i]) for k in AOIS_KEYS},
+            }
+        print(f"       -> joint {n_cal_joint}/6 cal-grade ({n_exc_joint} Excellent)")
+
+        result = {
+            "seed": seed,
+            "aois": AOIS_KEYS,
+            "aoi_weights": AOI_W,
+            "n_aois": N_AOIS,
+            "geotraces_w": GEOTRACES_W,
+            "geotraces_sub_w": GEOTRACES_SUB_W,
+            "pinn_w": PINN_W,
+            "pinn_type": PINN_TYPE,
+            "use_darwin_ic": USE_DARWIN_IC,
+            "poc_sub_w": POC_SUB_W,
+            "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,
+            "n_geo_poc_subsurface_cells_per_aoi": {b["key"]: b["n_geo_poc"] for b in bundles},
+            "use_aoi_id_channel": USE_AOI_ID_CHANNEL,
+            "use_mld_channel": USE_MLD_CHANNEL,
+            "dinn_hidden_dim": DINN_HIDDEN_DIM,
+            "dinn_n_input_channels": n_input_channels,
+            "joint_recovery_mode": JOINT_RECOVERY_MODE,
+            "chl1_w_extra": CHL1_W_EXTRA,
+            "per_aoi_dinn": USE_PER_AOI_DINN,
+            "consistency_lambda": CONSISTENCY_LAMBDA,
+            "pool_params": sorted(_pool_set) if _pool_spec else "all",
+            "gating_policy": GATING_POLICY_SPEC if USE_GATING else "ungated",
+            "gating_map": {k: _gating_policy.get(k, []) for k in AOIS_KEYS} if USE_GATING else {},
+            "pic_abs_w": PIC_ABS_W,
+            "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
+            "poc_abs_w": POC_ABS_W,
+            "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
+            "alk_abs_w": ALK_ABS_W,
+            "alk_abs_source": ALK_ABS_SOURCE if ALK_ABS_W > 0 else None,
+            "n_alk_abs_cells_per_aoi": {b["key"]: b["n_alk_abs"] for b in bundles},
+            "ratio_w": RATIO_W,
+            "n_ratio_cells_per_aoi": {b["key"]: b["n_ratio"] for b in bundles},
+            "daniels_rpicpoc_w": DANIELS_RPICPOC_W,
+            "daniels_depth_max": DANIELS_DEPTH_MAX if DANIELS_RPICPOC_W > 0 else None,
+            "n_daniels_cells_per_aoi": {b["key"]: b["n_daniels"] for b in bundles},
+            "posi_w": POSI_W,
+            "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
+            "posi_darwin_w": POSI_DARWIN_W,
+            "primprod_w": PRIMPROD_W,
+            "n_posi_dw_cells_per_aoi": {b["key"]: b["n_posi_dw"] for b in bundles},
+            "w_sink_pic": _layer2.W_SINK_PIC,
+            "r_pic_dissol": _layer2.R_PIC_DISSOL,
+            "use_eppley_t": _layer2.USE_EPPLEY_T,
+            "a_e_eppley": _layer2.A_E_EPPLEY,
+            "t_ref_eppley": _layer2.T_REF_EPPLEY,
+            "f_co2_abs_w": F_CO2_ABS_W,
+            "n_f_co2_abs_cells_per_aoi": {b["key"]: b["n_f_co2_abs"] for b in bundles},
+            "use_mehrbach_k1k2": _carbonate.USE_MEHRBACH_K1K2,
+            "k_wanninkhof": _carbonate.K_WANNINKHOF,
+            "use_coccolith_only_calcite": _layer2.USE_COCCOLITH_ONLY_CALCITE,
+            "fet_w": FET_W,
+            "n_epochs": N_EPOCHS,
+            "n_seeds_in_batch": N_SEEDS,
+            "elapsed_s_total_batch": elapsed,
+            "loss_final": float(loss_history[-1, seed_idx].item()),
+            "per_aoi_loss_final": {k: float(per_aoi_history[k][-1, seed_idx].item()) for k in AOIS_KEYS},
+            "params": result_params,
+            "n_cal_grade": n_cal_joint,
+            "n_excellent": n_exc_joint,
         }
-    print(f"       -> joint {n_cal_joint}/6 cal-grade ({n_exc_joint} Excellent)")
-
-    result = {
-        "seed": seed,
-        "aois": AOIS_KEYS,
-        "aoi_weights": AOI_W,
-        "n_aois": N_AOIS,
-        "geotraces_w": GEOTRACES_W,
-        "geotraces_sub_w": GEOTRACES_SUB_W,
-        "pinn_w": PINN_W,
-        "pinn_type": PINN_TYPE,
-        "use_darwin_ic": USE_DARWIN_IC,
-        "poc_sub_w": POC_SUB_W,
-        "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,
-        "n_geo_poc_subsurface_cells_per_aoi": {b["key"]: b["n_geo_poc"] for b in bundles},
-        "use_aoi_id_channel": USE_AOI_ID_CHANNEL,
-        "use_mld_channel": USE_MLD_CHANNEL,
-        "dinn_hidden_dim": DINN_HIDDEN_DIM,
-        "dinn_n_input_channels": n_input_channels,
-        "joint_recovery_mode": JOINT_RECOVERY_MODE,
-        "chl1_w_extra": CHL1_W_EXTRA,
-        "per_aoi_dinn": USE_PER_AOI_DINN,
-        "consistency_lambda": CONSISTENCY_LAMBDA,
-        "gating_policy": GATING_POLICY_SPEC if USE_GATING else "ungated",
-        "gating_map": {k: _gating_policy.get(k, []) for k in AOIS_KEYS} if USE_GATING else {},
-        "pic_abs_w": PIC_ABS_W,
-        "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
-        "poc_abs_w": POC_ABS_W,
-        "n_poc_abs_cells_per_aoi": {b["key"]: b["n_poc_abs"] for b in bundles},
-        "alk_abs_w": ALK_ABS_W,
-        "alk_abs_source": ALK_ABS_SOURCE if ALK_ABS_W > 0 else None,
-        "n_alk_abs_cells_per_aoi": {b["key"]: b["n_alk_abs"] for b in bundles},
-        "ratio_w": RATIO_W,
-        "n_ratio_cells_per_aoi": {b["key"]: b["n_ratio"] for b in bundles},
-        "posi_w": POSI_W,
-        "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
-        "posi_darwin_w": POSI_DARWIN_W,
-        "primprod_w": PRIMPROD_W,
-        "n_posi_dw_cells_per_aoi": {b["key"]: b["n_posi_dw"] for b in bundles},
-        "w_sink_pic": _layer2.W_SINK_PIC,
-        "r_pic_dissol": _layer2.R_PIC_DISSOL,
-        "use_eppley_t": _layer2.USE_EPPLEY_T,
-        "a_e_eppley": _layer2.A_E_EPPLEY,
-        "t_ref_eppley": _layer2.T_REF_EPPLEY,
-        "f_co2_abs_w": F_CO2_ABS_W,
-        "n_f_co2_abs_cells_per_aoi": {b["key"]: b["n_f_co2_abs"] for b in bundles},
-        "use_mehrbach_k1k2": _carbonate.USE_MEHRBACH_K1K2,
-        "k_wanninkhof": _carbonate.K_WANNINKHOF,
-        "use_coccolith_only_calcite": _layer2.USE_COCCOLITH_ONLY_CALCITE,
-        "fet_w": FET_W,
-        "n_epochs": N_EPOCHS,
-        "n_seeds_in_batch": N_SEEDS,
-        "elapsed_s_total_batch": elapsed,
-        "loss_final": float(loss_history[-1, seed_idx].item()),
-        "per_aoi_loss_final": {k: float(per_aoi_history[k][-1, seed_idx].item()) for k in AOIS_KEYS},
-        "params": result_params,
-        "n_cal_grade": n_cal_joint,
-        "n_excellent": n_exc_joint,
-    }
-    all_results.append(result)
+        all_results.append(result)
 
 
-# ============================== Write JSONs =================================
+    # ============================== Write JSONs =================================
 
-SKIP_JSON_WRITE = os.environ.get("NB23_SKIP_JSON_WRITE", "0") == "1"
-# Allow redirecting JSON output to a shorter path -- on Windows, worktree
-# paths can push max-lever filenames past the 260-char MAX_PATH limit.
-out_dir = Path(os.environ.get("OUTPUT_DIR", str(Path(__file__).resolve().parent)))
-out_dir.mkdir(parents=True, exist_ok=True)
-if SKIP_JSON_WRITE:
-    print(f"\nNB23_SKIP_JSON_WRITE=1: skipping JSON write for {len(all_results)} results.")
-else:
-    aoi_tag = "-".join(AOIS_KEYS)
-    poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
-    geo_poc_tag = f"_geopocW{GEOTRACES_POC_SUB_W}" if GEOTRACES_POC_SUB_W > 0 else ""
-    aoi_id_tag = "_aoiid" if USE_AOI_ID_CHANNEL else ""
-    mld_tag = "_mld" if USE_MLD_CHANNEL else ""
-    hd_tag = f"_hd{DINN_HIDDEN_DIM}" if DINN_HIDDEN_DIM != 16 else ""
-    # Tag any non-default AOI weights so weight sweeps don't overwrite each other.
-    aoi_w_parts = [f"{k}{AOI_W[k]}" for k in AOIS_KEYS if AOI_W[k] != 1.0]
-    aoi_w_tag = ("_w-" + "-".join(aoi_w_parts)) if aoi_w_parts else ""
-    # JOINT_RECOVERY_MODE is read from each result row (constant across batch).
-    jrm = all_results[0]["joint_recovery_mode"] if all_results else "cellweighted"
-    jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
-    chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
-    peraoi_tag = f"_peraoi_lam{CONSISTENCY_LAMBDA}" if USE_PER_AOI_DINN else ""
-    _gate_preset = GATING_POLICY_SPEC if GATING_POLICY_SPEC in GATING_POLICIES else "custom"
-    gate_tag = f"_gate-{_gate_preset}" if USE_GATING else ""
-    pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
-    poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
-    alk_abs_tag = (f"_alkabsW{ALK_ABS_W}" + (f"-{ALK_ABS_SOURCE}" if ALK_ABS_SOURCE != "glodap" else "")) if ALK_ABS_W > 0 else ""
-    ratio_tag = f"_ratioW{RATIO_W}" if RATIO_W > 0 else ""
-    posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
-    posi_dw_tag = f"_posidwW{POSI_DARWIN_W}" if POSI_DARWIN_W > 0 else ""
-    wpic_tag = f"_wpic{_layer2.W_SINK_PIC}" if _layer2.W_SINK_PIC != _layer2.W_SINK else ""
-    rpicd_tag = f"_rpicd{_layer2.R_PIC_DISSOL}" if _layer2.R_PIC_DISSOL != _layer2.R_REMIN else ""
-    eppley_tag = f"_eppleyT{_layer2.A_E_EPPLEY}" if _layer2.USE_EPPLEY_T else ""
-    fco2_abs_tag = f"_fco2absW{F_CO2_ABS_W}" if F_CO2_ABS_W > 0 else ""
-    mehrbach_tag = "_mehrbach" if _carbonate.USE_MEHRBACH_K1K2 else ""
-    kw_tag = f"_kw{_carbonate.K_WANNINKHOF}" if _K_WANNINKHOF_OVERRIDE is not None else ""
-    cocco_tag = "_cocco" if _layer2.USE_COCCOLITH_ONLY_CALCITE else ""
-    for r in all_results:
-        out = out_dir / (
-            f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
-            f"_surf{GEOTRACES_W}"
-            f"_sub{GEOTRACES_SUB_W}"
-            f"_pinn{PINN_W}"
-            f"{poc_tag}"
-            f"{geo_poc_tag}"
-            f"{aoi_id_tag}"
-            f"{mld_tag}"
-            f"{hd_tag}"
-            f"{aoi_w_tag}"
-            f"{jrm_tag}"
-            f"{chl1_extra_tag}"
-            f"{peraoi_tag}"
-            f"{gate_tag}"
-            f"{pic_abs_tag}"
-            f"{poc_abs_tag}"
-            f"{alk_abs_tag}"
-            f"{ratio_tag}"
-            f"{posi_tag}"
-            f"{posi_dw_tag}"
-            f"{wpic_tag}"
-            f"{rpicd_tag}"
-            f"{eppley_tag}"
-            f"{fco2_abs_tag}"
-            f"{mehrbach_tag}"
-            f"{kw_tag}"
-            f"{cocco_tag}.json"
-        )
-        existed = out.is_file()
-        with out.open("w", encoding="utf-8") as f:
-            json.dump(r, f, indent=2, allow_nan=False)
-        suffix = " (overwrote existing)" if existed else ""
-        print(f"  wrote {out.name}{suffix}")
+    SKIP_JSON_WRITE = os.environ.get("NB23_SKIP_JSON_WRITE", "0") == "1"
+    # Allow redirecting JSON output to a shorter path -- on Windows, worktree
+    # paths can push max-lever filenames past the 260-char MAX_PATH limit.
+    out_dir = Path(os.environ.get("OUTPUT_DIR", str(Path(__file__).resolve().parent)))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if SKIP_JSON_WRITE:
+        print(f"\nNB23_SKIP_JSON_WRITE=1: skipping JSON write for {len(all_results)} results.")
+    else:
+        aoi_tag = "-".join(AOIS_KEYS)
+        poc_tag = f"_pocsubW{POC_SUB_W}" if POC_SUB_W > 0 else ""
+        geo_poc_tag = f"_geopocW{GEOTRACES_POC_SUB_W}" if GEOTRACES_POC_SUB_W > 0 else ""
+        aoi_id_tag = "_aoiid" if USE_AOI_ID_CHANNEL else ""
+        mld_tag = "_mld" if USE_MLD_CHANNEL else ""
+        hd_tag = f"_hd{DINN_HIDDEN_DIM}" if DINN_HIDDEN_DIM != 16 else ""
+        # Tag any non-default AOI weights so weight sweeps don't overwrite each other.
+        aoi_w_parts = [f"{k}{AOI_W[k]}" for k in AOIS_KEYS if AOI_W[k] != 1.0]
+        aoi_w_tag = ("_w-" + "-".join(aoi_w_parts)) if aoi_w_parts else ""
+        # JOINT_RECOVERY_MODE is read from each result row (constant across batch).
+        jrm = all_results[0]["joint_recovery_mode"] if all_results else "cellweighted"
+        jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
+        chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
+        peraoi_tag = f"_peraoi_lam{CONSISTENCY_LAMBDA}" if USE_PER_AOI_DINN else ""
+        _gate_preset = GATING_POLICY_SPEC if GATING_POLICY_SPEC in GATING_POLICIES else "custom"
+        gate_tag = f"_gate-{_gate_preset}" if USE_GATING else ""
+        pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
+        poc_abs_tag = f"_pocabsW{POC_ABS_W}" if POC_ABS_W > 0 else ""
+        alk_abs_tag = (f"_alkabsW{ALK_ABS_W}" + (f"-{ALK_ABS_SOURCE}" if ALK_ABS_SOURCE != "glodap" else "")) if ALK_ABS_W > 0 else ""
+        ratio_tag = f"_ratioW{RATIO_W}" if RATIO_W > 0 else ""
+        daniels_tag = f"_danielsW{DANIELS_RPICPOC_W}" if DANIELS_RPICPOC_W > 0 else ""
+        posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
+        posi_dw_tag = f"_posidwW{POSI_DARWIN_W}" if POSI_DARWIN_W > 0 else ""
+        wpic_tag = f"_wpic{_layer2.W_SINK_PIC}" if _layer2.W_SINK_PIC != _layer2.W_SINK else ""
+        rpicd_tag = f"_rpicd{_layer2.R_PIC_DISSOL}" if _layer2.R_PIC_DISSOL != _layer2.R_REMIN else ""
+        eppley_tag = f"_eppleyT{_layer2.A_E_EPPLEY}" if _layer2.USE_EPPLEY_T else ""
+        fco2_abs_tag = f"_fco2absW{F_CO2_ABS_W}" if F_CO2_ABS_W > 0 else ""
+        mehrbach_tag = "_mehrbach" if _carbonate.USE_MEHRBACH_K1K2 else ""
+        kw_tag = f"_kw{_carbonate.K_WANNINKHOF}" if _K_WANNINKHOF_OVERRIDE is not None else ""
+        cocco_tag = "_cocco" if _layer2.USE_COCCOLITH_ONLY_CALCITE else ""
+        for r in all_results:
+            out = out_dir / (
+                f"run_v3.0_joint_{aoi_tag}_seed{r['seed']}"
+                f"_surf{GEOTRACES_W}"
+                f"_sub{GEOTRACES_SUB_W}"
+                f"_pinn{PINN_W}"
+                f"{poc_tag}"
+                f"{geo_poc_tag}"
+                f"{aoi_id_tag}"
+                f"{mld_tag}"
+                f"{hd_tag}"
+                f"{aoi_w_tag}"
+                f"{jrm_tag}"
+                f"{chl1_extra_tag}"
+                f"{peraoi_tag}"
+                f"{gate_tag}"
+                f"{pic_abs_tag}"
+                f"{poc_abs_tag}"
+                f"{alk_abs_tag}"
+                f"{ratio_tag}"
+                f"{daniels_tag}"
+                f"{posi_tag}"
+                f"{posi_dw_tag}"
+                f"{wpic_tag}"
+                f"{rpicd_tag}"
+                f"{eppley_tag}"
+                f"{fco2_abs_tag}"
+                f"{mehrbach_tag}"
+                f"{kw_tag}"
+                f"{cocco_tag}.json"
+            )
+            existed = out.is_file()
+            with out.open("w", encoding="utf-8") as f:
+                json.dump(r, f, indent=2, allow_nan=False)
+            suffix = " (overwrote existing)" if existed else ""
+            print(f"  wrote {out.name}{suffix}")
 
-print(f"\nBatch summary: {N_AOIS} AOIs x {N_SEEDS} seeds in {elapsed:.0f}s "
-      f"({elapsed/N_SEEDS:.1f}s amortized per seed)")
+    print(f"\nBatch summary: {N_AOIS} AOIs x {N_SEEDS} seeds in {elapsed:.0f}s "
+          f"({elapsed/N_SEEDS:.1f}s amortized per seed)")

@@ -3,10 +3,11 @@
 hybrid, to tighten the laptop feasibility probe on an H200.
 
 Headline upgrade over the CPU probe: the iron-limitation closure f_fe(DFe) is
-learned by a neural net INSIDE the real differentiable biogeochemistry, trained
-across a BATCH of initial conditions spanning the iron-limitation knee (so the
-net sees the whole curve, not 4 points) -- both on clean and on 5%-noisy
-targets. Plus GPU confirmations of deep gradient flow and exact param recovery.
+learned by a neural net INSIDE the differentiable 0-D box (a simplified stand-in,
+NOT real Darwin), trained across a BATCH of initial conditions spanning the
+iron-limitation knee (so the net sees the whole curve, not 4 points). This is a
+self-twin test (recover a known closure from synthetic targets) -- it proves the
+technique, not real-data biology. Plus GPU checks of gradient flow + param recovery.
 
 Writes a JSON result. Run on the cluster via scripts/slurm/run_hybrid_h200.sbatch.
 """
@@ -85,13 +86,17 @@ def train_ude(noise=0.0, epochs=3500, B=256, n=200, w=64, lr=3e-3):
         dfe_lo = float(clean[:, :, 0].clamp_min(1e-7).min())
         dfe_hi = float(clean[:, :, 0].max())
     net = make_net(w)
+    # Normalize the tiny iron input (log10): raw DFe ~1e-5 is unresolvable by the
+    # net, which stalls the closure near ~5% error (this was the H200 "plateau" --
+    # a formulation bug, not compute). With this fix the closure recovers to ~0.5%.
+    ffe = lambda x: net((torch.log10(x.clamp_min(1e-9)) + 4.7) / 2.0)
     opt = torch.optim.Adam(net.parameters(), lr=lr)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, epochs)
     scale = target.abs().mean((0, 1)) + 1e-8
     t0, loss0 = time.time(), None
     for it in range(epochs):
         opt.zero_grad()
-        pred = rollout_b(state0, CARROLL, DT, n, net, snaps)
+        pred = rollout_b(state0, CARROLL, DT, n, ffe, snaps)
         loss = (((pred - target) / scale) ** 2).mean()
         loss.backward(); opt.step(); sched.step()
         if it == 0:
@@ -102,8 +107,8 @@ def train_ude(noise=0.0, epochs=3500, B=256, n=200, w=64, lr=3e-3):
     loss1 = loss.item()
     with torch.no_grad():
         grid = torch.linspace(dfe_lo, dfe_hi, 400, device=DEV).unsqueeze(1)
-        mae = (net(grid).squeeze(1) - FFE_TRUE(grid.squeeze(1))).abs().mean().item()
-        rmse = ((net(grid).squeeze(1) - FFE_TRUE(grid.squeeze(1))) ** 2).mean().sqrt().item()
+        mae = (ffe(grid).squeeze(1) - FFE_TRUE(grid.squeeze(1))).abs().mean().item()
+        rmse = ((ffe(grid).squeeze(1) - FFE_TRUE(grid.squeeze(1))) ** 2).mean().sqrt().item()
     return {"noise": noise, "epochs": epochs, "batch_ics": B, "rollout_steps": n,
             "loss_init": loss0, "loss_final": loss1, "loss_drop_x": loss0 / max(loss1, 1e-12),
             "ffe_curve_MAE": mae, "ffe_curve_RMSE": rmse, "train_sec": round(time.time() - t0, 1),

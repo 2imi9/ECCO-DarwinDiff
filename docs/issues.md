@@ -1,5 +1,7 @@
 # Issue tracker conventions
 
+> **⚠ SUPERSEDED FRAMING (2026-06-27).** Dated manual snapshot; the live GitHub tracker is canonical. Project is a surrogate-to-model identifiability study over 4 observable params; '5/6 ceiling' framing is superseded (see [STATUS.md](../STATUS.md)).
+
 How DarwinDiff issues are filed, labeled, and prioritized. Sibling to `CONTRIBUTING.md` (branch / PR / commit conventions).
 
 ## Label taxonomy
@@ -74,7 +76,7 @@ When something lands without labels:
 - [`CONTRIBUTING.md`](../CONTRIBUTING.md) — branch naming, commit / PR conventions, merge policy.
 - [`docs/cluster_roadmap.md`](cluster_roadmap.md) — tier-1 / tier-2 EV ranking and decision tree.
 - [`STATUS.md`](../STATUS.md) — live state of model + sweep results.
-- [`docs/findings/v3.1_closeout.md`](findings/v3.1_closeout.md) — paper-prep technical writeup.
+- [`docs/findings/v3.1_closeout.md`](archive/findings/v3.1_closeout.md) — paper-prep technical writeup.
 
 ## Current label snapshot
 
