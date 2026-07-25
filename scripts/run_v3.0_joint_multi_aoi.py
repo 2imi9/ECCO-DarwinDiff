@@ -278,6 +278,15 @@ N_SEEDS = len(SEEDS)
 FET_W = float(os.environ.get("NB23_FET_WEIGHT", "1.0"))
 PINN_W = float(os.environ.get("NB23_PINN_WEIGHT", "3.0"))
 PINN_TYPE = os.environ.get("NB23_PINN_TYPE", "drift").lower()
+# DARWIN_PATTERN_W: scalar multiplier on the ENTIRE base z-scored Darwin-output
+# pattern block (FeT + Chl1-5 + POC + PIC + DIC + ALK + co2_flux, normalized by
+# FET_W+10). These are the non-fidelity "pattern" terms (paper gap-(a)); the box
+# homogenizes so they cannot carry circulation-driven structure. Set to 0 for the
+# "anchors-only" ablation (red-team rebuttal_diff 4): keep only the real absolute
+# anchors (GEOTRACES iron, Daniels calcite, GEOTRACES bSi) + PINN physics, and test
+# whether the trio survives without the Darwin-pattern scaffold. Default 1.0 =
+# bit-identical no-op (1.0 * z == z exactly).
+DARWIN_PATTERN_W = float(os.environ.get("DARWIN_PATTERN_W", "1.0"))
 GEOTRACES_W = float(os.environ.get("GEOTRACES_W", "0.3"))
 GEOTRACES_SUB_W = float(os.environ.get("GEOTRACES_SUB_W", "1.0"))
 SUB_DEPTH_MIN = float(os.environ.get("GEOTRACES_SUB_DEPTH_MIN", "50.0"))
@@ -315,6 +324,22 @@ DINN_HIDDEN_DIM = int(os.environ.get("DINN_HIDDEN_DIM", "16"))
 # regime-distinctive (winter convection in N Atl vs perennial-thermocline
 # in Eq Pac) and biology-relevant.
 USE_MLD_CHANNEL = os.environ.get("MLD_CHANNEL", "0") == "1"
+# v3.1: additional environmental covariate channels for the DINN input, appended
+# after SST / AOI-ID / MLD. Each is one shared-z-scored [H,W] field. All default
+# OFF -> the env tensor is bitwise-identical to the SST-only baseline. Motivation:
+# NN size and patch-overlap both failed to move recovery; richer *input
+# information* (particle-flux / mixing / carbonate covariates) is an orthogonal
+# lever for the per-cell param field, esp. the scav_rat sink leg. Latitude is
+# deliberately NOT offered here (a geographic-location cheat like AOI_ID, not a
+# physical covariate). Fields come from the same v05 caches the box is forced by.
+_EXTRA_ENV_SPEC = [
+    ("WIND_CHANNEL",    "wind_raw_for_env",    "wind"),      # 10m wind speed (gas exch / dust / mixing)
+    ("SSS_CHANNEL",     "sss_raw_for_env",     "SSS"),       # sea-surface salinity (carbonate)
+    ("PCO2_CHANNEL",    "pco2_raw_for_env",    "pCO2atm"),   # atmospheric pCO2
+    ("CO2FLUX_CHANNEL", "co2flux_raw_for_env", "CO2flux"),   # air-sea CO2 flux
+]
+_ENABLED_EXTRA_ENV = [(rawkey, lbl) for (flag, rawkey, lbl) in _EXTRA_ENV_SPEC
+                      if os.environ.get(flag, "0") == "1"]
 # CHL1_W_EXTRA adds an EXTRA Chl1 (diatom chl) z-score loss term on top of
 # the existing per-PFT chl_z term. Targets diatomgraz recovery: the 5/6
 # seeds that consistently miss diatomgraz do so at ~0.75 off Carroll, and
@@ -439,6 +464,27 @@ DANIELS_AOI_W = {k: float(os.environ.get(f"DANIELS_AOI_W_{k.upper()}", "1.0")) f
 # Lazily-loaded global Daniels point cloud (parsed once, binned per-AOI). None
 # until the first AOI bundle that needs it; stays None when the term is off.
 _DANIELS_POINTS = None
+# DUST_ANCHOR_W: informative Gaussian PRIOR on the physical alpfe -- the reduced-form,
+# out-of-manifold iron SOURCE constraint. Adds, per seed,
+#     DUST_ANCHOR_W * ((alpfe_phys - DUST_ANCHOR_MU) / DUST_ANCHOR_SIGMA)**2
+# to the total loss, where alpfe_phys is the cell-weighted-mean physical alpfe across
+# ALL AOIs (index 0 of the Carroll-6 vector -- the same "joint" alpfe the recovery
+# report grades). Unlike the spatial anchors above this is NOT a spatial loss and needs
+# no new AOI: it pins the SOURCE leg of the iron budget from data completely independent
+# of the box (Xu & Weber 2021 Al-inverse soluble-Fe deposition / v05 Mahowald soluble-Fe
+# deposition, AOI-aggregated in the dust-dominated Saharan N. Atlantic = 1.15; widened
+# by the Fe:Al molar + 60-config ensemble uncertainty to sigma ~ 0.7, a factor-~2 bound).
+# See docs/findings/2026-07-22_dust_anchor_phase0.md. The whole prior block is guarded by
+# DUST_ANCHOR_W > 0, so the default 0.0 is a BITWISE no-op (no graph node is created,
+# no accumulator touched). MU/SIGMA are consulted only when the weight is > 0.
+DUST_ANCHOR_W = float(os.environ.get("DUST_ANCHOR_W", "0.0"))
+DUST_ANCHOR_MU = float(os.environ.get("DUST_ANCHOR_MU", "1.15"))
+DUST_ANCHOR_SIGMA = float(os.environ.get("DUST_ANCHOR_SIGMA", "0.7"))
+if DUST_ANCHOR_W > 0:
+    if DUST_ANCHOR_SIGMA <= 0:
+        raise ValueError(f"DUST_ANCHOR_SIGMA must be > 0; got {DUST_ANCHOR_SIGMA}")
+    print(f"        dust_anchor_w={DUST_ANCHOR_W} (alpfe SOURCE prior N(mu={DUST_ANCHOR_MU}, "
+          f"sigma={DUST_ANCHOR_SIGMA}); Xu-Weber Al-inverse / v05 Mahowald, Saharan N. Atl)")
 # POSI_W: absolute-units MSE loss on a steady-state biogenic-silica
 # diagnostic (mmol Si / m^3) against the surface GEOTRACES IDP2025 bSi
 # observation (bSi_LPT_CONC + bSi_SPT_CONC, QC 49/50, depth <= 50 m). bSi
@@ -707,6 +753,13 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     sst_raw_for_env = np.where(ocean_mask, sst, 15.0).astype(np.float32)
     env_1ch = sst_raw_for_env[None]
     mld_raw_for_env = np.where(ocean_mask & np.isfinite(mld), mld, 30.0).astype(np.float32)
+    # v3.1 extra env covariate channels (native; SSS is constant here — no native SSS).
+    wind_raw_for_env = np.where(ocean_mask & np.isfinite(wind), wind, 7.0).astype(np.float32)
+    sss_raw_for_env = np.where(ocean_mask & np.isfinite(sss), sss, 35.0).astype(np.float32)
+    pco2_raw_for_env = np.where(
+        ocean_mask & np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)
+    co2flux_raw_for_env = np.where(
+        ocean_mask & np.isfinite(co2_flux_obs), co2_flux_obs, 0.0).astype(np.float32)
 
     mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
     mask_f = mask_dev.to(torch.float32); n_ocean_f = mask_f.sum()
@@ -836,6 +889,8 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         "ocean_mask": ocean_mask, "n_ocean": n_ocean,
         "mask_dev": mask_dev, "mask_f": mask_f, "n_ocean_f": n_ocean_f,
         "env_1ch_dev": env_1ch_dev, "mld_raw_for_env": mld_raw_for_env,
+        "wind_raw_for_env": wind_raw_for_env, "sss_raw_for_env": sss_raw_for_env,
+        "pco2_raw_for_env": pco2_raw_for_env, "co2flux_raw_for_env": co2flux_raw_for_env,
         "T_dev": T_dev, "S_dev": S_dev, "wind_dev": wind_dev, "pco2_atm_dev": pco2_atm_dev,
         "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z,
         "primprod_z": None, "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
@@ -898,6 +953,13 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     env_1ch = sst_raw_for_env[None]  # [1, H, W] (will be z-scored shared after bundle load)
     # Stash MLD raw for the optional 3rd channel (shared-scaled after bundle load).
     mld_raw_for_env = np.where(ocean_mask & np.isfinite(mld), mld, 30.0).astype(np.float32)
+    # v3.1 extra env covariate channels (shared-scaled after bundle load; gated by flags).
+    wind_raw_for_env = np.where(ocean_mask & np.isfinite(wind), wind, 7.0).astype(np.float32)
+    sss_raw_for_env = np.where(ocean_mask & np.isfinite(sss), sss, 35.0).astype(np.float32)
+    pco2_raw_for_env = np.where(
+        ocean_mask & np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)
+    co2flux_raw_for_env = np.where(
+        ocean_mask & np.isfinite(co2_flux_obs), co2_flux_obs, 0.0).astype(np.float32)
 
     # Move everything to device.
     mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
@@ -1381,6 +1443,8 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "mask_dev": mask_dev, "mask_f": mask_f, "n_ocean_f": n_ocean_f,
         "env_1ch_dev": env_1ch_dev,
         "mld_raw_for_env": mld_raw_for_env,
+        "wind_raw_for_env": wind_raw_for_env, "sss_raw_for_env": sss_raw_for_env,
+        "pco2_raw_for_env": pco2_raw_for_env, "co2flux_raw_for_env": co2flux_raw_for_env,
         "T_dev": T_dev, "S_dev": S_dev, "wind_dev": wind_dev, "pco2_atm_dev": pco2_atm_dev,
         "fet_z": fet_z, "poc_z": poc_z, "pic_z": pic_z, "dic_z": dic_z, "alk_z": alk_z, "primprod_z": primprod_z,
         "co2_flux_z": co2_flux_z, "chl_z": chl_z, "poc_l2_z": poc_l2_z,
@@ -1466,7 +1530,17 @@ if USE_MLD_CHANNEL:
     _shared_mld_std = _mld_std_raw if (np.isfinite(_mld_std_raw) and _mld_std_raw > 0) else 1.0
     print(f"Shared-scale MLD z-score: mean={_shared_mld_mean:.2f} m, std={_shared_mld_std:.2f} m")
 
-n_input_channels = 1 + (1 if USE_AOI_ID_CHANNEL else 0) + (1 if USE_MLD_CHANNEL else 0)
+# v3.1: shared-scale stats for the extra env covariate channels (wind/SSS/pCO2/CO2flux).
+_extra_env_stats = {}
+for (_rawkey, _lbl) in _ENABLED_EXTRA_ENV:
+    _vals = np.concatenate([b[_rawkey][b["ocean_mask"]] for b in bundles])
+    _m = float(np.nanmean(_vals)); _s_raw = float(np.nanstd(_vals))
+    _s = _s_raw if (np.isfinite(_s_raw) and _s_raw > 0) else 1.0
+    _extra_env_stats[_rawkey] = (_m, _s)
+    print(f"Shared-scale {_lbl} z-score: mean={_m:.4g}, std={_s:.4g}")
+
+n_input_channels = (1 + (1 if USE_AOI_ID_CHANNEL else 0) + (1 if USE_MLD_CHANNEL else 0)
+                    + len(_ENABLED_EXTRA_ENV))
 
 for i, b in enumerate(bundles):
     sst_np = b["env_1ch_dev"].cpu().numpy()[0]
@@ -1485,6 +1559,12 @@ for i, b in enumerate(bundles):
         channels.append(mld_z)
         extra_info.append(f"MLD z-range [{mld_z[b['ocean_mask']].min():.2f}, "
                           f"{mld_z[b['ocean_mask']].max():.2f}]")
+    for (_rawkey, _lbl) in _ENABLED_EXTRA_ENV:
+        _m, _s = _extra_env_stats[_rawkey]
+        _ch = (b[_rawkey] - _m) / _s
+        _ch = np.where(b["ocean_mask"], _ch, 0.0).astype(np.float32)
+        channels.append(_ch)
+        extra_info.append(f"{_lbl} z[{_ch[b['ocean_mask']].min():.2f},{_ch[b['ocean_mask']].max():.2f}]")
     env_arr = np.stack(channels, axis=0)
     b["env_1ch_dev"] = torch.tensor(env_arr, dtype=torch.float32).to(device)
     base = f"  {b['key']}: SST z-range [{sst_z[b['ocean_mask']].min():.2f}, {sst_z[b['ocean_mask']].max():.2f}]"
@@ -1530,7 +1610,8 @@ else:
     for k in AOIS_KEYS:
         nets_per_aoi[k] = shared_nets  # alias: all AOIs reference the same per-seed nets
 print(f"  DINN: n_input_channels={n_input_channels}  hidden_dim={DINN_HIDDEN_DIM}  "
-      f"(AOI_ID={USE_AOI_ID_CHANNEL}, MLD={USE_MLD_CHANNEL})")
+      f"(AOI_ID={USE_AOI_ID_CHANNEL}, MLD={USE_MLD_CHANNEL}, "
+      f"extra={[lbl for (_rk, lbl) in _ENABLED_EXTRA_ENV]})")
 
 all_params = []
 seen_param_ids: set[int] = set()
@@ -1612,7 +1693,7 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         + tb(dic,      bundle["dic_z"])
         + tb(alk,      bundle["alk_z"])
         + tb(co2_pred, bundle["co2_flux_z"])
-    ) / (FET_W + 10.0)
+    ) * DARWIN_PATTERN_W / (FET_W + 10.0)
 
     if PINN_W > 0:
         alpfe_b = params_b[P.alpfe]; scav_rat_b = params_b[P.scav_rat]
@@ -1800,6 +1881,14 @@ if __name__ == "__main__":
         last_states_per_aoi = {}
         last_params_per_aoi = {}
         per_aoi_param_means = {} if _apply_consistency_penalty else None
+        # Dust-anchor accumulators (alpfe SOURCE prior). Cell-weighted sum of the
+        # physical alpfe (param index 0) over all AOIs' ocean cells, per seed, plus
+        # the total ocean-cell count -- combined after the AOI loop into the joint
+        # cell-weighted alpfe the prior pins. Only built when the prior is ON so
+        # DUST_ANCHOR_W=0 stays a bitwise no-op (no tensor allocation, no graph node).
+        if DUST_ANCHOR_W > 0:
+            _dust_alpfe_sum = torch.zeros(N_SEEDS, device=device)
+            _dust_cell_count = torch.zeros((), device=device)
         for bundle in bundles:
             env = bundle["env_1ch_dev"]
             aoi_nets = nets_per_aoi[bundle["key"]]
@@ -1817,6 +1906,12 @@ if __name__ == "__main__":
             per_aoi_history[bundle["key"]][epoch] = aoi_l.detach()
             last_states_per_aoi[bundle["key"]] = state_final.detach()
             last_params_per_aoi[bundle["key"]] = params_b.detach()
+            if DUST_ANCHOR_W > 0:
+                # Accumulate the raw (ungated) physical alpfe so the SOURCE prior's
+                # gradient reaches alpfe regardless of any per-AOI gating routing.
+                _mf = bundle["mask_f"]
+                _dust_alpfe_sum = _dust_alpfe_sum + (params_b[0] * _mf[None]).flatten(1).sum(dim=1)
+                _dust_cell_count = _dust_cell_count + _mf.sum()
             if per_aoi_param_means is not None:
                 mask_f = bundle["mask_f"]; n_ocean_f = bundle["n_ocean_f"]
                 sums = (params_b * mask_f[None, None]).flatten(2).sum(dim=2)  # [6, N_seeds]
@@ -1842,6 +1937,14 @@ if __name__ == "__main__":
                                    dtype=rel_dev_sq.dtype)
                 penalty_per_seed = (lam[None, :, None] * rel_dev_sq).sum(dim=(0, 1))  # [N_seeds]
             total_loss_per_seed = total_loss_per_seed + penalty_per_seed
+
+        # Dust anchor (alpfe SOURCE prior): informative Gaussian prior on the joint
+        # cell-weighted physical alpfe. DUST_ANCHOR_W * ((alpfe_phys - mu)/sigma)^2 per
+        # seed. Guarded so weight 0 leaves total_loss_per_seed untouched (bitwise no-op).
+        if DUST_ANCHOR_W > 0:
+            alpfe_phys = _dust_alpfe_sum / _dust_cell_count.clamp(min=1e-30)  # [N_seeds]
+            dust_penalty = DUST_ANCHOR_W * ((alpfe_phys - DUST_ANCHOR_MU) / DUST_ANCHOR_SIGMA) ** 2
+            total_loss_per_seed = total_loss_per_seed + dust_penalty
 
         total_loss = total_loss_per_seed.sum()
         total_loss.backward()
@@ -1981,6 +2084,7 @@ if __name__ == "__main__":
             "n_geo_poc_subsurface_cells_per_aoi": {b["key"]: b["n_geo_poc"] for b in bundles},
             "use_aoi_id_channel": USE_AOI_ID_CHANNEL,
             "use_mld_channel": USE_MLD_CHANNEL,
+            "env_extra_channels": [lbl for (_rk, lbl) in _ENABLED_EXTRA_ENV],
             "dinn_hidden_dim": DINN_HIDDEN_DIM,
             "dinn_n_input_channels": n_input_channels,
             "joint_recovery_mode": JOINT_RECOVERY_MODE,
@@ -2002,6 +2106,9 @@ if __name__ == "__main__":
             "daniels_rpicpoc_w": DANIELS_RPICPOC_W,
             "daniels_depth_max": DANIELS_DEPTH_MAX if DANIELS_RPICPOC_W > 0 else None,
             "n_daniels_cells_per_aoi": {b["key"]: b["n_daniels"] for b in bundles},
+            "dust_anchor_w": DUST_ANCHOR_W,
+            "dust_anchor_mu": DUST_ANCHOR_MU if DUST_ANCHOR_W > 0 else None,
+            "dust_anchor_sigma": DUST_ANCHOR_SIGMA if DUST_ANCHOR_W > 0 else None,
             "posi_w": POSI_W,
             "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
             "posi_darwin_w": POSI_DARWIN_W,
@@ -2018,6 +2125,7 @@ if __name__ == "__main__":
             "k_wanninkhof": _carbonate.K_WANNINKHOF,
             "use_coccolith_only_calcite": _layer2.USE_COCCOLITH_ONLY_CALCITE,
             "fet_w": FET_W,
+            "darwin_pattern_w": DARWIN_PATTERN_W,
             "n_epochs": N_EPOCHS,
             "n_seeds_in_batch": N_SEEDS,
             "elapsed_s_total_batch": elapsed,
@@ -2061,6 +2169,7 @@ if __name__ == "__main__":
         alk_abs_tag = (f"_alkabsW{ALK_ABS_W}" + (f"-{ALK_ABS_SOURCE}" if ALK_ABS_SOURCE != "glodap" else "")) if ALK_ABS_W > 0 else ""
         ratio_tag = f"_ratioW{RATIO_W}" if RATIO_W > 0 else ""
         daniels_tag = f"_danielsW{DANIELS_RPICPOC_W}" if DANIELS_RPICPOC_W > 0 else ""
+        dust_tag = f"_dustW{DUST_ANCHOR_W}" if DUST_ANCHOR_W > 0 else ""
         posi_tag = f"_posiW{POSI_W}" if POSI_W > 0 else ""
         posi_dw_tag = f"_posidwW{POSI_DARWIN_W}" if POSI_DARWIN_W > 0 else ""
         wpic_tag = f"_wpic{_layer2.W_SINK_PIC}" if _layer2.W_SINK_PIC != _layer2.W_SINK else ""
@@ -2091,6 +2200,7 @@ if __name__ == "__main__":
                 f"{alk_abs_tag}"
                 f"{ratio_tag}"
                 f"{daniels_tag}"
+                f"{dust_tag}"
                 f"{posi_tag}"
                 f"{posi_dw_tag}"
                 f"{wpic_tag}"

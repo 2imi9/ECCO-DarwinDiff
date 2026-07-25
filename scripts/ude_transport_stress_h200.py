@@ -284,6 +284,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--quick", action="store_true", help="tiny grids for a smoke test")
+    ap.add_argument("--skip-envelope", action="store_true",
+                    help="skip EXP-A (the memory-envelope sweep that deliberately OOMs and needs "
+                         "H200-class memory); runs the science experiments (C/D/B) only, so the job "
+                         "is GPU-agnostic and OOM-safe. Use for the mass-drift/blow-up diagnostic (#7/#176).")
     args = ap.parse_args()
 
     out = Path(args.out_dir)
@@ -308,7 +312,10 @@ def main() -> int:
     exp_c_closure_recovery(out, device, params, args.quick)
     exp_d_regularized_recovery(out, device, params, args.quick)
     exp_b_conservation(out, device, params, args.quick)
-    exp_a_envelope(out, device, params, args.quick)
+    if args.skip_envelope:
+        print("SKIP EXP-A (envelope) per --skip-envelope; science experiments done", flush=True)
+    else:
+        exp_a_envelope(out, device, params, args.quick)
     print("SWEEP COMPLETE", flush=True)
     return 0
 

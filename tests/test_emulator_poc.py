@@ -54,6 +54,37 @@ def test_split_raises_when_no_valid_pairs():
         ep.build_splits(_data([0, 1000, 2000, 3000, 4000]), val_frac=0.3, adjacency_tol=1.0)
 
 
+def test_split_rejects_uniformly_sparse_axis():
+    # Every gap == median but ~2 months: the median-based test would accept all pairs
+    # as one-step and mislabel multi-month jumps as next-month skill. Must raise (#191).
+    times = np.arange(12) * 61.0  # ~2-month uniform stride
+    with pytest.raises(RuntimeError, match="uniformly-sparse"):
+        ep.build_splits(_data(times), val_frac=0.3, adjacency_tol=1.6)
+
+
+def test_split_iter_axis_uniformly_sparse_rejected():
+    # The [0, 1000, 2000, ...]-style uniform axis (here mapped to >1-month day gaps)
+    # is the exact case from #191 and must be flagged, not silently accepted.
+    times = np.arange(8) * 90.0  # uniform 3-month stride
+    with pytest.raises(RuntimeError, match="uniformly-sparse"):
+        ep.build_splits(_data(times), val_frac=0.3, adjacency_tol=1.6)
+
+
+def test_split_expected_step_days_overrides_guard():
+    # Declaring the true cadence bypasses the guard and grades pairs at that cadence.
+    times = np.arange(12) * 61.0
+    s = ep.build_splits(_data(times), val_frac=0.3, adjacency_tol=1.6, expected_step_days=61.0)
+    assert len(s["train_pairs"]) > 0 and len(s["val_pairs"]) > 0
+    assert s["adjacency_ref_days"] == 61.0
+
+
+def test_split_normal_monthly_series_unaffected():
+    # A normal ~monthly series (30-day gaps) is NOT flagged and behaves as before.
+    s = ep.build_splits(_data(np.arange(10) * 30.0), val_frac=0.3, adjacency_tol=1.6)
+    assert len(s["train_pairs"]) > 0 and len(s["val_pairs"]) > 0
+    assert s["adjacency_ref_days"] == s["median_step_days"] == 30.0
+
+
 # ---------------------------------------------------------------------------
 # standardize — z-score from TRAIN months only (no leakage)
 # ---------------------------------------------------------------------------

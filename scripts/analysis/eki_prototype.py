@@ -23,6 +23,8 @@ Pure numpy, CPU, seconds. Deterministic (fixed RNG seed) so verify_run can gate 
 """
 import numpy as np
 
+from eki_core import eki  # shared, unit-tested EKI core (scripts/analysis/eki_core.py)
+
 RNG = np.random.default_rng(0)
 
 # ---- truth + observation (FeMIP mean concentration) ----
@@ -31,25 +33,6 @@ LOG_FE_OBS = np.log(FE_OBS)
 SIGMA_OBS = 0.24                    # log-space obs noise (~24% CV, the FeMIP concentration spread)
 J = 400                            # ensemble size
 N_ITER = 30                        # EKI iterations (linear G -> converges fast)
-
-
-def eki(y, gamma, forward, u0, n_iter=N_ITER):
-    """Ensemble Kalman Inversion (Iglesias-Law-Stuart 2013), perturbed-observation form.
-    y: obs vector (d,), gamma: obs cov (d,d), forward: u[K,J]->G[d,J], u0: init ensemble [K,J].
-    Returns the posterior ensemble [K,J]."""
-    u = u0.copy()
-    d = y.shape[0]
-    for _ in range(n_iter):
-        G = forward(u)                                   # [d, J]
-        u_bar = u.mean(1, keepdims=True)
-        G_bar = G.mean(1, keepdims=True)
-        du, dG = u - u_bar, G - G_bar
-        C_uG = (du @ dG.T) / (J - 1)                     # [K, d]
-        C_GG = (dG @ dG.T) / (J - 1) + gamma             # [d, d]
-        K_gain = C_uG @ np.linalg.inv(C_GG)              # [K, d]
-        noise = RNG.multivariate_normal(np.zeros(d), gamma, size=J).T   # [d, J]
-        u = u + K_gain @ (y[:, None] + noise - G)
-    return u
 
 
 def summarise(u, label):
@@ -81,7 +64,7 @@ print("EKI prototype: iron source<->scavenging degeneracy (single-box)")
 print("=" * 74)
 print("\nPART 1 - concentration only (Lever 2: EKI posterior, no Hessian inverted)")
 G_conc = lambda u: (u[0] - u[1])[None, :]                # ln Fe* = lnS - lnk
-post1 = eki(np.array([LOG_FE_OBS]), np.array([[SIGMA_OBS**2]]), G_conc, u0)
+post1 = eki(np.array([LOG_FE_OBS]), np.array([[SIGMA_OBS**2]]), G_conc, u0, n_iter=N_ITER, rng=RNG)
 r1 = summarise(post1, "concentration only")
 print("    => the observable pins the RATIO; residence time roams the sloppy ridge (the FeMIP degeneracy).")
 
@@ -93,7 +76,7 @@ LOG_TAU_PRIOR, SIGMA_TAU = np.log(TAU0), 0.4
 G_aug = lambda u: np.vstack([u[0] - u[1], -u[1]])        # [ln Fe*, ln tau]
 y_aug = np.array([LOG_FE_OBS, LOG_TAU_PRIOR])
 gamma_aug = np.diag([SIGMA_OBS**2, SIGMA_TAU**2])
-post2 = eki(y_aug, gamma_aug, G_aug, u0)
+post2 = eki(y_aug, gamma_aug, G_aug, u0, n_iter=N_ITER, rng=RNG)
 r2 = summarise(post2, "concentration + residence-time prior")
 print("    => the ratio stays pinned AND the residence time is now bounded to the prior — the")
 print("       identifiable direction is estimated, the sloppy one is prior-controlled, not pretended-known.")
