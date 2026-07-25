@@ -1,0 +1,100 @@
+% darwindiff-tikz-v2.sty -- figure design system, revision 2.
+%
+% WHY THIS REPLACES darwindiff-tikz.sty
+% The v1 palette was Okabe-Ito-adjacent and its header claimed greyscale safety. It does not
+% have it: Okabe-Ito's sky-blue and orange sit at relative luminance 40.5% and 41.6%, a
+% greyscale contrast ratio of 1.02 -- indistinguishable in a monochrome print. Several other
+% standard schemes fail the same test (Tol bright 1.02, seaborn colorblind 1.01, ColorBrewer
+% Dark2 1.03).
+%
+% This revision adopts Paul Tol's SRON `high-contrast' scheme, which is an even LUMINANCE
+% LADDER and is therefore the only one of the candidates that is simultaneously CVD-safe and
+% greyscale-safe (worst adjacent pair 2.11, blue vs gold 4.52).
+%
+%   ddBlue  #004488   Y =  5.8 %
+%   ddRed   #BB5566   Y = 18.0 %
+%   ddGold  #DDAA33   Y = 44.4 %
+%
+% The ladder has exactly three rungs, so THERE IS NO FOURTH CHROMATIC CATEGORY. That
+% constraint is load-bearing rather than unfortunate: it is what forces "unobservable by
+% construction" to be rendered achromatically, outside the colour system, instead of as the
+% worst-scoring colour in it. See the ddexcluded style.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{darwindiff-tikz-v2}[2026/07/25 DarwinDiff figure system r2]
+
+\RequirePackage{tikz}
+\RequirePackage{xcolor}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{helvet}
+\RequirePackage{amsmath}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,backgrounds,fit,calc,%
+  decorations.pathreplacing}
+
+% ---- categorical: Tol high-contrast ------------------------------------------------
+\definecolor{ddBlue}{HTML}{004488}   % a REAL, ABSOLUTE observation constrains this
+\definecolor{ddGold}{HTML}{DDAA33}   % constrained only by pattern / a model-internal field
+\definecolor{ddRed} {HTML}{BB5566}   % the derivative channel. STROKE ONLY -- never a fill.
+% ---- neutrals ------------------------------------------------------------------------
+\definecolor{ddInk}  {HTML}{1A1A1A}  % all text, all node borders
+\definecolor{ddMute} {HTML}{595959}  % forward-flow arrows, secondary text
+\definecolor{ddRule} {HTML}{B0B0B0}  % hairlines, band rules, scope outlines
+\definecolor{ddFixed}{HTML}{EDEDED}  % fixed, non-learned machinery
+\definecolor{ddWash} {HTML}{F7F7F7}  % panel background, used sparingly
+
+% ---- size ladder (absolute pt; figures are drawn AT FINAL SIZE, never \resizebox) -----
+% A scale factor silently destroys the 6 pt floor, so scaling is prohibited by convention.
+\newcommand{\fPanel}{\fontsize{8}{9.5}\selectfont\bfseries}
+\newcommand{\fHead} {\fontsize{7.5}{9}\selectfont\bfseries}
+\newcommand{\fBody} {\fontsize{7.5}{9}\selectfont}
+\newcommand{\fNum}  {\fontsize{7}{8.5}\selectfont\bfseries}
+\newcommand{\fNote} {\fontsize{6.5}{8}\selectfont}
+
+\tikzset{
+  % -- typography roles ---------------------------------------------------------------
+  ddbody/.style   = {font=\sffamily\fBody,  text=ddInk},
+  ddhead/.style   = {font=\sffamily\fHead,  text=ddMute},
+  ddnote/.style   = {font=\sffamily\fNote,  text=ddMute},
+  ddnum/.style    = {font=\sffamily\fNum,   text=ddInk},
+  ddparam/.style  = {font=\ttfamily\fBody,  text=ddInk},   % parameter names are identifiers
+  ddpanel/.style  = {font=\sffamily\fPanel, text=ddInk},
+  % -- shape grammar ------------------------------------------------------------------
+  % rounded rect  = a LEARNED operator (has parameters we fit)
+  % sharp rect    = DATA / state / observation (something that IS, not something that DOES)
+  % dashed rect   = a SCOPE annotation, never a computational object
+  ddlearned/.style = {ddbody, draw=ddInk, line width=0.75pt, rounded corners=1.2pt,
+                      fill=white, align=center, inner sep=3.2pt},
+  dddata/.style    = {ddbody, draw=ddInk, line width=0.75pt, sharp corners,
+                      fill=white, align=center, inner sep=3.2pt},
+  ddfixedbox/.style= {dddata, fill=ddFixed},
+  ddscope/.style   = {draw=ddRule, line width=0.75pt, rounded corners=1.2pt, fill=none,
+                      dash pattern=on 3pt off 2.25pt},
+  % out-of-scope: achromatic, dashed, italic. Deliberately NOT red -- red means gradient,
+  % not "bad" -- and deliberately given no tint, no stripe, nothing to compare against.
+  ddexcluded/.style= {font=\sffamily\itshape\fBody, text=ddMute, draw=ddRule,
+                      line width=0.75pt, rounded corners=1.2pt, fill=white,
+                      dash pattern=on 3pt off 2.25pt, align=center, inner sep=3.2pt},
+  % -- line-weight ladder --------------------------------------------------------------
+  ddhair/.style    = {draw=ddRule, line width=0.4pt},
+  ddflow/.style    = {draw=ddMute, line width=0.75pt,
+                      -{Stealth[length=2.2mm,width=1.7mm]},
+                      shorten >=1.5pt, shorten <=1.5pt},
+  % exactly ONE element per figure may use 1.6pt. In the method figure it is the backward
+  % pass, because the backward pass is what the paper is about.
+  ddgrad/.style    = {draw=ddRed, line width=1.6pt,
+                      -{Stealth[length=2.8mm,width=2.2mm]},
+                      shorten >=1.5pt, shorten <=1.5pt},
+  % open double-head = the direction along which sensitivity VANISHES (a degeneracy)
+  ddnull/.style    = {draw=ddRed, line width=1.1pt,
+                      {Stealth[length=2.4mm,width=1.9mm,open]}-{Stealth[length=2.4mm,width=1.9mm,open]}},
+  ddelide/.style   = {draw=ddMute, line width=0.75pt, dash pattern=on 1.2pt off 1.2pt},
+}
+
+% Evidence-class stripe: a 2.1 mm full-strength vertical bar at a row's left edge.
+% Full strength only -- pale tints of two different hues are greyscale-indistinguishable
+% (measured 1.26), which is the single most likely way to break this system.
+% #1 = colour, #2 = x, #3 = y-centre, #4 = half-height
+\newcommand{\ddstripe}[4]{\fill[#1] (#2,{#3-#4}) rectangle ++(0.21,{2*#4});}
+
+% in-node secondary text
+\newcommand{\ddsub}[1]{{\normalfont\sffamily\fNote\color{ddMute}#1}}
+\endinput

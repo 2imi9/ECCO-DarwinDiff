@@ -1,0 +1,107 @@
+<svg viewBox="0 0 1180 640" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',system-ui,-apple-system,sans-serif">
+  <defs>
+    <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3a4048"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="42" font-size="25" font-weight="700" fill="#1F2328">Toward a geometry-aware 3-D / global emulator</text>
+  <text x="40" y="68" font-size="14.5" fill="#6b7580">Our 2-D emulator runs a flat FFT on the cubed-sphere LLC270 grid. SFNO (NVIDIA/Anandkumar) and GINO (Anandkumar) respect geometry. Test whether it moves the numbers before committing.</text>
+  <line x1="40" y1="84" x2="1140" y2="84" stroke="#e3e6e9" stroke-width="1.2"/>
+
+  <!-- ===== Panel 1: flat FFT (current) ===== -->
+  <g>
+    <rect x="40" y="110" width="352" height="316" rx="12" fill="#fbf6f6" stroke="#B23A48" stroke-width="1.4"/>
+    <text x="216" y="138" font-size="15" font-weight="700" fill="#B23A48" text-anchor="middle">CURRENT — flat 2-D FFT</text>
+    <text x="216" y="158" font-size="11.5" fill="#6b7580" text-anchor="middle">assumes a periodic rectangle</text>
+
+    <!-- distorted lat-lon grid -->
+    <g stroke="#c9ced3" stroke-width="1" fill="none">
+      <rect x="86" y="182" width="260" height="150"/>
+      <line x1="86" y1="207" x2="346" y2="207"/><line x1="86" y1="232" x2="346" y2="232"/>
+      <line x1="86" y1="257" x2="346" y2="257"/><line x1="86" y1="282" x2="346" y2="282"/>
+      <line x1="86" y1="307" x2="346" y2="307"/>
+      <line x1="130" y1="182" x2="130" y2="332"/><line x1="173" y1="182" x2="173" y2="332"/>
+      <line x1="216" y1="182" x2="216" y2="332"/><line x1="259" y1="182" x2="259" y2="332"/>
+      <line x1="302" y1="182" x2="302" y2="332"/>
+    </g>
+    <!-- seam + pole artifacts -->
+    <line x1="86" y1="182" x2="346" y2="182" stroke="#B23A48" stroke-width="3"/>
+    <line x1="86" y1="332" x2="346" y2="332" stroke="#B23A48" stroke-width="3"/>
+    <text x="216" y="176" font-size="10" fill="#B23A48" text-anchor="middle" font-weight="700">pole rows over-weighted / aliased</text>
+    <line x1="346" y1="182" x2="346" y2="332" stroke="#B23A48" stroke-width="3" stroke-dasharray="4 3"/>
+    <text x="368" y="260" font-size="10" fill="#B23A48" text-anchor="middle" font-weight="700" transform="rotate(90 368 260)">artificial seam</text>
+
+    <text x="216" y="360" font-size="11.5" fill="#3a4048" text-anchor="middle">cube-face edges + poles are discontinuities</text>
+    <text x="216" y="378" font-size="11.5" fill="#3a4048" text-anchor="middle">the periodic FFT does not see</text>
+    <text x="216" y="404" font-size="11" fill="#6b7580" text-anchor="middle" font-style="italic">works at the equator; degrades toward edges/poles</text>
+  </g>
+
+  <path d="M394,268 L432,268" stroke="#3a4048" stroke-width="1.8" marker-end="url(#a3)"/>
+
+  <!-- ===== Panel 2: SFNO ===== -->
+  <g>
+    <rect x="436" y="110" width="352" height="316" rx="12" fill="#f2f8f7" stroke="#0B7A75" stroke-width="1.6"/>
+    <text x="612" y="138" font-size="15" font-weight="700" fill="#0B7A75" text-anchor="middle">SFNO — spherical harmonics</text>
+    <text x="612" y="158" font-size="11.5" fill="#6b7580" text-anchor="middle">Bonev et al. 2023 (FourCastNet2)</text>
+
+    <!-- globe -->
+    <circle cx="612" cy="252" r="66" fill="#ffffff" stroke="#0B7A75" stroke-width="1.4"/>
+    <ellipse cx="612" cy="252" rx="66" ry="22" fill="none" stroke="#0B7A75" stroke-width="0.9" opacity="0.6"/>
+    <ellipse cx="612" cy="252" rx="66" ry="44" fill="none" stroke="#0B7A75" stroke-width="0.9" opacity="0.6"/>
+    <ellipse cx="612" cy="252" rx="22" ry="66" fill="none" stroke="#0B7A75" stroke-width="0.9" opacity="0.6"/>
+    <ellipse cx="612" cy="252" rx="44" ry="66" fill="none" stroke="#0B7A75" stroke-width="0.9" opacity="0.6"/>
+    <line x1="546" y1="252" x2="678" y2="252" stroke="#0B7A75" stroke-width="1" opacity="0.6"/>
+
+    <text x="612" y="352" font-size="11.5" fill="#3a4048" text-anchor="middle" font-weight="600">SHT → learned filter on (l,m) → inverse SHT</text>
+    <text x="612" y="372" font-size="11.5" fill="#3a4048" text-anchor="middle">rotationally equivariant · seamless at poles</text>
+    <text x="612" y="398" font-size="11" fill="#0B7A75" text-anchor="middle" font-style="italic">the FFT's spherical analogue — drop-in for the processor</text>
+  </g>
+
+  <path d="M790,268 L828,268" stroke="#3a4048" stroke-width="1.8" marker-end="url(#a3)"/>
+
+  <!-- ===== Panel 3: GINO ===== -->
+  <g>
+    <rect x="832" y="110" width="308" height="316" rx="12" fill="#fbf9f4" stroke="#C77400" stroke-width="1.5"/>
+    <text x="986" y="138" font-size="15" font-weight="700" fill="#C77400" text-anchor="middle">GINO — geometry-informed</text>
+    <text x="986" y="158" font-size="11.5" fill="#6b7580" text-anchor="middle">Li et al. 2023 (arbitrary meshes)</text>
+
+    <!-- irregular points -->
+    <g fill="#C77400">
+      <circle cx="872" cy="196" r="3"/><circle cx="905" cy="188" r="3"/><circle cx="946" cy="200" r="3"/>
+      <circle cx="884" cy="222" r="3"/><circle cx="924" cy="214" r="3"/><circle cx="958" cy="228" r="3"/>
+      <circle cx="900" cy="248" r="3"/><circle cx="940" cy="244" r="3"/><circle cx="876" cy="252" r="3"/>
+    </g>
+    <text x="912" y="278" font-size="10.5" fill="#6b7580" text-anchor="middle">irregular native cells</text>
+    <path d="M968,222 L1000,222" stroke="#3a4048" stroke-width="1.5" marker-end="url(#a3)"/>
+    <rect x="1002" y="192" width="120" height="60" rx="7" fill="#ffffff" stroke="#C77400"/>
+    <text x="1062" y="216" font-size="10.5" fill="#1F2328" text-anchor="middle" font-weight="600">graph → latent</text>
+    <text x="1062" y="232" font-size="10.5" fill="#1F2328" text-anchor="middle" font-weight="600">regular FNO</text>
+    <text x="1062" y="246" font-size="9.5" fill="#6b7580" text-anchor="middle">→ graph decode</text>
+
+    <text x="986" y="322" font-size="11.5" fill="#3a4048" text-anchor="middle" font-weight="600">encode the true LLC270 mesh directly —</text>
+    <text x="986" y="340" font-size="11.5" fill="#3a4048" text-anchor="middle">no lat-lon regridding, no seam</text>
+    <text x="986" y="366" font-size="11" fill="#C77400" text-anchor="middle" font-style="italic">most faithful to the native grid; heaviest to build</text>
+  </g>
+
+  <!-- ===== 3-D depth note ===== -->
+  <rect x="40" y="444" width="540" height="176" rx="10" fill="#fbfcfc" stroke="#e3e6e9"/>
+  <text x="60" y="470" font-size="13.5" fill="#1F2328" font-weight="700">Going 3-D (depth)</text>
+  <text x="60" y="494" font-size="12" fill="#3a4048">• Stack depth levels as channels, or a true 3-D operator over (lat, lon, z).</text>
+  <text x="60" y="514" font-size="12" fill="#3a4048">• SFNO handles the horizontal sphere per level; depth coupling via</text>
+  <text x="60" y="530" font-size="12" fill="#3a4048">  attention or a 1-D operator in z (the vertical is non-periodic — a</text>
+  <text x="60" y="546" font-size="12" fill="#3a4048">  boundary, not a torus).</text>
+  <text x="60" y="570" font-size="12" fill="#3a4048">• Mass/tracer conservation across depth = the UDE's open decadal problem (#7).</text>
+  <text x="60" y="596" font-size="11.5" fill="#6b7580" font-style="italic">NVIDIA Earth-2 / Modulus ships SFNO; a real reference implementation to port.</text>
+
+  <!-- ===== decision strip ===== -->
+  <rect x="596" y="444" width="544" height="176" rx="10" fill="#f2f8f7" stroke="#0B7A75" stroke-width="1.3"/>
+  <text x="616" y="470" font-size="13.5" fill="#0B7A75" font-weight="700">The honest question first</text>
+  <text x="616" y="496" font-size="12" fill="#3a4048">Our useful horizon is <tspan font-weight="700">1 step</tspan> and the ceiling is <tspan font-weight="700">structural</tspan>.</text>
+  <text x="616" y="516" font-size="12" fill="#3a4048">Geometry-aware architecture removes seam/pole <tspan font-style="italic">artifacts</tspan> — but</text>
+  <text x="616" y="532" font-size="12" fill="#3a4048">that only helps if the current error is geometry-limited, not</text>
+  <text x="616" y="548" font-size="12" fill="#3a4048">information-limited.</text>
+  <text x="616" y="574" font-size="12" fill="#0B7A75" font-weight="700">Cheap decisive test:</text>
+  <text x="616" y="592" font-size="12" fill="#3a4048">map the error field — if it concentrates at cube edges/poles, geometry</text>
+  <text x="616" y="608" font-size="12" fill="#3a4048">is the lever; if it's uniform, it is not. Run before building SFNO/GINO.</text>
+</svg>

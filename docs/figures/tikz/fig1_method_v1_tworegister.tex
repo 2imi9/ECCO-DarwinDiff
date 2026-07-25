@@ -1,0 +1,111 @@
+% fig1_method_v1_tworegister.tex -- METHOD figure, variant 1: "two-register".
+% Design lineage: the GINO / NVIDIA Earth-2 idiom -- an abstract schematic band on top,
+% a concrete instantiation band directly beneath it, column-aligned. Overlap is made
+% structurally impossible: every element is assigned to one of four reserved horizontal
+% lanes (GRAD / STAGE / SUB / CONCRETE) and nothing is ever placed between lanes.
+\documentclass[border=6pt]{standalone}
+\usepackage{darwindiff-tikz}
+\usepackage{amsmath}
+
+\begin{document}
+\begin{tikzpicture}[
+  % ---- lane geometry: the single source of truth for vertical placement -------------
+  % y = +2.05  GRAD lane      (backward gradient path, reserved: no nodes)
+  % y =  0.00  STAGE lane     (the five pipeline stages)
+  % y = -1.35  SUB lane       (one sub-caption per stage)
+  % y = -3.30  CONCRETE lane  (what each stage actually is, visually)
+  stagebox/.style = {ddfont, draw=ddLine, line width=0.7pt, rounded corners=3pt,
+                     fill=white, align=center, text=ddInk, font=\sffamily\small,
+                     minimum width=26mm, minimum height=13mm, inner sep=4pt},
+  learned/.style  = {stagebox, draw=ddAccent, fill=ddAccentBg},
+  physics/.style  = {stagebox, draw=ddIdent, fill=ddIdentBg},
+  datanode/.style = {stagebox, draw=ddLine, fill=ddSurface},
+  % badge: a sibling node straddling the TOP border (the CES idiom), never a corner disc
+  badge/.style    = {ddfont, font=\sffamily\scriptsize\bfseries, draw=#1, fill=white,
+                     text=#1, rounded corners=2pt, inner xsep=4pt, inner ysep=1.6pt},
+  sub/.style      = {ddfont, font=\sffamily\scriptsize, text=ddMuted, align=center,
+                     text width=30mm},
+  fwd/.style      = {-{Stealth[length=2.6mm,width=2.0mm]}, draw=ddMuted, line width=0.9pt},
+  gradline/.style = {-{Stealth[length=2.8mm,width=2.2mm]}, draw=ddIdent, line width=1.1pt,
+                     dashed, dash pattern=on 3pt off 2pt},
+]
+
+% ================= STAGE lane (y = 0) ==============================================
+\node[datanode] (env)  at ( 0.00, 0) {\textbf{environment}\\[1pt]\ddsub{SST per cell}};
+\node[learned]  (dinn) at ( 3.90, 0) {\textbf{per-cell DINN}\\[1pt]\ddsub{$1{\times}1$ conv $g_\phi$}};
+\node[learned]  (theta)at ( 7.80, 0) {\textbf{Carroll-6 $\theta$}\\[1pt]\ddsub{6 params / cell}};
+\node[physics]  (box)  at (11.70, 0) {\textbf{differentiable box}\\[1pt]\ddsub{5 tracers, 0-D}};
+\node[physics]  (loss) at (15.60, 0) {\textbf{anchored loss}\\[1pt]\ddsub{$\mathcal{L}$ vs real obs}};
+
+% badges straddle the top border -- sibling nodes, so they can never overlap the body
+\node[badge=ddLine,   anchor=center] at (env.north)   {INPUT};
+\node[badge=ddAccent, anchor=center] at (dinn.north)  {LEARNED};
+\node[badge=ddAccent, anchor=center] at (theta.north) {PREDICTED};
+\node[badge=ddIdent,  anchor=center] at (box.north)   {PHYSICS};
+\node[badge=ddIdent,  anchor=center] at (loss.north)  {OBJECTIVE};
+
+% forward arrows -- drawn between nodes only, 14mm clear gap guarantees label room
+\draw[fwd] (env)   -- (dinn);
+\draw[fwd] (dinn)  -- (theta);
+\draw[fwd] (theta) -- (box);
+\draw[fwd] (box)   -- (loss);
+
+% ================= GRAD lane (y = +2.05) ===========================================
+% Reserved lane: the backward path owns this band outright and crosses no node.
+\coordinate (gA) at (15.60, 2.05);
+\coordinate (gB) at ( 3.90, 2.05);
+\draw[gradline] (loss.north) ++(0,0.30) |- (gA) -- (gB) -- ($(dinn.north)+(0,0.30)$);
+\node[ddfont, font=\sffamily\scriptsize\bfseries, text=ddIdent, fill=white,
+      inner xsep=4pt, inner ysep=1.5pt] at (9.75, 2.05)
+      {one backward pass $\Rightarrow$ all six $\partial\mathcal{L}/\partial\theta$};
+
+% ================= SUB lane (y = -1.35) ============================================
+\node[sub] at ( 0.00,-1.35) {one channel per cell\\(\texttt{n\_input\_channels}=1)};
+\node[sub] at ( 3.90,-1.35) {maps local environment\\to a \emph{local} $\theta$};
+\node[sub] at ( 7.80,-1.35) {a parameter \emph{field},\\not one global vector};
+\node[sub] at (11.70,-1.35) {gradients flow through\\every integration step};
+\node[sub] at (15.60,-1.35) {real, Darwin-independent\\absolute anchors};
+
+% ================= CONCRETE lane (y = -3.30) =======================================
+% Each glyph sits directly under its stage: same x, so columns cannot drift.
+% (a) environment: a small grid of cells
+\begin{scope}[shift={(0.00,-3.30)}]
+  \foreach \i in {0,1,2,3}\foreach \j in {0,1}{
+    \fill[ddAccentBg, draw=ddLine, line width=0.3pt]
+      (-0.9+0.45*\i, -0.22+0.45*\j) rectangle ++(0.42,0.42);}
+\end{scope}
+% (b) DINN: three stacked conv layers
+\begin{scope}[shift={(3.90,-3.30)}]
+  \foreach \i/\o in {0/0.34, 1/0.00, 2/-0.34}{
+    \draw[fill=ddAccentBg, draw=ddAccent, line width=0.5pt, rounded corners=1pt]
+      (-0.95,\o-0.12) rectangle (0.95,\o+0.12);}
+\end{scope}
+% (c) theta: six parameter chips
+\begin{scope}[shift={(7.80,-3.30)}]
+  \foreach \i in {0,...,5}{
+    \fill[ddAccentBg, draw=ddAccent, line width=0.4pt, rounded corners=1pt]
+      (-1.05+0.36*\i, -0.16) rectangle ++(0.28,0.32);}
+\end{scope}
+% (d) box: five tracer discs in a ring
+\begin{scope}[shift={(11.70,-3.30)}]
+  \foreach \a in {90,162,234,306,18}{
+    \fill[ddIdentBg, draw=ddIdent, line width=0.5pt] (\a:0.42) circle (0.17);}
+  \draw[ddIdent, line width=0.4pt, opacity=0.55] (0,0) circle (0.42);
+\end{scope}
+% (e) loss: two anchor marks converging
+\begin{scope}[shift={(15.60,-3.30)}]
+  \draw[ddIdent, line width=0.7pt] (-0.55,0.30) -- (0,0) -- (0.55,0.30);
+  \fill[ddIdent] (0,0) circle (0.09);
+  \fill[ddAccentBg, draw=ddAccent, line width=0.5pt] (-0.75,0.30) circle (0.15);
+  \fill[ddAccentBg, draw=ddAccent, line width=0.5pt] ( 0.75,0.30) circle (0.15);
+\end{scope}
+
+% concrete-lane captions, one line, own y so they cannot touch the glyphs
+\node[ddtiny] at ( 0.00,-4.25) {ocean grid cells};
+\node[ddtiny] at ( 3.90,-4.25) {$1{\times}1$ conv stack};
+\node[ddtiny] at ( 7.80,-4.25) {$\theta$ per cell};
+\node[ddtiny] at (11.70,-4.25) {DFe $\cdot$ Ps $\cdot$ Pl $\cdot$ POC $\cdot$ PIC};
+\node[ddtiny] at (15.60,-4.25) {GEOTRACES Fe $\cdot$ Daniels PIC:POC};
+
+\end{tikzpicture}
+\end{document}

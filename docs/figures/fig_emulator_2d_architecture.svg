@@ -1,0 +1,131 @@
+<svg viewBox="0 0 1180 660" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',system-ui,-apple-system,sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3a4048"/>
+    </marker>
+    <marker id="arrowLoop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0B7A75"/>
+    </marker>
+    <linearGradient id="fnoGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B7A75" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#0B7A75" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+
+  <!-- title -->
+  <text x="40" y="42" font-size="25" font-weight="700" fill="#1F2328">ECCO-DarwinDiff — 2-D forward emulator</text>
+  <text x="40" y="68" font-size="14.5" fill="#6b7580">FNO2d residual operator on v05 ocean-BGC fields · log-space · rollout-aware · deep-ensembled. Annotations are measured, verify-gated findings.</text>
+  <line x1="40" y1="84" x2="1140" y2="84" stroke="#e3e6e9" stroke-width="1.2"/>
+
+  <!-- ============ main pipeline ============ -->
+  <!-- INPUT stack -->
+  <g>
+    <rect x="44" y="150" width="150" height="118" rx="8" fill="#F4F6F7" stroke="#c9ced3"/>
+    <rect x="58" y="162" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.30"/>
+    <rect x="64" y="178" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.42"/>
+    <rect x="70" y="194" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.54"/>
+    <rect x="76" y="210" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.66"/>
+    <text x="119" y="248" font-size="12.5" fill="#1F2328" text-anchor="middle" font-weight="600">state x(t)</text>
+    <text x="119" y="140" font-size="12.5" fill="#3a4048" text-anchor="middle" font-weight="600">INPUT · log-space</text>
+    <text x="119" y="286" font-size="11" fill="#6b7580" text-anchor="middle">PIC · POC · DIC · ALK</text>
+    <text x="119" y="300" font-size="11" fill="#6b7580" text-anchor="middle">Chl1–5 · DFe   (C channels)</text>
+  </g>
+
+  <path d="M198,209 L238,209" stroke="#3a4048" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <!-- FNO block -->
+  <g>
+    <rect x="242" y="132" width="270" height="154" rx="10" fill="url(#fnoGrad)" stroke="#0B7A75" stroke-width="1.6"/>
+    <text x="377" y="122" font-size="12.5" fill="#0B7A75" text-anchor="middle" font-weight="700">FNO2d processor  ×L blocks</text>
+    <!-- FFT -> R(k) -> iFFT motif -->
+    <rect x="258" y="156" width="66" height="44" rx="6" fill="#ffffff" stroke="#0B7A75"/>
+    <text x="291" y="176" font-size="12" fill="#1F2328" text-anchor="middle" font-weight="600">FFT</text>
+    <text x="291" y="192" font-size="9.5" fill="#6b7580" text-anchor="middle">2-D spatial</text>
+    <path d="M324,178 L342,178" stroke="#3a4048" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="344" y="152" width="70" height="52" rx="6" fill="#ffffff" stroke="#0B7A75"/>
+    <text x="379" y="172" font-size="12" fill="#1F2328" text-anchor="middle" font-weight="600">R(k)·û</text>
+    <text x="379" y="187" font-size="9.5" fill="#6b7580" text-anchor="middle">learned weights</text>
+    <text x="379" y="199" font-size="9.5" fill="#6b7580" text-anchor="middle">on low modes</text>
+    <path d="M414,178 L432,178" stroke="#3a4048" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="434" y="156" width="66" height="44" rx="6" fill="#ffffff" stroke="#0B7A75"/>
+    <text x="467" y="176" font-size="12" fill="#1F2328" text-anchor="middle" font-weight="600">iFFT</text>
+    <text x="467" y="192" font-size="9.5" fill="#6b7580" text-anchor="middle">+ 1×1 conv</text>
+    <text x="377" y="228" font-size="11.5" fill="#3a4048" text-anchor="middle">+ pointwise skip, GELU  →  tendency  f(x)</text>
+    <text x="377" y="262" font-size="10.5" fill="#B23A48" text-anchor="middle" font-style="italic">flat 2-D FFT on the irregular, non-periodic LLC270 grid</text>
+    <text x="377" y="276" font-size="10.5" fill="#B23A48" text-anchor="middle" font-style="italic">→ geometry-naive (see SFNO / GINO figure)</text>
+  </g>
+
+  <path d="M512,209 L556,209" stroke="#3a4048" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="534" y="200" font-size="10.5" fill="#6b7580" text-anchor="middle">f(x)</text>
+
+  <!-- Residual combine (the fix) -->
+  <g>
+    <rect x="560" y="150" width="176" height="118" rx="10" fill="#C77400" fill-opacity="0.10" stroke="#C77400" stroke-width="1.8"/>
+    <text x="648" y="140" font-size="12.5" fill="#C77400" text-anchor="middle" font-weight="700">Δt-scaled residual</text>
+    <text x="648" y="200" font-size="18" fill="#1F2328" text-anchor="middle" font-weight="700">x + f(x)·Δt</text>
+    <text x="648" y="224" font-size="12.5" fill="#1F2328" text-anchor="middle" font-weight="700" font-style="italic">months</text>
+    <text x="648" y="250" font-size="10.5" fill="#C77400" text-anchor="middle" font-weight="600">THE lever: +0.48 on true monthly steps</text>
+  </g>
+
+  <path d="M736,209 L780,209" stroke="#3a4048" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <!-- OUTPUT stack -->
+  <g>
+    <rect x="784" y="150" width="150" height="118" rx="8" fill="#F4F6F7" stroke="#c9ced3"/>
+    <rect x="798" y="162" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.30"/>
+    <rect x="804" y="178" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.42"/>
+    <rect x="810" y="194" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.54"/>
+    <rect x="816" y="210" width="120" height="16" rx="3" fill="#0B7A75" opacity="0.66"/>
+    <text x="859" y="248" font-size="12.5" fill="#1F2328" text-anchor="middle" font-weight="600">x(t+Δt)</text>
+    <text x="859" y="140" font-size="12.5" fill="#3a4048" text-anchor="middle" font-weight="600">next month</text>
+  </g>
+
+  <!-- rollout loop -->
+  <path d="M859,150 C859,104 119,104 119,146" fill="none" stroke="#0B7A75" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrowLoop)"/>
+  <text x="489" y="100" font-size="11.5" fill="#0B7A75" text-anchor="middle" font-weight="600">rollout ×8 during training (mass ratio 1.000 vs k1 diverging)</text>
+
+  <!-- ============ ensemble + diffusion row ============ -->
+  <line x1="40" y1="360" x2="1140" y2="360" stroke="#eceef0" stroke-width="1"/>
+  <text x="44" y="386" font-size="13.5" fill="#3a4048" font-weight="700">Ensembling &amp; probabilistic head</text>
+
+  <g>
+    <rect x="44" y="404" width="200" height="92" rx="9" fill="#F4F6F7" stroke="#c9ced3"/>
+    <text x="144" y="432" font-size="13" fill="#1F2328" text-anchor="middle" font-weight="600">Deep ensemble ×6</text>
+    <text x="144" y="452" font-size="11.5" fill="#6b7580" text-anchor="middle">independent seeds,</text>
+    <text x="144" y="468" font-size="11.5" fill="#6b7580" text-anchor="middle">diverse init</text>
+    <text x="144" y="486" font-size="11" fill="#0B7A75" text-anchor="middle" font-weight="600">skill +0.14 — load-bearing</text>
+  </g>
+  <path d="M244,450 L288,450" stroke="#3a4048" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <g>
+    <rect x="292" y="404" width="196" height="92" rx="9" fill="#F4F6F7" stroke="#c9ced3"/>
+    <text x="390" y="436" font-size="13" fill="#1F2328" text-anchor="middle" font-weight="600">ensemble mean</text>
+    <text x="390" y="456" font-size="13" fill="#1F2328" text-anchor="middle" font-weight="600">+ spread</text>
+    <text x="390" y="480" font-size="11" fill="#6b7580" text-anchor="middle">the prediction + uncertainty</text>
+  </g>
+
+  <!-- EDM diffusion corrector, grayed as null -->
+  <g opacity="0.72">
+    <rect x="560" y="404" width="360" height="92" rx="9" fill="#f3f0f0" stroke="#B23A48" stroke-dasharray="5 4"/>
+    <text x="740" y="430" font-size="13" fill="#B23A48" text-anchor="middle" font-weight="700">EDM diffusion corrector  (residual r = y − μ)</text>
+    <text x="740" y="452" font-size="11.5" fill="#3a4048" text-anchor="middle">score model denoises the residual, conditioned on [x, μ]</text>
+    <text x="740" y="474" font-size="12" fill="#B23A48" text-anchor="middle" font-weight="700">measured: adds NO skill (0 to −0.026) — not a lever here</text>
+    <text x="740" y="489" font-size="10" fill="#6b7580" text-anchor="middle">(#190: dt-scaling now threaded through this path too; recompute pending)</text>
+  </g>
+
+  <!-- ============ findings strip ============ -->
+  <rect x="40" y="524" width="1100" height="112" rx="10" fill="#fbfcfc" stroke="#e3e6e9"/>
+  <text x="58" y="550" font-size="13" fill="#1F2328" font-weight="700">What is / isn't a lever (all measured)</text>
+
+  <circle cx="66" cy="574" r="4" fill="#0B7A75"/>
+  <text x="80" y="578" font-size="12" fill="#3a4048"><tspan font-weight="700">Δt-scaled residual</tspan> — the fix for the monthly operator (+0.48).   </text>
+  <circle cx="66" cy="596" r="4" fill="#0B7A75"/>
+  <text x="80" y="600" font-size="12" fill="#3a4048"><tspan font-weight="700">Log-space</tspan> — 0% negative concentrations by construction; correct metric.</text>
+  <circle cx="66" cy="618" r="4" fill="#0B7A75"/>
+  <text x="80" y="622" font-size="12" fill="#3a4048"><tspan font-weight="700">Deep ensemble</tspan> +0.14 · <tspan font-weight="700">rollout-k8</tspan> for stability.</text>
+
+  <circle cx="606" cy="574" r="4" fill="#B23A48"/>
+  <text x="620" y="578" font-size="12" fill="#3a4048"><tspan font-weight="700">Structural 1-step ceiling</tspan> — useful horizon = 1 month; a correct</text>
+  <text x="620" y="592" font-size="12" fill="#3a4048">monthly operator buys no more (persistence hides drift).</text>
+  <circle cx="606" cy="610" r="4" fill="#B23A48"/>
+  <text x="620" y="614" font-size="12" fill="#3a4048"><tspan font-weight="700">Not levers:</tspan> capacity (+0.007), data past n=55 (flat), diffusion (~0).</text>
+</svg>

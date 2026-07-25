@@ -1,0 +1,95 @@
+% architecture_method.tex -- ECCO-DarwinDiff Architecture & Method (detailed).
+% Clean left->right recovery loop (env -> per-cell DINN -> theta -> differentiable box ->
+% predicted tracers -> loss); targets feed the loss from DIRECTLY below (anchors identify,
+% v05 supplies pattern only); one backward pass returns all six gradients; a surrogate-gap
+% callout explains why identifiability comes from absolute anchors; and an output band shows
+% the verified per-parameter identifiability verdict (numbers match param_identifiability.tex).
+% All node positions are explicit (x=1cm,y=1cm) so nothing overlaps.
+% Standalone:  pdflatex architecture_method.tex
+\documentclass[border=12pt]{standalone}
+\usepackage{darwindiff-tikz}
+\begin{document}
+\begin{tikzpicture}[x=1cm, y=1cm]
+
+  % ===== title =====================================================================
+  \node[font=\sffamily\bfseries\large, text=ddInk, anchor=south west] (ttl) at (0,3.35)
+    {ECCO-DarwinDiff \textemdash\ Architecture \& Method};
+  \node[ddlabel, anchor=north west] at ([yshift=1pt]ttl.south west)
+    {per-cell differentiable recovery of the Carroll-6 parameters, identified by real absolute anchors};
+
+  % ===== Band 1: the differentiable recovery loop (y=0) ============================
+  \node[stage, minimum width=32mm] (env)   at (1.6,0)
+     {environment\\[1pt]\ddsub{SST\,$\cdot$\,wind\,$\cdot$\,MLD\,$\cdot$\,SSS}\\[1pt]%
+      \ddsub{$p$CO$_2$atm\,$\cdot$\,CO$_2$\,flux\,$\cdot$\,Fe-dust}\\[1pt]\ddsub{per-cell, v05 caches}};
+  \node[stage, minimum width=26mm] (dinn)  at (4.6,0)
+     {per-cell DINN\\[1pt]\ddsub{$1{\times}1$ conv $g_\phi$}\\[1pt]\ddsub{env $\to$ local $\theta$}};
+  \node[stage, minimum width=26mm, draw=ddAccent] (theta) at (7.8,0)
+     {$\theta$: Carroll-6\\[1pt]\ddsub{6 bounded params}\\[1pt]\ddsub{per grid cell}};
+  \node[stage, minimum width=26mm, draw=ddAccent] (box)   at (11.0,0)
+     {differentiable box\\[1pt]\ddsub{\texttt{carroll6\_5pft\_2layer}}\\[1pt]\ddsub{$0$-D, 2 layers}};
+  \node[stage, minimum width=26mm] (trac)   at (14.2,0)
+     {predicted tracers\\[1pt]\ddsub{DFe\,$\cdot$\,P$_\mathrm{s}$\,$\cdot$\,P$_\mathrm{l}$\,$\cdot$\,POC\,$\cdot$\,PIC}};
+  \node[stage, minimum width=20mm, draw=ddIdent, fill=ddIdentBg] (loss) at (17.0,0)
+     {loss $\mathcal{L}$};
+
+  \draw[flow] (env)--(dinn);  \draw[flow] (dinn)--(theta);  \draw[flow] (theta)--(box);
+  \draw[flow] (box)--(trac);  \draw[flow] (trac)--(loss);
+
+  % gradient arc (loss -> dinn): one backward pass
+  \draw[grad] (loss.north) .. controls ([yshift=18mm]loss.north) and ([yshift=18mm]dinn.north) ..
+     node[midway, above=2pt, font=\sffamily\scriptsize, text=ddIdent, align=center]
+       {one backward pass $=$ all six $\partial\mathcal{L}/\partial\theta$\\[1pt]
+        \ddsub{vs $\sim$7 forward Green's-functions runs per gradient}}
+     (dinn.north);
+
+  % ===== targets feeding the loss FROM DIRECTLY BELOW =============================
+  \node[stage, fill=ddAccentBg, draw=ddAccent, minimum width=34mm, anchor=north] (anch) at (15.4,-2.1)
+     {real absolute anchors\\[1pt]\ddsub{GEOTRACES iron (mass balance)}\\[1pt]\ddsub{Daniels calcite (PIC:POC)}};
+  \node[stage, minimum width=30mm, anchor=north] (dar) at (18.9,-2.1)
+     {ECCO-Darwin v05\\[1pt]\ddsub{$z$-scored pattern}};
+  \draw[flow, draw=ddIdent] (anch.north) -- (loss.south)
+     node[midway, left=1pt, ddtiny, text=ddIdent] {identifies};
+  \draw[flow] (dar.north) -- (loss.south)
+     node[midway, right=1pt, ddtiny] {pattern only};
+
+  % ===== surrogate-gap callout (left, does not overlap the targets) ================
+  \node[verdict=ddLimit, fill=ddLimitBg, anchor=north west, font=\sffamily\scriptsize,
+        text width=7.6cm, align=left] at (0,-2.1)
+     {\textbf{Surrogate gap --- why anchors, not pattern.} The $0$-D box relaxes to a
+      near-uniform state (tracer CV $\!\to\!10^{-15}$ vs Darwin's $O(1)$ spatial CV), so
+      box-vs-Darwin \emph{pattern} is not a fidelity signal. Identifiability must come from
+      real, Darwin-independent \emph{absolute} anchors --- observations Carroll's v05
+      Green's-functions calibration never assimilated.};
+
+  % ===== Band 2: output -- per-parameter identifiability verdict ==================
+  \node[font=\sffamily\small\bfseries, text=ddInk, anchor=west] at (0,-4.75)
+     {Output \textemdash\ per-parameter identifiability \ (verified-loop recovery)};
+
+  % six chips, explicit x, no overlap (28mm wide, 3.2cm pitch)
+  \node[draw=ddIdent, fill=ddIdentBg, rounded corners=3pt, align=center, text=ddInk,
+        font=\sffamily\scriptsize, minimum width=28mm, minimum height=13mm, inner sep=3pt] (c1) at (1.6,-5.55)
+     {\texttt{alpfe}\\[1pt]{\color{ddIdent}\footnotesize identifiable}\\[1pt]\ddsub{iron mass balance $\cdot$ 38/40}};
+  \node[draw=ddLimit, fill=ddLimitBg, rounded corners=3pt, align=center, text=ddInk,
+        font=\sffamily\scriptsize, minimum width=28mm, minimum height=13mm, inner sep=3pt] (c2) at (4.8,-5.55)
+     {\texttt{scav\_rat}\\[1pt]{\color{ddLimit}\footnotesize observability wall}\\[1pt]\ddsub{8/10 cell $\cdot$ 0/10 global}};
+  \node[draw=ddIdent, fill=ddIdentBg, rounded corners=3pt, align=center, text=ddInk,
+        font=\sffamily\scriptsize, minimum width=28mm, minimum height=13mm, inner sep=3pt] (c3) at (8.0,-5.55)
+     {\texttt{R\_PICPOC}\\[1pt]{\color{ddIdent}\footnotesize identifiable (scalar)}\\[1pt]\ddsub{calcite anchor $\cdot$ 50/50}};
+  \node[draw=ddNon, fill=ddNonBg, rounded corners=3pt, align=center, text=ddInk,
+        font=\sffamily\scriptsize, minimum width=28mm, minimum height=13mm, inner sep=3pt] (c4) at (11.2,-5.55)
+     {\texttt{diatomgraz}\\[1pt]{\color{ddNon}\footnotesize non-identifiable}\\[1pt]\ddsub{4/10 (chance)}};
+  \node[draw=ddUnobs, fill=ddUnobsBg, rounded corners=3pt, align=center, text=ddInk,
+        font=\sffamily\scriptsize, minimum width=28mm, minimum height=13mm, inner sep=3pt] (c5) at (14.4,-5.55)
+     {\texttt{Smallgrow}\\[1pt]{\color{ddUnobs}\footnotesize unobservable}\\[1pt]\ddsub{NPP aggregate only}};
+  \node[draw=ddUnobs, fill=ddUnobsBg, rounded corners=3pt, align=center, text=ddInk,
+        font=\sffamily\scriptsize, minimum width=28mm, minimum height=13mm, inner sep=3pt] (c6) at (17.6,-5.55)
+     {\texttt{Biggrow}\\[1pt]{\color{ddUnobs}\footnotesize unobservable}\\[1pt]\ddsub{NPP aggregate only}};
+
+  % takeaway
+  \node[ddtiny, anchor=north west, text width=19cm, align=left] at (0,-6.5)
+     {\textbf{Per-cell architecture is load-bearing:} the trio \{\texttt{alpfe}, \texttt{scav\_rat},
+      \texttt{R\_PICPOC}\} holds jointly \textbf{7/10} per-cell vs \textbf{0/10} for a single
+      global-scalar vector. The binding constraint on the rest is the \emph{observing system}, not the method.};
+
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,4 @@
+arXiv API Terms of Use notification shown to user.
+Notified: user should check https://info.arxiv.org/help/api/index.html and verify
+the license of any retrieved paper for restrictions before redistribution.
+Timestamp: 2026-07-21T00:00:00 (session-local)

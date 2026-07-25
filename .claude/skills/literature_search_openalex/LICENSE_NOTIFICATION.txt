@@ -1,0 +1,2 @@
+OpenAlex API terms notification shown to user on 2026-07-23T12:05:47Z UTC.
+Users must review terms at https://developers.openalex.org/ and check the license of each retrieved paper for reuse restrictions.

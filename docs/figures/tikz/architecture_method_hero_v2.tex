@@ -1,0 +1,165 @@
+% architecture_method_hero_v2.tex -- ECCO-DarwinDiff Architecture & Method (SHOWCASE, v3 rebuild).
+% Rebuilt on the mkofinas "TikZ Is All You Need" discipline: RELATIVE positioning throughout
+% (node distance + right=of/below=of), NO manual (x,y) coordinates for layout. This fixes the
+% overlap/organization problems of the previous version:
+%   * badges live on the SOUTH edge -> the top edge is clear airspace for the backward loop;
+%   * the loop is a controlled flat-topped arc, and its label+subtitle are ONE opaque pill drawn
+%     over the line (so nothing crosses it);
+%   * targets feed the loss from the lower-RIGHT and the surrogate callout sits lower-LEFT -> balanced;
+%   * cards use `text width` (not minimum width) so text wraps instead of clipping;
+%   * every panel is a `fit` box on the background layer (auto-sized, no literal rectangle corners).
+% Standalone:  pdflatex architecture_method_hero_v2.tex
+\documentclass[border=14pt]{standalone}
+\usepackage{amsmath}
+\usepackage{darwindiff-tikz}
+\usetikzlibrary{shadows,positioning,fit,backgrounds,calc}
+
+\definecolor{bgA}{HTML}{F9FBFE}\definecolor{bgB}{HTML}{E5ECF6}
+\definecolor{bgDashLt}{HTML}{FAF8F1}\definecolor{bgDash}{HTML}{EFEBDF}
+\definecolor{cardEdge}{HTML}{E1E5EB}\definecolor{zoneInk}{HTML}{7C8592}
+\definecolor{ddIron}{HTML}{185FA5}\definecolor{ddCarb}{HTML}{1D6E56}
+\definecolor{ocean}{HTML}{2E6E8E}\definecolor{oceanD}{HTML}{163C4F}\definecolor{land}{HTML}{C9CBB8}
+
+\tikzset{
+  cardsh/.style={drop shadow={shadow xshift=0.7pt,shadow yshift=-1pt,opacity=.85,fill=black!20}},
+  hcard/.style={rounded corners=5pt,draw=cardEdge,line width=.7pt,fill=white,cardsh,align=center,
+                inner sep=6pt,minimum height=19mm,text width=23mm,text=ddInk,font=\sffamily},
+  wide/.style={text width=34mm},
+  narrow/.style={text width=17mm},
+  badge/.style={circle,fill=#1,text=white,font=\sffamily\bfseries\small,minimum size=7mm,
+                inner sep=0pt,draw=white,line width=1pt},
+  fatflow/.style={-{Stealth[length=3mm,width=3mm]},draw=zoneInk,line width=1.3pt},
+  loopback/.style={-{Stealth[length=3.4mm,width=3.4mm]},draw=ddIdent,line width=1.7pt,rounded corners=10pt},
+  looppill/.style={fill=ddIdent,text=white,rounded corners=7pt,align=center,
+                   font=\sffamily\bfseries\footnotesize,inner xsep=9pt,inner ysep=4pt},
+  statcard/.style={rounded corners=5pt,draw=#1,line width=1.1pt,cardsh,align=center,inner sep=4pt,
+                   text width=27mm,minimum height=15mm,font=\sffamily,text=ddInk},
+  zone/.style={font=\sffamily\bfseries\scriptsize,text=zoneInk},
+}
+\newcommand{\ctitle}[1]{{\normalfont\sffamily\bfseries\footnotesize\color{ddInk}#1}}
+\newcommand{\hsub}[1]{{\normalfont\sffamily\scriptsize\color{ddMuted}#1}}
+\hyphenpenalty=10000 \exhyphenpenalty=10000  % no hyphenation -> words wrap at spaces, not mid-word
+
+\begin{document}
+\begin{tikzpicture}[node distance=11mm and 9mm]
+
+  % ============================= header ==========================================
+  \node[anchor=south west,font=\sffamily\bfseries,scale=1.6,text=ddInk] (ttl) at (0,0) {ECCO-DarwinDiff};
+  \node[anchor=north west,font=\sffamily,text=ddMuted,scale=1.02] at ([xshift=4pt]ttl.south west)
+     {per-cell differentiable recovery of the Carroll-6 parameters, identified by real absolute anchors};
+
+  % ============================= pipeline spine (relative chain) ==================
+  \node[hcard,wide,below=30mm of ttl.south west,anchor=north west] (env)
+     {\ctitle{environment}\\[2pt]\hsub{SST\,$\cdot$\,wind\,$\cdot$\,MLD\,$\cdot$\,SSS}\\
+      \hsub{$p$CO$_2$atm\,$\cdot$\,CO$_2$flux\,$\cdot$\,Fe-dust}\\[1pt]\hsub{\itshape per-cell\,$\cdot$\,v05 caches}};
+  \node[hcard,right=of env] (dinn)
+     {\ctitle{per-cell DINN}\\[2pt]\hsub{$1{\times}1$ conv $g_\phi$}\\\hsub{env $\to$ local $\theta$}};
+  \node[hcard,right=of dinn,draw=ddAccent,line width=1pt] (theta)
+     {\ctitle{Carroll-6 $\theta$}\\[2pt]\hsub{6 bounded params}\\\hsub{per grid cell}};
+  \node[hcard,right=of theta,draw=ddCarb,line width=1pt] (box)
+     {\ctitle{differentiable box}\\[2pt]\hsub{\texttt{carroll6}\,$\cdot$\,5 tracers}\\\hsub{$0$-D, 2 layers}};
+  \node[hcard,narrow,right=of box,draw=ddIdent,line width=1pt] (loss)
+     {\ctitle{anchored loss}\\[2pt]\hsub{predicted vs}\\\hsub{real anchors}};
+
+  \draw[fatflow] (env)--(dinn); \draw[fatflow] (dinn)--(theta);
+  \draw[fatflow] (theta)--(box); \draw[fatflow,draw=ddCarb] (box)--(loss);
+  \node[font=\sffamily\scriptsize,text=ddMuted,below=1pt] at ($(box.east)!0.5!(loss.west)$) {tracers};
+
+  % ---- badges on the SOUTH-west corner (top edge reserved for the loop) ----
+  \node[badge=ddIron]   at (env.south west)   {$\approx$};
+  \node[badge=ddAccent] at (dinn.south west)  {N};
+  \node[badge=ddAccent] at (theta.south west) {$\theta$};
+  \node[badge=ddCarb]   at (box.south west)   {$\int$};
+  \node[badge=ddIdent]  at (loss.south west)  {$\mathcal{L}$};
+
+  % ============================= backward-pass loop (clear top airspace) =========
+  % controlled flat-topped arc at a fixed height above the card tops; label pill drawn OVER it.
+  \draw[loopback]
+     (loss.north) -- ($(loss.north)+(0,15mm)$) -- ($(dinn.north)+(0,15mm)$) -- (dinn.north);
+  \node[looppill] (pill) at ($(dinn.north)!0.5!(box.north)+(0,15mm)$)
+     {1 backward pass $\Rightarrow$ all six $\partial\mathcal{L}/\partial\theta$\\[1pt]
+      {\normalfont\sffamily\itshape\scriptsize vs $\sim$7 forward Green's-functions runs / gradient}};
+
+  % ============================= globe (far left, feeds env) ======================
+  \def\gR{1.55}
+  \node[circle,minimum size=32mm,left=16mm of env] (globe) {};
+  \begin{scope}
+    \clip (globe.center) circle (\gR);
+    \shade[left color=ocean,right color=oceanD,shading angle=35]
+       ($(globe.center)+(-\gR,-\gR)$) rectangle ($(globe.center)+(\gR,\gR)$);
+    \fill[land,opacity=0.92] ($(globe.center)+(-1.2,0.6)$) .. controls ($(globe.center)+(-0.6,1.2)$) and ($(globe.center)+(-0.1,0.8)$) ..
+        ($(globe.center)+(-0.3,0.2)$) .. controls ($(globe.center)+(-0.45,-0.15)$) and ($(globe.center)+(-1.0,-0.1)$) .. ($(globe.center)+(-1.2,0.6)$) -- cycle;
+    \fill[land,opacity=0.92] ($(globe.center)+(0.15,-0.15)$) .. controls ($(globe.center)+(0.65,0.2)$) and ($(globe.center)+(0.9,-0.45)$) ..
+        ($(globe.center)+(0.55,-1.0)$) .. controls ($(globe.center)+(0.2,-1.35)$) and ($(globe.center)+(-0.1,-0.6)$) .. ($(globe.center)+(0.15,-0.15)$) -- cycle;
+    \fill[land,opacity=0.90] ($(globe.center)+(0.8,1.0)$) .. controls ($(globe.center)+(1.25,0.7)$) and ($(globe.center)+(1.35,0.1)$) ..
+        ($(globe.center)+(0.95,0.3)$) .. controls ($(globe.center)+(0.65,0.42)$) and ($(globe.center)+(0.6,0.95)$) .. ($(globe.center)+(0.8,1.0)$) -- cycle;
+    \foreach \a in {-50,-25,0,25,50}{\draw[white,opacity=0.14,line width=0.3pt]
+        ($(globe.center)+(-\gR,{\a/90*\gR})$) -- ($(globe.center)+(\gR,{\a/90*\gR})$);}
+    \fill[white,opacity=0.10] ($(globe.center)+(-0.6,0.6)$) circle (0.7);
+  \end{scope}
+  \draw[ddLine,line width=1pt] (globe.center) circle (\gR);
+  \node[draw=ddAccent,fill=ddAccent,fill opacity=0.30,line width=0.8pt,minimum width=4.5mm,minimum height=3mm,inner sep=0] (aoi1) at ($(globe.center)+(0.15,0.1)$) {};
+  \node[draw=ddIdent,fill=ddIdent,fill opacity=0.30,line width=0.8pt,minimum width=3.5mm,minimum height=3mm,inner sep=0] at ($(globe.center)+(-0.55,0.8)$) {};
+  \node[draw=ddLimit,fill=ddLimit,fill opacity=0.30,line width=0.8pt,minimum width=5mm,minimum height=2.4mm,inner sep=0] at ($(globe.center)+(-0.15,-1.0)$) {};
+  \node[font=\sffamily\bfseries\scriptsize,text=ddInk,left=1mm of globe] (ll) {(lat,\,lon)};
+  \draw[-{Stealth[length=2mm]},ddAccent,line width=1pt] (ll.east) .. controls ($(globe.center)+(-\gR+0.2,-0.35)$) .. (aoi1.west);
+  \node[font=\sffamily\fontsize{6.4}{7.2}\selectfont,text=ddMuted,align=center,below=0.5mm of globe]
+     {{\color{ddAccent}Eq.\,Pac.}\,$\cdot$\,{\color{ddIdent}N.\,Atl.\,subpolar}\,$\cdot$\,{\color{ddLimit}S.\,Ocean Pac.}};
+  \draw[fatflow] (globe.east) -- (env.west);
+
+  % ============================= targets feed loss (lower-right, fills the void) ==
+  \node[hcard,wide,draw=ddIron,fill=ddAccentBg,below=16mm of box.south,anchor=north] (anch)
+     {\ctitle{\color{ddIron}real absolute anchors}\\[2pt]\hsub{GEOTRACES iron (mass balance)}\\\hsub{Daniels calcite (PIC:POC)}};
+  \node[hcard,right=of anch,text width=28mm] (dar)
+     {\ctitle{ECCO-Darwin v05}\\[2pt]\hsub{$z$-scored pattern}\\\hsub{spatial only}};
+  \draw[-{Stealth[length=2.6mm]},draw=ddIron,line width=1.2pt] (anch.north) -- (loss.south)
+     node[midway,left=1pt,font=\sffamily\bfseries\scriptsize,text=ddIron]{identifies};
+  \draw[-{Stealth[length=2.6mm]},draw=zoneInk,line width=1pt] (dar.north) -- (loss.south)
+     node[pos=0.32,right=1pt,ddtiny]{pattern};
+
+  % ============================= surrogate-gap callout (lower-left) ===============
+  \node[rounded corners=5pt,draw=ddLimit,line width=1pt,fill=ddLimitBg,cardsh,
+        text width=7.3cm,align=left,inner sep=8pt,font=\sffamily\scriptsize,
+        below=16mm of env.south west,anchor=north west] (callout)
+     {\textbf{\color{ddLimit}Why anchors, not pattern.} At uniform Carroll parameters the $0$-D box relaxes
+      to a near-uniform state (tracer CV $\to 10^{-15}$ vs Darwin's $O(1)$), so box-vs-Darwin \emph{pattern}
+      is not a fidelity signal --- identifiability comes from real, Darwin-independent \emph{absolute} anchors.};
+
+  % ============================= RESULT band (relative chain of chips) ============
+  \node[zone,anchor=north west,below=13mm of callout.south west] (reslbl)
+     {RESULT \ \textbullet\ \ PER-PARAMETER IDENTIFIABILITY \ (verified-loop recovery)};
+  \node[statcard=ddIdent,fill=ddIdentBg,anchor=north west,below=2mm of reslbl.south west] (s1)
+     {\ctitle{\texttt{alpfe}}\\[2pt]{\color{ddIdent}\sffamily\bfseries\footnotesize identifiable}\\[1pt]\hsub{iron mass balance $\cdot$ 38/40}};
+  \node[statcard=ddLimit,fill=ddLimitBg,right=of s1] (s2)
+     {\ctitle{\texttt{scav\_rat}}\\[2pt]{\color{ddLimit}\sffamily\bfseries\footnotesize observability wall}\\[1pt]\hsub{8/10 cell $\cdot$ 0/10 global}};
+  \node[statcard=ddIdent,fill=ddIdentBg,right=of s2] (s3)
+     {\ctitle{\texttt{R\_PICPOC}}\\[2pt]{\color{ddIdent}\sffamily\bfseries\footnotesize identifiable (scalar)}\\[1pt]\hsub{calcite anchor $\cdot$ 50/50}};
+  \node[statcard=ddNon,fill=ddNonBg,right=of s3] (s4)
+     {\ctitle{\texttt{diatomgraz}}\\[2pt]{\color{ddNon}\sffamily\bfseries\footnotesize non-identifiable}\\[1pt]\hsub{4/10 (chance)}};
+  \node[statcard=ddUnobs,fill=ddUnobsBg,right=of s4] (s5)
+     {\ctitle{\texttt{Smallgrow}}\\[2pt]{\color{ddUnobs}\sffamily\bfseries\footnotesize unobservable}\\[1pt]\hsub{NPP aggregate only}};
+  \node[statcard=ddUnobs,fill=ddUnobsBg,right=of s5] (s6)
+     {\ctitle{\texttt{Biggrow}}\\[2pt]{\color{ddUnobs}\sffamily\bfseries\footnotesize unobservable}\\[1pt]\hsub{NPP aggregate only}};
+  \node[font=\sffamily\scriptsize,text=ddMuted,anchor=north west,below=3mm of s1.south west,align=left,text width=18cm] (take)
+     {\textbf{Per-cell architecture is load-bearing} --- the trio \{\texttt{alpfe}, \texttt{scav\_rat},
+      \texttt{R\_PICPOC}\} holds jointly \textbf{7/10} per-cell vs \textbf{0/10} for a single global-scalar
+      vector. The binding constraint on the rest is the \emph{observing system}, not the method.};
+
+  % ============================= panels (fit + background, auto-sized) ============
+  \begin{scope}[on background layer]
+    % gradient-shaded zone panels (vertical top->bottom), with a soft panel shadow
+    \node[top color=bgA,bottom color=bgB,rounded corners=10pt,inner sep=5mm,
+          drop shadow={shadow xshift=0pt,shadow yshift=-1.6pt,opacity=.35,fill=black!30},
+          fit=(globe)(ll)(env)(pill)(loss)(anch)(dar)(callout)] {};
+    \node[top color=bgDashLt,bottom color=bgDash,rounded corners=10pt,inner sep=4mm,
+          drop shadow={shadow xshift=0pt,shadow yshift=-1.4pt,opacity=.30,fill=black!30},
+          fit=(reslbl)(s1)(s6)(take)] {};
+    % layered "stack" chips behind the data cards -> depth (covariate/cache + anchor layers)
+    \foreach \i in {2,1}{\draw[fill=white,draw=cardEdge,line width=0.5pt,rounded corners=5pt]
+        ($(env.north west)+\i*(1.5mm,1.5mm)$) rectangle ($(env.south east)+\i*(1.5mm,1.5mm)$);}
+    \foreach \i in {2,1}{\draw[fill=ddAccentBg,draw=ddIron,line width=0.5pt,rounded corners=5pt]
+        ($(anch.north west)+\i*(1.5mm,1.5mm)$) rectangle ($(anch.south east)+\i*(1.5mm,1.5mm)$);}
+  \end{scope}
+
+\end{tikzpicture}
+\end{document}
