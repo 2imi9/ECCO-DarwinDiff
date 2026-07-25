@@ -25,7 +25,8 @@ eqpac,natlsubpolar,southernoceanpac; default per-AOI weights {1,2,2}; Darwin IC;
 | dgchl (non-circular diatomgraz) | MLD_CHANNEL=1, DARWIN_PATTERN_W=0, PINN=0, POC_SUB_W=0, GEOTRACES_W=0.3, POSI_W=0, DANIELS=8 | diatomgraz **35/50** | 190529 |
 | 4-of-4 test | flagship + MLD_CHANNEL=1 + 4000ep (TORCH_COMPILE_BATCHED=0) | diatomgraz 0/10 (no 4-of-4) | 192298 |
 | global-scalar control | GLOBAL_SCALAR=1 | trio 0/50 | (geo1) |
-| anchor-off (R_PICPOC) | DANIELS_RPICPOC_W=0 | R_PICPOC 4/50 | (geo1) |
+| anchor-off (R_PICPOC), **epoch-matched** | DANIELS_RPICPOC_W=0, 2000 ep (`n50e2k_anchor_off`) | R_PICPOC **6/50** | (geo1) |
+| anchor-off (R_PICPOC), 1500 ep | DANIELS_RPICPOC_W=0, 1500 ep (`n50_anchor_off`) | R_PICPOC 4/50 — **not** a control for the 2000-epoch flagship | (geo1) |
 
 n≥50 is run as 5× 10-seed array blocks pooled into one OUTPUT_DIR (never 50 seeds in one process — CUDA-OOM).
 

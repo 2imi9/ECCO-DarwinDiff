@@ -1,7 +1,8 @@
 # Observable frontier is config-dependent — scav_rat vs diatomgraz (2026-07-23)
 
 **Bottom line: the manuscript's flagship claim survives scrutiny — scav_rat genuinely
-recovers per-AOI 26/50 in the flagship geo1 config (setting the 25/50 trio joint), verified
+recovers per-AOI 25/50 in the flagship geo1 config (which is exactly the trio joint, since
+scav_rat is its sole binding leg), verified
 and blessed (not a straddle).
 But cross-referencing the flagship against this session's covariate/dust runs reveals that
 the *demonstrated-observable set is config-dependent*, and no single config yet holds all
@@ -25,7 +26,7 @@ is separately labeled "looser." **The manuscript is honest and internally consis
 
 ## The real finding: scav_rat's per-AOI recovery is config-fragile
 
-The flagship (26/50) and the July runs (0-2/10) are **different configurations**, so the gap
+The flagship (25/50) and the July runs (0-2/10) are **different configurations**, so the gap
 is not a contradiction — it localizes *what scav_rat's identifiability depends on*:
 
 | | flagship geo1 (manuscript) | July covar/dust lineage (this session) |
