@@ -92,7 +92,13 @@ class DarwinBGCPrognostic(torch.nn.Module):
         lon,
         means,
         stds,
-        log_vars=("Chl1", "Chl2", "Chl3", "Chl4", "Chl5", "PIC", "POC", "FeT"),
+        # NO transform by default. A non-empty default silently applies log/exp to
+        # checkpoints that were trained in linear space (--log-transform off), whose
+        # means/stds and weights assume no transform -- which corrupts every forecast
+        # for those channels. The transform is a property OF THE CHECKPOINT, so the
+        # caller must pass the training-time value; emulator_poc.py records it as
+        # config.log_tracers (empty list when the flag was off). Prefer from_config().
+        log_vars=(),
         ocean_mask=None,
         residual: bool = True,
         dt: np.timedelta64 = np.timedelta64(30, "D"),
@@ -126,6 +132,26 @@ class DarwinBGCPrognostic(torch.nn.Module):
         self.register_buffer("log_floors", torch.as_tensor(_floors, dtype=torch.float32).reshape(V))
         self.residual = bool(residual)
         self.dt = dt
+
+    # ---- construction from a training run's own config ---------------------------
+    @classmethod
+    def from_config(cls, core_model, variables, lat, lon, means, stds, config, **kw):
+        """Build the wrapper from the ``config`` block that ``emulator_poc.py`` wrote.
+
+        This is the safe path, and the reason it exists: the log transform is a property
+        of the CHECKPOINT, not a preference of the caller. Serving a linear-space
+        checkpoint through a log-space wrapper (or the reverse) silently corrupts every
+        affected channel while producing plausible-looking output. Reading the flag,
+        the stem list and the per-channel floors out of the run's own config makes the
+        two sides impossible to desynchronise.
+
+        Keys consumed (all optional, all with training-time-compatible defaults):
+        ``log_transform`` (bool), ``log_tracers`` (list[str]), ``log_floors`` (dict).
+        """
+        cfg = dict(config or {})
+        log_vars = tuple(cfg.get("log_tracers") or ()) if cfg.get("log_transform") else ()
+        kw.setdefault("log_floors", cfg.get("log_floors"))
+        return cls(core_model, variables, lat, lon, means, stds, log_vars=log_vars, **kw)
 
     # ---- coords contract --------------------------------------------------------
     def input_coords(self) -> "CoordSystem":

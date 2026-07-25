@@ -5,6 +5,7 @@ shims exactly like CI. They check the PrognosticModel contract (coord order,
 lead_time accumulation, unbounded iterator yielding the IC first), the physics
 guards (nonnegativity, land mask), and the log-Chl round-trip.
 """
+import pytest
 import numpy as np
 import torch
 
@@ -19,16 +20,20 @@ def _zero_residual_model(v):
     return m
 
 
-def _make_model(variables=("DIC_k0", "DIC_k1", "Chl1_k0", "Chl1_k1"), h=8, w=12):
+def _make_model(variables=("DIC_k0", "DIC_k1", "Chl1_k0", "Chl1_k1"), h=8, w=12,
+                log_vars=("Chl1", "Chl2", "Chl3", "Chl4", "Chl5")):
     lat = np.linspace(-80.0, 80.0, h)
     lon = np.linspace(0.0, 360.0, w, endpoint=False)
     v = len(variables)
     means = np.zeros(v)
     stds = np.ones(v)
     mask = np.ones((h, w), dtype=bool)  # all-ocean; land-mask checked separately
+    # log_vars is passed EXPLICITLY: the wrapper defaults to no transform, because the
+    # transform is a property of the checkpoint rather than of the caller. Relying on a
+    # non-empty default is what silently corrupts linear-space checkpoints.
     model = DarwinBGCPrognostic(
         _zero_residual_model(v), variables, lat, lon, means, stds,
-        ocean_mask=mask, residual=True,
+        ocean_mask=mask, residual=True, log_vars=log_vars,
     )
     return model, lat, lon, v, h, w, mask
 
@@ -138,3 +143,104 @@ if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as d:
         test_datasource_roundtrip(pathlib.Path(d))
     print(f"e2s contract tests PASSED (E2S_AVAILABLE={E2S_AVAILABLE})")
+
+
+# --------------------------------------------------------------------------------
+# Regressions for the review findings on PR #193 (Codex + Greptile, both P1).
+# --------------------------------------------------------------------------------
+def _tiny_cube(tmp_path, *, with_coords=True, with_times=True):
+    import numpy as _np
+
+    p = tmp_path / "cube.npz"
+    kw = dict(
+        state=_np.ones((4, 2, 3, 5), dtype=_np.float32),
+        chan_names=_np.array(["Chl1", "PIC"]),
+        valid_mask=_np.ones((3, 5), dtype=bool),
+    )
+    if with_coords:
+        kw["lats"] = _np.linspace(-5, 5, 3)
+        kw["lons"] = _np.linspace(-160, -110, 5)
+    if with_times:
+        kw["times_days"] = _np.array([0.0, 30.0, 60.0, 90.0])
+    _np.savez(p, **kw)
+    return str(p)
+
+
+def test_datasource_refuses_to_fabricate_coordinates(tmp_path):
+    """A cube without lats/lons must raise, not label an ocean grid 0..H-1.
+
+    Index coordinates survive Earth2Studio regridding and verification silently, so
+    the failure would surface as a plausible but geospatially wrong map.
+    """
+    import pytest as _pytest
+
+    from darwindiff.e2s.datasource import EccoDarwinV05
+
+    with _pytest.raises(KeyError, match="fabricate index coordinates"):
+        EccoDarwinV05(_tiny_cube(tmp_path, with_coords=False))
+
+
+def test_datasource_rejects_datetime_on_a_positional_cube(tmp_path):
+    """Without a calendar every datetime used to resolve to month 0 and still be
+    labelled with the requested timestamp -- a 40-month rollout reusing one month."""
+    import numpy as _np
+    import pytest as _pytest
+
+    from darwindiff.e2s.datasource import EccoDarwinV05
+
+    ds = EccoDarwinV05(_tiny_cube(tmp_path, with_times=False))
+    assert ds.times is None
+    with _pytest.raises(ValueError, match="cannot be resolved to a month"):
+        ds._month_index(_np.datetime64("2005-06-01"))
+    # positional addressing still works
+    assert ds._read_field(2, "Chl1").shape == (3, 5)
+
+
+def test_datasource_resolves_distinct_months_when_calendar_present(tmp_path):
+    import numpy as _np
+
+    from darwindiff.e2s.datasource import EccoDarwinV05
+
+    ds = EccoDarwinV05(_tiny_cube(tmp_path))
+    base = _np.datetime64("1992-01-01")
+    idx = [ds._month_index(base + _np.timedelta64(d, "D")) for d in (0, 30, 60, 90)]
+    assert idx == [0, 1, 2, 3], "each month must resolve to its own index"
+
+
+def test_prognostic_defaults_to_no_log_transform():
+    """A linear-space checkpoint served through a log wrapper is silently corrupted,
+    so the default must be no transform; the transform belongs to the checkpoint."""
+    import numpy as _np
+    import torch as _torch
+
+    from darwindiff.e2s.prognostic import DarwinBGCPrognostic
+
+    m = DarwinBGCPrognostic(
+        _torch.nn.Identity(), ["Chl1", "PIC", "POC", "FeT"],
+        _np.array([0.0]), _np.array([0.0]),
+        means=_np.zeros(4), stds=_np.ones(4),
+    )
+    assert m.log_idx == [], "default must apply no log transform"
+
+
+def test_prognostic_from_config_round_trips_the_training_transform():
+    import numpy as _np
+    import torch as _torch
+
+    from darwindiff.e2s.prognostic import DarwinBGCPrognostic
+
+    args = (_torch.nn.Identity(), ["Chl1", "PIC", "POC", "FeT"],
+            _np.array([0.0]), _np.array([0.0]), _np.zeros(4), _np.ones(4))
+
+    off = DarwinBGCPrognostic.from_config(*args, config={"log_transform": False,
+                                                        "log_tracers": []})
+    assert off.log_idx == []
+
+    on = DarwinBGCPrognostic.from_config(
+        *args,
+        config={"log_transform": True, "log_tracers": ["Chl1", "PIC"],
+                "log_floors": {"Chl1": 1e-6}},
+    )
+    assert on.log_idx == [0, 1]
+    assert float(on.log_floors[0]) == pytest.approx(1e-6)
+    assert float(on.log_floors[2]) == pytest.approx(1e-12)  # untouched channels keep the legacy floor

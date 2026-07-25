@@ -51,8 +51,21 @@ class EccoDarwinV05:
         d = np.load(cube_path, allow_pickle=True)
         self.state = np.asarray(d["state"])  # [M, C, H, W]
         self.chan_names = [str(c) for c in d["chan_names"]]
-        self.lat = np.asarray(d["lats"], dtype=float) if "lats" in d else np.arange(self.state.shape[2], dtype=float)
-        self.lon = np.asarray(d["lons"], dtype=float) if "lons" in d else np.arange(self.state.shape[3], dtype=float)
+        # Fail loudly rather than fabricating coordinates. Falling back to 0..H-1 /
+        # 0..W-1 labels an ocean grid with array indices, and Earth2Studio then
+        # regrids and verifies against those as if they were degrees -- silently
+        # wrong, and wrong in a way that looks like a plausible map. Cubes written by
+        # `emulator_poc.py --dump-cube` do not currently carry lats/lons, so this
+        # raises for them by design; pass the AOI coordinates explicitly instead.
+        if "lats" not in d or "lons" not in d:
+            raise KeyError(
+                f"cube {cube_path!r} has no 'lats'/'lons'; refusing to fabricate index "
+                f"coordinates for a geospatial grid (shape {self.state.shape[2]}x"
+                f"{self.state.shape[3]}). Re-dump the cube with real AOI coordinates, or "
+                f"construct EccoDarwinV05 against a cube that carries them."
+            )
+        self.lat = np.asarray(d["lats"], dtype=float)
+        self.lon = np.asarray(d["lons"], dtype=float)
         self._chan_idx = {name: i for i, name in enumerate(self.chan_names)}
         if times is not None:
             self.times = np.asarray(times, dtype="datetime64[ns]")
@@ -86,7 +99,15 @@ class EccoDarwinV05:
     # ---- internals --------------------------------------------------------------
     def _month_index(self, t) -> int:
         if self.times is None:
-            return 0  # positional: caller should pass an int-like or rely on nearest
+            # Returning 0 here served EVERY datetime request from the first cube month
+            # while labelling the output with the requested timestamp -- so a 40-month
+            # rollout would silently reuse month 0 forty times and still look correct.
+            # A positional cube can only be addressed positionally.
+            raise ValueError(
+                f"cube has no calendar (no 'times_days' and no times= argument), so the "
+                f"datetime {t!r} cannot be resolved to a month. Pass times= when "
+                f"constructing EccoDarwinV05, or address months positionally with an int."
+            )
         t = np.datetime64(t, "ns")
         return int(np.argmin(np.abs(self.times - t)))
 
