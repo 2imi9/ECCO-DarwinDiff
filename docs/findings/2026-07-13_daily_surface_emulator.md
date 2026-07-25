@@ -1,5 +1,11 @@
 # Daily surface-chlorophyll emulator beats persistence, with caveats (2026-07-13)
 
+> **⚠️ SUPERSEDED — the 'beats persistence' framing is RETRACTED (2026-07-23).** Persistence
+> is a weak baseline on an autocorrelated monthly ocean. Against a per-cell *seasonal AR(1)*
+> baseline with block-bootstrap CIs the emulator scores **−0.161 ± 0.013** across four seeds,
+> with the interval entirely below zero on every seed. Read what follows as the record of what
+> was believed at the time. See `docs/findings/2026-07-23_emulator_baselines_v2.md`.
+
 > ## ⚠️ CORRECTION (2026-07-16) — the +0.408 headline is a LINEAR-SPACE metric artifact
 >
 > A controlled test (identical config/cube/split/seed; **only** the transform differs) shows the daily

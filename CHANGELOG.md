@@ -24,11 +24,17 @@ Replaces Green's-functions calibration with gradient descent through a different
   as a *rejected* decision record).
 
 ### Results (verified, `verify_run.py`-gated)
-- **Iron pair** (`alpfe`, `scav_rat`) recovers **38/40 (95%)** at the best 3-AOI config, from real
-  GEOTRACES dissolved iron.
+- **Iron pair** (`alpfe`, `scav_rat`) recovers from real GEOTRACES dissolved iron, carried by `alpfe`
+  (**49/50** per-AOI at n=50); `scav_rat` is basin-fragile (**26/50** per-AOI at 2000 epochs → **41/50** at
+  4000 epochs, with the equatorial Pacific leg stuck at 6/50). The earlier **38/40 (95 %)** headline is an
+  n=40 count that predates the per-AOI reconciliation and reads too optimistically.
 - **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC); the best config
-  (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 7/10 seeds** — a 3-of-4-observable frontier
-  (a fresh identical-config re-run confirms 7/10; the original sweep reported 8/10, a one-seed band-edge difference).
+  (`geo1`) recovers `R_PICPOC` **50/50 per-AOI** in the n=50 flagship (`n50e2k_percell_trio`, 2000 epochs), and the
+  real anchor is what drives it (anchor-off control, 1500 epochs `n50_anchor_off` → **4/50**; the epoch-matched 2000-epoch control `n50e2k_anchor_off` → **6/50**). The same config holds
+  **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 25/50 seeds** under the honest per-AOI ≥2-of-3 metric
+  (33/50 cell-weighted — that metric straddles and must not be quoted as recovery), versus **0/50** for the
+  global-scalar control — a 3-of-4-observable frontier whose binding leg is `scav_rat` (26/50 at 2000 epochs,
+  41/50 at 4000). The earlier n=10 sweep (7/10; 8/10 in the original run) is the precursor, not the headline.
   Recovery lands at real ~0.05, consistent with Carroll within the wide Cal band; the load-bearing finding is
   that Carroll's *global* `R_PICPOC` is itself under-constrained and mis-specified vs a regionally-variable rain ratio.
 - The **surrogate gap is dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15),
@@ -37,8 +43,14 @@ Replaces Green's-functions calibration with gradient descent through a different
 ### Scope / honest limits
 - Honest target = **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth
   pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real growth-rate data).
-- `diatomgraz` is not recovered in the real-data sweep (iron-pair tradeoff; needs dense Darwin
-  POSi/TRAC16, not yet staged).
+- `diatomgraz` is **input-limited, not data-blocked**: SST-only DINN sits at chance (~4/10), but adding an
+  MLD input channel takes it to 10/10, and with the biogenic-silica diagnostic off (`POSI_W=0`) it still
+  reaches **35/50 per-AOI** through chlorophyll + MLD — so it is not a bSi tautology. The Chl target is
+  Darwin's own output, so the honest claim is "recoverable from a non-circular model-internal observable",
+  not "recovered from independent real data". The 3-of-4 frontier is **structural**: `geo1` holds
+  {`alpfe`, `scav_rat`, `R_PICPOC`} and the MLD-channel + heavy-Daniels config holds
+  {`alpfe`, `diatomgraz`, `R_PICPOC`}; `scav_rat` needs the Darwin-pattern term, `diatomgraz` needs MLD,
+  and they conflict even at 4000 epochs.
 - 1° box-model proxy; 23-year climatology, not time-resolved; single-method (no forward-Darwin held-out
   validation yet); single-GPU prototype.
 
@@ -83,7 +95,8 @@ Replaces Green's-functions calibration with gradient descent through a different
   No new science (seasonal recovery stays cluster-gated).
 - **spine D — real-data identifiability (2026-06, current frame):** reframed to a surrogate-to-model
   identifiability study over 4 observable params. Real anchors identify the iron pair (GEOTRACES) and
-  `R_PICPOC` (Daniels CP:PP / MODIS); `geo1` holds the trio 7/10. Refuted the "needs the Darwin port +
-  native resolution" claim. Established the dimensional surrogate gap and the load-bearing per-cell DINN.
+  `R_PICPOC` (Daniels CP:PP / MODIS); `geo1` holds the trio 7/10 at n=10, superseded by **25/50 per-AOI**
+  in the n=50 flagship (see [Unreleased] above). Refuted the "needs the Darwin port + native resolution"
+  claim. Established the dimensional surrogate gap and the load-bearing per-cell DINN.
 
 *Underlying writeups: [archive](docs/archive/index.md). Current truth: [STATUS.md](STATUS.md).*

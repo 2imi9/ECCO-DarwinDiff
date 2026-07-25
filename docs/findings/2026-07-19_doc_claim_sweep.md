@@ -1,5 +1,11 @@
 # Documentation claim sweep — 2026-07-19 (PARTIAL)
 
+> **⚠️ SUPERSEDED — the '~9-month horizon' is RETRACTED (2026-07-19).** It was a `delta_t`
+> calendar artifact: every pre-2026-07-19 cube's `times_days` is 0.75× truth, so 94% of
+> month-of-year bins were wrong and skill-vs-climatology was inflated. Against a correctly
+> binned seasonal climatology the useful horizon is **one step**. Retained as the record of
+> what was believed at the time.
+
 > **READ THIS HEADER BEFORE USING THE REPORT BELOW.**
 >
 > **Nothing here has been applied.** Every "Replace with" block is a *proposal*. The repo is

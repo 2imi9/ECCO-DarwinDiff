@@ -1,5 +1,11 @@
 # Track-2 forward emulator — build plan (2026-07-11)
 
+> **⚠️ SUPERSEDED — the 'beats persistence' framing is RETRACTED (2026-07-23).** Persistence
+> is a weak baseline on an autocorrelated monthly ocean. Against a per-cell *seasonal AR(1)*
+> baseline with block-bootstrap CIs the emulator scores **−0.161 ± 0.013** across four seeds,
+> with the interval entirely below zero on every seed. Read what follows as the record of what
+> was believed at the time. See `docs/findings/2026-07-23_emulator_baselines_v2.md`.
+
 **Decision (this session):** the **forward / OSSE neural-operator emulator** is the next Track-2
 workstream, targeting **native LLC270 full resolution at B200 scale**. This note is the plan; no
 code is written until it's reviewed. It supersedes nothing — it operationalizes ADR-0002 (which lives
@@ -25,11 +31,13 @@ There are two "emulators" in the Track-2 record; only one is being built:
   **B200-scale** job. It is a *forward instrument*, **not** an identifiability rescue — the
   identifiability limits (iron wall, calcite support-limit, growth degeneracy) stand regardless.
 
-## 0b. UPDATE 2026-07-12 — the make-or-break gate PASSED (local, `docs/findings/emulator_poc_scored.md`)
+## 0b. UPDATE 2026-07-12 — the make-or-break gate PASSED (local, `docs/findings/emulator_poc_scored.md`) — that pass is RETRACTED 2026-07-23
 
 Ran overnight on the Explorer cluster (job 8302950, T4; `scripts/emulator_poc.py`), eqpac, 6 carbon
-tracers, 500 epochs, temporal hold-out, 3 prognostic seeds + 2 forcing seeds. **Result: an FNO beats
-persistence AND climatology on held-out v05 next-state** — skill **+0.18 ± 0.01** (3/3 seeds),
+tracers, 500 epochs, temporal hold-out, 3 prognostic seeds + 2 forcing seeds. **Result (RETRACTED
+2026-07-23, see `2026-07-23_1hr_run_summary.md` §4 — no significant skill vs a per-cell seasonal AR(1)
+baseline): an FNO appeared to beat persistence AND climatology on held-out v05 next-state** — skill
+**+0.18 ± 0.01** (3/3 seeds),
 anomaly-R² vs climatology **+0.36–0.41** (the load-bearing guard: it's learned dynamics, not the
 seasonal cycle). Honestly bounded: the skill is concentrated in the dynamic biological tracers
 (Chl1/PIC/POC/FeT); the slow carbonate fields **DIC (−0.25) / ALK (−0.05) are NOT beaten** (persistence
@@ -46,7 +54,9 @@ The §0b "next experiments" were run (Explorer T4), and both bounds are resolved
   *at* persistence and learns only the correction. The slow carbonate tracers **DIC/ALK now beat
   persistence too** (the §0b failure is fixed).
 - **Rollout-aware training** (K-step loss) — makes the multi-step autoregressive rollout robust.
-- **Confirmed robust:** all six tracers beat persistence across **n=6 seeds**, rollout beats persistence
+- **Confirmed robust against the persistence yardstick only — RETRACTED 2026-07-23 (job 188087: no
+  significant skill vs a per-cell seasonal AR(1) baseline):** all six tracers beat persistence across
+  **n=6 seeds**, rollout beats persistence
   at the final step in **6/6**; and the method **generalizes to depth** (3 levels — overall skill holds,
   every tracer positive). Verified honest (fixed persistence yardstick; leak-free pipeline inherited from
   the audited PoC; residual is not a free lunch — a positive skill still requires the learned Δ to help
@@ -57,7 +67,7 @@ eqpac subset at surface and depth, so the B200 scale-up (§2, §3) would now sca
 a guess. Next is the scale-up itself (native LLC270 / global / full-depth), gated only on the practical
 850 GB→AICR staging (+ Jon on the OSSE framing) — not on any remaining method risk.
 
-## 1. The make-or-break gate (analogous to the UDE's E2) — PASSED, see §0b
+## 1. The make-or-break gate (analogous to the UDE's E2) — PASSED, see §0b (that pass is RETRACTED 2026-07-23)
 
 Before any scale-up, one question decides the whole thing: **can a neural operator learn v05
 next-state on real data — i.e. beat persistence on held-out months?**
