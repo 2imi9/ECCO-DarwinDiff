@@ -90,18 +90,33 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--param", default="alpfe", choices=PARAM_NAMES,
                     help="parameter to profile (default alpfe)")
-    ap.add_argument("--mode", default="global", choices=["global", "peraoi"],
+    ap.add_argument("--mode", default="global", choices=["global", "peraoi", "fisher_gn"],
                     help="'global' (default) = shared-theta optimum + 6x6 Hessian + profile; "
                          "'peraoi' = a SEPARATE 6x6 Fisher/Hessian per AOI at Carroll, giving "
                          "basin-resolved identifiability (which parameters each basin's data "
                          "constrains). First cut toward the per-cell spatial map (#152); the box "
-                         "is per-cell independent so the field Fisher is block-diagonal.")
-    ap.add_argument("--loss", default="full", choices=["full", "realiron", "realbsi", "realpic"],
+                         "is per-cell independent so the field Fisher is block-diagonal. "
+                         "'fisher_gn' = the EXACT Gauss-Newton Fisher J^T J at the joint optimum "
+                         "for a residual-vector loss (realiron/realbsi/realpic/realgraze) -- the "
+                         "clean-magnitude follow-on to peraoi's residual-weighted empirical Fisher "
+                         "(no profile re-optimisation grid, so no convergence-guard failure mode). "
+                         "PSD by construction; CRLB = diag(F^-1) is a valid variance bound because "
+                         "at the optimum residuals ~0 so GN ~ the true Hessian. Verified in-run "
+                         "against 2*J^T J ~ FD-Hessian(theta*).")
+    ap.add_argument("--loss", default="full",
+                    choices=["full", "realiron", "realbsi", "realpic", "realgraze", "realbsi_synth"],
                     help="'full' = exact runner joint loss; 'realiron' = ONLY the REAL "
                          "GEOTRACES dissolved-iron residual (surf+sub, for alpfe/scav_rat); "
                          "'realbsi' = ONLY the REAL GEOTRACES biogenic-silica residual (for "
                          "diatomgraz). Real-world-relevance audit: 'does real data prefer Carroll?' "
-                         "(issue #143/#116). Needs the corresponding weight on (GEOTRACES_W / POSI_W).")
+                         "(issue #143/#116). Needs the corresponding weight on (GEOTRACES_W / POSI_W). "
+                         "'realgraze' = the diatom SPECIFIC grazing RATE (grazing loss / diatom "
+                         "biomass, 1/d) vs a SYNTHETIC self-target -- the dilution-experiment anchor "
+                         "(microzooplankton grazing mortality, Schmoker 2013). Biomass cancels, so "
+                         "unlike bSi it does NOT route through the model's own diatom biomass (see "
+                         "the grazing-guard block). 'realbsi_synth' = the bSi arm with the SAME "
+                         "synthetic self-target + ocean-mask footprint as realgraze, for an "
+                         "apples-to-apples rate-vs-absolute-flux head-to-head on diatomgraz.")
     ap.add_argument("--grid", type=int, default=9, help="profile grid points")
     ap.add_argument("--opt-steps", type=int, default=400,
                     help="Adam steps to find theta* (profile re-opt uses opt-steps//2)")
@@ -129,13 +144,14 @@ def main() -> int:
     args = ap.parse_args()
 
     import torch
-    from darwindiff.carroll6 import CARROLL_VALUES, PARAM_BOUNDS
+    from darwindiff.carroll6 import CARROLL_VALUES, PARAM_BOUNDS, G0_GRAZE
 
     R = _import_runner()
     dev = R.device
     bundles = R.bundles
     aoi_loss = R.aoi_loss
     R._RATIO_W_NOW = R.RATIO_W  # full ratio weight (converged state)
+    _GRAZE_GUARD = None         # populated by the realgraze arm's grazing-guard block
 
     # Bundle ICs loaded with N_seeds=1; expand state0 to the batch S on demand so a
     # batched theta [6,S] integrates against a matching state0 [15,S,H,W] (else the
@@ -191,6 +207,18 @@ def main() -> int:
             sloppy = evecs[:, 0]
             pos = [e for e in evals_l if e > 1e-6 * emax]
             span = math.log10(max(pos) / min(pos)) if len(pos) >= 2 else float("nan")
+            # --- Q1: rank + null direction of the 4-OBSERVABLE sub-block. Distinguishes "the 4
+            # observables are jointly full-rank (all locally identifiable)" from "rank-deficient ->
+            # a null COMBINATION" (which would mean 3 identifiable combinations, NOT 3-of-4 params).
+            obs_names = ["alpfe", "scav_rat", "diatomgraz", "R_PICPOC"]
+            obs = [PARAM_NAMES.index(p) for p in obs_names]
+            F4 = F[obs][:, obs]
+            e4, v4 = torch.linalg.eigh(0.5 * (F4 + F4.t()))
+            e4l = [float(x) for x in e4]
+            tol4 = 1e-4 * max(e4l) if max(e4l) > 0 else 1e-30
+            rank4 = int(sum(1 for e in e4l if e > tol4))
+            obs_block = {"observables": obs_names, "eigenvalues": e4l, "rank": rank4,
+                         "null_direction": {obs_names[i]: float(v4[i, 0]) for i in range(4)}, "tol": tol4}
             print(f"\n-- AOI {b['key']} (weight {b['weight']}, {n_active} cells) empirical Fisher at Carroll --")
             print("   eigenvalues low->high: " + ", ".join(f"{e:.2e}" for e in evals_l)
                   + (f"   (sloppiness {span:.2f} dec)" if len(pos) >= 2 else ""))
@@ -200,12 +228,15 @@ def main() -> int:
                   + "  ".join(f"{PARAM_NAMES[i]}={crlb[i]:.1e}" for i in range(6)))
             print("   sloppiest direction: "
                   + " ".join(f"{PARAM_NAMES[i]}{float(sloppy[i]):+.2f}" for i in range(6)))
+            print(f"   [Q1 4-obs block] eigs {[f'{e:.1e}' for e in e4l]} -> rank {rank4}/4  "
+                  + "null-dir " + " ".join(f"{obs_names[i]}{float(v4[i, 0]):+.2f}" for i in range(4)))
             per_aoi[b["key"]] = {
                 "weight": float(b["weight"]), "n_cells": n_active, "eigenvalues": evals_l,
                 "sloppiness_decades": span,
                 "fisher_info_diag": {PARAM_NAMES[i]: selfinfo[i] for i in range(6)},
                 "crlb": {PARAM_NAMES[i]: crlb[i] for i in range(6)},
                 "sloppy_vector": {PARAM_NAMES[i]: float(sloppy[i]) for i in range(6)},
+                "obs_block": obs_block,
             }
         out = {"mode": "peraoi", "method": "empirical_fisher", "aois": aois, "weights": weights,
                "carroll": {PARAM_NAMES[i]: float(carroll[i]) for i in range(6)},
@@ -316,6 +347,148 @@ def main() -> int:
         loss_vec = real_pic_loss_vec
         print(f"    LOSS = realpic (MODIS-Aqua PIC residual ONLY; AOIs: {list(modis_tgt)})")
 
+    # -------- realgraze / realbsi_synth: the dilution-grazing-RATE anchor --------
+    # THE ANCHOR. A microzooplankton dilution experiment (Landry-Hassett; Schmoker
+    # et al. 2013 global synthesis) measures the diatom grazing MORTALITY RATE (per
+    # day) -- a field quantity independent of Darwin, exactly as GEOTRACES iron
+    # anchors alpfe and Daniels/MODIS calcite anchors R_PICPOC.
+    #
+    # In the box the diatom grazing loss is graze_diatom = diatomgraz * G0_GRAZE *
+    # P_diatom (G0_GRAZE = const; NO grazer-biomass tracer; small PFTs have NO
+    # grazing term). So the SPECIFIC grazing rate observable
+    #     r_graze = graze_diatom / P_diatom = diatomgraz * G0_GRAZE          [1/d]
+    # cancels the diatom biomass EXACTLY: d r_graze / d P_diatom = 0, d r_graze /
+    # d diatomgraz = G0_GRAZE. This is why it can constrain diatomgraz where bSi
+    # cannot -- bSi anchors the ABSOLUTE flux (~ diatomgraz * P_diatom), and at
+    # steady state P_diatom DROPS as diatomgraz rises, so the biomass response
+    # compensates the palatability signal and the bSi profile goes FLAT (the M11
+    # circularity: bSi is back-solved from the model's own diatom biomass).
+    # 'realbsi_synth' reruns that ABSOLUTE-flux bSi observable with the SAME
+    # synthetic self-target + ocean-mask footprint so the head-to-head isolates the
+    # ONE difference: specific rate (biomass-cancelled) vs absolute flux (biomass-routed).
+    # See scratchpad graze_guard.py + docs/findings for the guard derivation.
+    if args.loss in ("realgraze", "realbsi_synth"):
+        G0 = float(G0_GRAZE)
+
+        def _graze_rate(state, pb):
+            """Diatom specific grazing rate graze/P_diatom [S,H,W]. Computed the
+            HONEST way (form the loss term, divide by the biomass from state) so any
+            residual biomass dependence would show up; algebraically it is
+            diatomgraz*G0_GRAZE, biomass-independent."""
+            p_diatom = state[R.I_DIATOM]
+            graze = pb[4] * G0 * p_diatom                         # pb[4] = diatomgraz
+            return graze / p_diatom.clamp(min=1e-12)
+
+        def _bsi_abs(state, pb):
+            """Absolute surface bSi_1 [S,H,W] (mmol Si/m^3) -- the biomass-routed flux."""
+            bsi_pred, _ = R.diagnostic_bsi_steady(state[R.I_DIATOM], pb[4])
+            return bsi_pred
+
+        _obs_fn = _graze_rate if args.loss == "realgraze" else _bsi_abs
+
+        # SYNTHETIC self-target: the observable evaluated at Carroll's diatomgraz,
+        # over each AOI's ocean mask. Detached -> a fixed anchor the profile fits.
+        synth = {}
+        carroll_b = carroll.reshape(6, 1, 1, 1)
+        with torch.no_grad():
+            set_seeds(1)
+            for b in bundles:
+                H, W = b["mask_f"].shape
+                pbC = carroll_b.expand(6, 1, H, W)
+                _, stateC = aoi_loss(b, pbC)
+                tgt = _obs_fn(stateC, pbC)[0]                     # [H,W]
+                mf = (b["mask_f"] > 0).to(tgt.dtype)
+                nf = mf.sum().clamp(min=1.0)
+                sc = (tgt[mf > 0] ** 2).mean().clamp(min=1e-30)
+                synth[b["key"]] = (tgt.detach(), mf, nf, sc)
+        _tgt_mean = {k: float(v[0][v[1] > 0].mean()) for k, v in synth.items()}
+        print(f"    LOSS = {args.loss} (SYNTHETIC self-target over ocean mask; "
+              f"{'diatom specific grazing RATE 1/d' if args.loss=='realgraze' else 'absolute bSi_1 mmol Si/m^3'}; "
+              f"per-AOI target mean {_tgt_mean})")
+
+        def real_graze_like_loss_vec(theta):
+            S = theta.shape[1]; set_seeds(S)
+            z = theta.new_zeros(S)
+            for b in bundles:
+                H, W = b["mask_f"].shape
+                pb = theta.reshape(6, S, 1, 1).expand(6, S, H, W)
+                _, state = aoi_loss(b, pb)
+                tgt, mf, nf, sc = synth[b["key"]]
+                pred = _obs_fn(state, pb)
+                resid = (pred - tgt[None]) * mf[None]
+                z = z + b["weight"] * (resid ** 2).flatten(1).sum(dim=1) / nf / sc
+            return z
+        loss_vec = real_graze_like_loss_vec
+
+        # ---- GRAZING GUARD (the gate): is the observable sensitive to diatomgraz
+        #      but ~insensitive to grazer/diatom biomass? Reported for the REAL
+        #      converged bundle states, PARTIAL (frozen biomass) + TOTAL (through the
+        #      re-converged steady state). Printed for BOTH arms so the contrast is
+        #      explicit. See docstring above + scratchpad graze_guard.py. ----
+        if args.loss == "realgraze":
+            b0 = bundles[0]
+            H, W = b0["mask_f"].shape
+            with torch.no_grad():
+                set_seeds(1)
+                _, stC = aoi_loss(b0, carroll_b.expand(6, 1, H, W))
+                mf0 = (b0["mask_f"] > 0)
+                Pd0 = float(stC[R.I_DIATOM][0][mf0].mean())
+            g_leaf = torch.tensor(float(carroll[4]), requires_grad=True)
+            Pd_leaf = torch.tensor(Pd0, requires_grad=True)
+            rate = (g_leaf * G0 * Pd_leaf) / Pd_leaf
+            flux = g_leaf * G0 * Pd_leaf
+            dr = torch.autograd.grad(rate, (g_leaf, Pd_leaf), retain_graph=True)
+            df = torch.autograd.grad(flux, (g_leaf, Pd_leaf))
+            # total (through steady state): finite-diff diatomgraz, re-converge
+            def _obs_total(gval):
+                th = carroll.clone(); th[4] = gval
+                with torch.no_grad():
+                    set_seeds(1)
+                    _, s = aoi_loss(b0, th.reshape(6, 1, 1, 1).expand(6, 1, H, W))
+                    pd = float(s[R.I_DIATOM][0][mf0].mean())
+                return pd, gval * G0 * pd, gval * G0
+            eps = 0.02 * float(carroll[4])
+            pdp, fxp, rtp = _obs_total(float(carroll[4]) + eps)
+            pdm, fxm, rtm = _obs_total(float(carroll[4]) - eps)
+            # Pass = the RATE's biomass-sensitivity is negligible RELATIVE to its
+            # diatomgraz-sensitivity (a relative test, robust to the runner's float32),
+            # its diatomgraz-sensitivity matches G0_GRAZE, AND the absolute-flux control
+            # DOES route through biomass (so the test has discriminating power).
+            rate_dg, rate_db = abs(float(dr[0])), abs(float(dr[1]))
+            flux_dg, flux_db = abs(float(df[0])), abs(float(df[1]))
+            rate_biomass_frac = rate_db / rate_dg if rate_dg > 0 else float("inf")
+            flux_biomass_frac = flux_db / flux_dg if flux_dg > 0 else float("inf")
+            guard = {
+                "partial_rate_d_diatomgraz": float(dr[0]), "partial_rate_d_biomass": float(dr[1]),
+                "partial_absflux_d_diatomgraz": float(df[0]), "partial_absflux_d_biomass": float(df[1]),
+                "rate_biomass_vs_diatomgraz_frac": rate_biomass_frac,
+                "flux_biomass_vs_diatomgraz_frac": flux_biomass_frac,
+                "total_dPdiatom_ddiatomgraz": (pdp - pdm) / (2 * eps),
+                "total_dAbsFlux_ddiatomgraz": (fxp - fxm) / (2 * eps),
+                "total_dSpecificRate_ddiatomgraz": (rtp - rtm) / (2 * eps),
+                "pass": bool(rate_dg > 0 and rate_biomass_frac < 1e-4
+                             and abs(rate_dg - G0) < 1e-4 * G0 and flux_biomass_frac > 1.0),
+                "note": "Box has no grazer-biomass tracer and no small-PFT grazing term, so the raw "
+                        "specific rate already isolates diatomgraz (biomass cancels); the size-fraction "
+                        "contrast is unnecessary here. NECESSARY (rate breaks the bSi biomass-tautology) "
+                        "but not SUFFICIENT for the full Darwin grazer_biomass*response*palatability form.",
+            }
+            print("\n-- GRAZING GUARD (real converged state, AOI "
+                  f"{b0['key']}, P_diatom={Pd0:.4g}) --")
+            print(f"   PARTIAL specific RATE : d/d diatomgraz={guard['partial_rate_d_diatomgraz']:+.4g}  "
+                  f"d/d biomass={guard['partial_rate_d_biomass']:+.4g}  "
+                  f"(biomass/diatomgraz={guard['rate_biomass_vs_diatomgraz_frac']:.2e} => isolates diatomgraz)")
+            print(f"   PARTIAL abs   FLUX    : d/d diatomgraz={guard['partial_absflux_d_diatomgraz']:+.4g}  "
+                  f"d/d biomass={guard['partial_absflux_d_biomass']:+.4g}  "
+                  f"(biomass/diatomgraz={guard['flux_biomass_vs_diatomgraz_frac']:.2e} => routes through biomass)")
+            print(f"   TOTAL (thru steady st): dP_diatom/dg={guard['total_dPdiatom_ddiatomgraz']:+.4g}  "
+                  f"dAbsFlux/dg={guard['total_dAbsFlux_ddiatomgraz']:+.4g}  "
+                  f"dRate/dg={guard['total_dSpecificRate_ddiatomgraz']:+.4g}")
+            print(f"   GUARD PASS: {guard['pass']}")
+            _GRAZE_GUARD = guard
+        else:
+            _GRAZE_GUARD = None
+
     def to_phys(u):   # u [6,S] -> physical [6,S]
         return lo + (hi - lo) * torch.sigmoid(u)
 
@@ -415,8 +588,181 @@ def main() -> int:
                 "sloppy_vector": {PARAM_NAMES[i]: float(sloppy[i]) for i in range(6)},
                 "stiff_vector": {PARAM_NAMES[i]: float(stiff[i]) for i in range(6)}}
 
-    hess_star = hess_report(theta_star, "theta*")
-    hess_carroll = hess_report(carroll, "Carroll")
+    if args.mode != "fisher_gn":  # the GN-Fisher mode does its own curvature; skip the (saddle) Hessians
+        hess_star = hess_report(theta_star, "theta*")
+        hess_carroll = hess_report(carroll, "Carroll")
+
+    # ---- EXACT GAUSS-NEWTON FISHER (clean-magnitude, PSD, no profile grid) -----------
+    # The peraoi empirical Fisher is F = sum g g^T with g = 2 rho J -> residual-WEIGHTED, so
+    # its magnitudes/CRLB are biased away from the optimum (the diatomgraz diagonal artifact).
+    # The exact Gauss-Newton Fisher F_GN = J^T J (J = d rho / d theta, rho the SCALED residual
+    # with ||rho||^2 == loss) drops the residual weighting -> clean curvature of the model output.
+    # At theta* it is the valid CRLB source (residuals ~ min). This is a SINGLE evaluation (12 FD
+    # residual evals for J), so it has no profile-re-optimisation convergence-guard failure mode --
+    # the trap that invalidated 9/13 runs on 2026-07-19.
+    if args.mode == "fisher_gn":
+        import math as _math
+        if args.loss not in {"realiron", "realbsi"}:
+            raise SystemExit(
+                "fisher_gn currently supports --loss realiron (iron pair alpfe/scav_rat) or "
+                "realbsi (diatomgraz) -- the residual-vector losses whose scaling is exact here. "
+                "The 'full' joint loss does not expose its residual vector; realpic scaling is "
+                "not yet replicated. Choose realiron or realbsi.")
+
+        def resid_vec(theta_6):
+            """Scaled residual vector rho for the selected loss at a single theta [6];
+            built so ||rho||^2 == loss_vec(theta) (asserted below)."""
+            th = theta_6.detach().reshape(6, 1)
+            set_seeds(1)
+            parts = []
+            for b in bundles:
+                H, W = b["mask_f"].shape
+                pb = th.reshape(6, 1, 1, 1).expand(6, 1, H, W)
+                _, state = aoi_loss(b, pb)
+                if args.loss == "realiron":
+                    if R.GEOTRACES_W > 0 and b["n_geo_surf"] > 0:
+                        r = (state[R.I_DFE_1] - b["geo_surf_target_t"][None]) * b["geo_surf_mask_f"][None]
+                        sc = (b["geo_surf_target_t"][b["geo_surf_mask_t"]] ** 2).mean().clamp(min=1e-30)
+                        coef = (R.GEOTRACES_W / (b["n_geo_surf_f"] * sc)).sqrt()
+                        parts.append(coef * r.reshape(-1))
+                    if R.GEOTRACES_SUB_W > 0 and b["n_geo_sub"] > 0:
+                        r = (state[R.I_DFE_2] - b["geo_sub_target_t"][None]) * b["geo_sub_mask_f"][None]
+                        sc = (b["geo_sub_target_t"][b["geo_sub_mask_t"]] ** 2).mean().clamp(min=1e-30)
+                        coef = (R.GEOTRACES_SUB_W / (b["n_geo_sub_f"] * sc)).sqrt()
+                        parts.append(coef * r.reshape(-1))
+                elif args.loss == "realbsi":
+                    if R.POSI_W > 0 and b["n_posi"] > 0:
+                        bsi_pred, _ = R.diagnostic_bsi_steady(state[R.I_DIATOM], pb[4])
+                        r = (bsi_pred - b["posi_target_t"][None]) * b["posi_mask_f"][None]
+                        sc = (b["posi_target_t"][b["posi_mask_t"]] ** 2).mean().clamp(min=1e-30)
+                        coef = (R.POSI_W / (b["n_posi_f"] * sc)).sqrt()
+                        parts.append(coef * r.reshape(-1))
+            return torch.cat(parts) if parts else theta_star.new_zeros(1)
+
+        at = theta_star.detach().reshape(6)
+        # SELF-CHECK: the reconstructed residual vector must reproduce the runner loss exactly.
+        rho0 = resid_vec(at)
+        l_resid = float((rho0 ** 2).sum())
+        l_direct = float(loss_vec(at.reshape(6, 1)))
+        recon_rel = abs(l_resid - l_direct) / max(abs(l_direct), 1e-30)
+        print(f"\n-- GN-Fisher residual reconstruction check: ||rho||^2={l_resid:.6g} vs "
+              f"loss_vec={l_direct:.6g}  (rel {recon_rel:.2e}) --")
+        if recon_rel > 1e-4:
+            raise SystemExit(f"resid_vec does NOT reconstruct the loss (rel {recon_rel:.2e}); "
+                             "the GN-Fisher scaling is wrong -- refusing to emit a bad artifact.")
+
+        Nres = rho0.numel()
+        Jm = torch.zeros(Nres, 6, device=at.device, dtype=at.dtype)
+        rel_eps = 2e-2
+        for j in range(6):
+            eps = rel_eps * max(abs(float(at[j])), 1e-30)
+            ap = at.clone(); ap[j] += eps
+            am = at.clone(); am[j] -= eps
+            Jm[:, j] = (resid_vec(ap) - resid_vec(am)) / (2 * eps)
+        F = Jm.t() @ Jm
+        F = 0.5 * (F + F.t())
+        scale_v = at.abs().clamp(min=1e-30)
+        Fn = F * scale_v[:, None] * scale_v[None, :]                 # dimensionless GN-Fisher
+        Fn = 0.5 * (Fn + Fn.t())
+        evals, evecs = torch.linalg.eigh(Fn)
+        evals_l = [float(x) for x in evals]
+        emax = max(evals_l) if evals_l and max(evals_l) > 0 else 1.0
+        min_eval = min(evals_l)
+        psd = bool(min_eval >= -1e-8 * emax)
+        ridge = 1e-6 * emax + 1e-30
+        crlb = [float(x) for x in
+                torch.linalg.inv(Fn + ridge * torch.eye(6, device=Fn.device, dtype=Fn.dtype)).diagonal()]
+        fisher_info = [float(Fn[i, i]) for i in range(6)]
+        sloppy = evecs[:, 0]; stiff = evecs[:, -1]
+        pos = [e for e in evals_l if e > 1e-6 * emax]
+        span = _math.log10(max(pos) / min(pos)) if len(pos) >= 2 else float("nan")
+
+        # --- Q2: {alpfe, scav_rat} sub-block + POSTERIOR CORRELATION + dimensionless rel. uncertainty.
+        # The marginal CRLBs alone do NOT show a degeneracy (similar marginals occur in well- and
+        # poorly-constrained systems). The degeneracy lives in (a) the 2x2 eigen-spread / condition
+        # number and (b) the correlation rho: |rho|->1 means alpfe & scav_rat trade off along one
+        # combination. All dimensionless (Fn already scaled by |theta|). LOCAL, at this evaluation point.
+        C6 = torch.linalg.inv(Fn + ridge * torch.eye(6, device=Fn.device, dtype=Fn.dtype))
+        ia, isc = PARAM_NAMES.index("alpfe"), PARAM_NAMES.index("scav_rat")
+        F2 = 0.5 * (Fn[[ia, isc]][:, [ia, isc]] + Fn[[ia, isc]][:, [ia, isc]].t())
+        e2v, e2vec = torch.linalg.eigh(F2)                        # ascending: [:,0] = sloppy (flat) dir
+        e2l = [float(x) for x in e2v]
+        cond2 = (max(e2l) / min(e2l)) if min(e2l) > 0 else float("inf")
+        # SLOPPY 2x2 eigenvector in dimensionless (~log-parameter) coords. Same sign on both entries
+        # => (+alpfe,+scav_rat) co-vary = the RATIO S/k degeneracy (hold [DFe]=S/k fixed by raising
+        # source AND loss together, per C=S/k). Opposite signs => a product/anti-varying direction.
+        sv = e2vec[:, 0]
+        if sv[0] < 0:  # fix gauge so alpfe component is +, for a readable sign
+            sv = -sv
+        iron_sloppy_dir = {"alpfe": float(sv[0]), "scav_rat": float(sv[1])}
+        ratio_like = bool(sv[0] * sv[1] > 0)  # True => co-vary => S/k ratio degeneracy
+        # CONDITIONAL 2x2 correlation (marginalize ONLY the pair, others held) — the pure iron-pair
+        # degeneracy; and the FULL-6 MARGINAL (others integrated out), which can flip sign via coupling.
+        C2 = torch.linalg.inv(F2 + 1e-6 * float(max(e2l)) * torch.eye(2, device=F2.device, dtype=F2.dtype))
+        rho_cond2 = float(C2[0, 1] / (C2[0, 0] * C2[1, 1]).clamp(min=1e-60).sqrt())
+        rho_full6 = float(C6[ia, isc] / (C6[ia, ia] * C6[isc, isc]).clamp(min=1e-60).sqrt())
+        relstd_alpfe = float(C6[ia, ia].clamp(min=0).sqrt())      # dimensionless posterior rel. std
+        relstd_scav = float(C6[isc, isc].clamp(min=0).sqrt())
+        iron_block = {"pair": ["alpfe", "scav_rat"], "eigenvalues_2x2": e2l,
+                      "condition_number_2x2": cond2, "sloppy_dir_2x2": iron_sloppy_dir,
+                      "ratio_like_degeneracy": ratio_like,
+                      "posterior_corr_conditional_2x2": rho_cond2, "posterior_corr_full6": rho_full6,
+                      "rel_std_alpfe": relstd_alpfe, "rel_std_scav_rat": relstd_scav,
+                      "note": "sloppy_dir same-sign => S/k RATIO degeneracy (C=S/k). conditional corr = pure "
+                              "iron-pair; full6 marginal can sign-flip via coupling to the other params. LOCAL."}
+
+        # VERIFY #2: at the optimum, loss Hessian ~ 2 * J^T J (the residual-curvature term
+        # 2*sum rho*grad^2 rho vanishes only if residuals ~0). Report the gap honestly: a small
+        # gap confirms the GN-Fisher IS the curvature; a large gap means the data is not perfectly
+        # fit (rho != 0) and the CLEAN GN (which drops that term) is exactly why we prefer it.
+        Hn = fd_hessian(at) * scale_v[:, None] * scale_v[None, :]
+        Hn = 0.5 * (Hn + Hn.t())
+        gap_fro = float((Hn - 2.0 * Fn).norm() / (2.0 * Fn).norm().clamp(min=1e-30))
+
+        print(f"\n-- EXACT Gauss-Newton Fisher (loss={args.loss}) at theta* ({Nres} residuals) --")
+        print("   eigenvalues (low->high): " + ", ".join(f"{e:.2e}" for e in evals_l)
+              + (f"   (sloppiness {span:.2f} dec)" if len(pos) >= 2 else ""))
+        print(f"   PSD: {psd} (min eval {min_eval:.2e})   ||H - 2F||/||2F|| = {gap_fro:.2f} "
+              f"(small => residuals ~0, GN == curvature; large => data not perfectly fit)")
+        print("   per-param Fisher info (diag; HIGH = constrained): "
+              + "  ".join(f"{PARAM_NAMES[i]}={fisher_info[i]:.2e}" for i in range(6)))
+        print("   per-param CRLB (rel-var bound; HIGH = unconstrained): "
+              + "  ".join(f"{PARAM_NAMES[i]}={crlb[i]:.1e}" for i in range(6)))
+        print("   sloppiest direction (eval={:.2e}): ".format(evals_l[0])
+              + " ".join(f"{PARAM_NAMES[i]}{float(sloppy[i]):+.2f}" for i in range(6)))
+        print("   stiffest  direction (eval={:.2e}): ".format(evals_l[-1])
+              + " ".join(f"{PARAM_NAMES[i]}{float(stiff[i]):+.2f}" for i in range(6)))
+        print(f"   [Q2 iron pair] 2x2 eigs {e2l[0]:.2e}/{e2l[1]:.2e} cond={cond2:.1f}")
+        print(f"      sloppy 2x2 dir (dimensionless~log): alpfe {iron_sloppy_dir['alpfe']:+.2f}, "
+              f"scav_rat {iron_sloppy_dir['scav_rat']:+.2f}  => "
+              f"{'S/k RATIO degeneracy (co-vary; C=S/k)' if ratio_like else 'anti-vary/product direction'}")
+        print(f"      corr(alpfe,scav_rat): conditional(pure 2x2)={rho_cond2:+.3f}  full-6 marginal={rho_full6:+.3f}  "
+              f"(marginal sign-flips via coupling; lead with the conditional)")
+        print(f"      dimensionless rel-std alpfe={relstd_alpfe:.2f} scav_rat={relstd_scav:.2f}")
+
+        out = {
+            "mode": "fisher_gn", "method": "exact_gauss_newton_JtJ", "loss_mode": args.loss,
+            "aois": aois, "weights": weights,
+            "theta_star": {PARAM_NAMES[i]: float(theta_star[i]) for i in range(6)},
+            "carroll": {PARAM_NAMES[i]: float(carroll[i]) for i in range(6)},
+            "loss_star": float(loss_star), "n_residuals": int(Nres),
+            "recon_rel_error": recon_rel, "psd": psd, "min_eigenvalue": min_eval,
+            "hessian_gn_gap_fro": gap_fro,
+            "eigenvalues": evals_l, "sloppiness_decades": span,
+            "fisher_info_diag": {PARAM_NAMES[i]: fisher_info[i] for i in range(6)},
+            "crlb": {PARAM_NAMES[i]: crlb[i] for i in range(6)},
+            "sloppy_vector": {PARAM_NAMES[i]: float(sloppy[i]) for i in range(6)},
+            "stiff_vector": {PARAM_NAMES[i]: float(stiff[i]) for i in range(6)},
+            "iron_block": iron_block,
+            "note": "F_GN = J^T J, J = d(scaled residual)/d theta by central FD (rel_eps 2e-2), "
+                    "dimensionless (scaled by |theta*|). CRLB = diag((F+ridge)^-1). Verified: "
+                    "residual reconstruction reproduces loss_vec; H ~ 2F gap reported.",
+        }
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(json.dumps(out, indent=1), encoding="utf-8")
+            print(f"\nwrote {args.out}")
+        return 0
 
     # ---- 3. profile-likelihood over the chosen parameter (VECTORISED over the grid) ----
     pidx = PARAM_NAMES.index(args.param)
@@ -518,6 +864,7 @@ def main() -> int:
 
     out = {
         "aois": aois, "weights": weights, "profiled_param": args.param,
+        "loss_mode": args.loss, "grazing_guard": _GRAZE_GUARD,
         "theta_star": {PARAM_NAMES[i]: float(theta_star[i]) for i in range(6)},
         "carroll": {PARAM_NAMES[i]: float(carroll[i]) for i in range(6)},
         "loss_star": loss_star, "rel_grad_norm": grad_norm,

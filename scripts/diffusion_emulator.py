@@ -168,21 +168,32 @@ def edm_sample(model, cond, shape, device, steps=18, sigma_min=0.002, sigma_max=
     return x
 
 
+def _forward_mu(fno, xt, bt, dt_months, device):
+    """Forward map: x + f(x), or x + f(x)*dt_months[bt] under --dt-scaled-residual
+    (the network emits a per-month tendency scaled by each pair's gap). Matches
+    train_regression so the diffusion residual target and conditioning use the same
+    map instead of treating a per-month tendency as a full-step correction."""
+    out = fno(xt)
+    if dt_months is not None:
+        out = out * dt_months[bt].to(device).view(-1, 1, 1, 1)
+    return xt + out
+
+
 # ------------------------------------------------ training-history probes ---
 @torch.no_grad()
-def _val_mse(fno, Z, va_t, mask_t, device, bs=8, max_batches=6):
+def _val_mse(fno, Z, va_t, mask_t, device, bs=8, max_batches=6, dt_months=None):
     """Held-out regression MSE — cheap generalization probe for the history trace."""
     va = torch.tensor(va_t); tot = 0.0; n = 0
     for k in range(0, min(len(va), bs * max_batches), bs):
         bt = va[k : k + bs]
         xt, yt = _batch(Z, bt, device)
-        mu = xt + fno(xt)
+        mu = _forward_mu(fno, xt, bt, dt_months, device)
         tot += float((((mu - yt) ** 2) * mask_t).mean()) * len(bt); n += len(bt)
     return tot / max(n, 1)
 
 
 @torch.no_grad()
-def _val_edm(model, fno, Z, va_t, mask_t, device, bs=8, max_batches=4):
+def _val_edm(model, fno, Z, va_t, mask_t, device, bs=8, max_batches=4, dt_months=None):
     """Held-out EDM loss. Sigma draws are seeded so the value is comparable across
     epochs; the train-vs-val gap is the overfitting signature behind under-dispersion."""
     cpu_state = torch.get_rng_state()
@@ -192,7 +203,7 @@ def _val_edm(model, fno, Z, va_t, mask_t, device, bs=8, max_batches=4):
     for k in range(0, min(len(va), bs * max_batches), bs):
         bt = va[k : k + bs]
         xt, yt = _batch(Z, bt, device)
-        mu = xt + fno(xt)
+        mu = _forward_mu(fno, xt, bt, dt_months, device)
         tot += float(edm_loss(model, yt - mu, torch.cat([xt, mu], dim=1), mask_t)) * len(bt); n += len(bt)
     torch.set_rng_state(cpu_state)
     if cuda_state is not None:
@@ -201,7 +212,7 @@ def _val_edm(model, fno, Z, va_t, mask_t, device, bs=8, max_batches=4):
 
 
 @torch.no_grad()
-def _light_eval(model, fno, Z, va_t, C, mask_t, device, n_ens=8, steps=16, bs=4, max_batches=2):
+def _light_eval(model, fno, Z, va_t, C, mask_t, device, n_ens=8, steps=16, bs=4, max_batches=2, dt_months=None):
     """Cheap ensemble probe for the QUALITY LADDER: measured skill + calibration at a
     given training epoch. Deliberately small (few members/steps/batches) so it can run
     periodically during training; the final evaluate() is the authoritative number."""
@@ -212,7 +223,7 @@ def _light_eval(model, fno, Z, va_t, C, mask_t, device, n_ens=8, steps=16, bs=4,
     for k in range(0, len(va), bs):
         bt = va[k : k + bs]
         xt, yt = _batch(Z, bt, device)
-        mu = xt + fno(xt)
+        mu = _forward_mu(fno, xt, bt, dt_months, device)
         cond = torch.cat([xt, mu], dim=1)
         ens = torch.stack([
             mu + edm_sample(model, cond, (len(bt), C, xt.shape[2], xt.shape[3]), device, steps=steps)
@@ -287,7 +298,7 @@ def train_regression(Z, tr_t, C, mask_t, device, epochs, modes, width, bs, lr=1e
             tot += loss.item() * len(bt)
         rec = {"epoch": ep, "train_mse_z": tot / len(perm)}
         if va_t is not None and history_every and (ep % history_every == 0 or ep == epochs - 1):
-            rec["val_mse_z"] = _val_mse(fno, Z, va_t, mask_t, device)
+            rec["val_mse_z"] = _val_mse(fno, Z, va_t, mask_t, device, dt_months=dt_months)
         hist.append(rec)
         if log_every and (ep % log_every == 0 or ep == epochs - 1):
             v = f"  val={rec['val_mse_z']:.4f}" if "val_mse_z" in rec else ""
@@ -310,7 +321,7 @@ def radial_spectrum(field, mask):
     return tbin / np.clip(nr, 1, None)
 
 
-def evaluate(fno, model, Z, va_t, C, mask_t, mask_np, device, n_ens=8, steps=18, bs=2):
+def evaluate(fno, model, Z, va_t, C, mask_t, mask_np, device, n_ens=8, steps=18, bs=2, dt_months=None):
     """Batched: regression skill vs persistence; diffusion ensemble-mean skill + spread + spectrum."""
     va_t = torch.tensor(va_t)
     ncell = mask_t.sum().item()
@@ -321,7 +332,7 @@ def evaluate(fno, model, Z, va_t, C, mask_t, mask_np, device, n_ens=8, steps=18,
         bt = va_t[k : k + bs]
         xt, yt = _batch(Z, bt, device)
         with torch.no_grad():
-            mu = xt + fno(xt)
+            mu = _forward_mu(fno, xt, bt, dt_months, device)
             cond = torch.cat([xt, mu], dim=1)
             ens = torch.stack([
                 mu + edm_sample(model, cond, (len(bt), C, xt.shape[2], xt.shape[3]), device, steps=steps)
@@ -358,7 +369,7 @@ def evaluate(fno, model, Z, va_t, C, mask_t, mask_np, device, n_ens=8, steps=18,
 def train_diffusion(fno, Z, tr_t, C, mask_t, device, epochs, modes, width, bs, lr=1e-3,
                     sigma_data=0.5, clip=1.0, ema_decay=0.999, log_every=25,
                     ckpt_path=None, ckpt_every=0, ckpt_meta=None,
-                    va_t=None, history_every=10, eval_every=0):
+                    va_t=None, history_every=10, eval_every=0, dt_months=None):
     cond_ch = 2 * C
     model = EDMCorrector(C, cond_ch, sigma_data=sigma_data, modes=modes, width=width).to(device)
     # NB: no fused=True — the FNO spectral weights are complex64, unsupported by fused Adam.
@@ -374,7 +385,7 @@ def train_diffusion(fno, Z, tr_t, C, mask_t, device, epochs, modes, width, bs, l
             bt = perm[k : k + bs]
             xt, yt = _batch(Z, bt, device)
             with torch.no_grad():
-                mu = xt + fno(xt)
+                mu = _forward_mu(fno, xt, bt, dt_months, device)
             r = yt - mu
             cond = torch.cat([xt, mu], dim=1)
             loss = edm_loss(model, r, cond, mask_t)
@@ -398,11 +409,11 @@ def train_diffusion(fno, Z, tr_t, C, mask_t, device, epochs, modes, width, bs, l
             live = {k: v.detach().clone() for k, v in model.state_dict().items()}
             model.load_state_dict(ema)
             if is_probe:
-                rec["val_edm"] = _val_edm(model, fno, Z, va_t, mask_t, device)
+                rec["val_edm"] = _val_edm(model, fno, Z, va_t, mask_t, device, dt_months=dt_months)
                 rec["val_train_gap"] = rec["val_edm"] - last  # >0 and growing => overfitting
             if is_ladder:
                 # QUALITY LADDER: measured skill + calibration at this epoch
-                rec["quality"] = _light_eval(model, fno, Z, va_t, C, mask_t, device)
+                rec["quality"] = _light_eval(model, fno, Z, va_t, C, mask_t, device, dt_months=dt_months)
             model.load_state_dict(live)
         hist.append(rec)
         if log_every and (ep % log_every == 0 or ep == epochs - 1):
@@ -624,12 +635,12 @@ def main(argv=None):
             print(f"wrote {args.out}", flush=True)
         return 0
     print("[2/3] training EDM diffusion corrector…", flush=True)
-    model, dloss, diff_hist = train_diffusion(fno, Z, tr_t, C, mask_t, device, args.diffusion_epochs, args.modes, args.width, args.batch_size, lr=args.lr, sigma_data=args.sigma_data, ema_decay=args.ema_decay, ckpt_path=args.save_model, ckpt_every=args.ckpt_every, ckpt_meta={"mean": mean, "std": std, "channels": names}, va_t=va_t, history_every=args.history_every, eval_every=args.eval_every)
+    model, dloss, diff_hist = train_diffusion(fno, Z, tr_t, C, mask_t, device, args.diffusion_epochs, args.modes, args.width, args.batch_size, lr=args.lr, sigma_data=args.sigma_data, ema_decay=args.ema_decay, ckpt_path=args.save_model, ckpt_every=args.ckpt_every, ckpt_meta={"mean": mean, "std": std, "channels": names}, va_t=va_t, history_every=args.history_every, eval_every=args.eval_every, dt_months=dt_m)
     print(f"      diffusion done final-loss={dloss:.4f} ({time.time()-t0:.0f}s)", flush=True)
     if device == "cuda":
         print(f"[gpu] peak mem = {torch.cuda.max_memory_allocated()/1e9:.1f} GB", flush=True)
     print("[3/3] evaluating (skill + spread + spectral realism)…", flush=True)
-    metrics, spec = evaluate(fno, model, Z, va_t, C, mask_t, mask, device, n_ens=args.n_ensemble, steps=args.sample_steps, bs=args.eval_batch)
+    metrics, spec = evaluate(fno, model, Z, va_t, C, mask_t, mask, device, n_ens=args.n_ensemble, steps=args.sample_steps, bs=args.eval_batch, dt_months=dt_m)
     for k, v in metrics.items():
         print(f"    {k:32s} {v:+.4f}")
     print("\nInterpretation: diffusion_ensmean_skill ~ regression_skill (expected; ceiling is intrinsic).")
