@@ -92,7 +92,11 @@ WARN_PCT = 5.0        # >5% relative drift on either = referee objection stands 
 
 
 def _load_cache(cache_dir: Path, aoi_key: str):
-    cache = torch.load(cache_dir / CACHE_FILES[aoi_key], weights_only=False)
+    # weights_only=True: torch.load with it disabled unpickles arbitrary objects, and
+    # DARWIN_DATA_ROOT may point at a shared or externally populated cache. These caches
+    # hold a plain dict of tensors, which loads fine under the safe path. If a cache ever
+    # fails here, regenerate it rather than re-disabling the guard.
+    cache = torch.load(cache_dir / CACHE_FILES[aoi_key], weights_only=True)
     darwin = {
         "POC": cache["poc_binned"], "PIC": cache["pic_binned"],
         "FeT": cache["fet_binned"], "DIC": cache["dic_binned"], "ALK": cache["alk_binned"],

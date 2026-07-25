@@ -179,7 +179,11 @@ def collect_cells(geotraces_path, depth_max=50.0):
     for key in AOI_KEYS:
         aoi = AOI_BY_KEY[key]
         cache_p = Path(_DEFAULT_CACHE_DIR) / CACHE_FILENAMES[aoi.name]
-        c = torch.load(cache_p, weights_only=False)
+        # weights_only=True: torch.load with it disabled unpickles arbitrary objects, and
+        # DARWIN_DATA_ROOT may point at a shared or externally populated cache. These caches
+        # hold a plain dict of tensors, which loads fine under the safe path. If a cache ever
+        # fails here, regenerate it rather than re-disabling the guard.
+        c = torch.load(cache_p, weights_only=True)
         model = np.asarray(c["fet_binned"], dtype=np.float64)      # [Y,X] mmol/m^3
         lats1d = np.asarray(c["darwin_lats"], dtype=np.float64)
         lons1d = np.asarray(c["darwin_lons"], dtype=np.float64)
