@@ -124,6 +124,21 @@ class EccoDarwinV05:
                 f"constructing EccoDarwinV05, or address months positionally with an int."
             )
         t = np.datetime64(t, "ns")
+        # argmin alone clamps silently: a request outside the cube's calendar snapped to
+        # the nearest edge month while __call__ still labelled the output with the
+        # REQUESTED date, so asking for 2050 returned the last available month wearing a
+        # 2050 timestamp. Bound the request to within half a step of the calendar.
+        if len(self.times) > 1:
+            tol = np.median(np.abs(np.diff(self.times))) / 2
+        else:
+            tol = np.timedelta64(1, "D")
+        lo, hi = self.times.min() - tol, self.times.max() + tol
+        if t < lo or t > hi:
+            raise ValueError(
+                f"requested time {t} is outside this cube's calendar "
+                f"[{self.times.min()} .. {self.times.max()}] (tolerance {tol}). Refusing "
+                f"to return the nearest edge month under the requested timestamp."
+            )
         return int(np.argmin(np.abs(self.times - t)))
 
     def _read_field(self, t, e2s_var: str) -> np.ndarray:

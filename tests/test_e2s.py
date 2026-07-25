@@ -318,3 +318,27 @@ def test_positional_index_uses_the_real_calendar_when_present(tmp_path):
     ds = EccoDarwinV05(str(p))
     da = ds(1, "Chl1")
     assert da.coords["time"].values[0] == _np.datetime64("1992-02-01", "ns")
+
+
+def test_out_of_range_datetime_is_rejected_not_clamped(tmp_path):
+    """argmin silently clamped to the nearest edge month while __call__ kept the
+    requested timestamp, so a 2050 request returned the last month labelled 2050."""
+    import numpy as _np
+    import pytest as _pytest
+
+    from darwindiff.e2s.datasource import EccoDarwinV05
+
+    p = tmp_path / "c.npz"
+    _np.savez(
+        p,
+        state=_np.ones((3, 1, 2, 2), dtype=_np.float32),
+        chan_names=_np.array(["Chl1"]),
+        lats=_np.array([0.0, 1.0]),
+        lons=_np.array([0.0, 1.0]),
+        times_days=_np.array([0.0, 31.0, 61.0]),  # 1992-01 .. 1992-03
+    )
+    ds = EccoDarwinV05(str(p))
+    with _pytest.raises(ValueError, match="outside this cube's calendar"):
+        ds._month_index(_np.datetime64("2050-01-01"))
+    # in-range requests still resolve, including a mid-month one
+    assert ds._month_index(_np.datetime64("1992-02-03")) == 1
