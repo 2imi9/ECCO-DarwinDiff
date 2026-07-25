@@ -8,7 +8,7 @@ Daniels calcite anchor lifts R_PICPOC cleanly (5→9→10/10) with no over-const
 **wind (and SSS / pCO₂ / CO₂-flux) carry a GENUINE calcite confound**: no anchor weight rescues R_PICPOC
 under them, so MLD's uniqueness is mechanistic, not luck. `scav_rat` stays 0/10 **in this
 anchors-only lineage**, which zeroes the Darwin-pattern term it needs; in the flagship geo1 config it
-recovers 26/50 per-AOI at 2000 epochs and 41/50 at 4000, so it is largely optimization-limited, with
+recovers 25/50 per-AOI at 2000 epochs and 41/50 at 4000, so it is largely optimization-limited, with
 only eqpac (6/50) genuinely information-limited.
 
 Direction chosen via the `next-direction-research` workflow; this converts the covariate finding's soft
@@ -60,7 +60,7 @@ diatomgraz (MLD, wind, CO₂-flux 10/10), but only MLD does so without the calci
 
 **`geo1` + `MLD_CHANNEL=1` + `DANIELS_RPICPOC_W=8`** → **{alpfe, R_PICPOC, diatomgraz} = 10/10 each**,
 `verify_run` exit 0, R_PICPOC clean per-AOI (no straddle). This is the robust **3-of-4-observable**
-config; `scav_rat` is the lone holdout **in this config** — it recovers in the flagship geo1 run (26/50
+config; `scav_rat` is the lone holdout **in this config** — it recovers in the flagship geo1 run (25/50
 per-AOI at 2000 epochs, 41/50 at 4000), so it is the equatorial Pacific (6/50), not `scav_rat` globally,
 that still needs the real ²³⁴Th/²¹⁰Po sink anchor (Phase 2). The growth pair stays unobservable by
 construction.
