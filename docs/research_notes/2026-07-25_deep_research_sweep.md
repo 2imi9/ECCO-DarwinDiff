@@ -1,6 +1,6 @@
 # Overnight deep-research report — ECCO-DarwinDiff
 
-**Date:** 2026-07-25 · **Checkout:** `C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff`, branch `feat/research-scripts-and-loaders` (HEAD `f665c14`) · **Scope:** four independent research lines (identifiability literature, emulator field position, code-bug hunt, statistical rigor), all findings passed through a grounded verify pass. Three findings were amended or partly refuted by the verifier and are marked as such. Nothing in `docs/paper/**` was modified; no git state was changed.
+**Date:** 2026-07-25 · **Checkout:** `C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff`, branch `feat/research-scripts-and-loaders` (HEAD `f665c14`) · **Scope:** four independent research lines (identifiability literature, emulator field position, code-bug hunt, statistical rigor), four of the five lines passed through a grounded verify pass. **The reproducibility line (§5) did NOT** — its verifier died on an API stall, so treat §5 as unverified leads rather than confirmed findings. Three findings were amended or partly refuted by the verifier and are marked as such. Blocker B4 was **corrected after the sweep** by re-grading the raw records; see the verification note at the end. Nothing in `docs/paper/**` was modified; no git state was changed.
 
 **Read this first:** two of the five blockers are *unforced errors* — a fabricated quotation and a statistic that was never defined — and both are fixable in under an hour. The scientific results survive every finding in this report. What does not survive is a set of specific numbers and one literature claim.
 
@@ -35,7 +35,15 @@ A negative grep across `main.tex` finds no acknowledgment of this anywhere; the 
 
 **Fix (cheap, changes no number):** state once in Methods that seeds are the replication unit and that all intervals are conditional on a single data realization; then move the generalization argument to the AOI decomposition already at `main.tex:637-645`, which is the only place real data-level variation appears.
 
-### B4. The 0/50 global-scalar denominator is inflated — the paper's own CV=0% proves it
+### B4. The 0/50 global-scalar arm is deterministic, so the binomial framing does not apply
+
+> **⚠️ CORRECTED 2026-07-25 after the sweep, by grading the raw records.** The original wording
+> below claimed the effective sample size is 1. That is **wrong**: `n50e2k_global_scalar` gives
+> **50 distinct values** (49 for `scav_rat`), so these are 50 genuine separate optimizations. The
+> conclusion survives in a stronger form — `scav_rat` converges to 3.55219e-07 with sd 2.03e-10
+> against Carroll's 6.025e-07, about **1200 standard deviations** away. The arm does not fail 0/50
+> by chance; it converges deterministically to one wrong optimum. Drop the Wilson interval and
+> state the deterministic fact plus the sigma distance. Do **not** repeat "effective n is 1".
 
 The flagship comparison is 25/50 versus 0/50, reported with Wilson [0.00, 0.07] (`main.tex:526-527`) and a rule-of-three bound of 0.30 at n=10 (`main.tex:678-679`). But the paper *states* the global-scalar arm converges to the same point every seed: "coefficient of variation CV~0% for all three trio parameters" (`main.tex:565-570`) and "mean n_cal=4.00, sd 0" (`main.tex:611-614`).
 
