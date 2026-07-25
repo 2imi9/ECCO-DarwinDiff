@@ -244,9 +244,20 @@ def main():
         dsub = COMMON_DEPTHS[both]
 
         # Shape correlation (Pearson) of the co-located profiles.
-        r = float(np.corrcoef(xo, xm)[0, 1]) if xo.size >= 2 else np.nan
+        #
+        # np.corrcoef on a constant input divides by a zero standard deviation and returns
+        # NaN with a RuntimeWarning. That NaN is indistinguishable from "too few points",
+        # so a genuinely degenerate profile (a single repeated value, which does happen in
+        # sparse GEOTRACES casts) would silently be reported as missing data rather than as
+        # an undefined correlation. Check the variance explicitly.
+        def _pearson(a, b):
+            if a.size < 2 or np.std(a) == 0.0 or np.std(b) == 0.0:
+                return np.nan
+            return float(np.corrcoef(a, b)[0, 1])
+
+        r = _pearson(xo, xm)
         # Log-space correlation (iron spans orders of magnitude).
-        r_log = float(np.corrcoef(np.log(xo), np.log(xm))[0, 1]) if xo.size >= 2 else np.nan
+        r_log = _pearson(np.log(xo), np.log(xm))
 
         # Offset ratio obs/model per depth.
         ratio = xo / xm

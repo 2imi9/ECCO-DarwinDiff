@@ -204,8 +204,13 @@ def main(argv=None):
                     help="Override comma-separated log-space tracer stems (default: from emu-json).")
     args = ap.parse_args(argv)
 
-    fields = np.load(args.fields, allow_pickle=True)
-    cube = np.load(args.cube, allow_pickle=True)
+    # allow_pickle=False: np.load with pickling enabled executes arbitrary code from the
+    # archive, and these paths are user-supplied on the command line. Our own cubes and
+    # field dumps hold only plain arrays and string arrays, both of which load fine
+    # without it. If a future archive genuinely needs object arrays, the right fix is to
+    # store that metadata as JSON alongside, not to re-enable pickling here.
+    fields = np.load(args.fields, allow_pickle=False)
+    cube = np.load(args.cube, allow_pickle=False)
     cfg = json.load(open(args.emu_json))["config"] if Path(args.emu_json).is_file() else {}
     val_frac = float(cfg.get("val_frac", 0.3))
     adjacency_tol = float(cfg.get("adjacency_tol", 1.6))
