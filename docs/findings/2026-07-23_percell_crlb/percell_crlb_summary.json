@@ -1,0 +1,510 @@
+{
+ "aois": [
+  "eqpac",
+  "natlsubpolar",
+  "southernoceanpac"
+ ],
+ "weights": {
+  "eqpac": 1.0,
+  "natlsubpolar": 2.0,
+  "southernoceanpac": 2.0
+ },
+ "carroll": {
+  "alpfe": 0.928309977054596,
+  "scav_rat": 6.025023253641848e-07,
+  "Smallgrow": 0.6609799861907959,
+  "Biggrow": 0.4314799904823303,
+  "diatomgraz": 0.8300300240516663,
+  "R_PICPOC": 0.04244999960064888
+ },
+ "active_terms": {
+  "GEOTRACES_W": 1.0,
+  "GEOTRACES_SUB_W": 1.0,
+  "DANIELS_RPICPOC_W": 1.0,
+  "POSI_W": 1.0
+ },
+ "per_aoi": {
+  "eqpac": {
+   "H": 21,
+   "W": 51,
+   "weight": 1.0,
+   "aoi_bounds": [
+    -5.0,
+    15.0,
+    -160.0,
+    -110.0
+   ],
+   "coverage": {
+    "n_ocean": 1071,
+    "n_geo_surf": 26,
+    "n_geo_sub": 28,
+    "n_daniels": 34,
+    "n_posi": 7
+   },
+   "full_loss": 1.9570196866989136,
+   "recon_rel_error": 3.0456844752507984e-08,
+   "agg_info": {
+    "full": {
+     "alpfe": {
+      "info_sum": 0.028040939942002296,
+      "n_info_cells": 59
+     },
+     "scav_rat": {
+      "info_sum": 0.03050803393125534,
+      "n_info_cells": 59
+     },
+     "Smallgrow": {
+      "info_sum": 0.017904317006468773,
+      "n_info_cells": 59
+     },
+     "Biggrow": {
+      "info_sum": 0.002915303222835064,
+      "n_info_cells": 59
+     },
+     "diatomgraz": {
+      "info_sum": 0.3067089319229126,
+      "n_info_cells": 59
+     },
+     "R_PICPOC": {
+      "info_sum": 0.022097162902355194,
+      "n_info_cells": 34
+     }
+    },
+    "iron_surf": {
+     "alpfe": {
+      "info_sum": 0.0033677739556878805,
+      "n_info_cells": 26
+     },
+     "scav_rat": {
+      "info_sum": 0.0021310439333319664,
+      "n_info_cells": 26
+     },
+     "Smallgrow": {
+      "info_sum": 0.0013359321746975183,
+      "n_info_cells": 26
+     },
+     "Biggrow": {
+      "info_sum": 0.00022331123182084411,
+      "n_info_cells": 26
+     },
+     "diatomgraz": {
+      "info_sum": 5.1485703806974925e-06,
+      "n_info_cells": 26
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "iron_sub": {
+     "alpfe": {
+      "info_sum": 0.0008417002391070127,
+      "n_info_cells": 28
+     },
+     "scav_rat": {
+      "info_sum": 0.0027053910307586193,
+      "n_info_cells": 28
+     },
+     "Smallgrow": {
+      "info_sum": 0.0004987653810530901,
+      "n_info_cells": 28
+     },
+     "Biggrow": {
+      "info_sum": 7.759254367556423e-05,
+      "n_info_cells": 28
+     },
+     "diatomgraz": {
+      "info_sum": 3.760681465792004e-06,
+      "n_info_cells": 28
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "iron": {
+     "alpfe": {
+      "info_sum": 0.001558424555696547,
+      "n_info_cells": 28
+     },
+     "scav_rat": {
+      "info_sum": 0.008678940124809742,
+      "n_info_cells": 28
+     },
+     "Smallgrow": {
+      "info_sum": 0.0031324923038482666,
+      "n_info_cells": 28
+     },
+     "Biggrow": {
+      "info_sum": 0.000510076992213726,
+      "n_info_cells": 28
+     },
+     "diatomgraz": {
+      "info_sum": 1.5851561329327524e-05,
+      "n_info_cells": 28
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "daniels": {
+     "alpfe": {
+      "info_sum": 2.7911952263370843e-11,
+      "n_info_cells": 34
+     },
+     "scav_rat": {
+      "info_sum": 1.837244939517646e-11,
+      "n_info_cells": 34
+     },
+     "Smallgrow": {
+      "info_sum": 1.1128085432299262e-11,
+      "n_info_cells": 34
+     },
+     "Biggrow": {
+      "info_sum": 1.8397106754663994e-12,
+      "n_info_cells": 34
+     },
+     "diatomgraz": {
+      "info_sum": 3.0719916492344054e-14,
+      "n_info_cells": 34
+     },
+     "R_PICPOC": {
+      "info_sum": 0.022097162902355194,
+      "n_info_cells": 34
+     }
+    },
+    "posi": {
+     "alpfe": {
+      "info_sum": 0.0253056101500988,
+      "n_info_cells": 7
+     },
+     "scav_rat": {
+      "info_sum": 0.016566697508096695,
+      "n_info_cells": 7
+     },
+     "Smallgrow": {
+      "info_sum": 0.012249705381691456,
+      "n_info_cells": 7
+     },
+     "Biggrow": {
+      "info_sum": 0.0019953101873397827,
+      "n_info_cells": 7
+     },
+     "diatomgraz": {
+      "info_sum": 0.3076162040233612,
+      "n_info_cells": 7
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    }
+   }
+  },
+  "natlsubpolar": {
+   "H": 16,
+   "W": 31,
+   "weight": 2.0,
+   "aoi_bounds": [
+    50.0,
+    65.0,
+    -40.0,
+    -10.0
+   ],
+   "coverage": {
+    "n_ocean": 484,
+    "n_geo_surf": 13,
+    "n_geo_sub": 13,
+    "n_daniels": 26,
+    "n_posi": 4
+   },
+   "full_loss": 2.278968095779419,
+   "recon_rel_error": 1.9615668891693784e-08,
+   "agg_info": {
+    "full": {
+     "alpfe": {
+      "info_sum": 0.014090871438384056,
+      "n_info_cells": 39
+     },
+     "scav_rat": {
+      "info_sum": 0.025771021842956543,
+      "n_info_cells": 39
+     },
+     "Smallgrow": {
+      "info_sum": 0.01327175460755825,
+      "n_info_cells": 39
+     },
+     "Biggrow": {
+      "info_sum": 0.002176569541916251,
+      "n_info_cells": 39
+     },
+     "diatomgraz": {
+      "info_sum": 0.08729750663042068,
+      "n_info_cells": 39
+     },
+     "R_PICPOC": {
+      "info_sum": 0.02569814771413803,
+      "n_info_cells": 26
+     }
+    },
+    "iron_surf": {
+     "alpfe": {
+      "info_sum": 0.004720302764326334,
+      "n_info_cells": 13
+     },
+     "scav_rat": {
+      "info_sum": 0.0031990983989089727,
+      "n_info_cells": 13
+     },
+     "Smallgrow": {
+      "info_sum": 0.0019078522454947233,
+      "n_info_cells": 13
+     },
+     "Biggrow": {
+      "info_sum": 0.00031614082399755716,
+      "n_info_cells": 13
+     },
+     "diatomgraz": {
+      "info_sum": 4.398517376102973e-06,
+      "n_info_cells": 13
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "iron_sub": {
+     "alpfe": {
+      "info_sum": 0.0012334443163126707,
+      "n_info_cells": 13
+     },
+     "scav_rat": {
+      "info_sum": 0.004723146557807922,
+      "n_info_cells": 13
+     },
+     "Smallgrow": {
+      "info_sum": 0.0014051607577130198,
+      "n_info_cells": 13
+     },
+     "Biggrow": {
+      "info_sum": 0.00021727390412706882,
+      "n_info_cells": 13
+     },
+     "diatomgraz": {
+      "info_sum": 9.79389005806297e-06,
+      "n_info_cells": 13
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "iron": {
+     "alpfe": {
+      "info_sum": 0.002433446701616049,
+      "n_info_cells": 13
+     },
+     "scav_rat": {
+      "info_sum": 0.014100110158324242,
+      "n_info_cells": 13
+     },
+     "Smallgrow": {
+      "info_sum": 0.005921194329857826,
+      "n_info_cells": 13
+     },
+     "Biggrow": {
+      "info_sum": 0.0009494734113104641,
+      "n_info_cells": 13
+     },
+     "diatomgraz": {
+      "info_sum": 2.4677527107996866e-05,
+      "n_info_cells": 13
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "daniels": {
+     "alpfe": {
+      "info_sum": 2.605411112549527e-12,
+      "n_info_cells": 26
+     },
+     "scav_rat": {
+      "info_sum": 1.61896201739814e-12,
+      "n_info_cells": 26
+     },
+     "Smallgrow": {
+      "info_sum": 8.199838919843716e-13,
+      "n_info_cells": 26
+     },
+     "Biggrow": {
+      "info_sum": 1.375344201590481e-13,
+      "n_info_cells": 26
+     },
+     "diatomgraz": {
+      "info_sum": 3.0249443900252915e-15,
+      "n_info_cells": 26
+     },
+     "R_PICPOC": {
+      "info_sum": 0.02569814771413803,
+      "n_info_cells": 26
+     }
+    },
+    "posi": {
+     "alpfe": {
+      "info_sum": 0.01098320260643959,
+      "n_info_cells": 4
+     },
+     "scav_rat": {
+      "info_sum": 0.006171768996864557,
+      "n_info_cells": 4
+     },
+     "Smallgrow": {
+      "info_sum": 0.004447690211236477,
+      "n_info_cells": 4
+     },
+     "Biggrow": {
+      "info_sum": 0.0007511849980801344,
+      "n_info_cells": 4
+     },
+     "diatomgraz": {
+      "info_sum": 0.08829375356435776,
+      "n_info_cells": 4
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    }
+   }
+  },
+  "southernoceanpac": {
+   "H": 16,
+   "W": 81,
+   "weight": 2.0,
+   "aoi_bounds": [
+    -65.0,
+    -50.0,
+    -180.0,
+    -100.0
+   ],
+   "coverage": {
+    "n_ocean": 1296,
+    "n_geo_surf": 13,
+    "n_geo_sub": 14,
+    "n_daniels": 0,
+    "n_posi": 0
+   },
+   "full_loss": 0.7309404015541077,
+   "recon_rel_error": 2.0386287530645687e-08,
+   "agg_info": {
+    "full": {
+     "alpfe": {
+      "info_sum": 0.018206853419542313,
+      "n_info_cells": 14
+     },
+     "scav_rat": {
+      "info_sum": 0.02828068844974041,
+      "n_info_cells": 14
+     },
+     "Smallgrow": {
+      "info_sum": 0.01010747067630291,
+      "n_info_cells": 14
+     },
+     "Biggrow": {
+      "info_sum": 0.0016210210742428899,
+      "n_info_cells": 14
+     },
+     "diatomgraz": {
+      "info_sum": 2.9411759896902367e-05,
+      "n_info_cells": 14
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "iron_surf": {
+     "alpfe": {
+      "info_sum": 0.01722525805234909,
+      "n_info_cells": 13
+     },
+     "scav_rat": {
+      "info_sum": 0.012221903540194035,
+      "n_info_cells": 13
+     },
+     "Smallgrow": {
+      "info_sum": 0.006832717452198267,
+      "n_info_cells": 13
+     },
+     "Biggrow": {
+      "info_sum": 0.0011214838596060872,
+      "n_info_cells": 13
+     },
+     "diatomgraz": {
+      "info_sum": 1.0260443559673149e-05,
+      "n_info_cells": 13
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "iron_sub": {
+     "alpfe": {
+      "info_sum": 0.002528696320950985,
+      "n_info_cells": 14
+     },
+     "scav_rat": {
+      "info_sum": 0.01335485652089119,
+      "n_info_cells": 14
+     },
+     "Smallgrow": {
+      "info_sum": 0.0026524001732468605,
+      "n_info_cells": 14
+     },
+     "Biggrow": {
+      "info_sum": 0.00039812695467844605,
+      "n_info_cells": 14
+     },
+     "diatomgraz": {
+      "info_sum": 1.4906763681210577e-05,
+      "n_info_cells": 14
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    },
+    "iron": {
+     "alpfe": {
+      "info_sum": 0.018206853419542313,
+      "n_info_cells": 14
+     },
+     "scav_rat": {
+      "info_sum": 0.02828068844974041,
+      "n_info_cells": 14
+     },
+     "Smallgrow": {
+      "info_sum": 0.01010747067630291,
+      "n_info_cells": 14
+     },
+     "Biggrow": {
+      "info_sum": 0.0016210210742428899,
+      "n_info_cells": 14
+     },
+     "diatomgraz": {
+      "info_sum": 2.9411759896902367e-05,
+      "n_info_cells": 14
+     },
+     "R_PICPOC": {
+      "info_sum": 0.0,
+      "n_info_cells": 0
+     }
+    }
+   }
+  }
+ }
+}

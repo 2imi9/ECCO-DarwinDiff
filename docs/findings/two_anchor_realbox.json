@@ -1,0 +1,348 @@
+{
+ "aois": [
+  "eqpac",
+  "natlsubpolar",
+  "southernoceanpac"
+ ],
+ "weights": {
+  "eqpac": 1.0,
+  "natlsubpolar": 2.0,
+  "southernoceanpac": 2.0
+ },
+ "n_seeds": 20,
+ "steps": 600,
+ "carroll": {
+  "alpfe": 0.928309977054596,
+  "scav_rat": 6.025023253641848e-07,
+  "Smallgrow": 0.6609799861907959,
+  "Biggrow": 0.4314799904823303,
+  "diatomgraz": 0.8300300240516663,
+  "R_PICPOC": 0.04244999960064888
+ },
+ "dust_w": 1.0,
+ "scav_w": 1.0,
+ "note": "SELF-TWIN: synthetic anchors from the box at Carroll. Validates the identifiability GEOMETRY of the real model, not real-data recovery.",
+ "configs": {
+  "baseline": {
+   "active": [],
+   "loss_best": 4.6693572998046875,
+   "per_param": {
+    "alpfe": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9877873063087463,
+     "median_rel_to_carroll": 1.0640705483343658,
+     "cv": 0.0035986071452498436
+    },
+    "scav_rat": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 4.589116713304975e-07,
+     "median_rel_to_carroll": 0.7616761828315046,
+     "cv": 0.00718317274004221
+    },
+    "Smallgrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.11125604808330536,
+     "median_rel_to_carroll": 0.16831984387979732,
+     "cv": 0.2028076946735382
+    },
+    "Biggrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.11485851556062698,
+     "median_rel_to_carroll": 0.2661966211509189,
+     "cv": 0.16362319886684418
+    },
+    "diatomgraz": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9965406656265259,
+     "median_rel_to_carroll": 1.2006079741092535,
+     "cv": 0.003021352691575885
+    },
+    "R_PICPOC": {
+     "calplus_n": 18,
+     "n": 20,
+     "median": 0.051678694784641266,
+     "median_rel_to_carroll": 1.217401537592743,
+     "cv": 0.0991259217262268
+    }
+   },
+   "geometry": {
+    "eigenvalues": [
+     0.005831489805132151,
+     0.00598779134452343,
+     0.1053268238902092,
+     1.2748072147369385,
+     3.229119062423706,
+     4.000953197479248
+    ],
+    "sloppiness_decades": 2.836383950390485,
+    "rho_alpfe_scav": 0.47158850427958515,
+    "crlb_rel_scav": 0.7696619842549872,
+    "crlb_rel_alpfe": 0.7302575035427985
+   }
+  },
+  "dust": {
+   "active": [
+    "dust"
+   ],
+   "loss_best": 4.691620826721191,
+   "per_param": {
+    "alpfe": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9577808380126953,
+     "median_rel_to_carroll": 1.0317467889891763,
+     "cv": 0.004729710519313812
+    },
+    "scav_rat": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 4.513657074767252e-07,
+     "median_rel_to_carroll": 0.7491518098355812,
+     "cv": 0.006300062872469425
+    },
+    "Smallgrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.11088278889656067,
+     "median_rel_to_carroll": 0.16775513814809165,
+     "cv": 0.2242211252450943
+    },
+    "Biggrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.1148286834359169,
+     "median_rel_to_carroll": 0.26612748208220627,
+     "cv": 0.16295816004276276
+    },
+    "diatomgraz": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.995842695236206,
+     "median_rel_to_carroll": 1.1997670763464077,
+     "cv": 0.003849961096420884
+    },
+    "R_PICPOC": {
+     "calplus_n": 18,
+     "n": 20,
+     "median": 0.05167871713638306,
+     "median_rel_to_carroll": 1.217402064135546,
+     "cv": 0.09920087456703186
+    }
+   },
+   "geometry": {
+    "eigenvalues": [
+     0.006127713713794947,
+     0.006355308461934328,
+     0.11027355492115021,
+     2.430860757827759,
+     3.2291154861450195,
+     13.557774543762207
+    ],
+    "sloppiness_decades": 3.3448899407208446,
+    "rho_alpfe_scav": 0.1951876431705771,
+    "crlb_rel_scav": 0.6977455560439495,
+    "crlb_rel_alpfe": 0.28007058701420207
+   }
+  },
+  "scav_pinned": {
+   "active": [
+    "scav_pinned"
+   ],
+   "loss_best": 4.708070278167725,
+   "per_param": {
+    "alpfe": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9375642538070679,
+     "median_rel_to_carroll": 1.0099689510844583,
+     "cv": 0.005562403239309788
+    },
+    "scav_rat": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 4.379144513677602e-07,
+     "median_rel_to_carroll": 0.7268261597215598,
+     "cv": 0.01934531331062317
+    },
+    "Smallgrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.12630529701709747,
+     "median_rel_to_carroll": 0.1910879295226326,
+     "cv": 0.3639872074127197
+    },
+    "Biggrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.12196274846792221,
+     "median_rel_to_carroll": 0.2826614238393443,
+     "cv": 0.2551603317260742
+    },
+    "diatomgraz": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9924989938735962,
+     "median_rel_to_carroll": 1.1957386662097622,
+     "cv": 0.00587232643738389
+    },
+    "R_PICPOC": {
+     "calplus_n": 18,
+     "n": 20,
+     "median": 0.05167870596051216,
+     "median_rel_to_carroll": 1.2174018008641445,
+     "cv": 0.09919460117816925
+    }
+   },
+   "geometry": {
+    "eigenvalues": [
+     0.0050268229097127914,
+     0.005880872718989849,
+     0.10322877019643784,
+     2.584007978439331,
+     3.229102373123169,
+     16.22911834716797
+    ],
+    "sloppiness_decades": 3.5090013415517287,
+    "rho_alpfe_scav": -0.08895819656864337,
+    "crlb_rel_scav": 0.7126016527575894,
+    "crlb_rel_alpfe": 0.2588019745682485
+   }
+  },
+  "both_pinned": {
+   "active": [
+    "dust",
+    "scav_pinned"
+   ],
+   "loss_best": 4.708342552185059,
+   "per_param": {
+    "alpfe": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9335840940475464,
+     "median_rel_to_carroll": 1.0056814179781677,
+     "cv": 0.0016816114075481892
+    },
+    "scav_rat": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 4.382681026982027e-07,
+     "median_rel_to_carroll": 0.7274131306186908,
+     "cv": 0.009776669554412365
+    },
+    "Smallgrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.12023182213306427,
+     "median_rel_to_carroll": 0.18189933832332197,
+     "cv": 0.25887933373451233
+    },
+    "Biggrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.12115275114774704,
+     "median_rel_to_carroll": 0.28078417034429876,
+     "cv": 0.23166778683662415
+    },
+    "diatomgraz": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9925740957260132,
+     "median_rel_to_carroll": 1.1958291470962852,
+     "cv": 0.005762381479144096
+    },
+    "R_PICPOC": {
+     "calplus_n": 18,
+     "n": 20,
+     "median": 0.05167871713638306,
+     "median_rel_to_carroll": 1.217402064135546,
+     "cv": 0.09919445961713791
+    }
+   },
+   "geometry": {
+    "eigenvalues": [
+     0.005278212949633598,
+     0.006281787995249033,
+     0.10629292577505112,
+     2.571748971939087,
+     3.2291135787963867,
+     26.20465850830078
+    ],
+    "sloppiness_decades": 3.6958915966133747,
+    "rho_alpfe_scav": -0.060826685146942075,
+    "crlb_rel_scav": 0.7058693205866889,
+    "crlb_rel_alpfe": 0.19989457220150486
+   }
+  },
+  "both_free": {
+   "active": [
+    "dust",
+    "scav_free"
+   ],
+   "loss_best": 4.69646692276001,
+   "per_param": {
+    "alpfe": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9475129246711731,
+     "median_rel_to_carroll": 1.0206859218270017,
+     "cv": 0.002237690379843116
+    },
+    "scav_rat": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 4.4884822614221775e-07,
+     "median_rel_to_carroll": 0.7449734337056869,
+     "cv": 0.006997757591307163
+    },
+    "Smallgrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.11082985997200012,
+     "median_rel_to_carroll": 0.16767506170755433,
+     "cv": 0.22125352919101715
+    },
+    "Biggrow": {
+     "calplus_n": 0,
+     "n": 20,
+     "median": 0.11458057165145874,
+     "median_rel_to_carroll": 0.26555245707541325,
+     "cv": 0.1617567241191864
+    },
+    "diatomgraz": {
+     "calplus_n": 20,
+     "n": 20,
+     "median": 0.9958612322807312,
+     "median_rel_to_carroll": 1.1997894093271289,
+     "cv": 0.00382416439242661
+    },
+    "R_PICPOC": {
+     "calplus_n": 18,
+     "n": 20,
+     "median": 0.05167872831225395,
+     "median_rel_to_carroll": 1.2174023274069479,
+     "cv": 0.0992007628083229
+    }
+   },
+   "geometry": {
+    "eigenvalues": [
+     0.006609915290027857,
+     0.008231282234191895,
+     0.12357810884714127,
+     2.4486894607543945,
+     3.229100465774536,
+     23.408674240112305
+    ],
+    "sloppiness_decades": 3.5491809241658454,
+    "rho_alpfe_scav": 0.13126922429224203,
+    "crlb_rel_scav": 0.706681581304563,
+    "crlb_rel_alpfe": 0.20967974796263736
+   }
+  }
+ },
+ "verdict": "NO CLEAN BREAK in the real box: scav_rat Cal+ 20/20 (baseline) -> 20/20 (+both pinned), 20/20 (+both free). |rho| 0.47 -> 0.06."
+}

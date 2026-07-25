@@ -1,0 +1,289 @@
+{
+ "method": "differentiable_observation_design_fisher_OED",
+ "aois": [
+  "eqpac",
+  "natlsubpolar",
+  "southernoceanpac"
+ ],
+ "weights": {
+  "eqpac": 1.0,
+  "natlsubpolar": 2.0,
+  "southernoceanpac": 2.0
+ },
+ "rel_eps": 0.02,
+ "tau_full6": 0.01,
+ "carroll": {
+  "alpfe": 0.928309977054596,
+  "scav_rat": 6.025023253641848e-07,
+  "Smallgrow": 0.6609799861907959,
+  "Biggrow": 0.4314799904823303,
+  "diatomgraz": 0.8300300240516663,
+  "R_PICPOC": 0.04244999960064888
+ },
+ "base_observable": "dfe_surf",
+ "base_desc": "surface dissolved Fe (FeT) concentration [BASE]",
+ "base_iron_block": {
+  "eig_sloppy": 0.0010845835531464677,
+  "eig_stiff": 3.17953453963405,
+  "condition_number": 2931.5717820079,
+  "sloppy_direction": {
+   "alpfe": 0.6327388917750137,
+   "scav_rat": 0.7743652205744571
+  },
+  "stiff_direction": {
+   "alpfe": 0.7743652205744571,
+   "scav_rat": -0.6327388917750137
+  },
+  "posterior_corr_alpfe_scav": 0.9992898301228377
+ },
+ "observable_magnitudes": {
+  "dfe_surf": {
+   "rms_by_aoi": [
+    7.63361735344433e-05,
+    8.194938971838523e-05,
+    8.37989086892216e-05
+   ],
+   "mean_by_aoi": [
+    7.600485792926607e-05,
+    7.94223437690915e-05,
+    8.090687190164272e-05
+   ]
+  },
+  "dfe_surf_2": {
+   "rms_by_aoi": [
+    7.63361735344433e-05,
+    8.194938971838523e-05,
+    8.37989086892216e-05
+   ],
+   "mean_by_aoi": [
+    7.600485792926607e-05,
+    7.94223437690915e-05,
+    8.090687190164272e-05
+   ]
+  },
+  "dfe_sub": {
+   "rms_by_aoi": [
+    0.00026745687202003226,
+    0.0003995247972106824,
+    0.0002660544562352843
+   ],
+   "mean_by_aoi": [
+    0.00026650697204943515,
+    0.00039608033579843473,
+    0.0002587722139965698
+   ]
+  },
+  "poc_surf": {
+   "rms_by_aoi": [
+    9.437976153673855,
+    9.469670644031886,
+    9.533729353990884
+   ],
+   "mean_by_aoi": [
+    9.414907453663432,
+    9.343479722984567,
+    9.327621044936002
+   ]
+  },
+  "pic_surf": {
+   "rms_by_aoi": [
+    0.4006168411290696,
+    0.402024431948515,
+    0.4046122298510152
+   ],
+   "mean_by_aoi": [
+    0.3996381240120344,
+    0.3966672333680894,
+    0.395865674165112
+   ]
+  },
+  "bsi_surf": {
+   "rms_by_aoi": [
+    0.006524219706176525,
+    0.007245881210632946,
+    0.008667217059435385
+   ],
+   "mean_by_aoi": [
+    0.006335969731284708,
+    0.0064536149341522615,
+    0.0070816287718767894
+   ]
+  },
+  "feupt_surf": {
+   "rms_by_aoi": [
+    9.392666663280282e-06,
+    9.328840442742264e-06,
+    9.281156659963202e-06
+   ],
+   "mean_by_aoi": [
+    9.392554500623358e-06,
+    9.326734920070206e-06,
+    9.27978047923121e-06
+   ]
+  },
+  "scavflux_surf": {
+   "rms_by_aoi": [
+    3.701301779046561e-05,
+    3.71108657667806e-05,
+    3.7132804956528506e-05
+   ],
+   "mean_by_aoi": [
+    3.7007292196145684e-05,
+    3.7079649009382974e-05,
+    3.708178085470996e-05
+   ]
+  },
+  "scavflux_sub": {
+   "rms_by_aoi": [
+    4.620928641831154e-06,
+    6.657635408603649e-06,
+    4.209629814727961e-06
+   ],
+   "mean_by_aoi": [
+    4.590136300334159e-06,
+    6.6366595821503226e-06,
+    4.2006328089672494e-06
+   ]
+  }
+ },
+ "ranking": [
+  {
+   "obs": "scavflux_surf",
+   "desc": "surface particulate-Fe scavenging flux (234Th/210Po proxy) [HYP]",
+   "var_reduction_sloppy": 1433.5791452965832,
+   "var_reduction_full6": 9.087066370318867,
+   "iron_cond_after": 6.9474532547159935,
+   "iron_lambda_min_lift": 1102.1320436180388,
+   "logdet_gain_iron": 7.9650847603629735,
+   "alignment_with_sloppy": 0.702006960286556,
+   "iron_block_top_eig": 6.316557248635475,
+   "obs_rms_by_aoi": [
+    3.701301779046561e-05,
+    3.71108657667806e-05,
+    3.7132804956528506e-05
+   ],
+   "fd_floor_uninformative": false
+  },
+  {
+   "obs": "dfe_sub",
+   "desc": "subsurface dissolved Fe (FeT) concentration",
+   "var_reduction_sloppy": 1260.658470255522,
+   "var_reduction_full6": 24.847295517591576,
+   "iron_cond_after": 2.4767798872435547,
+   "iron_lambda_min_lift": 1238.8844415875947,
+   "logdet_gain_iron": 7.1675985009632015,
+   "alignment_with_sloppy": 0.9724704578546453,
+   "iron_block_top_eig": 1.4798163120210168,
+   "obs_rms_by_aoi": [
+    0.00026745687202003226,
+    0.0003995247972106824,
+    0.0002660544562352843
+   ],
+   "fd_floor_uninformative": false
+  },
+  {
+   "obs": "scavflux_sub",
+   "desc": "subsurface scavenging flux (234Th/210Po proxy, deep) [HYP]",
+   "var_reduction_sloppy": 311.1089231343787,
+   "var_reduction_full6": 12.962060471714583,
+   "iron_cond_after": 9.884300708151292,
+   "iron_lambda_min_lift": 310.56155520805197,
+   "logdet_gain_iron": 5.784417963170096,
+   "alignment_with_sloppy": 0.894028846251768,
+   "iron_block_top_eig": 0.40788401551472897,
+   "obs_rms_by_aoi": [
+    4.620928641831154e-06,
+    6.657635408603649e-06,
+    4.209629814727961e-06
+   ],
+   "fd_floor_uninformative": false
+  },
+  {
+   "obs": "bsi_surf",
+   "desc": "surface biogenic silica bSi (control: constrains diatomgraz)",
+   "var_reduction_sloppy": 15.300324488180143,
+   "var_reduction_full6": 2.2961495636180027,
+   "iron_cond_after": 2151.9484591380615,
+   "iron_lambda_min_lift": 15.29283434001401,
+   "logdet_gain_iron": 5.145603718034855,
+   "alignment_with_sloppy": 0.024293909177112993,
+   "iron_block_top_eig": 32.515158875547,
+   "obs_rms_by_aoi": [
+    0.006524219706176525,
+    0.007245881210632946,
+    0.008667217059435385
+   ],
+   "fd_floor_uninformative": false
+  },
+  {
+   "obs": "pic_surf",
+   "desc": "surface PIC / calcite (control: constrains R_PICPOC)",
+   "var_reduction_sloppy": 2.327756511049747,
+   "var_reduction_full6": 1.0834004884533075,
+   "iron_cond_after": 2169.778934577082,
+   "iron_lambda_min_lift": 2.3275701775287843,
+   "logdet_gain_iron": 1.388736327684276,
+   "alignment_with_sloppy": 0.021327633303220406,
+   "iron_block_top_eig": 2.298558290187308,
+   "obs_rms_by_aoi": [
+    0.4006168411290696,
+    0.402024431948515,
+    0.4046122298510152
+   ],
+   "fd_floor_uninformative": false
+  },
+  {
+   "obs": "poc_surf",
+   "desc": "surface POC concentration (control: unrelated concentration)",
+   "var_reduction_sloppy": 2.3274792824078783,
+   "var_reduction_full6": 1.0931676998420015,
+   "iron_cond_after": 2169.9093109783116,
+   "iron_lambda_min_lift": 2.3272930127296414,
+   "logdet_gain_iron": 1.3885582410501236,
+   "alignment_with_sloppy": 0.021326989623632497,
+   "iron_block_top_eig": 2.298235039094046,
+   "obs_rms_by_aoi": [
+    9.437976153673855,
+    9.469670644031886,
+    9.533729353990884
+   ],
+   "fd_floor_uninformative": false
+  },
+  {
+   "obs": "dfe_surf_2",
+   "desc": "2nd independent surface-FeT survey (control: more of same)",
+   "var_reduction_sloppy": 1.9999999990780484,
+   "var_reduction_full6": 1.0870497533285772,
+   "iron_cond_after": 2931.5717820079,
+   "iron_lambda_min_lift": 2.0,
+   "logdet_gain_iron": 1.3862943611198908,
+   "alignment_with_sloppy": 0.0,
+   "iron_block_top_eig": 3.17953453963405,
+   "obs_rms_by_aoi": [
+    7.63361735344433e-05,
+    8.194938971838523e-05,
+    8.37989086892216e-05
+   ],
+   "fd_floor_uninformative": false
+  },
+  {
+   "obs": "feupt_surf",
+   "desc": "biological Fe uptake flux Q_FE*growth (iron sink, bio arm)",
+   "var_reduction_sloppy": 1.9830781368790744,
+   "var_reduction_full6": 1.084289536284331,
+   "iron_cond_after": 2497.3872844460493,
+   "iron_lambda_min_lift": 1.983004844671311,
+   "logdet_gain_iron": 1.2089329608765365,
+   "alignment_with_sloppy": 0.014900715495460626,
+   "iron_block_top_eig": 2.1919703009422236,
+   "obs_rms_by_aoi": [
+    9.392666663280282e-06,
+    9.328840442742264e-06,
+    9.281156659963202e-06
+   ],
+   "fd_floor_uninformative": false
+  }
+ ],
+ "winner": "scavflux_surf",
+ "note": "F_obs = per-AOI weighted, magnitude-normalised (scale=mean(y^2)) Gauss-Newton Fisher of each candidate observable, dimensionless (scaled by |theta_Carroll|), over ocean-mask cells. Primary metric var_reduction_sloppy is the prior-free 2x2 iron-block posterior-variance ratio along v (base sloppy eigenvector). var_reduction_full6 is the weak-prior (tau I) full-6 cross-check. fd_floor_uninformative flags observables whose iron sensitivity is below the float32 finite-difference floor (correct for bSi/PIC: they constrain other params)."
+}

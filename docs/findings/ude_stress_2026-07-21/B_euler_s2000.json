@@ -1,0 +1,12 @@
+{
+ "exp": "B",
+ "method": "euler",
+ "n_steps": 2000,
+ "n_cols": 2000,
+ "n_z": 24,
+ "status": "ok",
+ "wall_s": 0.482,
+ "global_mass_drift": 0.0,
+ "max_per_cell_drift": 3.0622470603702823e-06,
+ "final_finite": true
+}
