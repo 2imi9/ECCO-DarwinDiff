@@ -1,7 +1,0 @@
-{
-  "host": "10.8.0.2",
-  "port": 9094,
-  "default_view_mode": "eink",
-  "auto_refresh": "eink-off",
-  "refresh_interval": 3
-}
