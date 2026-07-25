@@ -1,0 +1,17 @@
+{
+ "exp": "D",
+ "weight_decay": 0.001,
+ "anchor_lambda": 0.01,
+ "n_cols": 2000,
+ "n_z": 12,
+ "n_steps": 200,
+ "epochs": 400,
+ "status": "ok",
+ "data_loss_final": 1.234872979694046e-05,
+ "closure_rel_err_visited": 0.0063911681063473225,
+ "closure_rel_err_full": 2.8770174980163574,
+ "visited_dfe": [
+  0.00016554129251744598,
+  0.00016559615323785692
+ ]
+}

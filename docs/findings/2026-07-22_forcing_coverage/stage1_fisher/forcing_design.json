@@ -1,0 +1,131 @@
+{
+ "ranked": [
+  {
+   "name": "drawdown_pulse",
+   "cfg": {
+    "name": "drawdown_pulse",
+    "dmean": 0.2,
+    "a1": 1.2,
+    "bL": 2.5,
+    "phL": 0.0,
+    "pulse": 3.0
+   },
+   "lambda_min": 0.0012958432780578732,
+   "cond": 74.89596359209499,
+   "coverage_decades": 2.186,
+   "visited_dfe": [
+    2.560969960541115e-06,
+    0.00039343597018159926
+   ],
+   "dfe_min": 2.560969960541115e-06,
+   "min_over_k": 0.051,
+   "n_visited": 320000
+  },
+  {
+   "name": "drawdown",
+   "cfg": {
+    "name": "drawdown",
+    "dmean": 0.3,
+    "a1": 0.8,
+    "bL": 2.2,
+    "phL": 0.0,
+    "pulse": 0.0
+   },
+   "lambda_min": 0.0009878301061689854,
+   "cond": 96.91392411149698,
+   "coverage_decades": 1.882,
+   "visited_dfe": [
+    9.456514817429706e-06,
+    0.0007207447197288275
+   ],
+   "dfe_min": 9.456514817429706e-06,
+   "min_over_k": 0.189,
+   "n_visited": 320000
+  },
+  {
+   "name": "antiphase",
+   "cfg": {
+    "name": "antiphase",
+    "dmean": 0.5,
+    "a1": 1.2,
+    "bL": 2.2,
+    "phL": 3.141592653589793,
+    "pulse": 0.0
+   },
+   "lambda_min": 0.0006991946720518172,
+   "cond": 87.05184792000514,
+   "coverage_decades": 3.042,
+   "visited_dfe": [
+    5.108682671561837e-06,
+    0.0056320796720683575
+   ],
+   "dfe_min": 5.108682671561837e-06,
+   "min_over_k": 0.102,
+   "n_visited": 320000
+  },
+  {
+   "name": "light_strong",
+   "cfg": {
+    "name": "light_strong",
+    "dmean": 1.0,
+    "a1": 0.0,
+    "bL": 2.2,
+    "phL": 0.0,
+    "pulse": 0.0
+   },
+   "lambda_min": 0.0006223058444447815,
+   "cond": 129.26143861459772,
+   "coverage_decades": 2.551,
+   "visited_dfe": [
+    1.1366788385203108e-05,
+    0.004044311121106148
+   ],
+   "dfe_min": 1.1366788385203108e-05,
+   "min_over_k": 0.227,
+   "n_visited": 320000
+  },
+  {
+   "name": "light_annual",
+   "cfg": {
+    "name": "light_annual",
+    "dmean": 1.0,
+    "a1": 0.0,
+    "bL": 1.2,
+    "phL": 0.0,
+    "pulse": 0.0
+   },
+   "lambda_min": 0.0002467501035425812,
+   "cond": 365.84334278612766,
+   "coverage_decades": 1.604,
+   "visited_dfe": [
+    3.284888589405455e-05,
+    0.0013203888665884733
+   ],
+   "dfe_min": 3.284888589405455e-05,
+   "min_over_k": 0.657,
+   "n_visited": 320000
+  },
+  {
+   "name": "const",
+   "cfg": {
+    "name": "const",
+    "dmean": 1.0,
+    "a1": 0.0,
+    "bL": 0.0,
+    "phL": 0.0,
+    "pulse": 0.0
+   },
+   "lambda_min": 8.432979257122497e-07,
+   "cond": 85222.40309571922,
+   "coverage_decades": 0.311,
+   "visited_dfe": [
+    0.0001585673016961664,
+    0.000324769236613065
+   ],
+   "dfe_min": 0.00015839374100323766,
+   "min_over_k": 3.168,
+   "n_visited": 320000
+  }
+ ],
+ "winner": "drawdown_pulse"
+}

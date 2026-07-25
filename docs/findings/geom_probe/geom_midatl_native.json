@@ -1,0 +1,33 @@
+{
+ "n_starts": 40,
+ "channels": [
+  "DIC",
+  "ALK",
+  "PIC",
+  "POC",
+  "FeT",
+  "Chl1"
+ ],
+ "log_transform": true,
+ "coastal_distance_bands": {
+  "1-2": {
+   "n_cells": 4838,
+   "mean_err": 0.2562857335632104
+  },
+  "2-5": {
+   "n_cells": 2203,
+   "mean_err": 0.2578846780460803
+  },
+  "5-10": {
+   "n_cells": 0,
+   "mean_err": null
+  },
+  "10-inf": {
+   "n_cells": 0,
+   "mean_err": null
+  }
+ },
+ "coastal_over_interior_err_ratio": null,
+ "corr_err_vs_coastal_proximity": -0.00787154694125889,
+ "verdict": "SPATIALLY-FLAT (err not geometry-concentrated -> the irreducible-ceiling reading stands)"
+}

@@ -1,0 +1,6 @@
+{
+ "device": "cuda",
+ "gpu": "Tesla T4",
+ "torch": "2.11.0+cu128",
+ "total_mem_gb": 14.6
+}

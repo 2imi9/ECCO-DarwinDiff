@@ -165,7 +165,8 @@ def test_retracted_emulator_claims_stay_retracted(retracted):
                                          "wrong", "artifact", "corrected", "deflat",
                                          "does not", "did not", "cannot",
                                          "not significant", "weak baseline",
-                                         "persistence is weak", "seasonal ar(1)")):
+                                         "persistence is weak", "seasonal ar(1)",
+                                         "retire", "open, testable")):
                 continue
             offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
     assert not offenders, (

@@ -1,0 +1,17 @@
+{
+ "exp": "C",
+ "n_cols": 2000,
+ "n_z": 12,
+ "n_steps": 200,
+ "epochs": 400,
+ "status": "ok",
+ "loss_start": 1.836798071861267,
+ "loss_final": 1.2065453120158054e-05,
+ "loss_reduction_x": 152236.14509698626,
+ "closure_rel_err_full": 2.8773839473724365,
+ "closure_rel_err_visited": 0.00649681081995368,
+ "visited_dfe": [
+  0.00016554129251744598,
+  0.00016559615323785692
+ ]
+}

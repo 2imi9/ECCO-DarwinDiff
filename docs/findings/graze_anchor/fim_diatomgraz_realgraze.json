@@ -1,0 +1,140 @@
+{
+ "aois": [
+  "eqpac"
+ ],
+ "weights": {
+  "eqpac": 1.0
+ },
+ "profiled_param": "diatomgraz",
+ "loss_mode": "realgraze",
+ "grazing_guard": {
+  "partial_rate_d_diatomgraz": 0.30000001192092896,
+  "partial_rate_d_biomass": 0.0,
+  "partial_absflux_d_diatomgraz": 0.004756573587656021,
+  "partial_absflux_d_biomass": 0.24900901317596436,
+  "rate_biomass_vs_diatomgraz_frac": 0.0,
+  "flux_biomass_vs_diatomgraz_frac": 52.350501592612346,
+  "total_dPdiatom_ddiatomgraz": -0.14243334197689103,
+  "total_dAbsFlux_ddiatomgraz": -0.030669109337031854,
+  "total_dSpecificRate_ddiatomgraz": 0.29999999999999905,
+  "pass": true,
+  "note": "Box has no grazer-biomass tracer and no small-PFT grazing term, so the raw specific rate already isolates diatomgraz (biomass cancels); the size-fraction contrast is unnecessary here. NECESSARY (rate breaks the bSi biomass-tautology) but not SUFFICIENT for the full Darwin grazer_biomass*response*palatability form."
+ },
+ "theta_star": {
+  "alpfe": 0.9283093810081482,
+  "scav_rat": 6.025351240168675e-07,
+  "Smallgrow": 0.6609981656074524,
+  "Biggrow": 0.43148568272590637,
+  "diatomgraz": 0.8300294876098633,
+  "R_PICPOC": 0.04245000332593918
+ },
+ "carroll": {
+  "alpfe": 0.928309977054596,
+  "scav_rat": 6.025023253641848e-07,
+  "Smallgrow": 0.6609799861907959,
+  "Biggrow": 0.4314799904823303,
+  "diatomgraz": 0.8300300240516663,
+  "R_PICPOC": 0.04244999960064888
+ },
+ "loss_star": 4.3832217586428635e-13,
+ "rel_grad_norm": 1.3205428786022821e-06,
+ "hessian_at_theta_star": {
+  "eigenvalues": [
+   -2.1049987111460694e-13,
+   0.0,
+   1.0425104654326542e-13,
+   1.8240836900836055e-13,
+   4.04197599834788e-08,
+   2.000000238418579
+  ],
+  "sloppy_vector": {
+   "alpfe": -0.3340555727481842,
+   "scav_rat": 1.3544089597417042e-05,
+   "Smallgrow": -0.32077693939208984,
+   "Biggrow": 0.8862892389297485,
+   "diatomgraz": -1.5601141711840683e-08,
+   "R_PICPOC": 0.0
+  },
+  "stiff_vector": {
+   "alpfe": 2.8654725259258385e-09,
+   "scav_rat": -1.1920928955078125e-07,
+   "Smallgrow": -9.670680922724273e-10,
+   "Biggrow": 1.8311840932483392e-08,
+   "diatomgraz": 1.000000238418579,
+   "R_PICPOC": 0.0
+  }
+ },
+ "hessian_at_carroll": {
+  "eigenvalues": [
+   -5.282573965932624e-13,
+   -6.6990675363204875e-15,
+   -1.9614432792542085e-15,
+   0.0,
+   1.0076184508891594e-14,
+   1.9999980926513672
+  ],
+  "sloppy_vector": {
+   "alpfe": 0.006130083464086056,
+   "scav_rat": -0.9967659115791321,
+   "Smallgrow": 0.08004681020975113,
+   "Biggrow": 0.003604403231292963,
+   "diatomgraz": 1.1564509350137087e-09,
+   "R_PICPOC": 0.0
+  },
+  "stiff_vector": {
+   "alpfe": -3.8597947060736715e-09,
+   "scav_rat": 0.0,
+   "Smallgrow": 2.4202677195717115e-08,
+   "Biggrow": -1.0572975384093297e-08,
+   "diatomgraz": 1.0,
+   "R_PICPOC": 0.0
+  }
+ },
+ "profile": [
+  {
+   "value": 0.04999999329447746,
+   "min_loss": 0.8831510543823242
+  },
+  {
+   "value": 0.08237744122743607,
+   "min_loss": 0.8113570809364319
+  },
+  {
+   "value": 0.1357208788394928,
+   "min_loss": 0.6997101306915283
+  },
+  {
+   "value": 0.22360678017139435,
+   "min_loss": 0.5337820649147034
+  },
+  {
+   "value": 0.3684031367301941,
+   "min_loss": 0.3093104362487793
+  },
+  {
+   "value": 0.6069622039794922,
+   "min_loss": 0.07222476601600647
+  },
+  {
+   "value": 1.0,
+   "min_loss": 0.0419330932199955
+  }
+ ],
+ "profile_rel_span": 20.06095655164308,
+ "verdict": "INVALID -> profile minimum is ON THE UPPER GRID EDGE (value=1); the optimum is not bracketed, so rel_span is a lower bound only.",
+ "valid": false,
+ "convergence": {
+  "converged": true,
+  "profile_min": 0.0419330932199955,
+  "conv_gap": 0.041933093219557176,
+  "tol": 4.3832217586428636e-16,
+  "note": "conv_gap = min(profile) - loss_star; must be >= -tol. Negative means theta_star is under-converged and the span is untrustworthy."
+ },
+ "bracketing": {
+  "bracketed": false,
+  "argmin_index": 6,
+  "n_grid": 7,
+  "argmin_value": 1.0,
+  "note": "False means the profile minimum is on a grid endpoint; the optimum is not bracketed and rel_span is a lower bound only."
+ }
+}

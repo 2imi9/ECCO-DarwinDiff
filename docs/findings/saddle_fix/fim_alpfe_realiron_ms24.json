@@ -1,0 +1,146 @@
+{
+ "aois": [
+  "eqpac",
+  "natlsubpolar",
+  "southernoceanpac"
+ ],
+ "weights": {
+  "eqpac": 1.0,
+  "natlsubpolar": 1.0,
+  "southernoceanpac": 1.0
+ },
+ "profiled_param": "alpfe",
+ "theta_star": {
+  "alpfe": 0.9998135566711426,
+  "scav_rat": 3.287414074293338e-07,
+  "Smallgrow": 0.10126961767673492,
+  "Biggrow": 0.10120244324207306,
+  "diatomgraz": 0.9999515414237976,
+  "R_PICPOC": 0.09374606609344482
+ },
+ "carroll": {
+  "alpfe": 0.928309977054596,
+  "scav_rat": 6.025023253641848e-07,
+  "Smallgrow": 0.6609799861907959,
+  "Biggrow": 0.4314799904823303,
+  "diatomgraz": 0.8300300240516663,
+  "R_PICPOC": 0.04244999960064888
+ },
+ "loss_star": 1.5886693000793457,
+ "rel_grad_norm": 0.4934319257736206,
+ "hessian_at_theta_star": {
+  "eigenvalues": [
+   0.0,
+   0.004643820691853762,
+   0.005054148845374584,
+   0.0927865132689476,
+   0.6619272232055664,
+   2.2891063690185547
+  ],
+  "sloppy_vector": {
+   "alpfe": 0.0,
+   "scav_rat": 0.0,
+   "Smallgrow": 0.0,
+   "Biggrow": 0.0,
+   "diatomgraz": 0.0,
+   "R_PICPOC": 1.0
+  },
+  "stiff_vector": {
+   "alpfe": -0.8084908723831177,
+   "scav_rat": 0.5857134461402893,
+   "Smallgrow": 0.01105146761983633,
+   "Biggrow": 0.010824001394212246,
+   "diatomgraz": -0.05516241863369942,
+   "R_PICPOC": 0.0
+  }
+ },
+ "hessian_at_carroll": {
+  "eigenvalues": [
+   -0.5478542447090149,
+   -0.05076964944601059,
+   0.0,
+   0.14005787670612335,
+   0.3254659175872803,
+   1.1648712158203125
+  ],
+  "sloppy_vector": {
+   "alpfe": -0.5945818424224854,
+   "scav_rat": 0.8030235171318054,
+   "Smallgrow": 0.0017414350295439363,
+   "Biggrow": 0.007134629879146814,
+   "diatomgraz": -0.039644382894039154,
+   "R_PICPOC": 0.0
+  },
+  "stiff_vector": {
+   "alpfe": -0.7057517170906067,
+   "scav_rat": -0.5193403959274292,
+   "Smallgrow": -0.46737614274024963,
+   "Biggrow": -0.11482032388448715,
+   "diatomgraz": 0.02400144562125206,
+   "R_PICPOC": 0.0
+  }
+ },
+ "profile": [
+  {
+   "value": 0.04999999329447746,
+   "min_loss": 3.0795819759368896
+  },
+  {
+   "value": 0.06746413558721542,
+   "min_loss": 3.0434179306030273
+  },
+  {
+   "value": 0.09102820605039597,
+   "min_loss": 2.9776155948638916
+  },
+  {
+   "value": 0.12282279133796692,
+   "min_loss": 2.888176441192627
+  },
+  {
+   "value": 0.16572269797325134,
+   "min_loss": 2.7766242027282715
+  },
+  {
+   "value": 0.22360678017139435,
+   "min_loss": 2.638836622238159
+  },
+  {
+   "value": 0.30170881748199463,
+   "min_loss": 2.4652609825134277
+  },
+  {
+   "value": 0.40709051489830017,
+   "min_loss": 2.2447755336761475
+  },
+  {
+   "value": 0.5492802858352661,
+   "min_loss": 1.993659257888794
+  },
+  {
+   "value": 0.7411344647407532,
+   "min_loss": 1.7666521072387695
+  },
+  {
+   "value": 1.0,
+   "min_loss": 1.5885344743728638
+  }
+ ],
+ "profile_rel_span": 0.9386308736879477,
+ "verdict": "INVALID -> profile minimum is ON THE UPPER GRID EDGE (value=1); the optimum is not bracketed, so rel_span is a lower bound only.",
+ "valid": false,
+ "convergence": {
+  "converged": true,
+  "profile_min": 1.5885344743728638,
+  "conv_gap": -0.0001348257064819336,
+  "tol": 0.0015886693000793457,
+  "note": "conv_gap = min(profile) - loss_star; must be >= -tol. Negative means theta_star is under-converged and the span is untrustworthy."
+ },
+ "bracketing": {
+  "bracketed": false,
+  "argmin_index": 10,
+  "n_grid": 11,
+  "argmin_value": 1.0,
+  "note": "False means the profile minimum is on a grid endpoint; the optimum is not bracketed and rel_span is a lower bound only."
+ }
+}

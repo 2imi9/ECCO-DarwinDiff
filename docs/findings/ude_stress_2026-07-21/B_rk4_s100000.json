@@ -1,0 +1,12 @@
+{
+ "exp": "B",
+ "method": "rk4",
+ "n_steps": 100000,
+ "n_cols": 2000,
+ "n_z": 24,
+ "status": "ok",
+ "wall_s": 101.088,
+ "global_mass_drift": 5.391375907493057e-06,
+ "max_per_cell_drift": 1.0890187695622444e-05,
+ "final_finite": true
+}
