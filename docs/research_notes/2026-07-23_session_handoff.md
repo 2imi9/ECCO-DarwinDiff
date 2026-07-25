@@ -19,15 +19,15 @@ for a in arm0_subW1 arm1_subW3 arm2_subW8; do
 **9/10 (subW=1) → 5/10 (subW=3) → 1/10 (subW=8)**, i.e. more subsurface weight HURT recovery (over-weighting
 distorts the joint fit; the Fisher conditioning gain did NOT translate to recovery). **Do not pursue
 subsurface up-weighting.** BUT the surprise is the control: **the flagship-full config (default weights, NO
-MLD) recovered scav_rat 9/10 per-AOI**, but the n=50 reconciliation showed that was seed luck — 26/50 (trio
-25/50) remains the flagship number and scav_rat stays the binding leg. Also
+MLD) recovered scav_rat 9/10 per-AOI**, but the n=50 reconciliation showed that was seed luck — 25/50 remains the flagship
+number for both scav_rat and the trio (they coincide, since scav_rat is the sole binding leg). Also
 reconfirmed MLD hurts scav_rat (earlier flagship+MLD was 4/10).
 **→ NEW experiment for scav_rat (replaces the up-weight idea): reconcile 9/10 (n=10 AICR flagship-full) vs
 25/50 (n=50 Explorer flagship geo1).** Run the flagship-full config (covar base + PINN3/POCsub3/CHL3/pattern1,
 no MLD, GEOTRACES_W=1 SUB_W=1) at **n=50** and grade scav_rat. If it holds ~9/10, scav_rat is NOT the weak leg
 and the trio is stronger than the paper claims (update STATUS + the accuracy matrix). If it drops to ~50%,
 the n=10 9/10 was a lucky draw. This is the #1 near-term experiment. **[RESOLVED — it ran: at n=50 the
-same config gives 26/50, so the n=10 9/10 was a lucky draw; see
+same config gives 26/50 for that *separate* subW=1 arm, so the n=10 9/10 was a lucky draw; see
 `docs/findings/2026-07-23_subiron_scav_rat_result.md`.]**
 
 ## What CHANGED this session (do NOT repeat the old claims)
