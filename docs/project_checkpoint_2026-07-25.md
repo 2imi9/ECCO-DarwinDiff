@@ -29,7 +29,7 @@ misses.
 | param | verdict | best verified | config | confidence |
 |---|---|---|---|---|
 | **alpfe** | RECOVERED | 49/50 per-AOI (n=50) | geo1 (real GEOTRACES iron) | high — method-independent (DINN-free + Nelder-Mead + EKI agree); mass-balance-identified. *Caveat: weight-conditional (needs ~10× real-iron up-weight); null hit-rate 0.47* |
-| **R_PICPOC** | RECOVERED | 50/50 per-AOI (n=50); anchor-off 4/50 | geo1 (real Daniels/MODIS calcite) | high — most significant recovery (null 0.02). Lands ~0.05, consistent with Carroll 0.0425 *only within the wide 40% band* — **not** a validation of 0.0425 |
+| **R_PICPOC** | RECOVERED | 50/50 per-AOI (n=50); anchor-off 6/50 epoch-matched (4/50 at 1500 epochs) | geo1 (real Daniels/MODIS calcite) | high — most significant recovery (null 0.02). Lands ~0.05, consistent with Carroll 0.0425 *only within the wide 40% band* — **not** a validation of 0.0425 |
 | **scav_rat** | PARTIAL (basin-fragile) | 41/50 @4000ep (25/50 @2000ep); SO 48, natl 40, eqpac 6 | geo1 full loss | high on the *verdict*, low on a high count — natl is closeable optimization, eqpac (6/50) is an information wall; collapses to **0/50 per-AOI** anchors-only (pattern-driven, not anchor-driven; the 40/50 cell-weighted there is a southernoceanpac straddle, job 8536393) |
 | **diatomgraz** | PARTIAL (model-internal only) | 10/10 (+MLD via bSi); 35/50 (n=50, non-circular Chl+MLD) | geo1+MLD | medium — **not** recovered from independent real data (~4/10 = chance); the Chl target is Darwin's own. Structural-vs-practical still open (#152) |
 | **Smallgrow** | EXCLUDED by construction | real 0/N; synth 7/7; seasonal natl 9/10 (unconfirmed) | — | high on exclusion / low on the seasonal hint |

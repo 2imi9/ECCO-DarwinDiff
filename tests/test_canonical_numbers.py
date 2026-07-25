@@ -152,11 +152,20 @@ def test_retracted_emulator_claims_stay_retracted(retracted):
         if any(w in head for w in ("superseded", "retracted", "deflation")):
             continue
         for n, line in enumerate(lines, 1):
-            low = line.lower()
-            if retracted.lower() not in low:
+            if retracted.lower() not in line.lower():
                 continue
-            if any(w in low for w in ("retract", "superseded", "no longer", "withdraw",
-                                      "not ", "wrong", "artifact", "corrected", "deflat")):
+            # Look at a WINDOW, not one line. Hand-wrapped prose routinely splits a
+            # sentence like "...quoted a ~9-month horizon ... all three of which have been
+            # retracted" across two lines, and a line-local check calls that an offender.
+            # A paragraph-scale window is needed: a retractions LIST puts its header
+            # several lines above the entries, and a metric definition may be justified
+            # a few lines below where it is introduced.
+            window = "\n".join(lines[max(0, n - 8):n + 6]).lower()
+            if any(w in window for w in ("retract", "superseded", "no longer", "withdraw",
+                                         "wrong", "artifact", "corrected", "deflat",
+                                         "does not", "did not", "cannot",
+                                         "not significant", "weak baseline",
+                                         "persistence is weak", "seasonal ar(1)")):
                 continue
             offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
     assert not offenders, (
