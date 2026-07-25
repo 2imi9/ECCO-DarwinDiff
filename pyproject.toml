@@ -45,6 +45,19 @@ dependencies = [
     "typer>=0.12",
 ]
 
+[project.optional-dependencies]
+# NVIDIA Earth2Studio, for serving the Track-2 emulator through their PrognosticModel
+# interface (src/darwindiff/e2s/). Optional because it pulls ~19 packages including
+# pygrib, which needs GRIB C libraries and does not build cleanly everywhere.
+#
+# Installing it is what activates tests/test_e2s_conformance.py. Without it the adapter
+# falls back to no-op shims that validate nothing, so the suite proves the code runs but
+# NOT that it conforms:
+#     uv sync --extra earth2studio && uv run pytest tests/test_e2s_conformance.py
+earth2studio = [
+    "earth2studio>=0.18",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=8.3",
@@ -94,6 +107,12 @@ ignore = []
 # Forcing lowercase or ASCII-only would obscure the connection to those refs.
 "src/darwindiff/carroll6.py" = ["N806", "RUF002"]
 "src/darwindiff/carbonate.py" = ["N802", "N803", "N806", "RUF001", "RUF002"]
+# GP15 210Po/210Pb loader: docstrings carry radiochemistry notation
+# (210Po, 210Pb, λ_Po, ρ_sw, ×, −, σ) from Cochran et al. / BCO-DMO metadata.
+"src/darwindiff/cochran_gp15_po_pb_loader.py" = ["RUF001", "RUF002", "RUF003"]
+# Rufas 2024 POC-flux loader: docstrings/comments carry BCP notation
+# (z_eu, z_meso, mmol C m⁻² d⁻¹, ×, −, σ) from the compilation's papers.
+"src/darwindiff/rufas2024_poc_flux_loader.py" = ["RUF001", "RUF002", "RUF003"]
 
 [tool.mypy]
 python_version = "3.11"

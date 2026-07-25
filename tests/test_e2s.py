@@ -52,9 +52,9 @@ def test_forward_shape_and_lead_time_accumulates():
     coords = ic.copy()
     coords["batch"] = np.array([0])
     coords["time"] = np.array([np.datetime64("2016-01-01")])
-    x = torch.rand(1, v, h, w) + 0.1  # positive physical units
+    x = torch.rand(1, 1, 1, v, h, w) + 0.1  # positive physical units; 6-D per coords
     x_next, oc = model(x, coords)
-    assert x_next.shape == (1, v, h, w)
+    assert x_next.shape == (1, 1, 1, v, h, w)   # rank preserved through batch_func
     # lead_time advanced by exactly one dt (from 0)
     assert oc["lead_time"][0] == model.dt
     assert list(oc.keys())[0] == "batch"
@@ -64,10 +64,10 @@ def test_zero_residual_is_identity_and_guards():
     model, lat, lon, v, h, w, mask = _make_model()
     ic = model.input_coords()
     coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
-    x = torch.rand(1, v, h, w) + 0.1
+    x = torch.rand(1, 1, 1, v, h, w) + 0.1
     x_next, _ = model(x, coords)
     # non-Chl channels (linear, zero residual) should round-trip to the input
-    assert torch.allclose(x_next[:, :2], x[:, :2], atol=1e-4)
+    assert torch.allclose(x_next[..., :2, :, :], x[..., :2, :, :], atol=1e-4)
     # nonnegativity guard: no negatives anywhere
     assert (x_next >= 0).all()
 
@@ -83,10 +83,10 @@ def test_land_mask_zeroed():
     )
     ic = model.input_coords()
     coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
-    x = torch.rand(1, len(v_vars), h, w) + 0.1
+    x = torch.rand(1, 1, 1, len(v_vars), h, w) + 0.1
     x_next, _ = model(x, coords)
-    assert (x_next[0, :, 0, 0] == 0.0).all()   # land cell zeroed on every channel
-    assert (x_next[0, :, 1, 1] > 0).all()      # an ocean cell is not
+    assert (x_next[0, 0, 0, :, 0, 0] == 0.0).all()   # land cell zeroed on every channel
+    assert (x_next[0, 0, 0, :, 1, 1] > 0).all()      # an ocean cell is not
 
 
 def test_log_chl_roundtrip():
@@ -95,16 +95,16 @@ def test_log_chl_roundtrip():
     assert model.log_idx == [2, 3]  # the two Chl1_k* channels
     ic = model.input_coords()
     coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
-    x = torch.rand(1, v, h, w) + 0.5
+    x = torch.rand(1, 1, 1, v, h, w) + 0.5
     x_next, _ = model(x, coords)
-    assert torch.allclose(x_next[:, 2:], x[:, 2:], atol=1e-3, rtol=1e-3)
+    assert torch.allclose(x_next[..., 2:, :, :], x[..., 2:, :, :], atol=1e-3, rtol=1e-3)
 
 
 def test_iterator_yields_ic_first_and_is_unbounded():
     model, lat, lon, v, h, w, _ = _make_model()
     ic = model.input_coords()
     coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
-    x = torch.rand(1, v, h, w) + 0.1
+    x = torch.rand(1, 1, 1, v, h, w) + 0.1
     it = model.create_iterator(x, coords)
     x0, c0 = next(it)
     assert torch.allclose(x0, x)              # step 0 IS the initial condition

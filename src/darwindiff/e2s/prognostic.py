@@ -33,6 +33,20 @@ try:  # pragma: no cover - exercised on the cluster
 
     E2S_AVAILABLE = True
 except Exception:  # laptop / CI fallback -- keep the same call surface
+    # ------------------------------------------------------------------------------
+    # WARNING: these shims VALIDATE NOTHING. They exist so the module imports and the
+    # call surface stays identical without earth2studio; they are not a substitute for
+    # it. The real `batch_func` enforces `len(x.shape) == len(coords)` and flattens the
+    # leading dims, and the real `handshake_*` reject mismatched coordinate systems.
+    #
+    # This gap has already cost us once: because the shim `batch_func` is a no-op, the
+    # test suite passed for a `_forward` that assumed rank 4 and would have indexed the
+    # *time* axis instead of *variable* under any real batched call. Tests that pass on
+    # the shim path prove the code runs, NOT that it conforms.
+    #
+    # Conformance is checked by tests/test_e2s_conformance.py, which runs only when the
+    # real package is present:   uv sync --extra earth2studio
+    # ------------------------------------------------------------------------------
     CoordSystem = OrderedDict
 
     def handshake_dim(*_a, **_k):  # noqa: D401
@@ -200,20 +214,51 @@ class DarwinBGCPrognostic(torch.nn.Module):
 
     @torch.inference_mode()
     def _forward(self, x: torch.Tensor) -> torch.Tensor:
-        """x : [B, V, H, W] physical units -> next-step physical state (self-contained).
+        """``[..., V, H, W]`` physical units -> next-step physical state.
 
-        Inference-only (matches the earth2studio reference models); avoids autograd
-        graph accumulation over long rollouts. The differentiable-recovery path uses
-        the box (run_v3.0), not this emulator wrapper.
+        The leading dimensions are collapsed into one batch axis and restored on the way
+        out, so this works for any rank Earth2Studio hands us. That matters because
+        ``batch_func`` only flattens the dims *beyond* the model's own declared
+        ``input_coords``: since we declare six (``batch, time, lead_time, variable, lat,
+        lon``), following the FCN3 convention, a workflow calling us with exactly those
+        six passes a 6-D tensor straight through the decorator uncompressed. The previous
+        implementation indexed ``x[:, i]`` for the channel axis, which silently assumed
+        rank 4 and indexed *time* instead of *variable* under a real batched call. It went
+        unnoticed because the fallback ``batch_func`` shim is a no-op, so the tests never
+        exercised the real decorator. FCN3 solves the same problem with an explicit
+        ``squeeze(2)``/``unsqueeze(2)``; collapsing is equivalent and rank-agnostic.
+
+        Inference-only (matches the earth2studio reference models); avoids autograd graph
+        accumulation over long rollouts. The differentiable-recovery path uses the box
+        (``run_v3.0``), not this emulator wrapper.
         """
-        z = self._standardize(x)
+        if x.ndim < 3:
+            raise ValueError(f"expected at least [V, H, W]; got shape {tuple(x.shape)}")
+        lead_shape = x.shape[:-3]
+        v, h, w = x.shape[-3:]
+        if v != len(self.variables):
+            raise ValueError(
+                f"channel axis is {v} but the model declares {len(self.variables)} "
+                f"variables; got shape {tuple(x.shape)} (expected [..., V, H, W])"
+            )
+        xf = x.reshape(-1, v, h, w)
+
+        z = self._standardize(xf)
         out = self.model(z)
         z_next = z + out if self.residual else out
         x_next = self._destandardize(z_next)
         x_next = torch.clamp(x_next, min=0.0)  # nonnegativity guard
-        x_next = torch.where(self.mask.view(1, 1, *self.mask.shape), x_next, torch.zeros_like(x_next))
-        return x_next
+        x_next = torch.where(
+            self.mask.view(1, 1, *self.mask.shape), x_next, torch.zeros_like(x_next)
+        )
+        return x_next.reshape(*lead_shape, v, h, w)
 
+    @batch_func()
+    # @batch_func() is required, not decorative: it flattens the leading batch dims
+    # before the forward and restores them after, so the model works under Earth2Studio's
+    # batched workflows. Both the official custom-prognostic example
+    # (examples/08_extend/01_custom_prognostic.py) and the built-in Persistence model
+    # decorate __call__ with it; _default_generator below already had it.
     @batch_func()
     def __call__(self, x: torch.Tensor, coords: "CoordSystem"):
         out_coords = self.output_coords(coords)
