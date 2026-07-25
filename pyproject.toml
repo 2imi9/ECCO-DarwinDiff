@@ -45,18 +45,13 @@ dependencies = [
     "typer>=0.12",
 ]
 
-[project.optional-dependencies]
-# NVIDIA Earth2Studio, for serving the Track-2 emulator through their PrognosticModel
-# interface (src/darwindiff/e2s/). Optional because it pulls ~19 packages including
-# pygrib, which needs GRIB C libraries and does not build cleanly everywhere.
-#
-# Installing it is what activates tests/test_e2s_conformance.py. Without it the adapter
-# falls back to no-op shims that validate nothing, so the suite proves the code runs but
-# NOT that it conforms:
-#     uv sync --extra earth2studio && uv run pytest tests/test_e2s_conformance.py
-earth2studio = [
-    "earth2studio>=0.18",
-]
+# NOTE: earth2studio is deliberately NOT declared as an optional extra. It requires
+# python <3.15 and pulls ~19 packages including pygrib, which needs GRIB C libraries;
+# declaring it makes `uv lock` unsatisfiable across this project's target environments.
+# Install it separately when you want to run tests/test_e2s_conformance.py:
+#     uv pip install earth2studio
+# Without it that module skips, and the e2s adapter falls back to no-op shims that
+# validate nothing -- see src/darwindiff/e2s/prognostic.py.
 
 [dependency-groups]
 dev = [
