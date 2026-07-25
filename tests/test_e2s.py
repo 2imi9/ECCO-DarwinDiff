@@ -123,12 +123,18 @@ def test_datasource_roundtrip(tmp_path):
     state = np.random.rand(m, len(chan), h, w).astype(np.float32)
     lats = np.linspace(-80, 80, h); lons = np.linspace(0, 360, w, endpoint=False)
     p = tmp_path / "cube.npz"
-    np.savez_compressed(p, state=state, chan_names=chan, lats=lats, lons=lons)
+    # times_days is required for positional access: without a calendar the loader can
+    # no longer invent a timestamp for an index, since doing so labelled month 0 as
+    # 1970-01-01 and silently misaligned every downstream diagnostic.
+    np.savez_compressed(p, state=state, chan_names=chan, lats=lats, lons=lons,
+                        times_days=np.array([0.0, 31.0, 61.0]))
     ds = EccoDarwinV05(str(p))
     da = ds(0, ["DIC_k0", "Chl1_k0"])  # positional month 0
     assert da.dims == ("time", "variable", "lat", "lon")
     assert list(da.coords["variable"].values) == ["DIC_k0", "Chl1_k0"]
     assert np.allclose(da.values[0, 0], state[0, 0])
+    # the label comes from the cube's own calendar, not from casting the index
+    assert da.coords["time"].values[0] == np.datetime64("1992-01-01", "ns")
 
 
 if __name__ == "__main__":
@@ -244,3 +250,71 @@ def test_prognostic_from_config_round_trips_the_training_transform():
     assert on.log_idx == [0, 1]
     assert float(on.log_floors[0]) == pytest.approx(1e-6)
     assert float(on.log_floors[2]) == pytest.approx(1e-12)  # untouched channels keep the legacy floor
+
+
+def test_from_config_syncs_residual_and_dt(monkeypatch):
+    """residual and dt are checkpoint properties. A direct-prediction checkpoint served
+    with residual=True adds the prediction to the input; a wrong dt mislabels every
+    rollout step's valid time and the error accumulates linearly."""
+    import numpy as _np
+    import torch as _torch
+
+    from darwindiff.e2s.prognostic import DarwinBGCPrognostic
+
+    args = (_torch.nn.Identity(), ["Chl1", "PIC"], _np.array([0.0]), _np.array([0.0]),
+            _np.zeros(2), _np.ones(2))
+
+    m = DarwinBGCPrognostic.from_config(
+        *args, config={"residual": False, "dt_hours": 168.0, "log_transform": False}
+    )
+    assert m.residual is False
+    assert m.dt == _np.timedelta64(168, "h")
+
+    # an explicit keyword still wins over the config
+    m2 = DarwinBGCPrognostic.from_config(
+        *args, config={"residual": False, "dt_hours": 168.0}, residual=True
+    )
+    assert m2.residual is True
+
+
+def test_positional_index_never_becomes_a_false_timestamp(tmp_path):
+    """Casting a positional index to datetime64 labelled month 0 as 1970-01-01."""
+    import numpy as _np
+    import pytest as _pytest
+
+    xr = _pytest.importorskip("xarray")
+    from darwindiff.e2s.datasource import EccoDarwinV05
+
+    p = tmp_path / "c.npz"
+    _np.savez(
+        p,
+        state=_np.ones((3, 1, 2, 2), dtype=_np.float32),
+        chan_names=_np.array(["Chl1"]),
+        lats=_np.array([0.0, 1.0]),
+        lons=_np.array([0.0, 1.0]),
+    )
+    ds = EccoDarwinV05(str(p))
+    assert ds.times is None
+    with _pytest.raises(ValueError, match="cannot be given a timestamp"):
+        ds(0, "Chl1")
+
+
+def test_positional_index_uses_the_real_calendar_when_present(tmp_path):
+    import numpy as _np
+    import pytest as _pytest
+
+    _pytest.importorskip("xarray")
+    from darwindiff.e2s.datasource import EccoDarwinV05
+
+    p = tmp_path / "c.npz"
+    _np.savez(
+        p,
+        state=_np.ones((3, 1, 2, 2), dtype=_np.float32),
+        chan_names=_np.array(["Chl1"]),
+        lats=_np.array([0.0, 1.0]),
+        lons=_np.array([0.0, 1.0]),
+        times_days=_np.array([0.0, 31.0, 61.0]),
+    )
+    ds = EccoDarwinV05(str(p))
+    da = ds(1, "Chl1")
+    assert da.coords["time"].values[0] == _np.datetime64("1992-02-01", "ns")

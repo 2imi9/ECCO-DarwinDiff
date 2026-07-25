@@ -159,12 +159,26 @@ class DarwinBGCPrognostic(torch.nn.Module):
         the stem list and the per-channel floors out of the run's own config makes the
         two sides impossible to desynchronise.
 
-        Keys consumed (all optional, all with training-time-compatible defaults):
-        ``log_transform`` (bool), ``log_tracers`` (list[str]), ``log_floors`` (dict).
+        Every setting below is a training-time property, and getting any of them wrong
+        produces plausible output rather than an error:
+
+        - ``log_transform`` / ``log_tracers`` / ``log_floors`` -- the input transform.
+        - ``residual`` -- whether the core model predicts a DELTA or the next state
+          outright. Defaulting to residual on a direct-prediction checkpoint adds the
+          prediction to the input state, roughly doubling it.
+        - ``dt_hours`` -- the forecast interval. Defaulting to 30 days on a
+          different-cadence checkpoint labels every rollout step with the wrong valid
+          time, and lead_time accumulates that error linearly.
+
+        An explicit keyword always wins, so a caller can still override deliberately.
         """
         cfg = dict(config or {})
         log_vars = tuple(cfg.get("log_tracers") or ()) if cfg.get("log_transform") else ()
         kw.setdefault("log_floors", cfg.get("log_floors"))
+        if "residual" in cfg and "residual" not in kw:
+            kw["residual"] = bool(cfg["residual"])
+        if "dt_hours" in cfg and "dt" not in kw:
+            kw["dt"] = np.timedelta64(int(round(float(cfg["dt_hours"]))), "h")
         return cls(core_model, variables, lat, lon, means, stds, log_vars=log_vars, **kw)
 
     # ---- coords contract --------------------------------------------------------

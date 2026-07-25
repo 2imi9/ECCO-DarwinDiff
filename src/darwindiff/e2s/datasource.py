@@ -80,8 +80,23 @@ class EccoDarwinV05:
         if xr is None:
             raise RuntimeError("xarray is required to serve DataArrays")
         time, variable = prep_data_inputs(time, variable)
-        arrays = []
+        arrays, stamps = [], []
         for t in time:
+            # Resolve the label FROM the cube, never by casting the request. Casting a
+            # positional index turned 0 and 1 into 1970-01-01 timestamps one nanosecond
+            # apart, so downstream alignment silently associated the states with dates
+            # ~35 years wrong.
+            if isinstance(t, (int, np.integer)):
+                if self.times is None:
+                    raise ValueError(
+                        f"positional index {int(t)} cannot be given a timestamp: this cube "
+                        f"has no calendar (no 'times_days' and no times= argument). Pass "
+                        f"times= when constructing EccoDarwinV05 if you need datetime "
+                        f"coordinates."
+                    )
+                stamps.append(np.datetime64(self.times[int(t)], "ns"))
+            else:
+                stamps.append(np.datetime64(t, "ns"))
             per_var = [self._read_field(t, v) for v in variable]  # each [H, W]
             arrays.append(np.stack(per_var, axis=0))  # [V, H, W]
         data = np.stack(arrays, axis=0)  # [T, V, H, W]
@@ -89,7 +104,7 @@ class EccoDarwinV05:
             data=data,
             dims=["time", "variable", "lat", "lon"],
             coords=dict(
-                time=np.array(time, dtype="datetime64[ns]"),
+                time=np.array(stamps, dtype="datetime64[ns]"),
                 variable=np.array(variable),
                 lat=self.lat,
                 lon=self.lon,
