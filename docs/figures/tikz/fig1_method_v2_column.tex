@@ -1,0 +1,68 @@
+% fig1_method_v2_column.tex -- METHOD figure, variant 2: "single-column vertical".
+%
+% Use case that variant 1 cannot serve: a journal single-column slot (~88mm). The
+% landscape two-register layout has to shrink below its legibility floor to fit there;
+% a vertical flow does not.
+%
+% Overlap is prevented by THREE RESERVED VERTICAL LANES, mirroring v1's horizontal lanes:
+%   x = -2.35  GRAD lane      (backward gradient return; no nodes ever)
+%   x =  0.00  STAGE lane     (the pipeline)
+%   x = +2.45  NOTE lane      (one annotation per stage, left-aligned)
+% Nothing is ever placed between lanes, so no amount of text growth can cause a collision.
+\documentclass[border=6pt]{standalone}
+\usepackage{darwindiff-tikz}
+\usepackage{amsmath}
+
+\begin{document}
+\begin{tikzpicture}[
+  stagebox/.style = {ddfont, draw=ddLine, line width=0.7pt, rounded corners=3pt,
+                     fill=white, align=center, text=ddInk, font=\sffamily\small,
+                     minimum width=34mm, minimum height=11mm, inner sep=4pt},
+  learned/.style  = {stagebox, draw=ddAccent, fill=ddAccentBg},
+  physics/.style  = {stagebox, draw=ddIdent, fill=ddIdentBg},
+  datanode/.style = {stagebox, draw=ddLine, fill=ddSurface},
+  badge/.style    = {ddfont, font=\sffamily\scriptsize\bfseries, draw=#1, fill=white,
+                     text=#1, rounded corners=2pt, inner xsep=4pt, inner ysep=1.5pt},
+  note/.style     = {ddfont, font=\sffamily\scriptsize, text=ddMuted, anchor=west,
+                     text width=41mm, align=left},
+  fwd/.style      = {-{Stealth[length=2.6mm,width=2.0mm]}, draw=ddMuted, line width=0.9pt},
+  gradline/.style = {-{Stealth[length=2.8mm,width=2.2mm]}, draw=ddIdent, line width=1.1pt,
+                     dashed, dash pattern=on 3pt off 2pt},
+]
+
+% ---------------- STAGE lane (x = 0), top to bottom -------------------------------
+\node[datanode] (env)   at (0, 0.00) {\textbf{environment}\\[1pt]\ddsub{SST, one channel}};
+\node[learned]  (dinn)  at (0,-1.85) {\textbf{per-cell DINN}\\[1pt]\ddsub{$1{\times}1$ conv $g_\phi$}};
+\node[learned]  (theta) at (0,-3.70) {\textbf{Carroll-6 $\theta$}\\[1pt]\ddsub{6 params per cell}};
+\node[physics]  (box)   at (0,-5.55) {\textbf{differentiable box}\\[1pt]\ddsub{5 tracers, 0-D}};
+\node[physics]  (loss)  at (0,-7.40) {\textbf{anchored loss} $\mathcal{L}$\\[1pt]\ddsub{vs real observations}};
+
+\node[badge=ddLine,   anchor=center] at (env.north)   {INPUT};
+\node[badge=ddAccent, anchor=center] at (dinn.north)  {LEARNED};
+\node[badge=ddAccent, anchor=center] at (theta.north) {PREDICTED};
+\node[badge=ddIdent,  anchor=center] at (box.north)   {PHYSICS};
+\node[badge=ddIdent,  anchor=center] at (loss.north)  {OBJECTIVE};
+
+\draw[fwd] (env)   -- (dinn);
+\draw[fwd] (dinn)  -- (theta);
+\draw[fwd] (theta) -- (box);
+\draw[fwd] (box)   -- (loss);
+
+% ---------------- GRAD lane (x = -2.35) -------------------------------------------
+% The return path owns this column outright; it enters the stage lane only at the very
+% end, on the DINN's west anchor.
+\draw[gradline]
+  (loss.west) -- (-2.35,-7.40) -- (-2.35,-1.85) -- (dinn.west);
+\node[ddfont, font=\sffamily\scriptsize\bfseries, text=ddIdent, rotate=90,
+      fill=white, inner xsep=3pt, inner ysep=1.5pt] at (-2.35,-4.62)
+      {one backward pass $\Rightarrow$ all six $\partial\mathcal{L}/\partial\theta$};
+
+% ---------------- NOTE lane (x = +2.45) -------------------------------------------
+\node[note] at (2.45, 0.00) {The flagship uses a \emph{single} input channel; the mixed-layer-depth channel is a separate ablation.};
+\node[note] at (2.45,-1.85) {A small network read per grid cell, so $\theta$ can vary in space.};
+\node[note] at (2.45,-3.70) {A parameter \emph{field}. Replacing it with one global vector drops the trio from 25/50 to \textbf{0/50}.};
+\node[note] at (2.45,-5.55) {Gradients propagate through every integration step of the box.};
+\node[note] at (2.45,-7.40) {GEOTRACES iron and Daniels calcite: real, Darwin-independent, absolute.};
+
+\end{tikzpicture}
+\end{document}

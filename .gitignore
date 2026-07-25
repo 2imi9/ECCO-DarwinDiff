@@ -145,3 +145,4 @@ containers/.sif_jobid
 # UDE-SciML) kept locally as reading references for the neural-operator scan.
 # They are NOT our work and must never enter this public repo's history.
 docs/figures/refs/
+.claude/skills/tikz/

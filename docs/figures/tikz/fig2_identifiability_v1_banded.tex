@@ -1,0 +1,100 @@
+% fig2_identifiability_v1_banded.tex -- IDENTIFIABILITY MAP, variant 1: "banded verdict map".
+%
+% Design intent. The paper's ethic is that "unobservable by construction" is an EXCLUSION,
+% not a failure. Encoding it as a low score on the same axis as the recovered parameters
+% would misreport the science. So the map is BANDED: three bands with their own left-hand
+% rubric, and the excluded pair sits in a visually separate band with a neutral (not red)
+% treatment and an explicit disclaimer. Verdict is carried by fill tint + border + a written
+% word, never by hue alone, so the figure survives greyscale.
+%
+% Every number here is verify_run-gated and re-derived from the raw per-seed records of the
+% flagship run n50e2k_percell_trio (n=50, 2000 epochs), plus its epoch-matched controls.
+\documentclass[border=6pt]{standalone}
+\usepackage{darwindiff-tikz}
+\usepackage{amsmath}
+
+\begin{document}
+\begin{tikzpicture}[
+  % column x-anchors -- fixed, so nothing can drift into a neighbour
+  % 0.00 band rubric | 2.60 parameter | 5.60 verdict | 8.10 count | 10.30 mechanism
+  pname/.style   = {font=\ttfamily\small, text=ddInk, anchor=west},
+  vpill/.style 2 args = {ddfont, font=\sffamily\scriptsize\bfseries, draw=#1, fill=#2,
+                    text=#1, rounded corners=2.5pt, inner xsep=5pt, inner ysep=2.2pt,
+                    anchor=west, minimum width=23mm, align=center},
+  cnt/.style     = {font=\sffamily\small, text=ddInk, anchor=west},
+  mech/.style    = {ddfont, font=\sffamily\scriptsize, text=ddMuted, anchor=west,
+                    text width=62mm, align=left},
+  rubric/.style  = {ddfont, font=\sffamily\scriptsize\bfseries, text=#1, anchor=west,
+                    align=left, text width=22mm},
+  rule/.style    = {draw=ddLine, line width=0.4pt, opacity=0.7},
+]
+
+% ---- header ------------------------------------------------------------------------
+\node[ddfont, font=\sffamily\footnotesize\bfseries, text=ddMuted, anchor=west]
+      at (2.60, 0.95) {PARAMETER};
+\node[ddfont, font=\sffamily\footnotesize\bfseries, text=ddMuted, anchor=west]
+      at (5.60, 0.95) {VERDICT};
+\node[ddfont, font=\sffamily\footnotesize\bfseries, text=ddMuted, anchor=west]
+      at (8.35, 0.95) {PER-AOI};
+\node[ddfont, font=\sffamily\footnotesize\bfseries, text=ddMuted, anchor=west]
+      at (10.30, 0.95) {WHAT DECIDES IT};
+\draw[rule] (0.00, 0.65) -- (17.10, 0.65);
+
+% ================= BAND 1 : point-identified ========================================
+\node[rubric=ddIdent] at (0.00,-0.35) {IDENTIFIED\\by a real anchor};
+
+\node[pname] at (2.60, 0.00) {alpfe};
+\node[vpill={ddIdent}{ddIdentBg}] at (5.60, 0.00) {recovered};
+\node[cnt]   at (8.35, 0.00) {\textbf{49}/50};
+\node[mech]  at (10.30, 0.00) {Real GEOTRACES iron pins its \emph{magnitude} by mass balance. Recovers in both arms.};
+
+\node[pname] at (2.60,-0.78) {R\_PICPOC};
+\node[vpill={ddIdent}{ddIdentBg}] at (5.60,-0.78) {recovered};
+\node[cnt]   at (8.35,-0.78) {\textbf{50}/50};
+\node[mech]  at (10.30,-0.78) {Real Daniels calcite anchor. Epoch-matched anchor-off control collapses it to 6/50.};
+
+\draw[rule] (0.00,-1.20) -- (17.10,-1.20);
+
+% ================= BAND 2 : conditionally identified ================================
+\node[rubric=ddLimit] at (0.00,-2.00) {PARTIAL\\condition matters};
+
+\node[pname] at (2.60,-1.62) {scav\_rat};
+\node[vpill={ddLimit}{ddLimitBg}] at (5.60,-1.62) {basin-fragile};
+\node[cnt]   at (8.35,-1.62) {\textbf{25}/50};
+\node[mech]  at (10.30,-1.62) {Needs the spatial pattern term, not an anchor. Southern Ocean 49/50, equatorial Pacific 7/50.};
+
+\node[pname] at (2.60,-2.52) {diatomgraz};
+\node[vpill={ddLimit}{ddLimitBg}] at (5.60,-2.52) {model-internal};
+\node[cnt]   at (8.35,-2.52) {\textbf{35}/50};
+\node[mech]  at (10.30,-2.52) {Recovers once mixed-layer depth is an input channel. But the target is Darwin's own chlorophyll, so this is consistency, not independent validation.};
+
+\draw[rule] (0.00,-3.30) -- (17.10,-3.30);
+
+% ================= BAND 3 : excluded by construction ================================
+% Deliberately neutral, NOT red: this band is a scope statement, not a scoreboard.
+\begin{scope}[on background layer]
+  \fill[ddUnobsBg, rounded corners=3pt] (-0.18,-5.02) rectangle (17.10,-3.42);
+\end{scope}
+\node[rubric=ddUnobs] at (0.00,-4.22) {EXCLUDED\\by construction};
+
+\node[pname] at (2.60,-3.84) {Smallgrow};
+\node[vpill={ddUnobs}{white}] at (5.60,-3.84) {not scored};
+\node[cnt, text=ddMuted] at (8.35,-3.84) {---};
+\node[mech]  at (10.30,-3.84) {No real observation of a phytoplankton growth \emph{rate} exists.};
+
+\node[pname] at (2.60,-4.60) {Biggrow};
+\node[vpill={ddUnobs}{white}] at (5.60,-4.60) {not scored};
+\node[cnt, text=ddMuted] at (8.35,-4.60) {---};
+\node[mech]  at (10.30,-4.60) {A 23-year climatology averages away the seasonal-succession handle that would constrain it.};
+
+\node[ddfont, font=\sffamily\scriptsize\itshape, text=ddUnobs, anchor=west]
+      at (2.60,-5.35) {These two are outside the observable set --- an exclusion, not a failed recovery. The honest denominator is therefore \textbf{4}, not 6.};
+
+% ================= footer: the load-bearing contrast =================================
+\draw[rule] (0.00,-5.72) -- (17.10,-5.72);
+\node[ddfont, font=\sffamily\footnotesize, text=ddInk, anchor=west, text width=16.9cm]
+      at (0.00,-6.22)
+      {\textbf{The per-cell field is load-bearing.} The trio \{\texttt{alpfe}, \texttt{scav\_rat}, \texttt{R\_PICPOC}\} holds jointly \textbf{25/50} per-cell versus \textbf{0/50} for a single global-scalar vector (disjoint Wilson intervals). Doubling the optimization budget to 4000 epochs lifts the trio to \textbf{41/50}, so most of the remaining gap is optimization, not missing information --- except in the equatorial Pacific, which stays flat at 6/50.};
+
+\end{tikzpicture}
+\end{document}

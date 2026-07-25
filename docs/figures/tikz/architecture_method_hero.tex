@@ -1,0 +1,151 @@
+% architecture_method_hero.tex -- ECCO-DarwinDiff Architecture & Method (SHOWCASE).
+% A designed version of architecture_method.tex: zoned background bands, soft-shadowed
+% cards with corner icon-badges, a bold backward-pass feedback loop, target-source cards,
+% a surrogate-gap callout, and a dashboard result row. Still a self-contained standalone
+% TikZ figure for the paper (\includestandalone / \input under \usepackage{standalone}).
+%
+% ROBUSTNESS: every icon disc is a SIBLING node pinned to a card corner AFTER the card is
+% drawn (never a \node nested inside another node's text -- that was the WIP's fragility).
+% Shadows use the stable `shadows' library `drop shadow' (blur shadow rendered the widest
+% card's shadow as a solid black blob under pdflatex/MiKTeX). All positions explicit.
+% Verdicts/numbers match param_identifiability.tex (verify_run exit 0 record).
+%
+% Standalone:  pdflatex architecture_method_hero.tex
+\documentclass[border=14pt]{standalone}
+\usepackage{amsmath}
+\usepackage{darwindiff-tikz}
+\usetikzlibrary{shadows}
+
+% -- showcase palette (extends darwindiff-tikz.sty) ----------------------------------
+\definecolor{bgA}{HTML}{FBFCFE}\definecolor{bgB}{HTML}{EDF1F7}
+\definecolor{bgDash}{HTML}{F3F1EA}
+\definecolor{cardEdge}{HTML}{E1E5EB}\definecolor{zoneInk}{HTML}{7C8592}
+\definecolor{ddIron}{HTML}{185FA5}\definecolor{ddCarb}{HTML}{1D6E56}
+
+\tikzset{
+  % reliable soft drop shadow (subtle grey, small offset)
+  cardsh/.style={drop shadow={shadow xshift=0.7pt, shadow yshift=-1.0pt, opacity=0.85, fill=black!20}},
+  % soft-shadowed white card
+  hcard/.style={rounded corners=5pt, draw=cardEdge, line width=0.7pt, fill=white, cardsh,
+    align=center, inner sep=6pt, minimum width=26mm, minimum height=18mm,
+    text=ddInk, font=\sffamily},
+  % icon badge -- a coloured disc pinned to a card corner (sibling node, robust)
+  badge/.style={circle, fill=#1, text=white, font=\sffamily\bfseries\small,
+    minimum size=7.5mm, inner sep=0pt, draw=white, line width=1pt},
+  zone/.style={font=\sffamily\bfseries\scriptsize, text=zoneInk},
+  fatflow/.style={-{Stealth[length=3mm,width=3.2mm]}, draw=zoneInk, line width=1.3pt},
+  statcard/.style={rounded corners=5pt, draw=#1, line width=1.1pt, align=center, cardsh,
+    inner sep=5pt, minimum width=29mm, minimum height=16mm, font=\sffamily, text=ddInk},
+}
+% in-card title + muted sub-label (commands, not styles)
+\newcommand{\ctitle}[1]{{\normalfont\sffamily\bfseries\footnotesize\color{ddInk}#1}}
+\newcommand{\hsub}[1]{{\normalfont\sffamily\scriptsize\color{ddMuted}#1}}
+
+\begin{document}
+\begin{tikzpicture}[x=1cm, y=1cm]
+
+  % ===== background bands =========================================================
+  \begin{scope}[on background layer]
+    \shade[top color=bgA, bottom color=bgB, rounded corners=10pt]
+       (-0.55,-2.95) rectangle (20.35,3.25);
+    \fill[bgDash, rounded corners=10pt] (-0.55,-7.25) rectangle (20.35,-3.55);
+  \end{scope}
+
+  % ===== header ===================================================================
+  \node[font=\sffamily\bfseries, text=ddInk, anchor=south west, scale=1.6] (ttl) at (-0.25,3.55)
+     {ECCO-DarwinDiff};
+  \node[font=\sffamily, text=ddMuted, anchor=south west, scale=1.05] at ([xshift=4pt]ttl.south east)
+     {\ \textbullet\ \ Architecture \& Method};
+
+  % ===== zone eyebrows (top of panel) =============================================
+  \node[zone] at (2.0,2.95)  {INPUT};
+  \node[zone] at (7.45,2.95) {LEARN};
+  \node[zone] at (12.0,2.95) {FORWARD};
+  \node[zone] at (15.55,2.95) {EVALUATE};
+
+  % ===== pipeline cards (y=0.55) ==================================================
+  \node[hcard, minimum width=36mm] (env) at (2.0,0.55)
+     {\ctitle{environment}\\[2pt]
+      \hsub{SST\,$\cdot$\,wind\,$\cdot$\,MLD\,$\cdot$\,SSS}\\
+      \hsub{$p$CO$_2$atm\,$\cdot$\,CO$_2$\,flux\,$\cdot$\,Fe-dust}\\[1pt]
+      \hsub{\itshape per-cell\,$\cdot$\,v05 caches}};
+  \node[hcard] (dinn) at (5.95,0.55)
+     {\ctitle{per-cell DINN}\\[2pt]\hsub{$1{\times}1$ conv $g_\phi$}\\\hsub{env $\to$ local $\theta$}};
+  \node[hcard, draw=ddAccent, line width=1pt] (theta) at (8.95,0.55)
+     {\ctitle{Carroll-6 $\theta$}\\[2pt]\hsub{6 bounded params}\\\hsub{per grid cell}};
+  \node[hcard, draw=ddCarb, line width=1pt] (box) at (12.0,0.55)
+     {\ctitle{differentiable box}\\[2pt]\hsub{\texttt{carroll6}\,$\cdot$\,5 tracers}\\\hsub{$0$-D, 2 layers}};
+  \node[hcard, minimum width=24mm, draw=ddIdent, line width=1pt] (loss) at (15.55,0.55)
+     {\ctitle{anchored loss}\\[2pt]\hsub{predicted vs}\\\hsub{real targets}};
+
+  % icon badges -- sibling nodes on each card's top-left corner (robust) -----------
+  \node[badge=ddIron]   at (env.north west)   {$\approx$};
+  \node[badge=ddAccent] at (dinn.north west)  {N};
+  \node[badge=ddAccent] at (theta.north west) {$\theta$};
+  \node[badge=ddCarb]   at (box.north west)   {$\int$};
+  \node[badge=ddIdent]  at (loss.north west)  {$\mathcal{L}$};
+
+  % forward flow -------------------------------------------------------------------
+  \draw[fatflow] (env)--(dinn) node[midway, below=1.5pt, font=\sffamily\scriptsize, text=ddMuted]{SST};
+  \draw[fatflow] (dinn)--(theta);
+  \draw[fatflow] (theta)--(box);
+  \draw[fatflow, draw=ddCarb] (box)--(loss)
+     node[midway, below=1.5pt, font=\sffamily\scriptsize, text=ddMuted]{tracers};
+
+  % ===== hero backward-pass feedback loop =========================================
+  \draw[line width=1.7pt, draw=ddIdent, -{Stealth[length=3.4mm,width=3.4mm]}, rounded corners=9pt]
+     (loss.north) .. controls ([yshift=17mm]loss.north) and ([yshift=17mm]dinn.north) .. (dinn.north);
+  \node[fill=ddIdent, text=white, rounded corners=7pt, font=\sffamily\bfseries\footnotesize,
+        inner xsep=8pt, inner ysep=3.5pt]
+     (pill) at (10.75,2.5)
+     {1 backward pass \;$\Rightarrow$\; all six $\partial\mathcal{L}/\partial\theta$};
+  \node[font=\sffamily\itshape\scriptsize, text=ddIdent, anchor=north] at ([yshift=-1.5pt]pill.south)
+     {vs $\sim$7 forward Green's-functions runs per gradient};
+
+  % ===== target sources feeding the loss ==========================================
+  \node[hcard, draw=ddIron, line width=1pt, fill=ddAccentBg, minimum width=42mm, anchor=north]
+     (anch) at (13.7,-0.75)
+     {\ctitle{\color{ddIron}real absolute anchors}\\[2pt]
+      \hsub{GEOTRACES iron (mass balance)}\\\hsub{Daniels calcite (PIC:POC)}};
+  \node[hcard, minimum width=30mm, anchor=north] (dar) at (17.95,-0.75)
+     {\ctitle{ECCO-Darwin v05}\\[2pt]\hsub{$z$-scored pattern}\\\hsub{spatial only}};
+  \draw[-{Stealth[length=2.6mm]}, draw=ddIron, line width=1.2pt] (anch.north) -- (loss.south)
+     node[midway, left=1pt, font=\sffamily\bfseries\scriptsize, text=ddIron]{identifies};
+  \draw[-{Stealth[length=2.6mm]}, draw=zoneInk, line width=1pt] (dar.north) -- (loss.south)
+     node[pos=0.35, right=1pt, font=\sffamily\scriptsize, text=ddMuted]{pattern};
+
+  % ===== surrogate-gap callout (left, below pipeline) =============================
+  \node[rounded corners=5pt, draw=ddLimit, line width=1pt, fill=ddLimitBg,
+        font=\sffamily\scriptsize, text width=7.4cm, align=left, inner sep=8pt, anchor=north west, cardsh]
+     at (-0.2,-0.75)
+     {\textbf{\color{ddLimit}Why anchors, not pattern.} The $0$-D box relaxes to a near-uniform
+      state (tracer CV $\to 10^{-15}$ vs Darwin's $O(1)$ spatial CV), so box-vs-Darwin \emph{pattern}
+      is not a fidelity signal. Identifiability must come from real, Darwin-independent \emph{absolute}
+      anchors --- observations Carroll's v05 Green's-functions calibration never assimilated.};
+
+  % ===== RESULT dashboard =========================================================
+  \node[zone, anchor=west] at (-0.2,-3.95) {RESULT \ \textbullet\ \ PER-PARAMETER IDENTIFIABILITY};
+
+  \begin{scope}[every node/.append style={anchor=center}]
+    \node[statcard=ddIdent, fill=ddIdentBg] at (1.85,-5.15)
+       {\ctitle{\texttt{alpfe}}\\[2pt]{\color{ddIdent}\sffamily\bfseries\footnotesize identifiable}\\[1pt]\hsub{iron mass balance $\cdot$ 38/40}};
+    \node[statcard=ddLimit, fill=ddLimitBg] at (5.15,-5.15)
+       {\ctitle{\texttt{scav\_rat}}\\[2pt]{\color{ddLimit}\sffamily\bfseries\footnotesize observability wall}\\[1pt]\hsub{8/10 cell $\cdot$ 0/10 global}};
+    \node[statcard=ddIdent, fill=ddIdentBg] at (8.45,-5.15)
+       {\ctitle{\texttt{R\_PICPOC}}\\[2pt]{\color{ddIdent}\sffamily\bfseries\footnotesize identifiable (scalar)}\\[1pt]\hsub{calcite anchor $\cdot$ 50/50}};
+    \node[statcard=ddNon, fill=ddNonBg] at (11.75,-5.15)
+       {\ctitle{\texttt{diatomgraz}}\\[2pt]{\color{ddNon}\sffamily\bfseries\footnotesize non-identifiable}\\[1pt]\hsub{4/10 (chance)}};
+    \node[statcard=ddUnobs, fill=ddUnobsBg] at (15.05,-5.15)
+       {\ctitle{\texttt{Smallgrow}}\\[2pt]{\color{ddUnobs}\sffamily\bfseries\footnotesize unobservable}\\[1pt]\hsub{NPP aggregate only}};
+    \node[statcard=ddUnobs, fill=ddUnobsBg] at (18.35,-5.15)
+       {\ctitle{\texttt{Biggrow}}\\[2pt]{\color{ddUnobs}\sffamily\bfseries\footnotesize unobservable}\\[1pt]\hsub{NPP aggregate only}};
+  \end{scope}
+
+  \node[font=\sffamily\scriptsize, text=ddMuted, anchor=north west, text width=20.2cm, align=left]
+     at (-0.2,-6.3)
+     {\textbf{Per-cell architecture is load-bearing} --- the trio \{\texttt{alpfe}, \texttt{scav\_rat},
+      \texttt{R\_PICPOC}\} holds jointly \textbf{7/10} per-cell vs \textbf{0/10} for a single global-scalar
+      vector. The binding constraint on the rest is the \emph{observing system}, not the method.};
+
+\end{tikzpicture}
+\end{document}

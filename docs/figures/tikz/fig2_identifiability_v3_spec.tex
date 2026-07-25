@@ -1,0 +1,104 @@
+% fig2_identifiability_v3_spec.tex -- IDENTIFIABILITY MAP, variant 3: to the r2 design system.
+%
+% Differences from v1/v2 that matter, all of them consequences of the measured palette audit:
+%
+%  1. EVIDENCE CLASS IS A STRIPE, not a fill tint. Two categories can never be distinguished
+%     by pale tints of two different hues: ddBlue!22 and ddGold!22 sit at relative luminance
+%     65.9% and 84.6%, a greyscale ratio of 1.26 -- invisible in monochrome. Full-strength
+%     stripes give 4.1:1.
+%  2. THE STRIPE ENCODES THE MECHANISM, not the score. Blue = a real absolute observation
+%     constrains this parameter. Gold = it is constrained only by spatial pattern or by a
+%     model-internal field. That is the actual scientific claim of the paper.
+%  3. RED APPEARS ONCE, as an open double-headed tie between alpfe and scav_rat, meaning the
+%     direction along which sensitivity VANISHES. Solid red would mean the gradient flows;
+%     open red means it does not. Red never means "bad" in this system.
+%  4. THE EXCLUDED PAIR IS OUTSIDE THE MATRIX. No stripe, no cell, no tint, no number --
+%     nothing to compare against, so no comparison can be misread. Ordering is by evidence
+%     class, never by score, precisely so the excluded pair does not land in last place.
+%
+% Numbers re-derived from the raw per-seed records of n50e2k_percell_trio (n=50, 2000 epochs)
+% and its epoch-matched controls.
+\documentclass[border=5pt]{standalone}
+\usepackage{darwindiff-tikz-v2}
+
+\begin{document}
+\begin{tikzpicture}[
+  % fixed columns: 0.00 stripe | 0.30 name | 2.65 verdict | 5.15 count | 6.55 mechanism
+  vlabel/.style = {ddbody, anchor=west},
+  cnt/.style    = {ddnum, anchor=west},
+  mech/.style   = {ddnote, anchor=west, text width=54mm, align=left},
+]
+
+% ---- panel letter (largest non-title element, per Nature spec) ----------------------
+\node[ddpanel, anchor=west] at (-0.10, 1.42) {b};
+
+% ---- header --------------------------------------------------------------------------
+\node[ddhead, anchor=west] at (0.30, 1.00) {Parameter};
+\node[ddhead, anchor=west] at (2.65, 1.00) {Verdict};
+\node[ddhead, anchor=west] at (5.15, 1.00) {Per-AOI};
+\node[ddhead, anchor=west] at (6.55, 1.00) {What constrains it};
+\draw[ddhair] (0.00, 0.76) -- (12.60, 0.76);
+
+% ================= evidence class: a real absolute observation (blue) =================
+\ddstripe{ddBlue}{0.00}{0.32}{0.66}
+\node[ddnote, anchor=west, text=ddBlue, font=\sffamily\fNote] at (0.30, 0.95) {};
+
+\node[ddparam, anchor=west] at (0.30, 0.42) {alpfe};
+\node[vlabel] at (2.65, 0.42) {recovered};
+\node[cnt]    at (5.15, 0.42) {49/50};
+\node[mech]   at (6.55, 0.42) {Real GEOTRACES dissolved iron pins its magnitude by mass balance.};
+
+\node[ddparam, anchor=west] at (0.30,-0.28) {R\_PICPOC};
+\node[vlabel] at (2.65,-0.28) {recovered};
+\node[cnt]    at (5.15,-0.28) {50/50};
+\node[mech]   at (6.55,-0.28) {Real Daniels calcite ratio. The epoch-matched anchor-off control collapses it to 6/50.};
+
+% ================= evidence class: pattern / model-internal only (gold) ===============
+\ddstripe{ddGold}{0.00}{-1.32}{0.72}
+\node[ddparam, anchor=west] at (0.30,-1.00) {scav\_rat};
+\node[vlabel] at (2.65,-1.00) {basin-fragile};
+\node[cnt]    at (5.15,-1.00) {25/50};
+\node[mech]   at (6.55,-1.00) {Needs the spatial pattern term, not an anchor. Southern Ocean 49/50; equatorial Pacific 7/50.};
+
+\node[ddparam, anchor=west] at (0.30,-1.78) {diatomgraz};
+\node[vlabel] at (2.65,-1.78) {model-internal};
+\node[cnt]    at (5.15,-1.78) {35/50};
+\node[mech]   at (6.55,-1.78) {Recovers once mixed-layer depth is an input channel, but against Darwin's own chlorophyll --- consistency, not independent validation.};
+
+% ---- the one red element: the direction along which sensitivity vanishes -------------
+% The tie lives in the gutter between the name and verdict columns (x = 1.95 .. 2.65),
+% and its label is rotated to stay inside that same gutter, so neither can reach a
+% neighbouring column no matter how the text reflows.
+\draw[ddnull] (2.52, 0.42) -- (2.52,-1.00);
+\node[ddnote, text=ddRed, rotate=90, anchor=center] at (2.26,-0.29) {degenerate direction};
+
+% ---- evidence-class key (states what the stripes mean, inside the figure) ------------
+\draw[ddhair] (0.00,-2.26) -- (12.60,-2.26);
+\fill[ddBlue] (0.30,-2.62) rectangle ++(0.21,0.26);
+\node[ddnote, anchor=west] at (0.62,-2.49) {constrained by a real, absolute observation};
+\fill[ddGold] (6.55,-2.62) rectangle ++(0.21,0.26);
+\node[ddnote, anchor=west] at (6.87,-2.49) {constrained only by pattern or a model-internal field};
+
+% ================= outside the observable set ========================================
+% Deliberately below the rule, achromatic, no stripe, no cell, no numeral. Ordering in this
+% figure is by evidence class and then alphabetically -- NEVER by score -- because sorting by
+% score would place these two last and manufacture exactly the misreading being prevented.
+\draw[ddhair] (0.00,-2.94) -- (12.60,-2.94);
+
+\node[ddexcluded, anchor=west, minimum width=20mm] at (0.30,-3.42) {Smallgrow};
+\node[ddexcluded, anchor=west, minimum width=20mm] at (0.30,-4.10) {Biggrow};
+\node[vlabel, text=ddMute, font=\sffamily\itshape\fBody] at (2.65,-3.42) {not scored};
+\node[vlabel, text=ddMute, font=\sffamily\itshape\fBody] at (2.65,-4.10) {not scored};
+\node[ddnote, anchor=west] at (5.15,-3.42) {---};
+\node[ddnote, anchor=west] at (5.15,-4.10) {---};
+\node[mech] at (6.55,-3.42) {No real observation of a phytoplankton growth \emph{rate} exists.};
+\node[mech] at (6.55,-4.10) {A 23-year climatology averages away the seasonal-succession handle.};
+
+\node[ddnote, anchor=north west, text width=122mm, align=left] at (0.00,-4.62)
+  {\textbf{The observable set is 4.} \texttt{Smallgrow} and \texttt{Biggrow} are excluded by
+   construction, not failed recoveries: no observable in the staged data constrains a growth
+   rate. This is a scope statement, not a score --- which is why they carry no count, no
+   stripe and no cell.};
+
+\end{tikzpicture}
+\end{document}
