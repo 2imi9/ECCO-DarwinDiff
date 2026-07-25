@@ -1,5 +1,11 @@
 # Overnight emulator-improvement loop — what helps, what doesn't (2026-07-14)
 
+> **⚠️ SUPERSEDED — the '~9-month horizon' is RETRACTED (2026-07-19).** It was a `delta_t`
+> calendar artifact: pre-2026-07-19 cubes carry `times_days` at 0.75× truth, so 94% of
+> month-of-year bins were wrong and skill-vs-climatology was inflated. Against a correctly
+> binned seasonal climatology the useful horizon is **one step**. Retained as the record of
+> what was believed at the time.
+
 An autonomous loop systematically tested candidate improvements to the global-monthly emulator
 (each: implement → small test → scale). All numbers are **local** (self-consistency vs the v05
 model output, not real observations). Headline baseline: global-monthly (surface) skill vs persistence

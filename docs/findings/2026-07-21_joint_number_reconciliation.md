@@ -60,7 +60,7 @@ honestly (those two anchored AOIs suffice for co-recovery).
 
 main.tex l.1086 wrongly listed `RATIO_MAX=2` as part of the geo1 config — the one place the separate
 Darwin-ratio path leaked into the flagship methods (and the likely source of the red-team's #3/#4).
-Replaced with the true mechanism (real Daniels term, no SO coverage, anchor-off → 4/50 control), and
+Replaced with the true mechanism (real Daniels term, no SO coverage, anchor-off → 4/50 control at 1500 epochs; the epoch-matched 2000-epoch control `n50e2k_anchor_off` is 6/50), and
 noted the `RATIO_W`/`RATIO_MAX` self-consistency path is a separate circularity control.
 
 ## Provenance

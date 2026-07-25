@@ -227,7 +227,16 @@ def parse_args(argv=None) -> argparse.Namespace:
         "--adjacency-tol",
         type=float,
         default=1.6,
-        help="A (t,t+1) pair is a valid one-step if its gap <= tol * median gap.",
+        help="A (t,t+1) pair is a valid one-step if its gap <= tol * reference cadence "
+        "(the expected monthly stride if --expected-step-days is set, else the median gap).",
+    )
+    p.add_argument(
+        "--expected-step-days",
+        type=float,
+        default=None,
+        help="True monthly stride (days) used as the adjacency reference. Set this when "
+        "the cube is uniformly sparse (every gap equal but > 1 month), which the "
+        "median-based check cannot detect on its own (#191). Default: infer from the median.",
     )
     p.add_argument(
         "--out",
@@ -241,6 +250,35 @@ def parse_args(argv=None) -> argparse.Namespace:
         "weights + standardization means/stds + the full config needed to rebuild the "
         "architecture (modes/width/layers/grid/channels). Portable across GPUs "
         "(load on H200 with map_location); no effect on metrics.",
+    )
+    p.add_argument(
+        "--log-transform",
+        action="store_true",
+        help="Log-transform log-normal tracers (default Chl1..Chl5) BEFORE z-scoring and "
+        "exp() back on de-standardization. Chl spans ~2.8e6x, so linear z-scoring gives "
+        "NEGATIVE global skill; log-space fixes it. Off by default (bitwise-identical to no "
+        "flag). Matches the earth2studio wrapper (src/darwindiff/e2s/prognostic.py): "
+        "log(clip(x,1e-12)) before z, exp after, stem-matched on the tracer name before '_k'.",
+    )
+    p.add_argument(
+        "--log-tracers",
+        default="Chl1,Chl2,Chl3,Chl4,Chl5,PIC,POC,FeT",
+        help="Comma-separated tracer stems to log-transform when --log-transform is set "
+        "(matched against the channel-name stem before '_k'). Aligns with prognostic.py log_vars. "
+        "PIC/POC/FeT are included because they are strictly-positive, wide-dynamic-range "
+        "tracers with the same failure mode as Chl: under linear z-scoring they collapse to "
+        "0.34-0.67 of the true log-range and emit 3-14%% non-physical (<=0) output, whereas "
+        "log-transformed Chl1 retains 0.97 of its range with 0%% non-physical output.",
+    )
+    p.add_argument(
+        "--log-floor-pct",
+        type=float,
+        default=1.0,
+        help="Percentile of the POSITIVE train-month values used as the per-channel clip floor "
+        "before log(). The old fixed 1e-12 floor mapped every non-positive cell to log(1e-12) "
+        "= -27.6, ~21 log-units below a typical Chl of 1.8e-3; with 13%% of v05 Chl1 cells "
+        "non-positive that inflated the log-space std by 1.72x and compressed the real signal "
+        "from +/-1.0 to +/-0.58 z-units. Set 0 to restore the old fixed-epsilon behaviour.",
     )
     return p.parse_args(argv)
 
@@ -477,18 +515,48 @@ def load_dataset(args, aoi: AOI, tracers: list[str], forcings: list[str]):
 # ---------------------------------------------------------------------------
 # Split, standardization, pairing (all leak-free)
 # ---------------------------------------------------------------------------
-def build_splits(data, val_frac: float, adjacency_tol: float):
+def build_splits(data, val_frac: float, adjacency_tol: float, expected_step_days: float | None = None):
     """Temporal split + leak-free (t, t+1) pairs.
 
     Standardization stats come from TRAIN months only. Pairs never cross the
     split boundary, and pairs spanning a missing-month gap are dropped so each
     step is a genuine one-snapshot advance.
+
+    Adjacency is measured against a reference cadence: ``expected_step_days`` when
+    given (the cube's true monthly stride), else the median gap. Measuring against
+    the median alone silently mislabels a *uniformly-sparse* axis -- one where every
+    gap equals the median but is larger than one month (e.g. an every-other-month
+    series, or an iter axis like ``[0, 1000, 2000, ...]``): all pairs pass as
+    one-step transitions, so multi-month jumps get reported as next-month skill.
+    We reject that case explicitly (#191) unless the caller supplies the true
+    cadence via ``expected_step_days``.
     """
     times = data["times_days"]
     M = len(times)
     gaps = np.diff(times)
     med_gap = float(np.median(gaps)) if len(gaps) else 0.0
-    adjacent = gaps <= adjacency_tol * med_gap  # adjacent[m] links month m -> m+1
+    NOMINAL_MONTH_DAYS = 365.25 / 12.0  # ~30.44 d; one v05 monthly step
+    ref = expected_step_days if expected_step_days is not None else med_gap
+    # Guard the uniformly-sparse failure mode: if the caller did not pin the cadence
+    # and every gap is ~equal AND that common gap exceeds ~1.5 months, the axis is
+    # sparse and the median-based test cannot see it -- raise instead of mislabeling.
+    if (
+        expected_step_days is None
+        and len(gaps) >= 2
+        and med_gap > 1.5 * NOMINAL_MONTH_DAYS
+        # 0.02 was far too tight: real every-other-month calendar gaps run 59-62 d, so
+        # ptp/med ~= 0.05 and the guard never fired on the very case it targets. 0.15
+        # admits calendar month-length variation while still requiring a uniform stride.
+        and float(np.ptp(gaps)) <= 0.15 * med_gap
+    ):
+        raise RuntimeError(
+            f"uniformly-sparse time axis: every step is ~{med_gap:.1f} d "
+            f"(> ~1.5 months, ~{med_gap / NOMINAL_MONTH_DAYS:.1f} months), so these are "
+            f"multi-month jumps, not one-step transitions -- grading them as next-month "
+            f"skill would mislabel the horizon. Pass expected_step_days to grade at the "
+            f"true cadence, or rebuild the cube at monthly resolution."
+        )
+    adjacent = gaps <= adjacency_tol * ref  # adjacent[m] links month m -> m+1
 
     split_idx = int(round(M * (1.0 - val_frac)))
     split_idx = max(2, min(split_idx, M - 1))  # keep >=2 train months and >=1 val month
@@ -518,14 +586,80 @@ def build_splits(data, val_frac: float, adjacency_tol: float):
         "adjacent": adjacent,
         "split_idx": split_idx,
         "median_step_days": med_gap,
+        "adjacency_ref_days": ref,
     }
 
 
-def standardize(state, train_months, valid_mask):
-    """Per-channel z-score using train-month statistics on valid cells only."""
+# Log-transform epsilon: matches src/darwindiff/e2s/prognostic.py._standardize clamp,
+# so a checkpoint trained with --log-transform is served identically by the e2s wrapper.
+LOG_EPS = 1e-12
+
+
+def build_log_mask(chan_names, log_transform, log_tracers):
+    """Per-channel bool mask: True where the tracer stem (before '_k') is log-transformed.
+
+    Stem-matching mirrors the earth2studio wrapper (prognostic.py:112, ``v.split("_k")[0]``)
+    so training and serving agree channel-for-channel. Returns all-False when the flag is
+    off, which guarantees the default path is bitwise-identical to the pre-log-transform code.
+    """
+    mask = np.zeros(len(chan_names), dtype=bool)
+    if not log_transform:
+        return mask
+    stems = {s.strip() for s in str(log_tracers).split(",") if s.strip()}
+    for i, name in enumerate(chan_names):
+        if str(name).split("_k")[0] in stems:
+            mask[i] = True
+    return mask
+
+
+def log_floors(state, train_months, valid_mask, log_mask, floor_pct):
+    """Per-channel clip floor for the log transform, from TRAIN positives only (leak-free).
+
+    A fixed ``LOG_EPS`` floor is wrong for these fields. v05 carries genuinely non-positive
+    cells (13.3% of Chl1), and clipping them to 1e-12 puts them at log = -27.6, roughly 21
+    log-units below a typical Chl of 1.8e-3. Measured on ``darwin_v05_L5_chl.npz``, that
+    single artefact inflates the log-space std from 4.81 to 8.26 (1.72x) and compresses the
+    real signal from +/-1.0 to +/-0.58 z-units, so ~42% of the model's output range is spent
+    representing a spike of clipped zeros.
+
+    Using a low percentile of the positive train values instead keeps non-positive cells at a
+    plausible "very low" concentration rather than an outlier 21 decades away. ``floor_pct=0``
+    restores the old fixed-epsilon behaviour.
+    """
+    C = state.shape[1]
+    floors = np.full(C, LOG_EPS, dtype=np.float64)
+    if log_mask is None or not log_mask.any() or floor_pct <= 0:
+        return floors
+    tr = state[train_months]
+    for c in np.nonzero(log_mask)[0]:
+        v = tr[:, c][:, valid_mask]
+        v = v[np.isfinite(v) & (v > 0)]
+        if v.size:
+            floors[c] = max(float(np.percentile(v, floor_pct)), LOG_EPS)
+    return floors
+
+
+def standardize(state, train_months, valid_mask, log_mask=None, floors=None):
+    """Per-channel z-score using train-month statistics on valid cells only.
+
+    When ``log_mask`` flags a channel, it is log-transformed (``log(clip(x, floor))``)
+    BEFORE the mean/std are computed, so the statistics — and the returned z — live in log
+    space (Chl spans ~2.8e6x; linear z-scoring yields negative global skill). De-standardization
+    must ``exp()`` those channels back. NaN land cells stay NaN through the clip/log and are
+    zeroed by ``nan_to_num`` below exactly as before.
+
+    ``floors`` is the per-channel clip floor from :func:`log_floors`; when omitted every
+    logged channel falls back to ``LOG_EPS`` (the historical behaviour).
+    """
     C = state.shape[1]
     means = np.zeros(C, dtype=np.float64)
     stds = np.ones(C, dtype=np.float64)
+    if log_mask is not None and log_mask.any():
+        if floors is None:
+            floors = np.full(C, LOG_EPS, dtype=np.float64)
+        state = state.copy()
+        for c in np.nonzero(log_mask)[0]:
+            state[:, c] = np.log(np.clip(state[:, c], a_min=floors[c], a_max=None))
     tr = state[train_months]  # [Mtr, C, H, W]
     for c in range(C):
         v = tr[:, c][:, valid_mask]
@@ -679,7 +813,8 @@ def masked_mse(pred, target, mask_t):
 # ---------------------------------------------------------------------------
 # Training + evaluation
 # ---------------------------------------------------------------------------
-def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, device, dtype):
+def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, device, dtype,
+                   floors=None):
     valid_mask = data["valid_mask"]
     mask_np = valid_mask
     mask_t = torch.as_tensor(valid_mask, device=device)
@@ -769,8 +904,23 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
     persist_z = z_state[val_m]  # persistence: copy current month
 
     # climatology (per-cell train temporal mean), in z-space
-    clim_phys = np.nanmean(data["state"][splits["train_months"]], axis=0)  # [C,H,W]
-    clim_z = (clim_phys - means[:, None, None]) / stds[:, None, None]
+    log_mask = build_log_mask(data["chan_names"], args.log_transform, args.log_tracers)
+    if log_mask.any():
+        # The transform must be applied BEFORE the temporal mean, exactly as standardize()
+        # does. Averaging first and logging after computes log(mean x) rather than
+        # mean(log x); for a lognormal field those differ by ~sigma^2/2. Measured on
+        # Chl1_k0 the old ordering displaced the baseline by +3.21 natural-log units
+        # (median +2.54, max +20.6) = +0.39 sigma, with 29% of cells past 0.5 sigma, which
+        # inflated skill_vs_climatology for every logged channel. Fixing the log floor
+        # (F2) shrinks the std and would have made this *worse* (~0.67 sigma), so the two
+        # belong together.
+        _tr = data["state"][splits["train_months"]].copy()
+        for _c in np.nonzero(log_mask)[0]:
+            _tr[:, _c] = np.log(np.clip(_tr[:, _c], a_min=floors[_c], a_max=None))
+        clim_t = np.nanmean(_tr, axis=0)  # [C,H,W]; logged channels averaged IN log space
+    else:
+        clim_t = np.nanmean(data["state"][splits["train_months"]], axis=0)
+    clim_z = (clim_t - means[:, None, None]) / stds[:, None, None]
     clim_z = np.nan_to_num(clim_z, nan=0.0, posinf=0.0, neginf=0.0)
     clim_z_b = np.broadcast_to(clim_z[None], pred_z.shape)
 
@@ -788,7 +938,15 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
     skill_c = 1.0 - sse_model / (sse_persist + eps)
     r2clim_c = 1.0 - sse_model / (sse_clim + eps)
     rmse_z_c = np.sqrt(sse_model / n_elem)
-    rmse_phys_c = stds * rmse_z_c  # affine: physical RMSE = std * z RMSE
+    rmse_phys_c = stds * rmse_z_c  # affine physical RMSE -- valid only for LINEAR channels
+    # Logged channels: the std*rmse_z affine identity is INVALID under log, so
+    # `stds*rmse_z` would report RMSE in natural-log units. Compute the genuine
+    # concentration-space RMSE by exp-destandardizing pred and target.
+    _log_mask_m = build_log_mask(data["chan_names"], args.log_transform, args.log_tracers)
+    for _c in np.where(_log_mask_m)[0]:
+        _pp = np.exp(pred_z[:, _c] * stds[_c] + means[_c])
+        _tp = np.exp(tgt_z[:, _c] * stds[_c] + means[_c])
+        rmse_phys_c[_c] = float(np.sqrt(np.nanmean(((_pp - _tp)[:, mask_np]) ** 2)))
 
     overall_skill = float(1.0 - sse_model.sum() / (sse_persist.sum() + eps))
     overall_r2clim = float(1.0 - sse_model.sum() / (sse_clim.sum() + eps))
@@ -800,8 +958,9 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
             "skill_vs_persistence": float(skill_c[c]),
             "anomaly_r2_vs_climatology": float(r2clim_c[c]),
             "rmse_z": float(rmse_z_c[c]),
-            "rmse_physical": float(rmse_phys_c[c]),
-            "physical_std": float(stds[c]),
+            "rmse_physical": float(rmse_phys_c[c]),  # concentration-space (exp'd for log channels)
+            "physical_std": float(stds[c]),  # NOTE: log-space std when log_space=True
+            "log_space": bool(_log_mask_m[c]),  # rmse_z / physical_std are in log space for this channel
         }
 
     metrics = {
@@ -818,7 +977,8 @@ def train_and_eval(args, data, splits, z_state, means, stds, z_forcing, model, d
 # ---------------------------------------------------------------------------
 # Multi-step autoregressive rollout stability + physical sanity
 # ---------------------------------------------------------------------------
-def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device, dtype):
+def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device, dtype,
+                  floors=None):
     adjacent = splits["adjacent"]
     split_idx = splits["split_idx"]
     M = zt.shape[0]
@@ -843,6 +1003,12 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
     means_t = torch.as_tensor(means, dtype=dtype, device=device).view(1, -1, 1, 1)
     stds_t = torch.as_tensor(stds, dtype=dtype, device=device).view(1, -1, 1, 1)
     C = zt.shape[1]
+    # Channels z-scored in log space must be exp'd back to true physical for the physical
+    # diagnostics below (positivity / mass-drift). Empty list when --log-transform is off,
+    # keeping this path bitwise-identical to the pre-log-transform code.
+    log_mask = build_log_mask(data["chan_names"], args.log_transform, args.log_tracers)
+    log_idx = list(np.nonzero(log_mask)[0])
+    _floors_t = floors if floors is not None else np.full(zt.shape[1], LOG_EPS, dtype=np.float64)
 
     model.eval()
     step_mse_model, step_mse_persist = [], []
@@ -861,6 +1027,11 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
                 # Project onto the physical feasible set: concentrations are >= 0.
                 # Enforced BETWEEN steps so negatives cannot compound down the rollout.
                 x_phys = x * stds_t + means_t
+                if log_idx:
+                    # logged channels are in log space here; exp to TRUE physical so the
+                    # >=0 clamp / mean-rescale act on concentrations, not on log values
+                    # (log(Chl) is legitimately negative). Re-logged before z-scoring back.
+                    x_phys[:, log_idx] = torch.exp(x_phys[:, log_idx])
                 if getattr(args, "rollout_mass_conserve", False):
                     # Mass-conserving positivity: clamp to >=0, then rescale each tracer to
                     # its pre-clamp domain mean, so enforcing positivity does not inject mass
@@ -872,6 +1043,13 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
                     x_phys = x_phys * scale
                 else:
                     x_phys = x_phys.clamp(min=0.0)
+                if log_idx:
+                    # re-log with the SAME per-channel floor used at standardization,
+                    # otherwise the rollout re-enters z-space on a different transform
+                    for _li in log_idx:
+                        x_phys[:, _li] = torch.log(
+                            torch.clamp(x_phys[:, _li], min=float(_floors_t[_li]))
+                        )
                 x = (x_phys - means_t) / stds_t
             tj = zt[best[j] : best[j] + 1]
             step_mse_model.append(masked_mse(x, tj, mask_t))
@@ -879,6 +1057,8 @@ def rollout_check(args, data, splits, zt, zf, means, stds, model, mask_t, device
             final_state = x
         # physical de-standardization of the final rollout state
         final_phys = (final_state * stds_t + means_t).to("cpu").numpy()[0]  # [C,H,W]
+    if log_mask.any():
+        final_phys[log_mask] = np.exp(final_phys[log_mask])  # log-space -> true physical
     true_final_phys = data["state"][best[k_max]]  # [C,H,W] physical
     vm = data["valid_mask"]
 
@@ -1109,8 +1289,20 @@ def main(argv=None) -> int:
         print("      [time-encoding] +2 seasonal input channels (sin/cos day-of-year)", flush=True)
 
     print("[2/5] temporal split + leak-free standardization + pairing ...", flush=True)
-    splits = build_splits(data, args.val_frac, args.adjacency_tol)
-    z_state, means, stds = standardize(data["state"], splits["train_months"], data["valid_mask"])
+    splits = build_splits(data, args.val_frac, args.adjacency_tol, args.expected_step_days)
+    log_mask = build_log_mask(data["chan_names"], args.log_transform, args.log_tracers)
+    if log_mask.any():
+        logged = [data["chan_names"][i] for i in np.nonzero(log_mask)[0]]
+        print(f"      [log-transform] log-space z-scoring for {len(logged)} channels: {logged}", flush=True)
+    floors = log_floors(
+        data["state"], splits["train_months"], data["valid_mask"], log_mask, args.log_floor_pct
+    )
+    if log_mask.any():
+        _fl = {data["chan_names"][i]: float(floors[i]) for i in np.nonzero(log_mask)[0]}
+        print(f"      [log-transform] per-channel clip floors (p{args.log_floor_pct}): {_fl}", flush=True)
+    z_state, means, stds = standardize(
+        data["state"], splits["train_months"], data["valid_mask"], log_mask, floors
+    )
     z_forcing, f_means, f_stds = standardize_forcing(data["forcing"], splits["train_months"])
     print(
         f"      train months={len(splits['train_months'])} val months={len(splits['val_months'])} "
@@ -1130,18 +1322,22 @@ def main(argv=None) -> int:
 
     print(f"[4/5] training {args.epochs} epochs (masked next-state MSE) ...", flush=True)
     metrics, zt, zf, mask_t, pred_z = train_and_eval(
-        args, data, splits, z_state, means, stds, z_forcing, model, device, dtype
+        args, data, splits, z_state, means, stds, z_forcing, model, device, dtype, floors
     )
 
     print("[5/5] multi-step autoregressive rollout stability + sanity ...", flush=True)
     rollout = rollout_check(
-        args, data, splits, zt, zf, means, stds, model, mask_t, device, dtype
+        args, data, splits, zt, zf, means, stds, model, mask_t, device, dtype, floors
     )
 
     # --- optional: dump held-out spatial fields (physical) for visualization ---
     if args.dump_fields:
         val_m = splits["val_pairs"]
         pred_phys = pred_z * stds[None, :, None, None] + means[None, :, None, None]  # [Nval,C,H,W]
+        if log_mask.any():
+            # logged channels were z-scored in log space -> exp back to physical (do NOT
+            # touch true/persist below: those are raw physical, never z-scored).
+            pred_phys[:, log_mask] = np.exp(pred_phys[:, log_mask])
         true_phys = data["state"][val_m + 1]                                          # physical, NaN=land
         persist_phys = data["state"][val_m]
         vm = data["valid_mask"]
@@ -1210,6 +1406,23 @@ def main(argv=None) -> int:
             "adjacency_tol": args.adjacency_tol,
             "median_step_days": splits["median_step_days"],
             "dt_hours": dt_hours,
+            # Log-transform provenance -> the e2s wrapper (prognostic.py) reconstructs the
+            # served transform from these: log_transform flag, the resolved stem list
+            # (log_vars, empty when off), and the clamp eps. Stem-matching on the channel
+            # name before '_k' is identical on both sides.
+            "log_transform": bool(args.log_transform),
+            "log_tracers": (
+                [s.strip() for s in str(args.log_tracers).split(",") if s.strip()]
+                if args.log_transform
+                else []
+            ),
+            "log_eps": LOG_EPS,
+            "log_floor_pct": float(args.log_floor_pct),
+            "log_floors": (
+                {data["chan_names"][i]: float(floors[i]) for i in np.nonzero(log_mask)[0]}
+                if args.log_transform
+                else {}
+            ),
         },
         "data": {
             "n_shared_months": M,

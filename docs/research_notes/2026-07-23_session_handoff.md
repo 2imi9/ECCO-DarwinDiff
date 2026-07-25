@@ -66,7 +66,7 @@ All logged in `docs/research_notes/2026-07-23_expert_review_corrections.md` + th
 ## Current parameter-learner accuracy (verify-gated, per-AOI ≥2-of-3)
 alpfe 10/10 (weight-conditional) · R_PICPOC 10/10 (anchor-imposed) · diatomgraz 10/10 with MLD (non-circular
 — 35/50 per-AOI with `POSI_W=0`, via chlorophyll + MLD — but model-internal, since the Chl target is Darwin's
-own output; still trades off against the trio in the full loss) · **scav_rat the weak leg (26/50 flagship;
+own output; still trades off against the trio in the full loss) · **scav_rat the weak leg (25/50 flagship;
 experiment A tested the subsurface-iron fix and FAILED — see above)** · growth pair excluded. Flagship
 trio {alpfe,scav_rat,R_PICPOC} = **25/50 per-AOI** (one seed below scav_rat's binding count). No single
 config recovers all 4 (identifiability ≠ recoverability).
