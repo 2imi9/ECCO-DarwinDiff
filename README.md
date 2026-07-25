@@ -14,7 +14,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.4%2B-ee4c2c.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Documentation][docs_url] · [Project status][status_url] · [Results matrix][matrix_url] · [Quick start](#quick-start) · [Citation](#citation)
+[Start here][onboarding_url] · [Documentation][docs_url] · [Project status][status_url] · [Results matrix][matrix_url] · [Quick start](#quick-start) · [Citation](#citation)
 
 </div>
 
@@ -29,12 +29,16 @@ preparation.*
 
 Two tracks, both now at a **collaboration gate** (awaiting a domain-expert read, not more compute):
 **(1) Parameter learner** *(paper #1, in preparation)* — replaces Green's-functions calibration and
-recovers the *identifiable* Carroll-6 subset per cell; **(2) Track 2 — identifiability-limits map**
-*(paper #2, complete)* — with prescribed transport, it asks which BGC closures real observations can
-constrain, and finds they can't sharply constrain any of the three (iron, calcite, growth): the binding
-constraint is the **observing system, not the method**. A full spatial emulator/UDE would be a
-forward/OSSE tool (which observations would break the limits), **not** an identifiability rescue — gated
-on direction, not built.
+recovers the *identifiable* Carroll-6 subset per cell; **(2) Track 2 — identifiability limits + a forward
+emulator** *(paper #2, complete)* — with prescribed transport, it asks which BGC closures real observations
+can constrain, and finds they can't sharply constrain any of the three (iron, calcite, growth): the binding
+constraint is the **observing system, not the method**. The forward neural emulator is built and is a
+**clean negative result** — physically valid (0 % negative concentrations in log space, mass ratio 1.000,
+valid carbonate chemistry) but with a **useful horizon of one step** and no significant skill over a
+per-cell seasonal AR(1) baseline. Two earlier emulator headlines are **retracted**: the "~9-month horizon"
+(a `delta_t` calendar artifact) and "beats persistence." The reusable assets are the infrastructure (the
+first ocean-BGC Earth2Studio `PrognosticModel`, plus physics validators) and the adjacent,
+observation-grounded iron-cycle findings.
 
 ## Installation
 
@@ -81,19 +85,29 @@ uv run python scripts/verify_run.py runs/eqpac          # exit 0 == trustworthy
 
 ## Headline result
 
-**Paper #1 (parameter learner).** The iron pair (`alpfe`, `scav_rat`) recovers reproducibly —
-**38/40 (95 %)** at the best 3-AOI config (~7 min/fit) — and the best config (`geo1`) holds
-**{`alpfe`, `scav_rat`, `R_PICPOC`} jointly 7/10 seeds** against real, Darwin-independent anchors (a
-3-of-4-observable frontier); a per-cell-vs-global ablation confirms the per-cell network is load-bearing
-(7/10 vs 0/10). This is a **consistency check** against Carroll's own values, not a cross-validated
-discovery — the 0-D box homogenizes, so held-out real-data R² is negative. The honest target is **4
-observable params**: the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction**, so
-"6/6" is the wrong frame, and `R_PICPOC` was never a wall (it recovers against real calcite; the deeper
-finding is that Carroll's *global* rain ratio is itself under-constrained and should be regional).
+**Paper #1 (parameter learner).** The flagship is an **n=50 ensemble** (`geo1`, 2000 epochs, every number
+`verify_run`-gated). Under the honest **per-AOI ≥2-of-3** metric it recovers **`alpfe` 49/50** and
+**`R_PICPOC` 50/50** (epoch-matched anchor-off control: 6/50), and holds the trio {`alpfe`, `scav_rat`, `R_PICPOC`}
+**jointly 25/50** against real, Darwin-independent anchors — versus **0/50** for a global-scalar control,
+which is what makes the per-cell network load-bearing. `scav_rat` is the binding leg (**25/50** at 2000
+epochs, **41/50** at 4000, so most of that gap is *optimization*, not missing information — except in the
+equatorial Pacific, which stays at **6/50**). An earlier **38/40 (95 %)** iron-pair headline predates this
+reconciliation and reads more optimistically than the honest metric; read it as "the pair recovers, carried
+by `alpfe`; `scav_rat` is basin-fragile," not "`scav_rat` is 95 % solved."
+
+This is a **consistency check** against Carroll's own values, not a cross-validated discovery — the 0-D box
+homogenizes, so held-out real-data R² is negative. The honest denominator is **4 observable params**: the
+growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction**, so "6/6" is the wrong frame, and
+`R_PICPOC` was never a wall (it recovers against real calcite; the deeper finding is that Carroll's *global*
+rain ratio is itself under-constrained and should be regional). The **3-of-4 frontier is structural** — no
+single config recovers all four observables, so there are **two operating points, not one**: `geo1` holds
+{`alpfe`, `scav_rat`, `R_PICPOC`}, while adding an **MLD** input channel and a heavier calcite anchor holds
+{`alpfe`, `diatomgraz`, `R_PICPOC`} instead.
 
 **Paper #2 (identifiability-limits map).** Adding prescribed transport does **not** turn the consistency
 check into a discovery: across the three targetable closures, real observations fail to constrain them
-for three distinct reasons — iron `scav_rat` = observability wall, calcite Ω-modulation = support-limited
+for three distinct reasons — iron `scav_rat` = a residual observability wall in the equatorial Pacific only
+(6/50 even at 4000 epochs; elsewhere it is optimization-limited), calcite Ω-modulation = support-limited
 (the out-of-sample E2 is a decisive negative), growth = structurally unobservable. The binding
 constraint is the **observing system, not the method** — a map of *what is observable* is the contribution.
 
@@ -104,6 +118,8 @@ live in **[STATUS.md][status_url]**.
 
 📖 **[ecco-darwindiff.readthedocs.io][docs_url]**
 
+- **[Onboarding][onboarding_url] — start here.** Cold-read orientation: what the project is, how the
+  pieces fit, and which file to open next.
 - [Project status][status_url] — canonical current-best snapshot + known limits
 - [Config / Results Matrix][matrix_url] — what every config tested and found (single source of truth)
 - [DINN design](https://ecco-darwindiff.readthedocs.io/en/latest/dinn_design/) · [ECCO-Darwin relationship](https://ecco-darwindiff.readthedocs.io/en/latest/ecco_darwin_relationship/) · [Cluster setup](https://ecco-darwindiff.readthedocs.io/en/latest/cluster_setup/) · [Data sources](https://ecco-darwindiff.readthedocs.io/en/latest/data/)
@@ -186,6 +202,7 @@ work of the ECCO and Darwin teams and should be credited independently (citation
 
 <!-- Reference links -->
 [docs_url]: https://ecco-darwindiff.readthedocs.io/en/latest/
+[onboarding_url]: docs/ONBOARDING.md
 [status_url]: STATUS.md
 [matrix_url]: docs/results_matrix.md
 [cluster_url]: docs/cluster_setup.md

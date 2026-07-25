@@ -1,5 +1,8 @@
 # DarwinDiff — Project Status
 
+> **New here? Read [docs/ONBOARDING.md](docs/ONBOARDING.md) first.** It is the cold-read front door:
+> what the project is, how the pieces fit, and which file to open next. This page assumes that context.
+
 A snapshot of the **current best**, not a timeline. Per-config detail lives in the
 [Config / Results Matrix](docs/results_matrix.md); the chronological record is in
 [CHANGELOG.md](CHANGELOG.md) and the [archive](docs/archive/index.md).
@@ -10,9 +13,12 @@ A snapshot of the **current best**, not a timeline. Per-config detail lives in t
 > limit, not a method limit**. **Paper #2** (Track 2) is complete as a 3-closure
 > **identifiability-limits map**: real observations can't sharply constrain the closures, and the
 > binding constraint is the **observing system, not the method**. Next for both = a domain-expert
-> (Jon) read. **No pending compute** — the box is tuning-exhausted and a positive result needs *new
-> observations*, not more GPU; the **emulator** and the **B200** are parked accordingly
-> (see [Cluster path](#cluster-path)).
+> (Jon) read. **The recoverability gap has two components** (updated 2026-07-24): a large, *closeable
+> optimization* component and a residual *information* component. At 4000 epochs — compute, no new data —
+> `scav_rat` rises **25→41/50** (North Atlantic 20→40; run `ep4k_n50`, verified), leaving the equatorial
+> Pacific (**6/50**, the most degenerate basin) as the information-limited residual. So the box is **not**
+> tuning-exhausted, and epochs was the night's largest single gain. The **emulator** and the **B200** stay
+> parked on Jon's direction and new observations, not on a compute wall (see [Cluster path](#cluster-path)).
 
 ## What this is
 
@@ -27,9 +33,12 @@ global-scalar vector holds ~0 (disjoint CIs). What remains is manuscript finaliz
 (separate) Track-2 build, not further recovery-chasing.
 
 The honest target is **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}.
-The growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** — no real-world
-data constrains phytoplankton growth rates — so it is excluded from the target, not counted
-as a miss.
+The growth pair {`Smallgrow`, `Biggrow`} is excluded from the target — no time-mean observable
+constrains phytoplankton growth rates — not counted as a miss. **Nuance (2026-07-24):** `Smallgrow`
+is only *practically* non-identifiable under time-mean fitting; a first seasonal prototype recovers it
+in strong-bloom basins (North Atlantic **9/10**, +4 vs time-mean; job 189324) — promising but
+prototype-level and **unconfirmed** (constant-IC/forcing approximation; needs a native interannual fit).
+`Biggrow` stays **unobservable by construction** (never recovers, seasonal included).
 
 > **⚠️ `diatomgraz` framing — corrected 2026-07-19, then corrected again later the same day.**
 > Do **not** write that `diatomgraz` "carries no observational signal", and do **not** cite its FLAT
@@ -54,10 +63,22 @@ as a miss.
 > diagnostic back-solved from diatom biomass** (`silica.py:78`), not a prognostic silicate cycle —
 > the box has 15 tracers, no dissolved SiO₂, no Si co-limitation, whereas ECCO-Darwin fits
 > *dissolved* SiO₂ against GLODAP, a different quantity. It is **not recovered on real data**
-> (best 4/10 = chance). Say that; do not reach for a structural-identifiability claim.
+> (best 4/10 = chance) **with the DINN on SST only** — but that is no longer the whole story. Adding
+> **MLD** as a DINN input channel recovers it **10/10** (2026-07-22), and with the biogenic-silica
+> diagnostic OFF (`POSI_W=0`) it still reaches **35/50 per-AOI** via chlorophyll + MLD, so it is
+> **input-limited, not structural**, and not a bSi tautology. The honest ceiling is that the Chl target
+> is Darwin's own output: **recoverable from a non-circular model-internal observable, not recovered
+> from independent real data.** Say that; do not reach for a structural-identifiability claim.
 > See also `docs/findings/2026-07-19_diatomgraz_claim_audit.md`.
 
 ## Track 2 — forward emulator: current state (2026-07-19)
+
+> **⚠️ DEFLATION (2026-07-23, jobs 188087/depth baselines-v2, `docs/findings/2026-07-23_emulator_baselines_v2.md`
+> + `_emulator_multiseed.md`): against a proper per-cell SEASONAL AR(1) baseline with block-bootstrap CIs, the
+> depth emulator adds NO significant skill — skill-vs-persistence +0.055 ± 0.013 (CI straddles zero, seeds 0-3)
+> and significantly WORSE than seasonal AR(1) (−0.161 ± 0.015, every seed). "Beats persistence" was a weak
+> baseline; PIC/POC's edge was mechanical headroom. Retire the beats-persistence framing. (Single AOI eqpac;
+> seed is ruled out, a different AOI could differ.) The persistence-relative numbers below are superseded.**
 
 A separate build from the UDE/identifiability work below. **All numbers are self-consistency
 against v05 output; nothing here has been validated against observations except the chlorophyll
@@ -131,10 +152,14 @@ ECCO-Darwin's own 135-figure white paper.
 
 | | subpolar N. Atlantic (176 mo) | equatorial Pacific (192 mo) |
 |---|---|---|
-| bias | **−0.696 dex (5.0× low)** | **−0.077 dex (0.84×)** — INSIDE the 0.130 noise floor |
-| coverage | 78.5% mean, 1.5% min | **98.6% mean, 90.9% min**, zero cells clipped |
-| r all-months | +0.779 | +0.034 |
-| r deseasonalised | +0.044 | **+0.331** |
+| bias | **−0.697 dex (5.0× low)** | **−0.076 dex (0.84×)** — INSIDE the 0.130 noise floor |
+| coverage | 78.6% mean, 1.8% min | **98.6% mean, 90.8% min**, zero cells clipped |
+| r all-months | +0.780 | +0.031 |
+| r deseasonalised | +0.047 | **+0.329** |
+
+_Binning-fixed 2026-07-21 (PR #189 half-cell MODIS bin-edge fix): every number moved <0.003
+vs the old binning — the regime split is robust to the bug. See
+`docs/findings/2026-07-21_chl_binning_recompute.md`._
 
 **Do not say "v05 chlorophyll is 5× low" unqualified.** It is unbiased in the oligotrophic regime —
 on the best-observed data in the comparison — and 5× low in the **bloom** regime. That points at
@@ -142,10 +167,10 @@ bloom dynamics, not a global scaling error. In the Atlantic v05 still reproduces
 peak inside the satellite's own retrieval uncertainty, and ends its bloom two months early.
 
 > **⚠️ The all-months Pearson r is uninformative and misleads in BOTH directions** — flattered in the
-> Atlantic by a shared seasonal cycle (+0.779 vs anomaly +0.044), maligned at the equator by the
-> absence of one (+0.034 vs anomaly +0.331). **Report the deseasonalised anomaly r.** It is
+> Atlantic by a shared seasonal cycle (+0.780 vs anomaly +0.047), maligned at the equator by the
+> absence of one (+0.031 vs anomaly +0.329). **Report the deseasonalised anomaly r.** It is
 > regime-independent, unlike a growing-season window (May–Sep is meaningless at the equator). The
-> existing growing-season r = 0.016 for natl stands and is corroborated by anomaly r = +0.044.
+> existing growing-season r = 0.024 for natl stands and is corroborated by anomaly r = +0.047.
 
 **eqpac interannual skill is ENSO and nothing else,** and is marginal as an aggregate: lag-1
 autocorrelation puts effective N at **34, not 192** (p ≈ 0.048). It is the mechanism that makes it
@@ -179,24 +204,64 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
 `scripts/verify_run.py`-gated (exit 0 = re-derived from raw).
 
 - **Iron pair (`alpfe`, `scav_rat`) — recovers reproducibly, 38/40 (95 %)** at the best 3-AOI
-  config, from real GEOTRACES IDP2025 dissolved iron (~7 min/fit on one GPU).
+  config, from real GEOTRACES IDP2025 dissolved iron (~7 min/fit on one GPU). **Qualify this headline:**
+  the 38/40 predates the n=50 per-AOI reconciliation and reads more optimistically than the honest metric.
+  Under per-AOI ≥2-of-3, `alpfe` is the robust member (**49/50**) while `scav_rat` — the binding leg — is
+  **25/50 at 2000 epochs** (→ 41/50 at 4000 epochs), and the cell-weighted metric that inflates such counts
+  can **straddle** Carroll (per-AOI legs landing on opposite sides). Read 38/40 as "the pair recovers,
+  carried by `alpfe`; `scav_rat` is basin-fragile," not "`scav_rat` is 95 % solved."
 - **`R_PICPOC` — recovers** against a real calcite anchor (Daniels CP:PP / MODIS PIC), landing at the
   real ~0.05 — *consistent with* Carroll within the wide Cal band, **not** a validation of 0.0425
   (Carroll's value is itself under-constrained; see below).
-- **Best operating point `geo1`** (`GEOTRACES_W=1` + Daniels anchor) **holds {`alpfe`, `scav_rat`,
-  `R_PICPOC`} jointly in 7/10 seeds** — a **3-of-4-observable frontier**, statistically tied with
-  `base`/`dan2` at n=10. (A fresh identical-config re-run confirms 7/10; the original hold-together
+- **Best operating point `geo1`** (`GEOTRACES_W=1` + real Daniels anchor) **holds {`alpfe`, `scav_rat`,
+  `R_PICPOC`} jointly in 7/10 seeds** at n=10 — a **3-of-4-observable frontier**, statistically tied with
+  `base`/`dan2`. (A fresh identical-config re-run confirms 7/10; the original hold-together
   sweep reported 8/10 — they differ by one band-edge seed.)
-- **`diatomgraz` — not recovered** in the real-data sweep (best 4/10 = chance). Do **not** call this
+- **n=50 ensemble (the manuscript flagship, `n50e2k_percell_trio`, 2000 epochs; `verify_run` exit 0):**
+  the joint trio holds **33/50 cell-weighted** (Wilson [0.52,0.78]) but **25/50 under the honest per-AOI
+  ≥2-of-3 metric** (Wilson [0.37,0.63]) — take the **per-AOI 25/50** as the headline. The bound is *tight*,
+  not just an upper limit: `scav_rat` per-AOI is 25/50 (the sole binding leg — every seed that recovers
+  `scav_rat` per-AOI also recovers `alpfe` 49/50 and `R_PICPOC` 50/50, so the trio count *equals*
+  `scav_rat`'s). **Config/epochs note (2026-07-24):** `scav_rat`'s own leg is **25/50 at 2000 epochs →
+  41/50 at 4000 epochs** (`ep4k_n50`; largely optimization-limited; natl 20→40, SO 49→48, eqpac 7→6);
+  the trio-joint tracks it exactly and rises with it to 41/50. Global-scalar control: **0/50** on the trio. (Reconciled 2026-07-21 from the raw per-seed `per_aoi_recovered` fields — this replaces the
+  earlier "≤25/50" bound with the exact count.)
+- **`diatomgraz` — recovers 10/10 once MLD is a DINN input channel (2026-07-22); input-limited, not
+  structural.** With the DINN on SST only it is not recovered (best 4/10 = chance) — but adding **MLD** as a
+  per-cell DINN input channel recovers it **10/10** (median 0.70), by fixing the Southern Ocean AOI where
+  SST-only leaves it at ~0.18, against the real POSi (biogenic-silica) target. This reframes the miss as
+  **practical / input-limited, not structural** (a profile-likelihood *with* the MLD channel is the pending
+  confirmation). See [covariate-channels result](docs/findings/2026-07-22_covariate_channels_result.md).
+  The lever is orthogonal to NN size/overlap (both failed) — it adds input *information*, not capacity.
+  For the SST-only baseline, still do **not** call this
   "structurally non-identifiable" on the strength of a FLAT profile — `alpfe` is FLAT (0.0235) and
   recovers 9–10/10, so FLAT-implies-unrecoverable is falsified by our own data (see the warning box
-  above, and `docs/findings/2026-07-19_diatomgraz_claim_audit.md`). The **structural-vs-practical
-  question is open**, and is exactly what the multi-start identifiability array (pilot `8503326` →
-  13-task array, `docs/findings/silicate_scope_v2/`) is running to answer — [#152](https://github.com/2imi9/ECCO-DarwinDiff/issues/152).
-  Defensible now: it is constrained only through a steady-state biogenic-silica diagnostic
-  back-solved from diatom biomass, not a prognostic silicate cycle, and is **not recovered on real
-  data**. In principle it is an **iron-pair tradeoff** recoverable via the dense Darwin POSi (`TRAC16`)
-  target, which is **not staged**; that is a future data-staging option, not a Track-1 blocker.
+  above, and `docs/findings/2026-07-19_diatomgraz_claim_audit.md`). On the **recovery** question the
+  MLD result already settles it in the practical direction — a parameter that recovers 10/10 once an
+  input channel is added cannot be structurally non-identifiable. What stays open is the *formal*
+  characterization (profile-likelihood / Fisher geometry with the MLD channel present), which is what
+  the multi-start identifiability array (pilot `8503326` → 13-task array,
+  `docs/findings/silicate_scope_v2/`) is running to confirm — [#152](https://github.com/2imi9/ECCO-DarwinDiff/issues/152).
+  Defensible now: the bSi route is a steady-state biogenic-silica diagnostic back-solved from diatom
+  biomass, not a prognostic silicate cycle — but it is **not the only** route (see the `POSI_W=0`
+  result below), and no route uses **independent real data**. In principle it is an **iron-pair
+  tradeoff** recoverable via the dense Darwin POSi (`TRAC16`) target, which is **not staged**; that
+  is a future data-staging option, not a Track-1 blocker.
+  **NON-CIRCULAR handle found (job 190529, VERIFIED, 2026-07-23):** with the biogenic-silica diagnostic OFF
+  (`POSI_W=0`), diatomgraz still recovers **35/50 per-AOI** (median 0.788 vs Carroll 0.83, within 5%) through
+  the **chlorophyll pattern + MLD** (diatoms are a Chl-bearing PFT) — so it does NOT require the M11-circular
+  bSi biomass tautology. Caveat: the Chl target is Darwin's own Chl1-5 (model-internal consistency, not
+  independent real data), so "recoverable from a non-bSi observable," not "recovered from independent data."
+  See `docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md`.
+- **Recommended shippable operating point (2026-07-23): `geo1` + `MLD_CHANNEL=1` + `DANIELS_RPICPOC_W=8`
+  → {`alpfe`, `R_PICPOC`, `diatomgraz`} = 10/10 / 10/10 / 10/10 simultaneously** (`verify_run` exit 0,
+  R_PICPOC clean per-AOI, **no straddle**). The MLD-vs-R_PICPOC trade-off (MLD channel diluted R_PICPOC to
+  5/10) was a **fixable loss-weighting artifact**: up-weighting the real Daniels calcite anchor restores
+  R_PICPOC on a clean ladder (DAN=1→5/10, DAN=3→9/10, DAN=8→10/10) with no over-constraint tax (median 0.051,
+  alpfe median 0.99). Separately, **wind / SSS / pCO₂ / CO₂-flux carry a GENUINE calcite confound** — no
+  anchor weight rescues R_PICPOC under them (0/10, median pinned ~0.21 at DAN=8), so MLD is *mechanistically*
+  the unique safe covariate (mixing signal, not carbonate). This is the robust **3-of-4-observable** config;
+  `scav_rat` is the sole holdout. See [R_PICPOC-protection result](docs/findings/2026-07-23_rpicpoc_protection_result.md).
 
 ### Accuracy & quality matrix (per parameter — current best)
 
@@ -206,18 +271,67 @@ iron + a real calcite anchor (the headline); **`silicate_scope`** is *synthetic*
 | param | recovers? | best | config | identifiability class | seed-robust |
 |---|---|---|---|---|---|
 | **alpfe** | ✅ ≈Carroll | 10/10 | geo1 (real Fe) | method-independent (DINN-free + Nelder-Mead), near-saturated | ✅ tight |
-| **scav_rat** | 🟡 in-band | 8/10 | geo1 (real Fe) | **not point-identified** (CV≈43%); needs per-cell (0/10 global) | ✅ verdict-tight |
-| **R_PICPOC** | ✅ ~0.05 | 9/10 (10/10 RATIO_MAX) | geo1 (real calcite) | point-identified; needs per-cell (0/10 global); **≠ validation of 0.0425** | ✅ |
-| **diatomgraz** | ❌ (best 4/10 = chance) | — | geo1 | not identified on real data; structural-vs-practical **open** | ✅ fails-tight |
-| **Smallgrow** | ❌ real / ✅ synth+Si | 7/7 synth | silicate_scope | real-unobservable (excluded from target); synthetic-ID with Si | ✅ 7/7 (rel-err 0.001–0.009) |
-| **Biggrow** | ❌ | 0/7 | silicate_scope | not identified (synthetic or real) | ✅ fails-tight (0.68–0.71) |
-| **Trio {alpfe,scav_rat,R_PICPOC}** | ✅ per-cell | **7/10** (0/10 global) | geo1 | **per-cell load-bearing** — cleanest quantitative result | ✅ |
+| **scav_rat** | 🟡 config-fragile | 25/50 per-AOI 2000ep → **41/50 4000ep** (natl 20→40, eqpac 7→6); 0–2/10 stripped | geo1 (real Fe, **full loss**) | **practical non-ID** (curved profile all 3 AOIs), largely optimization-limited; needs per-cell (0/50 global); collapses to 0/10 when Darwin-pattern terms are off (anchors-only) → partly pattern-assisted | ✅ verdict-tight |
+| **R_PICPOC** | ✅ ~0.05 | 50/50 per-AOI (n=50, real Daniels) | geo1 (real calcite) | point-identified; needs per-cell (0/50 global); **real anchor drives it** (epoch-matched anchor-off `n50e2k_anchor_off` → 6/50; the 1500-epoch `n50_anchor_off` gives 4/50); **≠ validation of 0.0425** | ✅ |
+| **diatomgraz** | ✅ +MLD / ❌ SST-only | **10/10** (+MLD) | geo1+MLD | **input-limited, not structural**: SST-only 3/10 in the covariate-channel base arm (4/10 is the best SST-only count across the wider real-data sweep; both are chance-level) → 10/10 with MLD as a DINN input (fixes S.Ocean 0.18→0.68); via POSi target (a steady-state biogenic-silica *diagnostic*, partly circular, M11), not independent real data | ✅ 10/10 |
+| **Smallgrow** | ❌ time-mean / 🟡 seasonal (natl 9/10, unconf.) / ✅ synth+Si | 7/7 synth | silicate_scope | practical non-ID under time-mean; seasonal prototype recovers natl 9/10 (unconfirmed, job 189324); excluded from target; synthetic-ID with Si | ✅ 7/7 (rel-err 0.001–0.009) |
+| **Biggrow** | ❌ | 0/7 | silicate_scope | not identified (synthetic, real, or seasonal) | ✅ fails-tight (0.68–0.71) |
+| **Trio {alpfe,scav_rat,R_PICPOC}** | ✅ per-cell | **25/50 per-AOI** 2000ep → **~41/50** 4000ep (n=50; 33/50 cell-wtd) | geo1 | **per-cell load-bearing** (0/50 global); joint tracks scav_rat's binding leg (25/50 at 2000ep, rises with it to ~41/50 at 4000ep); cleanest quantitative result | ✅ {7,8,7}/10 |
 
-Supporting: **per-AOI Fisher** — Eq. Pacific & N. Atlantic carry the iron information, Southern Ocean
-does not; per-AOI sloppiness ≈3.96 decades (Eq. Pac) is **provisional** — θ\* is a saddle (non-positive
-Hessian eigenvalue), so the decade-span needs the multi-start re-run ([#120](https://github.com/2imi9/ECCO-DarwinDiff/issues/120)/[#187](https://github.com/2imi9/ECCO-DarwinDiff/issues/187)) before it is quotable.
+**No single config recovers all four observables per-AOI, and the trade-off is STRUCTURAL** (2026-07-23, jobs 185779 + 192298, VERIFIED): flagship geo1 holds {alpfe, scav_rat, R_PICPOC}; the MLD/dgchl config holds {alpfe, diatomgraz, R_PICPOC} but drops scav_rat. The decisive test — full flagship loss + MLD at **4000 epochs** — gives diatomgraz **0/10** (and degrades alpfe→4/10, scav_rat→6/10), so more optimization does NOT bridge it: scav_rat needs the Darwin-pattern term while diatomgraz needs MLD, and the two genuinely conflict. The 3-of-4 frontier is a real identifiability trade-off, not an optimization artifact. See `docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md` and `2026-07-23_observable_frontier_config_analysis.md`.
+
+Supporting: **per-AOI Fisher** — the Southern Ocean is the *best-conditioned* iron AOI (cond 2.2, 4.99
+decades) and is where `scav_rat` actually recovers (49/50 per-AOI); Eq. Pacific & N. Atlantic stay
+ratio-degenerate (cond 35–51; 8/50 and 19/50). The **joint 3-AOI** multi-start re-run is DONE (saddle-fix job `8515339`,
+`docs/findings/2026-07-21_saddle_fix_result.md`): the 24-start θ\* is **positive-semi-definite** (the one
+zero eigenvalue is the structurally-unconstrained R_PICPOC), so **the earlier saddle was under-convergence**,
+and joint sloppiness is **≈2.69 decades**. The **per-AOI iron sloppiness is now quotable** (job 189403, PSD
+GN-Fisher, residual reconstruction-to-loss verified): **5.19 (eqpac) / 5.99 (natl) / 4.99 (sopac) decades** —
+this supersedes the earlier provisional ≈3.96 (a different, unconverged method). The
+general lesson holds: converging removed the spurious negative eigenvalue but the sloppy ridge remains, so
+the Fisher-eigenbasis reparameterization (Lever-1, `scripts/analysis/eki_core.py`) is the honest fix, not
+"converge harder" ([#120](https://github.com/2imi9/ECCO-DarwinDiff/issues/120)/[#187](https://github.com/2imi9/ECCO-DarwinDiff/issues/187)).
+**Clean-magnitude GN-Fisher (2026-07-23, `identifiability_sloppiness.py --mode fisher_gn`):** the exact
+Gauss-Newton Fisher `JᵀJ` is **PSD by construction** — so it gives valid curvature *at Carroll* where the loss
+Hessian is the indefinite saddle. Verified: residual reconstruction reproduces the loss to 1e-7; PSD True. On
+the real-iron loss `R_PICPOC` is the exact null direction of iron (Fisher info 0). This is the clean-magnitude
+complement to the empirical Fisher.
+
+**CORRECTED iron-degeneracy framing (2026-07-23, expert review + gap-fill job 188077 — supersedes any
+"strong −0.77 alpfe/scav_rat degeneracy" claim):** at steady state [DFe] ≈ S/k, so iron concentration
+constrains a source/loss **RATIO (alpfe/scav_rat), NOT a product**. The strong degeneracy is **SURFACE-ONLY**:
+surface-only iron 2×2 condition **3022**, conditional corr **+0.999**, sloppy direction **co-varying** (the
+S/k ratio). With the REAL **surf+subsurface** GEOTRACES the pair is **well-conditioned (cond 2.2, conditional
+corr −0.155)** — subsurface [DFe] breaks the degeneracy **~1400×**. The **−0.77 was the coupling-inflated
+full-6 MARGINAL**, not the pure iron-pair number. So `scav_rat` is *more* identifiable than previously stated;
+its poor recovery is an optimization/coverage limit, not a hard information wall.
+See `docs/research_notes/2026-07-23_expert_review_corrections.md` §A.
+**Recovery test → the conditioning gain does NOT convert to recovery (job 188074, VERIFIED exit 0,
+`docs/findings/2026-07-23_subiron_scav_rat_result.md`):** up-weighting the *better-conditioned* subsurface
+[DFe] term (`GEOTRACES_SUB_W` 1→3→8) **degrades** `scav_rat` per-AOI recovery **9/10 → 5/10 → 1/10** — the
+opposite of the prediction. The cell-weighted metric rises (7→10→10) but is a **straddle** (per-AOI legs land
+on opposite sides of Carroll). So the info-vs-recovery gap is **confirmed**: `scav_rat`'s limit is downstream
+of conditioning (optimization / structural surrogate misspecification of the subsurface profile), not the
+Fisher information. **RESOLVED at n=50 (job 188532, VERIFIED, 2026-07-23):** the n=10 subW=1 arm's 9/10 was
+**seed luck** — at n=50 the `subW=1` arm gives `scav_rat` **26/50 per-AOI**, essentially identical to the
+flagship's own leg (**25/50**, run `n50e2k_percell_trio`; the trio count is also 25/50, because the two
+coincide exactly). The
+flagship number holds; `scav_rat` is genuinely the weak leg. Controls: surface-only `subW=0` gives `scav_rat`
+**4/10**, balanced `subW=1` gives ~52% (26/50 & a 6/10 replicate), over-weighted `subW=3/8` degrades to 5/10,
+1/10 — so subsurface iron at *balanced* weight is a small real gain over surface-only, not a resolution.
+**Mechanism (per-AOI conditioning predicts per-AOI recovery, GN-Fisher job 189403 + n=50 tally):** `scav_rat`
+recovers **49/50 in the Southern Ocean** (cond 2.2, subsurface breaks the degeneracy) but only **8/50 eqpac /
+19/50 natl** (cond 35–51, still ratio-degenerate) — the 25/50 joint is set by how often eqpac/natl join the
+always-recovering SO. See `docs/findings/2026-07-23_overnight_geometry_and_seasonal.md`.
+**scav_rat is substantially OPTIMIZATION-limited (job 190529, VERIFIED, 2026-07-23):** at **4000 epochs**
+(vs the standard 2000) scav_rat per-AOI rises **25/50 → 41/50** (natl 20→40/50; eqpac stays hard at 6/50), so
+the trio {alpfe, scav_rat, R_PICPOC} rises **25/50 → ~41/50 with 2× compute and no new data.** The
+recoverability gap is thus a large *closeable optimization* component (natl) plus a residual *information*
+component (eqpac, the most degenerate basin) — the sharpest statement of identifiability ≠ recoverability.
+See `docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md`.
 **FeMIP framing** — external-validated (Tagliabue Table 2, above). Seed-tightness for the iron trio is the
-`geo1` 38/40 & 7/10 counts; for the growth/Si params it is the synthetic `silicate_scope_v2_seeds` sweep
+`geo1` n=50 ensemble (`alpfe` 49/50, `R_PICPOC` 50/50, `scav_rat` 25/50, trio 25/50 per-AOI); the n=10
+38/40 & 7/10 counts are its superseded precursors. For the growth/Si params it is the synthetic `silicate_scope_v2_seeds` sweep
 (Explorer `8512053`). Improvement path: [#187](https://github.com/2imi9/ECCO-DarwinDiff/issues/187).
 
 → Every config that produced these, and how each differs, is in the **[Config / Results Matrix](docs/results_matrix.md)**.
@@ -266,13 +380,19 @@ lands two settled results, independent of the identifiability array:
   parameters the 0-D box relaxes to a near-uniform state (tracer CV ~1e-15, vs Darwin's O(1)), so
   box-vs-Darwin pattern correlations are **not** fidelity metrics and identifiability must come from real,
   absolute anchors. A per-cell-vs-global ablation confirms it on real data: at `geo1`, per-cell holds the
-  trio **7/10 vs 0/10** for a single global vector (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01,
+  trio **25/50 vs 0/50** for a single global vector at the n=50 flagship (`scav_rat` and `R_PICPOC` both
+  0/50 without per-cell structure; n=10 precursor 7/10 vs 0/10, Fisher p < 0.01,
   [#158](https://github.com/2imi9/ECCO-DarwinDiff/pull/158)). This is a **consistency check** against
   Carroll's own values, not a cross-validated discovery — which is exactly what Track 2 tested.
 - **Independent validation ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163)) decomposes cleanly.**
   *Estimator-independence:* a DINN-free global-scalar recovery and a gradient-free Nelder-Mead both reach
   `alpfe`'s optimum ([#172](https://github.com/2imi9/ECCO-DarwinDiff/pull/172)) — so `alpfe` is
-  **method-independent**, while `scav_rat`/`R_PICPOC` genuinely require the per-cell structure.
+  **method-independent**, while `scav_rat`/`R_PICPOC` genuinely require the per-cell structure. A
+  derivative-free **Ensemble Kalman Inversion (EKI, job 189754, VERIFIED)** reaches the **same verdict as
+  backprop** on the full trio — `alpfe` 0.999 and `R_PICPOC` 0.0364 recover (Cal-grade), `scav_rat`
+  2.09e-7 does not (Loose, biased low, the same direction as the DINN fit) — closing the "DINN + autograd
+  artifact" attack. Posterior **mean only**: the EKI ensemble collapses, so a calibrated credible interval
+  needs an EKS/CES sampling stage (future work).
   *Independent-data:* held-out GEOTRACES cross-validation ([#173](https://github.com/2imi9/ECCO-DarwinDiff/pull/173))
   returns **negative R²** — the box has no spatial structure to predict per-cell iron, so a faithful
   held-out *data* validation is structurally blocked by the surrogate gap (needs the Track-2 UDE). The
@@ -315,8 +435,9 @@ Compute Resource, accessed via NU) — full table in [docs/cluster_setup.md](doc
 launch-bound (same wall-clock on 5090 / H200 / B200), so the B200 buys nothing there. Its genuine use
 cases — the **emulator/UDE at real scale** and large native/seasonal ensembles — are all **future and
 gated** (Jon's direction / new data). **Nothing is compute-bound right now**, so keep dev + single fits
-on the local 5090/CPU. These cluster goals are legitimate but **not** gated on `R_PICPOC` or "6/6",
-which are resolved at 1° box scale.
+on the local 5090/CPU. These cluster goals are legitimate but **not** gated on `R_PICPOC` or the
+retracted "6/6" frame — `R_PICPOC` is resolved at 1° box scale, and the observable denominator is
+**4**, not 6.
 
 ## Track 2 — identifiability-limits map (COMPLETE; real-data E2 run → negative)
 
@@ -360,7 +481,8 @@ differentiable", "learned real biology", or "env-gated calcification proven".
 
 ## Known limitations
 
-- **Box model is a 5-tracer proxy** of full Darwin 3 (the 5-PFT + 2-layer extensions close part of the gap).
+- **Box model is a 15-tracer proxy** of full Darwin 3 (the 5-PFT + 2-layer extensions close part of the
+  gap; still no dissolved SiO₂ and no Si co-limitation).
 - **DINN is per-cell, not spatially coupled** — appropriate for parameter recovery, not the Track-2
   spatial UDE. This transport-free limitation *is* the surrogate gap, and closing it on real data is
   precisely Track-2's make-or-break gate (E2).
@@ -380,7 +502,7 @@ differentiable", "learned real biology", or "env-gated calcification proven".
 ## Cross-references
 
 - [Config / Results Matrix](docs/results_matrix.md) — the single source of truth for per-config results
-- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations + the verdict (box-tuning space exhausted)
+- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations across 10 lever axes (the earlier "box-tuning exhausted" verdict is superseded: epochs still had headroom — scav_rat 26→41/50 at 4000ep, job 190529)
 - [Emulator coupling plan](docs/emulator_coupling_plan.md) — the Track-2 off-box build plan (physical-backbone survey — Samudra 2 as leading backbone, SamudrACE's named biogeochemistry hole as the carbon-BGC-UDE slot — plus the gated Phase 1→3 plan)
 - [CHANGELOG.md](CHANGELOG.md) — chronological record (version-by-version)
 - [README](README.md) — project overview · [docs/dinn_design.md](docs/dinn_design.md) — architecture

@@ -129,7 +129,7 @@ The answer is yes, and the 2026-06-27 homogenization finding makes it concrete a
 
 This is the cleanest restatement of the DarwinDiff scientific claim: **per-cell parameters can be identified from per-cell real observations where a global-scalar vector cannot, and Carroll's published global-scalar calibration is bounded by that ceiling.** The study characterizes *which* of the **4 observable** Carroll-6 params {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`} are identifiable from real data; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real-world data constrains growth rates).
 
-Quantitative results live in [STATUS.md](../STATUS.md) and [`docs/findings/`](archive/findings/).
+Quantitative results live in [STATUS.md](../STATUS.md) and [`docs/findings/`](findings/).
 
 ## Network variants
 
@@ -146,12 +146,12 @@ All three networks live in [`src/darwindiff/networks.py`](../src/darwindiff/netw
 From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Pacific + N Atlantic Subpolar; v3.1 adds Southern Ocean Pacific). Two architectural patterns:
 
 - **Shared DINN, AOI-ID channel** (`AOI_ID_CHANNEL=1`, default for v3.0+): one DINN shared across AOIs, with a per-AOI identity scalar appended to the environmental input so the shared MLP can produce regime-specific parameter mappings.
-- **Per-AOI DINN with consistency penalty** (`PER_AOI_DINN=1` + `CONSISTENCY_LAMBDA=λ`): each AOI gets its own DINN, with a soft penalty on parameter divergence across AOIs. Falsified at 2-AOI in PR #58 (0/40 at 6/6, best λ=0.1 at 3/10 at 5/6 below baseline). Unlocks one 5/6 path at 3-AOI with low λ (v3.1 `w2e_peraoi_lam0.1`).
+- **Per-AOI DINN with consistency penalty** (`PER_AOI_DINN=1` + `CONSISTENCY_LAMBDA=λ`): each AOI gets its own DINN, with a soft penalty on parameter divergence across AOIs. Falsified at 2-AOI in PR #58 (0/40 seeds held all six, best λ=0.1 at 3/10 for five — below baseline), and it unlocked one such path at 3-AOI with low λ (v3.1 `w2e_peraoi_lam0.1`). Both counts are historical: they are scored against the **retracted 6/6 denominator** and predate the n=50 per-AOI reconciliation; the live denominator is the 4 observable params.
 
 ## Scope and honest caveats
 
-- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap. The binding limitation is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15 at convergence), so identifiability must come from real *absolute* anchors rather than box-vs-Darwin pattern fidelity. Of the 4 observable params, the iron pair and `R_PICPOC` are identifiable from real data (`geo1` holds 3/4 jointly in 7/10 seeds); `diatomgraz` is an open iron-pair tradeoff; the growth pair is unobservable by construction.
-- **DINN is per-cell, not spatially-coupled.** The current setup ignores advection/diffusion between cells because the truth structure for parameter values is per-cell — each cell has its own Carroll-6 vector. Track 2 (emulator) will use different architectures with explicit spatial coupling.
+- **The box model is a 5-tracer proxy of full Darwin 3.** `carroll6_step` integrates DFe + Ps + Pl + POC + PIC. Darwin 3 has 5 phytoplankton functional types (collapsed to Ps + Pl in the proxy) + 2 zooplankton + DOM + carbonate chemistry + more. The 5-PFT box (`carroll6_5pft.py`) and 2-layer extension (`carroll6_5pft_2layer.py`) close part of this gap. The binding limitation is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15 at convergence), so identifiability must come from real *absolute* anchors rather than box-vs-Darwin pattern fidelity. Of the 4 observable params, the iron pair and `R_PICPOC` are identifiable from real data (`geo1` holds that 3-of-4 trio jointly in **25/50** seeds at n=50 under the honest per-AOI ≥2-of-3 metric — `alpfe` 49/50, `R_PICPOC` 50/50, and the binding leg `scav_rat` 25/50, which itself rises to 41/50 at 4000 epochs; the n=10 `7/10` was the precursor); `diatomgraz` is recoverable once **MLD** is a DINN input channel (SST-only sits at chance; 10/10 with MLD, and still 35/50 per-AOI with the biogenic-silica diagnostic off), but only against Darwin's own chlorophyll — model-internal consistency, not independent real-data validation; the growth pair is unobservable by construction.
+- **DINN is per-cell, not spatially-coupled.** The current setup ignores advection/diffusion between cells because the truth structure for parameter values is per-cell — each cell has its own Carroll-6 vector. Track 2 (emulator) uses different architectures with explicit spatial coupling; it is built, and it is a clean negative result — physically valid, but its useful horizon is one step with no significant skill over a per-cell seasonal AR(1) baseline.
 - **DINNDeep does not extrapolate spatially.** Block cross-validation gives held-out r=0.301 on FeT (vs r=1.000 in-distribution). For applying a network trained on AOI A to AOI B, train per-AOI or use the smaller DINN baseline.
 - **Climatology, not time-resolved.** All current fits use the time-mean over 23 years of monthly Darwin output. Time-resolved fitting opens Track 2 emulator territory and needs cluster compute.
 
@@ -176,5 +176,5 @@ From v3.0 onward DarwinDiff trains jointly across multiple AOIs (Equatorial Paci
 - [README.md](../README.md) — project overview
 - [STATUS.md](../STATUS.md) — live state and findings
 - [docs/cluster_setup.md](cluster_setup.md) — running on Northeastern Explorer
-- [docs/findings/](archive/findings/) — per-version technical writeups
+- [docs/findings/](findings/) — per-version technical writeups
 - [docs/ecco_darwin_parameter_inventory.md](ecco_darwin_parameter_inventory.md) — verified Carroll-6 parameter list

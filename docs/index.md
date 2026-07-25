@@ -15,7 +15,7 @@ DarwinDiff is a PyTorch **differentiable 0-D box model** of ocean biogeochemistr
 ## Two tracks
 
 1. **Parameter learner** *(complete — paper #1)* — a surrogate-to-model identifiability study: which of the Carroll parameters (four observable; see below) are identifiable from real ocean observations by gradient descent through the differentiable box model. It is a consistency check against Carroll's own values, not a validated replacement for Green's-functions calibration.
-2. **Differentiable spatial model (UDE)** *(feasibility-proven on the 0-D box only)* — a differentiable transport + carbon-BGC model that the parameter learner would calibrate. Feasibility is proven on a synthetic self-twin (0-D and spatial box probes); it is **not** built at real scale. The make-or-break test is held-out real-data R² > 0 once transport is present — unbuilt, gated behind paper #1 (see [emulator coupling plan](emulator_coupling_plan.md)).
+2. **Identifiability limits + a forward emulator** *(complete — paper #2)* — with prescribed transport, which BGC closures can real observations constrain? None of the three (iron, calcite, growth) sharply: the binding constraint is the **observing system, not the method**. The forward neural emulator is built and is a **clean negative result** — physically valid (0% negative concentrations in log space, mass ratio 1.000, valid carbonate chemistry) but with a **useful horizon of one step** and no significant skill over a per-cell seasonal AR(1) baseline. Two earlier headlines are **retracted**: the "~9-month horizon" (a `delta_t` calendar artifact) and "beats persistence." A full spatial UDE at real scale stays gated on direction, not compute (see [emulator coupling plan](emulator_coupling_plan.md)).
 
 ## What works · what's blocked
 
@@ -23,13 +23,13 @@ This study is **complete (paper #1)**. It is a **surrogate-to-model identifiabil
 
 === "Identifiable (real data)"
 
-    - The iron pair (`alpfe`, `scav_rat`) recovers reproducibly — **38/40 (95%)** at the best 3-AOI config (~7 min/fit) — against real GEOTRACES IDP2025 dissolved iron.
-    - **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC). The best config (`geo1`) holds **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 7/10 seeds** — a 3-of-4-observable frontier (hold-together sweep, 8×n=10, all `verify_run` exit 0).
+    - **`alpfe` recovers 49/50** and **`R_PICPOC` 50/50** under the honest per-AOI ≥2-of-3 metric (the n=50 flagship `n50e2k_percell_trio`, 2000 epochs, `verify_run` exit 0) — against real GEOTRACES IDP2025 dissolved iron and a real calcite anchor (Daniels CP:PP / MODIS PIC). An epoch-matched anchor-off control (`n50e2k_anchor_off`) collapses `R_PICPOC` to **6/50**, so the real anchor demonstrably drives it.
+    - The trio **{`alpfe`, `scav_rat`, `R_PICPOC`} holds jointly 25/50** versus **0/50** for a global-scalar control — a 3-of-4-observable frontier, and the result that makes the per-cell network load-bearing. `scav_rat` is the binding leg (**25/50** at 2000 epochs → **41/50** at 4000, so most of that gap is optimization rather than missing information; the equatorial Pacific stays at 6/50). An earlier **38/40 (95%)** iron-pair headline predates this reconciliation and reads more optimistically than the honest metric.
 
 === "Open / not identifiable"
 
     - **No 6/6 wall.** `R_PICPOC` is recoverable; the differentiable Darwin calcite port + native resolution were **tested and did not help** — the real gap was a direct calcite *observation*, now supplied.
-    - **`diatomgraz`** is not recovered in the real-data sweep (best 4/10 = chance) — an iron-pair tradeoff, recoverable in principle only via dense Darwin POSi/TRAC16 (not yet staged). **The growth pair is unobservable by construction.**
+    - **`diatomgraz`** is recoverable from a **model-internal** observable, but not from independent real data. With the DINN on SST only it sits at chance (best 4/10); adding **MLD** as a per-cell input channel recovers it **10/10**, and with the biogenic-silica diagnostic off it still reaches **35/50 per-AOI** through chlorophyll + MLD — so the recovery is not a bSi tautology. The caveat that keeps it out of the recovered set: the Chl target is Darwin's own, so this is model-internal consistency, not independent validation. **The growth pair is unobservable by construction.**
     - The surrogate gap is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15), so identifiability rests on real *absolute* anchors. 1° proxy; 23-yr climatology; single-GPU. Full evidence → **[Project Status](status.md)**.
 
 ## Documentation map

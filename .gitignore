@@ -140,3 +140,8 @@ containers/.sif_jobid
 # from being committed against that directive.
 /main.tex
 /main.pdf
+
+# Third-party figures pulled from published papers (FNO / GINO / SFNO / CES /
+# UDE-SciML) kept locally as reading references for the neural-operator scan.
+# They are NOT our work and must never enter this public repo's history.
+docs/figures/refs/
