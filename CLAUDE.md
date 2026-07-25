@@ -36,6 +36,18 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   identifiability study, not a 6/6 chase**: the observable denominator is **4** {`alpfe`,
   `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is
   **unobservable by construction** (excluded, not failed). `R_PICPOC` is recoverable given a
-  real calcite anchor (Daniels/MODIS); the best config holds {`alpfe`, `scav_rat`, `R_PICPOC`}
-  jointly 7/10. The surrogate gap is dimensional (the 0-D box homogenizes spatial structure),
-  so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).
+  real calcite anchor (Daniels/MODIS). The surrogate gap is dimensional (the 0-D box homogenizes
+  spatial structure), so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).
+- **Grade on the per-AOI ≥2-of-3 metric, never the cell-weighted one** — cell-weighted counts
+  *straddle* (per-AOI legs landing on opposite sides of Carroll) and overstate recovery, most
+  severely for `scav_rat`. Flagship = `n50e2k_percell_trio` (n=50, 2000 epochs): `alpfe` **49/50**,
+  `R_PICPOC` **50/50**, `scav_rat` **25/50**, trio **25/50** vs **0/50** global-scalar. The trio count
+  *equals* `scav_rat`'s — it is the sole binding leg. At 4000 epochs (`ep4k_n50`) `scav_rat` and the
+  trio both rise to **41/50** (natl 20→40, SO 49→48, eqpac 7→6).
+- **Match the control to the epoch budget.** There are two anchor-off runs and both are real:
+  `n50e2k_anchor_off` (2000 ep, the epoch-matched control for the flagship) gives `R_PICPOC` **6/50**;
+  `n50_anchor_off` (1500 ep) gives **4/50**. Quote 6/50 against the 2000-epoch flagship.
+- **The 3-of-4 frontier is structural — there are two operating points, not one.** No single
+  config recovers all four observables: `geo1` holds {`alpfe`, `scav_rat`, `R_PICPOC`}, while
+  MLD-channel + heavy Daniels weight holds {`alpfe`, `diatomgraz`, `R_PICPOC`}. `scav_rat` needs
+  the Darwin-pattern term; `diatomgraz` needs MLD; they conflict even at 4000 epochs.
