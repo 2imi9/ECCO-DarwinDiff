@@ -92,6 +92,30 @@ comparison in the last row.**
 | Physics | 0% negative concentrations, mass ratio 1.000 at every horizon tested |
 | Speed | 7.45 ms/global step, 2.29 GB inference |
 
+> **✅ LOG-SPACE FIX VERIFIED GLOBALLY (2026-07-25, AICR job 204877).** Every global emulator
+> figure produced before this date is **pre-fix and should not be shown**. The bug: strictly-positive
+> wide-range tracers were z-scored *linearly*, so the loss was dominated by the few largest cells,
+> the model collapsed toward the mean, and the inverse z-score pushed low-value cells through zero.
+> Re-running the identical global config with `--log-transform` (PR [#193](https://github.com/2imi9/ECCO-DarwinDiff/pull/193)):
+>
+> | tracer | log-range kept (pre → post) | non-physical output (pre → post) |
+> |---|---|---|
+> | Chl1 | 0.359 → **0.891** | 30.41% → **0.00%** |
+> | PIC | 0.425 → **0.906** | 19.08% → **0.00%** |
+> | POC | 0.348 → **0.882** | 9.38% → **0.00%** |
+> | FeT | 0.882 → 0.940 | 7.27% → **0.00%** |
+> | DIC / ALK | ~0.99 (unchanged) | 0.00% (unchanged) |
+>
+> The oligotrophic gyres, which the pre-fix run had erased, are reproduced. The predicted-vs-true
+> fit slope goes 0.23 → **0.81**. Per-tracer skill vs persistence is now positive for all six
+> (DIC 0.44, ALK 0.40, PIC 0.19, POC 0.56, FeT 0.44, Chl1 0.44).
+>
+> **The deflation still stands, and this is the honest headline.** Fraction of ocean beating
+> persistence is essentially unchanged (0.813 → 0.803) and median skill is 0.168 → 0.165. Against a
+> per-cell **seasonal AR(1)** baseline the model remains **−0.161 ± 0.013** across four seeds with
+> the CI entirely below zero. The fix restored *physical validity and dynamic range*; it bought
+> **no skill**. Useful horizon is still **one step**.
+
 ### Four things that were wrong and are now corrected
 
 1. **`delta_t` was 900 s; v05 runs at 1200 s.** Every pre-2026-07-19 cube's `times_days` is 0.75×

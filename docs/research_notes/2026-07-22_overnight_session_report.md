@@ -75,6 +75,12 @@ Full sourced note: [v06 research](2026-07-22_ecco_darwin_v06_research.md). Every
    generated. I kept the earlier single-panel version too. The environment node now carries the full verified
    covariate set (I dropped "velocity" — it is not a Track-1 forcing).
 2. **Emulator on a 2D globe** (`docs/figures/emulator_globe_chl1.png`, sent to you). A real run, not a mock.
+   **⚠️ DO NOT SHOW THIS FIGURE (flagged 2026-07-25).** It predates the log-space fix (PR #193), so it
+   is contaminated by a real bug: strictly-positive tracers were z-scored linearly, which collapsed
+   Chl1 to 0.36 of its true log-range and pushed **30.4% of predictions below zero**. Those show up as
+   the white holes where the oligotrophic gyres should be. After the fix the same global config gives
+   0.891 range retention and **0.00% non-physical output**, and the gyres are reproduced (AICR job
+   204877). Regenerate before showing this to anyone.
    The FNO emulator's global next-month chlorophyll prediction, on an orthographic globe (land comes free from
    the ocean mask). Aggregate skill vs persistence is +0.664 (verdict MAKE), but persistence is the wrong
    yardstick — against a per-cell seasonal AR(1) baseline the emulator shows no significant skill (retracted
