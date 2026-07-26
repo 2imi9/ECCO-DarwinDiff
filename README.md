@@ -3,62 +3,46 @@
 
 # ECCO-DarwinDiff
 
-<img src="docs/dinn_architecture.svg" alt="DINN architecture: three environmental covariates (SST, wind speed, MLD) feed two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights" width="720">
+<img src="docs/dinn_architecture.svg" alt="DINN architecture: three environmental covariates (SST, wind speed, MLD) feed two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights" width="680">
 
-**A differentiable PyTorch reimplementation of ECCO-Darwin ocean biogeochemistry — gradients flow through every step of the simulation, so one loss surface recovers the identifiable subset of the parameters that Green's-functions calibration tunes one at a time, predicted per grid cell from the local environment — a surrogate-to-model identifiability study.**
+**Differentiable ocean biogeochemistry. Gradients flow through the whole simulation, so one backward pass recovers the parameters that Green's-functions calibration tunes one at a time.**
 
 [![Tests](https://github.com/2imi9/ECCO-DarwinDiff/actions/workflows/tests.yml/badge.svg)](https://github.com/2imi9/ECCO-DarwinDiff/actions/workflows/tests.yml)
 [![Documentation](https://readthedocs.org/projects/ecco-darwindiff/badge/?version=latest)](https://ecco-darwindiff.readthedocs.io/en/latest/)
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb)
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.4%2B-ee4c2c.svg)](https://pytorch.org/)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)][colab_url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Start here][onboarding_url] · [Documentation][docs_url] · [Project status][status_url] · [Results matrix][matrix_url] · [Quick start](#quick-start) · [Citation](#citation)
+[Start here][onboarding_url] · [Docs][docs_url] · [Status][status_url] · [Results matrix][matrix_url]
 
 </div>
 
-ECCO-Darwin (Carroll et al. [2020][c20], *JAMES*; [2022][c22], *GBC*) calibrates its
-ocean-biogeochemistry parameters with **Green's functions** — a method that needs a fresh full
-forward run per parameter, so the published calibration tunes only six. **ECCO-DarwinDiff** replaces
-the biogeochemistry side with **PyTorch autograd**: gradients for every parameter in a single
-backward pass, with the values varying across space, predicted by a small per-cell network. The work
-is framed as a **surrogate-to-model identifiability study** — which of the six Carroll-6 parameters are
-identifiable from real ocean observations, which are not, and why. *The study is complete; paper #1 is in
-preparation.*
+## What this is
 
-Two tracks, both now at a **collaboration gate** (awaiting a domain-expert read, not more compute):
-**(1) Parameter learner** *(paper #1, in preparation)* — replaces Green's-functions calibration and
-recovers the *identifiable* Carroll-6 subset per cell; **(2) Track 2 — identifiability limits + a forward
-emulator** *(paper #2, complete)* — with prescribed transport, it asks which BGC closures real observations
-can constrain, and finds they can't sharply constrain any of the three (iron, calcite, growth): the binding
-constraint is the **observing system, not the method**. The forward neural emulator is built and is a
-**clean negative result** — physically valid (0 % negative concentrations in log space, mass ratio 1.000,
-valid carbonate chemistry) but with a **useful horizon of one step** and no significant skill over a
-per-cell seasonal AR(1) baseline. Two earlier emulator headlines are **retracted**: the "~9-month horizon"
-(a `delta_t` calendar artifact) and "beats persistence." The reusable assets are the infrastructure (the
-first ocean-BGC Earth2Studio `PrognosticModel`, plus physics validators) and the adjacent,
-observation-grounded iron-cycle findings.
+ECCO-Darwin ([Carroll et al. 2020][c20], [2022][c22]) calibrates its biogeochemistry with **Green's
+functions** — one full forward run per parameter, so only six are tuned. DarwinDiff reimplements the
+biogeochemistry in **PyTorch**, so every parameter gets a gradient in one backward pass, and the
+values vary per grid cell via a small network reading the local environment.
 
-## Installation
+The result is a **surrogate-to-model identifiability study**: which parameters real observations can
+pin down, which they cannot, and why. It is a **consistency check against Carroll's published
+values, not a cross-validated discovery** — the 0-D box homogenizes, so held-out real-data R² is
+negative.
+
+## Install
 
 ```bash
 git clone https://github.com/2imi9/ECCO-DarwinDiff.git && cd ECCO-DarwinDiff
-uv sync                     # create the environment from pyproject / uv.lock
-uv run pytest -q            # smoke test (LLC270 / data tests self-skip)
+uv sync                     # environment from pyproject / uv.lock
+uv run pytest -q            # smoke test (data-gated tests self-skip)
 ```
 
-Targets **Python 3.11+** and **PyTorch 2.4+**. The synthetic demo needs nothing else; for real fits,
-point the loaders at the LLC270 tree via `DARWIN_DATA_ROOT` (and `GLODAP_DATA_ROOT`). Raw-data
-mechanics (Windows `MAX_PATH`, IC caches, per-loader layout) are in
-[docs/cluster_setup.md][cluster_url] and [data/README.md][data_url].
+Python 3.11+, PyTorch 2.4+. The synthetic demo needs nothing else. For real fits, point the loaders
+at the LLC270 tree with `DARWIN_DATA_ROOT` — see [cluster setup][cluster_url] and [data][data_url].
 
 ## Quick start
 
-Run the synthetic recovery demo in ~5 min on a laptop or a free Colab T4 —
+The synthetic recovery demo runs in ~5 min on a laptop or free Colab T4:
 [`notebooks/demo_colab.ipynb`][demo_url] ([![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)][colab_url]).
-The core idea — a per-cell network whose loss backpropagates through the differentiable box — is a few
-lines of the public API:
 
 ```python
 import torch
@@ -75,80 +59,80 @@ loss = (final - target).pow(2).mean()             # target: an ECCO-Darwin v05 f
 loss.backward()                                   # gradients through the whole simulation
 ```
 
-For a real recovery on ECCO-Darwin v05 data, the runners are in `scripts/` and every reported number
-is gated by the verified-experiment loop:
+Every reported number must pass the verification gate:
 
 ```bash
-uv run python scripts/run_seasonal_recovery.py --aoi eqpac --n-seeds 10 --compile --out-dir runs/eqpac
 uv run python scripts/verify_run.py runs/eqpac          # exit 0 == trustworthy
 ```
 
-## Headline result
+## Results
 
-**Paper #1 (parameter learner).** The flagship is an **n=50 ensemble** (`geo1`, 2000 epochs, every number
-`verify_run`-gated). Under the honest **per-AOI ≥2-of-3** metric it recovers **`alpfe` 49/50** and
-**`R_PICPOC` 50/50** (epoch-matched anchor-off control: 6/50), and holds the trio {`alpfe`, `scav_rat`, `R_PICPOC`}
-**jointly 25/50** against real, Darwin-independent anchors — versus **0/50** for a global-scalar control,
-which is what makes the per-cell network load-bearing. `scav_rat` is the binding leg (**25/50** at 2000
-epochs, **41/50** at 4000, so most of that gap is *optimization*, not missing information — except in the
-equatorial Pacific, which stays at **6/50**). An earlier **38/40 (95 %)** iron-pair headline predates this
-reconciliation and reads more optimistically than the honest metric; read it as "the pair recovers, carried
-by `alpfe`; `scav_rat` is basin-fragile," not "`scav_rat` is 95 % solved."
+**Parameter recovery.** Flagship `n50e2k_percell_trio`: n=50 seeds, 2000 epochs, `verify_run` exit 0.
+Metric is **per-AOI ≥2-of-3 Cal-grade** — never cell-weighted, which straddles Carroll and overstates
+recovery.
 
-This is a **consistency check** against Carroll's own values, not a cross-validated discovery — the 0-D box
-homogenizes, so held-out real-data R² is negative. The honest denominator is **4 observable params**: the
-growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction**, so "6/6" is the wrong frame, and
-`R_PICPOC` was never a wall (it recovers against real calcite; the deeper finding is that Carroll's *global*
-rain ratio is itself under-constrained and should be regional). The **3-of-4 frontier is structural** — no
-single config recovers all four observables, so there are **two operating points, not one**: `geo1` holds
-{`alpfe`, `scav_rat`, `R_PICPOC`}, while adding an **MLD** input channel and a heavier calcite anchor holds
-{`alpfe`, `diatomgraz`, `R_PICPOC`} instead.
+| Parameter | Recovered | Notes |
+|---|---|---|
+| `R_PICPOC` | **50/50** | Needs a real calcite anchor — drops to 6/50 without it |
+| `alpfe` | **49/50** | Strong in every basin |
+| `scav_rat` | **25/50** | Southern Ocean 49/50, equatorial Pacific 7/50 |
+| `diatomgraz` | **3/50** | Inverts `scav_rat` — 37/50 at the equator |
+| trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** | vs **0/50** global-scalar — the per-cell network is load-bearing |
 
-**Paper #2 (identifiability-limits map).** Adding prescribed transport does **not** turn the consistency
-check into a discovery: across the three targetable closures, real observations fail to constrain them
-for three distinct reasons — iron `scav_rat` = a residual observability wall in the equatorial Pacific only
-(6/50 even at 4000 epochs; elsewhere it is optimization-limited), calcite Ω-modulation = support-limited
-(the out-of-sample E2 is a decisive negative), growth = structurally unobservable. The binding
-constraint is the **observing system, not the method** — a map of *what is observable* is the contribution.
+Three things this shows:
 
-**The full per-config record is the [Config / Results Matrix][matrix_url]**; current best + known limits
-live in **[STATUS.md][status_url]**.
+- **The denominator is 4, not 6.** The growth pair {`Smallgrow`, `Biggrow`} is **unobservable by
+  construction** — excluded, not failed. "6/6" is the wrong frame.
+- **Identifiability is basin-specific.** `scav_rat` and `diatomgraz` recover in opposite basins, which
+  is why no single config gets all four. The **3-of-4 frontier is structural**, with two operating
+  points: `geo1` holds {`alpfe`, `scav_rat`, `R_PICPOC`}; adding an MLD channel holds
+  {`alpfe`, `diatomgraz`, `R_PICPOC`} instead.
+- **The binding constraint is the observing system, not the method.** Adding prescribed transport does
+  not turn the consistency check into a discovery: across three closures, real observations fail to
+  constrain them for three distinct reasons — iron is an observability wall in the equatorial Pacific,
+  calcite is support-limited, growth is structurally unobservable.
+
+**Forward emulator — a clean negative result.** Physically valid (0% negative concentrations in log
+space, mass ratio 1.000, valid carbonate chemistry) but the **useful horizon is one step**, with no
+significant skill over a per-cell seasonal AR(1) baseline (−0.161 ± 0.013). Two earlier headlines are
+**retracted**: the "~9-month horizon" (a `delta_t` calendar artifact) and "beats persistence" (a weak
+baseline). The reusable asset is the infrastructure — the first ocean-BGC Earth2Studio
+`PrognosticModel`, plus physics validators.
+
+> Global emulator figures produced before 2026-07-25 predate the log-space fix and must not be shown.
+
+Full per-config record: [results matrix][matrix_url]. Current state and limits: [STATUS.md][status_url].
 
 ## Documentation
 
 📖 **[ecco-darwindiff.readthedocs.io][docs_url]**
 
-- **[Onboarding][onboarding_url] — start here.** Cold-read orientation: what the project is, how the
-  pieces fit, and which file to open next.
-- [Project status][status_url] — canonical current-best snapshot + known limits
-- [Config / Results Matrix][matrix_url] — what every config tested and found (single source of truth)
-- [DINN design](https://ecco-darwindiff.readthedocs.io/en/latest/dinn_design/) · [ECCO-Darwin relationship](https://ecco-darwindiff.readthedocs.io/en/latest/ecco_darwin_relationship/) · [Cluster setup](https://ecco-darwindiff.readthedocs.io/en/latest/cluster_setup/) · [Data sources](https://ecco-darwindiff.readthedocs.io/en/latest/data/)
-- [Archive](https://ecco-darwindiff.readthedocs.io/en/latest/archive/) — per-version research provenance (out of the onboarding path)
+- **[Onboarding][onboarding_url]** — start here for a cold read
+- [Status][status_url] — canonical numbers and known limits
+- [Results matrix][matrix_url] — what every config tested and found
+- [DINN design](https://ecco-darwindiff.readthedocs.io/en/latest/dinn_design/) · [ECCO-Darwin relationship](https://ecco-darwindiff.readthedocs.io/en/latest/ecco_darwin_relationship/) · [Cluster setup][cluster_url] · [Data][data_url]
 
 <details>
 <summary><b>Repository layout</b></summary>
 
 ```
-src/darwindiff/            Python package (importable as `darwindiff`)
+src/darwindiff/            Python package
   carroll6.py                5-tracer Carroll-6 box + Carroll's optima + bounds
   carbonate.py               Follows-2006 + Wanninkhof 2014 carbonate solver
   carroll6_5pft_2layer.py    2-layer 5-PFT integrator (seasonal + seed-batched)
   networks.py                DINN + DINNRegional + DINNDeep
-  ecco_darwin_loader.py      Darwin v05 1° loader + AOI presets
-  llc270_loader.py           native LLC270 monthly loader (xmitgcm)
-  glodap_loader.py           GLODAPv2.2016b DIC/ALK loader
-scripts/                   runners, overnight sweeps, verify_run.py, SLURM templates
-notebooks/                 numbered notebooks 05–32; demo_colab.ipynb is the synthetic walkthrough
+  *_loader.py                Darwin v05, LLC270, GLODAP, GEOTRACES loaders
+scripts/                   runners, sweeps, verify_run.py, SLURM templates
+notebooks/                 demo_colab.ipynb is the synthetic walkthrough
 tests/                     pytest suite (runs in CI)
-docs/                      results_matrix.md, dinn_design.md, cluster_setup.md, archive/
+docs/                      results_matrix.md, dinn_design.md, archive/
 ```
 
 </details>
 
 ## Citation
 
-DarwinDiff is under active development; a formal manuscript and Zenodo DOI will be issued upon
-publication. In the interim, cite the repository directly:
+A manuscript and Zenodo DOI will follow publication. For now, cite the repository:
 
 ```bibtex
 @software{darwindiff_2026,
@@ -161,44 +145,24 @@ publication. In the interim, cite the repository directly:
 }
 ```
 
-<details>
-<summary><b>Underlying ECCO-Darwin model + background reading</b> (DOIs verified via OpenAlex)</summary>
-
-If your work depends on the underlying model, cite Carroll et al.
-[2020][c20] (*JAMES*) and [2022][c22] (*GBC*).
-
-| Reference | Why it matters |
-|---|---|
-| [Carroll et al. 2020][c20] (*JAMES*) | Original ECCO-Darwin; the 6-parameter Green's-functions calibration we differentiate against. |
-| [Carroll et al. 2022][c22] (*GBC*) | ECCO-Darwin v05; the publicly-accessible Darwin output is our active recovery target. |
-| [Dutkiewicz et al. 2009](https://doi.org/10.1029/2008GB003405) (*GBC*) | Core Darwin biogeochemistry equations (`carroll6.py`). |
-| [Follows et al. 2006](https://doi.org/10.1016/j.ocemod.2005.05.004) · [Wanninkhof 2014](https://doi.org/10.4319/lom.2014.12.351) | Carbonate-system solver + air-sea CO₂ flux (`carbonate.py`). |
-| [Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1) (*MWR*) | The Green's-functions calibration method DarwinDiff replaces. |
-| [Olsen et al. 2016](https://doi.org/10.5194/essd-8-297-2016) · [Schlitzer et al. 2018](https://doi.org/10.1016/j.chemgeo.2018.05.040) | GLODAP DIC/ALK + GEOTRACES iron observations (loaders / losses). |
-| [Xu et al. 2025 (BINN)](https://arxiv.org/abs/2502.00672) | Differentiable physics + per-location parameter network — closest method template. |
-| [Kochkov et al. 2024 (NeuralGCM)](https://arxiv.org/abs/2311.07222) · [Clark et al. 2026 (ACE2S)](https://arxiv.org/abs/2606.07928) · [Ouala & Lachkar 2026 (Neural-BGC)](https://doi.org/10.22541/essoar.15002003/v1) | Hybrid-physics / emulator references for Track 2. |
-| [Dheeshjith et al. 2024 (Samudra)](https://arxiv.org/abs/2412.03795) · [Yuan et al. 2026 (Samudra 2)](https://arxiv.org/abs/2606.02610) · [Ai2 2025 (SamudrACE)](https://arxiv.org/abs/2509.12490) | AI ocean / coupled-climate emulators — architecture, resolution-scaling, and coupling templates for Track 2. SamudrACE names an explicit biogeochemistry hole as future work — the carbon-BGC-UDE slot Track 2 targets; none emulate ocean carbon (the whitespace). See [ADR-0002](docs/adr/0002-track2-emulator-scope.md). |
-
-</details>
+If your work depends on the underlying model, cite Carroll et al. [2020][c20] and [2022][c22].
+Background reading and the full reference table: [docs/references.md](docs/references.md).
 
 ## Contributing
 
-Contributions are welcome — read **[CONTRIBUTING.md](CONTRIBUTING.md)** first (scope-prefixed PR
-titles, commit/merge conventions, and the `scripts/verify_run.py` loop every reported number must
-pass). CI runs the test suite on every PR; run it locally with `uv run pytest -q`.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first — scope-prefixed PR titles, merge conventions, and the
+`verify_run.py` loop every reported number must pass. CI runs the suite on every PR.
 
 ## Acknowledgements
 
-- **MIT EAPS** — research collaboration on ECCO-Darwin and the differentiable-physics approach.
-- **Northeastern Research Computing** — the **Explorer** (H200) cluster.
-- **Massachusetts AI Compute Resource (AICR)** / the **Massachusetts AI Hub** — **B200** GPU access on the multi-institutional cluster (Boston University, Harvard, MIT, Northeastern, UMass, Yale).
-- **JPL ECCO Group** + **NASA NAS** — ECCO-Darwin v05 outputs.
-- **GLODAP**, **GEOTRACES**, **NASA GHG Center** — observational data products (active recovery targets).
+**MIT EAPS** (research collaboration) · **Northeastern Research Computing** (Explorer H200) ·
+**Massachusetts AI Compute Resource** (B200) · **JPL ECCO Group** + **NASA NAS** (ECCO-Darwin v05
+outputs) · **GLODAP**, **GEOTRACES**, **NASA GHG Center** (observational products).
 
 ## License
 
-Released under the **MIT License** — see [LICENSE](LICENSE). The underlying ECCO-Darwin model is the
-work of the ECCO and Darwin teams and should be credited independently (citation block above).
+MIT — see [LICENSE](LICENSE). The underlying ECCO-Darwin model is the work of the ECCO and Darwin
+teams and should be credited independently.
 
 <!-- Reference links -->
 [docs_url]: https://ecco-darwindiff.readthedocs.io/en/latest/
