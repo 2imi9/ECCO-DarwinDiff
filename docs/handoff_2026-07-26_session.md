@@ -6,7 +6,7 @@ Previous session ran ~8 hours autonomously. Everything is committed and merged e
 
 ## State
 
-`main` is green: **520 passed, 19 skipped**. Working tree empty. Eight PRs merged
+`main` is green: **520 passed, 19 skipped**. Working tree empty. Seven PRs merged
 (#193–#199), one open (**#200**, readthedocs re-sync — just needs a merge if CI is green).
 
 `docs/paper/` is still **0 tracked files**. Do not `git add -f` it.
@@ -50,9 +50,11 @@ old→new diffs, one at a time. That has been the working rhythm throughout.
    the `alpfe` box and **0.94** of `diatomgraz`, so those profiles are one-sided and Raue's
    two-sided criterion cannot be evaluated as implemented. This is the mechanism for the
    standing puzzle that `alpfe` reads FLAT yet recovers 9–10/10.
-3. **Fig. 4(a) caption/text** — the figure itself is fixed (`figs/make_figs.py` now plots only
-   the three measured step counts and shows ALK not collapsing). Paper compiles at 34 pages,
-   0 undefined citations. Worth re-reading the surrounding prose for consistency.
+3. **Fig. 4(a) caption/text** — the figure itself is fixed (`docs/paper/figs/make_figs.py` now
+   plots only the three measured step counts and shows ALK not collapsing). That script is
+   **local-only**, under the gitignored `docs/paper/`, so it will not be in a fresh clone.
+   Paper compiles at 34 pages, 0 undefined citations. Worth re-reading the surrounding prose
+   for consistency.
 4. **Groups C and D** (from the earlier package): 8 sites mixing n=10 and n=50 denominators,
    5 `diatomgraz` sites needing the model-internal upgrade you approved.
 5. **Diff 7** — the anchors-only decomposition paragraph (alpfe 50/50 and R_PICPOC 28/50 are
