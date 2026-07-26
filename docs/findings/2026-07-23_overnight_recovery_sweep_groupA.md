@@ -27,14 +27,25 @@ already taught us an n=10 "9/10" can be seed luck (the subiron arm0 regressed to
    identifiability ≠ recoverability / no-single-4-of-4 result **stands**, now with the crossover mapped.
 2. **scav_rat is pattern-assisted, and MLD hurts it.** pattern 0.5/2 → scav_rat 7/10; add MLD → 2/10; surface
    or subsurface iron up-weight → 2/10. Consistent with STATUS ("scav_rat partly pattern-assisted").
-3. **Per-AOI scav_rat profiles all CURVED (jobs 189403+189870); the profile SPAN tracks recovery order,
-   conditioning does not fully.** Profile span: eqpac 3.69 > natl 1.30 > sopac 1.12 — the **same ordering as
-   the recovery** (sopac 49/50 > natl 19/50 > eqpac 8/50). The per-AOI 2×2 conditioning is
+3. **Per-AOI scav_rat profiles all CURVED (jobs 189403+189870); the profile SPAN is INVERSELY ordered with
+   recovery, and conditioning does not rank the basins either.** Profile span: eqpac 3.69 > natl 1.30 >
+   sopac 1.12. Mind the polarity: `rel_span = (max_loss − best)/best`, so a **larger** span is a **more
+   curved** (better constrained) profile — eqpac is the most curved of the three and sopac the flattest.
+   That is the **inverse** of the recovery order (sopac 49/50 > natl 19/50 > eqpac 8/50): the
+   best-recovering basin has the flattest profile and the worst-recovering basin the most curved one.
+   Profile curvature therefore does **not** predict recovery here. The per-AOI 2×2 conditioning is
    **sopac 2.22 < eqpac 34.7 < natl 50.8**: it cleanly separates the well-conditioned Southern Ocean from the
    two degenerate basins, but it does **not** rank eqpac vs natl — natl is *worse*-conditioned than eqpac yet
-   recovers *better* (19/50 vs 8/50). So conditioning explains the SO/degenerate split; the flatter-profile
-   (span) metric is what tracks the eqpac-vs-natl recovery order. scav_rat is constrained everywhere (all
+   recovers *better* (19/50 vs 8/50). So conditioning explains the SO/degenerate split, and neither metric
+   explains the eqpac-vs-natl order. scav_rat is constrained everywhere (all
    CURVED) — practical, not structural, non-identifiability.
+
+   > **CORRECTED 2026-07-26.** The original wording of this item called span 3.69 the "flattest" profile and
+   > claimed the span ordering was "the same ordering as the recovery". Both are wrong: 3.69 is the *most
+   > curved*, and the two orderings are exact inverses. This error propagated into the manuscript and has
+   > been fixed there too. Verified against the raw job logs on AICR
+   > (`/scratch/qi_zim_neu/geom/dd-geom_189403_3.out` → eqpac 3.693; `dd-hess_189870_0.out` → natl 1.297;
+   > `dd-hess_189870_1.out` → sopac 1.120; all three verdicts CURVED).
 
 ## Two SIGNIFICANT leads — BOTH CONFIRMED at n=50 (job 190529, VERIFIED exit 0)
 
@@ -44,7 +55,7 @@ eqpac stays hard at 6/50). alpfe 49/50, R_PICPOC 50/50 unchanged. The n=10 9/10 
 **So scav_rat's weakness is substantially an under-optimization artifact, not a pure information wall**: more
 compute (no new data) raises the weak leg from ~52% to ~82% per-AOI, mainly by tightening North-Atlantic
 convergence. The equatorial Pacific (6/50) remains information-limited — even 4000 epochs cannot fix its
-degeneracy (cond 35, flattest profile span 3.69). **The trio {alpfe, scav_rat, R_PICPOC} rises from 25/50
+degeneracy (cond 35; profile span 3.69 — the *most curved* of the three, see the correction in item 3). **The trio {alpfe, scav_rat, R_PICPOC} rises from 25/50
 toward ~41/50 with 2× epochs.** This is the sharpest possible statement of identifiability ≠ recoverability:
 the recoverability gap has a large, closeable optimization component AND a residual information component
 (eqpac). Median scav_rat 4.30e-7 vs Carroll 6.03e-7 (still Cal-grade; the gain is variance-tightening — more
