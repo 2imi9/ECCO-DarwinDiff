@@ -121,6 +121,7 @@ nav:
       - Cluster roadmap: cluster_roadmap.md
       - Data sources: data.md
   - Reference:
+      - Testing strategy: testing_strategy.md
       - Research log: research_log.md
       - Known issues: issues.md
       - Contributing: contributing.md
