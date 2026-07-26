@@ -81,6 +81,7 @@ from darwindiff.iron_forcing_loader import (
     iron_flux_aoi_grid,
     phi_dust_surface_field,
 )
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.trainer import TransportConfig, rollout_field, train_ude_closure
 from darwindiff.velocity_loader import (
     depth_mean,
@@ -114,7 +115,7 @@ def _build_ic(cache_path: Path, n_z: int, dtype, device) -> torch.Tensor:
     """Spin-up seed IC ``[Y, X, Z, 5]`` = [DFe, Ps, Pl, POC, PIC] from the AOI's real
     Darwin tracer climatology (well-mixed over depth). Non-finite/land -> small positive
     so the rollout is finite; the steady-state target washes out IC detail."""
-    c = torch.load(cache_path, weights_only=False)
+    c = safe_torch_load(cache_path)
 
     def _f(key, fallback):
         a = torch.as_tensor(np.asarray(c[key], dtype=np.float64), dtype=dtype, device=device)

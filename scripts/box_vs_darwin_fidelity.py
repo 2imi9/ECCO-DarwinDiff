@@ -44,6 +44,7 @@ from darwindiff.carroll6_5pft_2layer import (
     carroll6_5pft_2layer_integrate,
 )
 from darwindiff.diagnostics import safe_pearson_r
+from darwindiff.safe_load import safe_torch_load
 
 DT = 0.25
 N_STEPS = 200
@@ -72,7 +73,7 @@ def _zr(box: np.ndarray, dar: np.ndarray, mask: np.ndarray) -> float:
 
 
 def _fid_for_aoi(key: str, fname: str) -> dict:
-    cache = torch.load(CACHE_DIR / fname, weights_only=False)
+    cache = safe_torch_load(CACHE_DIR / fname)
     darwin = {
         "Chl1": cache["chl_per_pft"]["Chl1"], "Chl2": cache["chl_per_pft"]["Chl2"],
         "Chl3": cache["chl_per_pft"]["Chl3"], "Chl4": cache["chl_per_pft"]["Chl4"],

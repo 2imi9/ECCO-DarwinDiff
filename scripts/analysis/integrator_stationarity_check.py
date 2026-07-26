@@ -61,6 +61,7 @@ import numpy as np
 import torch
 
 from darwindiff.carroll6 import PARAM_NAMES
+from darwindiff.safe_load import safe_torch_load
 from darwindiff import carroll6_5pft_2layer as _layer2
 from darwindiff.carroll6_5pft_2layer import (
     I_ALK_1,
@@ -92,11 +93,12 @@ WARN_PCT = 5.0        # >5% relative drift on either = referee objection stands 
 
 
 def _load_cache(cache_dir: Path, aoi_key: str):
-    # weights_only=True: torch.load with it disabled unpickles arbitrary objects, and
-    # DARWIN_DATA_ROOT may point at a shared or externally populated cache. These caches
-    # hold a plain dict of tensors, which loads fine under the safe path. If a cache ever
-    # fails here, regenerate it rather than re-disabling the guard.
-    cache = torch.load(cache_dir / CACHE_FILES[aoi_key], weights_only=True)
+    # Restricted unpickler: torch.load with weights_only=False executes arbitrary objects,
+    # and DARWIN_DATA_ROOT may point at a shared or externally populated cache. These
+    # caches hold numpy arrays (not tensors), so a bare weights_only=True rejects them --
+    # safe_torch_load allowlists numpy's array-reconstruction plumbing and nothing else.
+    # If a cache ever fails here, regenerate it rather than re-disabling the guard.
+    cache = safe_torch_load(cache_dir / CACHE_FILES[aoi_key])
     darwin = {
         "POC": cache["poc_binned"], "PIC": cache["pic_binned"],
         "FeT": cache["fet_binned"], "DIC": cache["dic_binned"], "ALK": cache["alk_binned"],

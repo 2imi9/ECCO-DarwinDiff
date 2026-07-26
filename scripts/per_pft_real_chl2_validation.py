@@ -24,8 +24,15 @@ floor. PIC/POC are non-negative except a handful of tiny-negative POC in SO (mas
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import numpy as np
-import torch
+
+_SRC = Path(__file__).resolve().parent.parent / "src"
+if _SRC.exists() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+from darwindiff.safe_load import safe_torch_load  # noqa: E402
 
 CACHES = {
     "eqpac": "D:/ecco_darwin_v5/cache/native_targets_equatorial_pacific.pt",
@@ -36,7 +43,7 @@ CHL_FLOOR = 1e-4  # mg Chl/m^3 total below which a cell has no meaningful compos
 
 
 def _load(path):
-    d = torch.load(path, map_location="cpu", weights_only=False)
+    d = safe_torch_load(path, map_location="cpu")
     pic = np.asarray(d["pic_binned"]).ravel().astype(float)
     poc = np.asarray(d["poc_binned"]).ravel().astype(float)
     chl = {i: np.clip(np.asarray(d["chl_per_pft"][f"Chl{i}"]).ravel().astype(float), 0.0, None)

@@ -22,6 +22,9 @@ import numpy as np, torch
 
 _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path: sys.path.insert(0, str(_HERE))
+_SRC = _HERE.parent / "src"
+if _SRC.exists() and str(_SRC) not in sys.path: sys.path.insert(0, str(_SRC))
+from darwindiff.safe_load import safe_torch_load  # noqa: E402
 from diffusion_emulator import FNO2d, load_cube, time_split, zscore  # noqa: E402
 
 
@@ -66,7 +69,7 @@ def main(argv=None):
     ckpts = sorted({q for m in a.model for q in glob.glob(m)})
     if ckpts:
         for pth in ckpts:
-            ck = torch.load(pth, map_location=dev, weights_only=False); cfg = ck["config"]
+            ck = safe_torch_load(pth, map_location=dev); cfg = ck["config"]
             m = FNO2d(C, C, modes1=cfg["modes"], modes2=cfg["modes"], width=cfg["reg_width"]).to(dev)
             m.load_state_dict(ck["regression"]); m.eval(); models.append(m)
         print(f"[geom] loaded {len(models)} checkpoint(s)", flush=True)

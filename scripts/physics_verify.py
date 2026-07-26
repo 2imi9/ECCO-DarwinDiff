@@ -38,6 +38,7 @@ if str(_HERE) not in sys.path:
 _SRC = _HERE.parent / "src"
 if _SRC.exists() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
+from darwindiff.safe_load import safe_torch_load  # noqa: E402
 from diffusion_emulator import FNO2d, _batch, load_cube, time_split, zscore  # noqa: E402
 
 
@@ -146,7 +147,7 @@ def main(argv=None):
 
     models = []
     for pth in paths:
-        ck = torch.load(pth, map_location=device, weights_only=False)
+        ck = safe_torch_load(pth, map_location=device)
         cfg = ck["config"]
         m = FNO2d(C, C, modes1=cfg["modes"], modes2=cfg["modes"], width=cfg["reg_width"]).to(device)
         m.load_state_dict(ck["regression"]); m.eval(); models.append(m)

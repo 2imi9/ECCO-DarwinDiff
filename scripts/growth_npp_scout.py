@@ -36,6 +36,7 @@ import numpy as np
 import torch
 
 from darwindiff.carroll6 import K_FE, LIGHT, P
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.trainer import TransportConfig, rollout_field
 from iron_scav_rat_profile import DX, DY, DZ, EPS, build_inputs
 
@@ -134,7 +135,7 @@ def main():
     ap.add_argument("--n-s", type=int, default=17)
     ap.add_argument("--n-l", type=int, default=17)
     a = ap.parse_args()
-    inp = torch.load(a.bundle, weights_only=False) if a.bundle else build_inputs()
+    inp = safe_torch_load(a.bundle) if a.bundle else build_inputs()
     return run(inp, a.n_steps, a.n_s, a.n_l)
 
 

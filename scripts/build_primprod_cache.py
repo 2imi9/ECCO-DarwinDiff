@@ -17,6 +17,7 @@ import torch
 
 from darwindiff.ecco_darwin_loader import AOI_BY_KEY
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
+from darwindiff.safe_load import safe_torch_load
 
 ROOT = Path(os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5"))
 MONTHLY = ROOT / "output" / "monthly"
@@ -29,7 +30,7 @@ def main() -> int:
     for k in KEYS:
         aoi = AOI_BY_KEY[k]
         cp = CACHE / f"eqpac_targets_{aoi.name.replace(' ', '_').lower()}.pt"
-        c = torch.load(cp, weights_only=False)
+        c = safe_torch_load(cp)
         if "primprod_binned" in c:
             print(f"{k}: already has primprod_binned {c['primprod_binned'].shape}")
             continue

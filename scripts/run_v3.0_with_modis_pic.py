@@ -179,6 +179,7 @@ from darwindiff.geotraces_loader import (
 from darwindiff.diagnostics import band_of
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg
 from darwindiff.networks import DINN
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.silica import diagnostic_bsi_steady, R_SI_C, R_SI_DISSOL
 
 # ============================== Config ====================================
@@ -370,7 +371,7 @@ def _load_or_build_target_cache(aoi) -> dict:
     expected_bounds = (aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
     if cache_path.is_file():
         try:
-            cached = torch.load(cache_path, map_location="cpu", weights_only=False)
+            cached = safe_torch_load(cache_path, map_location="cpu")
             if (cached.get("aoi_name") == aoi.name
                     and cached.get("aoi_bounds") == expected_bounds):
                 print(f"  loaded target cache from {cache_path}")

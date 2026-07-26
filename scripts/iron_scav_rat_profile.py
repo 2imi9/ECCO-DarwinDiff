@@ -40,6 +40,7 @@ import numpy as np
 import torch
 
 from darwindiff.carroll6 import CARROLL_VALUES, P
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.trainer import TransportConfig, rollout_field
 
 DX = DY = 1.11e5
@@ -83,7 +84,7 @@ def build_inputs() -> dict:
     dfe_obs = dfe_aoi_1deg_grid(GEOTRACES, EQ)
     cov = np.isfinite(dfe_obs) & (dfe_obs > 0) & coverage_mask(areal)
 
-    c = torch.load(cache, weights_only=False)
+    c = safe_torch_load(cache)
 
     def f(k, fb):
         a = torch.as_tensor(np.asarray(c[k], np.float64), dtype=dt64)
@@ -204,7 +205,7 @@ def main() -> int:
         torch.save(build_inputs(), args.build_bundle)
         print(f"[iron-wall] bundle saved: {args.build_bundle}")
         return 0
-    inp = torch.load(args.bundle, weights_only=False) if args.bundle else build_inputs()
+    inp = safe_torch_load(args.bundle) if args.bundle else build_inputs()
     return run(inp, args.mode, args.n_steps, args.out)
 
 
