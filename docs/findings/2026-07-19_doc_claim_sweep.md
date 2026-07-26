@@ -280,7 +280,7 @@ Honest overall claim: an **ensembled, rollout-trained, log-space, physically-val
 ```markdown
 # R_PICPOC ratio loss: the eqpac-only recovery — SUPERSEDED (the "forward-model wall" was a contaminated SO ratio target)
 
-> **SUPERSEDED 2026-06-24 — read [`2026-06-24_rpicpoc_ratio_target_fix.md`](2026-06-24_rpicpoc_ratio_target_fix.md) first.**
+> **SUPERSEDED 2026-06-24 — read [`2026-06-24_rpicpoc_ratio_target_fix.md`](../archive/findings/2026-06-24_rpicpoc_ratio_target_fix.md) first.**
 > This note's headline conclusion — that the residual ≥2-AOI wall is *calcite forward-model
 > fidelity*, requiring the differentiable Darwin calcite port plus native resolution — is
 > **retracted**. The real cause was a data-pipeline bug in this note's own experiment: the
@@ -543,7 +543,7 @@ R_PICPOC or on "6/6".
 
 **Replace with:**
 ```markdown
-2. **Emulator** *(v0.1.0, released; narrow scope)* — a neural stand-in for ECCO-Darwin v05. A 6-member FNO2d ensemble (`opt3d_seed{0..5}.pt`, Hugging Face `2imi9/darwindiff-emulator`, private) that beats a correctly-binned seasonal climatology by **+0.240 at one step and is at or below it from step two onward** — a one-step operator, not a long-timescale climate emulator. One step is a **~2-month** interval (validation median gap 61 days); on genuinely-monthly pairs it scores **+0.0026**. An earlier "~9-month horizon" claim was retracted on 2026-07-19 after a calendar bug (`delta_t` is 1200 s, not 900 s) was found in our own evaluation. See [`docs/model_card_opt3d.md`](docs/model_card_opt3d.md) and `docs/findings/2026-07-19_emulator_honest_bounds.md`.
+2. **Emulator** *(v0.1.0, released; narrow scope)* — a neural stand-in for ECCO-Darwin v05. A 6-member FNO2d ensemble (`opt3d_seed{0..5}.pt`, Hugging Face `2imi9/darwindiff-emulator`, private) that beats a correctly-binned seasonal climatology by **+0.240 at one step and is at or below it from step two onward** — a one-step operator, not a long-timescale climate emulator. One step is a **~2-month** interval (validation median gap 61 days); on genuinely-monthly pairs it scores **+0.0026**. An earlier "~9-month horizon" claim was retracted on 2026-07-19 after a calendar bug (`delta_t` is 1200 s, not 900 s) was found in our own evaluation. See [`docs/model_card_opt3d.md`](../model_card_opt3d.md) and `docs/findings/2026-07-19_emulator_honest_bounds.md`.
 ```
 
 ---
@@ -930,8 +930,8 @@ the **persistence** baseline alone flatters long-horizon results — but the "+0
 
 **Replace with:**
 ```markdown
-- [Ratio loss (structural)](rpicpoc_ratio_structural.md) — **SUPERSEDED (2026-06-24, causal attribution only).** The PIC:POC ratio observable recovers `R_PICPOC` in eqpac without the iron-pair mutex; the eqpac-only limit was originally attributed to calcite forward-model fidelity, but that attribution is refuted below. The ratio-loss mechanism itself stands.
-- [Ratio-target fix — the R_PICPOC wall broken](2026-06-24_rpicpoc_ratio_target_fix.md) — the ≥2-AOI wall was a **data-pipeline bug, not missing calcite physics**: the Southern-Ocean ratio target was contaminated by near-zero-POC cells (per-cell `pic/poc` up to ~1e8, target mean 4.7e7), inflating the `mean(target²)` scale normalizer and collapsing the SO ratio term to ~0. With `RATIO_MAX=2`, `R_PICPOC` recovers **10/10 joint Cal, genuine per-AOI across all three AOIs** (`verify_run.py` exit 0). First 6/6 follows but is **not robust** (3/10 seeds).
+- [Ratio loss (structural)](../archive/findings/rpicpoc_ratio_structural.md) — **SUPERSEDED (2026-06-24, causal attribution only).** The PIC:POC ratio observable recovers `R_PICPOC` in eqpac without the iron-pair mutex; the eqpac-only limit was originally attributed to calcite forward-model fidelity, but that attribution is refuted below. The ratio-loss mechanism itself stands.
+- [Ratio-target fix — the R_PICPOC wall broken](../archive/findings/2026-06-24_rpicpoc_ratio_target_fix.md) — the ≥2-AOI wall was a **data-pipeline bug, not missing calcite physics**: the Southern-Ocean ratio target was contaminated by near-zero-POC cells (per-cell `pic/poc` up to ~1e8, target mean 4.7e7), inflating the `mean(target²)` scale normalizer and collapsing the SO ratio term to ~0. With `RATIO_MAX=2`, `R_PICPOC` recovers **10/10 joint Cal, genuine per-AOI across all three AOIs** (`verify_run.py` exit 0). First 6/6 follows but is **not robust** (3/10 seeds).
 ```
 
 ---
@@ -1189,7 +1189,7 @@ The project's first 6/6 came later and by a different route — the RATIO_MAX ra
 
 **Replace with:**
 ```markdown
-| `DINNDeep` (not the default) | **SST + MLD + windspeed + latitude** (4 channels) | ~9.4K | Studied in notebooks 15–20. Saturates on biomass tracers (r → 1.0) while recovering *fewer* calibration-grade Carroll-6 parameters than the baseline — high r here signals an under-constrained fit, not a better calibration. Doesn't extrapolate across spatial blocks (held-out r = 0.301 on FeT vs 1.000 in-distribution). From v2.2.x onward the project trains the DINN baseline only by default; see [`docs/dinn_design.md`](dinn_design.md). |
+| `DINNDeep` (not the default) | **SST + MLD + windspeed + latitude** (4 channels) | ~9.4K | Studied in notebooks 15–20. Saturates on biomass tracers (r → 1.0) while recovering *fewer* calibration-grade Carroll-6 parameters than the baseline — high r here signals an under-constrained fit, not a better calibration. Doesn't extrapolate across spatial blocks (held-out r = 0.301 on FeT vs 1.000 in-distribution). From v2.2.x onward the project trains the DINN baseline only by default; see [`docs/dinn_design.md`](../dinn_design.md). |
 ```
 **Also:** L59 ("Two production NN variants") → "Two per-cell NN variants".
 
