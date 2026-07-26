@@ -40,7 +40,7 @@ misses.
 
 **Two decomposition results that make the study sharp:**
 - **The recoverability gap is two components** — a large *closeable optimization* component (natl scav_rat
-  19→40/50 with 2× compute, no new data) plus a residual *information* component (eqpac 6/50). The sharpest
+  20→40/50 with 2× compute, no new data) plus a residual *information* component (eqpac 6/50). The sharpest
   statement of identifiability ≠ recoverability.
 - **The 3-of-4 frontier is STRUCTURAL** (job 192298): no single config recovers all four observables. scav_rat
   needs the Darwin-pattern term; diatomgraz needs MLD; they conflict even at 4000 epochs. **Two operating

@@ -26,7 +26,7 @@ against real observations, with identifiability read from Fisher-information / p
    (cond 3022), subsurface iron breaks it but **basin-dependently** (Southern Ocean cond 2.2; equatorial
    Pacific / North Atlantic stay ratio-degenerate at 35–51).
 5. **Identifiability ≠ recoverability, and the gap decomposes** — the recoverability gap is *largely a
-   closeable optimization component* (scav_rat 26→41/50 at 4000 epochs, natl 19→40) plus a *residual
+   closeable optimization component* (scav_rat 25→41/50 at 4000 epochs, natl 20→40) plus a *residual
    information component* (eqpac 6/50, the sole basin more compute cannot fix). **This is the night's key
    refinement to the central claim.**
 6. **diatomgraz** has a non-circular handle (35/50 from Chl+MLD, bSi off) but is in a **structural trade-off**

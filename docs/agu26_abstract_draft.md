@@ -71,7 +71,7 @@ The central result is that identifiability is not recoverability: no single conf
 
 ## Open items before submission
 - ~~Refresh iron numbers after the scav_rat n=50 reconciliation~~ **DONE 2026-07-24**: reframed to the
-  4000-epoch result (scav_rat 26→41/50 per-AOI; natl 40/50, eqpac 6/50; job 190529). diatomgraz non-circular
+  4000-epoch result (scav_rat 25→41/50 per-AOI; natl 40/50, eqpac 6/50; job 190529). diatomgraz non-circular
   handle (35/50, job 190529) and the structural 3-of-4 trade-off (job 192298) folded into the comprehensive body.
 - Decide 1 vs 2 abstracts (iron→NG + comprehensive→OS is allowed and non-competing).
 - First-author AGU membership; co-author consent; a figure (Fisher degeneracy / subsurface conditioning

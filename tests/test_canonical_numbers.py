@@ -109,6 +109,55 @@ def test_no_tracked_doc_binds_26_of_50_to_the_flagship():
     )
 
 
+#: The flagship's per-AOI Cal+ legs. The joint 25/50 is set by how often eqpac/natl
+#: join the always-recovering Southern Ocean, so quoting the wrong legs beside 25/50
+#: misattributes a different run's decomposition to the flagship.
+FLAGSHIP_SCAV_RAT_LEGS = {"eqpac": 7, "natl": 20, "sopac": 49}
+#: At 4000 epochs (ep4k_n50) scav_rat rises 25 -> 41; the natl leg goes 20 -> 40.
+EP4K_SCAV_RAT = (25, 41)
+EP4K_NATL_LEG = (20, 40)
+
+
+def test_flagship_legs_are_consistent_with_the_joint_count():
+    """The joint cannot exceed its weakest leg, and 25/50 is set by eqpac+natl."""
+    assert FLAGSHIP_SCAV_RAT_LEGS["sopac"] == 49
+    assert FLAGSHIP["scav_rat"] == 25
+    assert min(FLAGSHIP_SCAV_RAT_LEGS.values()) == FLAGSHIP_SCAV_RAT_LEGS["eqpac"] == 7
+
+
+#: 26/50 also drifted in RANGE form ("26->41/50"), which the literal "26/50" check
+#: below never saw. Same for the natl leg, which drifted as "19->40". Both forms are
+#: matched here so the guard covers how the numbers are actually written in prose.
+_ARROW = r"(?:->|-->|→|–>|\s+to\s+)"
+_RANGE_DRIFTS = (
+    (re.compile(rf"\b26\s*{_ARROW}\s*41\b"), "scav_rat 26->41 (flagship is 25->41 at 4000ep)"),
+    (re.compile(rf"\bnatl\s+19\s*{_ARROW}\s*40\b", re.IGNORECASE),
+     "natl leg 19->40 (flagship natl leg is 20->40)"),
+    (re.compile(rf"\b19\s*{_ARROW}\s*40/50\b"), "natl leg 19->40/50 (should be 20->40/50)"),
+)
+
+
+@pytest.mark.parametrize("pattern,label", _RANGE_DRIFTS,
+                         ids=[d[1].split()[0] + "-range" for d in _RANGE_DRIFTS])
+def test_no_tracked_doc_carries_the_range_form_drift(pattern, label):
+    """The exact hole that let two wrong numbers propagate to 13 files.
+
+    The literal-"26/50" check below matched only the bare fraction, so "26->41/50"
+    sailed through it into STATUS.md, ONBOARDING.md, the AGU abstract and nine
+    findings docs. A guard that only catches one spelling of a number is not a guard.
+    """
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if pattern.search(line):
+                offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, f"{label} in:\n  " + "\n  ".join(offenders)
+
+
 def test_no_tracked_doc_quotes_the_unmatched_anchor_off_against_the_flagship():
     """4/50 is the 1500-epoch control; quoting it beside the 2000-epoch flagship
     overstates how much the real calcite anchor is doing."""

@@ -306,7 +306,7 @@ iron + a real calcite anchor (the headline); **`silicate_scope`** is *synthetic*
 
 Supporting: **per-AOI Fisher** — the Southern Ocean is the *best-conditioned* iron AOI (cond 2.2, 4.99
 decades) and is where `scav_rat` actually recovers (49/50 per-AOI); Eq. Pacific & N. Atlantic stay
-ratio-degenerate (cond 35–51; 8/50 and 19/50). The **joint 3-AOI** multi-start re-run is DONE (saddle-fix job `8515339`,
+ratio-degenerate (cond 35–51; 7/50 and 20/50). The **joint 3-AOI** multi-start re-run is DONE (saddle-fix job `8515339`,
 `docs/findings/2026-07-21_saddle_fix_result.md`): the 24-start θ\* is **positive-semi-definite** (the one
 zero eigenvalue is the structurally-unconstrained R_PICPOC), so **the earlier saddle was under-convergence**,
 and joint sloppiness is **≈2.69 decades**. The **per-AOI iron sloppiness is now quotable** (job 189403, PSD
@@ -344,8 +344,8 @@ flagship number holds; `scav_rat` is genuinely the weak leg. Controls: surface-o
 **4/10**, balanced `subW=1` gives ~52% (26/50 & a 6/10 replicate), over-weighted `subW=3/8` degrades to 5/10,
 1/10 — so subsurface iron at *balanced* weight is a small real gain over surface-only, not a resolution.
 **Mechanism (per-AOI conditioning predicts per-AOI recovery, GN-Fisher job 189403 + n=50 tally):** `scav_rat`
-recovers **49/50 in the Southern Ocean** (cond 2.2, subsurface breaks the degeneracy) but only **8/50 eqpac /
-19/50 natl** (cond 35–51, still ratio-degenerate) — the 25/50 joint is set by how often eqpac/natl join the
+recovers **49/50 in the Southern Ocean** (cond 2.2, subsurface breaks the degeneracy) but only **7/50 eqpac /
+20/50 natl** (cond 35–51, still ratio-degenerate) — the 25/50 joint is set by how often eqpac/natl join the
 always-recovering SO. See `docs/findings/2026-07-23_overnight_geometry_and_seasonal.md`.
 **scav_rat is substantially OPTIMIZATION-limited (job 190529, VERIFIED, 2026-07-23):** at **4000 epochs**
 (vs the standard 2000) scav_rat per-AOI rises **25/50 → 41/50** (natl 20→40/50; eqpac stays hard at 6/50), so
@@ -526,7 +526,7 @@ differentiable", "learned real biology", or "env-gated calcification proven".
 ## Cross-references
 
 - [Config / Results Matrix](docs/results_matrix.md) — the single source of truth for per-config results
-- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations across 10 lever axes (the earlier "box-tuning exhausted" verdict is superseded: epochs still had headroom — scav_rat 26→41/50 at 4000ep, job 190529)
+- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations across 10 lever axes (the earlier "box-tuning exhausted" verdict is superseded: epochs still had headroom — scav_rat 25→41/50 at 4000ep, job 190529)
 - [Emulator coupling plan](docs/emulator_coupling_plan.md) — the Track-2 off-box build plan (physical-backbone survey — Samudra 2 as leading backbone, SamudrACE's named biogeochemistry hole as the carbon-BGC-UDE slot — plus the gated Phase 1→3 plan)
 - [CHANGELOG.md](CHANGELOG.md) — chronological record (version-by-version)
 - [README](README.md) — project overview · [docs/dinn_design.md](docs/dinn_design.md) — architecture

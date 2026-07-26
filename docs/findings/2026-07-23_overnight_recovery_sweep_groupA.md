@@ -49,7 +49,7 @@ already taught us an n=10 "9/10" can be seed luck (the subiron arm0 regressed to
 
 ## Two SIGNIFICANT leads — BOTH CONFIRMED at n=50 (job 190529, VERIFIED exit 0)
 
-### A. scav_rat is substantially OPTIMIZATION-limited — CONFIRMED. **26/50 → 41/50 at 4000 epochs.**
+### A. scav_rat is substantially OPTIMIZATION-limited — CONFIRMED. **25/50 → 41/50 at 4000 epochs.**
 At 4000 epochs (vs 2000) scav_rat per-AOI holds **41/50** at n=50 (natl 40/50, up from 19/50; sopac 48/50;
 eqpac stays hard at 6/50). alpfe 49/50, R_PICPOC 50/50 unchanged. The n=10 9/10 was NOT seed luck — it held.
 **So scav_rat's weakness is substantially an under-optimization artifact, not a pure information wall**: more

@@ -11,7 +11,7 @@ does not duplicate them. Every number is `verify_run`-gated (exit 0) and cites i
 
 ## 0. TL;DR
 - **Two significant, verified improvements to the paper's central results:** (1) scav_rat is largely
-  *optimization-limited* — trio 25/50 (2000ep) → **~41/50 (4000ep)**, scav_rat leg 26→41/50 (natl 19→40,
+  *optimization-limited* — trio 25/50 (2000ep) → **~41/50 (4000ep)**, scav_rat leg 25→41/50 (natl 20→40,
   eqpac 6), no new data; (2) diatomgraz has a **non-circular handle** — 35/50 from Chl+MLD with the bSi
   diagnostic off.
 - **The 4-of-4 question is closed: it does not exist, and the trade-off is STRUCTURAL** (full+MLD+4000ep →

@@ -19,7 +19,7 @@ scientific gate and part of it needs NASA compute + Jon, so it starts as prep + 
 > - **H1.** In `STATUS.md` (the 2026-07-10 bottom-line banner) and `docs/results_matrix.md` (the 2026-07-05
 >   verdict), retire "the box is tuning-exhausted / a positive result needs new observations, not more GPU."
 >   Replace with the two-component framing: the recoverability gap is a large *closeable optimization*
->   component (scav_rat 26→41/50 at 4000 epochs, natl 19→40, no new data — job 190529) plus a residual
+>   component (scav_rat 25→41/50 at 4000 epochs, natl 20→40, no new data — job 190529) plus a residual
 >   *information* component (eqpac 6/50). Compute is no longer a no-op.
 > - **H2.** In the STATUS accuracy matrix, reclassify scav_rat "not point-identified (CV≈43%)" →
 >   "practical non-identifiability (curved profile in all 3 AOIs, jobs 189403/189870), largely
