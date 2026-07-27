@@ -104,6 +104,7 @@ from darwindiff.ecco_darwin_loader import (
 )
 from darwindiff.held_out_obs import CACHE_FILENAMES
 from darwindiff.iron_forcing_loader import IRONFILE_NAME, iron_flux_aoi_grid, phi_dust_surface_field
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.transport import (
     carbon_total,
     grid_tendency,
@@ -141,7 +142,7 @@ def _build_ic_7tracer(cache_path: Path, n_z: int, dtype, device) -> torch.Tensor
     (``run_v3.0_joint_multi_aoi.py``) builds and reads. Well-mixed over depth (matches
     ``e2_real_calcite_eqpac._build_ic``); non-finite/land -> a small/typical positive
     fallback so the rollout is finite from step 0."""
-    c = torch.load(cache_path, weights_only=False)
+    c = safe_torch_load(cache_path)
 
     def _f(key, fallback):
         a = torch.as_tensor(np.asarray(c[key], dtype=np.float64), dtype=dtype, device=device)

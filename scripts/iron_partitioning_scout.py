@@ -51,6 +51,7 @@ import numpy as np
 import torch
 
 from darwindiff.carroll6 import P, W_SINK
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.trainer import TransportConfig, rollout_field
 
 # reuse the wall demo's real-footprint input builder verbatim
@@ -151,7 +152,7 @@ def main() -> int:
     ap.add_argument("--n-alpfe", type=int, default=13)
     ap.add_argument("--n-scav", type=int, default=15)
     args = ap.parse_args()
-    inp = torch.load(args.bundle, weights_only=False) if args.bundle else build_inputs()
+    inp = safe_torch_load(args.bundle) if args.bundle else build_inputs()
     return run(inp, args.n_steps, args.n_alpfe, args.n_scav)
 
 

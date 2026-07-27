@@ -217,6 +217,7 @@ from darwindiff.daniels_loader import (
 )
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
 from darwindiff.networks import DINN, GlobalScalarNet
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.gating import (
     GATING_POLICIES,
     apply_gate,
@@ -668,7 +669,7 @@ def _load_or_build_target_cache(aoi) -> dict:
     expected_bounds = (aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
     if cache_path.is_file():
         try:
-            cached = torch.load(cache_path, map_location="cpu", weights_only=False)
+            cached = safe_torch_load(cache_path, map_location="cpu")
             if (cached.get("aoi_name") == aoi.name
                     and cached.get("aoi_bounds") == expected_bounds
                     and cached.get("resolution", "1deg") == _res):

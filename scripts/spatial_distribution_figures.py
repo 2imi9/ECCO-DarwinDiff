@@ -25,9 +25,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
-import torch
 
-sys.path.insert(0, "src")
+_SRC = Path(__file__).resolve().parent.parent / "src"
+if _SRC.exists() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+from darwindiff.safe_load import safe_torch_load  # noqa: E402
 
 OUT = Path("docs/findings/figures/2026-07-07_spatial")
 OUT.mkdir(parents=True, exist_ok=True)
@@ -42,7 +45,7 @@ GEOTRACES = "D:/geotraces/GEOTRACES_IDP2025_Seawater.nc"
 
 
 def _load(path):
-    d = torch.load(path, map_location="cpu", weights_only=False)
+    d = safe_torch_load(path, map_location="cpu")
     g = lambda k: np.asarray(d[k]).ravel().astype(float)
     lat, lon = g("darwin_lats"), g("darwin_lons")
     pic, poc, fet = g("pic_binned"), g("poc_binned"), g("fet_binned")

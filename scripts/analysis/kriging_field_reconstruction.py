@@ -172,18 +172,20 @@ def collect_cells(geotraces_path, depth_max=50.0):
     from darwindiff.ecco_darwin_loader import AOI_BY_KEY
     from darwindiff.geotraces_loader import dfe_aoi_1deg_grid
     from darwindiff.held_out_obs import CACHE_FILENAMES, _DEFAULT_CACHE_DIR
-    import torch
+    from darwindiff.safe_load import safe_torch_load
 
     per_aoi = {}
     dense_model = []  # (lat, lon, log model) over ALL finite model cells (for L_model)
     for key in AOI_KEYS:
         aoi = AOI_BY_KEY[key]
         cache_p = Path(_DEFAULT_CACHE_DIR) / CACHE_FILENAMES[aoi.name]
-        # weights_only=True: torch.load with it disabled unpickles arbitrary objects, and
-        # DARWIN_DATA_ROOT may point at a shared or externally populated cache. These caches
-        # hold a plain dict of tensors, which loads fine under the safe path. If a cache ever
-        # fails here, regenerate it rather than re-disabling the guard.
-        c = torch.load(cache_p, weights_only=True)
+        # Restricted unpickler: torch.load with weights_only=False executes arbitrary
+        # objects, and DARWIN_DATA_ROOT may point at a shared or externally populated
+        # cache. These caches hold numpy arrays (not tensors), so a bare weights_only=True
+        # rejects them -- safe_torch_load allowlists numpy's array-reconstruction plumbing
+        # and nothing else. If a cache ever fails here, regenerate it rather than
+        # re-disabling the guard.
+        c = safe_torch_load(cache_p)
         model = np.asarray(c["fet_binned"], dtype=np.float64)      # [Y,X] mmol/m^3
         lats1d = np.asarray(c["darwin_lats"], dtype=np.float64)
         lons1d = np.asarray(c["darwin_lons"], dtype=np.float64)

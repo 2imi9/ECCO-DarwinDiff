@@ -42,6 +42,7 @@ from darwindiff.modis_pic_loader import (
     MOL_PER_M3_TO_MMOL_C_PER_M3,
     build_aoi_climatology,
 )
+from darwindiff.safe_load import safe_torch_load
 
 MODIS_DIR = r"D:\modis_aqua_pic"
 # Darwin v05 PIC comes from the LLC270 monthly cache the v3.0 runner already
@@ -98,7 +99,7 @@ def main() -> None:
 
         # Darwin v05 PIC: the v3.0 runner already binned LLC270 PIC to 1° and
         # cached it. Load that bundle and grab the time-mean `pic_binned` field.
-        cached = torch.load(DARWIN_CACHE[key], map_location="cpu", weights_only=False)
+        cached = safe_torch_load(DARWIN_CACHE[key], map_location="cpu")
         darwin_pic_mean = np.asarray(cached["pic_binned"])  # (lat, lon)
         darwin_mask = np.isfinite(darwin_pic_mean) & (darwin_pic_mean > 0)
         darwin_summary = summarize(darwin_pic_mean, darwin_mask, f"Darwin v05 PIC ({key})")

@@ -28,6 +28,7 @@ import numpy as np
 import torch
 
 from darwindiff.carroll6 import P, Q_FE, W_SINK
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.trainer import TransportConfig, rollout_field
 from iron_scav_rat_profile import DX, DY, DZ, EPS, build_inputs
 
@@ -125,7 +126,7 @@ def main():
     ap.add_argument("--bio-frac", type=float, default=0.5)
     ap.add_argument("--lith-frac", type=float, default=0.5)
     a = ap.parse_args()
-    inp = torch.load(a.bundle, weights_only=False) if a.bundle else build_inputs()
+    inp = safe_torch_load(a.bundle) if a.bundle else build_inputs()
     return run(inp, a.n_steps, a.n_alpfe, a.n_scav, a.bio_frac, a.lith_frac)
 
 

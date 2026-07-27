@@ -47,6 +47,7 @@ import numpy as np
 import torch
 
 from darwindiff.carbonate import calcite_saturation
+from darwindiff.safe_load import safe_torch_load
 
 CACHE_DIR = Path(os.environ.get("DARWIN_DATA_ROOT", r"D:\ecco_darwin_v5")) / "cache"
 CACHES = {
@@ -64,7 +65,7 @@ def _load_aoi(key: str, fname: str) -> dict | None:
     path = CACHE_DIR / fname
     if not path.exists():
         return None
-    cache = torch.load(path, weights_only=False)
+    cache = safe_torch_load(path)
     sst = np.asarray(cache["sst"], dtype=np.float32)
     sss = np.asarray(cache["sss"], dtype=np.float32)
     dic = np.asarray(cache["dic_binned"], dtype=np.float32)

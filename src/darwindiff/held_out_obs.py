@@ -72,6 +72,7 @@ from darwindiff.daniels_loader import (
     build_aoi_climatology,
 )
 from darwindiff.ecco_darwin_loader import AOI
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.transport import interior_mask
 
 # --- cache resolution ---------------------------------------------------------
@@ -318,7 +319,7 @@ def _resolve_cache(
             f"AOI env cache not found: {cache_path}. Set DARWIN_DATA_ROOT, pass "
             f"cache_dir=/cache_path=, or inject cache= (hermetic tests)."
         )
-    return torch.load(cache_path, weights_only=False)
+    return safe_torch_load(cache_path)
 
 
 def aoi_env_field(

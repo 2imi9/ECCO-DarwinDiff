@@ -13,7 +13,12 @@ from pathlib import Path
 import numpy as np
 import torch
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+_HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(_HERE))
+_SRC = _HERE.parent / "src"
+if _SRC.exists() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+from darwindiff.safe_load import safe_torch_load  # noqa: E402
 from diffusion_emulator import (  # noqa: E402
     FNO2d, EDMCorrector, edm_sample, load_cube, zscore, time_split, radial_spectrum,
 )
@@ -37,7 +42,7 @@ def main():
     a = p.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
 
-    ck = torch.load(a.model, map_location=dev, weights_only=False)
+    ck = safe_torch_load(a.model, map_location=dev)
     cfg = ck.get("config", {})
     modes = cfg.get("modes", a.modes); width = cfg.get("width", a.width); regw = cfg.get("reg_width", a.reg_width)
     sd = cfg.get("sigma_data", a.sigma_data)
