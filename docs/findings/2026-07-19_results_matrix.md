@@ -182,8 +182,17 @@ is arguably more useful — but it is a different product and must be stated as 
 The one axis that would move this from "surrogate of a model" to "tested against the ocean."
 
 - **Instrument:** MODIS-Aqua `chlor_a` via NOAA CoastWatch ERDDAP `erdMH1chlamday` (no auth needed).
-  **Not PACE** — v05 daily ends 2012-03-31, PACE launched 2024, zero overlap.
-- **Window:** 2003-01 → 2012-03 (111 months), the full MODIS ∩ v05-daily overlap.
+  **Not PACE** — PACE launched 2024, after v05 daily ends, so there is zero overlap. *(This
+  conclusion stands, but the date behind it was wrong — see below.)*
+- **Window:** 2003-01 → 2012-03 (111 months) is what was actually analysed here.
+  > **⚠ CORRECTED 2026-07-19 (calendar bug).** This section was written believing v05 daily ends
+  > **2012-03-31**. That date is a `delta_t` artifact — cube `times_days` was built with a 900 s
+  > timestep against v05's true 1200 s, making every stored time 0.75× truth. v05 daily actually
+  > ends **2018-12-31** ([STATUS.md](../../STATUS.md)), so the real MODIS ∩ v05 overlap is roughly
+  > **twice** the 111 months used here. The window above is therefore *not* "the full overlap" as
+  > originally claimed; it is a subset. The measured confounds, noise floor and units checks below
+  > are unaffected, but any conclusion resting on sample size or on the analysis being exhaustive
+  > should be re-derived on the full record.
 - **Verified:** `surfChl4` contributes **−0.002%** of total Chl, so the cubes' 4 channels are total
   chlorophyll. Units match exactly (`mg m-3`), no conversion.
 - **Measured confounds:** linear mean is **86.5%** above geometric mean ⇒ log10 throughout; January

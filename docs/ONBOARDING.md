@@ -96,7 +96,7 @@ contrast *is* the paper-#1 result.
 A parameter can carry Fisher information yet still not recover, because recovery is downstream of
 optimization and coverage. `scav_rat` is the worked example: with subsurface GEOTRACES iron it is
 *well-conditioned* (the source/loss ratio degeneracy breaks ~1400×), yet its recovery is largely
-**optimization-limited** — 26→41/50 per-AOI just by training to 4000 epochs instead of 2000, with the
+**optimization-limited** — 25→41/50 per-AOI just by training to 4000 epochs instead of 2000, with the
 equatorial Pacific (6/50) the residual *information*-limited basin. When you read a recovery count, ask
 which of three it is: information-limited, optimization-limited, or a metric straddle (per-AOI legs on
 opposite sides of Carroll — the cell-weighted count can lie).

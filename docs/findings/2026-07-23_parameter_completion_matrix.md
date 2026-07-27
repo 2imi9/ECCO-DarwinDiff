@@ -16,7 +16,7 @@ metric), verify_run-gated. Confidence is qualitative (no confidence percentages,
 ## Trio {alpfe, scav_rat, R_PICPOC}
 Joint per-AOI = **25/50 at 2000 epochs, rising to ~41/50 at 4000 epochs** (n=50, set by scav_rat's binding
 count of 25/50; see LEAD A). alpfe 49/50 and R_PICPOC 50/50 both clear; scav_rat is the sole binding leg, and at 2000ep
-it binds because eqpac/natl stay ratio-degenerate — but at 4000ep natl recovers (19→40/50), leaving eqpac the
+it binds because eqpac/natl stay ratio-degenerate — but at 4000ep natl recovers (20→40/50), leaving eqpac the
 sole info-limited basin. Global-scalar control: 0/50 (per-cell architecture load-bearing). **This is the
 cleanest quantitative result and the manuscript headline — confirmed at n=50 tonight (the earlier n=10 "9/10"
 was seed luck), with the 4000-epoch upgrade showing the gap is largely optimization-limited.**
@@ -34,7 +34,7 @@ was seed luck), with the 4000-epoch upgrade showing the gap is largely optimizat
 ## Group A DONE (n=10, verified) — two significant leads now in n=50 confirmation
 - **No robust 4-of-4** confirmed (pat030/050/010-mld all → diatomgraz 0/10 across the pattern-MLD crossover).
 - **LEAD A — CONFIRMED at n=50: scav_rat 25/50 → 41/50 at 4000 epochs.** scav_rat is substantially
-  OPTIMIZATION-limited (natl 19→40/50; eqpac stays 6/50). The trio rises 25/50 → ~41/50 with 2× compute, no
+  OPTIMIZATION-limited (natl 20→40/50; eqpac stays 6/50). The trio rises 25/50 → ~41/50 with 2× compute, no
   new data. (job 190529, VERIFIED)
 - **LEAD B — CONFIRMED at n=50: diatomgraz 35/50 with bSi/POSi OFF** (from Chl+MLD; median within 5% of
   Carroll). A non-bSi handle → answers M11 circularity. Caveat: Chl is Darwin-internal (consistency, not

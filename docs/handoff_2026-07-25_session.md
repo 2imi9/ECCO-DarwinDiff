@@ -47,7 +47,7 @@ citations, 488203 bytes**.
 **main.tex diffs applied (all user-approved one by one).**
 1. scav_rat → *practical*, not structural, non-ID (curved profile, all 3 AOIs). *(Used "In contrast,"
    instead of "While" to avoid a sentence fragment.)*
-2. New paragraph: recoverability gap decomposes into closeable optimization (natl 19→40/50) + residual
+2. New paragraph: recoverability gap decomposes into closeable optimization (natl 20→40/50) + residual
    information (eqpac 6/50); explicitly retains 2000ep as the flagship.
 3. EKI as a **third** estimator control (two→three) + **required** consistency fix: Forward-work narrowed
    to "independent inversion **of the full model** … not routed through our surrogate" (the paper had
@@ -106,5 +106,5 @@ obs operator) was never executed — the geo1 `.pt` caches + GEOTRACES live on A
 - **AICR** is Duo-2FA gated; `ssh aicr` times out on a non-interactive probe. It holds the geo1 box data
   (`~/dd_data`) + GEOTRACES, so the surrogate Jacobian could run there in one interactive session.
 - Key numbers: alpfe 49/50 · R_PICPOC 50/50 (epoch-matched anchor-off 6/50; 4/50 at 1500 ep) · scav_rat 25/50@2000ep → **41/50@4000ep**
-  (natl 19→40, eqpac 6, sopac 48; job 190529) · diatomgraz 35/50 non-circular (job 190529) · trio 25/50 →
+  (natl 20→40, eqpac 6, sopac 48; job 190529) · diatomgraz 35/50 non-circular (job 190529) · trio 25/50 →
   ~41/50 vs global-scalar 0/50 · structural 3-of-4 (job 192298) · EKI job 189754 · seasonal job 189324.
