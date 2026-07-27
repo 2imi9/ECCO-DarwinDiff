@@ -125,6 +125,30 @@ def _numpy_safe_globals() -> list[Any]:
     return allowed
 
 
+# ---------------------------------------------------------------------------
+# KNOWN LIMIT: cross-major-version numpy, UNVERIFIED
+#
+# Greptile flagged (PR #203) that a cache written under numpy 2.x might not load on a
+# numpy 1.26 node, since `numpy.dtypes` does not exist there and the loop above then
+# allowlists no dtype classes at all.
+#
+# What is verified: on a numpy 2.x runtime, removing the `*DType` classes DOES break the
+# load ("but got <class 'numpy.dtypes.Float64DType'>"). That is why they are listed.
+#
+# What is NOT verified, either way: the actual numpy-1.26 runtime. torch's restricted
+# unpickler type-checks the object it BUILDS, not the name in the stream, and under numpy
+# 1.26 `numpy.dtype('float64')` builds a plain `numpy.dtype` -- which IS allowlisted above.
+# By that mechanism the cross-version read should succeed, but reasoning is not a test and
+# building a numpy-1.26 + torch environment to check it timed out. Treat this as an open
+# question, not a cleared one.
+#
+# If it does fail on an older node, the symptom is a loud SafeLoadError naming the file
+# (never a silent fallback), and the fix is to regenerate the cache on that node. The
+# safest operational rule until someone tests it: generate caches with the same numpy
+# major version that will consume them.
+# ---------------------------------------------------------------------------
+
+
 def safe_torch_load(
     path: str | os.PathLike[str],
     *,
