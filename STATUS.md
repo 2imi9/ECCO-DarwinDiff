@@ -112,7 +112,7 @@ comparison in the last row.**
 >
 > **The deflation still stands, and this is the honest headline.** Fraction of ocean beating
 > persistence is essentially unchanged (0.813 → 0.803) and median skill is 0.168 → 0.165. Against a
-> per-cell **seasonal AR(1)** baseline the model remains **−0.161 ± 0.013** across four seeds with
+> per-cell **seasonal AR(1)** baseline the model remains **−0.161 ± 0.015** across four seeds with
 > the CI entirely below zero. The fix restored *physical validity and dynamic range*; it bought
 > **no skill**. Useful horizon is still **one step**.
 

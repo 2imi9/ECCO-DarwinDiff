@@ -2,7 +2,7 @@
 
 > **⚠️ SUPERSEDED — the 'beats persistence' framing is RETRACTED (2026-07-23).** Persistence
 > is a weak baseline on an autocorrelated monthly ocean. Against a per-cell *seasonal AR(1)*
-> baseline with block-bootstrap CIs the emulator scores **−0.161 ± 0.013** across four seeds,
+> baseline with block-bootstrap CIs the emulator scores **−0.161 ± 0.015** across four seeds,
 > with the interval entirely below zero on every seed. Read what follows as the record of what
 > was believed at the time. See `docs/findings/2026-07-23_emulator_baselines_v2.md`.
 

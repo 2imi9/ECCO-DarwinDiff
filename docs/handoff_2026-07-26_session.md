@@ -77,7 +77,7 @@ The log-space bug was real. AICR job 204877 re-ran the identical global config w
 | FeT | 0.882 → 0.940 | 7.27% → **0.00%** |
 
 The oligotrophic gyres are reproduced; fit slope 0.23 → 0.81. **Skill is unchanged** — 0.813 →
-0.803 of ocean beating persistence, still −0.161 ± 0.013 vs seasonal AR(1). The fix bought
+0.803 of ocean beating persistence, still −0.161 ± 0.015 vs seasonal AR(1). The fix bought
 physical validity, not skill. Horizon is still one step.
 
 **Every global emulator figure predating 2026-07-25 is contaminated.** Regenerate before showing.

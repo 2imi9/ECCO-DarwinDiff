@@ -168,6 +168,39 @@ def test_no_tracked_doc_carries_the_range_form_drift(pattern, label):
     assert not offenders, f"{label} in:\n  " + "\n  ".join(offenders)
 
 
+#: The two emulator baseline comparisons have DIFFERENT seed spreads, and swapping them
+#: understates the AR(1) result's stability. Source: 2026-07-23_emulator_multiseed.md:9,32.
+EMULATOR_VS_PERSISTENCE = (0.055, 0.013)
+EMULATOR_VS_SEASONAL_AR1 = (-0.161, 0.015)
+
+_AR1_WRONG_SPREAD = re.compile(r"0\.161\s*(?:±|\+/-)\s*0\.013")
+
+
+def test_ar1_and_persistence_spreads_are_not_swapped():
+    """+/-0.013 belongs to persistence; +/-0.015 belongs to seasonal AR(1).
+
+    Caught by Greptile on PR #202 after -0.161 +/- 0.013 had propagated to ten files,
+    including STATUS.md and the README. STATUS.md carried BOTH spellings -- 0.015 at
+    L79 and 0.013 at L115 -- so a reader copying from the canonical doc had even odds
+    of taking the wrong one. That is how it spread.
+    """
+    assert EMULATOR_VS_SEASONAL_AR1[1] != EMULATOR_VS_PERSISTENCE[1]
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if _AR1_WRONG_SPREAD.search(line):
+                offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        "seasonal-AR(1) skill quoted with persistence's spread (should be "
+        f"{EMULATOR_VS_SEASONAL_AR1[0]} +/- {EMULATOR_VS_SEASONAL_AR1[1]}) in:\n  "
+        + "\n  ".join(offenders)
+    )
+
+
 def test_no_tracked_doc_quotes_the_unmatched_anchor_off_against_the_flagship():
     """4/50 is the 1500-epoch control; quoting it beside the 2000-epoch flagship
     overstates how much the real calcite anchor is doing."""

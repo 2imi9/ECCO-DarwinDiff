@@ -1,7 +1,7 @@
 # Is "−0.161 vs seasonal AR(1)" a fair bar? — literature check (2026-07-26)
 
 **Question.** Our emulator shows no significant skill vs persistence (+0.055 ± 0.013) and is
-significantly *worse* than a per-cell seasonal AR(1) baseline (−0.161 ± 0.013). Is that an
+significantly *worse* than a per-cell seasonal AR(1) baseline (−0.161 ± 0.015). Is that an
 unusually harsh bar we imposed on ourselves, or the bar the field actually uses?
 
 **Answer: it is the correct bar, and the leading 2026 marine-BGC emulator paper uses it too.**
