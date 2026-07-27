@@ -20,6 +20,16 @@ Source of truth (do NOT edit these without re-running the grader):
       scav_rat           25/50      36/50    +11 <<   eqpa:7  natl:20 sout:49
       diatomgraz          3/50       6/50     +3 <<   eqpa:37 natl:1  sout:3
       R_PICPOC           50/50      46/50             eqpa:46 natl:50 sout:40
+      iron_pair (per-AOI honest): 25/50   rho(alpfe,scav_rat) = -0.65
+
+RE-DERIVED 2026-07-26. The 50 per-seed JSONs were pulled from Explorer
+(/projects/schultz/qi.zim/runs/n50e2k_percell_trio) and re-graded from scratch. Every
+value above reproduced exactly, gate exit 0. This matters because the constants below
+were previously only asserted -- a guard whose expected values came from the same
+documents it polices is circular. They now come from the grader, independently re-run.
+
+The re-grade also settled the per-AOI legs: eqpac 7 / natl 20 / sopac 49. STATUS.md had
+carried 8 / 19, which are the subW=1 arm's legs attached to the flagship's joint.
 """
 from __future__ import annotations
 
