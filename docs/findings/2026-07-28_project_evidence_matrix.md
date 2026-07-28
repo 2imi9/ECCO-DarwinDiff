@@ -1,5 +1,30 @@
 # Project evidence matrix — every headline claim vs its artifact
 
+> ## Updated 2026-07-28 (evening) — five rows changed after repairs
+>
+> | # | was | now |
+> |---|---|---|
+> | 5 · 4000-epoch `scav_rat` 41/50 | document-only | **re-graded on AICR, gate exit 0** — legs eqpac 6 / natl 40 / sopac 48, all reproduce; pinned by `test_ep4k_is_the_optimisation_limited_arm` |
+> | 18 · AR(1) −0.161 ± 0.015 | document-only | **artifact-backed** — `emulator_baseline_matrix_v2{,_seed1..3}.json` fetched from AICR; reproduces to **−0.1614 ± 0.0154**, `ar1_seasonal_percell` best in all 4 seeds |
+> | 13 · physics-blind skill | untested script | **6 tests** (`test_physics_verify.py`), incl. proof a land-cell negative is excluded |
+> | 30 · Earth2Studio conformance | never ran in CI | **non-blocking CI job**, fails if earth2studio does not install |
+> | 17 · log-space fix | "physically valid" | **SPLIT — see below.** Positivity holds; **mass does not** |
+>
+> ### The correction that matters
+>
+> `global_fields_logspace.json` (job 204877) records mass drift **Chl1 +129.7%**, POC +17.2%,
+> PIC −7.3%, FeT −6.3% over six rollout steps, with `mass_conserve_enforced: false`. Only DIC
+> and ALK hold (<0.1%). Three public documents — `README.md`, `docs/index.md` (which named the
+> run) and `docs/project_checkpoint_2026-07-25.md` — credited it with mass conservation.
+> Corrected, and guarded by `tests/test_logspace_run_claims.py`.
+>
+> **Positivity and mass conservation are different properties.** The log-space fix delivered the
+> first, not the second, and the prose generalised from DIC/ALK to all six tracers.
+>
+> Still open: the log-range retention values (0.891 / 0.906 / 0.882 / 0.940) are **not** in the
+> artifact and remain document-only. All four diffusion claims remain unassertable.
+
+
 **Date:** 2026-07-28 · **Method:** claims read from STATUS.md / results matrix, then each checked
 against a committed artifact or a re-run. Not a summary of prose — a provenance audit.
 
