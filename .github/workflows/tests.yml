@@ -30,3 +30,41 @@ jobs:
 
       - name: Run tests
         run: uv run pytest tests/ -q
+
+  # The e2s adapter falls back to no-op shims when earth2studio is absent, so the main
+  # job validates our adapter against OUR shims -- which cannot detect drift in NVIDIA's
+  # actual protocol. This job installs the real package and runs the conformance module.
+  #
+  # It is separate because earth2studio cannot be a declared extra (it needs GRIB C
+  # libraries and makes `uv lock` unsatisfiable -- see pyproject.toml). It is
+  # non-blocking: an upstream earth2studio break should surface here, not stop a merge.
+  e2s-conformance:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv + Python 3.11
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install project (CPU torch)
+        run: uv sync --all-extras
+        env:
+          UV_TORCH_BACKEND: cpu
+
+      - name: Install GRIB libraries + earth2studio
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libeccodes-dev
+          uv pip install earth2studio
+
+      - name: Fail if earth2studio did not actually install
+        # Without this the conformance module SKIPS and the job passes green while
+        # verifying nothing -- the same inert-gate failure mode as piping pytest
+        # through `tail`, which silently swallowed a non-zero exit for a whole session.
+        run: uv run python -c "import earth2studio.models.px.base as m; print('protocol:', m.PrognosticModel)"
+
+      - name: Run e2s conformance against the real protocol
+        run: uv run pytest tests/test_e2s_conformance.py -q -rs
