@@ -146,3 +146,53 @@ class TestGriddedAnchor:
     def test_unknown_observable_is_rejected(self) -> None:
         with pytest.raises(Exception):
             load_scavenging_anchor(AOI_BY_KEY["npac"], observable="not_a_real_observable")
+
+
+# ---------------------------------------------------------------------------
+# Leg 2 — downloaded 2026-07-28 from BCO-DMO 883797 (leg2.csv, 10.76 KB),
+# DOI 10.26008/1912/bco-dmo.883797.1. This is the leg that crosses the equator.
+# ---------------------------------------------------------------------------
+
+_LEG2 = DEFAULT_DATA_DIR / "leg2_dissolved_total_po_pb.csv"
+
+
+@pytest.mark.skipif(not _LEG2.is_file(), reason="GP15 Leg 2 not staged")
+class TestLeg2ReachesTheEquator:
+    """Leg 2 is what makes the equatorial-Pacific anchor possible at all."""
+
+    @pytest.fixture(scope="class")
+    def leg2(self):
+        return load_gp15_points(_LEG2, kind="dissolved_total")
+
+    def test_it_spans_the_equator(self, leg2) -> None:
+        assert leg2.lat.min() < 0 < leg2.lat.max(), (
+            f"Leg 2 should cross the equator, got {leg2.lat.min():.2f}..{leg2.lat.max():.2f}"
+        )
+
+    def test_it_covers_eqpac(self, leg2) -> None:
+        """The correction to commit 1e4b9ac, pinned."""
+        n = len(subset_aoi(leg2, AOI_BY_KEY["eqpac"]).lat)
+        assert n > 0, "Leg 2 must reach eqpac -- that is the whole point of staging it"
+        assert n >= 50, f"expected ~67 eqpac samples, got {n}"
+
+    def test_the_dissolved_phase_is_the_usable_one(self, leg2) -> None:
+        """Practical trap for whoever wires this into a loss.
+
+        In eqpac the TOTAL phase has ~3 finite samples, all at the surface, while the
+        DISSOLVED phase has ~64 spanning 20-5340 m. ``load_scavenging_anchor`` defaults to
+        phase="T", which is very nearly empty here -- so the default silently yields an
+        almost-empty anchor in the one basin we care about.
+        """
+        e = subset_aoi(leg2, AOI_BY_KEY["eqpac"])
+        n_t = int(np.isfinite(e.activity["Po_210_T"]).sum())
+        n_d = int(np.isfinite(e.activity["Po_210_D"]).sum())
+        assert n_d > 10 * n_t, f"expected D to dominate T in eqpac, got D={n_d} T={n_t}"
+
+    def test_dissolved_phase_resolves_depth(self, leg2) -> None:
+        """Depth structure is the informative part: the observation-design study found a
+        subsurface concentration breaks the alpfe/scav_rat symmetry because alpfe injects
+        iron only at the surface."""
+        e = subset_aoi(leg2, AOI_BY_KEY["eqpac"])
+        d = e.depth[np.isfinite(e.activity["Po_210_D"])]
+        assert d.max() > 1000, f"expected a full-depth profile, max depth {d.max():.0f} m"
+        assert len(np.unique(np.round(d / 500))) >= 4, "too few distinct depth bands"

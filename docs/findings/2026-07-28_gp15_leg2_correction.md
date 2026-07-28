@@ -55,3 +55,52 @@ as the latter.
    at 4000 epochs.
 
 That is the experiment the earlier finding wrongly closed off.
+
+---
+
+## Update — Leg 2 downloaded and verified (2026-07-28)
+
+Fetched `leg2.csv` (10.76 KB) from BCO-DMO 883797 and staged as
+`data/cochran_gp15_po_pb/leg2_dissolved_total_po_pb.csv`. **The existing loader parses it with no
+code changes** — identical schema to Leg 1.
+
+| | Leg 1 (was staged) | **Leg 2 (new)** |
+|---|---|---|
+| latitude span | 19.68 … 56.06 °N | **−20.00 … 18.91 °N** |
+| longitude | −156.96 … −152.00 | −155.26 … −151.99 |
+| samples | 89 | **121** |
+| **eqpac samples** | **0** | **67** |
+
+So the anchor **does** reach the equatorial Pacific. My earlier finding is fully retracted.
+
+### But the useful phase is the dissolved one, and this is a trap
+
+Within eqpac:
+
+| phase | finite samples | depths | stations |
+|---|---|---|---|
+| **T** (total) | **3** / 67 | 0 m only | 3 |
+| **D** (dissolved) | **64** / 67 | **20 – 5340 m** | 3 |
+
+`load_scavenging_anchor` defaults to `phase="T"`. In eqpac that yields **three surface points**. Anyone
+wiring this into the loss with the default would get an almost-empty anchor in the one basin that
+matters, and no error. Pinned by `test_the_dissolved_phase_is_the_usable_one`.
+
+### Why the depth coverage is the good news
+
+The observation-design study found that a **subsurface** measurement is nearly as powerful as a rate
+observable (~1260× variance reduction) *because `alpfe` injects iron only at the surface*, so depth
+resolution breaks the source/sink symmetry. Leg 2's dissolved phase gives full-depth profiles
+(20–5340 m) at three eqpac stations — exactly the geometry that breaks the degeneracy.
+
+### Honest limit
+
+**Three stations.** That is thin spatial sampling for constraining a field, and it is the real
+constraint now — not the absence of data. The informative content is the *depth structure*, not
+horizontal coverage.
+
+### Next
+
+Re-run the observation-design ranking with Leg 2's dissolved-phase profiles included, scoring the
+iron-block condition number **in eqpac specifically**. That is the experiment my earlier error
+wrongly closed, and it is now unblocked with data on disk.
