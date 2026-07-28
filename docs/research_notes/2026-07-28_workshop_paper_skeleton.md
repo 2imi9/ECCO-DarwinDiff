@@ -1,6 +1,15 @@
 # Workshop paper skeleton — observation design through a differentiable surrogate
 
-**Date:** 2026-07-28 · **Target:** CCAI @ NeurIPS 2026, Papers track (4 pp) · **Deadline:** 29 Aug 2026
+> ## ⚠ NOT the workshop submission — superseded 2026-07-28
+>
+> Superseded by `2026-07-28_workshop_paper_v2_ml_findings.md` **on strategy, not on content.**
+> ECCO-Darwin identifiability and observation design are the long-term flagship and belong in a full
+> conference/journal paper. A 4-page workshop should not spend them.
+>
+> **This plan is retained as the outline for that flagship paper.** The argument, the numbers and the
+> GP15 coverage turn all stand — they are simply aimed at a different venue.
+
+**Date:** 2026-07-28 · **Target:** ~~CCAI workshop~~ → **flagship conference/journal paper**
 
 > **Process note.** The venue asks that its CFP and website materials not be passed through an LLM
 > during paper-writing. So Lucas owns format, scope and section-length decisions by reading the CFP
