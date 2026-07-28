@@ -69,8 +69,9 @@ than failed. `scav_rat` and `diatomgraz` recover in opposite basins, so no confi
 the **3-of-4 frontier is structural**. The binding constraint is the observing system, not the
 method.
 
-**Forward emulator — a clean negative result.** Physically valid (0% negative concentrations in log
-space, mass ratio 1.000) but the useful horizon is **one step**, with no significant skill over a
+**Forward emulator — a clean negative result.** Positivity holds in log space (0% negative
+concentrations on all six tracers) but **mass is not conserved** — Chl1 drifts +130% over six
+rollout steps — and the useful horizon is **one step**, with no significant skill over a
 seasonal AR(1) baseline (−0.161 ± 0.015). The "~9-month horizon" (a `delta_t` artifact) and "beats
 persistence" (a weak baseline) are **retracted**. The reusable asset is infrastructure: the first
 ocean-BGC Earth2Studio `PrognosticModel`, plus physics validators.
