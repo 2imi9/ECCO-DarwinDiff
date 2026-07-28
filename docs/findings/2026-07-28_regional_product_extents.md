@@ -61,3 +61,40 @@ today's corrections and unaffected by the BLING parameter-incomparability findin
 - Whether B-SOSE iteration 134 exists (only 105 confirmed).
 - Whether TPOSE's BGC fields include dissolved Fe at all — BLING carries Fe, but which variables are
   *published* per product is unverified.
+
+---
+
+## Update — TPOSE publishes dissolved iron (loop Q2c)
+
+**Verified 2026-07-28.** TPOSE is coupled to **N-BLING** (the nitrogen-enabled BLING variant, not
+plain BLING), and its published output includes **dissolved inorganic carbon, alkalinity, oxygen,
+nitrate, phosphate, iron, and chlorophyll**
+([ecco.ucsd.edu/tpose.html](https://ecco.ucsd.edu/tpose.html)).
+
+**This is the first unambiguously positive result in the independent-validation scoping.** It means
+the iron *field* comparison is viable in the one basin that matters most:
+
+| requirement | status |
+|---|---|
+| covers `eqpac` (5°S–15°N, 160–110°W) | **yes**, whole tropical Pacific |
+| finer than our 1° grid | **yes**, 1/3° |
+| publishes dissolved Fe | **yes** |
+| overlaps v05 daily (ends 2018-12-31) | **yes**, 2010–2019 → ~9 yr |
+| independent BGC model | **yes**, N-BLING not Darwin |
+
+`eqpac` is where `scav_rat` recovers only 7/50 and stays at 6/50 even at 4000 epochs. An independent
+estimate of the dissolved-Fe *field* there is exactly the external check that distinguishes "Darwin's
+iron is right and our surrogate cannot recover it" from "Darwin's iron is itself unconstrained".
+
+**Caveat that must be carried:** N-BLING's iron cycle is ligand-mediated and structurally different
+from Darwin's (see `2026-07-28_bling_comparability.md`). Agreement or disagreement in the *field*
+is interpretable; nothing about the *parameters* transfers.
+
+**Prior art surfaced and worth reading:**
+[Tagliabue et al. 2016, *GBC*](https://doi.org/10.1002/2015gb005289) — *"How well do global ocean
+biogeochemistry models simulate dissolved iron distributions?"* A multi-model intercomparison of
+exactly the field we would be comparing. Read before framing any Fe-field result as novel.
+
+**Revised next step for the independent-validation route:** TPOSE dissolved Fe vs Darwin v05 DFe over
+`eqpac`, 2010–2018. That is a concrete, bounded, download-and-compare experiment — and unlike the
+Po/Pb route it needs no new observations at all.
