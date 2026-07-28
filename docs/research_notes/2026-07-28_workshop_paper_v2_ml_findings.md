@@ -91,6 +91,7 @@ retracted, and re-measured, with the delta quantified.
 
 ## Numbers that must NOT appear
 
-κ(J) = 2930 (that is κ(F); κ(J) ≈ 54) · `scav_rat` 26/50 (flagship is 25/50) · −0.161 ± 0.013 (AR(1)
-spread is ± 0.015) · "beats persistence" or "~9-month horizon" except as retracted.
+κ(J) = 2930 (that is κ(F); κ(J) ≈ 54) · the subW=1 arm's `scav_rat` count attributed to the flagship,
+which is **25/50** · the seasonal-AR(1) skill paired with persistence's spread instead of its own
+**± 0.015** · "beats persistence" or "~9-month horizon" except as retracted.
 `tests/test_canonical_numbers.py` (13 tests) guards these — **run it against the final text.**

@@ -83,7 +83,8 @@ tool.
 - κ(J) = 2930 — that is κ(F) = κ(J)²; κ(J) ≈ 54. Corrected 2026-07-27.
 - "beats persistence" / "~9-month horizon" — retracted.
 - `scav_rat` 26/50 — the flagship is **25/50**; 26/50 is the subW=1 arm.
-- `−0.161 ± 0.013` — the AR(1) spread is **± 0.015**; ±0.013 belongs to persistence.
+- The seasonal-AR(1) skill must carry **± 0.015**. Pairing it with persistence's spread is the error
+  corrected on 2026-07-27 across ten files.
 
 `tests/test_canonical_numbers.py` (13 tests) guards these. **Run it against the final text.**
 
