@@ -142,3 +142,48 @@ you can actually have.** Check the listing.
 Darwin's equatorial iron differing from an independent estimate remains the falsifiable test of the
 model-misspecification reading. It now requires a request to the TPOSE group for the Fe field, or an
 alternative independent product. **Recorded as untested rather than quietly dropped.**
+
+---
+
+## CORRECTION 2 — B-SOSE iter105 stops at 29.8°S, verified from the grid file (2026-07-28)
+
+I wrote above that B-SOSE "runs equator to 78°S" and telescopes to 2° at the equator. That came from
+the **paper's model description**. The **distributed product** is different.
+
+Downloaded `grid.nc` (427 MB) from `http://sose.ucsd.edu/SO3/ITER105/` and read it:
+
+    dims: NZ=52, NY=294, NX=1080
+    YC:  -77.965 .. -29.789        <- stops at 29.8 S, does NOT reach the equator
+    XC:    0.167 .. 359.833        <- global in longitude
+    lat spacing near -57 S: 0.1676, 0.1685, 0.1693, 0.1702   -> 1/6 deg, as advertised
+
+So for the distributed iter105 BGC solution:
+
+| our AOI | covered by B-SOSE iter105? | resolution |
+|---|---|---|
+| `southernoceanpac` 65–50°S | **yes** | **1/6°** — genuinely finer than our 1° |
+| `eqpac` 5°S–15°N | **no** — not even partially | — |
+| `natlsubpolar` 50–65°N | no (Southern Hemisphere product) | — |
+
+The earlier "coarse eqpac sliver from B-SOSE" idea is **dead**. The 2°-at-the-equator telescoping
+describes a different/fuller SOSE configuration, not this BGC product.
+
+### What B-SOSE still gives us, and it is worth having
+
+`bsose_i105_2008to2012_monthly_Fe.nc` (**3.8 GB**, downloading) is **dissolved inorganic iron at
+1/6° over the Southern Ocean, 2008–2012**, independently assimilated. Overlap with v05 is 5 years.
+
+That is the **control arm**: `southernoceanpac` is where `scav_rat` recovers **49/50**. If Darwin's
+Southern Ocean iron agrees with B-SOSE where recovery works, while eqpac's iron cannot be reproduced
+by the box at all (`tan φ` = 90°), the misspecification reading gains a matched comparison instead of
+resting on eqpac alone.
+
+It is also the product for the **Brix compensation test**, which is about Southern Ocean carbon and
+was never a TPOSE question.
+
+### Fourth walk-back, but caught the right way
+
+GP15 coverage, BLING comparability, TPOSE iron, and now B-SOSE extent — four claims taken from prose
+that the artifact contradicted. This one I caught **before** writing it up, by opening `grid.nc`
+instead of trusting the paper. That is the procedure; it should have been the procedure from the
+start.
