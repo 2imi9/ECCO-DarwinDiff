@@ -98,3 +98,47 @@ exactly the field we would be comparing. Read before framing any Fe-field result
 **Revised next step for the independent-validation route:** TPOSE dissolved Fe vs Darwin v05 DFe over
 `eqpac`, 2010–2018. That is a concrete, bounded, download-and-compare experiment — and unlike the
 Po/Pb route it needs no new observations at all.
+
+---
+
+## CORRECTION — TPOSE does not *distribute* dissolved iron (2026-07-28, later)
+
+The update above said TPOSE "publishes dissolved iron" and called the eqpac iron-field check viable.
+**That was based on the documentation, not on the file listing.** Checked the actual directory:
+
+`https://ecco.ucsd.edu/DATA/TPOSE/bgc_tp6/` — TPOSE.6-bgc, 2014–2016, monthly, domain **20°S–20°N**:
+
+    CO2flux · DIC · O2 · O2flux · SALT · SSH · THETA · UVEL · VVEL · WVEL · pCO2
+
+**No iron. No nitrate, phosphate, alkalinity or chlorophyll either**, despite all being listed in the
+prose. The page notes "additional variables available upon request" — so iron exists in the model
+(N-BLING carries it) but obtaining it is an **email to the TPOSE group**, not a download.
+
+There is also a **forward run** at `.../bgc_fwd/` (2004–2019, ERA5-driven). That one is **not
+assimilated**, so it is another model rather than an independent constraint, and it must not be used
+as external validation.
+
+### What this does and does not unblock
+
+| test | status |
+|---|---|
+| eqpac **iron** field vs an independent estimate | **blocked** — needs a data request |
+| eqpac **carbon** (DIC / pCO₂ / CO₂ flux) vs TPOSE | available now; DIC 372 MB, surface fields 12 MB each |
+| Brix Southern-Ocean compensation | **not TPOSE** — its domain stops at 20°S; that test needs B-SOSE |
+
+The carbon comparison is available but **does not test the misspecification prediction**. Today's
+`tan φ` measurement already shows the box reproduces DIC and ALK closely (φ < 1.4°) and fails only on
+iron (φ = 90°). Comparing carbon would largely confirm the half that already works.
+
+### Honest tally
+
+This is the third time in this scoping that I stated a capability from documentation and had to walk
+it back against the artifact: GP15 coverage, BLING comparability, and now TPOSE iron availability.
+The pattern is consistent — **prose describes what a system contains; the file listing describes what
+you can actually have.** Check the listing.
+
+### The prediction stands, untested
+
+Darwin's equatorial iron differing from an independent estimate remains the falsifiable test of the
+model-misspecification reading. It now requires a request to the TPOSE group for the Fe field, or an
+alternative independent product. **Recorded as untested rather than quietly dropped.**
