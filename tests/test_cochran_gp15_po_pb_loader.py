@@ -10,10 +10,23 @@ This loader is that observable. It has been in the repo, with its data staged, a
 with the Daniels/MODIS calcite anchor" -- and **no test and no caller**. Before wiring an
 untested loader into a loss that produces published numbers, it gets a test.
 
-The load-bearing question these tests answer is not "does it parse" but **which AOIs GP15
-actually covers**. GP15 is a single Pacific meridional transect; an anchor that misses the
-basin where ``scav_rat`` fails (eqpac, 7/50) cannot fix that basin no matter how well it
-conditions the problem elsewhere.
+The load-bearing question these tests answer is not "does it parse" but **which AOIs the
+STAGED DATA actually covers**.
+
+    CORRECTED 2026-07-28. An earlier version of this docstring, and commit 1e4b9ac, said
+    "GP15 covers NONE of the three flagship AOIs" and read that as an observing-system
+    limit. That was wrong. Both staged CSVs are **Leg 1 only** (Seattle -> Hilo), spanning
+    19.68 N to 56.06 N -- the filename says `leg1_`. GP15 as a campaign also has **Leg 2**
+    (Hilo -> Papeete, RR1815, Oct-Nov 2018), which crosses the equator, and its dissolved
+    + total 210Po/210Pb is published at BCO-DMO dataset 883797,
+    DOI 10.26008/1912/bco-dmo.883797.1.
+
+    So the top-ranked rate observable is NOT unavailable in the equatorial Pacific. We
+    simply have not staged the leg that goes there. That is a data-staging gap, not a
+    property of the observing system, and it is fixable by a download.
+
+The coverage test below therefore pins what the STAGED FILES contain, and says nothing
+about what GP15 as a whole measured.
 """
 
 from __future__ import annotations
@@ -94,9 +107,12 @@ class TestAOICoverage:
         assert len(subset_aoi(points, AOI_BY_KEY["natlsubpolar"]).lat) == 0
 
     def test_records_which_aois_have_coverage(self, points) -> None:
-        """Not a pass/fail on science -- it pins the coverage so a silent change is caught.
+        """Pins what the STAGED files cover. Not a claim about GP15 as a campaign.
 
-        Printed so the count is visible in -s runs; asserted so it cannot drift unnoticed.
+        Leg 1 spans 19.68 N to 56.06 N, so eqpac/natl/sopac are all empty here. Leg 2
+        (BCO-DMO 883797) crosses the equator and is not staged -- see the module docstring.
+        If Leg 2 is downloaded, this test SHOULD start seeing eqpac coverage, and that is
+        the signal to re-run the observation-design ranking with it included.
         """
         counts = {
             k: len(subset_aoi(points, AOI_BY_KEY[k]).lat)
