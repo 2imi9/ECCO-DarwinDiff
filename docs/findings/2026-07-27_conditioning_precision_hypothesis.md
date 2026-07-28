@@ -1,6 +1,44 @@
 # Is part of the "information limit" actually float32 roundoff? — hypothesis + decisive test
 
-**Date:** 2026-07-27 · **Status:** hypothesis, NOT tested · **Cost to settle:** one config change
+**Date:** 2026-07-27 · **Status:** hypothesis, LARGELY DEFLATED by its own corrected arithmetic
+· **Cost to settle:** one config change
+
+> ## ⚠ CORRECTED 2026-07-27 — the original version of this note squared an already-squared number
+>
+> The first version read the repo's 2930 as **κ(J)** and then formed κ(JᵀJ) = 2930² = 8.6 × 10⁶,
+> concluding that only **0.29 significant digits** survive in float32 — i.e. numerical annihilation.
+>
+> **That was wrong.** `2026-07-23_observation_design.md:76-78` reports the iron 2×2 **eigenvalues of
+> the Fisher matrix `F0`**: sloppy 1.08e-3, stiff 3.18, ratio 2944 ≈ 2930. Since `F ≈ JᵀJ`, the
+> published 2930 **is already κ(J)²**. So κ(J) = √2930 ≈ **54**, and κ(JᵀJ) = 2930.
+>
+> | regime | κ(F) = κ(J)² *(as published)* | κ(J) | float32 digits | float64 |
+> |---|---|---|---|---|
+> | iron block, surface-only | 2930 | **54.1** | **3.75** | 12.48 |
+> | eqpac / natl iron 2×2 | 51 | 7.1 | 5.51 | 14.24 |
+> | Southern Ocean iron 2×2 | 2.2 | 1.5 | 6.88 | 15.61 |
+> | iron + scav-flux observable | 6.9 | 2.6 | 6.38 | 15.11 |
+>
+> **3.75 surviving digits is workable, not annihilated.** The dramatic version of this hypothesis is
+> dead. The same correction applies to every κ quoted from these Fisher analyses — including
+> STATUS.md's "cond 2.2" and "cond 35–51", which are Fisher condition numbers, so the corresponding
+> Jacobian conditioning is √: 1.5 and 5.9–7.1.
+>
+> Found by the adversarial critic in the 2026-07-27 inverse-hierarchy workflow. The irony is that the
+> caveats section below already said these numbers "come from the Fisher analysis" — the fact was in
+> hand and used incorrectly anyway. Documented rather than quietly patched, because this is the same
+> defect class the canonical-number guards exist to catch: a quantity correct in one place and
+> misapplied in another.
+
+## What survives
+
+The *ordering* argument is untouched: recovery still tracks conditioning (SO κ(J)=1.5 → 49/50;
+eqpac/natl κ(J)≈6-7 → 7/50 and 20/50), and "more of the same data does not help" is unaffected —
+it rests on the measured κ being unchanged by a duplicate survey, not on its absolute size.
+
+What dies is the claim that float32 *numerically destroys* the sloppy iron direction. At 3.75 digits
+it does not. The float64 test is now a **low-priority control**, not a headline experiment — worth
+running only if something else points back at precision.
 
 ## The measured facts (all already in-repo)
 
