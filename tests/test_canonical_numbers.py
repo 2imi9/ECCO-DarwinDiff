@@ -176,6 +176,32 @@ EMULATOR_VS_SEASONAL_AR1 = (-0.161, 0.015)
 _AR1_WRONG_SPREAD = re.compile(r"0\.161\s*(?:±|\+/-)\s*0\.013")
 
 
+#: The 4000-epoch confirmation run, re-graded 2026-07-28 from the 50 per-seed JSONs on
+#: AICR (/scratch/qi_zim_neu/confirm/ep4k_n50), gate exit 0. Until then this was the last
+#: document-only Track-1 headline -- and it is quoted in the AGU abstract draft.
+#:
+#:   [ep4k] n=50/50  alpfe 49/50 | scav_rat 41/50 | diatomgraz 8/50 | R_PICPOC 50/50
+#:          scav_rat legs  eqpac 6 / natl 40 / sopac 48
+EP4K = {"alpfe": 49, "scav_rat": 41, "diatomgraz": 8, "R_PICPOC": 50}
+EP4K_SCAV_RAT_LEGS = {"eqpac": 6, "natl": 40, "sopac": 48}
+
+
+def test_ep4k_is_the_optimisation_limited_arm():
+    """2000 -> 4000 epochs moves scav_rat 25 -> 41 while eqpac barely moves.
+
+    That contrast is the whole 'closeable optimisation component plus a residual
+    information component' argument: natl 20 -> 40 is optimisation, eqpac 7 -> 6 is not.
+    """
+    assert EP4K["scav_rat"] == EP4K_SCAV_RAT[1] == 41
+    assert FLAGSHIP["scav_rat"] == EP4K_SCAV_RAT[0] == 25
+    assert EP4K_SCAV_RAT_LEGS["natl"] == EP4K_NATL_LEG[1] == 40
+    # eqpac does NOT improve with 2x the epochs -- it is information-limited
+    assert EP4K_SCAV_RAT_LEGS["eqpac"] <= FLAGSHIP_SCAV_RAT_LEGS["eqpac"]
+    # alpfe and R_PICPOC are already saturated and stay there
+    assert EP4K["alpfe"] == FLAGSHIP["alpfe"] == 49
+    assert EP4K["R_PICPOC"] == FLAGSHIP["R_PICPOC"] == 50
+
+
 def test_ar1_and_persistence_spreads_are_not_swapped():
     """+/-0.013 belongs to persistence; +/-0.015 belongs to seasonal AR(1).
 
