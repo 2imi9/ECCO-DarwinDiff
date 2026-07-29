@@ -305,8 +305,23 @@ def verify_config_dir(cdir: Path, expect_seeds: int | None) -> dict:
     # Fire only in the OVER-CLAIMING direction: the aggregate cell-weighted count
     # exceeds the per-AOI count, so quoting cell-weighted would report a stronger
     # result than the honest metric supports. Per-seed disagreements that net to
-    # an equal or lower cell-weighted total are not a reporting hazard, and
-    # flagging them would train readers to ignore the flag.
+    # an equal or lower cell-weighted total are not a reporting hazard for that
+    # parameter's own MARGINAL count, and flagging them would train readers to
+    # ignore the flag.
+    #
+    # BUT the net-only rule has a proven blind spot (mathematical audit, 2026-07-29).
+    # Writing a = seeds that straddle and b = seeds that reverse, the flag fires only
+    # when a - b > 0, so whenever a <= b it is silent even though a seeds genuinely
+    # straddle. A real archived example: D:/runs/cocc_c scav_rat has a = b = 2, so
+    # both rows print 7/10, no flag is raised, and the run exits 0 VERIFIED.
+    #
+    # That is tolerable for a marginal count and NOT tolerable for a JOINT one.
+    # Cancellation permutes WHICH seeds pass, and a joint count (the trio) is a
+    # CONJUNCTION over the same seeds, so equal marginals do not imply equal joints:
+    # a constructed 10-seed case gives identical per-parameter marginals with a trio
+    # of 9/10 cell-weighted against 8/10 per-AOI. The seed-level count is therefore
+    # printed unconditionally below as information rather than as a flag, which keeps
+    # the flag channel sharp while removing the blind spot.
     # A run carrying no per_aoi_recovered payload cannot be graded on the honest
     # metric at all. That is a DIFFERENT condition from a straddle and must not be
     # reported as "per-AOI 0/n", which would read as a measured failure.
@@ -428,6 +443,19 @@ def main() -> int:
         # visible by comparison, never as a result in its own right.
         cw = ", ".join(f"{p} {r['per_param_calplus'][p]}/{r['n']}" for p in PARAMS)
         print(f"   cell-weighted [DO NOT QUOTE]:  {cw}")
+        # Seed-level straddle counts, printed UNCONDITIONALLY as information.
+        # The STRADDLE flag above fires only on a NET over-claim, so it is silent
+        # whenever reverse seeds cancel straddling ones. That is fine for a marginal
+        # count and unsafe for a JOINT one, because a joint count is a conjunction
+        # over the same seeds and cancellation permutes which seeds pass. This value
+        # was already computed and emitted in --json but never rendered.
+        _str = r.get("straddled_seeds") or {}
+        if any(_str.get(p) for p in PARAMS):
+            body = ", ".join(f"{p} {_str[p]}/{r['n']}" for p in PARAMS if _str.get(p))
+            print(f"   seeds straddling individually:  {body}")
+            print("     (a seed whose cell-weighted verdict disagrees with its per-AOI "
+                  "verdict. Nonzero here means JOINT counts are not protected even when "
+                  "the marginal counts above agree.)")
         print(f"   mean_cal={r['mean_cal']}  iron_pair_joint={r['iron_pair_joint']}/{r['n']}  "
               f"excellents={r['total_excellents']}   (all cell-weighted)")
         print(f"   k by seed: {r['k_by_seed']}")

@@ -130,7 +130,15 @@ def main() -> int:
     ap.add_argument("--baseline", type=Path, default=None,
                     help="architecture-matched UNTRAINED run directory")
     ap.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    ap.add_argument("--param-log-scale", default="",
+                    help="comma-separated names the RUN bounded logarithmically. Mirrors the "
+                         "runner's PARAM_LOG_SCALE, which defaults to EMPTY, so the default "
+                         "here is linear for every parameter. Registry Param.scale is metadata "
+                         "and is deliberately NOT used: scav_rat declares scale='log' while "
+                         "every published run bounds it linearly, and reading the registry "
+                         "would misstate its untrained prior by a factor of five.")
     args = ap.parse_args()
+    log_scaled = {s.strip() for s in args.param_log_scale.split(",") if s.strip()}
 
     fisher = _load_fisher(args.fisher_dir) if args.fisher_dir else {}
     names = [p.name for p in PARAMS]
@@ -158,6 +166,7 @@ def main() -> int:
             enters=p.description or p.name,
             identified_by=obs, bounds=p.bounds,
             reference=p.carroll_value, scale=p.scale,
+            bounding_map="log" if p.name in log_scaled else "linear",
         )
         ev = Evidence()
         art = fisher.get(tag) if tag else None

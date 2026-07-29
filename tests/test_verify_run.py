@@ -261,3 +261,39 @@ def test_missing_registry_parameter_is_still_rejected(tmp_path):
     res = V.verify_config_dir(tmp_path, expect_seeds=None)
     assert res["status"] != "VERIFIED"
     assert V.PARAMS[0] in " ".join(res.get("discrepancies", []))
+
+
+def test_seed_level_straddles_are_reported_even_when_they_net_to_zero(tmp_path, capsys):
+    """The blind spot a mathematical audit proved on 2026-07-29.
+
+    The STRADDLE flag fires only on a NET over-claim (a - b > 0), so it is silent
+    whenever reverse seeds cancel straddling ones. That is tolerable for a
+    parameter's own MARGINAL count and NOT tolerable for a JOINT one: cancellation
+    permutes WHICH seeds pass, and a joint count is a conjunction over the same
+    seeds, so equal marginals do not imply equal joints.
+
+    The per-seed count was already computed and emitted in --json but never
+    rendered, so it was invisible in the output anyone actually reads.
+    """
+    res = V.verify_config_dir(tmp_path, expect_seeds=None)  # smoke the empty path
+    assert res["status"] == "NO_DATA"
+
+    # The value must be carried in the machine-readable payload for every run.
+    drift = {p: _drifted(p) for p in PARAMS if p != "alpfe"}
+    _write(tmp_path, [_record(s, drift) for s in range(10)])
+    res = V.verify_config_dir(tmp_path, expect_seeds=None)
+    assert "straddled_seeds" in res
+    assert set(res["straddled_seeds"]) == set(PARAMS)
+
+
+def test_straddle_flag_still_fires_on_a_net_overclaim(tmp_path):
+    """Guard the guard: making net-zero visible must not silence the real flag."""
+    per_aoi = {"eqpac": True, "natlsubpolar": False, "southernoceanpac": False}
+    recs = []
+    for s in range(6):
+        r = _record(s, {}, n_seeds=6, per_aoi={p: dict(per_aoi) for p in PARAMS})
+        recs.append(r)
+    _write(tmp_path, recs)
+    res = V.verify_config_dir(tmp_path, expect_seeds=None)
+    assert any("STRADDLE" in f for f in res["flags"]), \
+        "a genuine net over-claim must still raise the flag"

@@ -567,7 +567,7 @@ outside) 0.00–0.23.
 
 ### G2. Reported counts re-tested against the MEASURED baseline
 
-Zero-count baselines use the rule-of-three upper bound 3/30 = 0.10, so those P values are deliberately
+Zero-count baselines use the rule-of-three upper bound 3/50 = 0.06, so those P values are deliberately
 conservative upper bounds.
 
 | result | count | measured chance | P(>=obs) | verdict |
@@ -584,11 +584,44 @@ conservative upper bounds.
 **Net effect of this control: six results get materially stronger, one gets stronger in a way that
 was not anticipated, and one does not survive.**
 
-**The unanticipated win.** The `R_PICPOC` **anchor-off control at 6/50 is itself chance-level**
-(P = 0.078). Previously 6/50 could be read as "a little residual recovery without the anchor". It is
-not — it is indistinguishable from an untrained network. That makes the anchor contrast *cleaner*
-than it was: **50/50 decisive vs 6/50 chance**, i.e. without a real calcite anchor the parameter is
-not recovered at all. This strengthens the central `R_PICPOC` claim.
+**~~The unanticipated win.~~ RETRACTED 2026-07-29 — see the correction immediately below.**
+~~The `R_PICPOC` anchor-off control at 6/50 is itself chance-level (P = 0.078) … it is
+indistinguishable from an untrained network … **50/50 decisive vs 6/50 chance**.~~
+
+> **⚠️ CORRECTION 2026-07-29. "6/50 is chance-level" does not survive, and it was our own most
+> flattering reading.** Two independent lines of the mathematical audit caught it, and it reproduces
+> directly.
+>
+> The P = 0.078 comes from a one-sample binomial against the **rule-of-three floor** p = 3/50 = 0.06.
+> That floor is a deliberately conservative *upper bound* on an unobserved null rate, and because
+> P(X ≥ k) is increasing in p, using it makes the test pessimistic on purpose.
+>
+> But the baseline here is **not** an assumed rate. It is a measured sample of 0 successes in 50
+> seeds. With both sides measured, the appropriate test is the 2×2, and Fisher exact one-sided on
+> 6/50 versus 0/50 gives **p = 0.0133**, which *is* significant at 0.05. (Paired exact gives 0.0156.)
+>
+> | k | binomial vs the 0.06 floor | Fisher exact vs the measured 0/50 |
+> |---|---|---|
+> | 4 | 0.3527 | 0.0587 |
+> | 5 | 0.1794 | 0.0281 |
+> | **6** | **0.0776** | **0.0133** |
+> | 7 | 0.0289 | 0.0062 |
+>
+> **The honest statement.** Without the calcite anchor `R_PICPOC` recovers in 6 of 50 seeds. That is
+> far below the 50/50 it reaches with the anchor, and it is *slightly but detectably* above an
+> untrained network rather than literally indistinguishable from one. So the contrast is **50/50
+> versus a marginal 6/50**, not "decisive versus nothing".
+>
+> **The central claim is unaffected and does not need this.** §2a shows `R_PICPOC` is a **global,
+> exact structural null** of every non-calcite observable: scaling it by 100× leaves DFe, diatom
+> biomass and POC bitwise identical. The anchor's necessity is provable from the tracer graph and
+> never needed the anchor-off control to be at exactly chance. Using the weaker statistical version
+> was gilding, and it is retracted.
+>
+> **General lesson, now a rule.** When a baseline has actually been *measured as a sample*, compare
+> samples (Fisher exact). Reserve the rule-of-three floor for when the null rate is genuinely
+> unobserved. Quoting the floor where a measured sample exists systematically understates the
+> evidence, which happened to flatter us here but will not always.
 
 **The casualty.** `diatomgraz` at 35/50 (70 %) against a measured 64 % untrained baseline gives
 P = 0.233. The "non-circular handle via Chl+MLD" result is **not distinguishable from chance** under

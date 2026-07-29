@@ -107,23 +107,33 @@ def test_uncontaminated_priors_pass(u: Unknown) -> None:
     assert contract(u).clause("prior_contamination").status == ClauseStatus.PASS
 
 
-def test_log_scale_uses_the_geometric_midpoint() -> None:
-    """A log-scaled parameter's prior sits at the GEOMETRIC midpoint of its bounds.
+def test_the_clause_uses_the_map_in_use_not_the_declared_scale() -> None:
+    """The distinction that a math audit caught in this module on its first day.
 
-    scav_rat's linear midpoint is ~1.5e-6 (2.5x Carroll) while its geometric
-    midpoint is ~3.0e-7 (0.5x Carroll). Using the wrong one misstates where an
-    untrained network starts, which is precisely what the measured prior control
-    was built to settle.
+    ``Param.scale`` is registry METADATA. The map a run actually applies is set by
+    the PARAM_LOG_SCALE env var, which defaults to empty and therefore to LINEAR.
+    So scav_rat is declared scale="log" while EVERY published run bounds it
+    linearly, putting its untrained prior at 1.515e-6 (2.5x Carroll) rather than
+    3.0e-7 (0.5x Carroll). Reading the registry here would misstate where an
+    untrained network starts by a factor of five.
     """
+    # SCAV_RAT declares scale="log" but leaves bounding_map at its "linear" default,
+    # which is what every published run actually did.
     c = contract(SCAV_RAT).clause("prior_contamination")
-    assert c.evidence["midpoint"] == pytest.approx(3.0e-7, rel=0.02)
-    assert c.status == ClauseStatus.PASS      # 0.5x Carroll is rel 0.50, outside 0.40
+    assert c.evidence["declared_scale"] == "log"
+    assert c.evidence["bounding_map_in_use"] == "linear"
+    assert c.evidence["midpoint"] == pytest.approx(1.515e-6, rel=0.02)
+    assert "the clause uses the map in use" in c.evidence["note"]
+    assert c.status == ClauseStatus.PASS      # 2.5x Carroll is rel 1.51, well outside
 
-    linear = Unknown(name="scav_rat_linear", kind="field", scope="per_cell",
+    # Opting the run into the log map moves the prior to the geometric midpoint.
+    logged = Unknown(name="scav_rat", kind="field", scope="per_cell",
                      enters="x", identified_by=("a",), bounds=SCAV_RAT.bounds,
-                     reference=SCAV_RAT.reference, scale="linear")
-    assert contract(linear).clause("prior_contamination").evidence["midpoint"] == \
-        pytest.approx(1.515e-6, rel=0.02)
+                     reference=SCAV_RAT.reference, scale="log", bounding_map="log")
+    cl = contract(logged).clause("prior_contamination")
+    assert cl.evidence["midpoint"] == pytest.approx(3.0e-7, rel=0.02)
+    assert "note" not in cl.evidence          # declared and in-use agree
+    assert cl.status == ClauseStatus.PASS     # 0.5x Carroll is rel 0.50, outside 0.40
 
 
 # --- clause: measured null ----------------------------------------------------

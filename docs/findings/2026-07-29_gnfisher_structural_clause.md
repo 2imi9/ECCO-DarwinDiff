@@ -73,7 +73,38 @@ Read as a contract this is about as clean as it gets:
 - **`R_PICPOC` is the exact null direction of BOTH.** Fisher information is not small, it is
   **identically 0.00e+00**. Neither dissolved iron nor biogenic silica carries any information about
   the rain ratio, which is why it needs its own real calcite anchor and why the anchor-off control
-  collapses to chance. This is the formal statement behind the 50/50-versus-6/50 contrast.
+  collapses. See §2a: this is a *global structural* zero, stronger than the Fisher statement.
+
+### 2a. The `R_PICPOC` zero is EXACT and GLOBAL, not a numerical artifact at Carroll
+
+A Fisher information of zero at one point is a *local* statement, and finite differences can
+underflow. This one is neither. Direct test on the production 2-layer box, 60 steps, float64:
+
+| observable | R_PICPOC ×1.5 | ×10 | ×100 |
+|---|---|---|---|
+| DFe_1 | 0.000e+00 | 0.000e+00 | 0.000e+00 |
+| DFe_2 | 0.000e+00 | 0.000e+00 | 0.000e+00 |
+| P_diatom | 0.000e+00 | 0.000e+00 | 0.000e+00 |
+| POC_1 | 0.000e+00 | 0.000e+00 | 0.000e+00 |
+| POC_2 | 0.000e+00 | 0.000e+00 | 0.000e+00 |
+| **PIC_1 (positive control)** | **4.93e-01** | **8.87e+00** | **9.76e+01** |
+
+The five iron/silica/carbon observables are **bitwise identical** under a hundredfold perturbation,
+while the positive control moves by 97.6×, which proves the perturbation was applied and the step
+was not underflowed.
+
+The reason is visible in the tracer graph: `{DFe_1, DFe_2, P_1..P_5, POC_1, POC_2}` is a **closed
+block** containing no PIC, DIC or ALK term, so `∂ρ/∂R_PICPOC ≡ 0` identically for *any* observation
+functional built from dissolved iron or diatom biomass, at every parameter value, not just at
+Carroll.
+
+**This upgrades the clause.** It is not "the Fisher matrix happens to be singular in this direction
+at this point"; it is **global, exact structural non-identifiability in the Raue sense, provable by
+inspection**. It therefore needs neither the Fisher matrix, nor Rothenberg's theorem, nor its
+regular-point hypothesis. It is also immune to the Gauss-Newton approximation: because the
+independence is exact to all orders, the neglected residual-times-curvature term is zero in that row
+too, so the null-space claim survives regardless of how large `‖H − 2F‖/‖2F‖` is. The *magnitude*
+claims do not enjoy that immunity.
 - **The growth pair is the sloppiest direction under silica.** Sloppiest eigenvector under `realbsi`
   is `Biggrow −0.93, Smallgrow +0.36`; stiffest is `diatomgraz −0.92`. Consistent with the growth
   pair being information-starved rather than degenerate.
@@ -85,17 +116,33 @@ Read as a contract this is about as clean as it gets:
 Job 233385, `--loss realdaniels`, 1567 residuals, `loss_star` 0.959155, residual reconstruction
 **6.21e-08**.
 
-| param | Fisher info (diag) | CRLB |
-|---|---|---|
-| **R_PICPOC** | **7.40e-01** | **1.4** |
-| alpfe | 4.52e-09 | 1.3e+06 |
-| scav_rat | 2.95e-09 | 1.3e+06 |
-| Smallgrow | 1.97e-09 | 1.3e+06 |
-| Biggrow | 3.66e-10 | 1.4e+06 |
-| diatomgraz | 2.86e-11 | 1.4e+06 |
+| param | Fisher info (diag) | CRLB | CRLB ÷ ridge floor |
+|---|---|---|---|
+| **R_PICPOC** | **7.40e-01** | **1.353** | 0.000001 |
+| alpfe | 4.52e-09 | 1.344e+06 | **0.994** |
+| scav_rat | 2.95e-09 | 1.347e+06 | **0.996** |
+| Smallgrow | 1.97e-09 | 1.349e+06 | **0.998** |
+| Biggrow | 3.66e-10 | 1.352e+06 | **0.999** |
+| diatomgraz | 2.86e-11 | 1.352e+06 | **1.000** |
 
-`R_PICPOC` is constrained roughly **10⁶ times more tightly** than anything else under this
-observable. But the eigenvectors say it more sharply than the diagonal does:
+> **⚠️ CORRECTION, same day, before this was used anywhere.** An earlier version of this section said
+> `R_PICPOC` is "constrained roughly 10⁶ times more tightly than anything else". **That ratio is an
+> artifact of the regulariser, not a measurement.** The CRLB is computed as
+> `diag(inv(Fn + ridge·I))` with `ridge = 1e-6 · λ_max`, so a direction carrying no information
+> cannot report a CRLB above `1/ridge`. Here `λ_max = 0.739529`, so the floor is `1/ridge = 1.352e6`,
+> and the final column shows the other five parameters sitting at **0.994 to 1.000 of it**. The
+> "10⁶" was simply `1/(1e-6)`.
+>
+> The qualitative conclusion is unchanged and is if anything cleaner: those five are **unconstrained**
+> by this observable, their CRLB pinned by the regulariser alone, which is the numerical signature of
+> a null direction. `R_PICPOC`'s own CRLB is real — `1.35269` against `1/0.739529 = 1.35221`, i.e. it
+> *is* the inverse Fisher. **Quote "unconstrained, at the ridge floor", never a ratio.**
+>
+> The same caveat applies to §2's table: `R_PICPOC`'s 1,422,765 under `realiron` and 1,028,358 under
+> `realbsi` are likewise the respective ridge floors (`λ_max` 7.03e-01 and 9.72e-01 give 1.42e6 and
+> 1.03e6), consistent with its Fisher information being exactly zero there.
+
+The eigenvectors say it more sharply than the diagonal does, and they carry no ridge artifact:
 
 - **stiffest direction: `R_PICPOC` = −1.0**, with every other component ≤ **1.2e-05**.
 - sloppiest direction: `scav_rat` 0.9996.

@@ -116,11 +116,25 @@ class Unknown:
             expressed, and it forces the structural clause to FAIL rather than
             sit unavailable.
         bounds: ``(lo, hi)`` for the sigmoid bounding map. Scalars and fields only.
-        scale: ``"linear"`` or ``"log"``, the bounding geometry.
+        scale: the bounding geometry the registry DECLARES it would prefer.
+            Metadata only. See ``bounding_map``.
         reference: the published value recovery is graded against, when the study
             is a consistency check. ``None`` for the relation row, where there is
             no reference FUNCTION and therefore no relative band.
         conditioned_on: covariates (field row) or state variables (relation row).
+        bounding_map: the geometry ACTUALLY IN USE for the run being described,
+            ``"linear"`` (default) or ``"log"``. This is deliberately separate
+            from ``scale`` and it is the one the prior clause uses.
+
+            The distinction is load-bearing and easy to get wrong. ``Param.scale``
+            is registry metadata; the map a run actually applies is set by the
+            ``PARAM_LOG_SCALE`` environment variable, which defaults to empty and
+            therefore to LINEAR. So ``scav_rat`` is declared ``scale="log"`` while
+            **every published run bounds it linearly**, and its untrained prior
+            sits at the linear midpoint 1.515e-6 (2.5x Carroll), not the geometric
+            midpoint 3.0e-7 (0.5x Carroll). Reading the registry here would
+            misstate where an untrained network starts by a factor of five, which
+            is exactly the quantity the measured prior control exists to settle.
     """
 
     name: str
@@ -132,6 +146,7 @@ class Unknown:
     scale: str = "linear"
     reference: float | None = None
     conditioned_on: tuple[str, ...] = ()
+    bounding_map: str = "linear"
 
     def __post_init__(self) -> None:
         if self.kind not in _KINDS:
@@ -140,6 +155,9 @@ class Unknown:
             raise ValueError(f"scope must be one of {_SCOPES}, got {self.scope!r}")
         if self.scale not in ("linear", "log"):
             raise ValueError(f"scale must be 'linear' or 'log', got {self.scale!r}")
+        if self.bounding_map not in ("linear", "log"):
+            raise ValueError(
+                f"bounding_map must be 'linear' or 'log', got {self.bounding_map!r}")
         if not self.enters.strip():
             raise ValueError(
                 f"{self.name}: 'enters' must name the equation term. An unknown that "
@@ -305,16 +323,30 @@ def _prior_contamination_clause(u: Unknown, ev: Evidence) -> Clause:
 
     lo, hi = u.bounds
     ref = float(u.reference)  # type: ignore[arg-type]
-    mid = math.sqrt(lo * hi) if u.scale == "log" else 0.5 * (lo + hi)
+    # The map ACTUALLY IN USE, not the registry's declared preference. See the
+    # Unknown.bounding_map docstring: PARAM_LOG_SCALE defaults to empty, so every
+    # published run is linear even where the registry declares scale="log".
+    log_map = u.bounding_map == "log"
+    mid = math.sqrt(lo * hi) if log_map else 0.5 * (lo + hi)
     mid_rel = abs(mid - ref) / abs(ref)
     band_lo, band_hi = ref * (1 - CAL_GRADE_BAND), ref * (1 + CAL_GRADE_BAND)
     inside_lo, inside_hi = max(lo, band_lo), min(hi, band_hi)
-    frac = max(0.0, (inside_hi - inside_lo)) / (hi - lo)
+    if log_map:
+        # Under a log map the sigmoid is uniform in log p, so the fraction of the
+        # prior that passes is a fraction of the LOG range, not the linear range.
+        frac = (max(0.0, math.log(max(inside_hi, lo)) - math.log(max(inside_lo, lo)))
+                / (math.log(hi) - math.log(lo)))
+    else:
+        frac = max(0.0, (inside_hi - inside_lo)) / (hi - lo)
     ev_d = {
         "bounds": [lo, hi], "reference": ref, "midpoint": mid,
         "midpoint_rel_offset": mid_rel, "band_fraction_of_range": frac,
-        "scale": u.scale,
+        "declared_scale": u.scale, "bounding_map_in_use": u.bounding_map,
     }
+    if u.scale != u.bounding_map:
+        ev_d["note"] = (
+            f"registry declares scale={u.scale!r} but the run bounds it "
+            f"{u.bounding_map!r}; the clause uses the map in use")
     if mid_rel <= CAL_GRADE_BAND:
         return Clause(
             name, ClauseStatus.FAIL,

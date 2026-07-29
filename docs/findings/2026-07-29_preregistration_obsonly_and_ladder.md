@@ -169,7 +169,58 @@ field cannot be, so a naive pointwise arm confounds per-cell freedom with per-AO
 - **Per-AOI DINN separates the axes.** If per-AOI DINN ≈ free field, the gain is AOI-specificity,
   not per-cell resolution.
 
-### 3.2 The honest asymmetry in this test
+### 3.1b ADDENDUM, added 2026-07-29 ~17:30 UTC, still before any ladder result
+
+Written after counting the anchors and before any arm reported. This sharpens §3.1 rather than
+replacing it, and it supplies a **second, independent** discriminator so the arm is not resting on a
+single count.
+
+**The mechanism, stated precisely.** In the flagship config `DARWIN_PATTERN_W = 1.0`, so every ocean
+cell *is* touched by a target. But those targets are **z-scored**, and a z-score is invariant under
+affine rescaling of the field. So the pattern term constrains the **shape** of the parameter field
+and says nothing about its **magnitude** — while the per-AOI collapse measures exactly the magnitude.
+
+Magnitude is pinned only by the **absolute** anchors, and those are sparse:
+
+| AOI | ocean cells | absolute-anchor observations | ≤ % of cells |
+|---|---|---|---|
+| eqpac | 1071 | 95 (26 Fe surf, 28 Fe sub, 7 bSi, 34 Daniels) | 8.9 % |
+| natlsubpolar | 484 | 56 (13, 13, 4, 26) | 11.6 % |
+| southernoceanpac | 1296 | 27 (13, 14, 0, 0) | 2.1 % |
+| **total** | **2851** | **178** | **≤ 6.2 %** |
+
+So the free field carries **96 free values per absolute anchor**, and roughly 94 % of its cells are
+constrained in shape but not in magnitude.
+
+**This is exactly the regularisation channel, and it is not the one the naive framing assumes.** The
+DINN's 1×1 convolutions force every cell's parameters to be a smooth function of that cell's SST, so
+magnitude information from an anchored cell propagates to every unanchored cell with similar SST. A
+free field has no such coupling: an unanchored cell's value is determined only by the shape term and
+its initialisation. That is a real regularisation mechanism, not hand-waving, and it is what makes
+the comparison meaningful rather than a bare degrees-of-freedom contest.
+
+**Second pre-registered discriminator: SEED VARIANCE.** If the mechanism above is right, the free
+field's per-AOI collapsed value should be **more variable across seeds** than the DINN's, because
+94 % of its cells are free to drift with initialisation while the DINN ties them to SST. Concretely:
+
+- **Predicted:** seed standard deviation of the per-AOI collapsed value is *larger* for `pointwise`
+  than for the flagship on the same parameter and AOI. The flagship's seed CV is documented at
+  0.08–0.14.
+- **If free-field seed CV ≈ flagship seed CV**, the coupling story is wrong and a recovery
+  difference must be explained some other way.
+- **If free-field seed CV is larger AND its recovery is worse**, the two observations agree and the
+  regularisation reading is supported by two independent measurements rather than one count.
+
+**Third, cheap check that costs nothing extra.** The collapse instrumentation added today records
+per-cell `log_sd` on every seed. The free field should show a **larger** per-cell log-sd than the
+DINN, since the DINN cannot produce a rough field through 1×1 convolutions on a smooth SST input.
+If the free field's log-sd is *not* larger, it did not actually use its extra freedom, and the whole
+comparison is uninformative rather than negative.
+
+**A confound this addendum does NOT dissolve.** The obs-only configs set `DARWIN_PATTERN_W = 0`,
+where unanchored cells have *no* target at all and would sit at initialisation. The ladder is run at
+the flagship config precisely so that every cell has at least a shape target; a pointwise arm under
+obs-only would be a different and much weaker experiment. Do not pool them.
 
 The free field has ~17,100 free values against ~2,851 ocean cells' worth of observations, and the
 real anchors are far sparser than that (GEOTRACES iron is roughly 14 surface cells). It is *expected*
