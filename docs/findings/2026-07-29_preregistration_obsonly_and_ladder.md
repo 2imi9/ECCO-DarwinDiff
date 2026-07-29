@@ -261,6 +261,28 @@ Any deviation from this table falsifies the reasoning in §3.1b/§3.1c, and in p
 intermediate count (not 0 and not 50) would mean the initialisation spread is larger than the smoke
 run measured and the whole uniform-at-init argument is wrong.
 
+> **✅ CONFIRMED at n=10 before the main arm ran — job 233723, `verify_run` path, exit 0.**
+> The table was written first, then tested. All seven rows matched:
+>
+> | param | predicted | measured | |
+> |---|---|---|---|
+> | alpfe | 0/10 | **0/10** | MATCH |
+> | scav_rat | 0/10 | **0/10** | MATCH |
+> | Smallgrow | 0/10 | **0/10** | MATCH |
+> | Biggrow | 0/10 | **0/10** | MATCH |
+> | **diatomgraz** | **10/10** | **10/10** | MATCH |
+> | R_PICPOC | 0/10 | **0/10** | MATCH |
+> | **trio** | **0/10** | **0/10** | MATCH |
+>
+> No intermediate count appeared anywhere, so the uniform-at-init argument holds: the untrained free
+> field really is a near-constant field at the bounds midpoint, and each parameter is all-or-nothing.
+>
+> Two consequences are now measured rather than argued. **`diatomgraz` is ungradable in the
+> `pointwise` arm** — its untrained baseline is saturated, so no `k*` exists and no count from that
+> arm means anything. And **the trio comparison is safe**, because the untrained free-field trio is
+> 0/10 exactly as the untrained DINN trio is 0/50, so the pre-registered headline in §3.1 rests on a
+> hard zero on both sides.
+
 Note the trio is **unaffected** by the `diatomgraz` problem: `scav_rat` at rel 1.51 and `R_PICPOC` at
 rel 16.7 both give 0/50, so the untrained trio is 0/50 for the free field exactly as it is for the
 DINN. **The pre-registered headline comparison in §3.1 is stated on the trio and is therefore safe.**
