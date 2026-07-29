@@ -2075,10 +2075,33 @@ if __name__ == "__main__":
     for seed_idx, seed in enumerate(SEEDS):
         print(f"\n=== Seed {seed} recovery ===")
         per_aoi_means = {}
+        # ALTERNATIVE COLLAPSE STATISTICS -- recorded, never used for the primary verdict.
+        #
+        # The per-AOI collapse is an ARITHMETIC mean over ocean cells. For a parameter
+        # spanning decades that is the wrong summary: the arithmetic mean of a positive
+        # field is dominated by its largest cells, and by Jensen's inequality it is >= the
+        # geometric mean, with ratio exp(sigma^2/2) for a lognormal field of log-sd sigma.
+        # `scav_rat` spans 100x in its bounds, so this is a live concern, and it is
+        # sharpened by an unexplained discrepancy in the record: EKI reports `scav_rat`
+        # biased LOW while an arithmetic-mean collapse biases HIGH (evidence log B5,
+        # flagged 2026-07-28 and never tested).
+        #
+        # The collapse is pure REPORTING -- it is not in the loss and does not touch
+        # training -- so all three statistics can be computed from the SAME fit. That
+        # makes this an exactly PAIRED comparison (identical seeds, identical weights,
+        # identical fields) rather than an A/B across arms, which is strictly stronger.
+        #
+        # `joint_recovered` / `per_aoi_recovered` remain ARITHMETIC so every prior run
+        # reproduces bit-identically; these are additive fields only.
+        per_aoi_means_geom = {}
+        per_aoi_means_median = {}
+        per_aoi_log_sd = {}
         # Cache per-AOI per-cell sums + cell counts in one forward pass each,
         # then reuse for both per-AOI means and joint mean (Greptile P2 PR #48).
         weighted_sum = torch.zeros(N_PARAMS, device=device)
         weighted_count = torch.zeros((), device=device)
+        weighted_log_sum = torch.zeros(N_PARAMS, device=device)
+        _pooled_ocean_vals = []
         for bundle in bundles:
             with torch.no_grad():
                 net = nets_per_aoi[bundle["key"]][seed_idx]
@@ -2092,6 +2115,33 @@ if __name__ == "__main__":
             per_aoi_means[bundle["key"]] = (per_cell_sum / n_ocean_f).cpu().numpy()
             weighted_sum = weighted_sum + per_cell_sum
             weighted_count = weighted_count + mask_f.sum()
+            # Geometric mean: exp(mean(log p)) over OCEAN cells only. bounded_params
+            # guarantees p in (lo, hi) with lo > 0 for every registry entry, so log is
+            # safe; the clamp is belt-and-braces against a float32 underflow to 0.
+            _logp = params_b.clamp(min=1e-300).log()
+            _per_cell_log_sum = (_logp * mask_f[None]).flatten(1).sum(dim=1)  # [6]
+            per_aoi_means_geom[bundle["key"]] = (
+                torch.exp(_per_cell_log_sum / n_ocean_f).cpu().numpy())
+            weighted_log_sum = weighted_log_sum + _per_cell_log_sum
+            # Median over ocean cells. Masked by selection, NOT by multiplication --
+            # multiplying land cells by 0 would inject a spike of zeros at the low end
+            # and drag the median down, which is exactly the kind of silent metric bug
+            # the straddle guard exists to catch.
+            _ocean_sel = mask_f.reshape(-1) > 0
+            _ocean_vals = params_b.flatten(1)[:, _ocean_sel]                 # [6, n_ocean]
+            per_aoi_means_median[bundle["key"]] = (
+                _ocean_vals.median(dim=1).values.cpu().numpy())
+            _pooled_ocean_vals.append(_ocean_vals)
+            # THE diagnostic that decides whether the collapse choice matters at all.
+            # arithmetic/geometric = exp(sigma^2/2) for a lognormal field of log-sd sigma,
+            # and the Cal band is +/-40% RELATIVE, so the arithmetic collapse alone pushes a
+            # perfectly geom-centred field out of the band once
+            #     exp(sigma^2/2) - 1 > 0.40  <=>  sigma > sqrt(2*ln(1.4)) = 0.8203.
+            # Below ~0.3 the effect is under 5% and cannot matter; above ~0.82 it is
+            # decisive on its own. Recording sigma per AOI per parameter makes this an
+            # answered question rather than a standing worry.
+            per_aoi_log_sd[bundle["key"]] = (
+                _ocean_vals.clamp(min=1e-300).log().std(dim=1, unbiased=True).cpu().numpy())
         # Two joint-recovery interpretations:
         #   cellweighted: cell-weighted mean across all AOIs combined (AOIs with
         #     more cells dominate; previously the only definition).
@@ -2103,6 +2153,15 @@ if __name__ == "__main__":
         joint_means_aoiweighted = np.mean(
             [per_aoi_means[k] for k in AOIS_KEYS], axis=0
         )
+        # Joint analogues of the alternative collapses. Cell-weighted geometric mean is
+        # exp(sum(log p) / total ocean cells); the pooled median is over every ocean cell
+        # in every AOI concatenated, which is the honest joint median (a median of medians
+        # is not a median).
+        joint_means_geom_cellweighted = (
+            torch.exp(weighted_log_sum / weighted_count).cpu().numpy())
+        joint_means_median_pooled = (
+            torch.cat(_pooled_ocean_vals, dim=1).median(dim=1).values.cpu().numpy()
+            if _pooled_ocean_vals else joint_means_cellweighted)
         # The "primary" joint_means used for n_cal_grade reporting is configurable
         # via JOINT_RECOVERY_MODE; default "cellweighted" so previously-reported
         # joint_recovered values reproduce bit-identically. Set to "aoiweighted"
@@ -2152,6 +2211,24 @@ if __name__ == "__main__":
                 "joint_aoiweighted_abs_rel_offset": aw_rel,
                 "joint_aoiweighted_band": aw_band,
                 "per_aoi_recovered": {k: float(per_aoi_means[k][i]) for k in AOIS_KEYS},
+                # Alternative collapse statistics, PAIRED with the arithmetic ones above
+                # (same seed, same weights, same per-cell field). Reporting only; the
+                # primary verdict keys are untouched so prior runs reproduce bitwise.
+                # A parameter spanning decades is expected to differ most here: the
+                # arithmetic mean exceeds the geometric by exp(sigma^2/2) for a lognormal
+                # field of log-sd sigma, and the recovery band is RELATIVE, so the gap
+                # translates directly into pass/fail.
+                "per_aoi_recovered_geom": {
+                    k: float(per_aoi_means_geom[k][i]) for k in AOIS_KEYS},
+                "per_aoi_recovered_median": {
+                    k: float(per_aoi_means_median[k][i]) for k in AOIS_KEYS},
+                "joint_geom_cellweighted_recovered": float(joint_means_geom_cellweighted[i]),
+                "joint_median_pooled_recovered": float(joint_means_median_pooled[i]),
+                # Per-cell log-sd of the recovered field. Decides whether the collapse
+                # choice can matter: arith/geom = exp(sigma^2/2), and sigma > 0.8203
+                # is where the arithmetic mean alone clears the +/-40% band.
+                "per_aoi_log_sd": {
+                    k: float(per_aoi_log_sd[k][i]) for k in AOIS_KEYS},
             }
         print(f"       -> joint {n_cal_joint}/6 cal-grade ({n_exc_joint} Excellent)")
 

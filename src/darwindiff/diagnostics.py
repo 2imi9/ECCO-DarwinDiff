@@ -218,3 +218,138 @@ def format_pearson(result: PearsonResult, n_total: int | None = None) -> str:
     if n_total is not None and result.n_finite != n_total:
         body += f"  [{result.n_finite}/{n_total} finite]"
     return body
+
+
+# ---------------------------------------------------------------------------
+# Per-AOI collapse statistics.
+#
+# A recovered parameter is a per-cell FIELD; a recovery count needs a scalar. The
+# choice of collapse is therefore part of the estimator, not a formatting detail,
+# and for a parameter spanning decades it is load-bearing.
+#
+# THE IDENTITY THAT MATTERS. For a strictly positive field, Jensen's inequality
+# gives arithmetic >= geometric, with equality only for a constant field. For a
+# lognormal field of log-standard-deviation sigma the ratio is exactly
+#
+#     E[X] / exp(E[log X]) = exp(sigma^2 / 2)
+#
+# The DarwinDiff recovery band is RELATIVE (|v - C| / |C| <= band), so that ratio
+# translates directly into pass or fail: an arithmetic collapse alone pushes a
+# field whose GEOMETRIC mean sits exactly on the reference outside the band once
+#
+#     exp(sigma^2 / 2) - 1 > band   <=>   sigma > sqrt(2 * ln(1 + band))
+#
+# For the 0.40 Cal band that threshold is sigma = 0.8203. Below sigma ~ 0.3 the
+# distortion is under 5 % and cannot change a verdict.
+#
+# `scav_rat` spans 100x in its registry bounds, which is why this was flagged
+# (2026-07-28 evidence log, section B5) and why the runner now records all three
+# collapses plus the measured per-cell sigma on every seed. Because the collapse
+# is pure reporting and never enters the loss, the three statistics come from the
+# SAME fit, making the comparison exactly paired rather than an A/B across arms.
+# ---------------------------------------------------------------------------
+
+CAL_GRADE_BAND = 0.40
+
+
+def sigma_threshold_for_band(band: float = CAL_GRADE_BAND) -> float:
+    """Per-cell log-sd at which an arithmetic collapse alone clears a relative band.
+
+    Solves ``exp(sigma**2 / 2) - 1 = band``. Above this, a field whose geometric
+    mean sits exactly on the reference is scored as NOT recovered purely because
+    of the summary statistic.
+
+    >>> round(sigma_threshold_for_band(0.40), 4)
+    0.8203
+    """
+    if band <= -1.0:
+        raise ValueError(f"band must exceed -1, got {band}")
+    return float(np.sqrt(2.0 * np.log1p(band)))
+
+
+def arith_over_geom(sigma: float) -> float:
+    """Expected arithmetic/geometric ratio for a lognormal field of log-sd ``sigma``."""
+    return float(np.exp(0.5 * sigma * sigma))
+
+
+def _ocean_values(field: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Select ocean cells as ``[n_params, n_ocean]``.
+
+    Selection, never multiplication. Multiplying land cells by zero would inject a
+    spike of zeros at the low end, which silently drags the median down and makes
+    the geometric mean undefined. That is exactly the class of quiet metric bug the
+    straddle guard exists to catch, so it is prevented structurally here.
+    """
+    field = np.asarray(field)
+    if field.ndim != 3:
+        raise ValueError(f"field must be [n_params, H, W], got shape {field.shape}")
+    sel = np.asarray(mask).astype(bool).reshape(-1)
+    if sel.shape[0] != field.shape[1] * field.shape[2]:
+        raise ValueError(
+            f"mask of {sel.shape[0]} cells does not match field grid "
+            f"{field.shape[1]}x{field.shape[2]}")
+    if not sel.any():
+        raise ValueError("mask selects no ocean cells")
+    return field.reshape(field.shape[0], -1)[:, sel]
+
+
+def collapse_arithmetic(field: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Arithmetic mean over ocean cells. The PRIMARY verdict statistic, unchanged.
+
+    Kept as the primary so every published run reproduces bitwise. Note it is the
+    one most distorted by a wide field, being dominated by the largest cells.
+    """
+    return _ocean_values(field, mask).mean(axis=1)
+
+
+def collapse_geometric(field: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Geometric mean over ocean cells, ``exp(mean(log v))``.
+
+    The natural summary for a strictly positive parameter spanning decades, and
+    the one that is equivariant under the log reparameterisation that
+    ``Param.scale = "log"`` applies to the bounding map.
+    """
+    vals = _ocean_values(field, mask)
+    if not np.all(vals > 0):
+        raise ValueError(
+            "geometric collapse needs a strictly positive field; bounded_params "
+            "guarantees this for every registry entry, so a non-positive value "
+            "means the field did not come through the sigmoid bounding map")
+    return np.exp(np.log(vals).mean(axis=1))
+
+
+def collapse_median(field: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Median over ocean cells. Robust to a heavy upper tail, unlike the mean."""
+    return np.median(_ocean_values(field, mask), axis=1)
+
+
+def per_cell_log_sd(field: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Per-cell log-standard-deviation over ocean cells, sample (ddof=1).
+
+    THE diagnostic that decides whether the collapse choice can matter at all.
+    Compare against :func:`sigma_threshold_for_band`.
+    """
+    vals = _ocean_values(field, mask)
+    if not np.all(vals > 0):
+        raise ValueError("log-sd needs a strictly positive field")
+    if vals.shape[1] < 2:
+        return np.zeros(vals.shape[0])
+    return np.log(vals).std(axis=1, ddof=1)
+
+
+def collapse_report(field: np.ndarray, mask: np.ndarray) -> dict:
+    """All three collapses plus the sigma diagnostic, computed from one field.
+
+    Returns a dict of ``[n_params]`` arrays. Because these all come from the same
+    field they are exactly paired, which is why no A/B arm is needed to compare
+    collapse statistics.
+    """
+    sigma = per_cell_log_sd(field, mask)
+    return {
+        "arithmetic": collapse_arithmetic(field, mask),
+        "geometric": collapse_geometric(field, mask),
+        "median": collapse_median(field, mask),
+        "log_sd": sigma,
+        "arith_over_geom": np.exp(0.5 * sigma * sigma),
+        "sigma_threshold": sigma_threshold_for_band(CAL_GRADE_BAND),
+    }

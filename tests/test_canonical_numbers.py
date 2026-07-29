@@ -85,6 +85,27 @@ def _tracked_markdown() -> list[Path]:
 #: A line may say 26/50 only if it also identifies the separate arm it belongs to.
 _SUBW1_MARKERS = ("subw", "188532", "separate", "not the flagship", "essentially identical")
 
+# A SECOND legitimate context for 26/50 appeared on 2026-07-29: the independent
+# reproduction of the flagship on different hardware, compiler and torch build,
+# which landed scav_rat at 26/50 against the published 25/50. Prose describing that
+# necessarily mentions both "flagship" and "26/50" in one line, e.g.
+#   "the flagship's independent reproduction (scav_rat 26/50 versus published 25/50)"
+# and that is correct usage, not the drift this guard exists to catch.
+#
+# The exemption is deliberately NARROW. The drift is "the flagship recovers 26/50"
+# stated flatly; the legitimate form always names the act of reproducing, or cites
+# the published 25/50 in the same breath. Requiring one of those markers keeps the
+# guard sharp while allowing the true sentence.
+_REPRODUCTION_MARKERS = (
+    "reproduc",        # reproduces / reproduced / reproduction
+    "re-run",
+    "rerun",
+    "published 25/50",
+    "vs 25/50",
+    "versus 25/50",
+    "falsification condition",
+)
+
 
 def test_no_tracked_doc_binds_26_of_50_to_the_flagship():
     """The exact drift that cost hours: 26/50 presented as the flagship scav_rat count."""
@@ -100,6 +121,8 @@ def test_no_tracked_doc_binds_26_of_50_to_the_flagship():
             low = line.lower()
             if any(m in low for m in _SUBW1_MARKERS):
                 continue  # correctly attributed to the subW=1 arm
+            if any(m in low for m in _REPRODUCTION_MARKERS):
+                continue  # correctly attributed to the independent reproduction
             if "flagship" in low or "geo1" in low or FLAGSHIP_RUN in low:
                 offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
     assert not offenders, (
@@ -172,3 +195,29 @@ def test_retracted_emulator_claims_stay_retracted(retracted):
     assert not offenders, (
         f"'{retracted}' asserted without a retraction marker in:\n  " + "\n  ".join(offenders)
     )
+
+
+def test_the_26_of_50_guard_still_catches_real_drift(tmp_path, monkeypatch):
+    """The reproduction exemption must NOT blunt the guard it was added to.
+
+    Added 2026-07-29 alongside _REPRODUCTION_MARKERS. The exemption lets through
+    prose that names the act of reproducing; it must still catch the flat claim
+    "the flagship recovers scav_rat 26/50", which is the drift that cost hours.
+    """
+    drift = "The flagship recovers scav_rat 26/50 per-AOI."
+    legit = "The flagship's independent reproduction gave scav_rat 26/50 vs published 25/50."
+    subw = "The separate subW=1 arm gives scav_rat 26/50."
+
+    def offends(line: str) -> bool:
+        low = line.lower()
+        if "26/50" not in line:
+            return False
+        if any(m in low for m in _SUBW1_MARKERS):
+            return False
+        if any(m in low for m in _REPRODUCTION_MARKERS):
+            return False
+        return "flagship" in low or "geo1" in low or FLAGSHIP_RUN in low
+
+    assert offends(drift), "the guard stopped catching the drift it exists for"
+    assert not offends(legit), "the guard rejects correct reproduction prose"
+    assert not offends(subw), "the guard rejects correct subW=1 attribution"
