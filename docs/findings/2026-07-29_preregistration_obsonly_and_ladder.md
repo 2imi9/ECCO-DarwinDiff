@@ -319,6 +319,54 @@ predicted regularisation result rather than a surprise.
 
 ---
 
+### 3.1d THE SHARP DISCRIMINATOR — the Southern Ocean R_PICPOC leg
+
+Added ~18:00 UTC, before the `pointwise` arm reported. Free check on artifacts already on disk
+(`ctrl_n50`, n=50, CPU-seconds), prompted by a red-team question about whether the headline is
+secretly a 2-AOI result.
+
+**The question.** Daniels CP:PP covers eqpac (34 cells) and natlsubpolar (26 cells) and has **zero**
+southernoceanpac coverage — the loss term auto-gates off there. So is `R_PICPOC`'s 50/50 majority
+always formed by the two *anchored* AOIs, making the biggest count in the manuscript a 2-AOI result
+reported as a 3-AOI one?
+
+**The answer: no, and the reason matters more than the question.**
+
+| `R_PICPOC` leg | Daniels cells | passes |
+|---|---|---|
+| eqpac | 34 | 47/50 |
+| natlsubpolar | 26 | 50/50 |
+| **southernoceanpac** | **0** | **40/50** |
+
+Only **3 of 50** majorities *required* the Southern Ocean leg, so the headline does not lean on it
+and the count is honest as a 3-AOI number. But the SO leg passes **40/50 in an AOI with no anchor at
+all**, and only one mechanism permits that: **pooling through the shared DINN.** The network learns
+the `R_PICPOC` relationship from the two anchored basins and applies it in the third; gradient from
+the Daniels residual reaches SO cells *only* through shared weights.
+
+**This is the regularisation mechanism, measured on the flagship, at zero cost** — and it is a far
+sharper ladder discriminator than the aggregate trio count.
+
+> **PRE-REGISTERED.** A free per-cell field **cannot pool**. In the `pointwise` arm the Daniels
+> residual is identically zero at every southernoceanpac cell (the mask is all-zero and the term
+> gates off), so those cells receive **no gradient whatsoever** from the calcite anchor and must stay
+> near initialisation, where `R_PICPOC`'s rel offset is **16.7**, far outside the band.
+>
+> - **Predicted:** the `pointwise` arm's `R_PICPOC` **southernoceanpac** leg collapses from **40/50**
+>   to **≈0/50**, while its eqpac and natlsubpolar legs stay high because those cells carry anchors.
+> - **Predicted consequence:** the per-AOI ≥2-of-3 count is *preserved* (the two anchored legs still
+>   form a majority), so this appears as a **leg-level collapse with no headline-count collapse** —
+>   precisely what an aggregate count hides.
+> - **Falsifier:** if the free field's SO leg also passes at a high rate, something other than weight
+>   sharing carries magnitude into unanchored cells and the pooling account in §3.1b is wrong.
+>
+> This does **not** apply to `alpfe` or `scav_rat`, which are held at absolute level in every cell by
+> the dense PINN term (§3.1b correction). `scav_rat`'s leg pattern is in fact the mirror image —
+> eqpac 8/50, natlsubpolar 19/50, **southernoceanpac 49/50** — so the Southern Ocean is where
+> `scav_rat` is *easiest*, and it is the basin the flagship's 26/50 leans on.
+
+---
+
 ## 4. What would falsify the framework this session is building
 
 The identifiability contract claims it can say what is inferable before the fit. Three ways it fails:
