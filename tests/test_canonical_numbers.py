@@ -202,6 +202,56 @@ def test_ep4k_is_the_optimisation_limited_arm():
     assert EP4K["R_PICPOC"] == FLAGSHIP["R_PICPOC"] == 50
 
 
+#: The growth pair is excluded for TWO DIFFERENT reasons, and collapsing them overstates the
+#: claim. STATUS.md:37-41 and :301 are precise; README.md, docs/index.md and CLAUDE.md all said
+#: "the growth pair is unobservable by construction" until 2026-07-29.
+#:   Biggrow   -- unobservable by construction; never recovers, seasonal included
+#:   Smallgrow -- practically non-identifiable under TIME-MEAN fitting, but a seasonal prototype
+#:                recovers it natl 9/10 (unconfirmed, job 189324) and synthetic-ID is 7/7
+GROWTH_PAIR_REASONS = {
+    "Biggrow": "unobservable by construction",
+    "Smallgrow": "time-mean non-identifiable; seasonal prototype natl 9/10 unconfirmed",
+}
+
+_PAIR_BLANKET = re.compile(
+    r"growth pair[^.\n]{0,60}unobservable by construction", re.IGNORECASE)
+
+#: A line is FINE if it distinguishes the two parameters -- naming Biggrow as the subject of
+#: the strong claim, or noting Smallgrow's weaker status. Only an undifferentiated "the pair
+#: is unobservable by construction" is an offender. Without these the guard would flag its own
+#: corrected wording, which is the exemption trap this suite has hit before.
+_PAIR_DISTINGUISHED = (
+    "biggrow", "time-mean", "seasonal", "non-identifiable", "189324",
+)
+
+
+def test_growth_pair_is_not_collapsed_into_one_reason():
+    """A doc may call BIGGROW unobservable by construction; it may not say that of the PAIR.
+
+    Smallgrow recovers 9/10 seasonally in the North Atlantic and 7/7 on synthetic data.
+    A reviewer who finds STATUS.md:301 beside a blanket "unobservable by construction" has a
+    legitimate objection, and it would be ours to answer.
+    """
+    assert set(GROWTH_PAIR_REASONS) == {"Biggrow", "Smallgrow"}
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if not _PAIR_BLANKET.search(line):
+                continue
+            if any(m in line.lower() for m in _PAIR_DISTINGUISHED):
+                continue  # the line separates the two parameters -- that is the fix, not the bug
+            offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        "the growth PAIR is called unobservable by construction in:\n  " + "\n  ".join(offenders)
+        + "\n\nOnly Biggrow is. Smallgrow is time-mean non-identifiable "
+          "(seasonal prototype natl 9/10, job 189324)."
+    )
+
+
 def test_ar1_and_persistence_spreads_are_not_swapped():
     """+/-0.013 belongs to persistence; +/-0.015 belongs to seasonal AR(1).
 

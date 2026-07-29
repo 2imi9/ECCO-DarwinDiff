@@ -48,7 +48,7 @@ He also confirms the regional-rain-ratio finding — *"Yes it should vary"* — 
 ECCO-Darwin version **explicitly determines which plankton groups calcify**, which would change what
 `R_PICPOC` means structurally.
 
-### 4. The growth pair — softer than "unobservable by construction"
+### 4. The growth pair — softer than "unobservable by construction (`Biggrow`; `Smallgrow` is non-identifiable from time-mean observables only)"
 
 > "Because these are model structure parameters and they don't really line up with any phytoplankton
 > classes, they are difficult to constrain. Perhaps the chlorophyll might help?"

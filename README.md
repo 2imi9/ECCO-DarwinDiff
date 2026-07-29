@@ -64,8 +64,11 @@ cell-weighted (which straddles Carroll and overstates recovery).
 | `diatomgraz` | **3/50** | inverts `scav_rat` — 37 at the equator |
 | trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** | vs **0/50** global-scalar |
 
-The denominator is **4, not 6** — the growth pair is unobservable by construction, excluded rather
-than failed. `scav_rat` and `diatomgraz` recover in opposite basins, so no config gets all four:
+The denominator is **4, not 6** — the growth pair is excluded, not failed, for two different
+reasons. `Biggrow` is unobservable by construction (never recovers, seasonal included); `Smallgrow`
+is not identifiable from the **time-mean** observables this study fits, though a seasonal prototype
+recovers it in strong-bloom basins (N. Atlantic 9/10, unconfirmed). `scav_rat` and `diatomgraz`
+recover in opposite basins, so no config gets all four:
 the **3-of-4 frontier is structural**. The binding constraint is the observing system, not the
 method.
 

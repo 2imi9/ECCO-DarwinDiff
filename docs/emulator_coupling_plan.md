@@ -35,7 +35,7 @@ the coupled UDE emulator** — a differentiable model calibrated by the paramete
 NOT to resurrect a "6-param recovery": Track-1 already settled which Carroll params are observable
 (alpfe — method-independent / mass-balance; scav_rat — needs per-cell, weakest; R_PICPOC — via a real
 calcite anchor, though a single global value is under-constrained and should vary regionally; diatomgraz
-is unobservable from staged data; the growth pair is unobservable by construction). Its role is Track-2
+is unobservable from staged data; the growth pair is unobservable by construction (`Biggrow`; `Smallgrow` is non-identifiable from time-mean observables only)). Its role is Track-2
 **discovery**: whether adding transport turns the box's consistency-check into a cross-validated result.
 The ledger's strategic exit is that higher-dimensional differentiable-BGC UDE. What is feasibility-proven
 so far is only that the UDE machinery recovers a KNOWN synthetic closure on the 0-D box (self-twin,

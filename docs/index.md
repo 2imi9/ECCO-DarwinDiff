@@ -19,7 +19,7 @@ DarwinDiff is a PyTorch **differentiable 0-D box model** of ocean biogeochemistr
 
 ## What works · what's blocked
 
-This study is **complete (paper #1)**. It is a **surrogate-to-model identifiability study** — *which* of the six Carroll parameters are identifiable from real ocean observations, framed honestly as a consistency check against Carroll's own values (not a cross-validated discovery against the GCM). The honest target is **four observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real data constrains growth rates).
+This study is **complete (paper #1)**. It is a **surrogate-to-model identifiability study** — *which* of the six Carroll parameters are identifiable from real ocean observations, framed honestly as a consistency check against Carroll's own values (not a cross-validated discovery against the GCM). The honest target is **four observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is excluded because no **time-mean** observable constrains growth rates. `Biggrow` is unobservable by construction (never recovers, seasonal included); `Smallgrow` is only *practically* non-identifiable under time-mean fitting — a seasonal prototype recovers it 9/10 in the North Atlantic (unconfirmed, job 189324).
 
 === "Identifiable (real data)"
 
@@ -29,7 +29,7 @@ This study is **complete (paper #1)**. It is a **surrogate-to-model identifiabil
 === "Open / not identifiable"
 
     - **No 6/6 wall.** `R_PICPOC` is recoverable; the differentiable Darwin calcite port + native resolution were **tested and did not help** — the real gap was a direct calcite *observation*, now supplied.
-    - **`diatomgraz`** is recoverable from a **model-internal** observable, but not from independent real data. With the DINN on SST only it sits at chance (best 4/10); adding **MLD** as a per-cell input channel recovers it **10/10**, and with the biogenic-silica diagnostic off it still reaches **35/50 per-AOI** through chlorophyll + MLD — so the recovery is not a bSi tautology. The caveat that keeps it out of the recovered set: the Chl target is Darwin's own, so this is model-internal consistency, not independent validation. **The growth pair is unobservable by construction.**
+    - **`diatomgraz`** is recoverable from a **model-internal** observable, but not from independent real data. With the DINN on SST only it sits at chance (best 4/10); adding **MLD** as a per-cell input channel recovers it **10/10**, and with the biogenic-silica diagnostic off it still reaches **35/50 per-AOI** through chlorophyll + MLD — so the recovery is not a bSi tautology. The caveat that keeps it out of the recovered set: the Chl target is Darwin's own, so this is model-internal consistency, not independent validation. **The growth pair is unobservable by construction (`Biggrow`; `Smallgrow` is non-identifiable from time-mean observables only).**
     - The surrogate gap is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15), so identifiability rests on real *absolute* anchors. 1° proxy; 23-yr climatology; single-GPU. Full evidence → **[Project Status](status.md)**.
 
 ## Documentation map
