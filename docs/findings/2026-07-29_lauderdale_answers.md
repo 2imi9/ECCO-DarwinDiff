@@ -171,8 +171,64 @@ a subset of PFTs; our surrogate gives it to the bulk.** That is a cleaner statem
 `R_PICPOC` limitation than "the global value should be regional", and it is checkable rather than
 speculative.
 
+### ⚠ SECOND CORRECTION — I answered the wrong model generation
+
+An adversarial validation pass caught this before it went out. The `generate_phyto.F` finding is from
+**Darwin 1 / v04 `llc270_JAMES_paper`**, where parameters are *hardcoded in source*. Jon asked about
+**`data.darwin` / `data.traits`** — those are **Darwin 3** namelist files. Our own inventory states
+the distinction explicitly (`ecco_darwin_parameter_inventory.md:125-127`):
+
+> **Darwin 1**: parameters hardcoded in source (`code_darwin/`) …
+> **Darwin 3**: parameters exposed via namelist files (`input_darwin/data.darwin`, `data.traits`).
+
+So "R_PICPOC is not set by a namelist at all" was answering a build he is not asking about.
+
+## The actual answer — from the Darwin 3 namelists (PRIMARY, fetched 2026-07-29)
+
+Fetched from `MITgcm-contrib/ecco_darwin@master`:
+
+**`v05/llc270/input/data.darwin:53`** — a single scalar, inside the Carroll-6 block:
+
+```
+ smallgrow=0.66098,
+ biggrow=0.43148,
+ diatomgraz=0.83003,
+ val_R_PICPOC=0.04245,
+ /
+ &DARWIN_TRAIT_PARAMS
+ /
+```
+
+**`v06/llc270/input_darwin/data.darwin:223`** — a **per-plankton-group array**:
+
+```
+ a_R_PICPOC(:) = 2*4.19E-2,1*0.05,3*4.19E-2,
+```
+
+which expands to six groups: `[0.0419, 0.0419, 0.05, 0.0419, 0.0419, 0.0419]`.
+
+### So the three values are
+
+| value | where | build |
+|---|---|---|
+| **0.04245** | `val_R_PICPOC`, v05 `data.darwin:53` | **v05 — our active target** |
+| **0.0419** | `a_R_PICPOC`, five of six groups, v06 | v06 |
+| **0.05** | `a_R_PICPOC`, the third group, v06 | v06 |
+
+(plus the commented-out `0.133` in the v04 Fortran, which is inert but visible)
+
+**This also confirms his own remark from the other direction.** He wrote that in the next ECCO-Darwin
+version "we have more explicitly determined which plankton groups calcify" — the v06 array is exactly
+that: one group is given a *different* rain ratio (0.05) from the other five (0.0419). In v05 it is a
+single scalar for everything.
+
 ### Status of the R_PICPOC ground truth
 
-**Unchanged and safe.** `0.04245` is the value the override writes, so our recovery target matches
-what the model runs on. The uncertainty Jon raised is about *where the value lives*, not *what it is*.
-Our **50/50** recovery stands.
+**Confirmed against the v05 namelist.** `val_R_PICPOC = 0.04245` at
+`v05/llc270/input/data.darwin:53`, sitting directly beside `smallgrow`, `biggrow` and `diatomgraz` —
+the Carroll-6 block. v05 is our active recovery target, so the ground truth is correct and the
+**50/50** recovery stands, now on primary evidence rather than on our own note.
+
+**But it is v05-specific.** In v06 the rain ratio becomes a six-element per-group array, so a single
+global `R_PICPOC` is no longer the right target shape for that generation. That is worth stating in
+the manuscript's limitations.
