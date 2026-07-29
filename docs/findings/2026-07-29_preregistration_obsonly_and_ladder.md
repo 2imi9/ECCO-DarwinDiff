@@ -363,7 +363,16 @@ sharper ladder discriminator than the aggregate trio count.
 > This does **not** apply to `alpfe` or `scav_rat`, which are held at absolute level in every cell by
 > the dense PINN term (§3.1b correction). `scav_rat`'s leg pattern is in fact the mirror image —
 > eqpac 8/50, natlsubpolar 19/50, **southernoceanpac 49/50** — so the Southern Ocean is where
-> `scav_rat` is *easiest*, and it is the basin the flagship's 26/50 leans on.
+> `scav_rat` is *easiest*, and it is the basin its per-AOI count leans on.
+
+**Provenance note, and the repo's own guard caught me writing this wrong.** These leg numbers come
+from **`ctrl_n50`**, the independent reproduction, whose `scav_rat` reads **26/50**. The *published
+flagship* is `n50e2k_percell_trio` at **25/50**, and its own leg tally is eqpac 7, natl 20, SO 49.
+The two runs agree to one seed, but they are different runs and the counts must not be merged. An
+earlier draft of this paragraph attributed the reproduction's count to the flagship, and
+`test_no_tracked_doc_binds_26_of_50_to_the_flagship` failed it on the spot. That is the exact
+conflation that drifted across twelve documents in July and took two audits to undo, so the guard
+earned its keep twice in one afternoon.
 
 ---
 
