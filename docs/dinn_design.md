@@ -13,7 +13,7 @@ ECCO-Darwin (Carroll 2020 / 2022) calibrates its biogeochemistry side using **Gr
 Two structural limits of this approach:
 
 - **Global-scalar parameters.** Each tuned parameter takes a *single value* applied uniformly to every grid cell. The ocean isn't uniform — phytoplankton growth rates differ between subtropical gyres and HNLC equatorial upwelling, iron scavenging differs near coastal sediments vs the open ocean — but Carroll's calibration cannot express that heterogeneity by construction.
-- **Per-parameter cost.** Each new tuned parameter requires a fresh full forward run. Carroll handled 6 parameters; scaling to 60+ tunable knobs is prohibitive.
+- **Per-parameter cost.** Each new tuned parameter requires a fresh full forward run. Carroll handled 6 parameters; scaling to the ~103 independently tunable knobs audited in [ecco_darwin_parameter_inventory.md](ecco_darwin_parameter_inventory.md) is prohibitive on cost alone. **Removing the cost barrier does not make a parameter identifiable**, and those are separate claims: DarwinDiff has only ever targeted the same Carroll-6, and even there no config recovers all four observables.
 
 DarwinDiff attacks both at once.
 

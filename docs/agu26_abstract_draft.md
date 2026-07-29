@@ -1,5 +1,22 @@
 # AGU26 abstract — draft for review (2026-07-23, overnight)
 
+> ## ⚠️ CORRECTED 2026-07-29 — a refuted number was live in the body
+>
+> The body claimed **`diatomgraz` "recovers in 35 of 50 fits"**. That number does not survive its own
+> control. Measured on 50 untrained networks through the identical grading pipeline, with the
+> **architecture matched** (`MLD_CHANNEL=1`, job 227876, `verify_run` exit 0), `diatomgraz` scores
+> **34/50 with no training at all**. The reported 35/50 therefore beats an untrained network by one
+> seed: **P = 0.447**. It measures the parameter's bounds, not the observations. See
+> [`2026-07-28_session_evidence_log.md`](findings/2026-07-28_session_evidence_log.md) §G4.
+>
+> **Do not reinstate 35/50 anywhere.** The separate `geo1+MLD` **10/10** result is a different and
+> genuinely significant signal (P = 0.021 against the same 0.68 baseline), and it is what STATUS
+> already carries as the headline verdict. `diatomgraz` is not dead; that one count cannot carry the
+> claim it was being used for.
+>
+> The body now leads with the untrained baseline itself, which is the stronger and more defensible
+> framing: it turns a weakness into the methodological contribution.
+
 **Status: DRAFT for Lucas to review + submit. Not submitted.** Manuscript stays local-only; this is a
 separate short abstract.
 
@@ -61,13 +78,13 @@ the surrogate.
 Which of ECCO-Darwin's Biogeochemical Parameters Are Identifiable from Real Ocean Observations? A Differentiable-Surrogate Identifiability Study
 
 **Body:**
-Global ocean biogeochemistry models such as ECCO-Darwin are calibrated by tuning a few parameters to observations, yet which parameters real data can constrain is seldom tested directly. We ask this for four: iron dust scaling (alpfe), iron scavenging (scav_rat), the calcite rain ratio (R_PICPOC), and diatom palatability (diatomgraz), which recovers in 35 of 50 fits from a model-internal chlorophyll and mixed-layer observable, non-circular but not independent data. A phytoplankton growth-rate pair is excluded as unobservable by construction.
+Global ocean biogeochemistry models such as ECCO-Darwin are calibrated by tuning a few parameters to observations, yet which parameters real data can constrain is seldom tested directly, and a recovery count is not self-interpreting: we show that an untrained network already scores one of these four parameters in 32 of 50 fits, so every count here is reported against a measured untrained baseline. We ask the question for four: iron dust scaling (alpfe), iron scavenging (scav_rat), the calcite rain ratio (R_PICPOC), and diatom palatability (diatomgraz). A phytoplankton growth-rate pair is excluded as unobservable by construction.
 
 We couple a differentiable 0-D box surrogate of Darwin's biogeochemistry to a small per-cell neural predictor, trained against real GEOTRACES dissolved iron and a real calcite anchor (Daniels). Identifiability is read from surrogate Fisher-information and profile-likelihood geometry. To our knowledge, using a differentiable surrogate with information geometry and observation design to study identifiability of a non-differentiable biogeochemical GCM is new; we apply it on the surrogate, with GCM validation still to come.
 
 The per-cell structure is essential: it constrains {alpfe, scav_rat, R_PICPOC} where a global-scalar control constrains none. alpfe recovers near its published value estimator-independently. R_PICPOC recovers only when a real calcite observation anchors it. scav_rat is only weakly, configuration-dependently constrained. The published FeMIP iron degeneracy reappears as surrogate sloppiness, a surface-only source-to-loss ratio that subsurface iron largely resolves.
 
-The central result is that identifiability is not recoverability: no single configuration recovers all four, a structural trade-off in which scavenging needs the pattern term and diatom palatability needs mixed-layer depth, and the binding constraint is the observing system, not the method. Better Fisher conditioning from subsurface iron did not by itself improve scav_rat recovery, so that limit is downstream of information content. Separately, as a diagnostic, v05 chlorophyll is unbiased against MODIS at the equator but five times low in the North Atlantic bloom, absent from ECCO-Darwin's evaluation. We name the observations that would sharpen them: subsurface iron sections and a matched production-ratio calcite target.
+The central result is that identifiability is not recoverability: no single configuration recovers all four, a structural trade-off in which scavenging needs the pattern term and diatom palatability needs mixed-layer depth, and the binding constraint is the observing system, not the method. Against the untrained baseline, alpfe, scav_rat and R_PICPOC separate decisively while diatom palatability does not, and dropping every model-internal target leaves only alpfe and R_PICPOC standing on real observations alone. Better Fisher conditioning from subsurface iron did not by itself improve scav_rat recovery, so that limit is downstream of information content. Separately, as a diagnostic, v05 chlorophyll is unbiased against MODIS at the equator but five times low in the North Atlantic bloom, absent from ECCO-Darwin's evaluation. We name the observations that would sharpen them: subsurface iron sections and a matched production-ratio calcite target.
 
 ## Open items before submission
 - ~~Refresh iron numbers after the scav_rat n=50 reconciliation~~ **DONE 2026-07-24**: reframed to the
