@@ -139,6 +139,43 @@ def test_flagship_legs_are_consistent_with_the_joint_count():
 #: below never saw. Same for the natl leg, which drifted as "19->40". Both forms are
 #: matched here so the guard covers how the numbers are actually written in prose.
 _ARROW = r"(?:->|-->|→|–>|\s+to\s+)"
+
+#: THIRD spelling found (2026-07-29), in a markdown TABLE cell on the flagship row:
+#:     | **n50e2k_percell_trio** ... | 49 / 49 | 36 / **26** | ...
+#: The literal-"26/50" check misses it because the denominator is implied by the column,
+#: and the range-form check misses it because there is no arrow. A per-AOI count of 26 on
+#: a line that also names the flagship run is the invariant, however it is written.
+_TABLE_26 = re.compile(r"\b26\b")
+
+
+def test_no_flagship_table_row_reports_26_per_aoi():
+    """The 26 drift has now appeared in three spellings: bare 26/50, the range form
+    26->41/50, and a table cell `36 / **26**`. Each escaped the previous guard.
+
+    Any line naming the flagship run must not contain a bare 26 unless it is
+    explicitly attributed to the subW=1 arm.
+    """
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if FLAGSHIP_RUN not in line:
+                continue
+            low = line.lower()
+            if any(m in low for m in _SUBW1_MARKERS):
+                continue
+            # strip epoch/seed counts that legitimately contain 26 as a substring
+            if _TABLE_26.search(re.sub(r"\d{3,}", "", line)):
+                offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        f"a bare 26 appears on a line naming {FLAGSHIP_RUN}:\n  " + "\n  ".join(offenders)
+        + f"\n\nThe flagship per-AOI scav_rat count is {FLAGSHIP['scav_rat']}/50."
+    )
+
+
 _RANGE_DRIFTS = (
     (re.compile(rf"\b26\s*{_ARROW}\s*41\b"), "scav_rat 26->41 (flagship is 25->41 at 4000ep)"),
     (re.compile(rf"\bnatl\s+19\s*{_ARROW}\s*40\b", re.IGNORECASE),
@@ -174,6 +211,82 @@ EMULATOR_VS_PERSISTENCE = (0.055, 0.013)
 EMULATOR_VS_SEASONAL_AR1 = (-0.161, 0.015)
 
 _AR1_WRONG_SPREAD = re.compile(r"0\.161\s*(?:±|\+/-)\s*0\.013")
+
+
+#: The 4000-epoch confirmation run, re-graded 2026-07-28 from the 50 per-seed JSONs on
+#: AICR (/scratch/qi_zim_neu/confirm/ep4k_n50), gate exit 0. Until then this was the last
+#: document-only Track-1 headline -- and it is quoted in the AGU abstract draft.
+#:
+#:   [ep4k] n=50/50  alpfe 49/50 | scav_rat 41/50 | diatomgraz 8/50 | R_PICPOC 50/50
+#:          scav_rat legs  eqpac 6 / natl 40 / sopac 48
+EP4K = {"alpfe": 49, "scav_rat": 41, "diatomgraz": 8, "R_PICPOC": 50}
+EP4K_SCAV_RAT_LEGS = {"eqpac": 6, "natl": 40, "sopac": 48}
+
+
+def test_ep4k_is_the_optimisation_limited_arm():
+    """2000 -> 4000 epochs moves scav_rat 25 -> 41 while eqpac barely moves.
+
+    That contrast is the whole 'closeable optimisation component plus a residual
+    information component' argument: natl 20 -> 40 is optimisation, eqpac 7 -> 6 is not.
+    """
+    assert EP4K["scav_rat"] == EP4K_SCAV_RAT[1] == 41
+    assert FLAGSHIP["scav_rat"] == EP4K_SCAV_RAT[0] == 25
+    assert EP4K_SCAV_RAT_LEGS["natl"] == EP4K_NATL_LEG[1] == 40
+    # eqpac does NOT improve with 2x the epochs -- it is information-limited
+    assert EP4K_SCAV_RAT_LEGS["eqpac"] <= FLAGSHIP_SCAV_RAT_LEGS["eqpac"]
+    # alpfe and R_PICPOC are already saturated and stay there
+    assert EP4K["alpfe"] == FLAGSHIP["alpfe"] == 49
+    assert EP4K["R_PICPOC"] == FLAGSHIP["R_PICPOC"] == 50
+
+
+#: The growth pair is excluded for TWO DIFFERENT reasons, and collapsing them overstates the
+#: claim. STATUS.md:37-41 and :301 are precise; README.md, docs/index.md and CLAUDE.md all said
+#: "the growth pair is unobservable by construction" until 2026-07-29.
+#:   Biggrow   -- unobservable by construction; never recovers, seasonal included
+#:   Smallgrow -- practically non-identifiable under TIME-MEAN fitting, but a seasonal prototype
+#:                recovers it natl 9/10 (unconfirmed, job 189324) and synthetic-ID is 7/7
+GROWTH_PAIR_REASONS = {
+    "Biggrow": "unobservable by construction",
+    "Smallgrow": "time-mean non-identifiable; seasonal prototype natl 9/10 unconfirmed",
+}
+
+_PAIR_BLANKET = re.compile(
+    r"growth pair[^.\n]{0,60}unobservable by construction", re.IGNORECASE)
+
+#: A line is FINE if it distinguishes the two parameters -- naming Biggrow as the subject of
+#: the strong claim, or noting Smallgrow's weaker status. Only an undifferentiated "the pair
+#: is unobservable by construction" is an offender. Without these the guard would flag its own
+#: corrected wording, which is the exemption trap this suite has hit before.
+_PAIR_DISTINGUISHED = (
+    "biggrow", "time-mean", "seasonal", "non-identifiable", "189324",
+)
+
+
+def test_growth_pair_is_not_collapsed_into_one_reason():
+    """A doc may call BIGGROW unobservable by construction; it may not say that of the PAIR.
+
+    Smallgrow recovers 9/10 seasonally in the North Atlantic and 7/7 on synthetic data.
+    A reviewer who finds STATUS.md:301 beside a blanket "unobservable by construction" has a
+    legitimate objection, and it would be ours to answer.
+    """
+    assert set(GROWTH_PAIR_REASONS) == {"Biggrow", "Smallgrow"}
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if not _PAIR_BLANKET.search(line):
+                continue
+            if any(m in line.lower() for m in _PAIR_DISTINGUISHED):
+                continue  # the line separates the two parameters -- that is the fix, not the bug
+            offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        "the growth PAIR is called unobservable by construction in:\n  " + "\n  ".join(offenders)
+        + "\n\nOnly Biggrow is. Smallgrow is time-mean non-identifiable "
+          "(seasonal prototype natl 9/10, job 189324)."
+    )
 
 
 def test_ar1_and_persistence_spreads_are_not_swapped():

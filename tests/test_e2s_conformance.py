@@ -47,11 +47,34 @@ def test_satisfies_the_runtime_checkable_protocol():
     assert isinstance(_model(), e2s_px.PrognosticModel)
 
 
+#: The five members the protocol requires, per this module's own header (verified against
+#: earth2studio 0.18.0a0, commit 3400b69). Named explicitly rather than introspected.
+_REQUIRED_MEMBERS = ("__call__", "create_iterator", "input_coords", "output_coords", "to")
+
+
 def test_declares_every_required_protocol_member():
-    required = set(getattr(e2s_px.PrognosticModel, "__protocol_attrs__", ()))
-    assert required, "protocol exposes no __protocol_attrs__; earth2studio API changed"
-    missing = {a for a in required if not hasattr(_model(), a)}
+    """Cross-check on the isinstance test above, using the DOCUMENTED member list.
+
+    This previously introspected ``PrognosticModel.__protocol_attrs__``. That is a CPython
+    typing internal, and the first real CI run (2026-07-29) found it empty on the installed
+    earth2studio -- so the assertion fired while the definitive isinstance check passed.
+    The failure was in how we introspected, not in our conformance.
+
+    Depending on a private typing attribute to police someone else's public protocol was the
+    wrong instrument. The names below are what their own docs specify; if NVIDIA adds a sixth
+    member, ``test_satisfies_the_runtime_checkable_protocol`` is what will catch it.
+    """
+    missing = {a for a in _REQUIRED_MEMBERS if not hasattr(_model(), a)}
     assert not missing, f"missing protocol members: {sorted(missing)}"
+
+    # If the runtime protocol DOES expose its attrs, assert we cover them too -- but treat
+    # its absence as an upstream implementation detail, not a failure.
+    exposed = set(getattr(e2s_px.PrognosticModel, "__protocol_attrs__", ()))
+    if exposed:
+        uncovered = exposed - set(_REQUIRED_MEMBERS)
+        assert not uncovered, (
+            f"earth2studio's protocol now requires members we do not check: {sorted(uncovered)}"
+        )
 
 
 def test_coordinate_order_matches_the_canonical_convention():

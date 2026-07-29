@@ -1,0 +1,262 @@
+{
+  "verdict": "MAKE",
+  "question": "Can an FNO beat persistence on ECCO-Darwin v05 next-month state?",
+  "headline_overall_skill_vs_persistence": 0.43192514727146536,
+  "beats_persistence": true,
+  "config": {
+    "aoi": "global",
+    "aoi_bounds": {
+      "lat_min": -80.0,
+      "lat_max": 89.75,
+      "lon_min": -180.0,
+      "lon_max": 180.0
+    },
+    "tracers": [
+      "DIC",
+      "ALK",
+      "PIC",
+      "POC",
+      "FeT",
+      "Chl1"
+    ],
+    "forcing": [],
+    "levels": 1,
+    "grid_shape": [
+      680,
+      1441
+    ],
+    "channel_names": [
+      "DIC",
+      "ALK",
+      "PIC",
+      "POC",
+      "FeT",
+      "Chl1"
+    ],
+    "epochs": 150,
+    "batch_size": 4,
+    "lr": 0.001,
+    "val_frac": 0.3,
+    "modes": 32,
+    "width": 64,
+    "layers": 4,
+    "operator": "FNO2d",
+    "n_params": 33580614,
+    "residual": true,
+    "rollout_train_k": 4,
+    "seed": 0,
+    "device": "cuda",
+    "dtype": "float32",
+    "adjacency_tol": 1.6,
+    "median_step_days": 44.25,
+    "dt_hours": 1062.0,
+    "log_transform": true,
+    "log_tracers": [
+      "Chl1",
+      "Chl2",
+      "Chl3",
+      "Chl4",
+      "Chl5",
+      "PIC",
+      "POC",
+      "FeT"
+    ],
+    "log_eps": 1e-12,
+    "log_floor_pct": 1.0,
+    "log_floors": {
+      "PIC": 1.7483639119797448e-11,
+      "POC": 2.0974399135911813e-11,
+      "FeT": 2.147596667327889e-06,
+      "Chl1": 1.421926598688117e-10
+    }
+  },
+  "data": {
+    "n_shared_months": 156,
+    "n_train_months": 109,
+    "n_val_months": 47,
+    "n_train_pairs": 92,
+    "n_val_pairs": 40,
+    "n_valid_ocean_cells": 456873,
+    "first_iter": 2232,
+    "last_iter": 707832
+  },
+  "metrics": {
+    "overall_skill_vs_persistence": 0.43192514727146536,
+    "overall_anomaly_r2_vs_climatology": 0.6898310493195215,
+    "persistence_skill_vs_climatology": 0.45399985725349723,
+    "per_tracer": {
+      "DIC": {
+        "skill_vs_persistence": 0.44173648243336616,
+        "anomaly_r2_vs_climatology": 0.7543392085700189,
+        "rmse_z": 0.15958356890413186,
+        "rmse_physical": 16.05042413237353,
+        "physical_std": 100.57692181339578,
+        "log_space": false
+      },
+      "ALK": {
+        "skill_vs_persistence": 0.3967048495001243,
+        "anomaly_r2_vs_climatology": 0.750443355328229,
+        "rmse_z": 0.16648633928577872,
+        "rmse_physical": 16.528022301052747,
+        "physical_std": 99.27554640192976,
+        "log_space": false
+      },
+      "PIC": {
+        "skill_vs_persistence": 0.19016476035128993,
+        "anomaly_r2_vs_climatology": 0.851481711395197,
+        "rmse_z": 0.22453839017433258,
+        "rmse_physical": 0.11823539633154273,
+        "physical_std": 6.7307843268357725,
+        "log_space": true
+      },
+      "POC": {
+        "skill_vs_persistence": 0.5648093077744872,
+        "anomaly_r2_vs_climatology": 0.6012289277804941,
+        "rmse_z": 0.2183362309745611,
+        "rmse_physical": 0.7995967307948024,
+        "physical_std": 5.528679770101938,
+        "log_space": true
+      },
+      "FeT": {
+        "skill_vs_persistence": 0.43762339850386145,
+        "anomaly_r2_vs_climatology": 0.5804887318021483,
+        "rmse_z": 0.27629994067957836,
+        "rmse_physical": 7.754808753479603e-05,
+        "physical_std": 1.9305224450886376,
+        "log_space": true
+      },
+      "Chl1": {
+        "skill_vs_persistence": 0.4355276181447304,
+        "anomaly_r2_vs_climatology": 0.5748449202432915,
+        "rmse_z": 0.3738755821433295,
+        "rmse_physical": 0.9288750384959098,
+        "physical_std": 6.488833371509121,
+        "log_space": true
+      }
+    },
+    "final_train_mse_z": 0.006072227277007757,
+    "n_metric_cells": 456873
+  },
+  "rollout": {
+    "ran": true,
+    "run_length_months": 12,
+    "n_steps": 6,
+    "step_mse_z_model": [
+      0.10376577079296112,
+      0.14570803940296173,
+      0.11624284088611603,
+      0.13447219133377075,
+      0.11727326363325119,
+      0.1246805489063263
+    ],
+    "step_mse_z_persistence": [
+      0.2580692768096924,
+      0.3671985864639282,
+      0.27368849515914917,
+      0.2513134181499481,
+      0.2749747931957245,
+      0.29289260506629944
+    ],
+    "finite": true,
+    "bounded": true,
+    "stable": true,
+    "beats_persistence_at_final_step": true,
+    "positivity": {
+      "DIC": {
+        "min_value": 921.905517578125,
+        "frac_negative": 0.0
+      },
+      "ALK": {
+        "min_value": 957.744384765625,
+        "frac_negative": 0.0
+      },
+      "PIC": {
+        "min_value": 2.1557799144622246e-18,
+        "frac_negative": 0.0
+      },
+      "POC": {
+        "min_value": 1.3832315284498242e-12,
+        "frac_negative": 0.0
+      },
+      "FeT": {
+        "min_value": 1.326985966443317e-06,
+        "frac_negative": 0.0
+      },
+      "Chl1": {
+        "min_value": 3.196259446350269e-12,
+        "frac_negative": 0.0
+      }
+    },
+    "mass_drift": {
+      "DIC": {
+        "pred_domain_mean": 2102.33056640625,
+        "true_domain_mean": 2102.5212127689797,
+        "relative_drift": -9.067511974284283e-05
+      },
+      "ALK": {
+        "pred_domain_mean": 2329.972412109375,
+        "true_domain_mean": 2328.1767527233087,
+        "relative_drift": 0.0007712727927404467
+      },
+      "PIC": {
+        "pred_domain_mean": 0.006959459278732538,
+        "true_domain_mean": 0.00750410373084934,
+        "relative_drift": -0.07257954735857004
+      },
+      "POC": {
+        "pred_domain_mean": 0.12160374969244003,
+        "true_domain_mean": 0.10374937164315992,
+        "relative_drift": 0.1720914330998479
+      },
+      "FeT": {
+        "pred_domain_mean": 0.0003887479833792895,
+        "true_domain_mean": 0.00041480817179288197,
+        "relative_drift": -0.0628246745982733
+      },
+      "Chl1": {
+        "pred_domain_mean": 0.08769003301858902,
+        "true_domain_mean": 0.038176766702397905,
+        "relative_drift": 1.2969476095805976
+      }
+    },
+    "max_frac_negative": 0.0,
+    "max_abs_relative_mass_drift": 1.2969476095805976,
+    "positivity_enforced": false,
+    "mass_conserve_enforced": false
+  },
+  "honesty_notes": [
+    "Skill = 1 - MSE(model)/MSE(persistence); >0 means it beats copying x(t).",
+    "Persistence is a strong baseline on an autocorrelated ocean; raw R^2 is not reported as headline.",
+    "Standardization statistics use TRAIN months only; pairs never cross the split and never span a missing-month gap.",
+    "Only the fixed valid-ocean mask (finite across all months/channels) is scored; land is fill-zero input only.",
+    "Single AOI, single seed: treat as a go/no-go signal, not a converged benchmark. Repeat over seeds/AOIs before any claim.",
+    "Residual mode: the model predicts the TENDENCY added to x(t) (it starts AT persistence and learns only the correction), so positive skill reflects a learned month-to-month change that improves on copying."
+  ],
+  "generated_utc": "2026-07-25T15:55:51.827375+00:00",
+  "argv": [
+    "scripts/emulator_poc.py",
+    "--load-cube",
+    "global_native_cube.npz",
+    "--aoi",
+    "global",
+    "--aoi-bounds=-80,89.75,-180,180",
+    "--epochs",
+    "150",
+    "--residual",
+    "--rollout-train-k",
+    "4",
+    "--modes",
+    "32",
+    "--width",
+    "64",
+    "--batch-size",
+    "4",
+    "--seed",
+    "0",
+    "--log-transform",
+    "--dump-fields",
+    "/scratch/qi_zim_neu/global_fields_logspace.npz",
+    "--out",
+    "/scratch/qi_zim_neu/global_fields_logspace.json"
+  ]
+}

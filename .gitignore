@@ -146,3 +146,6 @@ containers/.sif_jobid
 # They are NOT our work and must never enter this public repo's history.
 docs/figures/refs/
 .claude/skills/tikz/
+
+# Paper/abstract drafts are LOCAL-ONLY by user directive (2026-07-28).
+/docs/research_notes/*workshop_paper*.md

@@ -1,0 +1,1327 @@
+{
+  "meta": {
+    "script": "emulator_baselines_v2.py",
+    "fields": "/scratch/qi_zim_neu/depth/depth_chl_fields_seed3.npz",
+    "cube": "/scratch/qi_zim_neu/depth/darwin_v05_L5_chl.npz",
+    "aoi": "eqpac",
+    "residual": false,
+    "val_frac": 0.3,
+    "adjacency_tol": 1.6,
+    "log_tracers": [
+      "Chl1"
+    ],
+    "n_channels": 30,
+    "n_val_pairs": 8,
+    "n_train_months": 34,
+    "n_train_pairs": 18,
+    "n_valid_cells": 42950,
+    "val_target_iters": [
+      144576,
+      146808,
+      149040,
+      151200,
+      153432,
+      155592,
+      173088,
+      179712
+    ],
+    "n_boot": 1000,
+    "block_rows": 15,
+    "block_cols": 36,
+    "n_blocks_total": 120,
+    "seed": 0,
+    "skill_convention": "1 - RMSE_model/RMSE_base (task); residuals z-normalized per channel by TRAIN std before pooling.",
+    "tendency_normalized_error": "RMSE_model / rms(true tendency) == RMSE_model/RMSE_persistence; <1 beats persistence.",
+    "biomes": {
+      "equatorial_|lat|<=5": 24544,
+      "northern_lat>5": 18406
+    },
+    "predictors": [
+      "emulator",
+      "persistence",
+      "damped",
+      "seasonal_clim",
+      "annual_clim",
+      "anomaly_persist",
+      "ar1_percell",
+      "ar1_seasonal_percell",
+      "linear_trend_percell"
+    ],
+    "simple_baselines": [
+      "persistence",
+      "damped",
+      "seasonal_clim",
+      "annual_clim",
+      "anomaly_persist",
+      "ar1_percell",
+      "ar1_seasonal_percell",
+      "linear_trend_percell"
+    ]
+  },
+  "overall": {
+    "n_cells": 42950,
+    "n_pairs": 8,
+    "n_active_blocks": 116,
+    "rmse_z": {
+      "emulator": 0.41905709159814425,
+      "persistence": 0.4375876071819767,
+      "ar1_percell": 0.39612957540512067,
+      "seasonal_clim": 0.4469608699695766,
+      "damped": 0.39825736564555647,
+      "anomaly_persist": 0.39729845674198805,
+      "ar1_seasonal_percell": 0.3559218294305344,
+      "linear_trend_percell": 0.5592214271649782,
+      "annual_clim": 0.5583776125059728
+    },
+    "best_simple_baseline": "ar1_seasonal_percell",
+    "skill_vs_persistence": {
+      "point": 0.04234698442025642,
+      "lo": -0.08131411692176467,
+      "hi": 0.12857645926404193
+    },
+    "skill_vs_ar1_percell": {
+      "point": -0.057878829596542,
+      "lo": -0.16036406479993584,
+      "hi": 0.020257791761524015
+    },
+    "skill_vs_best_simple": {
+      "point": -0.17738519232895777,
+      "lo": -0.23028686353179523,
+      "hi": -0.12577716924173168
+    },
+    "tendency_normalized_error": {
+      "point": 0.9576530155797436,
+      "lo": 0.8679031106239044,
+      "hi": 1.0750404603270305
+    },
+    "norm_err_baselines": {
+      "persistence": 1.0,
+      "damped": 0.9101203030183983,
+      "seasonal_clim": 1.0214203113473959,
+      "annual_clim": 1.2760361658820103,
+      "anomaly_persist": 0.9079289500462615,
+      "ar1_percell": 0.905257756169463,
+      "ar1_seasonal_percell": 0.8133727363136212,
+      "linear_trend_percell": 1.2779644989635606
+    }
+  },
+  "by_tracer": {
+    "DIC": {
+      "n_cells": 42950,
+      "n_pairs": 8,
+      "n_active_blocks": 116,
+      "rmse_z": {
+        "emulator": 0.2503226943890424,
+        "persistence": 0.15409241412182104,
+        "ar1_percell": 0.16006231165341805,
+        "seasonal_clim": 0.29868925758528314,
+        "damped": 0.15583448104661252,
+        "anomaly_persist": 0.13179477055211847,
+        "ar1_seasonal_percell": 0.15531076025941484,
+        "linear_trend_percell": 0.32701168466423886,
+        "annual_clim": 0.3513988570118699
+      },
+      "best_simple_baseline": "anomaly_persist",
+      "skill_vs_persistence": {
+        "point": -0.6244971942041511,
+        "lo": -0.7787954472107659,
+        "hi": -0.4926315434430182
+      },
+      "skill_vs_ar1_percell": {
+        "point": -0.5639077794344534,
+        "lo": -0.7077782012333218,
+        "hi": -0.4438310530662932
+      },
+      "skill_vs_best_simple": {
+        "point": -0.8993370779461378,
+        "lo": -1.040338525537295,
+        "hi": -0.7780821644477358
+      },
+      "tendency_normalized_error": {
+        "point": 1.624497194204151,
+        "lo": 1.4863670748893552,
+        "hi": 1.7969837033775766
+      },
+      "norm_err_baselines": {
+        "persistence": 1.0,
+        "damped": 1.011305338648366,
+        "seasonal_clim": 1.9383774294635165,
+        "annual_clim": 2.2804422853292703,
+        "anomaly_persist": 0.8552969417944565,
+        "ar1_percell": 1.0387423194426517,
+        "ar1_seasonal_percell": 1.0079065938744434,
+        "linear_trend_percell": 2.122178995818138
+      },
+      "rms_tendency_work": 14.684731043621143,
+      "rms_field_anomaly_work": 33.286524171478916,
+      "tend_over_anom": 0.4411614432306376,
+      "log_space": false
+    },
+    "ALK": {
+      "n_cells": 42950,
+      "n_pairs": 8,
+      "n_active_blocks": 116,
+      "rmse_z": {
+        "emulator": 0.3577091945832698,
+        "persistence": 0.19007214722413726,
+        "ar1_percell": 0.1995934451413056,
+        "seasonal_clim": 0.5002659097876675,
+        "damped": 0.1978383910626326,
+        "anomaly_persist": 0.18060377090854887,
+        "ar1_seasonal_percell": 0.2154276152582691,
+        "linear_trend_percell": 0.44526790261121085,
+        "annual_clim": 0.5365382933062839
+      },
+      "best_simple_baseline": "anomaly_persist",
+      "skill_vs_persistence": {
+        "point": -0.8819653474080615,
+        "lo": -1.073121420659419,
+        "hi": -0.7370265384006099
+      },
+      "skill_vs_ar1_percell": {
+        "point": -0.7921890888251537,
+        "lo": -0.9687311319222737,
+        "hi": -0.6483302959987007
+      },
+      "skill_vs_best_simple": {
+        "point": -0.9806297110174989,
+        "lo": -1.1728885766939787,
+        "hi": -0.8047088400294916
+      },
+      "tendency_normalized_error": {
+        "point": 1.8819653474080615,
+        "lo": 1.7311465903359844,
+        "hi": 2.0546971687811575
+      },
+      "norm_err_baselines": {
+        "persistence": 1.0,
+        "damped": 1.0408594523285792,
+        "seasonal_clim": 2.631979051605825,
+        "annual_clim": 2.8228138690598685,
+        "anomaly_persist": 0.9501853561720273,
+        "ar1_percell": 1.0500930728474414,
+        "ar1_seasonal_percell": 1.1333991771252634,
+        "linear_trend_percell": 2.3426257298295323
+      },
+      "rms_tendency_work": 13.607839236231843,
+      "rms_field_anomaly_work": 37.26949698863856,
+      "tend_over_anom": 0.36512001330149785,
+      "log_space": false
+    },
+    "PIC": {
+      "n_cells": 42950,
+      "n_pairs": 8,
+      "n_active_blocks": 116,
+      "rmse_z": {
+        "emulator": 0.6058321114702316,
+        "persistence": 0.7242980851402834,
+        "ar1_percell": 0.6367294178423613,
+        "seasonal_clim": 0.574674737686976,
+        "damped": 0.6451438309040082,
+        "anomaly_persist": 0.6586943435836089,
+        "ar1_seasonal_percell": 0.5513719050400957,
+        "linear_trend_percell": 0.8106842452350219,
+        "annual_clim": 0.7612311914470272
+      },
+      "best_simple_baseline": "ar1_seasonal_percell",
+      "skill_vs_persistence": {
+        "point": 0.16355969468993847,
+        "lo": 0.017287032103329304,
+        "hi": 0.2673087534819485
+      },
+      "skill_vs_ar1_percell": {
+        "point": 0.04852501785896601,
+        "lo": -0.0703509733017775,
+        "hi": 0.13634563331071287
+      },
+      "skill_vs_best_simple": {
+        "point": -0.09877218250025921,
+        "lo": -0.17557781780318935,
+        "hi": -0.02567796534958113
+      },
+      "tendency_normalized_error": {
+        "point": 0.8364403053100615,
+        "lo": 0.7373983467092392,
+        "hi": 0.9786687703141128
+      },
+      "norm_err_baselines": {
+        "persistence": 1.0,
+        "damped": 0.89071591398596,
+        "seasonal_clim": 0.7934229697372069,
+        "annual_clim": 1.0509915835268162,
+        "anomaly_persist": 0.9094243890704636,
+        "ar1_percell": 0.8790985795841753,
+        "ar1_seasonal_percell": 0.7612499830553948,
+        "linear_trend_percell": 1.119268795357932
+      },
+      "rms_tendency_work": 0.014693840838894932,
+      "rms_field_anomaly_work": 0.01557242032030243,
+      "tend_over_anom": 0.9435810578358166,
+      "log_space": false
+    },
+    "POC": {
+      "n_cells": 42950,
+      "n_pairs": 8,
+      "n_active_blocks": 116,
+      "rmse_z": {
+        "emulator": 0.509303390939626,
+        "persistence": 0.6623330977987855,
+        "ar1_percell": 0.5891493338337277,
+        "seasonal_clim": 0.5131902175142152,
+        "damped": 0.5955983828621336,
+        "anomaly_persist": 0.5754565710784544,
+        "ar1_seasonal_percell": 0.49180230484344106,
+        "linear_trend_percell": 0.7626175258234221,
+        "annual_clim": 0.7301337234485815
+      },
+      "best_simple_baseline": "ar1_seasonal_percell",
+      "skill_vs_persistence": {
+        "point": 0.23104644380258565,
+        "lo": 0.14997103040237453,
+        "hi": 0.30238845410958604
+      },
+      "skill_vs_ar1_percell": {
+        "point": 0.13552751112273387,
+        "lo": 0.05720945897001162,
+        "hi": 0.199006979964106
+      },
+      "skill_vs_best_simple": {
+        "point": -0.035585612193818505,
+        "lo": -0.0978253751039312,
+        "hi": 0.031385848459028705
+      },
+      "tendency_normalized_error": {
+        "point": 0.7689535561974143,
+        "lo": 0.7009084833214337,
+        "hi": 0.856434892242852
+      },
+      "norm_err_baselines": {
+        "persistence": 1.0,
+        "damped": 0.8992429713109014,
+        "seasonal_clim": 0.7748219426445161,
+        "annual_clim": 1.1023663559546193,
+        "anomaly_persist": 0.8688325753173762,
+        "ar1_percell": 0.8895061046952379,
+        "ar1_seasonal_percell": 0.7425301656793376,
+        "linear_trend_percell": 1.1514108661607347
+      },
+      "rms_tendency_work": 0.20164340569776135,
+      "rms_field_anomaly_work": 0.2244345329238543,
+      "tend_over_anom": 0.898450889312005,
+      "log_space": false
+    },
+    "FeT": {
+      "n_cells": 42950,
+      "n_pairs": 8,
+      "n_active_blocks": 116,
+      "rmse_z": {
+        "emulator": 0.27145050356203115,
+        "persistence": 0.15255446202971074,
+        "ar1_percell": 0.14757859277298999,
+        "seasonal_clim": 0.206358244636068,
+        "damped": 0.14709571302364305,
+        "anomaly_persist": 0.13379058150450054,
+        "ar1_seasonal_percell": 0.14614331035592232,
+        "linear_trend_percell": 0.24475624217369127,
+        "annual_clim": 0.25723062494909044
+      },
+      "best_simple_baseline": "anomaly_persist",
+      "skill_vs_persistence": {
+        "point": -0.7793678398548896,
+        "lo": -0.970653059591531,
+        "hi": -0.628126852337276
+      },
+      "skill_vs_ar1_percell": {
+        "point": -0.8393623252634264,
+        "lo": -1.0237561087226794,
+        "hi": -0.6910611689121987
+      },
+      "skill_vs_best_simple": {
+        "point": -1.0289208740220621,
+        "lo": -1.163985119081216,
+        "hi": -0.9147725862066114
+      },
+      "tendency_normalized_error": {
+        "point": 1.7793678398548896,
+        "lo": 1.6313637828745968,
+        "hi": 1.9545589441472486
+      },
+      "norm_err_baselines": {
+        "persistence": 1.0,
+        "damped": 0.96421770341267,
+        "seasonal_clim": 1.3526857352482993,
+        "annual_clim": 1.6861560227520156,
+        "anomaly_persist": 0.8770020864971105,
+        "ar1_percell": 0.9673829975831735,
+        "ar1_seasonal_percell": 0.9579746695803639,
+        "linear_trend_percell": 1.6043859938100256
+      },
+      "rms_tendency_work": 5.616480910266349e-05,
+      "rms_field_anomaly_work": 9.455730291146938e-05,
+      "tend_over_anom": 0.5939764288248427,
+      "log_space": false
+    },
+    "Chl1": {
+      "n_cells": 42950,
+      "n_pairs": 8,
+      "n_active_blocks": 116,
+      "rmse_z": {
+        "emulator": 0.4036432703531798,
+        "persistence": 0.32009354578374677,
+        "ar1_percell": 0.31898844173603236,
+        "seasonal_clim": 0.4721905166286939,
+        "damped": 0.30926366788371784,
+        "anomaly_persist": 0.3378762726211957,
+        "ar1_seasonal_percell": 0.34973311316516126,
+        "linear_trend_percell": 0.5219879561365174,
+        "annual_clim": 0.5297386871217766
+      },
+      "best_simple_baseline": "damped",
+      "skill_vs_persistence": {
+        "point": -0.2610165861509708,
+        "lo": -0.3520129417959217,
+        "hi": -0.18215967203997394
+      },
+      "skill_vs_ar1_percell": {
+        "point": -0.2653852539497359,
+        "lo": -0.33511616849015824,
+        "hi": -0.19776809607478352
+      },
+      "skill_vs_best_simple": {
+        "point": -0.30517520249080277,
+        "lo": -0.37609836137990166,
+        "hi": -0.2351609297430357
+      },
+      "tendency_normalized_error": {
+        "point": 1.2610165861509708,
+        "lo": 1.1889188821880599,
+        "hi": 1.3414893220680042
+      },
+      "norm_err_baselines": {
+        "persistence": 1.0,
+        "damped": 0.9661665221224249,
+        "seasonal_clim": 1.4751641288878186,
+        "annual_clim": 1.6549496048872687,
+        "anomaly_persist": 1.0555547810059964,
+        "ar1_percell": 0.9965475591049217,
+        "ar1_seasonal_percell": 1.0925965792557368,
+        "linear_trend_percell": 1.630735649037951
+      },
+      "rms_tendency_work": 2.666321570593467,
+      "rms_field_anomaly_work": 4.4134813320034505,
+      "tend_over_anom": 0.6041311540753975,
+      "log_space": true
+    }
+  },
+  "by_level": {
+    "DIC": {
+      "k0": {
+        "skill_vs_persistence": {
+          "point": -0.3632735230024102,
+          "lo": -0.5408278593386714,
+          "hi": -0.23394705072565045
+        },
+        "skill_vs_best_simple": {
+          "point": -0.8489243726420133,
+          "lo": -0.9871198635694086,
+          "hi": -0.7237595333477448
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.3632735230024102,
+          "lo": 1.218478932993706,
+          "hi": 1.5450710870470503
+        }
+      },
+      "k1": {
+        "skill_vs_persistence": {
+          "point": -0.3547674553707172,
+          "lo": -0.5121559819270052,
+          "hi": -0.2219800192015659
+        },
+        "skill_vs_best_simple": {
+          "point": -0.8313300738727496,
+          "lo": -0.9799051840650478,
+          "hi": -0.701109334747818
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.3547674553707172,
+          "lo": 1.223737787872142,
+          "hi": 1.5188000851339685
+        }
+      },
+      "k2": {
+        "skill_vs_persistence": {
+          "point": -0.6877007865030074,
+          "lo": -0.8406422658658416,
+          "hi": -0.5576473445127941
+        },
+        "skill_vs_best_simple": {
+          "point": -0.7682959707988126,
+          "lo": -0.915298973642797,
+          "hi": -0.6459453908523912
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.6877007865030074,
+          "lo": 1.5646134331921295,
+          "hi": 1.848392816580055
+        }
+      },
+      "k3": {
+        "skill_vs_persistence": {
+          "point": -1.0439241362708342,
+          "lo": -1.1930544172811095,
+          "hi": -0.9055893365490864
+        },
+        "skill_vs_best_simple": {
+          "point": -1.0439241362708342,
+          "lo": -1.196276245329273,
+          "hi": -0.904697414972925
+        },
+        "best_simple_baseline": "persistence",
+        "tendency_normalized_error": {
+          "point": 2.0439241362708342,
+          "lo": 1.8995111244716911,
+          "hi": 2.201590117654524
+        }
+      },
+      "k4": {
+        "skill_vs_persistence": {
+          "point": -1.361972999797624,
+          "lo": -1.5856971158110855,
+          "hi": -1.1685045339162825
+        },
+        "skill_vs_best_simple": {
+          "point": -1.361972999797624,
+          "lo": -1.5792395028292476,
+          "hi": -1.1860889578231744
+        },
+        "best_simple_baseline": "persistence",
+        "tendency_normalized_error": {
+          "point": 2.361972999797624,
+          "lo": 2.179050854250509,
+          "hi": 2.564597221753993
+        }
+      }
+    },
+    "ALK": {
+      "k0": {
+        "skill_vs_persistence": {
+          "point": -0.5631310901966373,
+          "lo": -0.7493096477306247,
+          "hi": -0.42096423030734376
+        },
+        "skill_vs_best_simple": {
+          "point": -1.0351936374380153,
+          "lo": -1.2302475377691837,
+          "hi": -0.8654091474299791
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.5631310901966373,
+          "lo": 1.4217662358992933,
+          "hi": 1.7455685224455963
+        }
+      },
+      "k1": {
+        "skill_vs_persistence": {
+          "point": -0.537790085967984,
+          "lo": -0.7250788735699139,
+          "hi": -0.40164416727174007
+        },
+        "skill_vs_best_simple": {
+          "point": -0.9924718587718406,
+          "lo": -1.1773899131279426,
+          "hi": -0.8207285594588761
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.537790085967984,
+          "lo": 1.3921520299727688,
+          "hi": 1.731363840042381
+        }
+      },
+      "k2": {
+        "skill_vs_persistence": {
+          "point": -1.0504632901775173,
+          "lo": -1.2561486151636838,
+          "hi": -0.8851819561300168
+        },
+        "skill_vs_best_simple": {
+          "point": -1.0504632901775173,
+          "lo": -1.2592166273805971,
+          "hi": -0.8925024289837064
+        },
+        "best_simple_baseline": "persistence",
+        "tendency_normalized_error": {
+          "point": 2.0504632901775173,
+          "lo": 1.8928865770286247,
+          "hi": 2.2550515385141225
+        }
+      },
+      "k3": {
+        "skill_vs_persistence": {
+          "point": -1.3909858821126773,
+          "lo": -1.609385719146343,
+          "hi": -1.1977502862021965
+        },
+        "skill_vs_best_simple": {
+          "point": -1.3909858821126773,
+          "lo": -1.6068839006598687,
+          "hi": -1.216534418438124
+        },
+        "best_simple_baseline": "persistence",
+        "tendency_normalized_error": {
+          "point": 2.3909858821126773,
+          "lo": 2.207847082093522,
+          "hi": 2.6392603377327974
+        }
+      },
+      "k4": {
+        "skill_vs_persistence": {
+          "point": -1.893683377376009,
+          "lo": -2.238599865648455,
+          "hi": -1.6273255170003025
+        },
+        "skill_vs_best_simple": {
+          "point": -1.893683377376009,
+          "lo": -2.2328677219705737,
+          "hi": -1.6212882010043503
+        },
+        "best_simple_baseline": "persistence",
+        "tendency_normalized_error": {
+          "point": 2.893683377376009,
+          "lo": 2.6343139195388474,
+          "hi": 3.2178486136172766
+        }
+      }
+    },
+    "PIC": {
+      "k0": {
+        "skill_vs_persistence": {
+          "point": 0.17467356032222758,
+          "lo": 0.061454339547955095,
+          "hi": 0.267913260851792
+        },
+        "skill_vs_best_simple": {
+          "point": -0.06612801831600046,
+          "lo": -0.1341798523716406,
+          "hi": -0.0018214288619193893
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.8253264396777724,
+          "lo": 0.7274796867869093,
+          "hi": 0.9391415139711032
+        }
+      },
+      "k1": {
+        "skill_vs_persistence": {
+          "point": 0.17973934166145655,
+          "lo": 0.05479919746391896,
+          "hi": 0.2782995354009809
+        },
+        "skill_vs_best_simple": {
+          "point": -0.08050898846194987,
+          "lo": -0.15047908501809854,
+          "hi": -0.016831078639368686
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.8202606583385434,
+          "lo": 0.7307311369471489,
+          "hi": 0.954559009382078
+        }
+      },
+      "k2": {
+        "skill_vs_persistence": {
+          "point": 0.17774214682847111,
+          "lo": 0.030309972682747793,
+          "hi": 0.2773496696214514
+        },
+        "skill_vs_best_simple": {
+          "point": -0.09741026554004062,
+          "lo": -0.18124575329421153,
+          "hi": -0.025312230956574092
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.8222578531715289,
+          "lo": 0.7174612287536821,
+          "hi": 0.9702925106926832
+        }
+      },
+      "k3": {
+        "skill_vs_persistence": {
+          "point": 0.1566738703529762,
+          "lo": 0.012674498343419088,
+          "hi": 0.25953274062758874
+        },
+        "skill_vs_best_simple": {
+          "point": -0.11502930122617161,
+          "lo": -0.1945895656377306,
+          "hi": -0.03390789607998106
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.8433261296470238,
+          "lo": 0.7435476555781346,
+          "hi": 0.9838612460434659
+        }
+      },
+      "k4": {
+        "skill_vs_persistence": {
+          "point": 0.12322350860613807,
+          "lo": -0.0188614805250397,
+          "hi": 0.22662984084100038
+        },
+        "skill_vs_best_simple": {
+          "point": -0.14068246168226928,
+          "lo": -0.23701368757447,
+          "hi": -0.061680288244126476
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.8767764913938619,
+          "lo": 0.7705105779049192,
+          "hi": 1.0144345336569773
+        }
+      }
+    },
+    "POC": {
+      "k0": {
+        "skill_vs_persistence": {
+          "point": 0.24736095703703065,
+          "lo": 0.17297202334701695,
+          "hi": 0.3094451052208617
+        },
+        "skill_vs_best_simple": {
+          "point": -0.00571874177178322,
+          "lo": -0.06816230174203738,
+          "hi": 0.05931226375276268
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.7526390429629694,
+          "lo": 0.6905041917465297,
+          "hi": 0.8279139683899798
+        }
+      },
+      "k1": {
+        "skill_vs_persistence": {
+          "point": 0.2500084752173821,
+          "lo": 0.1738102581029339,
+          "hi": 0.3133255747352479
+        },
+        "skill_vs_best_simple": {
+          "point": -0.013858024136200298,
+          "lo": -0.07532589932387788,
+          "hi": 0.049061166602576055
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.7499915247826179,
+          "lo": 0.6836381298250652,
+          "hi": 0.8371398421620454
+        }
+      },
+      "k2": {
+        "skill_vs_persistence": {
+          "point": 0.23842469207349404,
+          "lo": 0.14215377050713826,
+          "hi": 0.3109722175790419
+        },
+        "skill_vs_best_simple": {
+          "point": -0.04022623855376928,
+          "lo": -0.11343773846863318,
+          "hi": 0.02404343367777084
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.761575307926506,
+          "lo": 0.6857177850912817,
+          "hi": 0.848344907177013
+        }
+      },
+      "k3": {
+        "skill_vs_persistence": {
+          "point": 0.21707252803742272,
+          "lo": 0.11724417447839422,
+          "hi": 0.2942236932640945
+        },
+        "skill_vs_best_simple": {
+          "point": -0.05788902860135936,
+          "lo": -0.1298926238630897,
+          "hi": 0.008437015128583851
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.7829274719625773,
+          "lo": 0.7045555907666832,
+          "hi": 0.8818688131967827
+        }
+      },
+      "k4": {
+        "skill_vs_persistence": {
+          "point": 0.1969635233434619,
+          "lo": 0.0876621880993411,
+          "hi": 0.27930653914595216
+        },
+        "skill_vs_best_simple": {
+          "point": -0.06441113913175678,
+          "lo": -0.133007114558967,
+          "hi": 0.0046295193879075415
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.8030364766565381,
+          "lo": 0.7244905878409752,
+          "hi": 0.9043943272626673
+        }
+      }
+    },
+    "FeT": {
+      "k0": {
+        "skill_vs_persistence": {
+          "point": -0.6409009024262995,
+          "lo": -0.8421918891019179,
+          "hi": -0.47499312591994436
+        },
+        "skill_vs_best_simple": {
+          "point": -0.8917489003757044,
+          "lo": -1.0397933539533513,
+          "hi": -0.7627462117871789
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.6409009024262995,
+          "lo": 1.4763205783009348,
+          "hi": 1.8428632369627669
+        }
+      },
+      "k1": {
+        "skill_vs_persistence": {
+          "point": -0.6881733588258823,
+          "lo": -0.8941427942952418,
+          "hi": -0.5170185396050576
+        },
+        "skill_vs_best_simple": {
+          "point": -0.9459764800468848,
+          "lo": -1.098843131750623,
+          "hi": -0.8119086835234196
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.6881733588258823,
+          "lo": 1.524131448745593,
+          "hi": 1.907220421665882
+        }
+      },
+      "k2": {
+        "skill_vs_persistence": {
+          "point": -0.7049548306749125,
+          "lo": -0.8973819906102081,
+          "hi": -0.5346880090344213
+        },
+        "skill_vs_best_simple": {
+          "point": -0.9546221056785686,
+          "lo": -1.0955661991966341,
+          "hi": -0.8411483164691039
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.7049548306749125,
+          "lo": 1.5487234177031661,
+          "hi": 1.895457623577072
+        }
+      },
+      "k3": {
+        "skill_vs_persistence": {
+          "point": -0.8307902555691242,
+          "lo": -1.0152210199669112,
+          "hi": -0.6737593278569323
+        },
+        "skill_vs_best_simple": {
+          "point": -1.0880887905687606,
+          "lo": -1.250465094266304,
+          "hi": -0.9553108535302668
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.8307902555691242,
+          "lo": 1.678653431489855,
+          "hi": 2.0115862683407926
+        }
+      },
+      "k4": {
+        "skill_vs_persistence": {
+          "point": -1.064206971719226,
+          "lo": -1.2816109206937027,
+          "hi": -0.9003772955240003
+        },
+        "skill_vs_best_simple": {
+          "point": -1.2778139876612467,
+          "lo": -1.4885680963474401,
+          "hi": -1.093784010097859
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 2.064206971719226,
+          "lo": 1.906851268559528,
+          "hi": 2.265417686316209
+        }
+      }
+    },
+    "Chl1": {
+      "k0": {
+        "skill_vs_persistence": {
+          "point": -0.23617014335292197,
+          "lo": -0.3122576121590044,
+          "hi": -0.1665214992508653
+        },
+        "skill_vs_best_simple": {
+          "point": -0.2834145473667653,
+          "lo": -0.35314322545693105,
+          "hi": -0.22433411890383306
+        },
+        "best_simple_baseline": "damped",
+        "tendency_normalized_error": {
+          "point": 1.236170143352922,
+          "lo": 1.1628670005755233,
+          "hi": 1.3154338549659843
+        }
+      },
+      "k1": {
+        "skill_vs_persistence": {
+          "point": -0.24624256327069127,
+          "lo": -0.3247174522172143,
+          "hi": -0.17514317133326188
+        },
+        "skill_vs_best_simple": {
+          "point": -0.29367919399046105,
+          "lo": -0.3591485218183825,
+          "hi": -0.23279825520749572
+        },
+        "best_simple_baseline": "damped",
+        "tendency_normalized_error": {
+          "point": 1.2462425632706913,
+          "lo": 1.1783641216445317,
+          "hi": 1.3258820371772844
+        }
+      },
+      "k2": {
+        "skill_vs_persistence": {
+          "point": -0.24992990911118995,
+          "lo": -0.3299413143559108,
+          "hi": -0.1792118760045981
+        },
+        "skill_vs_best_simple": {
+          "point": -0.29410240313347735,
+          "lo": -0.3641722207121129,
+          "hi": -0.22971271565679377
+        },
+        "best_simple_baseline": "damped",
+        "tendency_normalized_error": {
+          "point": 1.24992990911119,
+          "lo": 1.1752249367719374,
+          "hi": 1.3399213296213341
+        }
+      },
+      "k3": {
+        "skill_vs_persistence": {
+          "point": -0.25092922736106194,
+          "lo": -0.3336927857815975,
+          "hi": -0.17178275613995686
+        },
+        "skill_vs_best_simple": {
+          "point": -0.292746836042334,
+          "lo": -0.3680201872716319,
+          "hi": -0.21713970150337492
+        },
+        "best_simple_baseline": "damped",
+        "tendency_normalized_error": {
+          "point": 1.250929227361062,
+          "lo": 1.1741562519555124,
+          "hi": 1.3339438490182014
+        }
+      },
+      "k4": {
+        "skill_vs_persistence": {
+          "point": -0.3413192636522382,
+          "lo": -0.44900193601533295,
+          "hi": -0.25024346713275786
+        },
+        "skill_vs_best_simple": {
+          "point": -0.37859071559132995,
+          "lo": -0.4761135995062349,
+          "hi": -0.2848826394060984
+        },
+        "best_simple_baseline": "damped",
+        "tendency_normalized_error": {
+          "point": 1.3413192636522382,
+          "lo": 1.2399054177794955,
+          "hi": 1.445434413144203
+        }
+      }
+    }
+  },
+  "by_biome": {
+    "DIC": {
+      "equatorial_|lat|<=5": {
+        "n_cells": 24544,
+        "skill_vs_persistence": {
+          "point": -1.278075577297503,
+          "lo": -1.4617942456333435,
+          "hi": -1.1137708030196114
+        },
+        "skill_vs_best_simple": {
+          "point": -1.278075577297503,
+          "lo": -1.4633951542293064,
+          "hi": -1.124292093196936
+        },
+        "best_simple_baseline": "persistence",
+        "tendency_normalized_error": {
+          "point": 2.278075577297503,
+          "lo": 2.1189972064216556,
+          "hi": 2.488094592073779
+        }
+      },
+      "northern_lat>5": {
+        "n_cells": 18406,
+        "skill_vs_persistence": {
+          "point": -0.37951210419974357,
+          "lo": -0.5333993676316223,
+          "hi": -0.2716828928541413
+        },
+        "skill_vs_best_simple": {
+          "point": -0.7478132311510663,
+          "lo": -0.8932840984156047,
+          "hi": -0.6103557051059183
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.3795121041997436,
+          "lo": 1.2733288261903934,
+          "hi": 1.5284121145604719
+        }
+      }
+    },
+    "ALK": {
+      "equatorial_|lat|<=5": {
+        "n_cells": 24544,
+        "skill_vs_persistence": {
+          "point": -1.3009671739522277,
+          "lo": -1.6275613347392108,
+          "hi": -1.0861962008460626
+        },
+        "skill_vs_best_simple": {
+          "point": -1.3009671739522277,
+          "lo": -1.5997930840732661,
+          "hi": -1.0898752221947205
+        },
+        "best_simple_baseline": "persistence",
+        "tendency_normalized_error": {
+          "point": 2.3009671739522277,
+          "lo": 2.0925648906175893,
+          "hi": 2.6102302879595927
+        }
+      },
+      "northern_lat>5": {
+        "n_cells": 18406,
+        "skill_vs_persistence": {
+          "point": -0.771112149202293,
+          "lo": -0.9750923559736115,
+          "hi": -0.6067892782503412
+        },
+        "skill_vs_best_simple": {
+          "point": -0.9722485097258595,
+          "lo": -1.2431506044647673,
+          "hi": -0.7441593442614267
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.771112149202293,
+          "lo": 1.6129668250336533,
+          "hi": 1.98708729055471
+        }
+      }
+    },
+    "PIC": {
+      "equatorial_|lat|<=5": {
+        "n_cells": 24544,
+        "skill_vs_persistence": {
+          "point": -0.01931028259801626,
+          "lo": -0.1980940827132532,
+          "hi": 0.09699657442246365
+        },
+        "skill_vs_best_simple": {
+          "point": -0.15265452801523027,
+          "lo": -0.2758329916041167,
+          "hi": -0.04811002209265005
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 1.0193102825980163,
+          "lo": 0.9005752769374495,
+          "hi": 1.1838880805016927
+        }
+      },
+      "northern_lat>5": {
+        "n_cells": 18406,
+        "skill_vs_persistence": {
+          "point": 0.34638364051758763,
+          "lo": 0.22492199015964773,
+          "hi": 0.4122095307582161
+        },
+        "skill_vs_best_simple": {
+          "point": -0.02791383661973379,
+          "lo": -0.06500135067110617,
+          "hi": 0.008199152566132755
+        },
+        "best_simple_baseline": "seasonal_clim",
+        "tendency_normalized_error": {
+          "point": 0.6536163594824124,
+          "lo": 0.585047005303592,
+          "hi": 0.7735169872207354
+        }
+      }
+    },
+    "POC": {
+      "equatorial_|lat|<=5": {
+        "n_cells": 24544,
+        "skill_vs_persistence": {
+          "point": 0.07818898576102462,
+          "lo": -0.0528588593930791,
+          "hi": 0.1717958954112939
+        },
+        "skill_vs_best_simple": {
+          "point": -0.05371212140130632,
+          "lo": -0.14012022965805268,
+          "hi": 0.03301195538722365
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 0.9218110142389754,
+          "lo": 0.8268318550965035,
+          "hi": 1.0520178292320654
+        }
+      },
+      "northern_lat>5": {
+        "n_cells": 18406,
+        "skill_vs_persistence": {
+          "point": 0.37308236475659495,
+          "lo": 0.29016733136870954,
+          "hi": 0.42905824706923673
+        },
+        "skill_vs_best_simple": {
+          "point": -0.021020940199400817,
+          "lo": -0.09578210633446532,
+          "hi": 0.0630569997444156
+        },
+        "best_simple_baseline": "seasonal_clim",
+        "tendency_normalized_error": {
+          "point": 0.626917635243405,
+          "lo": 0.5745510784595907,
+          "hi": 0.7038026230621762
+        }
+      }
+    },
+    "FeT": {
+      "equatorial_|lat|<=5": {
+        "n_cells": 24544,
+        "skill_vs_persistence": {
+          "point": -0.8995337039561604,
+          "lo": -1.1011549420473172,
+          "hi": -0.7469054203510752
+        },
+        "skill_vs_best_simple": {
+          "point": -1.0828150890031254,
+          "lo": -1.2745587636100817,
+          "hi": -0.9248020195025523
+        },
+        "best_simple_baseline": "anomaly_persist",
+        "tendency_normalized_error": {
+          "point": 1.8995337039561604,
+          "lo": 1.7505404103001505,
+          "hi": 2.0812261972711106
+        }
+      },
+      "northern_lat>5": {
+        "n_cells": 18406,
+        "skill_vs_persistence": {
+          "point": -0.6708224811303309,
+          "lo": -0.9929377482463907,
+          "hi": -0.4600404937138008
+        },
+        "skill_vs_best_simple": {
+          "point": -0.9895439945801132,
+          "lo": -1.1934885304268752,
+          "hi": -0.8238381225270829
+        },
+        "best_simple_baseline": "ar1_seasonal_percell",
+        "tendency_normalized_error": {
+          "point": 1.670822481130331,
+          "lo": 1.4650852682973052,
+          "hi": 1.9805012668578363
+        }
+      }
+    },
+    "Chl1": {
+      "equatorial_|lat|<=5": {
+        "n_cells": 24544,
+        "skill_vs_persistence": {
+          "point": -0.3888654151997375,
+          "lo": -0.5326504316704992,
+          "hi": -0.26987511422241506
+        },
+        "skill_vs_best_simple": {
+          "point": -0.4023384581434277,
+          "lo": -0.5104855262512695,
+          "hi": -0.2889035804653131
+        },
+        "best_simple_baseline": "damped",
+        "tendency_normalized_error": {
+          "point": 1.3888654151997375,
+          "lo": 1.262471962155679,
+          "hi": 1.5277544621959107
+        }
+      },
+      "northern_lat>5": {
+        "n_cells": 18406,
+        "skill_vs_persistence": {
+          "point": -0.16966602479412973,
+          "lo": -0.25491239201708704,
+          "hi": -0.09002043475796534
+        },
+        "skill_vs_best_simple": {
+          "point": -0.23128779866016402,
+          "lo": -0.3037245080604978,
+          "hi": -0.15878932609943291
+        },
+        "best_simple_baseline": "damped",
+        "tendency_normalized_error": {
+          "point": 1.1696660247941297,
+          "lo": 1.0894043932492359,
+          "hi": 1.2533233611873158
+        }
+      }
+    }
+  },
+  "by_init_month": {
+    "bin4": {
+      "n_pairs": 1,
+      "val_iters": [
+        144576
+      ],
+      "pooled_skill_vs_persistence": {
+        "point": 0.23821339843901423,
+        "lo": 0.055263855654753724,
+        "hi": 0.3381120875039041
+      },
+      "pooled_skill_vs_best_simple": {
+        "point": -0.241280778460228,
+        "lo": -0.43845143810092535,
+        "hi": -0.0958887764655451
+      },
+      "best_simple_baseline": "ar1_seasonal_percell",
+      "pooled_tendency_normalized_error": {
+        "point": 0.7617866015609858,
+        "lo": 0.6625911144027424,
+        "hi": 0.9409265776013616
+      }
+    },
+    "bin5": {
+      "n_pairs": 2,
+      "val_iters": [
+        146808,
+        173088
+      ],
+      "pooled_skill_vs_persistence": {
+        "point": 0.10068913911918964,
+        "lo": -0.10013293028049394,
+        "hi": 0.22243193493964902
+      },
+      "pooled_skill_vs_best_simple": {
+        "point": -0.34263300129003693,
+        "lo": -0.4475559430212005,
+        "hi": -0.26072032477838136
+      },
+      "best_simple_baseline": "ar1_seasonal_percell",
+      "pooled_tendency_normalized_error": {
+        "point": 0.8993108608808104,
+        "lo": 0.7848116778603657,
+        "hi": 1.0797249739412114
+      }
+    },
+    "bin6": {
+      "n_pairs": 1,
+      "val_iters": [
+        149040
+      ],
+      "pooled_skill_vs_persistence": {
+        "point": -0.08681781918793363,
+        "lo": -0.22744689801560025,
+        "hi": 0.013542137427985428
+      },
+      "pooled_skill_vs_best_simple": {
+        "point": -0.20577502030421457,
+        "lo": -0.3018810986255925,
+        "hi": -0.11999079614179475
+      },
+      "best_simple_baseline": "anomaly_persist",
+      "pooled_tendency_normalized_error": {
+        "point": 1.0868178191879336,
+        "lo": 0.9838392802504253,
+        "hi": 1.2233599859911408
+      }
+    },
+    "bin8": {
+      "n_pairs": 3,
+      "val_iters": [
+        151200,
+        153432,
+        179712
+      ],
+      "pooled_skill_vs_persistence": {
+        "point": -0.09806246639980576,
+        "lo": -0.23858295540288826,
+        "hi": 0.0082322249110642
+      },
+      "pooled_skill_vs_best_simple": {
+        "point": -0.19698410306956649,
+        "lo": -0.29505830229549707,
+        "hi": -0.10360892808276516
+      },
+      "best_simple_baseline": "ar1_seasonal_percell",
+      "pooled_tendency_normalized_error": {
+        "point": 1.0980624663998058,
+        "lo": 0.9935810871346259,
+        "hi": 1.2579931997025615
+      }
+    },
+    "bin10": {
+      "n_pairs": 1,
+      "val_iters": [
+        155592
+      ],
+      "pooled_skill_vs_persistence": {
+        "point": 0.0950467139431409,
+        "lo": -0.039812618273749385,
+        "hi": 0.19080994793851444
+      },
+      "pooled_skill_vs_best_simple": {
+        "point": 0.012644444263270382,
+        "lo": -0.10310740650381962,
+        "hi": 0.10979108925834614
+      },
+      "best_simple_baseline": "ar1_seasonal_percell",
+      "pooled_tendency_normalized_error": {
+        "point": 0.9049532860568591,
+        "lo": 0.8134255722871414,
+        "hi": 1.027567784695154
+      }
+    }
+  }
+}

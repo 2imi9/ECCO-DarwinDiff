@@ -35,7 +35,8 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   n≥10 with seed variance, DINN baseline only by default. **Framing is a surrogate-to-model
   identifiability study, not a 6/6 chase**: the observable denominator is **4** {`alpfe`,
   `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is
-  **unobservable by construction** (excluded, not failed). `R_PICPOC` is recoverable given a
+  **excluded, not failed** — `Biggrow` unobservable by construction, `Smallgrow` non-identifiable
+  from *time-mean* observables only (a seasonal prototype recovers it natl 9/10, unconfirmed). `R_PICPOC` is recoverable given a
   real calcite anchor (Daniels/MODIS). The surrogate gap is dimensional (the 0-D box homogenizes
   spatial structure), so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).
 - **Grade on the per-AOI ≥2-of-3 metric, never the cell-weighted one** — cell-weighted counts

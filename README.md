@@ -24,7 +24,12 @@ cell via a small network reading the local environment.
 
 It answers which parameters real observations can pin down, and which they cannot. This is a
 **consistency check against Carroll's published values, not a cross-validated discovery** — the 0-D
-box homogenizes, so held-out real-data R² is negative.
+box homogenizes, so it does not produce held-out spatial skill on real data.[^heldout]
+
+[^heldout]: The held-out GEOTRACES validation is computed and printed by
+    `scripts/run_v3.0_joint_multi_aoi.py:1971` but is **not written to the run JSON**, so no
+    committed artifact carries the number. Treat the sign as reported-but-unarchived until a run
+    persists it.
 
 ## Install
 
@@ -64,13 +69,17 @@ cell-weighted (which straddles Carroll and overstates recovery).
 | `diatomgraz` | **3/50** | inverts `scav_rat` — 37 at the equator |
 | trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** | vs **0/50** global-scalar |
 
-The denominator is **4, not 6** — the growth pair is unobservable by construction, excluded rather
-than failed. `scav_rat` and `diatomgraz` recover in opposite basins, so no config gets all four:
+The denominator is **4, not 6** — the growth pair is excluded, not failed, for two different
+reasons. `Biggrow` is unobservable by construction (never recovers, seasonal included); `Smallgrow`
+is not identifiable from the **time-mean** observables this study fits, though a seasonal prototype
+recovers it in strong-bloom basins (N. Atlantic 9/10, unconfirmed). `scav_rat` and `diatomgraz`
+recover in opposite basins, so no config gets all four:
 the **3-of-4 frontier is structural**. The binding constraint is the observing system, not the
 method.
 
-**Forward emulator — a clean negative result.** Physically valid (0% negative concentrations in log
-space, mass ratio 1.000) but the useful horizon is **one step**, with no significant skill over a
+**Forward emulator — a clean negative result.** Positivity holds in log space (0% negative
+concentrations on all six tracers) but **mass is not conserved** — Chl1 drifts +130% over six
+rollout steps — and the useful horizon is **one step**, with no significant skill over a
 seasonal AR(1) baseline (−0.161 ± 0.015). The "~9-month horizon" (a `delta_t` artifact) and "beats
 persistence" (a weak baseline) are **retracted**. The reusable asset is infrastructure: the first
 ocean-BGC Earth2Studio `PrognosticModel`, plus physics validators.

@@ -35,7 +35,7 @@ and started a showcase Architecture-&-Method figure. Living plan: `docs/two_anch
   still reaches **35/50** per-AOI via chlorophyll + MLD, so it is NOT a bSi tautology. The Chl target is Darwin's
   own output, so this is model-internal consistency, not independent real-data validation — the dilution
   grazing-RATE anchor is still the path to an independent anchor (item 2).
-- **growth pair** — unobservable by construction (honestly excluded). δ56Fe = NO-GO (fixed ligand). Emulator↔UDE
+- **growth pair** — unobservable by construction (`Biggrow`; `Smallgrow` is non-identifiable from time-mean observables only) (honestly excluded). δ56Fe = NO-GO (fixed ligand). Emulator↔UDE
   coupling + field-reconstruction = dead by evidence.
 - **External landscape** — niche intact (Neural-BGC does DO/NO3 only; M2LINES zero-BGC); information-wall thesis
   triangulated. Manuscript reframe: from "limits" → "observing-system design that BREAKS the degeneracy."
