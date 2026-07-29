@@ -46,9 +46,18 @@ field in it is a v05 model output read by `_build_aoi_targets` (`:630-660`) and 
 | 10 | surface ALK | 1695 | `DARWIN_PATTERN_W` | `alk_binned` | **D** |
 | 11 | air–sea CO₂ flux | 1696 | `DARWIN_PATTERN_W` | `co2_flux_obs` | **D** |
 
-⚠ **Naming trap.** The variable is called `co2_flux_obs` but line 644 assigns
-`ds_avg_local["CO2_flux"]` — Darwin's own flux diagnostic, not an observation. Anyone auditing the
-loss by variable name will misclassify terms 11 and 26.
+⚠ **Naming trap — FIXED IN CODE 2026-07-29, but not removable.** The key is called `co2_flux_obs`
+while line 644 assigns `ds_avg_local["CO2_flux"]` — Darwin's own flux diagnostic, not an
+observation. Anyone auditing the loss by variable name misclassifies terms 11 and 26.
+
+The key **cannot be renamed**: it is a `torch.save` cache key (`:709`) with no version field, and
+`targets["co2_flux_obs"]` is read *outside* the cache-rebuild `try`, so a rename would raise
+`KeyError` against every cache already on disk rather than triggering a rebuild. What was done
+instead: all **10 local uses are now `co2_flux_darwin`**, both assignment sites carry a
+"NOT an observation" comment, and `tests/test_loss_target_provenance.py` holds three guards —
+no bare `co2_flux_obs` local, the warning comment stays, and **no new target read from
+`aligned(...)` or `ds_avg_local[...]` may end in `_obs`**. Each guard was mutation-tested and
+fails on its own mutation only.
 
 ### 1.2 Every remaining term
 
