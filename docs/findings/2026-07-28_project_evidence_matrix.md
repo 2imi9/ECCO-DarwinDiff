@@ -1,5 +1,42 @@
 # Project evidence matrix — every headline claim vs its artifact
 
+> ## Updated 2026-07-29 — two experiments changed what claims mean
+>
+> **`R_PICPOC` 50/50 is structure-dependent.** A matched screen (n=10, 2000 ep, three arms, all
+> `verify_run` exit 0) flips it with one lever: calcification from all 5 PFTs → **10/10**;
+> restricted to the coccolithophore proxy → **0/10**, median 1.012 = **23.9× Carroll**, uniform
+> across basins. The flagship ran with the flag OFF.
+> *Mechanism:* the box's calcifier mortality share is **flat at 0.1155** across all three AOIs, so
+> the restriction rescales the rain ratio by a constant instead of producing spread. Darwin's Chl2
+> share does vary (0.215 / 0.888 / 0.156) — the mechanism is right in principle, the 0-D box cannot
+> represent it. **The flag's own docstring promise is false in this box.**
+> *Scope, not retraction:* the recovered quantity is a **bulk-equivalent** rain ratio that coincides
+> with Carroll's 0.04245 only because the bulk closure makes them the same number. The Daniels anchor
+> is still load-bearing (anchor-off 6/50). See `2026-07-29_coccolith_only_screen.md`.
+>
+> **Observations-only has already been run.** Under the name *anchors-only*: n=50, gate exit 0 —
+> `alpfe` **50/50**, `R_PICPOC` **28/50**, `scav_rat` **0/50**, trio **0/50**. Dropping the Darwin
+> target keeps **2 of 4**. `scav_rat` is blocked on identifiability (no rate observable in the loss,
+> no `SCAV_ANCHOR_W` term exists); `diatomgraz` on data (11 real cells across three AOIs).
+> See `2026-07-29_observations_only_scope.md`.
+>
+> **A structural limit worth publishing on its own:** observations-only and cross-validated pull in
+> opposite directions here. Per-cell could give held-out spatial skill but is coverage-starved
+> (112 informative cells of 2851; 1218 weights vs 178 residuals). Global-scalar is well-posed but
+> produces a spatially uniform anomaly, and `anomaly_masked_r2` scores against the constant train
+> mean — so it **cannot beat that null by construction**, at any data volume.
+>
+> **Two provenance items found and fixed:** the flagship's per-AOI `scav_rat` was reported as 26 in a
+> table (correct: 25) — a third spelling that both prior guards missed; and README's "held-out
+> real-data R² is negative" is **computed and printed but never written to any artifact**, so it is
+> now footnoted as reported-but-unarchived.
+>
+> **Calcite pooled Ω exponent is a between-basin contrast**, not a slope: the AOIs have **0% Ω
+> overlap** and ~90% of driver variance is between-basin. The pooled value lies outside the convex
+> hull of the per-AOI values in all three artifacts — arithmetically impossible for a weighted
+> average of within-group slopes. NULL verdict unaffected.
+
+
 > ## Updated 2026-07-28 (evening) — five rows changed after repairs
 >
 > | # | was | now |
