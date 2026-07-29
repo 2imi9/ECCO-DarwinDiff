@@ -1,5 +1,27 @@
 # B-SOSE / TPOSE extents and access — and a resolution claim I got wrong
 
+> ## ⚠ SUPERSEDED 2026-07-29 for B-SOSE — the corrected extent was still wrong
+>
+> The B-SOSE numbers below were read off solution pages. The 4.03 GB iteration-105 file and its
+> `grid.nc` have since been downloaded, and they contradict two claims here:
+>
+> | claimed below | measured from the distributed `grid.nc` |
+> |---|---|
+> | domain "equator to 78°S" | **29.79°S to 78°S** (`YC` max −29.789) |
+> | "telescopes out to Δy = 2° at the equator" | coarsest Δy is **0.300°**, at the northern edge |
+>
+> **B-SOSE iter105 has no equatorial data at all, and no 2° spacing anywhere.** So the table row
+> giving it "partial" `eqpac` coverage at "≈2°, COARSER than our 1°" is wrong in every column, and
+> the warning that a tropical B-SOSE comparison "would have silently degraded the comparison"
+> describes a hazard that cannot occur.
+>
+> **The design conclusion is unchanged** — B-SOSE for `southernoceanpac`, TPOSE for `eqpac` — but
+> the reason is that B-SOSE does not reach the tropics, not that it is coarse there. Everything
+> below about **TPOSE** is unaffected.
+>
+> Full detail, plus the first Darwin-vs-B-SOSE iron field comparison this unblocked:
+> `2026-07-29_bsose_extent_and_first_iron_field_comparison.md`.
+
 **Date:** 2026-07-28 · **Loop Q2b** · **Refines:** `2026-07-27_independent_validation_scope.md`
 
 ## Verified this session
