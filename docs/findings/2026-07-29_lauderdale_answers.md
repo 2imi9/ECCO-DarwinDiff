@@ -66,9 +66,40 @@ defensible under review.
 > that, to close the calcite budget, there is significant dissolution above this mediated by
 > biological activity — think zooplankton grazing."
 
-Our E2 calcite experiment tested an **Ω-driven** rain-ratio closure and returned NULL. If a large
-share of real dissolution occurs **above** the saturation horizon via grazing, an Ω-only closure is
-misspecified by construction — a candidate explanation for that null we had not considered.
+Our calcite work returned NULL, and I initially read his grazing point as an unconsidered
+explanation for it. **Checking the artifacts, that framing needs two corrections.**
+
+**(a) The closure is not Ω-only.** `EnvCalciteClosure` (`src/darwindiff/closures.py`) is driven by
+**SST, Ω_calcite and PAR** — three exogenous environmental channels. Calling it "Ω-driven" is
+imprecise, and an argument that "Ω-only is misspecified" does not land against it as written.
+
+**(b) The recorded null already attributes itself to data support, not to misspecification.**
+`docs/findings/calcite_omega_identifiability_real.json` states:
+
+> `verdict: "NULL: real Daniels data does not constrain an Omega-power-law rain ratio
+> (identifiability-limits; small n / narrow Omega support)"`
+
+with `n_points = 58` across all AOIs, **zero in the Southern Ocean**. So the cause on record is
+*insufficient and narrowly-spread data*, which is a different claim from *the physics is wrong*.
+
+**What is genuinely striking in that artifact, and unremarked so far:** the fitted Ω exponent is
+wildly scale-dependent.
+
+| | n̂ | 95% CI | R² | n points |
+|---|---|---|---|---|
+| eqpac | 6.42 | 1.83 – 10.35 | 0.313 | 32 |
+| natl | 7.01 | 0.86 – 12.99 | 0.147 | 24 |
+| **pooled** | **0.89** | **−0.23 – 1.78** | 0.046 | 58 |
+
+Per-AOI exponents near 6–7, pooled near **0.89** with a CI straddling zero. Pooling does not average
+the two regional fits — it collapses them. That is an aggregation artifact of the same family as the
+cell-weighted-vs-per-AOI straddle we already grade around, and it deserves its own look.
+
+**Where his point still bites.** Above-horizon grazing dissolution would mean the *rain ratio* is not
+the only thing Ω should modulate — dissolution is also biologically mediated. That is a structural
+argument about what the closure should contain, and it stands independently of why this particular
+fit came back null. Worth recording as a design input for any future calcite closure, **not** as the
+explanation for the existing null.
 
 ### 6. The remaining questions
 
