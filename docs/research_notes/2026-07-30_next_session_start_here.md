@@ -78,6 +78,75 @@ values per ocean cell against 178 absolute-anchor observations in total, of whic
 surface iron bins across the three AOIs); the pre-registered metric is
 per-AOI recovery against Carroll, **not** training loss.
 
+## AFTERNOON ADDENDUM (2026-07-29, ~16:40 to 18:00 UTC)
+
+A 7-hour research-and-design loop ran after the handoff above was first written. Three workflows,
+five new B200 job groups, and **four corrections to work committed earlier the same day**.
+
+**Read `docs/findings/2026-07-29_math_audit_index.md` first.** It indexes an adversarial mathematical
+audit (16 agents, 2.19M tokens) of the grading metric, what was applied, what was verified sound, and
+six items left open with file pointers.
+
+### The two results worth knowing before you read anything else
+
+1. **`R_PICPOC` is a GLOBAL EXACT structural null of every non-calcite observable.** Scaling it by
+   100× leaves DFe₁, DFe₂, P_diatom, POC₁, POC₂ **bitwise identical** while the PIC₁ control moves
+   97.6×. Provable by inspection of the tracer graph, immune to the Gauss-Newton approximation, and
+   it replaces a weaker statistical claim that was retracted (below).
+2. **The Daniels anchor is a rank-1 observable along the `R_PICPOC` axis** (job 233385, issue #211
+   closed). Stiffest direction `R_PICPOC = −1.0` with every other component ≤ 1.2e-05. It measures
+   the orthogonality the project had only argued mechanistically.
+
+### Retractions and corrections, all self-caught
+
+- **RETRACTED: "the anchor-off control at 6/50 is itself chance-level."** P = 0.078 came from a
+  binomial against the conservative rule-of-three floor. Against the *measured* 0/50 sample, Fisher
+  exact gives **p = 0.0133**. Honest version: 6/50 is far below the anchored 50/50 but is slightly
+  and detectably above untrained. **New rule: when a baseline is measured as a sample, compare
+  samples.**
+- **CORRECTED: the "10⁶ times more tightly constrained" CRLB ratio is a ridge artifact.** The other
+  five sit at 0.994–1.000 of `1/ridge`. Quote "unconstrained, at the ridge floor", never a ratio.
+- **CORRECTED, twice, in my own ladder addendum.** The claim that ~94 % of cells are
+  magnitude-unconstrained is false for four of six parameters, because the PINN term is **dense and
+  absolute**. And the anchor union is **112 of 2851 cells (3.93 %)**, not the 178 observation-sum.
+- **FIXED: the contract read `Param.scale` where it needed the run's actual bounding map.**
+  `PARAM_LOG_SCALE` defaults to empty, so every published run is linear — a factor-of-five error in
+  where `scav_rat`'s untrained prior sits.
+
+### New pre-registered predictions, one already confirmed
+
+- **§3.1c/§3.1d of the pre-registration.** The whole free-field untrained arm was predicted as a
+  table and **tested at n=10 (job 233723): all 7 rows matched.** `diatomgraz` is therefore
+  **ungradable in the pointwise arm** (its untrained baseline saturates at 50/50), while the trio
+  comparison is safe (0/50 both sides).
+- **The sharp ladder discriminator.** `R_PICPOC`'s Southern Ocean leg passes **40/50 with zero
+  Daniels coverage**, which can only happen by pooling through the shared network. Predicted: the
+  free field's SO leg collapses to ≈0/50 **while its per-AOI count is preserved** by the two anchored
+  legs. A leg-level collapse with no headline-count collapse is exactly what an aggregate hides.
+
+### New on the cluster (beyond the two arrays already described)
+
+| job | what |
+|---|---|
+| 233385 | `realdaniels` GN-Fisher — **done**, closed #211 |
+| 233419 | collapse-statistic run, n=50: records geometric and median collapses **and per-cell log-sd** beside the arithmetic ones, all from the same fit (exactly paired) |
+| 233723 | free-field untrained prediction test — **done, prediction held** |
+
+**The collapse run is the one to grade carefully.** Derived and verified: `arith/geom = exp(σ²/2)`,
+so the arithmetic collapse alone pushes a perfectly geometric-centred field out of the ±40 % band
+once **σ > 0.8203 nat** (0.8924 under the actual truncated map). Below σ ≈ 0.3 it cannot matter. The
+run measures σ on trained fields, which settles evidence-log B5 either way.
+
+### New code
+
+`src/darwindiff/contract.py` + `scripts/analysis/contract_report.py` (issue #210, built with
+ng-loops; spec in `docs/spec/`), `darwindiff.diagnostics` collapse functions,
+`scripts/analysis/per_aoi_leg_audit.py`. Suite **602 passed**. Issue **#212** holds the ranked
+experiment backlog from a 12-agent design sweep, including two never-run observables aimed squarely
+at `scav_rat`, the sole binding leg.
+
+---
+
 ## WHAT LANDED THIS SESSION
 
 - **PR [#208](https://github.com/2imi9/ECCO-DarwinDiff/pull/208)**, 5 commits, branch
