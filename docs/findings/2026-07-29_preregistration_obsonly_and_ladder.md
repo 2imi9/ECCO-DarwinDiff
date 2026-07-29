@@ -196,8 +196,74 @@ constrained in shape but not in magnitude.
 DINN's 1×1 convolutions force every cell's parameters to be a smooth function of that cell's SST, so
 magnitude information from an anchored cell propagates to every unanchored cell with similar SST. A
 free field has no such coupling: an unanchored cell's value is determined only by the shape term and
-its initialisation. That is a real regularisation mechanism, not hand-waving, and it is what makes
-the comparison meaningful rather than a bare degrees-of-freedom contest.
+its initialisation.
+
+> **⚠️ CORRECTION, same day, still before any ladder result. The paragraph above is WRONG for four of
+> the six parameters, and I checked the code only after writing it.**
+>
+> An adversarial review pointed at `run_v3.0_joint_multi_aoi.py:1755-1771`, and it is decisive. The
+> **PINN term is dense AND absolute**: it masks with `mask_f` over *every* ocean cell, normalises by
+> `n_ocean_f`, and is **not z-scored** — it is a physical steady-state residual
+> `rel_rate = (alpfe·PHI_DUST − scav_rat·86400·DFe·POC − Q_FE·growth) / DFe`, run at
+> `NB23_PINN_WEIGHT = 3.0` in the ladder config. It carries **`alpfe`, `scav_rat`, `Smallgrow` and
+> `Biggrow`** at absolute level at every ocean cell.
+>
+> So "94 % of cells are constrained in shape but not magnitude" is false for those four. They have a
+> dense magnitude constraint everywhere, and the unanchored-cells-drift-to-init mechanism does not
+> apply to them.
+>
+> **It survives for exactly two parameters**, and they are the ones that appear nowhere in the PINN
+> term: **`diatomgraz`** (absolute anchor: 11 bSi cells) and **`R_PICPOC`** (60 Daniels cells, and
+> *zero* in the Southern Ocean). For those two the argument stands as written.
+>
+> **Two further corrections to the counts above.** 178 is the sum of per-term observation counts and
+> double-counts co-located cells; the **union is 112 of 2851 ocean cells (3.93 %)**. And per-AOI
+> anchored leverage on the graded mean is eqpac 5.51 %, natlsubpolar 8.06 %, southernoceanpac 1.08 %.
+>
+> **Consequence for the seed-variance prediction.** It should now be read as a *per-parameter*
+> prediction rather than a global one: expect the free field's seed variance to exceed the DINN's for
+> `diatomgraz` and `R_PICPOC`, and **not** necessarily for `alpfe`, `scav_rat`, `Smallgrow` or
+> `Biggrow`. If the excess appears on the PINN-constrained four as well, the mechanism is something
+> other than anchor sparsity and this reasoning does not explain it.
+
+### 3.1c `diatomgraz` is UNGRADABLE in the pointwise arm, and that is known in advance
+
+The free field initialises at `0.01·randn`, so at initialisation every cell sits essentially at the
+bounds midpoint — the smoke run measured per-cell log-sd of **0.002 to 0.013**, i.e. a nearly uniform
+field. `diatomgraz`'s midpoint is at rel offset **0.3675**, *inside* the 0.40 band. So an untrained
+free field scores `diatomgraz` as recovered in **essentially every seed**, and its
+architecture-matched baseline is **50/50 by construction**.
+
+Under §1's own rule there is then **no `k*` ≤ 50** that clears that baseline at P < 0.05. `diatomgraz`
+therefore **cannot be graded in the `pointwise` arm at all**, and reporting any count for it there
+would be reporting the bounds.
+
+This is stated now, before the arm reports, so it cannot look like an excuse afterwards. It is also
+the sharpest possible illustration of why clause 3 of the contract exists: a parameter whose prior
+midpoint sits inside the pass band is ungradable against a prior-dominated null, and the honest move
+is to say so rather than to quote a number.
+
+**A fully falsifiable prediction of the entire `pointwise_prior` arm, stated before it reports.**
+Because the untrained free field is uniform at the bounds midpoint, every AOI receives the same
+value, so each parameter must come back at either 50/50 or 0/50 with nothing in between:
+
+| param | bounds midpoint | Carroll | rel offset | **predicted untrained** |
+|---|---|---|---|---|
+| alpfe | 0.525 | 0.92831 | 0.4345 | **0/50** |
+| scav_rat | 1.515e-06 | 6.025e-07 | 1.5145 | **0/50** |
+| Smallgrow | 1.05 | 0.66098 | 0.5886 | **0/50** |
+| Biggrow | 1.05 | 0.43148 | 1.4335 | **0/50** |
+| **diatomgraz** | 0.525 | 0.83003 | **0.3675** | **50/50** |
+| R_PICPOC | 0.7525 | 0.04245 | 16.7267 | **0/50** |
+| **trio** | — | — | — | **0/50** |
+
+Any deviation from this table falsifies the reasoning in §3.1b/§3.1c, and in particular an
+intermediate count (not 0 and not 50) would mean the initialisation spread is larger than the smoke
+run measured and the whole uniform-at-init argument is wrong.
+
+Note the trio is **unaffected** by the `diatomgraz` problem: `scav_rat` at rel 1.51 and `R_PICPOC` at
+rel 16.7 both give 0/50, so the untrained trio is 0/50 for the free field exactly as it is for the
+DINN. **The pre-registered headline comparison in §3.1 is stated on the trio and is therefore safe.**
 
 **Second pre-registered discriminator: SEED VARIANCE.** If the mechanism above is right, the free
 field's per-AOI collapsed value should be **more variable across seeds** than the DINN's, because
