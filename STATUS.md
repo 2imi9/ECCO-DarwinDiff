@@ -476,7 +476,7 @@ map (`docs/research_notes/2026-07-09_track2_identifiability_writeup.md`; reprodu
   observable does *not* rescue it — the initial "partitioning breaks the wall" claim was an artifact,
   caught + retracted by adversarial verification);
 - **calcite Ω-modulation of `R_PICPOC`** (the scalar itself *is* recoverable) — data/support-limited:
-  within-region Ω support ≤0.16 dex everywhere, confirmed on independent in-situ **GLODAPv3** Ω
+  within-region Ω support ≤0.171 dex everywhere (max 0.1709, natl in `calcite_omega_glodap_marsh.json`), confirmed on independent in-situ **GLODAPv3** Ω
   (838+1740 bottles), shown **driver-general** (SST/composition don't rescue it), and the
   **make-or-break out-of-sample transport E2 fails** (learned closure can't beat a constant-through-
   transport null; K_num non-discriminating; `docs/findings/2026-07-10_e2_powered_result.md`);
