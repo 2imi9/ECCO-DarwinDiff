@@ -12,7 +12,7 @@ anchor-off control. Re-grading tool: `scripts/analysis/grade_joint_percell.py`.
 
 | variant (config) | alpfe cw / per-AOI | scav_rat cw / per-AOI | R_PICPOC cw / per-AOI | JOINT cw / per-AOI |
 |---|---|---|---|---|
-| **n50e2k_percell_trio** (geo1, 2000 ep — **flagship**) | 49 / 49 | 36 / **26** | 46 / **50** | **33 / 25** |
+| **n50e2k_percell_trio** (geo1, 2000 ep — **flagship**) | 49 / 49 | 36 / **25** | 46 / **50** | **33 / 25** |
 | n50_percell_trio (geo1, 1500 ep — under-converged) | 49 / 49 | 32 / 15 | 35 / 47 | 22 / 14 |
 | n50e2k_global_scalar (global control) | 50 / 50 | 0 / 0 | 0 / 0 | **0 / 0** |
 | n50_anchor_off (DANIELS_W=0) | 50 / 50 | 44 / 33 | **9 / 4** | 7 / 1 |

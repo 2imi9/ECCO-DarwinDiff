@@ -24,7 +24,12 @@ cell via a small network reading the local environment.
 
 It answers which parameters real observations can pin down, and which they cannot. This is a
 **consistency check against Carroll's published values, not a cross-validated discovery** — the 0-D
-box homogenizes, so held-out real-data R² is negative.
+box homogenizes, so it does not produce held-out spatial skill on real data.[^heldout]
+
+[^heldout]: The held-out GEOTRACES validation is computed and printed by
+    `scripts/run_v3.0_joint_multi_aoi.py:1971` but is **not written to the run JSON**, so no
+    committed artifact carries the number. Treat the sign as reported-but-unarchived until a run
+    persists it.
 
 ## Install
 

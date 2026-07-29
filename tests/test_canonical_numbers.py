@@ -139,6 +139,43 @@ def test_flagship_legs_are_consistent_with_the_joint_count():
 #: below never saw. Same for the natl leg, which drifted as "19->40". Both forms are
 #: matched here so the guard covers how the numbers are actually written in prose.
 _ARROW = r"(?:->|-->|→|–>|\s+to\s+)"
+
+#: THIRD spelling found (2026-07-29), in a markdown TABLE cell on the flagship row:
+#:     | **n50e2k_percell_trio** ... | 49 / 49 | 36 / **26** | ...
+#: The literal-"26/50" check misses it because the denominator is implied by the column,
+#: and the range-form check misses it because there is no arrow. A per-AOI count of 26 on
+#: a line that also names the flagship run is the invariant, however it is written.
+_TABLE_26 = re.compile(r"\b26\b")
+
+
+def test_no_flagship_table_row_reports_26_per_aoi():
+    """The 26 drift has now appeared in three spellings: bare 26/50, the range form
+    26->41/50, and a table cell `36 / **26**`. Each escaped the previous guard.
+
+    Any line naming the flagship run must not contain a bare 26 unless it is
+    explicitly attributed to the subW=1 arm.
+    """
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if FLAGSHIP_RUN not in line:
+                continue
+            low = line.lower()
+            if any(m in low for m in _SUBW1_MARKERS):
+                continue
+            # strip epoch/seed counts that legitimately contain 26 as a substring
+            if _TABLE_26.search(re.sub(r"\d{3,}", "", line)):
+                offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        f"a bare 26 appears on a line naming {FLAGSHIP_RUN}:\n  " + "\n  ".join(offenders)
+        + f"\n\nThe flagship per-AOI scav_rat count is {FLAGSHIP['scav_rat']}/50."
+    )
+
+
 _RANGE_DRIFTS = (
     (re.compile(rf"\b26\s*{_ARROW}\s*41\b"), "scav_rat 26->41 (flagship is 25->41 at 4000ep)"),
     (re.compile(rf"\bnatl\s+19\s*{_ARROW}\s*40\b", re.IGNORECASE),
