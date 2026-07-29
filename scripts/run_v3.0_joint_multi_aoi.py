@@ -611,6 +611,12 @@ def _build_aoi_targets_native(aoi) -> dict:
         "wind": aligned("wspeed"),
         "sss": np.full((1, n), 35.0, dtype=np.float32),   # no native SSS; box default
         "pco2_atm_field": aligned("apCO2"),
+        # NOT an observation. This is Darwin's own CO2_flux diagnostic, so every loss term
+        # built from it is a model-vs-model target and must be counted on the Darwin side of
+        # any observations-only accounting. The key keeps the misleading "_obs" spelling only
+        # because it is a torch.save cache key (:709) with no version field -- renaming it
+        # would KeyError against every existing cache outside the rebuild guard. Locals are
+        # named co2_flux_darwin. See docs/research_notes/2026-07-29_observations_only_scope.md.
         "co2_flux_obs": aligned("CO2_flux"),
         "chl_per_pft": {f"Chl{i}": aligned(f"Chl{i}") for i in range(1, 6)},
     }
@@ -641,6 +647,7 @@ def _build_aoi_targets(aoi) -> dict:
             else np.full_like(ds_avg_local["SST"].values.astype(np.float32), 35.0)
         ),
         "pco2_atm_field": ds_avg_local["apCO2"].values.astype(np.float32),
+        # NOT an observation -- Darwin's own diagnostic. See the note at the native builder.
         "co2_flux_obs": ds_avg_local["CO2_flux"].values.astype(np.float32),
         "chl_per_pft": {
             f"Chl{i}": ds_avg_local[f"Chl{i}"].values.astype(np.float32)
@@ -740,7 +747,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     pco2_atm_field = targets["pco2_atm_field"]; chl_per_pft = targets["chl_per_pft"]
     fet_binned = targets["fet_binned"]; poc_binned = targets["poc_binned"]
     pic_binned = targets["pic_binned"]; dic_binned = targets["dic_binned"]
-    alk_binned = targets["alk_binned"]; co2_flux_obs = targets["co2_flux_obs"]
+    alk_binned = targets["alk_binned"]; co2_flux_darwin = targets["co2_flux_obs"]
 
     H, W = sst.shape  # (1, N_cells)
     ocean_mask = (
@@ -760,7 +767,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     pco2_raw_for_env = np.where(
         ocean_mask & np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)
     co2flux_raw_for_env = np.where(
-        ocean_mask & np.isfinite(co2_flux_obs), co2_flux_obs, 0.0).astype(np.float32)
+        ocean_mask & np.isfinite(co2_flux_darwin), co2_flux_darwin, 0.0).astype(np.float32)
 
     mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
     mask_f = mask_dev.to(torch.float32); n_ocean_f = mask_f.sum()
@@ -778,7 +785,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         return (t - m) / s
     fet_z = to_z_target(fet_binned); poc_z = to_z_target(poc_binned)
     pic_z = to_z_target(pic_binned); dic_z = to_z_target(dic_binned)
-    alk_z = to_z_target(alk_binned); co2_flux_z = to_z_target(co2_flux_obs)
+    alk_z = to_z_target(alk_binned); co2_flux_z = to_z_target(co2_flux_darwin)
     chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
 
     LIT_IC = [
@@ -932,7 +939,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     pic_binned = targets["pic_binned"]
     dic_binned = targets["dic_binned"]
     alk_binned = targets["alk_binned"]
-    co2_flux_obs = targets["co2_flux_obs"]
+    co2_flux_darwin = targets["co2_flux_obs"]
     primprod_binned = targets.get("primprod_binned")  # present only when PRIMPROD_W > 0
 
     H, W = sst.shape
@@ -960,7 +967,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     pco2_raw_for_env = np.where(
         ocean_mask & np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)
     co2flux_raw_for_env = np.where(
-        ocean_mask & np.isfinite(co2_flux_obs), co2_flux_obs, 0.0).astype(np.float32)
+        ocean_mask & np.isfinite(co2_flux_darwin), co2_flux_darwin, 0.0).astype(np.float32)
 
     # Move everything to device.
     mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
@@ -986,7 +993,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     pic_z = to_z_target(pic_binned)
     dic_z = to_z_target(dic_binned)
     alk_z = to_z_target(alk_binned)
-    co2_flux_z = to_z_target(co2_flux_obs)
+    co2_flux_z = to_z_target(co2_flux_darwin)
     chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
     primprod_z = to_z_target(primprod_binned) if (PRIMPROD_W > 0 and primprod_binned is not None) else None
 
@@ -1173,8 +1180,8 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     # Absolute-units surface F_CO2 target (F_CO2_ABS_W). Unlike PIC/POC, F_CO2
     # can be either sign (ocean source = positive, sink = negative), so the mask
     # accepts any finite value -- no positivity gate.
-    f_co2_abs_mask_np = ocean_mask & np.isfinite(co2_flux_obs)
-    f_co2_abs_target_np = np.where(f_co2_abs_mask_np, co2_flux_obs, 0.0).astype(np.float32)
+    f_co2_abs_mask_np = ocean_mask & np.isfinite(co2_flux_darwin)
+    f_co2_abs_target_np = np.where(f_co2_abs_mask_np, co2_flux_darwin, 0.0).astype(np.float32)
     f_co2_abs_target_t = torch.tensor(f_co2_abs_target_np).to(device)
     f_co2_abs_mask_t = torch.tensor(f_co2_abs_mask_np, dtype=torch.bool).to(device)
     f_co2_abs_mask_f = f_co2_abs_mask_t.to(torch.float32)
