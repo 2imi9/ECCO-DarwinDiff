@@ -160,16 +160,37 @@ file, and the array dimension is defined elsewhere. So even the "dead code" read
 **Do not send this to the Darwin team as a bug.** It was an overstatement built on a secondary
 source, and I nearly had us report a non-bug to a collaborator.
 
-**2. `R_PICPOC` is per-phytoplankton-type, and only two of five types calcify.**
-The override applies to `np = 2, 3` only. Our 0-D box treats `R_PICPOC` as a **single global scalar**
-— see `carroll6_5pft_2layer.py`, whose own comments already note the model "finds a degenerate
-(R_PICPOC, mort_lge) pair" and that a single scalar struggles across AOIs.
+**2. Calcification is restricted to a subset of PFTs in Darwin, and the flagship does not match it.**
 
-This connects directly to his remark that the next ECCO-Darwin version "explicitly determines which
-plankton groups calcify." The structural mismatch is already present: **Darwin gives calcification to
-a subset of PFTs; our surrogate gives it to the bulk.** That is a cleaner statement of the
-`R_PICPOC` limitation than "the global value should be regional", and it is checkable rather than
-speculative.
+Verified in source, and it is stronger than "a structural mismatch exists" — the repo already knows,
+already built the fix, and ships it **off**:
+
+```python
+USE_COCCOLITH_ONLY_CALCITE: bool = False      # carroll6_5pft_2layer.py:158
+"""Restrict PIC production (and the matching DIC + ALK calcite budget terms)
+to the Chl2 = "other large eukaryote" mortality source only, instead of the
+sum over all 5 PFTs.  In Darwin 3, only coccolithophores produce calcite."""
+```
+
+With the flag off, the box computes `dPIC = R_PICPOC * mort_total` where
+`mort_total = mort_s + mort_l + graze_l` (`carroll6.py:225,231`) — calcification from **all five
+PFTs**. Darwin applies its rain ratio to a subset: `np = 2, 3` in v04, and a per-group array in v06.
+
+**The flagship ran with it off.** Its own run record contains
+`"use_coccolith_only_calcite": false`. So the **50/50 `R_PICPOC`** result was obtained with a
+calcification structure that differs from Darwin's, using a switch the repo provides to match it.
+
+That is not a reason to doubt the number — `0.04245` is still the v05 target and the grading is
+unchanged — but it belongs in the limitations, and it makes an obvious experiment: **re-run the
+flagship with `COCCOLITH_ONLY=1`** and see whether `R_PICPOC` holds. The code comment predicts it
+should *help* the cross-AOI problem ("with PFT-specific scaling the cross-AOI PIC differences come
+naturally from P_lge abundance"), and the ~23× eqpac-vs-natl PIC/POC spread is exactly what a single
+bulk scalar has to absorb.
+
+**Correction to my earlier draft.** I cited the code's "degenerate (R_PICPOC, mort_lge) pair" comment
+as evidence that a single scalar struggles across AOIs. That is backwards: the degeneracy is a
+**caveat about the coccolith-only mode** — it appears when that mode runs without `PIC_ABS_W > 0` to
+anchor PIC magnitude. It is a warning about the fix, not evidence about the default.
 
 ### ⚠ SECOND CORRECTION — I answered the wrong model generation
 
