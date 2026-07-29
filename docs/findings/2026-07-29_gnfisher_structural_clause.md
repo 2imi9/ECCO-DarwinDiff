@@ -1,11 +1,17 @@
-# Structural identifiability clause on the REAL loss — GN-Fisher, job 233265
+# Structural identifiability clause on the REAL loss — GN-Fisher, jobs 233265 + 233385
 
 Replaces the **synthetic self-twin** relative-information table (evidence log §H3), whose own scope
 caveat says hypothesis generator, not result. This one is computed on the real observational
 residuals at Carroll's published values.
 
-Artifacts: `/scratch/qi_zim_neu/identif/contract_gnfisher_{realiron,realbsi}.json`
-Log: `/scratch/qi_zim_neu/identif/CONTRACT_233265.log` · tree `~/emulator_poc_pw` · exit 0, `fail=0`
+**Now complete for all four observables** (updated 2026-07-29, job 233385). The first pass covered
+three; `R_PICPOC` had Fisher information of identically zero under both available losses, correctly,
+because neither dissolved iron nor biogenic silica carries rain-ratio information. Adding a
+`realdaniels` residual loss (issue #211) closed it, and the answer is unusually clean — see §2b.
+
+Artifacts: `/scratch/qi_zim_neu/identif/contract_gnfisher_{realiron,realbsi,realdaniels}.json`
+Logs: `CONTRACT_233265.log` (iron, bSi) and `DANIELS_233385.log` (calcite) · tree
+`~/emulator_poc_pw` · both exit 0, `fail=0`
 
 ---
 
@@ -74,6 +80,52 @@ Read as a contract this is about as clean as it gets:
 
 ---
 
+## 2b. `R_PICPOC`: the Daniels anchor is a rank-1 observable pointing along its axis
+
+Job 233385, `--loss realdaniels`, 1567 residuals, `loss_star` 0.959155, residual reconstruction
+**6.21e-08**.
+
+| param | Fisher info (diag) | CRLB |
+|---|---|---|
+| **R_PICPOC** | **7.40e-01** | **1.4** |
+| alpfe | 4.52e-09 | 1.3e+06 |
+| scav_rat | 2.95e-09 | 1.3e+06 |
+| Smallgrow | 1.97e-09 | 1.3e+06 |
+| Biggrow | 3.66e-10 | 1.4e+06 |
+| diatomgraz | 2.86e-11 | 1.4e+06 |
+
+`R_PICPOC` is constrained roughly **10⁶ times more tightly** than anything else under this
+observable. But the eigenvectors say it more sharply than the diagonal does:
+
+- **stiffest direction: `R_PICPOC` = −1.0**, with every other component ≤ **1.2e-05**.
+- sloppiest direction: `scav_rat` 0.9996.
+- `sloppiness_decades` comes back **NaN**, and that is the correct answer rather than a failure:
+  only one eigenvalue is meaningfully positive (the rest are 1e-11 to 1e-08), so there are not two
+  positive eigenvalues to take a ratio of.
+
+**The Daniels CP:PP anchor is, to five decimal places, a rank-1 observable whose single constrained
+direction is the `R_PICPOC` axis.** The project has always argued this mechanistically — `mort_total`
+cancels in the box's surface PIC:POC ratio, so the anchor pins `R_PICPOC` *orthogonally* to the iron
+pair. This measures the orthogonality rather than asserting it.
+
+It also explains the anchor-off control from first principles. Remove this term and `R_PICPOC` has
+Fisher information of exactly zero under everything else that remains, so it is not weakly
+constrained, it is **unconstrained**. That is why the epoch-matched anchor-off control sits at 6/50,
+itself chance-level (P = 0.078).
+
+**Two caveats.**
+
+- **`psd` reads False**, on `min_eigenvalue = -9.93e-08` against a maximum of 0.74. That is float
+  noise at the 1e-7 level, not real indefiniteness. Reported rather than rounded away.
+- **This is a 2-AOI object.** Daniels has no `southernoceanpac` coverage, so the loss auto-gates off
+  there and the run log says so explicitly (`AOIs with coverage: ['eqpac', 'natlsubpolar']`). Any
+  number from `realdaniels` must travel with that.
+
+**Best-conditioned of the three.** `‖H − 2F‖/‖2F‖ = 3.5e-05` here, against 0.93 for `realiron` and
+5.21 for `realbsi`. Residuals really are near zero at Carroll under this observable, so GN *is* the
+curvature and this CRLB is a genuine variance bound, not merely a curvature statement. Of the three
+losses, this is the one whose magnitudes can be quoted most confidently.
+
 ## 3. It independently reproduces the corrected iron-degeneracy framing
 
 This is the part worth flagging, because it confirms a claim we had already *corrected once* and
@@ -110,12 +162,12 @@ end to end in a single job. That is a cleaner demonstration than either number a
   well-conditioned overall.
 - **This is curvature at Carroll, not at the fitted optimum.** That is deliberate (it is a statement
   about the published values) but it is a different question from "how well did our fit converge".
-- **The clause is incomplete.** `R_PICPOC` reads 0.00e+00 under both losses because neither is its
-  observable. Its real anchor is Daniels CP:PP, which is **not exposed as a standalone residual
-  loss**, so `R_PICPOC` currently has no positive structural clause of its own. `--loss realpic` is
-  MODIS-Aqua PIC, the shelved satellite path, and is deliberately not substituted. Adding a
-  `realdaniels` residual is guarded by the same `‖ρ‖² == loss` self-check, so a scaling error would
-  fail the job rather than emit a wrong number.
+- **~~The clause is incomplete.~~ CLOSED 2026-07-29 by job 233385, see §2b.** `R_PICPOC` reads
+  0.00e+00 under `realiron` and `realbsi` because neither is its observable. Its real anchor is
+  Daniels CP:PP, which now has a standalone residual loss (`--loss realdaniels`), guarded by the
+  same `‖ρ‖² == loss` self-check so a scaling error fails the job rather than emitting a wrong
+  number. `--loss realpic` is MODIS-Aqua PIC, the shelved satellite path, and remains deliberately
+  not substituted.
 - **`Smallgrow` and `Biggrow` have no real observable at all.** That absence is the finding, not a
   gap to be filled by proxy.
 
