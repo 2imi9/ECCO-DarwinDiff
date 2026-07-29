@@ -259,6 +259,22 @@ Fetched from `MITgcm-contrib/ecco_darwin@master`:
 
 which expands to six groups: `[0.0419, 0.0419, 0.05, 0.0419, 0.0419, 0.0419]`.
 
+### v05 `data.traits` — the file that completes the picture (verified 2026-07-29)
+
+Fetched `v05/llc270/input/data.traits` from `MITgcm-contrib/ecco_darwin@master`:
+
+```
+line  7:  HASPIC   = 0, 2*1, 4*0,
+line 36:  R_PICPOC = 0.0, 2*4.1886E-2, 4*0.0,
+```
+
+**`HASPIC` says only 2 of 7 plankton types calcify**, and `data.traits` carries its own rain-ratio
+array at **0.041886** — a *different number* from `data.darwin`'s scalar `0.04245`, in the same v05
+configuration.
+
+That is precisely the situation he described: **two v05 files, different values**, plus the v06
+per-group array. His "three values" are `0.04245`, `0.041886`, and v06's `0.05`.
+
 ### So the three values are
 
 | value | where | build |
