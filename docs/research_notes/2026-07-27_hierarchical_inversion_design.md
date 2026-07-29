@@ -384,7 +384,10 @@ than the noise, so it is not a heuristic reweighting.
 gradient unchanged. That is exactly the property a heterogeneous-units, eight-loader loss needs, and it
 retires the entire `*_W` sweep as a tuning surface.
 
-**Costs and one hard caveat.** `−log‖r_g‖²` is **unbounded below as `r_g → 0`**, so a block that can be
+**Costs and one hard caveat.** `L` carries `+log‖r_g‖²` per block, so it is **unbounded below as
+`r_g → 0`** — the minimiser can drive `L → −∞` by fitting one block alone. (An earlier version wrote
+this as `−log‖r_g‖²`, which tends to *`+∞`* and would be harmless; the sign was a typo, the failure
+mode is real. Corrected 2026-07-29 after review.) So a block that can be
 fitted near-exactly (the z-scored Darwin-pattern block, which is model-vs-model and therefore fittable
 to far lower residual than any real anchor) will swallow the objective and starve the real anchors. The
 paper does not need this fix because it has one measurement block; we have eight. **Use a proper
@@ -438,9 +441,26 @@ freeze the basis at a reference `θ` and report it as a local statement. The pro
 direction at 1.000).
 
 **Test.** Reparameterise the iron pair as `(ratio, product)` with the product prior-bounded, rerun the
-flagship, n = 10 then n = 50. Prediction: `scav_rat`'s **per-AOI variance drops sharply in every AOI**,
-its recovery count in sopac and natl rises, and **eqpac does not move** — because reparameterisation
-removes amplification, not the missing information (see §4).
+flagship, n = 10 then n = 50.
+
+> **Corrected 2026-07-29 (review).** The earlier prediction credited the variance drop to the
+> reparameterisation itself. That cannot be right, and this note's own header says so: an invertible
+> change of coordinates **leaves the CRLB unchanged**. Two separable mechanisms are bundled here, and
+> only one of them can move variance:
+>
+> 1. **Optimiser conditioning** — in the eigenbasis the two directions decouple, so Adam makes the same
+>    progress in fewer epochs. This changes *where the run lands at a fixed epoch budget*, not the
+>    attainable variance. It is the mechanism that would explain natl reaching its 4000-epoch count at
+>    2000 epochs (§5, row `scav_rat` natl).
+> 2. **The bound on the product** — this is added regularisation, and it is the *only* part of the
+>    intervention that can lower the attainable variance at all.
+>
+> So run it as an A/B: reparameterised with the product bounded, and reparameterised with it free. If
+> only the bounded arm moves, the gain is prior information, and it should be reported as such rather
+> than as a conditioning win.
+
+Prediction: recovery count in sopac and natl rises at the 2000-epoch budget, and **eqpac does not move**
+— reparameterisation and regularisation both act on amplification, neither creates information (see §4).
 
 ### H5 — Staged / greedy inversion
 
@@ -633,8 +653,11 @@ parameter head. One implementation day + one cluster night for n = 10, one more 
 
 **Prediction:** `scav_rat` per-AOI rises in **sopac and natl** and reaches the 4000-epoch counts at the
 2000-epoch budget (i.e. ~40/50 natl at half the compute), while **eqpac does not move**. That split is
-the whole point: reparameterisation removes amplification, not missing information. If eqpac *does*
-move, §1.5's information-limit reading of eqpac is wrong and E2's Picard plot should have shown it.
+the whole point: neither reparameterisation nor the product bound creates information. Per H4's
+correction, run product-bounded and product-free as an A/B — the coordinate change buys *optimiser
+conditioning at a fixed epoch budget* (which is what the natl claim above rests on), while any drop in
+attainable variance comes from the bound, i.e. from prior information. If eqpac *does* move, §1.5's
+information-limit reading of eqpac is wrong and E2's Picard plot should have shown it.
 
 ### E5 — Measure the implicit regularisation the per-cell DINN already applies
 

@@ -54,7 +54,15 @@ running only if something else points back at precision.
 Recovery tracks conditioning almost monotonically: `scav_rat` is **49/50** where cond = 2.2, and
 **7/50 (eqpac) / 20/50 (natl)** where cond = 35–51.
 
-## The amplification arithmetic
+## ~~The amplification arithmetic~~ — SUPERSEDED, kept only as the record of the error
+
+> **Do not use any number in this section.** It is the original derivation, reproduced verbatim so the
+> mistake is auditable. It reads the published 2930 as `κ(J)`, squares it again, and lands on 0.29
+> surviving float32 digits. The banner at the top of this file explains why that is wrong: 2930 is
+> already `κ(J)²`. The corrected table is up there. `κ(J) = 54`, `κ(JᵀJ) = 2930`, **3.75 digits**.
+>
+> The mechanism sentences below (κ² is the amplification, `H ≈ JᵀJ` near the optimum) are correct in
+> general and are what the corrected table applies. Only the *numbers in the table below* are dead.
 
 For a linear least-squares inverse problem the relative parameter error is bounded by the relative
 data error times the condition number of the Jacobian:
@@ -81,7 +89,16 @@ significant decimal digits survive in each precision:
 
 (float32 carries ~7.22 decimal digits, float64 ~15.95.)
 
-## The hypothesis
+## ~~The hypothesis~~ — SUPERSEDED with the arithmetic it rests on
+
+> **This hypothesis is dead as stated.** It follows from the 0.29-digit figure above, which was wrong.
+> At the corrected **3.75 float32 digits** the sloppy direction is *not* at the roundoff floor, so the
+> premise fails. Kept verbatim below for the record.
+>
+> **What is left of it:** the box does integrate 200 forward-Euler steps in float32 before the loss is
+> formed, and the end-to-end training dtype has still never been audited (see Caveats). That is a real
+> unchecked precondition — it is just no longer a headline hypothesis, and 3.75 digits is enough that
+> it should not be expected to matter.
 
 **In float32, the sloppy direction of the surface-only iron block sits at or below the roundoff
 floor.** 0.29 surviving digits means the curvature along that direction is numerically
@@ -97,7 +114,11 @@ epochs (`ep4k_n50`), which is the signature of grinding slowly along a high-curv
 direction. But eqpac stays ~6/50 even at 4000 epochs. Under this hypothesis those are two different
 things: natl is optimisation-limited (slow but above the floor), eqpac is at the floor.
 
-## The decisive test
+## The test — DOWNGRADED to a low-priority control
+
+> Written as "the decisive test" when the hypothesis predicted numerical annihilation. At 3.75 digits
+> it decides much less: a null result is now the *expected* one. Worth running only as cheap insurance
+> alongside the dtype audit, and it is listed that way in the hierarchy note (E7).
 
 Run the flagship config with the box in **float64**, changing nothing else.
 
