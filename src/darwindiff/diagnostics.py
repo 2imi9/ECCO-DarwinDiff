@@ -261,6 +261,14 @@ def sigma_threshold_for_band(band: float = CAL_GRADE_BAND) -> float:
 
     >>> round(sigma_threshold_for_band(0.40), 4)
     0.8203
+
+    CAVEAT (mathematical audit, 2026-07-29). This is the threshold for an EXACT
+    lognormal field. The real field comes through a truncated sigmoid map, so a
+    lognormal is not exactly realisable and the requirement is about **9 % larger**
+    in practice: sd(log p) ~= 0.8924 nat (0.3876 dex) for the linear map every
+    published run uses. Treat 0.8203 as a lower bound on the threshold, i.e. as the
+    conservative side for deciding whether the collapse choice can matter. For
+    scale, the hard maximum achievable on ``scav_rat``'s bounds is 2.30 nat.
     """
     if band <= -1.0:
         raise ValueError(f"band must exceed -1, got {band}")
