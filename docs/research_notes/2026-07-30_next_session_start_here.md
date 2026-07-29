@@ -1,157 +1,154 @@
 # START HERE — next session prompt (2026-07-30)
 
 Paste the block below to resume. Self-contained.
+Rewritten 2026-07-29 ~16:30 UTC at the end of the working session, replacing the earlier version
+whose premises are now stale (it assumed array 232937 would have finished overnight; it was actually
+submitted at 11:02 EDT that day and was still draining at session end).
 
 ---
 
 Resume ECCO-DarwinDiff. Read these first, then confirm the shape back before acting:
 
-1. `docs/findings/2026-07-28_session_evidence_log.md` — every number from the last session, with job IDs and raw paths
-2. `docs/findings/2026-07-29_jon_reply_crosscheck.md` — Jon's reply audited against the repo, plus a draft reply
-3. `docs/findings/2026-07-29_ude_scaling_claim_audit.md` — whether our scaling pitch survives the UDE proposal
-4. `STATUS.md`
+1. `docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md` — **read before any result**
+2. `docs/findings/2026-07-29_gnfisher_structural_clause.md` — new, verified, job 233265
+3. `docs/findings/2026-07-28_session_evidence_log.md` — every prior number with job IDs and raw paths
+4. `docs/findings/2026-07-29_jon_reply_crosscheck.md` and `..._ude_scaling_claim_audit.md`
+5. `STATUS.md`
 
-Plus the memory index and the SessionStart open-issues list.
+Board: **https://claude.ai/code/artifact/e2546746-1209-46ab-b607-70c5ed678786**
+(33 claims scored on confidence / accuracy / completeness, each beside its measured untrained baseline)
 
-## FIRST ACTION: read the overnight results
+## FIRST ACTION: two graders, not one
 
-`/scratch/qi_zim_neu/overnight/GRADED_232938.log` on AICR. Array job **232937** (20 tasks, n=50 per
-arm) with a dependent grader on `afterany`, so the log exists even if the array partly failed. It
-grades every arm against its **architecture-matched** untrained baseline and prints `verify_run`
-verdicts. Four arms:
+```
+/scratch/qi_zim_neu/overnight/GRADED_232938.log      # obs-only, 4 arms
+/scratch/qi_zim_neu/ladder/GRADED_LADDER_233158.log  # parameterisation ladder, 3 arms
+```
 
-| arm | question | baseline |
+**Do not grade a partial arm as complete.** Check `squeue -u $USER` and the per-arm JSON counts
+first, and refill missing blocks rather than grading short.
+
+### Array 232937 — obs-only
+
+| tasks | arm | question | baseline |
+|---|---|---|---|
+| 0-4 | `obsonly_mld` | does MLD lift `diatomgraz` on real obs? **2-of-4 vs 3-of-4** | `prior_mld_n50` (2ch) |
+| 5-9 | `obsonly_litic` | how much of `alpfe`/`R_PICPOC` rests on Darwin's pickup? | `prior_ctrl_n50` (1ch) |
+| 10-14 | `obsonly_mld_litic` | **the strict arm**: obs-only targets AND literature IC | `prior_mld_n50` (2ch) |
+| 15-19 | `chl2w20` | does the `Biggrow` dose-response continue past W=8? | `prior_ctrl_n50` (1ch) |
+
+### Array 233157 — the parameterisation ladder (runs from the `~/emulator_poc_pw` CLONE)
+
+| tasks | arm | baseline |
 |---|---|---|
-| `obsonly_mld` | does MLD lift `diatomgraz` in an obs-only fit? **2-of-4 vs 3-of-4 paper** | `prior_mld_n50` (2ch) |
-| `obsonly_litic` | how much of surviving `alpfe`/`R_PICPOC` rests on Darwin's pickup? | `prior_ctrl_n50` (1ch) |
-| `obsonly_mld_litic` | both at once: obs-only targets AND a literature IC | `prior_mld_n50` (2ch) |
-| `chl2w20` | does the `Biggrow` dose-response continue past W=8? | `prior_ctrl_n50` (1ch) |
+| 0-4 | `peraoi_dinn` (`PER_AOI_DINN=1`, 3×406 weights) | `prior_ctrl_n50` (architecturally identical) |
+| 5-9 | `pointwise` (`POINTWISE=1`, 17,106 free values on ocean cells) | `pointwise_prior`, from arm 3 |
+| 10-14 | `pointwise_prior` (`POINTWISE=1 NB23_LR=0 NB23_N_EPOCHS=1`) | is itself the baseline |
 
-Known risk: three tasks of an earlier batch hit a 4h wall under node contention. This one requests
-10h and 8 CPUs. If arms are short of 50 seeds, refill the missing blocks rather than grading a partial
-arm as if it were complete.
+## THE PRE-REGISTRATION IS BINDING
 
-**Provenance note, deliberate.** AICR's `src/darwindiff/networks.py` is one commit behind the local
-working tree: local made `n_outputs` default to `N_PARAMS` instead of the literal `6`. This is
-**numerically a no-op** here, because `N_PARAMS == 6` and the runner passes `n_outputs=N_PARAMS`
-explicitly at every construction site. It was left unsynced ON PURPOSE so that all 20 array tasks run
-byte-identical code; syncing mid-batch would have split task 0 from tasks 1-19 for no scientific gain.
-**Sync it after the batch finishes**, before any new run:
-`cat src/darwindiff/networks.py | ssh aicr "tr -d '\r' > \$HOME/emulator_poc/src/darwindiff/networks.py"`.
-Every other file (`carroll6.py`, the runner, `verify_run.py`, `grade_all_params.py`) is confirmed
-byte-identical between local and AICR after line-ending normalisation.
+Written 15:39:24 UTC with **zero JSONs on disk in all four arms**, task 0 at epoch 500 of 2000, and
+the ladder not yet submitted. Do not reinterpret outcomes against it.
 
-## STATE — what changed, and it is mostly methodological
+Counts needed to clear the measured architecture-matched baseline at P < 0.05:
 
-**The central change: recovery counts are now graded against a MEASURED untrained baseline.** Running
-the real pipeline at `NB23_LR=0, NB23_N_EPOCHS=1` leaves networks at initialisation and scores them
-through the identical path, so the counts *are* the chance rate. n=50, `verify_run` exit 0. Measured:
-`diatomgraz` **0.640**, `alpfe` 0.200, `Smallgrow` 0.120, `scav_rat` / `Biggrow` / `R_PICPOC` **0.000**,
-untrained trio **0/50**.
+| param | 1ch base | **1ch k\*** | 2ch base | **2ch k\*** |
+|---|---|---|---|---|
+| alpfe | 10/50 | **16** | 16/50 | **23** |
+| scav_rat | 0/50 | **7** | 0/50 | **7** |
+| Smallgrow | 6/50 | **11** | 7/50 | **12** |
+| Biggrow | 0/50 | **7** | 0/50 | **7** |
+| diatomgraz | 32/50 | **38** | 34/50 | **40** |
+| R_PICPOC | 0/50 | **7** | 0/50 | **7** |
 
-**Consequences, all verified:**
+Zero-count baselines use the rule-of-three floor 3/50 = 0.06, deliberately conservative. The
+asymmetry is the point: `diatomgraz` needs **40 of 50** to say anything at all while `R_PICPOC`
+needs **7**. That is a fact about the bounds, not about the ocean.
 
-- **`diatomgraz` 35/50 is RETIRED.** Against an architecture-matched untrained 34/50 it is **P = 0.447**,
-  one seed better than nothing. Cause is structural: its bounds put the Cal band at 52.8 % of the range
-  with the midpoint *inside* it. The separate `geo1+MLD` **10/10** stands (P = 0.021) and remains the
-  headline verdict. Corrections applied to STATUS and the AGU abstract.
-- **`R_PICPOC`'s anchor story got STRONGER.** The anchor-off control at 6/50 is itself chance-level
-  (P = 0.078), so the contrast is 50/50 decisive versus *nothing*.
-- **alpfe 49/50, scav_rat 26/50 and 41/50, R_PICPOC 50/50, trio 25/50 are all DECISIVE** against the
-  measured null. The flagship also reproduced independently (scav_rat 26/50 vs published 25/50) on
-  different hardware, compiler and torch build.
-- **Observations-only is graded** (`coord_anchors_pinnOFF`, n=50, verify_run exit 0):
-  `alpfe` **50/50**, `R_PICPOC` **28/50**, `scav_rat` **0/50**, `diatomgraz` 11/50, **trio 0/50**.
-  Two of four survive on real measurements alone. It still uses Darwin ICs and Darwin forcing, so it is
-  observations-only *targets*, not end-to-end independence. That is what `obsonly_litic` tests.
-- **A straddle nearly published a false result.** In that run `scav_rat` reads **40/50 cell-weighted**
-  and **0/50 per-AOI**. Opposite conclusion, not a rounding difference.
-- **Growth pair reframed.** They are NOT mutually degenerate (2x2 cond 1.20, least degenerate of all 15
-  pairs) and NOT signal-deleted (z-scoring keeps 0.95 of `Biggrow`). They are **information-starved**
-  (rel Fisher info 0.055 / 0.053 vs `diatomgraz` 1.000). `Biggrow`'s signal is concentrated in Chl2;
-  `Smallgrow`'s is diffuse and routed through FeT. New lever `CHL2_W_EXTRA` took `Biggrow` 6/50 → 12/50
-  while `Smallgrow` stayed flat (Fisher p = 1.000, the discriminating prediction). Arm-to-arm p = 0.192,
-  so directional only.
-- **scav_rat log-scale bounding: NOT adopted.** 26/50 → 35/50 at p = 0.100; earned-only 0.52 → 0.71 at
-  p = 0.086 (so the gain is *not* the log map's 16 % head start); but it costs `R_PICPOC` 50/50 → 45/50
-  at p = 0.056. Implemented behind `PARAM_LOG_SCALE`, default off, bit-identical when unset.
+**Headline rule, fixed in advance:** observations-only becomes the headline **only if
+`obsonly_mld_litic` clears 3-of-4** (alpfe ≥23, R_PICPOC ≥7, diatomgraz ≥40, with `scav_rat` expected
+at 0 and reported as a diagnosed failure). 2-of-4 keeps the flagship and makes obs-only the strongest
+robustness section, which is not a demotion. Accepted cost either way: the joint trio goes 25/50 → 0/50.
 
-**The tool itself was hardened** after a fair criticism that it was not good enough as a scientific
-instrument:
+**Ladder rule, fixed in advance:** free field **worse** than DINN → the network regularises and
+"per-cell **architecture** is load-bearing" is earned. **Equal** → scope to per-cell **structure** and
+drop the word architecture from STATUS and the abstract. **Better** → degrees of freedom are doing the
+work; report it first, not last. The free field is *expected* to fit the training loss better (~6 free
+values per ocean cell against roughly 14 GEOTRACES surface iron obs); the pre-registered metric is
+per-AOI recovery against Carroll, **not** training loss.
 
-- `verify_run.py` now leads with **per-AOI**, marks cell-weighted `[DO NOT QUOTE]`, has a **generalised
-  straddle guard** for every parameter (was R_PICPOC-only), a `NO_PER_AOI_DATA` flag, `--baseline` with
-  per-parameter effect sizes and a rule-of-three floor, and `--require-baseline` → **exit 6**.
-- Registry: `N_PARAMS` derived (was 85 hardcoded 6s, zero derived), `Param.scale` for log bounding,
-  `Param.model_value` recording that v05 integrates `R_PICPOC` = 0.0418860 against the published
-  0.04245, and `prior_midpoint_offset()` with a test that fails any new parameter whose prior sits
-  inside the pass band (`diatomgraz` is an xfail in `KNOWN_PRIOR_CONTAMINATED`).
-- New `scripts/analysis/grade_all_params.py`, cross-validated to agree exactly with the existing
-  trusted grader.
-- Suite: **549 passed, 19 skipped, 1 xfailed.**
+## WHAT LANDED THIS SESSION
 
-## JON'S REPLY — answered, not yet sent
+- **PR [#208](https://github.com/2imi9/ECCO-DarwinDiff/pull/208)**, 5 commits, branch
+  `feat/identifiability-contract-and-ladder`. Suite **561 passed**, 19 skipped, 1 xfailed.
+  `verify_run.py` is now registry-driven. Previously it hardcoded `PARAMS` and `CARROLL`, so a
+  seventh parameter would have been trained, graded and written by the runner, **skipped by the
+  gate**, and the run would still have exited 0 VERIFIED. It now also rejects artifacts carrying
+  parameters it does not know. `CONTRIBUTING` gained step 9. `PerCellFreeField` + `POINTWISE` added.
+- **GN-Fisher structural clause landed** (job 233265, exit 0). `alpfe`/`scav_rat` under real
+  GEOTRACES iron, `diatomgraz` under real bSi. `R_PICPOC` Fisher information is **identically
+  0.00e+00 under both** — the formal statement behind the 50/50-vs-6/50 anchor contrast. It
+  independently reproduces iron 2x2 condition **2.224** and conditional corr **−0.155** on the real
+  loss, and measures the counterfactual in the same job (under bSi the same pair reads cond 9340,
+  corr +0.9998). Two orderings from the old synthetic table do **not** survive: it ranked `scav_rat`
+  last where its own observable makes it highest, and gave `R_PICPOC` nonzero information where the
+  real answer is exactly zero.
+- **New issues** [#209](https://github.com/2imi9/ECCO-DarwinDiff/issues/209) pointwise control,
+  [#210](https://github.com/2imi9/ECCO-DarwinDiff/issues/210) declarative `Unknown` schema,
+  [#211](https://github.com/2imi9/ECCO-DarwinDiff/issues/211) `realdaniels` residual loss.
+  Status comments on #120 and #163.
 
-He replied 2026-07-28. Draft reply is in the crosscheck doc. Highlights:
+## DECISIONS TAKEN (do not re-litigate)
 
-- **His open question is answered.** The three rain ratio values are 0.04245 (`data.darwin`, **inert**),
-  0.0418860 (`data.traits`, **what runs**, types 2 and 3) and 0.0 (non-calcifiers). `DARWIN_READ_TRAITS`
-  at `darwin_init_fixed.F:382` overwrites `DARWIN_GENERATE_RANDOM` at :357. Proof it is live: the two
-  files disagree. **Editing `val_R_PICPOC` does nothing.** `alpfe`/`scav_rat` are the opposite case and
-  are safe to edit in `data.darwin`.
-- **He upgrades one of our nulls.** Every Ω test we ran was against surface calcite *production*, never
-  dissolution. If Ω mainly governs dissolution, our null is what his mechanism predicts. Also v05 has no
-  `disscSelect` switch at all.
-- **His growth-pair intuition is confirmed and split.** He asked "perhaps chlorophyll might help?" It
-  helps `Biggrow` specifically, via Chl2, and not `Smallgrow`.
-- **Do not send** our per-cell-vs-global 0/50-vs-50/50 as evidence that the rain ratio varies
-  regionally. It is a fact about our estimator. The Daniels 1.6x is the real evidence.
+1. **Run the pointwise arm and gate the structural claim on it.** Until it lands, say per-cell
+   "structure", not "architecture". Prompted by ADCME (Xu & Darve), whose standard control for a
+   neural field is a free pointwise field, and whose taxonomy puts our DINN in the *function inverse*
+   row and the UDE closures in the harder *relation inverse* row.
+2. **Manuscript #1 stays the identifiability study** and names the contract as an explicit protocol,
+   reporting all four clauses for all six parameters. The declarative wrapper is #210 and is the next
+   build, not a rewrite of #1.
+3. **Split the Jon reply.** Part 1 (the stable half) is drafted at
+   `docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md` and is **not sent** — Lucas sends it.
+   Part 2 (obs-only at n=50, IC dependency closed) goes after the arrays. Reason for splitting: the
+   earlier full draft asked Jon to arbitrate the obs-only headline, but `obsonly_mld_litic` answers
+   the IC half of that question ourselves.
+4. **Run the real-loss Fisher table now, defer clean profile likelihoods.** Done. Growth and Si
+   profiles stay excluded because 9 of 13 runs failed a convergence guard; name the gap rather than
+   quietly using the artifact.
 
-## UDE — yes with conditions
+## STILL OPEN
 
-The audit found a real inconsistency. Our scaling pitch is a claim about **cost** (one backward pass vs
-an N+1 ensemble) and that survives a UDE intact. But a few doc sentences upgraded it to a claim about
-**identifiability**, which our own evidence contradicts. `ScavClosure` is **67 free parameters** against
-`scav_rat`'s 1; the calcite closure as run is **353**. The 2026-07-21 stress test: 0.0065 relative error
-on the visited DFe band, **2.877 on the full range**, identical across all four regularisation configs.
+- **AGU abstract, deadline Aug 5.** The refuted 35/50 is out; the obs-only sentence waits on
+  `obsonly_mld_litic`. Roughly 6 days of slack.
+- **Send Jon part 1**, then part 2 after the arrays.
+- **Does observations-only become the headline?** Answered by the pre-registered rule, not by taste.
+- **#211 `realdaniels`** is the missing positive structural clause for `R_PICPOC`.
 
-Overclaims fixed in `ecco_darwin_parameter_inventory.md`, `dinn_design.md`, `docs/index.md`. The
-inventory fix had been written by our own audit on 2026-07-19 and left unapplied for nine days.
+## GOTCHAS THAT COST TIME TODAY
 
-**Cheapest next step for the UDE, do this before booking any GPU:** wire `gather_visited_support` /
-`dump_support_npz`, dump the DFe visited support under the intended forcing, and run the Monod branch of
-`scripts/symbolic_distill_probe.py`. Gate on the **aliasing correlation below 0.95**, NOT on a 0.30 dex
-span (that is the calcite branch's number and 0.311 dex already failed at aliasing 0.9908). CPU-minutes,
-and it can veto the whole experiment.
-
-## DECISIONS WAITING ON YOU
-
-1. **Commit and PR everything.** All of it is uncommitted on `main`: `M CONTRIBUTING.md`,
-   `M STATUS.md`, `M scripts/verify_run.py`, `M scripts/run_v3.0_joint_multi_aoi.py`,
-   `M src/darwindiff/carroll6.py`, `M src/darwindiff/networks.py`, `M docs/index.md`,
-   `M docs/dinn_design.md`, `M docs/ecco_darwin_parameter_inventory.md`,
-   `M docs/agu26_abstract_draft.md`, plus four new files. Nothing has been through bot review.
-2. **AGU abstract, deadline Aug 5.** The refuted 35/50 is removed and replaced with the untrained-baseline
-   framing, which is stronger. Needs your read before submission.
-3. **Send Jon the reply?** Drafted, not sent.
-4. **Does observations-only become the headline?** It is a different and arguably stronger paper: two
-   parameters on real measurements alone plus one diagnosable failure, but the flagship's cleanest
-   number (trio 25/50) goes to zero. The overnight arms inform this.
-
-## OPEN, not blocked on decisions
-
-- **#163 GCM validation.** Both v05 binaries built on AICR (767-rank and a 468-rank re-tile that fits the
-  512-CPU QOS cap), 49 GB staged. **Blocked: 2 of 4 input trees are not public** (`nbp19_dmenemen_public_llc270`
-  and `era_xx`), and `ecco.jpl.nasa.gov` refuses connections from four vantage points. Only a slice of
-  forcing is needed, so this is a small ask of Jon rather than a resource request.
-- **Held-out predictive validation is the real gap.** Until the tool can predict observations it was not
-  trained on, it is a consistency check with good hygiene. Returns negative R² in the 0-D box. This is the
-  honest answer to "is this good enough as a scientific tool", and it points at Track 2.
+- **A Slurm job can report `COMPLETED` while doing nothing.** Job 233168 exited 0 having produced no
+  artifacts: an sbatch built inside a quoted ssh heredoc let `$HOME` expand on the *workstation*, so
+  the job `cd`'d to a nonexistent path, never sourced the venv, died on `ModuleNotFoundError: torch`,
+  and nothing checked the return code. **Write sbatch files locally and pipe them through
+  `tr -d '\r'`**, never assemble them inside a quoted ssh heredoc, and always guard with an explicit
+  import check plus `exit $fail`.
+- **`~/emulator_poc` must stay untouched until 232937 fully drains.** Every task reads the tree at
+  its own start time, so an edit mid-array splits the batch. Pinned md5s that all 20 tasks stamp into
+  their own provenance header: networks `b12ec42d`, runner `c6622e10`. New code runs from
+  `~/emulator_poc_pw`, a clone whose `covar_env_common.sh` is retargeted. **After 232937 finishes:**
+  `cat src/darwindiff/networks.py | ssh aicr "tr -d '\r' > \$HOME/emulator_poc/src/darwindiff/networks.py"`
+- **Codex review is rate-limited** on PR #208 ("reached your Codex usage limits for code reviews").
+  Greptile had not commented by session end. Neither bot's silence means clean.
+- **No CI run triggered** on the branch. `.github/workflows/tests.yml` exists but `gh pr checks 208`
+  reports no checks. Check its trigger conditions before relying on it as a merge gate.
+- **Smoke-test a new code path on one GPU task before queuing an array.** The `POINTWISE` smoke was
+  27 seconds (job 233156) and validated the whole chain including JSON metadata; a crash discovered
+  at task 0 of 15 would have cost the evening.
 
 ## GUARDRAILS
 
-verify_run-gate every number and quote **per-AOI only**; `docs/paper/main.tex` is LOCAL-ONLY (diffs, wait
-for OK, never git-track); commit only when asked (no `Co-Authored-By`, non-squash); AICR for surrogate
-runs, Explorer for the GCM build; login nodes reset long ssh so use server-side dependent Slurm jobs;
-simple warm style, no em dashes, no confidence percentages. Do not report a count without its
-architecture-matched untrained baseline.
+`verify_run`-gate every number and quote **per-AOI only**. Never report a count without its
+architecture-matched untrained baseline. `docs/paper/main.tex` is LOCAL-ONLY, never git-track it.
+Commit only when asked, no `Co-Authored-By`, non-squash merges. AICR for surrogate runs, Explorer for
+the GCM build. Login nodes reset long ssh, so use server-side dependent Slurm jobs. Simple warm
+style, no em dashes, no confidence percentages.
