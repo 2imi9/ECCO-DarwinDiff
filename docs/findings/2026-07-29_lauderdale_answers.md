@@ -111,13 +111,54 @@ Jon asked which of the three rain-ratio values in `data.darwin` / `data.traits` 
 So the namelist values are likely **not** what the model runs on — a hardcoded override sets it after
 the namelist is read. That is why three values can coexist without a clear winner.
 
-### Two consequences worth raising with him
+### PRIMARY VERIFICATION (2026-07-29) — fetched the actual Fortran
 
-**1. The `np = 8` assignment is dead code, and possibly an out-of-bounds write.**
-`npmax = 5` in this build, so only `np = 2, 3` are valid. The `np = 8` element of that assignment
-targets an index outside the array. It is at best a no-op left from a larger-`npmax` configuration;
-at worst it writes past the end. **Worth flagging to the Darwin team** — it is their code, and it is
-a one-line check for someone with the build in front of them.
+The claim above was sourced to our own inventory doc. I then fetched the real file from
+`MITgcm-contrib/ecco_darwin@master`, `v04/llc270_JAMES_paper/code_darwin/darwin_generate_phyto.F`
+(782 lines). Lines 476–486 read:
+
+```fortran
+        if(diacoc(np) .eq. 2.0 _d 0)then
+          R_PICPOC(np) =  val_R_PICPOC          ! 477
+        else
+          R_PICPOC(np) = 0.0 _d 0               ! 479
+        end if
+cswd %%%%%%%%%%% OCMIP STYLE for other phyto (not diatom or prochl)
+        if (np.eq.2.or.np.eq.3.or.np.eq.8) then
+C ECCO-Darwin V4 JAMES
+          R_PICPOC(np) = 0.04245 _d 0           ! 484
+cBX GF optizm run ag4         R_PICPOC(np) = 0.133 _d 0    ! 485 -- COMMENTED OUT
+        endif
+```
+
+**This is the direct answer to the three-values question.** There are exactly three live code paths
+plus one decoy:
+
+| value | line | applies to |
+|---|---|---|
+| `val_R_PICPOC` (namelist/traits) | 477 | coccolithophores, `diacoc == 2` |
+| `0.0` | 479 | every non-calcifier |
+| **`0.04245`** | **484** | **`np = 2, 3, 8`** — overrides both branches above |
+| `0.133` | 485 | **commented out** — labelled `GF optizm run ag4` |
+
+Because 484 runs *after* 477/479, **`0.04245` wins for `np = 2, 3`**. Our recovery target is the
+operative value. The likely source of confusion is the **commented-out `0.133`**, which is visible in
+the file and looks live at a glance.
+
+### ⚠ RETRACTION — my "out-of-bounds write" claim was wrong
+
+I wrote that the `np = 8` element "targets an index outside the array" and might "write past the
+end", and suggested flagging it to the Darwin team as a possible bug.
+
+**That is incorrect.** Line 483 is a *condition on the loop variable* — `if (np.eq.2.or.np.eq.3.or.np.eq.8)`
+— not an assignment to `R_PICPOC(8)`. If the loop never reaches `np = 8`, the branch simply never
+fires. That is harmless dead code, not an out-of-bounds write. No memory is touched.
+
+I also **could not verify `npmax = 5` from primary source** — no `npmax` declaration appears in this
+file, and the array dimension is defined elsewhere. So even the "dead code" reading is unconfirmed.
+
+**Do not send this to the Darwin team as a bug.** It was an overstatement built on a secondary
+source, and I nearly had us report a non-bug to a collaborator.
 
 **2. `R_PICPOC` is per-phytoplankton-type, and only two of five types calcify.**
 The override applies to `np = 2, 3` only. Our 0-D box treats `R_PICPOC` as a **single global scalar**
