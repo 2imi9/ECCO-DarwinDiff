@@ -376,6 +376,59 @@ earned its keep twice in one afternoon.
 
 ---
 
+---
+
+## 3.5 VERDICT — the strict arm landed, and the pre-registered rule FIRES
+
+`obsonly_mld_litic`, n=50, `verify_run` **exit 0 VERIFIED & COMPLETE**, graded against the
+architecture-matched `prior_mld_n50` (2ch). Read against §1.1's thresholds, fixed before any result
+existed.
+
+| param | count | pre-registered k\* (2ch) | measured null | P(≥obs) | verdict |
+|---|---|---|---|---|---|
+| **alpfe** | **50/50** | ≥23 | 0.320 | 1.81e-25 | **decisive** |
+| **diatomgraz** | **50/50** | ≥40 | 0.680 | 4.22e-09 | **decisive** |
+| **R_PICPOC** | **43/50** | ≥7 | ≤0.06 | 1.89e-45 | **decisive** |
+| scav_rat | 0/50 | ≥7 | ≤0.06 | 1.00 | not above chance |
+| Smallgrow | 6/50 | ≥12 | 0.140 | 0.719 | not above chance |
+| Biggrow | 3/50 | ≥7 | ≤0.06 | 0.584 | not above chance |
+
+**Three of four observables clear their pre-registered thresholds, in the arm where the targets AND
+the initial conditions are both free of Darwin output.** Under §2.5 the headline rule fires:
+**observations-only becomes the manuscript headline.**
+
+Two things must travel with it, both foreseen:
+
+- **`scav_rat` fails, and it is the expected failure with a stated reason.** It is pattern-driven,
+  not anchor-driven, and the pattern terms are exactly what observations-only removes. The trio
+  therefore goes to 0/50, which §2.5 accepted in advance as the price.
+- **This closes the initial-condition half of the Darwin dependency, not the forcing half.** T, S,
+  wind, atmospheric pCO₂ and the DINN input channels still come from Darwin fields.
+
+**The straddle guard earned its place again.** `scav_rat` reads **21/50 cell-weighted against 0/50
+per-AOI** here — the guard prints `INVERTS IT (per-AOI says zero)`. `Smallgrow` reads 41/50 versus
+6/50 and `Biggrow` 27/50 versus 3/50. Anyone quoting cell-weighted from this run would report an
+observations-only iron result, and two growth-parameter results, that do not exist.
+
+### The free-field untrained null — prediction held on all six rows at n=50
+
+`pointwise_prior`, n=50, `verify_run` exit 0. §3.1c predicted every entry before the arm ran:
+
+| param | predicted | **measured** |
+|---|---|---|
+| alpfe | 0/50 | **0/50** |
+| scav_rat | 0/50 | **0/50** |
+| Smallgrow | 0/50 | **0/50** |
+| Biggrow | 0/50 | **0/50** |
+| **diatomgraz** | **50/50** | **50/50** |
+| R_PICPOC | 0/50 | **0/50** |
+
+Every seed returns k=1. The uniform-at-init argument is confirmed at full n, so **`diatomgraz` is
+formally ungradable in the `pointwise` arm** (its null is saturated at 50/50, no `k*` exists) and the
+**trio comparison is safe** (0/50 on both sides).
+
+---
+
 ## 4. What would falsify the framework this session is building
 
 The identifiability contract claims it can say what is inferable before the fit. Three ways it fails:
