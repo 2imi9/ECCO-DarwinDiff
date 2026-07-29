@@ -38,7 +38,7 @@ Use **non-squash merges** (`gh pr merge --merge`). Per-commit history is preserv
 
 The learnable-parameter layout lives in **one** place: the `PARAMS` registry in
 [`src/darwindiff/carroll6.py`](src/darwindiff/carroll6.py). It is an ordered tuple
-of frozen `Param(name, bounds, carroll_value, units, description, learned)`
+of frozen `Param(name, bounds, carroll_value, units, description, learned, scale)`
 dataclasses, and everything else is **derived** from it so the views never drift:
 
 | Derived object | What it is | Used by |
@@ -48,6 +48,23 @@ dataclasses, and everything else is **derived** from it so the views never drift
 | `PARAM_BOUNDS` | `[n, 2]` float32 `(lo, hi)` tensor | `bounded_params` sigmoid map |
 | `PARAM_INDEX` | `{name: position}` | `gating._PARAM_INDEX`, `carroll6_5pft.I_*` |
 | `P` | `SimpleNamespace` of named indices (`P.alpfe`, …) | box steps + runner loss terms |
+| `N_PARAMS` | `len(PARAMS)` | **network head width** — never hardcode `6` |
+| `PARAM_LOG_MASK` | bool mask of `scale == "log"` entries | opt-in log bounding |
+
+**Never write the parameter count as a literal.** Network heads take
+`n_outputs=N_PARAMS`, so appending a registry entry widens the per-cell DINN
+automatically (its head is a 1×1 conv, so the parameter axis is the only thing
+that changes). Before 2026-07-28 there were 85 hardcoded `6`s and *nothing* read
+the count from the registry — the registry was the source of truth for parameter
+*values* but not for parameter *count*.
+
+**`scale` picks the bounding geometry.** `"linear"` (default) or `"log"`. A
+parameter spanning decades wants `"log"`: a linear map over `scav_rat`'s 100×
+range spends **90.9 %** of the sigmoid on the top decade, so only 7.5 % of the
+initialisation distribution starts below Carroll and the median start is 2.52×
+Carroll. The field is metadata only — it changes nothing unless a caller passes
+the derived mask via `bounded_params(log_mask=...)`, or the runner is given
+`PARAM_LOG_SCALE=<names>`. That keeps every published run bitwise reproducible.
 
 **Read positions by name, never by number.** Box steps and loss terms index the
 params vector through `P.<name>` (e.g. `params[P.alpfe]`) or the `I_<NAME>`
@@ -74,6 +91,40 @@ reintroduce bare `params[3]`-style positional unpacking.
    `GOLDEN_NAMES` / `GOLDEN_CARROLL_VALUES` / `GOLDEN_BOUNDS`. The forward-output
    goldens (`GOLDEN_STEP1`, `GOLDEN_INTEG_FINAL`) legitimately change when the
    model gains a tracer/parameter — recapture them and note why in the commit.
+6. **Run `tests/test_param_registry_wiring.py`.** It is registry-driven, so it
+   picks up the new entry with no edit, and it will **fail** if the parameter
+   does not measurably change the 2-layer box state. That is the guard against
+   the worst failure mode: a parameter that is registered but never wired into
+   the physics fails *silently* — the head grows a channel, the value is bounded,
+   collapsed per AOI and graded, and a recovery count is reported for something
+   no observation could have constrained.
+7. **Establish its chance baseline before believing any recovery count.**
+   "Recovered" means `rel <= 0.40`, and how much of a parameter's prior already
+   satisfies that depends entirely on its bounds. Run the prior control —
+   `NB23_LR=0 NB23_N_EPOCHS=1`, which leaves the networks at initialisation and
+   scores them through the identical pipeline — and grade with
+   `scripts/analysis/grade_all_params.py --baseline <prior_dir>`.
+
+   This is not hypothetical. Measured at n=50 (job 227777), the untrained chance
+   rates are `diatomgraz` **0.640**, `alpfe` 0.200, `Smallgrow` 0.120, and
+   `scav_rat` / `Biggrow` / `R_PICPOC` **0.000**. A parameter whose bounds
+   midpoint falls inside the ±40 % band scores as "recovered" from an untrained
+   network most of the time. **Choose bounds so the midpoint sits outside the
+   band**, and report every count next to its baseline.
+8. **If you add a DINN input channel, the baseline must match the architecture.**
+   Changing `n_input_channels` changes the initialisation distribution and hence
+   the chance rate, so a covariate result graded against a different-architecture
+   baseline is graded against the wrong null.
+9. **Re-run the trust gate and confirm it actually grades the new parameter.**
+   `python scripts/verify_run.py <run_dir> --expect-seeds <n>` must exit 0, and
+   the new name must appear in its per-parameter printout. The gate derives
+   `PARAMS` and `CARROLL` from the registry (since 2026-07-29), so a new entry is
+   picked up with no edit — but confirm it, because before that change the gate
+   kept a private hardcoded list and would have **silently skipped** the new
+   parameter while still exiting 0 `VERIFIED`. A run artifact carrying a
+   parameter the gate does not know is now rejected as `MALFORMED` rather than
+   partially graded. Add `--require-baseline` in loops and CI so a number can
+   never be recorded without the step-7 chance baseline attached.
 
 ### To remove a parameter
 

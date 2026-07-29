@@ -33,6 +33,8 @@ from __future__ import annotations
 import torch
 from torch import nn
 
+from darwindiff.carroll6 import N_PARAMS
+
 
 class DINNRegional(nn.Module):
     """Region-level Darwin-Informed Neural Network (fully-connected MLP).
@@ -62,7 +64,7 @@ class DINNRegional(nn.Module):
         self,
         n_features: int = 3,
         hidden_dim: int = 16,
-        n_outputs: int = 6,
+        n_outputs: int = N_PARAMS,
     ) -> None:
         super().__init__()
         self.net = nn.Sequential(
@@ -111,7 +113,7 @@ class DINN(nn.Module):
         self,
         n_input_channels: int = 3,
         hidden_dim: int = 16,
-        n_outputs: int = 6,
+        n_outputs: int = N_PARAMS,
         n_hidden_layers: int = 2,
     ) -> None:
         super().__init__()
@@ -213,7 +215,7 @@ class DINNDeep(nn.Module):
         self,
         n_input_channels: int = 4,
         hidden_dim: int = 32,
-        n_outputs: int = 6,
+        n_outputs: int = N_PARAMS,
         n_blocks: int = 4,
     ) -> None:
         super().__init__()
@@ -266,7 +268,7 @@ class GlobalScalarNet(nn.Module):
     """
 
     def __init__(self, n_input_channels: int = 3, hidden_dim: int = 16,
-                 n_outputs: int = 6, n_hidden_layers: int = 2) -> None:
+                 n_outputs: int = N_PARAMS, n_hidden_layers: int = 2) -> None:
         # Signature mirrors DINN so the runner can construct it the same way;
         # only n_outputs is used. theta starts near 0 (-> mid-bounds via sigmoid),
         # with small per-seed jitter for ensemble spread (seed set by the caller).
@@ -280,3 +282,85 @@ class GlobalScalarNet(nn.Module):
             return self.theta.view(n, 1, 1).expand(n, h, w)
         b, h, w = env.shape[0], env.shape[-2], env.shape[-1]
         return self.theta.view(1, n, 1, 1).expand(b, n, h, w)
+
+
+class PerCellFreeField(nn.Module):
+    """Ablation control: an UNCONSTRAINED per-cell parameter field, no network.
+
+    Drop-in replacement for :class:`DINN` with the identical call signature
+    (``env -> [n_outputs, H, W]``), but the output is a raw learnable tensor of
+    shape ``[n_outputs, H, W]`` — one free value per parameter per grid cell,
+    with no covariate conditioning and no spatial coupling of any kind. Pair
+    with :func:`darwindiff.carroll6.bounded_params` exactly like ``DINN``.
+
+    This is the third rung of the parameterisation ladder, and it is the control
+    the inverse-problems literature uses for a neural field. Xu & Darve's ADCME
+    compares a DNN-parameterised coefficient field against a *pointwise*
+    estimate and reports that the DNN generalises better, i.e. that the network
+    acts as a regulariser restricting the admissible function space. Our
+    published ablation compares :class:`DINN` (~406 weights) only against
+    :class:`GlobalScalarNet` (6 scalars), which shows that per-cell *structure*
+    matters but cannot show that the *network* does. This class supplies the
+    missing arm:
+
+        global scalar (6)  <  DINN (406)  <  per-AOI DINN (3x406)  <  free field
+
+    Interpretation is fixed in advance (see
+    ``docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md``): if the
+    free field recovers *worse* than ``DINN`` despite having ~40x the degrees of
+    freedom, the network is regularising and "the per-cell architecture is
+    load-bearing" is earned. If it recovers the same, the claim must be scoped
+    to per-cell *structure*. If it recovers better, degrees of freedom are doing
+    the work and the DINN claim is deflated.
+
+    Deliberately carries **no** smoothness or magnitude penalty. An
+    unregularised free field is the actual pointwise control; adding a penalty
+    would make it a third parameterisation rather than a null.
+
+    Because the field is tied to one grid, it **cannot be shared across AOIs**
+    the way the flagship ``DINN`` is. That is a real asymmetry, not an
+    implementation detail: this arm gets per-cell freedom *and* per-AOI freedom
+    at once, which is why ``PER_AOI_DINN=1`` must be run alongside it to
+    separate the two axes.
+
+    Args:
+        height: grid rows ``H`` for the AOI this field is bound to.
+        width: grid columns ``W`` for the AOI this field is bound to.
+        n_outputs: number of Carroll parameters per cell (registry-derived).
+
+    ``n_input_channels`` / ``hidden_dim`` / ``n_hidden_layers`` are accepted and
+    ignored so the runner can construct this the same way it constructs
+    ``DINN``.
+    """
+
+    def __init__(
+        self,
+        height: int,
+        width: int,
+        n_input_channels: int = 3,
+        hidden_dim: int = 16,
+        n_outputs: int = N_PARAMS,
+        n_hidden_layers: int = 2,
+    ) -> None:
+        super().__init__()
+        if height <= 0 or width <= 0:
+            raise ValueError(f"PerCellFreeField needs a positive grid, got {height}x{width}")
+        self.height = int(height)
+        self.width = int(width)
+        # Same init geometry as GlobalScalarNet (0.01 * randn -> sigmoid maps to
+        # mid-bounds) so the UNTRAINED distribution is comparable across rungs
+        # and the measured chance baseline stays interpretable. Seed is set by
+        # the caller, exactly as for DINN / GlobalScalarNet.
+        self.theta = nn.Parameter(0.01 * torch.randn(n_outputs, self.height, self.width))
+
+    def forward(self, env: torch.Tensor) -> torch.Tensor:
+        h, w = env.shape[-2], env.shape[-1]
+        if (h, w) != (self.height, self.width):
+            raise ValueError(
+                f"PerCellFreeField was built for a {self.height}x{self.width} grid "
+                f"but received env of {h}x{w}. This field is bound to one AOI; "
+                f"build a separate instance per AOI."
+            )
+        if env.ndim == 3:
+            return self.theta
+        return self.theta.unsqueeze(0).expand(env.shape[0], *self.theta.shape)

@@ -10,8 +10,14 @@ from __future__ import annotations
 import pytest
 import torch
 
-from darwindiff.carroll6 import PARAM_BOUNDS, bounded_params
-from darwindiff.networks import DINN, DINNDeep, DINNRegional
+from darwindiff.carroll6 import N_PARAMS, PARAM_BOUNDS, bounded_params
+from darwindiff.networks import (
+    DINN,
+    DINNDeep,
+    DINNRegional,
+    GlobalScalarNet,
+    PerCellFreeField,
+)
 
 
 def test_dinn_regional_unbatched_shape() -> None:
@@ -285,3 +291,112 @@ def test_dinn_deep_invalid_config_raises() -> None:
         DINNDeep(n_blocks=0)
     with pytest.raises(ValueError):
         DINNDeep(hidden_dim=0)
+
+
+# --------------------------------------------------------------------------
+# PerCellFreeField -- the pointwise rung of the parameterisation ladder.
+# See docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md for the
+# pre-registered interpretation of the arm these tests support.
+# --------------------------------------------------------------------------
+
+
+def test_free_field_call_signature_matches_dinn() -> None:
+    """env [C, H, W] -> [N_PARAMS, H, W], the same contract DINN honours."""
+    net = PerCellFreeField(height=21, width=31, n_input_channels=2)
+    env = torch.randn(2, 21, 31)
+    out = net(env)
+    assert out.shape == (N_PARAMS, 21, 31)
+    assert torch.isfinite(out).all()
+
+
+def test_free_field_batched_shape() -> None:
+    """Batched env [B, C, H, W] -> [B, N_PARAMS, H, W]."""
+    net = PerCellFreeField(height=8, width=9, n_input_channels=1)
+    out = net(torch.randn(4, 1, 8, 9))
+    assert out.shape == (4, N_PARAMS, 8, 9)
+
+
+def test_free_field_ignores_covariates_entirely() -> None:
+    """The whole point of the control: output does NOT depend on env content.
+
+    DINN conditions parameters on covariates; the free field does not. If this
+    ever fails, the arm has stopped being a pointwise null.
+    """
+    net = PerCellFreeField(height=6, width=7, n_input_channels=3)
+    a = net(torch.randn(3, 6, 7))
+    b = net(torch.randn(3, 6, 7) * 100.0)
+    assert torch.equal(a, b)
+
+
+def test_free_field_degrees_of_freedom() -> None:
+    """One free value per parameter per cell, and nothing else.
+
+    This count IS the experiment, and it has two honest versions that must not
+    be conflated. The field is ALLOCATED over the full grid, but only ocean
+    cells enter the loss, so the number of free values the observations can
+    possibly constrain is the smaller one:
+
+        allocated : 6 * (21*51 + 16*31 + 16*81) = 6 * 2863 = 17,178
+        on ocean  : 6 * (1071  +  484  + 1296)  = 6 * 2851 = 17,106
+
+    natlsubpolar is the only AOI with land: a 16x31 = 496-cell grid carrying
+    484 ocean cells. Quote the ocean figure when comparing against DINN's
+    weight count, because the 12 land cells are never gradient-connected.
+    """
+    net = PerCellFreeField(height=21, width=51)
+    assert sum(p.numel() for p in net.parameters()) == N_PARAMS * 21 * 51
+    allocated = sum(N_PARAMS * h * w for (h, w) in [(21, 51), (16, 31), (16, 81)])
+    on_ocean = N_PARAMS * (1071 + 484 + 1296)
+    assert allocated == 17178
+    assert on_ocean == 17106
+
+
+def test_free_field_is_grid_bound_and_says_so() -> None:
+    """A field built for one AOI must refuse another AOI's grid.
+
+    Silently broadcasting would let one instance be aliased across AOIs, which
+    would make this arm a different (and unintended) parameterisation.
+    """
+    net = PerCellFreeField(height=21, width=51)
+    with pytest.raises(ValueError, match="bound to one AOI"):
+        net(torch.randn(1, 16, 31))
+    with pytest.raises(ValueError):
+        PerCellFreeField(height=0, width=5)
+
+
+def test_free_field_init_matches_global_scalar_geometry() -> None:
+    """Untrained distribution must be comparable across ladder rungs.
+
+    Both controls init at 0.01 * randn so the sigmoid lands near mid-bounds.
+    If the free field started somewhere else, its measured chance baseline
+    would not be comparable to the other rungs' and the ladder would not be a
+    controlled comparison.
+    """
+    torch.manual_seed(0)
+    field = PerCellFreeField(height=12, width=13)
+    torch.manual_seed(0)
+    scalar = GlobalScalarNet(n_outputs=N_PARAMS)
+    assert abs(float(field.theta.detach().std()) - 0.01) < 0.002
+    assert abs(float(scalar.theta.detach().std()) - 0.01) < 0.02
+
+
+def test_free_field_with_bounded_params_respects_registry_ranges() -> None:
+    """End-to-end: free field -> bounded_params stays inside every bound."""
+    net = PerCellFreeField(height=9, width=11)
+    params = bounded_params(net(torch.randn(1, 9, 11)), PARAM_BOUNDS)
+    assert params.shape == (N_PARAMS, 9, 11)
+    for i in range(N_PARAMS):
+        assert (params[i] >= PARAM_BOUNDS[i, 0].item()).all()
+        assert (params[i] <= PARAM_BOUNDS[i, 1].item()).all()
+
+
+def test_free_field_carries_no_regularisation() -> None:
+    """The pointwise control must be unregularised by construction.
+
+    A smoothness or magnitude penalty would make this a third parameterisation
+    rather than a null, and would confound the ADCME comparison it exists to
+    run. Guard: the module exposes exactly one parameter tensor and no buffers.
+    """
+    net = PerCellFreeField(height=5, width=5)
+    assert len(list(net.parameters())) == 1
+    assert len(list(net.buffers())) == 0

@@ -50,6 +50,7 @@ reference_darwin3.md.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from dataclasses import dataclass
 from types import SimpleNamespace
@@ -90,6 +91,25 @@ class Param:
         learned: whether the parameter is fit by gradient descent. All six are
             currently learned; the flag lets a future fixed/derived parameter
             live in the registry without being optimised.
+        model_value: the value ECCO-Darwin v05 **actually integrates**, when it
+            differs from ``carroll_value`` (the *published* Green's-functions
+            optimum). ``None`` means they agree. This is not pedantry: for
+            ``R_PICPOC`` the published optimum is 0.04245 but v05 loads
+            0.0418860 from ``data.traits``, a 1.35 % difference, because
+            ``DARWIN_READ_TRAITS`` overwrites the ``val_R_PICPOC`` generation
+            scalar at startup. Recovery is graded against ``carroll_value`` by
+            default, so this field records the discrepancy rather than hiding
+            it. See ``docs/findings/2026-07-28_session_evidence_log.md`` §A6.
+        scale: ``"linear"`` (default) or ``"log"`` — the geometry the sigmoid
+            map should use across ``bounds``. Parameters spanning decades want
+            ``"log"``: a linear map over a 100x range spends ~91 % of the
+            sigmoid on the top decade, so the optimiser has almost no
+            resolution at small values and the implied prior is badly skewed
+            (``scav_rat``: only 7.5 % of prior mass below Carroll, median
+            2.52x Carroll). This field is METADATA ONLY — it does not change
+            behaviour unless a caller passes the derived mask to
+            :func:`bounded_params` via ``log_mask``, which keeps every existing
+            run bit-identical by default.
     """
 
     name: str
@@ -98,6 +118,8 @@ class Param:
     units: str
     description: str
     learned: bool = True
+    scale: str = "linear"
+    model_value: float | None = None
 
 
 # ============================ Carroll-N parameter registry ====================
@@ -136,6 +158,9 @@ PARAMS: tuple[Param, ...] = (
         carroll_value=10.41124 * 0.005 / 86400.0,
         units="s^-1",
         description="iron scavenging rate",
+        # A rate spanning two decades. Declared log; inert until a caller opts
+        # in via bounded_params(log_mask=...). See Param.scale.
+        scale="log",
     ),
     Param(
         name="Smallgrow",
@@ -169,6 +194,14 @@ PARAMS: tuple[Param, ...] = (
         carroll_value=0.04245,
         units="-",
         description="PIC/POC rain ratio",
+        # v05 loads 0.0418860 for plankton types 2 and 3 from data.traits, which
+        # DARWIN_READ_TRAITS writes over the val_R_PICPOC=0.04245 generation
+        # scalar in data.darwin. Verified first-hand against the pinned darwin3
+        # source (24885b71): darwin_init_fixed.F generates at line 357 and reads
+        # traits at line 382. The 1.35 % gap is far inside the 5 % Excellent
+        # band so it changes no verdict, but the published target and the
+        # model's running value are not the same number.
+        model_value=0.041886,
     ),
 )
 
@@ -180,6 +213,77 @@ PARAM_NAMES: list[str] = [p.name for p in PARAMS]
 CARROLL_VALUES: torch.Tensor = torch.tensor([p.carroll_value for p in PARAMS])
 PARAM_BOUNDS: torch.Tensor = torch.tensor([list(p.bounds) for p in PARAMS])
 PARAM_INDEX: dict[str, int] = {p.name: i for i, p in enumerate(PARAMS)}
+
+# Number of registered parameters. Read this instead of hardcoding 6 so that
+# appending a registry entry widens the network head automatically (the per-cell
+# DINN head is a 1x1 conv, so the parameter axis is the only thing that changes).
+N_PARAMS: int = len(PARAMS)
+
+# Boolean mask of parameters DECLARED log-scale (Param.scale == "log"). Inert by
+# construction: nothing consumes it unless a caller passes it to
+# bounded_params(log_mask=...), which is how existing runs stay bit-identical.
+PARAM_LOG_MASK: torch.Tensor = torch.tensor(
+    [p.scale == "log" for p in PARAMS], dtype=torch.bool
+)
+
+
+def prior_midpoint_offset(p: Param) -> float:
+    """Relative offset of a parameter's sigmoid MIDPOINT from its Carroll value.
+
+    An untrained network's outputs sit near zero, so ``bounded_params`` maps them
+    near the middle of ``bounds``. If that midpoint already falls inside the
+    Cal-grade band (``rel <= 0.40``), the parameter scores as "recovered" from a
+    network that has learned nothing, and its recovery count measures the choice
+    of bounds rather than any observational constraint.
+
+    This is not hypothetical. Measured on 50 untrained networks through the real
+    pipeline (2026-07-29): ``diatomgraz`` recovers **32/50** and ``alpfe``
+    **10/50** with no training at all. ``diatomgraz``'s midpoint offset is 0.367,
+    inside the 0.40 band, which is exactly why.
+
+    Returns:
+        ``abs(midpoint - carroll_value) / abs(carroll_value)``. Compare against
+        ``diagnostics.BAND_CAL_GRADE_MAX``; larger is safer.
+    """
+    lo, hi = p.bounds
+    if p.scale == "log":
+        mid = math.sqrt(lo * hi)
+    else:
+        mid = lo + (hi - lo) * 0.5
+    return abs(mid - p.carroll_value) / abs(p.carroll_value)
+
+
+def log_mask_from_names(names: str | None) -> torch.Tensor | None:
+    """Build a ``bounded_params`` log-mask from a comma-separated name list.
+
+    Lets an experiment opt specific parameters into log-space bounding from a
+    config/env string (e.g. ``"scav_rat"``) without editing the registry, so an
+    A/B against the linear-map baseline is a one-variable change.
+
+    Args:
+        names: comma-separated registry names, or None/empty for "no log
+            scaling" (returns None, i.e. exactly the historical behaviour).
+
+    Returns:
+        A ``[n_params]`` bool tensor, or None when ``names`` is empty.
+
+    Raises:
+        KeyError: if a name is not in the registry — fail loudly rather than
+            silently applying the mask to nothing.
+    """
+    if not names or not names.strip():
+        return None
+    mask = torch.zeros(len(PARAMS), dtype=torch.bool)
+    for raw in names.split(","):
+        key = raw.strip()
+        if not key:
+            continue
+        if key not in PARAM_INDEX:
+            raise KeyError(
+                f"unknown parameter {key!r}; registry has {sorted(PARAM_INDEX)}"
+            )
+        mask[PARAM_INDEX[key]] = True
+    return mask
 
 # Named positional indices, so call sites read ``params[P.alpfe]`` instead of the
 # position-counted ``params[0]``. Attributes are the registry names, e.g.
@@ -493,6 +597,7 @@ def bounded_params(
     theta: torch.Tensor,
     bounds: torch.Tensor,
     param_axis: int = 0,
+    log_mask: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """Map unconstrained theta to physical Carroll-6 ranges via sigmoid.
 
@@ -516,12 +621,22 @@ def bounded_params(
         bounds: per-parameter ``[lo, hi]`` ranges, shape ``[n_params, 2]``.
         param_axis: index (positive or negative) of the parameter axis in
             ``theta``. Defaults to ``0`` (leading).
+        log_mask: optional ``[n_params]`` bool tensor. Where True, the sigmoid
+            interpolates GEOMETRICALLY between ``lo`` and ``hi`` instead of
+            linearly, i.e. ``exp(ln lo + (ln hi - ln lo) * sigmoid(theta))``.
+            Use for parameters spanning decades — a linear map over
+            ``scav_rat``'s 100x range puts ~91 % of the sigmoid in the top
+            decade, leaving the optimiser almost no resolution below Carroll.
+            **Default None reproduces the historical linear map exactly**, so
+            enabling this is always an explicit, one-variable change.
 
     Returns:
         physical-range parameters, same shape as ``theta``.
 
     Raises:
-        ValueError: if ``theta.shape[param_axis] != bounds.shape[0]``.
+        ValueError: if ``theta.shape[param_axis] != bounds.shape[0]``, if
+            ``log_mask`` has the wrong length, or if a log-masked parameter has
+            a non-positive lower bound (``ln lo`` undefined).
     """
     n_params = bounds.shape[0]
     if theta.shape[param_axis] != n_params:
@@ -535,5 +650,20 @@ def bounded_params(
     extra_dims = theta_p.ndim - 1
     lo = bounds[:, 0].reshape(n_params, *([1] * extra_dims))
     hi = bounds[:, 1].reshape(n_params, *([1] * extra_dims))
-    result = lo + (hi - lo) * torch.sigmoid(theta_p)
+    frac = torch.sigmoid(theta_p)
+    result = lo + (hi - lo) * frac
+    if log_mask is not None:
+        if log_mask.shape[0] != n_params:
+            raise ValueError(
+                f"log_mask has length {log_mask.shape[0]}, expected {n_params}"
+            )
+        if bool((bounds[:, 0][log_mask] <= 0).any()):
+            bad = [i for i in range(n_params) if log_mask[i] and bounds[i, 0] <= 0]
+            raise ValueError(
+                f"log-scaled parameters need a positive lower bound; "
+                f"offending indices {bad}"
+            )
+        mask = log_mask.reshape(n_params, *([1] * extra_dims)).to(theta_p.device)
+        geo = torch.exp(torch.log(lo) + (torch.log(hi) - torch.log(lo)) * frac)
+        result = torch.where(mask, geo, result)
     return result.movedim(0, param_axis)
