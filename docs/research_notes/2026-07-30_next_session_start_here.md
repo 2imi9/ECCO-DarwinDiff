@@ -74,7 +74,8 @@ robustness section, which is not a demotion. Accepted cost either way: the joint
 "per-cell **architecture** is load-bearing" is earned. **Equal** → scope to per-cell **structure** and
 drop the word architecture from STATUS and the abstract. **Better** → degrees of freedom are doing the
 work; report it first, not last. The free field is *expected* to fit the training loss better (~6 free
-values per ocean cell against roughly 14 GEOTRACES surface iron obs); the pre-registered metric is
+values per ocean cell against 178 absolute-anchor observations in total, of which 52 are GEOTRACES
+surface iron bins across the three AOIs); the pre-registered metric is
 per-AOI recovery against Carroll, **not** training loss.
 
 ## WHAT LANDED THIS SESSION

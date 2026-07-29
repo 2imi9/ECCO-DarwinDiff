@@ -223,7 +223,8 @@ the flagship config precisely so that every cell has at least a shape target; a 
 obs-only would be a different and much weaker experiment. Do not pool them.
 
 The free field has ~17,100 free values against ~2,851 ocean cells' worth of observations, and the
-real anchors are far sparser than that (GEOTRACES iron is roughly 14 surface cells). It is *expected*
+real anchors are far sparser than that (§3.1b: **52 GEOTRACES surface bins across the three AOIs**,
+plus 55 subsurface, 11 bSi and 60 Daniels, for 178 absolute-anchor observations). It is *expected*
 to fit the training loss better. The pre-registered metric is therefore **per-AOI recovery against
 Carroll**, not training loss, and a free field that fits better while recovering worse is the
 predicted regularisation result rather than a surprise.
