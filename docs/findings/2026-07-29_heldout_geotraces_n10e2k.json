@@ -1,0 +1,129 @@
+{
+  "_what": "Held-out real-data (GEOTRACES dissolved Fe) skill of the flagship-recipe fit. 20% of surface iron observation cells are removed from training and scored after.",
+  "_why": "README states the 0-D box produces no held-out spatial skill on real data. That number was previously printed and never archived; this file is the artifact behind it (#163).",
+  "date": "2026-07-29",
+  "config": "flagship geo1 recipe (scripts/configs/flagship_geo1.sh) + GEOTRACES_HOLDOUT_FRAC=0.2",
+  "n_seeds": 10,
+  "n_epochs": 2000,
+  "aois": [
+    "eqpac",
+    "natlsubpolar",
+    "southernoceanpac"
+  ],
+  "holdout_frac": 0.2,
+  "holdout_seed": 12345,
+  "verify_run": "exit 0 (VERIFIED & COMPLETE, 10/10 seeds)",
+  "recovery_per_aoi_2of3": {
+    "alpfe": "10/10",
+    "scav_rat": "8/10",
+    "R_PICPOC": "10/10",
+    "trio": "8/10"
+  },
+  "daniels_cells_per_aoi": {
+    "eqpac": 34,
+    "natlsubpolar": 26,
+    "southernoceanpac": 0
+  },
+  "per_aoi": {
+    "eqpac": {
+      "n_holdout_cells": 5,
+      "n_obs_cells_total": 26,
+      "r2_per_seed": [
+        -2.7226,
+        -1.3152,
+        -4.9336,
+        -4.4846,
+        -3.569,
+        -4.6009,
+        -0.3842,
+        -0.4361,
+        -0.4409,
+        -0.6105
+      ],
+      "rel_err_per_seed": [
+        0.6748,
+        0.3432,
+        0.8967,
+        0.8468,
+        0.7339,
+        0.8579,
+        0.3056,
+        0.2759,
+        0.3171,
+        0.3654
+      ],
+      "r2_mean": -2.3498,
+      "r2_best": -0.3842,
+      "rel_err_mean": 0.5617
+    },
+    "natlsubpolar": {
+      "n_holdout_cells": 3,
+      "n_obs_cells_total": 13,
+      "r2_per_seed": [
+        -1.3023,
+        -1.2726,
+        -1.3295,
+        -1.3427,
+        -1.3062,
+        -1.2467,
+        -1.3099,
+        -1.3771,
+        -1.3276,
+        -1.327
+      ],
+      "rel_err_per_seed": [
+        0.7334,
+        0.6733,
+        0.7387,
+        0.6819,
+        0.7213,
+        0.6342,
+        0.6858,
+        0.6951,
+        0.6814,
+        0.7469
+      ],
+      "r2_mean": -1.3142,
+      "r2_best": -1.2467,
+      "rel_err_mean": 0.6992
+    },
+    "southernoceanpac": {
+      "n_holdout_cells": 3,
+      "n_obs_cells_total": 13,
+      "r2_per_seed": [
+        -0.3595,
+        -0.608,
+        -0.3874,
+        -0.5354,
+        -0.376,
+        -0.6911,
+        -0.4931,
+        -0.6246,
+        -0.5078,
+        -0.3003
+      ],
+      "rel_err_per_seed": [
+        0.2471,
+        0.2163,
+        0.2603,
+        0.2243,
+        0.2245,
+        0.2074,
+        0.2256,
+        0.2106,
+        0.2154,
+        0.2292
+      ],
+      "r2_mean": -0.4883,
+      "r2_best": -0.3003,
+      "rel_err_mean": 0.2261
+    }
+  },
+  "summary": {
+    "n_values": 30,
+    "n_negative": 30,
+    "best_r2_anywhere": -0.3003,
+    "verdict": "Every one of the 30 (AOI x seed) held-out R2 values is negative; the best is -0.300. The fit does worse than predicting the held-out mean, in every basin and every seed. This confirms the README claim.",
+    "caveat": "n_holdout is 5/3/3 cells, so any single R2 is noisy -- the strength of the result is the unanimity of the sign across 30 values, not any one number. Enabling the holdout also removes 20% of the iron observations from training, so this is the flagship recipe under cross-validation, not the flagship run itself."
+  }
+}

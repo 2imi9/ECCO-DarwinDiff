@@ -26,10 +26,13 @@ It answers which parameters real observations can pin down, and which they canno
 **consistency check against Carroll's published values, not a cross-validated discovery** — the 0-D
 box homogenizes, so it does not produce held-out spatial skill on real data.[^heldout]
 
-[^heldout]: The held-out GEOTRACES validation is computed and printed by
-    `scripts/run_v3.0_joint_multi_aoi.py:1971` but is **not written to the run JSON**, so no
-    committed artifact carries the number. Treat the sign as reported-but-unarchived until a run
-    persists it.
+[^heldout]: Measured, gated, and archived:
+    [`docs/findings/2026-07-29_heldout_geotraces_n10e2k.json`](docs/findings/2026-07-29_heldout_geotraces_n10e2k.json).
+    Flagship recipe with 20% of the GEOTRACES iron cells held out of training, n=10 seeds,
+    `verify_run.py` exit 0. **All 30 (AOI × seed) held-out R² values are negative; the best is
+    −0.30** — the fit does worse than predicting the held-out mean, in every basin and every seed.
+    The held-out sets are small (5/3/3 cells), so the result rests on the unanimity of the sign,
+    not on any single R².
 
 ## Install
 

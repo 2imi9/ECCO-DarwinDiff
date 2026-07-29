@@ -15,7 +15,17 @@ This is a methods/reproducibility appendix — NOT a core-claim change.
   against prior notebooks.
 
 ## 2. Key configurations (env-var recipe; `run_v3.0_joint_multi_aoi.py`)
-All sourced from `covar_env_common.sh` first (sets data roots + Eppley defaults), then the override. AOIs
+
+> **⚠ Use [`scripts/configs/flagship_geo1.sh`](../../scripts/configs/flagship_geo1.sh), not the row
+> below.** `covar_env_common.sh` is at `~/emulator_poc/` on the AICR cluster and is **not in this
+> repo** — no reader outside that account can source it. Reproducing from the flagship row alone
+> was tested on 2026-07-29 and silently omits `POSI_W=1`, `USE_EPPLEY_T=1` and the per-AOI weights,
+> giving **`scav_rat` and the trio 0/10 instead of 8/10**. Both runs pass `verify_run.py` at exit 0.
+> The committed config is read back out of a verified flagship artifact.
+> Detail: [`2026-07-29_flagship_recipe_gap.md`](2026-07-29_flagship_recipe_gap.md).
+
+All sourced from `covar_env_common.sh` first (sets data roots + Eppley defaults **+ `POSI_W=1`**),
+then the override. AOIs
 eqpac,natlsubpolar,southernoceanpac; default per-AOI weights {1,2,2}; Darwin IC; per-cell DINN (SST channel).
 
 | config | override (beyond base) | result (n=50 unless noted) | job |

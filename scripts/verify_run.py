@@ -75,6 +75,52 @@ def _rel(recovered: float, reference: float) -> float:
     return abs(recovered - reference) / abs(reference)
 
 
+#: Loss terms whose weight is declared separately from the cell count they actually got.
+#: A term can be switched ON in the config and still contribute NOTHING -- if its data is
+#: unstaged or has no coverage in any AOI, the runner prints a `[warn]` and skips the term,
+#: but the run JSON still records the weight. The artifact then *declares* an anchor that
+#: never applied.
+#:
+#: This is not hypothetical. A 2026-07-29 holdout run declared `DANIELS_RPICPOC_W=1` with the
+#: PANGAEA compilation unstaged; every AOI got 0 Daniels cells, so it was silently an
+#: anchor-off run -- and it passed this script at exit 0, because nothing compared the weight
+#: against the count. R_PICPOC came out at 0.20-0.26x Carroll, which is the anchor-off
+#: signature, and would have been read as a flagship result.
+#:
+#: The check is one-directional on purpose: a *zero* weight with a nonzero cell count is
+#: normal (counts are computed whether or not the term is used).
+_TERM_CELL_KEYS = {
+    "daniels_rpicpoc_w": "n_daniels_cells_per_aoi",
+    "alk_abs_w": "n_alk_abs_cells_per_aoi",
+    "pic_abs_w": "n_pic_abs_cells_per_aoi",
+    "poc_abs_w": "n_poc_abs_cells_per_aoi",
+    "ratio_w": "n_ratio_cells_per_aoi",
+    "posi_w": "n_posi_cells_per_aoi",
+    "posi_darwin_w": "n_posi_dw_cells_per_aoi",
+    "f_co2_abs_w": "n_f_co2_abs_cells_per_aoi",
+    "geotraces_poc_sub_w": "n_geo_poc_subsurface_cells_per_aoi",
+}
+
+
+def inert_terms(d: dict) -> list[str]:
+    """Declared-on loss terms that contributed zero cells in every AOI."""
+    out = []
+    for w_key, n_key in _TERM_CELL_KEYS.items():
+        w = d.get(w_key)
+        counts = d.get(n_key)
+        if not isinstance(w, (int, float)) or isinstance(w, bool) or w <= 0:
+            continue
+        if not isinstance(counts, dict) or not counts:
+            continue
+        if all((c or 0) == 0 for c in counts.values()):
+            out.append(
+                f"{w_key}={w:g} but {n_key} is zero in every AOI -- the loss term was "
+                f"SKIPPED (data unstaged or no coverage). This run is NOT the config it "
+                f"declares; treat it as that term switched off."
+            )
+    return out
+
+
 def verify_seed(path: Path) -> dict:
     """Recompute one seed's verdict from raw values; flag any stored/recomputed gap."""
     d = json.loads(path.read_text(encoding="utf-8"))
@@ -115,6 +161,8 @@ def verify_seed(path: Path) -> dict:
         )
         if p == "R_PICPOC":
             rpicpoc_n_aois = len(aoi_map)
+
+    discrepancies.extend(inert_terms(d))
 
     k = sum(1 for p in PARAMS if bands[p] in CAL_PLUS)
     excellents = sum(1 for p in PARAMS if bands[p] == "Excellent")

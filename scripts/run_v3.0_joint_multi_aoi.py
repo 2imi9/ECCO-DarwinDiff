@@ -1978,6 +1978,18 @@ if __name__ == "__main__":
     # #163 independent-DATA validation: score the box's final predicted DFe at the
     # HELD-OUT iron cells (never seen in training) vs real GEOTRACES iron. Good skill =>
     # the recovered params generalise to unseen real data (discovery, not just Carroll-consistency).
+    # Persisted, not just printed. This block used to print and drop the numbers, so the
+    # README had to footnote the held-out result as "reported-but-unarchived": no committed
+    # artifact carried it. It is the one number that separates a consistency check from a
+    # cross-validated claim (#163), so it goes into the run JSON per seed.
+    # `json.dump(..., allow_nan=False)` below will raise on a non-finite value, so sanitise
+    # to None here rather than losing the whole run's JSON to one degenerate AOI.
+    heldout_by_aoi: dict[str, dict] = {}
+
+    def _finite_or_none(v):
+        v = float(v)
+        return v if np.isfinite(v) else None
+
     if GEOTRACES_HOLDOUT_FRAC > 0:
         print()
         print("=== HELD-OUT GEOTRACES iron validation (cells excluded from training) ===")
@@ -1995,6 +2007,12 @@ if __name__ == "__main__":
             print(f"  {_b['key']}: n_holdout={int(_hm.sum())}  "
                   f"held-out rel-err mean={float(_relerr.mean()):.3f} (best {float(_relerr.min()):.3f})  "
                   f"R2 mean={float(_r2.mean()):.3f} (best {float(_r2.max()):.3f})")
+            heldout_by_aoi[_b["key"]] = {
+                "n_holdout_cells": int(_hm.sum()),
+                "n_obs_cells_total": int(_hm.sum() + _b["geo_surf_mask_t"].sum()),
+                "r2_per_seed": [_finite_or_none(v) for v in _r2],
+                "rel_err_per_seed": [_finite_or_none(v) for v in _relerr],
+            }
 
     all_results = []
     for seed_idx, seed in enumerate(SEEDS):
@@ -2139,6 +2157,19 @@ if __name__ == "__main__":
             "elapsed_s_total_batch": elapsed,
             "loss_final": float(loss_history[-1, seed_idx].item()),
             "per_aoi_loss_final": {k: float(per_aoi_history[k][-1, seed_idx].item()) for k in AOIS_KEYS},
+            # #163 held-out real-data skill for THIS seed. Empty dict when
+            # GEOTRACES_HOLDOUT_FRAC=0 (the default), so its presence-and-emptiness is
+            # itself the record that the run did not hold anything out.
+            "geotraces_holdout_frac": GEOTRACES_HOLDOUT_FRAC,
+            "heldout_geotraces_iron": {
+                _k: {
+                    "n_holdout_cells": _v["n_holdout_cells"],
+                    "n_obs_cells_total": _v["n_obs_cells_total"],
+                    "r2": _v["r2_per_seed"][seed_idx],
+                    "rel_err": _v["rel_err_per_seed"][seed_idx],
+                }
+                for _k, _v in heldout_by_aoi.items()
+            },
             "params": result_params,
             "n_cal_grade": n_cal_joint,
             "n_excellent": n_exc_joint,
