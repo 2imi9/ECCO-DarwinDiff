@@ -48,6 +48,30 @@ Note this run is only gradable because of today's fix. A single-AOI run needs th
 four graders hardcoded `>= 2` until this morning, which would have returned 0/50 for every
 parameter regardless of what was recovered.
 
+## Amendment, written before the replacement result exists
+
+The first run (job 237913) completed 50/50 but **`verify_run` returned exit 2 (DISCREPANCY)** on
+both arms, and it was right to. The `OBSONLY` config declares `DANIELS_RPICPOC_W=1.0` and
+`POSI_W=1.0`, but `southernoceanpac` has **zero Daniels cells and zero POSi cells**, so both terms
+were declared and silently skipped. The inert-term check added 2026-07-29 caught exactly the
+failure it was built for, on my own experiment: the run was not the config it declared.
+
+Under the standing rule that a number needs `verify_run` exit 0, **the 237913 counts are not
+reportable** and are not reported here.
+
+Job **238079** re-runs the identical experiment with `DANIELS_RPICPOC_W=0.0` and `POSI_W=0.0`, so
+the declaration matches what the basin can support. The loss is unchanged, because a term with no
+cells contributes nothing, so the recovered values should reproduce 237913 seed for seed. The
+grader includes that equality check, and it is the evidence that this is a bookkeeping fix rather
+than a second attempt at the same question.
+
+**The live loss in this arm is therefore GEOTRACES surface and subsurface iron only**, with MLD as
+an input channel and literature initial conditions. No calcite anchor, no Darwin pattern term, no
+PINN. That makes the pre-registered secondary read on `R_PICPOC` sharper rather than weaker: with
+no anchor present at all, it must collapse.
+
+Nothing in the decision rule below is changed. It was fixed before either run and stays fixed.
+
 ## Decision rule, fixed now
 
 Let `k` be `scav_rat`'s recovered count in `so_only` out of 50, and `p` the recovered rate in
