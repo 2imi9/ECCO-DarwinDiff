@@ -1,0 +1,675 @@
+{
+  "verdict": "MAKE",
+  "question": "Can an FNO beat persistence on ECCO-Darwin v05 next-month state?",
+  "headline_overall_skill_vs_persistence": 0.08824490208841795,
+  "beats_persistence": true,
+  "config": {
+    "aoi": "eqpac",
+    "aoi_bounds": {
+      "lat_min": -5.0,
+      "lat_max": 15.0,
+      "lon_min": -160.0,
+      "lon_max": -110.0
+    },
+    "tracers": [
+      "DIC",
+      "ALK",
+      "PIC",
+      "POC",
+      "FeT",
+      "Chl1"
+    ],
+    "forcing": [],
+    "levels": 1,
+    "grid_shape": [
+      171,
+      360
+    ],
+    "channel_names": [
+      "DIC_k0",
+      "DIC_k1",
+      "DIC_k2",
+      "DIC_k3",
+      "DIC_k4",
+      "ALK_k0",
+      "ALK_k1",
+      "ALK_k2",
+      "ALK_k3",
+      "ALK_k4",
+      "PIC_k0",
+      "PIC_k1",
+      "PIC_k2",
+      "PIC_k3",
+      "PIC_k4",
+      "POC_k0",
+      "POC_k1",
+      "POC_k2",
+      "POC_k3",
+      "POC_k4",
+      "FeT_k0",
+      "FeT_k1",
+      "FeT_k2",
+      "FeT_k3",
+      "FeT_k4",
+      "Chl1_k0",
+      "Chl1_k1",
+      "Chl1_k2",
+      "Chl1_k3",
+      "Chl1_k4"
+    ],
+    "epochs": 250,
+    "batch_size": 8,
+    "lr": 0.001,
+    "val_frac": 0.3,
+    "modes": 8,
+    "width": 32,
+    "layers": 4,
+    "operator": "FNO2d",
+    "n_params": 533566,
+    "residual": false,
+    "rollout_train_k": 4,
+    "seed": 2,
+    "device": "cuda",
+    "dtype": "float32",
+    "adjacency_tol": 1.6,
+    "median_step_days": 31.0,
+    "dt_hours": 744.0,
+    "log_transform": true,
+    "log_tracers": [
+      "Chl1"
+    ],
+    "log_eps": 1e-12
+  },
+  "data": {
+    "n_shared_months": 48,
+    "n_train_months": 34,
+    "n_val_months": 14,
+    "n_train_pairs": 18,
+    "n_val_pairs": 8,
+    "n_valid_ocean_cells": 42950,
+    "first_iter": 2232,
+    "last_iter": 194976
+  },
+  "metrics": {
+    "overall_skill_vs_persistence": 0.08824490208841795,
+    "overall_anomaly_r2_vs_climatology": 0.526876802279272,
+    "persistence_skill_vs_climatology": 0.4810852181639138,
+    "per_tracer": {
+      "DIC_k0": {
+        "skill_vs_persistence": -0.8592872459369492,
+        "anomaly_r2_vs_climatology": 0.5544702610960297,
+        "rmse_z": 0.26276674770522435,
+        "rmse_physical": 25.51292693675527,
+        "physical_std": 97.09343803796686,
+        "log_space": false
+      },
+      "DIC_k1": {
+        "skill_vs_persistence": -0.8664200073828288,
+        "anomaly_r2_vs_climatology": 0.5601323908060702,
+        "rmse_z": 0.2601287423806882,
+        "rmse_physical": 25.16595789663343,
+        "physical_std": 96.74424158712932,
+        "log_space": false
+      },
+      "DIC_k2": {
+        "skill_vs_persistence": -2.0940790739616486,
+        "anomaly_r2_vs_climatology": 0.5243045805275539,
+        "rmse_z": 0.24157568913784155,
+        "rmse_physical": 22.776349178134343,
+        "physical_std": 94.28245557084307,
+        "log_space": false
+      },
+      "DIC_k3": {
+        "skill_vs_persistence": -3.223813520931552,
+        "anomaly_r2_vs_climatology": 0.388486323556541,
+        "rmse_z": 0.24058198488777924,
+        "rmse_physical": 22.16067975223612,
+        "physical_std": 92.11279789953137,
+        "log_space": false
+      },
+      "DIC_k4": {
+        "skill_vs_persistence": -5.122155367555369,
+        "anomaly_r2_vs_climatology": 0.16671576921256193,
+        "rmse_z": 0.2649758373898894,
+        "rmse_physical": 23.840630951557493,
+        "physical_std": 89.97284879405073,
+        "log_space": false
+      },
+      "ALK_k0": {
+        "skill_vs_persistence": -1.5288866022169647,
+        "anomaly_r2_vs_climatology": 0.5675906799708219,
+        "rmse_z": 0.38402400017573574,
+        "rmse_physical": 29.117873802608983,
+        "physical_std": 75.82305738517427,
+        "log_space": false
+      },
+      "ALK_k1": {
+        "skill_vs_persistence": -1.535447173032967,
+        "anomaly_r2_vs_climatology": 0.5759268973069649,
+        "rmse_z": 0.380470826653747,
+        "rmse_physical": 28.59101944780516,
+        "physical_std": 75.14641713601036,
+        "log_space": false
+      },
+      "ALK_k2": {
+        "skill_vs_persistence": -3.294494592140306,
+        "anomaly_r2_vs_climatology": 0.5918563017125162,
+        "rmse_z": 0.35056899389212753,
+        "rmse_physical": 23.826797614136968,
+        "physical_std": 67.96607238308313,
+        "log_space": false
+      },
+      "ALK_k3": {
+        "skill_vs_persistence": -4.74974749984551,
+        "anomaly_r2_vs_climatology": 0.5247446654721064,
+        "rmse_z": 0.3375879754187995,
+        "rmse_physical": 20.891125897025727,
+        "physical_std": 61.88350124470207,
+        "log_space": false
+      },
+      "ALK_k4": {
+        "skill_vs_persistence": -7.2696920168892145,
+        "anomaly_r2_vs_climatology": 0.3819737876564461,
+        "rmse_z": 0.3472783403504846,
+        "rmse_physical": 19.963083049984867,
+        "physical_std": 57.48438854504278,
+        "log_space": false
+      },
+      "PIC_k0": {
+        "skill_vs_persistence": 0.30825294481491583,
+        "anomaly_r2_vs_climatology": 0.3694911292485339,
+        "rmse_z": 0.6058769897971309,
+        "rmse_physical": 0.008950230843293695,
+        "physical_std": 0.014772356425502396,
+        "log_space": false
+      },
+      "PIC_k1": {
+        "skill_vs_persistence": 0.33516107464507683,
+        "anomaly_r2_vs_climatology": 0.37083111048819273,
+        "rmse_z": 0.6072863858654779,
+        "rmse_physical": 0.010338343057542517,
+        "physical_std": 0.017023834714833538,
+        "log_space": false
+      },
+      "PIC_k2": {
+        "skill_vs_persistence": 0.3550385311734138,
+        "anomaly_r2_vs_climatology": 0.38657866766281757,
+        "rmse_z": 0.5993805936445379,
+        "rmse_physical": 0.01201588004428983,
+        "physical_std": 0.02004716230671932,
+        "log_space": false
+      },
+      "PIC_k3": {
+        "skill_vs_persistence": 0.3494645760362227,
+        "anomaly_r2_vs_climatology": 0.423165315964087,
+        "rmse_z": 0.576932122187515,
+        "rmse_physical": 0.013314720995799993,
+        "physical_std": 0.023078487890941926,
+        "log_space": false
+      },
+      "PIC_k4": {
+        "skill_vs_persistence": 0.3058307144427449,
+        "anomaly_r2_vs_climatology": 0.43571476494506,
+        "rmse_z": 0.565324175097455,
+        "rmse_physical": 0.014496417397535339,
+        "physical_std": 0.025642663158773164,
+        "log_space": false
+      },
+      "POC_k0": {
+        "skill_vs_persistence": 0.4091072439131409,
+        "anomaly_r2_vs_climatology": 0.5056006687978418,
+        "rmse_z": 0.5124574789482773,
+        "rmse_physical": 0.11820261245906657,
+        "physical_std": 0.23065838106540124,
+        "log_space": false
+      },
+      "POC_k1": {
+        "skill_vs_persistence": 0.42038099017365405,
+        "anomaly_r2_vs_climatology": 0.4981705741284672,
+        "rmse_z": 0.5198378596492462,
+        "rmse_physical": 0.13438202628814175,
+        "physical_std": 0.2585075784568947,
+        "log_space": false
+      },
+      "POC_k2": {
+        "skill_vs_persistence": 0.4425008419715164,
+        "anomaly_r2_vs_climatology": 0.5172083570326091,
+        "rmse_z": 0.5105462896507886,
+        "rmse_physical": 0.15305182781869528,
+        "physical_std": 0.29978051142704815,
+        "log_space": false
+      },
+      "POC_k3": {
+        "skill_vs_persistence": 0.42114195226477413,
+        "anomaly_r2_vs_climatology": 0.5357612843881305,
+        "rmse_z": 0.497605738090836,
+        "rmse_physical": 0.17076100163472976,
+        "physical_std": 0.3431652582823673,
+        "log_space": false
+      },
+      "POC_k4": {
+        "skill_vs_persistence": 0.37468373362739116,
+        "anomaly_r2_vs_climatology": 0.5462151298457933,
+        "rmse_z": 0.48826558565813505,
+        "rmse_physical": 0.1862615752283766,
+        "physical_std": 0.38147594403425733,
+        "log_space": false
+      },
+      "FeT_k0": {
+        "skill_vs_persistence": -1.7701333979970406,
+        "anomaly_r2_vs_climatology": -0.06491006036227343,
+        "rmse_z": 0.26510309121962594,
+        "rmse_physical": 9.92640497392678e-05,
+        "physical_std": 0.0003744356555127153,
+        "log_space": false
+      },
+      "FeT_k1": {
+        "skill_vs_persistence": -1.9008828197726517,
+        "anomaly_r2_vs_climatology": -0.1063494204675468,
+        "rmse_z": 0.2707480134332718,
+        "rmse_physical": 0.00010127088030544842,
+        "physical_std": 0.0003740410835199258,
+        "log_space": false
+      },
+      "FeT_k2": {
+        "skill_vs_persistence": -2.0364779707844343,
+        "anomaly_r2_vs_climatology": -0.07075007762537777,
+        "rmse_z": 0.26558742306831173,
+        "rmse_physical": 9.80737373541054e-05,
+        "physical_std": 0.0003692710152501455,
+        "log_space": false
+      },
+      "FeT_k3": {
+        "skill_vs_persistence": -2.379697007154458,
+        "anomaly_r2_vs_climatology": -0.11576200296838923,
+        "rmse_z": 0.27331531089181993,
+        "rmse_physical": 9.926610327094881e-05,
+        "physical_std": 0.00036319261788535153,
+        "log_space": false
+      },
+      "FeT_k4": {
+        "skill_vs_persistence": -3.219555332891197,
+        "anomaly_r2_vs_climatology": -0.29956181141450555,
+        "rmse_z": 0.2914064270651795,
+        "rmse_physical": 0.00010392667167533844,
+        "physical_std": 0.0003566382276534105,
+        "log_space": false
+      },
+      "Chl1_k0": {
+        "skill_vs_persistence": -0.6177075177980895,
+        "anomaly_r2_vs_climatology": 0.7268702822960071,
+        "rmse_z": 0.42800550326488723,
+        "rmse_physical": 0.20375382244454654,
+        "physical_std": 8.304787430750729,
+        "log_space": true
+      },
+      "Chl1_k1": {
+        "skill_vs_persistence": -0.6179444020585225,
+        "anomaly_r2_vs_climatology": 0.7268008471081462,
+        "rmse_z": 0.427462334173628,
+        "rmse_physical": 0.24241002422066898,
+        "physical_std": 8.307942231536547,
+        "log_space": true
+      },
+      "Chl1_k2": {
+        "skill_vs_persistence": -0.6382213144459912,
+        "anomaly_r2_vs_climatology": 0.726369348788523,
+        "rmse_z": 0.42026219770877604,
+        "rmse_physical": 0.20952725762014157,
+        "physical_std": 8.315967460610022,
+        "log_space": true
+      },
+      "Chl1_k3": {
+        "skill_vs_persistence": -0.613877972239582,
+        "anomaly_r2_vs_climatology": 0.7355887290086476,
+        "rmse_z": 0.39609387629157605,
+        "rmse_physical": 0.19236367219379746,
+        "physical_std": 8.342580699228247,
+        "log_space": true
+      },
+      "Chl1_k4": {
+        "skill_vs_persistence": -0.8336190692731564,
+        "anomaly_r2_vs_climatology": 0.7231386214253361,
+        "rmse_z": 0.38253883263375715,
+        "rmse_physical": 0.2501130535651986,
+        "physical_std": 8.39908166539359,
+        "log_space": true
+      }
+    },
+    "final_train_mse_z": 0.1024647057056427,
+    "n_metric_cells": 42950
+  },
+  "rollout": {
+    "ran": true,
+    "run_length_months": 7,
+    "n_steps": 6,
+    "step_mse_z_model": [
+      0.1586710661649704,
+      0.19383515417575836,
+      0.20279207825660706,
+      0.20585869252681732,
+      0.24530261754989624,
+      0.3112247586250305
+    ],
+    "step_mse_z_persistence": [
+      0.2776908278465271,
+      0.4229736924171448,
+      0.5656067728996277,
+      0.6326448321342468,
+      0.6960169076919556,
+      0.7249342203140259
+    ],
+    "finite": true,
+    "bounded": true,
+    "stable": true,
+    "beats_persistence_at_final_step": true,
+    "positivity": {
+      "DIC_k0": {
+        "min_value": 1740.1075439453125,
+        "frac_negative": 0.0
+      },
+      "DIC_k1": {
+        "min_value": 1740.3807373046875,
+        "frac_negative": 0.0
+      },
+      "DIC_k2": {
+        "min_value": 1789.102294921875,
+        "frac_negative": 0.0
+      },
+      "DIC_k3": {
+        "min_value": 1808.442138671875,
+        "frac_negative": 0.0
+      },
+      "DIC_k4": {
+        "min_value": 1866.2015380859375,
+        "frac_negative": 0.0
+      },
+      "ALK_k0": {
+        "min_value": 1877.57861328125,
+        "frac_negative": 0.0
+      },
+      "ALK_k1": {
+        "min_value": 1886.065673828125,
+        "frac_negative": 0.0
+      },
+      "ALK_k2": {
+        "min_value": 1961.7723388671875,
+        "frac_negative": 0.0
+      },
+      "ALK_k3": {
+        "min_value": 2050.177001953125,
+        "frac_negative": 0.0
+      },
+      "ALK_k4": {
+        "min_value": 2131.3896484375,
+        "frac_negative": 0.0
+      },
+      "PIC_k0": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "PIC_k1": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "PIC_k2": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "PIC_k3": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "PIC_k4": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "POC_k0": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "POC_k1": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "POC_k2": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "POC_k3": {
+        "min_value": -1.4901161193847656e-08,
+        "frac_negative": 0.13147846332945284
+      },
+      "POC_k4": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "FeT_k0": {
+        "min_value": -2.9103830456733704e-11,
+        "frac_negative": 0.09275902211874272
+      },
+      "FeT_k1": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "FeT_k2": {
+        "min_value": 2.9103830456733704e-11,
+        "frac_negative": 0.0
+      },
+      "FeT_k3": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "FeT_k4": {
+        "min_value": 0.0,
+        "frac_negative": 0.0
+      },
+      "Chl1_k0": {
+        "min_value": 9.999996707435455e-13,
+        "frac_negative": 0.0
+      },
+      "Chl1_k1": {
+        "min_value": 9.999996707435455e-13,
+        "frac_negative": 0.0
+      },
+      "Chl1_k2": {
+        "min_value": 9.999996707435455e-13,
+        "frac_negative": 0.0
+      },
+      "Chl1_k3": {
+        "min_value": 9.999976107594177e-13,
+        "frac_negative": 0.0
+      },
+      "Chl1_k4": {
+        "min_value": 9.999996707435455e-13,
+        "frac_negative": 0.0
+      }
+    },
+    "mass_drift": {
+      "DIC_k0": {
+        "pred_domain_mean": 2098.23291015625,
+        "true_domain_mean": 2094.6127759535098,
+        "relative_drift": 0.001728307133566627
+      },
+      "DIC_k1": {
+        "pred_domain_mean": 2099.6455078125,
+        "true_domain_mean": 2094.894593349893,
+        "relative_drift": 0.00226785370380372
+      },
+      "DIC_k2": {
+        "pred_domain_mean": 2104.60791015625,
+        "true_domain_mean": 2097.679512980285,
+        "relative_drift": 0.0033028864195377163
+      },
+      "DIC_k3": {
+        "pred_domain_mean": 2112.05859375,
+        "true_domain_mean": 2104.3404117643904,
+        "relative_drift": 0.003667744031555359
+      },
+      "DIC_k4": {
+        "pred_domain_mean": 2119.259765625,
+        "true_domain_mean": 2112.8884239739373,
+        "relative_drift": 0.003015465264881073
+      },
+      "ALK_k0": {
+        "pred_domain_mean": 2337.664794921875,
+        "true_domain_mean": 2335.3784189783883,
+        "relative_drift": 0.0009790173296569734
+      },
+      "ALK_k1": {
+        "pred_domain_mean": 2337.813720703125,
+        "true_domain_mean": 2335.679436983104,
+        "relative_drift": 0.0009137742475387226
+      },
+      "ALK_k2": {
+        "pred_domain_mean": 2342.726318359375,
+        "true_domain_mean": 2338.4995194566377,
+        "relative_drift": 0.0018074833317560052
+      },
+      "ALK_k3": {
+        "pred_domain_mean": 2349.884521484375,
+        "true_domain_mean": 2344.8358689878723,
+        "relative_drift": 0.0021530941944699357
+      },
+      "ALK_k4": {
+        "pred_domain_mean": 2354.600830078125,
+        "true_domain_mean": 2352.133089781119,
+        "relative_drift": 0.0010491499429718248
+      },
+      "PIC_k0": {
+        "pred_domain_mean": 0.006830902770161629,
+        "true_domain_mean": 0.007510369901171424,
+        "relative_drift": -0.09047052807662857
+      },
+      "PIC_k1": {
+        "pred_domain_mean": 0.007703579030930996,
+        "true_domain_mean": 0.008459506903859286,
+        "relative_drift": -0.08935838477576404
+      },
+      "PIC_k2": {
+        "pred_domain_mean": 0.008914337493479252,
+        "true_domain_mean": 0.009696965960908549,
+        "relative_drift": -0.08070859179915792
+      },
+      "PIC_k3": {
+        "pred_domain_mean": 0.010266352444887161,
+        "true_domain_mean": 0.011263440095434592,
+        "relative_drift": -0.08852425565361512
+      },
+      "PIC_k4": {
+        "pred_domain_mean": 0.011578266508877277,
+        "true_domain_mean": 0.013052480649799456,
+        "relative_drift": -0.11294513131071592
+      },
+      "POC_k0": {
+        "pred_domain_mean": 0.12619276344776154,
+        "true_domain_mean": 0.14008587814358123,
+        "relative_drift": -0.09917569765012232
+      },
+      "POC_k1": {
+        "pred_domain_mean": 0.13798047602176666,
+        "true_domain_mean": 0.15409830360975427,
+        "relative_drift": -0.1045944517910148
+      },
+      "POC_k2": {
+        "pred_domain_mean": 0.15642227232456207,
+        "true_domain_mean": 0.1739927658311939,
+        "relative_drift": -0.1009840462199363
+      },
+      "POC_k3": {
+        "pred_domain_mean": 0.1798611730337143,
+        "true_domain_mean": 0.19869829937620054,
+        "relative_drift": -0.09480265508876567
+      },
+      "POC_k4": {
+        "pred_domain_mean": 0.20458097755908966,
+        "true_domain_mean": 0.22586166566047836,
+        "relative_drift": -0.09422000869053374
+      },
+      "FeT_k0": {
+        "pred_domain_mean": 0.00043074419954791665,
+        "true_domain_mean": 0.00043224422330794666,
+        "relative_drift": -0.0034703153429105106
+      },
+      "FeT_k1": {
+        "pred_domain_mean": 0.0004316937120165676,
+        "true_domain_mean": 0.0004317556857553746,
+        "relative_drift": -0.00014353890603338153
+      },
+      "FeT_k2": {
+        "pred_domain_mean": 0.0004270641948096454,
+        "true_domain_mean": 0.00042841824629575307,
+        "relative_drift": -0.0031605831399928357
+      },
+      "FeT_k3": {
+        "pred_domain_mean": 0.00042255036532878876,
+        "true_domain_mean": 0.0004241426088147111,
+        "relative_drift": -0.003754028604605352
+      },
+      "FeT_k4": {
+        "pred_domain_mean": 0.0004184794961474836,
+        "true_domain_mean": 0.00042115495900758485,
+        "relative_drift": -0.006352680415792231
+      },
+      "Chl1_k0": {
+        "pred_domain_mean": 0.060327205806970596,
+        "true_domain_mean": 0.08045943523353159,
+        "relative_drift": -0.25021589286735213
+      },
+      "Chl1_k1": {
+        "pred_domain_mean": 0.06652533262968063,
+        "true_domain_mean": 0.08170603059115995,
+        "relative_drift": -0.18579654220923283
+      },
+      "Chl1_k2": {
+        "pred_domain_mean": 0.056339312344789505,
+        "true_domain_mean": 0.08417776567850398,
+        "relative_drift": -0.3307102904113245
+      },
+      "Chl1_k3": {
+        "pred_domain_mean": 0.06475924700498581,
+        "true_domain_mean": 0.08452861950363755,
+        "relative_drift": -0.23387785834833133
+      },
+      "Chl1_k4": {
+        "pred_domain_mean": 0.063275545835495,
+        "true_domain_mean": 0.08137476453928551,
+        "relative_drift": -0.2224180777205531
+      }
+    },
+    "max_frac_negative": 0.13147846332945284,
+    "max_abs_relative_mass_drift": 0.3307102904113245,
+    "positivity_enforced": true,
+    "mass_conserve_enforced": true
+  },
+  "honesty_notes": [
+    "Skill = 1 - MSE(model)/MSE(persistence); >0 means it beats copying x(t).",
+    "Persistence is a strong baseline on an autocorrelated ocean; raw R^2 is not reported as headline.",
+    "Standardization statistics use TRAIN months only; pairs never cross the split and never span a missing-month gap.",
+    "Only the fixed valid-ocean mask (finite across all months/channels) is scored; land is fill-zero input only.",
+    "Single AOI, single seed: treat as a go/no-go signal, not a converged benchmark. Repeat over seeds/AOIs before any claim.",
+    "Model predicts the FULL next state directly (not a persistence residual), so positive skill reflects learned month-to-month change."
+  ],
+  "generated_utc": "2026-07-23T13:19:25.194527+00:00",
+  "argv": [
+    "scripts/emulator_poc.py",
+    "--load-cube",
+    "/scratch/qi_zim_neu/depth/darwin_v05_L5_chl.npz",
+    "--no-physicsnemo",
+    "--epochs",
+    "250",
+    "--rollout-train-k",
+    "4",
+    "--log-transform",
+    "--log-tracers",
+    "Chl1",
+    "--rollout-positivity",
+    "--rollout-mass-conserve",
+    "--seed",
+    "2",
+    "--dump-fields",
+    "/scratch/qi_zim_neu/depth/depth_chl_fields_seed2.npz",
+    "--out",
+    "/scratch/qi_zim_neu/depth/depth_chl_emulator_seed2.json"
+  ]
+}

@@ -219,6 +219,7 @@ from darwindiff.daniels_loader import (
 )
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
 from darwindiff.networks import DINN, GlobalScalarNet, PerCellFreeField
+from darwindiff.safe_load import safe_torch_load
 from darwindiff.gating import (
     GATING_POLICIES,
     apply_gate,
@@ -641,6 +642,12 @@ def _build_aoi_targets_native(aoi) -> dict:
         "wind": aligned("wspeed"),
         "sss": np.full((1, n), 35.0, dtype=np.float32),   # no native SSS; box default
         "pco2_atm_field": aligned("apCO2"),
+        # NOT an observation. This is Darwin's own CO2_flux diagnostic, so every loss term
+        # built from it is a model-vs-model target and must be counted on the Darwin side of
+        # any observations-only accounting. The key keeps the misleading "_obs" spelling only
+        # because it is a torch.save cache key (:709) with no version field -- renaming it
+        # would KeyError against every existing cache outside the rebuild guard. Locals are
+        # named co2_flux_darwin. See docs/research_notes/2026-07-29_observations_only_scope.md.
         "co2_flux_obs": aligned("CO2_flux"),
         "chl_per_pft": {f"Chl{i}": aligned(f"Chl{i}") for i in range(1, 6)},
     }
@@ -671,6 +678,7 @@ def _build_aoi_targets(aoi) -> dict:
             else np.full_like(ds_avg_local["SST"].values.astype(np.float32), 35.0)
         ),
         "pco2_atm_field": ds_avg_local["apCO2"].values.astype(np.float32),
+        # NOT an observation -- Darwin's own diagnostic. See the note at the native builder.
         "co2_flux_obs": ds_avg_local["CO2_flux"].values.astype(np.float32),
         "chl_per_pft": {
             f"Chl{i}": ds_avg_local[f"Chl{i}"].values.astype(np.float32)
@@ -699,7 +707,7 @@ def _load_or_build_target_cache(aoi) -> dict:
     expected_bounds = (aoi.lat_min, aoi.lat_max, aoi.lon_min, aoi.lon_max)
     if cache_path.is_file():
         try:
-            cached = torch.load(cache_path, map_location="cpu", weights_only=False)
+            cached = safe_torch_load(cache_path, map_location="cpu")
             if (cached.get("aoi_name") == aoi.name
                     and cached.get("aoi_bounds") == expected_bounds
                     and cached.get("resolution", "1deg") == _res):
@@ -770,7 +778,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     pco2_atm_field = targets["pco2_atm_field"]; chl_per_pft = targets["chl_per_pft"]
     fet_binned = targets["fet_binned"]; poc_binned = targets["poc_binned"]
     pic_binned = targets["pic_binned"]; dic_binned = targets["dic_binned"]
-    alk_binned = targets["alk_binned"]; co2_flux_obs = targets["co2_flux_obs"]
+    alk_binned = targets["alk_binned"]; co2_flux_darwin = targets["co2_flux_obs"]
 
     H, W = sst.shape  # (1, N_cells)
     ocean_mask = (
@@ -790,7 +798,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     pco2_raw_for_env = np.where(
         ocean_mask & np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)
     co2flux_raw_for_env = np.where(
-        ocean_mask & np.isfinite(co2_flux_obs), co2_flux_obs, 0.0).astype(np.float32)
+        ocean_mask & np.isfinite(co2_flux_darwin), co2_flux_darwin, 0.0).astype(np.float32)
 
     mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
     mask_f = mask_dev.to(torch.float32); n_ocean_f = mask_f.sum()
@@ -808,7 +816,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         return (t - m) / s
     fet_z = to_z_target(fet_binned); poc_z = to_z_target(poc_binned)
     pic_z = to_z_target(pic_binned); dic_z = to_z_target(dic_binned)
-    alk_z = to_z_target(alk_binned); co2_flux_z = to_z_target(co2_flux_obs)
+    alk_z = to_z_target(alk_binned); co2_flux_z = to_z_target(co2_flux_darwin)
     chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
 
     LIT_IC = [
@@ -962,7 +970,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     pic_binned = targets["pic_binned"]
     dic_binned = targets["dic_binned"]
     alk_binned = targets["alk_binned"]
-    co2_flux_obs = targets["co2_flux_obs"]
+    co2_flux_darwin = targets["co2_flux_obs"]
     primprod_binned = targets.get("primprod_binned")  # present only when PRIMPROD_W > 0
 
     H, W = sst.shape
@@ -990,7 +998,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     pco2_raw_for_env = np.where(
         ocean_mask & np.isfinite(pco2_atm_field), pco2_atm_field, PCO2_ATM_DEFAULT).astype(np.float32)
     co2flux_raw_for_env = np.where(
-        ocean_mask & np.isfinite(co2_flux_obs), co2_flux_obs, 0.0).astype(np.float32)
+        ocean_mask & np.isfinite(co2_flux_darwin), co2_flux_darwin, 0.0).astype(np.float32)
 
     # Move everything to device.
     mask_dev = torch.tensor(ocean_mask, dtype=torch.bool).to(device)
@@ -1016,7 +1024,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     pic_z = to_z_target(pic_binned)
     dic_z = to_z_target(dic_binned)
     alk_z = to_z_target(alk_binned)
-    co2_flux_z = to_z_target(co2_flux_obs)
+    co2_flux_z = to_z_target(co2_flux_darwin)
     chl_z = {f"Chl{i}": to_z_target(chl_per_pft[f"Chl{i}"]) for i in range(1, 6)}
     primprod_z = to_z_target(primprod_binned) if (PRIMPROD_W > 0 and primprod_binned is not None) else None
 
@@ -1203,8 +1211,8 @@ def load_aoi_bundle(aoi_key: str) -> dict:
     # Absolute-units surface F_CO2 target (F_CO2_ABS_W). Unlike PIC/POC, F_CO2
     # can be either sign (ocean source = positive, sink = negative), so the mask
     # accepts any finite value -- no positivity gate.
-    f_co2_abs_mask_np = ocean_mask & np.isfinite(co2_flux_obs)
-    f_co2_abs_target_np = np.where(f_co2_abs_mask_np, co2_flux_obs, 0.0).astype(np.float32)
+    f_co2_abs_mask_np = ocean_mask & np.isfinite(co2_flux_darwin)
+    f_co2_abs_target_np = np.where(f_co2_abs_mask_np, co2_flux_darwin, 0.0).astype(np.float32)
     f_co2_abs_target_t = torch.tensor(f_co2_abs_target_np).to(device)
     f_co2_abs_mask_t = torch.tensor(f_co2_abs_mask_np, dtype=torch.bool).to(device)
     f_co2_abs_mask_f = f_co2_abs_mask_t.to(torch.float32)
@@ -2053,6 +2061,18 @@ if __name__ == "__main__":
     # #163 independent-DATA validation: score the box's final predicted DFe at the
     # HELD-OUT iron cells (never seen in training) vs real GEOTRACES iron. Good skill =>
     # the recovered params generalise to unseen real data (discovery, not just Carroll-consistency).
+    # Persisted, not just printed. This block used to print and drop the numbers, so the
+    # README had to footnote the held-out result as "reported-but-unarchived": no committed
+    # artifact carried it. It is the one number that separates a consistency check from a
+    # cross-validated claim (#163), so it goes into the run JSON per seed.
+    # `json.dump(..., allow_nan=False)` below will raise on a non-finite value, so sanitise
+    # to None here rather than losing the whole run's JSON to one degenerate AOI.
+    heldout_by_aoi: dict[str, dict] = {}
+
+    def _finite_or_none(v):
+        v = float(v)
+        return v if np.isfinite(v) else None
+
     if GEOTRACES_HOLDOUT_FRAC > 0:
         print()
         print("=== HELD-OUT GEOTRACES iron validation (cells excluded from training) ===")
@@ -2070,6 +2090,12 @@ if __name__ == "__main__":
             print(f"  {_b['key']}: n_holdout={int(_hm.sum())}  "
                   f"held-out rel-err mean={float(_relerr.mean()):.3f} (best {float(_relerr.min()):.3f})  "
                   f"R2 mean={float(_r2.mean()):.3f} (best {float(_r2.max()):.3f})")
+            heldout_by_aoi[_b["key"]] = {
+                "n_holdout_cells": int(_hm.sum()),
+                "n_obs_cells_total": int(_hm.sum() + _b["geo_surf_mask_t"].sum()),
+                "r2_per_seed": [_finite_or_none(v) for v in _r2],
+                "rel_err_per_seed": [_finite_or_none(v) for v in _relerr],
+            }
 
     all_results = []
     for seed_idx, seed in enumerate(SEEDS):
@@ -2308,6 +2334,19 @@ if __name__ == "__main__":
             "elapsed_s_total_batch": elapsed,
             "loss_final": float(loss_history[-1, seed_idx].item()),
             "per_aoi_loss_final": {k: float(per_aoi_history[k][-1, seed_idx].item()) for k in AOIS_KEYS},
+            # #163 held-out real-data skill for THIS seed. Empty dict when
+            # GEOTRACES_HOLDOUT_FRAC=0 (the default), so its presence-and-emptiness is
+            # itself the record that the run did not hold anything out.
+            "geotraces_holdout_frac": GEOTRACES_HOLDOUT_FRAC,
+            "heldout_geotraces_iron": {
+                _k: {
+                    "n_holdout_cells": _v["n_holdout_cells"],
+                    "n_obs_cells_total": _v["n_obs_cells_total"],
+                    "r2": _v["r2_per_seed"][seed_idx],
+                    "rel_err": _v["rel_err_per_seed"][seed_idx],
+                }
+                for _k, _v in heldout_by_aoi.items()
+            },
             "params": result_params,
             "n_cal_grade": n_cal_joint,
             "n_excellent": n_exc_joint,

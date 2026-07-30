@@ -12,7 +12,7 @@ Resume ECCO-DarwinDiff. Read these first, then confirm the shape back before act
 4. STATUS.md
 Plus the memory index and the SessionStart open-issues list.
 
-STATE: the identifiability science is verified and solid — scav_rat 26→41/50 (optimization-limited; natl
+STATE: the identifiability science is verified and solid — scav_rat 25→41/50 (optimization-limited; natl
 19→40, eqpac 6/50), diatomgraz 35/50 (non-circular, Chl+MLD, bSi off), R_PICPOC 50/50 (with real Daniels
 anchor; anchor-off 6/50 epoch-matched), alpfe 49/50, per-cell architecture load-bearing (global-scalar 0/50),
 no robust 4-of-4 (structural trade-off), EKI estimator-independence = backprop verdict. The H-batch doc

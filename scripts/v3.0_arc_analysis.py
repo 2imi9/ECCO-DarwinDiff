@@ -26,6 +26,10 @@ import csv
 
 import numpy as np
 
+_SRC = Path(__file__).resolve().parent.parent / "src"
+if _SRC.exists() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
 PARAM_ORDER = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
 CARROLL = {
     "alpfe": 0.92831, "scav_rat": 6.0250e-7, "Smallgrow": 0.66098,
@@ -209,12 +213,12 @@ def main():
     print(f"Wrote {param_path}")
 
     # Observed PIC/POC per AOI from cached targets
-    import torch
+    from darwindiff.safe_load import safe_torch_load
     ratios = {}
     for name in ["equatorial_pacific", "north_atlantic_subpolar"]:
         cache_path = Path(r"D:\ecco_darwin_v5") / "cache" / f"eqpac_targets_{name}.pt"
         if cache_path.is_file():
-            cache = torch.load(cache_path, map_location="cpu", weights_only=False)
+            cache = safe_torch_load(cache_path, map_location="cpu")
             pic = cache["pic_binned"]; poc = cache["poc_binned"]
             ok = np.isfinite(pic) & np.isfinite(poc) & (pic > 0) & (poc > 0)
             ratios[name] = {

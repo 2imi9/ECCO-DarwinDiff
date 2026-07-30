@@ -20,6 +20,16 @@ Source of truth (do NOT edit these without re-running the grader):
       scav_rat           25/50      36/50    +11 <<   eqpa:7  natl:20 sout:49
       diatomgraz          3/50       6/50     +3 <<   eqpa:37 natl:1  sout:3
       R_PICPOC           50/50      46/50             eqpa:46 natl:50 sout:40
+      iron_pair (per-AOI honest): 25/50   rho(alpfe,scav_rat) = -0.65
+
+RE-DERIVED 2026-07-26. The 50 per-seed JSONs were pulled from Explorer
+(/projects/schultz/qi.zim/runs/n50e2k_percell_trio) and re-graded from scratch. Every
+value above reproduced exactly, gate exit 0. This matters because the constants below
+were previously only asserted -- a guard whose expected values came from the same
+documents it polices is circular. They now come from the grader, independently re-run.
+
+The re-grade also settled the per-AOI legs: eqpac 7 / natl 20 / sopac 49. STATUS.md had
+carried 8 / 19, which are the subW=1 arm's legs attached to the flagship's joint.
 """
 from __future__ import annotations
 
@@ -129,6 +139,201 @@ def test_no_tracked_doc_binds_26_of_50_to_the_flagship():
         "26/50 is bound to the flagship in:\n  " + "\n  ".join(offenders)
         + f"\n\nThe flagship scav_rat count is {FLAGSHIP['scav_rat']}/50 "
         f"({FLAGSHIP_RUN}, verify_run exit 0). 26/50 is the separate subW=1 arm."
+    )
+
+
+#: The flagship's per-AOI Cal+ legs. The joint 25/50 is set by how often eqpac/natl
+#: join the always-recovering Southern Ocean, so quoting the wrong legs beside 25/50
+#: misattributes a different run's decomposition to the flagship.
+FLAGSHIP_SCAV_RAT_LEGS = {"eqpac": 7, "natl": 20, "sopac": 49}
+#: At 4000 epochs (ep4k_n50) scav_rat rises 25 -> 41; the natl leg goes 20 -> 40.
+EP4K_SCAV_RAT = (25, 41)
+EP4K_NATL_LEG = (20, 40)
+
+
+def test_flagship_legs_are_consistent_with_the_joint_count():
+    """The joint cannot exceed its weakest leg, and 25/50 is set by eqpac+natl."""
+    assert FLAGSHIP_SCAV_RAT_LEGS["sopac"] == 49
+    assert FLAGSHIP["scav_rat"] == 25
+    assert min(FLAGSHIP_SCAV_RAT_LEGS.values()) == FLAGSHIP_SCAV_RAT_LEGS["eqpac"] == 7
+
+
+#: 26/50 also drifted in RANGE form ("26->41/50"), which the literal "26/50" check
+#: below never saw. Same for the natl leg, which drifted as "19->40". Both forms are
+#: matched here so the guard covers how the numbers are actually written in prose.
+_ARROW = r"(?:->|-->|→|–>|\s+to\s+)"
+
+#: THIRD spelling found (2026-07-29), in a markdown TABLE cell on the flagship row:
+#:     | **n50e2k_percell_trio** ... | 49 / 49 | 36 / **26** | ...
+#: The literal-"26/50" check misses it because the denominator is implied by the column,
+#: and the range-form check misses it because there is no arrow. A per-AOI count of 26 on
+#: a line that also names the flagship run is the invariant, however it is written.
+_TABLE_26 = re.compile(r"\b26\b")
+
+
+def test_no_flagship_table_row_reports_26_per_aoi():
+    """The 26 drift has now appeared in three spellings: bare 26/50, the range form
+    26->41/50, and a table cell `36 / **26**`. Each escaped the previous guard.
+
+    Any line naming the flagship run must not contain a bare 26 unless it is
+    explicitly attributed to the subW=1 arm.
+    """
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if FLAGSHIP_RUN not in line:
+                continue
+            low = line.lower()
+            if any(m in low for m in _SUBW1_MARKERS):
+                continue
+            # strip epoch/seed counts that legitimately contain 26 as a substring
+            if _TABLE_26.search(re.sub(r"\d{3,}", "", line)):
+                offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        f"a bare 26 appears on a line naming {FLAGSHIP_RUN}:\n  " + "\n  ".join(offenders)
+        + f"\n\nThe flagship per-AOI scav_rat count is {FLAGSHIP['scav_rat']}/50."
+    )
+
+
+_RANGE_DRIFTS = (
+    (re.compile(rf"\b26\s*{_ARROW}\s*41\b"), "scav_rat 26->41 (flagship is 25->41 at 4000ep)"),
+    (re.compile(rf"\bnatl\s+19\s*{_ARROW}\s*40\b", re.IGNORECASE),
+     "natl leg 19->40 (flagship natl leg is 20->40)"),
+    (re.compile(rf"\b19\s*{_ARROW}\s*40/50\b"), "natl leg 19->40/50 (should be 20->40/50)"),
+)
+
+
+@pytest.mark.parametrize("pattern,label", _RANGE_DRIFTS,
+                         ids=[d[1].split()[0] + "-range" for d in _RANGE_DRIFTS])
+def test_no_tracked_doc_carries_the_range_form_drift(pattern, label):
+    """The exact hole that let two wrong numbers propagate to 13 files.
+
+    The literal-"26/50" check below matched only the bare fraction, so "26->41/50"
+    sailed through it into STATUS.md, ONBOARDING.md, the AGU abstract and nine
+    findings docs. A guard that only catches one spelling of a number is not a guard.
+    """
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if pattern.search(line):
+                offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, f"{label} in:\n  " + "\n  ".join(offenders)
+
+
+#: The two emulator baseline comparisons have DIFFERENT seed spreads, and swapping them
+#: understates the AR(1) result's stability. Source: 2026-07-23_emulator_multiseed.md:9,32.
+EMULATOR_VS_PERSISTENCE = (0.055, 0.013)
+EMULATOR_VS_SEASONAL_AR1 = (-0.161, 0.015)
+
+_AR1_WRONG_SPREAD = re.compile(r"0\.161\s*(?:±|\+/-)\s*0\.013")
+
+
+#: The 4000-epoch confirmation run, re-graded 2026-07-28 from the 50 per-seed JSONs on
+#: AICR (/scratch/qi_zim_neu/confirm/ep4k_n50), gate exit 0. Until then this was the last
+#: document-only Track-1 headline -- and it is quoted in the AGU abstract draft.
+#:
+#:   [ep4k] n=50/50  alpfe 49/50 | scav_rat 41/50 | diatomgraz 8/50 | R_PICPOC 50/50
+#:          scav_rat legs  eqpac 6 / natl 40 / sopac 48
+EP4K = {"alpfe": 49, "scav_rat": 41, "diatomgraz": 8, "R_PICPOC": 50}
+EP4K_SCAV_RAT_LEGS = {"eqpac": 6, "natl": 40, "sopac": 48}
+
+
+def test_ep4k_is_the_optimisation_limited_arm():
+    """2000 -> 4000 epochs moves scav_rat 25 -> 41 while eqpac barely moves.
+
+    That contrast is the whole 'closeable optimisation component plus a residual
+    information component' argument: natl 20 -> 40 is optimisation, eqpac 7 -> 6 is not.
+    """
+    assert EP4K["scav_rat"] == EP4K_SCAV_RAT[1] == 41
+    assert FLAGSHIP["scav_rat"] == EP4K_SCAV_RAT[0] == 25
+    assert EP4K_SCAV_RAT_LEGS["natl"] == EP4K_NATL_LEG[1] == 40
+    # eqpac does NOT improve with 2x the epochs -- it is information-limited
+    assert EP4K_SCAV_RAT_LEGS["eqpac"] <= FLAGSHIP_SCAV_RAT_LEGS["eqpac"]
+    # alpfe and R_PICPOC are already saturated and stay there
+    assert EP4K["alpfe"] == FLAGSHIP["alpfe"] == 49
+    assert EP4K["R_PICPOC"] == FLAGSHIP["R_PICPOC"] == 50
+
+
+#: The growth pair is excluded for TWO DIFFERENT reasons, and collapsing them overstates the
+#: claim. STATUS.md:37-41 and :301 are precise; README.md, docs/index.md and CLAUDE.md all said
+#: "the growth pair is unobservable by construction" until 2026-07-29.
+#:   Biggrow   -- unobservable by construction; never recovers, seasonal included
+#:   Smallgrow -- practically non-identifiable under TIME-MEAN fitting, but a seasonal prototype
+#:                recovers it natl 9/10 (unconfirmed, job 189324) and synthetic-ID is 7/7
+GROWTH_PAIR_REASONS = {
+    "Biggrow": "unobservable by construction",
+    "Smallgrow": "time-mean non-identifiable; seasonal prototype natl 9/10 unconfirmed",
+}
+
+_PAIR_BLANKET = re.compile(
+    r"growth pair[^.\n]{0,60}unobservable by construction", re.IGNORECASE)
+
+#: A line is FINE if it distinguishes the two parameters -- naming Biggrow as the subject of
+#: the strong claim, or noting Smallgrow's weaker status. Only an undifferentiated "the pair
+#: is unobservable by construction" is an offender. Without these the guard would flag its own
+#: corrected wording, which is the exemption trap this suite has hit before.
+_PAIR_DISTINGUISHED = (
+    "biggrow", "time-mean", "seasonal", "non-identifiable", "189324",
+)
+
+
+def test_growth_pair_is_not_collapsed_into_one_reason():
+    """A doc may call BIGGROW unobservable by construction; it may not say that of the PAIR.
+
+    Smallgrow recovers 9/10 seasonally in the North Atlantic and 7/7 on synthetic data.
+    A reviewer who finds STATUS.md:301 beside a blanket "unobservable by construction" has a
+    legitimate objection, and it would be ours to answer.
+    """
+    assert set(GROWTH_PAIR_REASONS) == {"Biggrow", "Smallgrow"}
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if not _PAIR_BLANKET.search(line):
+                continue
+            if any(m in line.lower() for m in _PAIR_DISTINGUISHED):
+                continue  # the line separates the two parameters -- that is the fix, not the bug
+            offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        "the growth PAIR is called unobservable by construction in:\n  " + "\n  ".join(offenders)
+        + "\n\nOnly Biggrow is. Smallgrow is time-mean non-identifiable "
+          "(seasonal prototype natl 9/10, job 189324)."
+    )
+
+
+def test_ar1_and_persistence_spreads_are_not_swapped():
+    """+/-0.013 belongs to persistence; +/-0.015 belongs to seasonal AR(1).
+
+    Caught by Greptile on PR #202 after -0.161 +/- 0.013 had propagated to ten files,
+    including STATUS.md and the README. STATUS.md carried BOTH spellings -- 0.015 at
+    L79 and 0.013 at L115 -- so a reader copying from the canonical doc had even odds
+    of taking the wrong one. That is how it spread.
+    """
+    assert EMULATOR_VS_SEASONAL_AR1[1] != EMULATOR_VS_PERSISTENCE[1]
+    offenders: list[str] = []
+    for path in _tracked_markdown():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            if _AR1_WRONG_SPREAD.search(line):
+                offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
+    assert not offenders, (
+        "seasonal-AR(1) skill quoted with persistence's spread (should be "
+        f"{EMULATOR_VS_SEASONAL_AR1[0]} +/- {EMULATOR_VS_SEASONAL_AR1[1]}) in:\n  "
+        + "\n  ".join(offenders)
     )
 
 

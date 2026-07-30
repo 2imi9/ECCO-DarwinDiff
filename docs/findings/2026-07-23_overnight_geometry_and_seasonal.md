@@ -80,7 +80,7 @@ The n=50 reconciliation (job 188532, VERIFIED) settles the scav_rat number AND i
 - **scav_rat = 26/50 per-AOI at n=50**, essentially identical to the manuscript flagship 25/50. The earlier
   n=10 arm's **9/10 was seed luck** (regresses to ~52% at n=50; subW=1 replicate 6/10). The flagship number
   holds at 2000 epochs; scav_rat is the weak leg *there*. (alpfe 49/50, R_PICPOC 50/50 at n=50 — both robust.)
-  **But at 4000 epochs scav_rat reaches 41/50** (natl 19→40, eqpac 6) — so "weak leg" is **largely an
+  **But at 4000 epochs scav_rat reaches 41/50** (natl 20→40, eqpac 6) — so "weak leg" is **largely an
   optimization limit, not an information wall**, with eqpac the sole info-limited basin. See
   `overnight_recovery_sweep_groupA.md` LEAD A.
 - **The per-AOI Cal+ tally is the punchline:** scav_rat recovers **eqpac 8/50, natl 19/50, sopac 49/50.**

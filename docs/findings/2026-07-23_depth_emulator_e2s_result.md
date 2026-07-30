@@ -3,7 +3,7 @@
 > **⚠️ PARTIALLY SUPERSEDED (2026-07-23).** The per-depth 'beats persistence' rows below
 > stand as measured, but persistence is a weak baseline on an autocorrelated monthly
 > ocean. Against a per-cell **seasonal AR(1)** baseline the same model scores
-> **−0.161 ± 0.013** across four seeds, CI entirely below zero. Read these numbers as
+> **−0.161 ± 0.015** across four seeds, CI entirely below zero. Read these numbers as
 > 'clears a weak baseline', not as skill. See `2026-07-23_emulator_baselines_v2.md`.
 
 **Bottom line: the depth-resolved ocean-BGC emulator is BUILT and the Earth2Studio wrapper is
