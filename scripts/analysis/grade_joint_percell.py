@@ -7,6 +7,10 @@ Carroll via the canonical band thresholds, and prints both metrics from ONE data
 """
 import json, sys, glob, os
 from collections import defaultdict
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from darwindiff.grading import required_legs  # noqa: E402
 
 CAL_MAX = 0.40  # Cal-grade+ ceiling (diagnostics.BAND_CAL_GRADE_MAX)
 TRIO = ["alpfe", "scav_rat", "R_PICPOC"]
@@ -48,7 +52,7 @@ def grade_dir(d):
             per_aoi = pv["per_aoi_recovered"]
             aoi_present[param] |= set(per_aoi.keys())
             n_ok = sum(1 for a, v in per_aoi.items() if band_ok(v, carroll))
-            aoi_ok[param] = (n_ok >= 2)
+            aoi_ok[param] = (n_ok >= required_legs(len(per_aoi)))
             if aoi_ok[param]:
                 aoi2of3_count[param] += 1
         if all(cw_ok[t] for t in TRIO):

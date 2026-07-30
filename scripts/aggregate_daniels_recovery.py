@@ -16,6 +16,7 @@ from collections import defaultdict
 
 from darwindiff.carroll6 import CARROLL_VALUES, PARAM_NAMES
 from darwindiff.diagnostics import band_of
+from darwindiff.grading import required_legs
 
 RECOVERED_BANDS = {"Excellent", "Cal-grade"}  # what counts as "recovered" per AOI
 
@@ -43,7 +44,7 @@ def main(run_dir: str) -> int:
                     n_cal += 1
                     per_aoi_cal[n][aoi] += 1
                 per_aoi_vals[n][aoi].append(val)
-            if n_cal >= 2:
+            if n_cal >= required_legs(len(pa)):
                 co2[n] += 1
 
     print(f"Daniels real-data R_PICPOC recovery — n={n_seeds} seeds, AOIs from JSON")

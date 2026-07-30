@@ -8,6 +8,7 @@ in the manuscript would be a 2-AOI result reported as a 3-AOI one.
 import json, glob, sys
 sys.path.insert(0, "src")
 from darwindiff.diagnostics import band_of
+from darwindiff.grading import required_legs
 
 CAL = {"Excellent", "Cal-grade"}
 AOIS = ["eqpac", "natlsubpolar", "southernoceanpac"]
@@ -27,7 +28,7 @@ for run in sys.argv[1:]:
                   for a in AOIS}
             for a in AOIS:
                 legs[a] += ok[a]
-            if sum(ok.values()) >= 2:
+            if sum(ok.values()) >= required_legs(len(ok)):
                 maj += 1
                 if ok["eqpac"] and ok["natlsubpolar"]:
                     both_anchored += 1
