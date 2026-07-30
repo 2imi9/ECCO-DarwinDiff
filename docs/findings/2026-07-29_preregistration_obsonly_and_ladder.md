@@ -347,6 +347,29 @@ the Daniels residual reaches SO cells *only* through shared weights.
 **This is the regularisation mechanism, measured on the flagship, at zero cost** — and it is a far
 sharper ladder discriminator than the aggregate trio count.
 
+> **⚠️ SUPERSEDED, and by a better experiment.** `main` reached the same conclusion independently
+> while this branch was open (commit `57ee408`, `docs/findings/2026-07-29_inert_anchor_passes_the_gate.md`),
+> and it **ran the control this section only inferred**. Flagship recipe with
+> `DANIELS_RPICPOC_W=0`, epoch-matched at 2000 epochs, n=10, `verify_run` exit 0:
+>
+> | leg | Daniels cells | anchor ON | anchor OFF |
+> |---|---|---|---|
+> | eqpac | 34 | 1.26× Carroll, 4/10 | 0.15×, 0/10 |
+> | natlsubpolar | 26 | 1.21×, 7/10 | 8.14×, 2/10 |
+> | **southernoceanpac** | **0** | **1.27×, 5/10** | **13.06×, 1/10** |
+> | per-AOI ≥2-of-3 | | 10/10 | 2/10 |
+>
+> The SO leg moves from 1.27× to **13.06×** Carroll when the anchor is removed, **in a basin with zero
+> Daniels observations in either arm.** It cannot be responding to data it never had. That is a
+> *causal* demonstration of inheritance; the 40/50 tally in the table above is only correlational
+> evidence for the same thing.
+>
+> **Cite `57ee408`, not this section, for the mechanism.** What survives here is the leg-level tally
+> and the pre-registered ladder prediction below, which main's control does not make. Also note
+> main's 2/10 anchor-off count is consistent with the published epoch-matched 6/50, and its framing is
+> the right one: this *changes how the result is stated, not the count*, because the 2-of-3 metric can
+> be met by eqpac + natl alone.
+
 > **PRE-REGISTERED.** A free per-cell field **cannot pool**. In the `pointwise` arm the Daniels
 > residual is identically zero at every southernoceanpac cell (the mask is all-zero and the term
 > gates off), so those cells receive **no gradient whatsoever** from the calcite anchor and must stay
@@ -404,6 +427,41 @@ Two things must travel with it, both foreseen:
   therefore goes to 0/50, which §2.5 accepted in advance as the price.
 - **This closes the initial-condition half of the Darwin dependency, not the forcing half.** T, S,
   wind, atmospheric pCO₂ and the DINN input channels still come from Darwin fields.
+
+### 3.5a RECONCILIATION with main — the estimator is under-determined in this configuration
+
+Added after merging 62 commits from `main`, which had independently scoped this experiment while this
+branch was open. Two of its findings constrain what the 3-of-4 above is allowed to mean, and neither
+was known when the arms were queued.
+
+**Main's `573d872` names the objection precisely, and it applies to this arm.** With
+`DARWIN_PATTERN_W = 0` the dense base block is off. That block is masked by the *full ocean mask*, so
+it is what gives every cell a gradient in the flagship. Remove it and **96.1 % of cells have exactly
+zero gradient while the recovery metric still averages over all of them.** From
+`percell_crlb_summary.json`, generated with exactly this weight set: **112 informative cells of
+2851**, distributed as `alpfe` and `scav_rat` 55, `R_PICPOC` 60 (in two of three AOIs), **`diatomgraz`
+11**, growth pair zero.
+
+So the per-cell DINN is **~7× under-determined here**: 1218 free weights against 178 real residuals.
+`GlobalScalarNet` has 6 and is the well-posed estimator for an observations-only fit. Main's
+pre-registered version of this experiment therefore uses `GLOBAL_SCALAR=1` as three single-AOI runs.
+
+**What that does and does not do to the 3-of-4.**
+
+- It does **not** void the counts. They are graded against the *measured, architecture-matched*
+  untrained null for the same estimator, and `verify_run` exits 0. A count that clears its own null
+  is a real count.
+- It **does** change the mechanism claim. `diatomgraz` reaching **50/50 from 11 informative cells**
+  is not 50 independent local recoveries; it is 11 residuals propagated to 2851 cells through a
+  shared map. That is the same pooling mechanism §3.1d describes, and it should be stated as
+  generalisation, not as coverage.
+- It **does** mean the honest headline is *"three of four observables recover from real measurements
+  alone, with a per-cell estimator that is under-determined in this configuration"* — and that the
+  global-scalar arm main pre-registered is the necessary companion, not an alternative.
+
+**Consequence, and it is a real gap this branch did not close:** the 3-of-4 needs a
+`GLOBAL_SCALAR=1` obs-only arm beside it before it goes in a manuscript. That is one array job and it
+is now the highest-value missing cell, replacing the one this branch just filled.
 
 **The straddle guard earned its place again.** `scav_rat` reads **21/50 cell-weighted against 0/50
 per-AOI** here — the guard prints `INVERTS IT (per-AOI says zero)`. `Smallgrow` reads 41/50 versus

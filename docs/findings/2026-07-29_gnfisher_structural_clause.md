@@ -173,6 +173,41 @@ itself chance-level (P = 0.078).
 curvature and this CRLB is a genuine variance bound, not merely a curvature statement. Of the three
 losses, this is the one whose magnitudes can be quoted most confidently.
 
+### 2c. QUALIFICATION from main — the anchor identifies a PRODUCT, not `R_PICPOC` alone
+
+Added after merging `main`, which found this independently while this branch was open
+(commit `c86ddff`, `docs/findings/2026-07-29_coccolith_only_screen.md`). It does not overturn §2b but
+it changes what the identified direction *means*.
+
+Darwin restricts calcification to **2 of 7 plankton types** (`data.traits` HASPIC). The box applies
+the `R_PICPOC` scalar to **all 5 PFTs**. A matched n=10 control pair, both `grade_recovery` exit 0:
+
+| arm | `R_PICPOC` per-AOI | median |
+|---|---|---|
+| `COCCOLITH_ONLY=0` (the box as configured, and as run here) | **10/10** | 0.0528 |
+| `COCCOLITH_ONLY=1` (Darwin's actual structure) | **0/10** | 1.012 = **23.9× Carroll** |
+
+Mechanism from a no-fit forward probe at Carroll: the box's calcifier mortality share `f_lge` is
+**flat at 0.115 across all three AOIs**, so gating the calcite source rescales the realized rain ratio
+by a constant. **The Daniels anchor therefore identifies the product `R_PICPOC · f_lge`,** and
+`R_PICPOC` inflates by `1/f_lge` when the gate is applied.
+
+**What this does to §2b.** The rank-1 result stands *as a statement about parameter space*: `f_lge` is
+a fixed model constant, not a learned parameter, so scaling by it does not rotate the identified
+direction and the stiffest eigenvector is still the `R_PICPOC` axis. The GN-Fisher here was computed
+with `COCCOLITH_ONLY=0`, the configuration every reported run uses.
+
+**What it does to the interpretation, and this is the part to carry forward.** The anchor pins a
+*product*, so the recovered `R_PICPOC` absorbs the box's calcifier mortality share. Under the closure
+that matches Darwin's own structure the recovered value inflates ~24×. So "the Daniels anchor
+identifies `R_PICPOC`" is true only for the bulk `mort_total` closure; stated generally it should be
+**"the Daniels anchor identifies the realized rain ratio, which in this box is `R_PICPOC · f_lge`."**
+
+That is a sharper structural-identifiability statement, not a weaker one: it names the exact
+model-structure assumption the point-identification rests on. But it means the R_PICPOC recovery is
+**conditional on a closure known to differ from Darwin's**, and that condition belongs beside every
+50/50 in the manuscript.
+
 ## 3. It independently reproduces the corrected iron-degeneracy framing
 
 This is the part worth flagging, because it confirms a claim we had already *corrected once* and
