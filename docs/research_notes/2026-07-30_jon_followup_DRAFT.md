@@ -1,7 +1,8 @@
-# DRAFT follow-up to Jon, 2026-07-30. NOT SENT.
+# DRAFT follow-up to Jon, 2026-07-30. NOT SENT, but no longer blocked.
 
-Three things in the last note need revising, and two of them make the result stronger. Holding
-until the Southern Ocean control (job 237913) lands, since the first item depends on it.
+Three things in the last note need revising, and two of them make the result stronger. The Southern
+Ocean control has landed (job 238079/238080, `verify_run` exit 0), so the scavenging paragraph now
+carries a real number. **Still needs a human read before sending.**
 
 ---
 
@@ -21,12 +22,24 @@ a majority. So the fit did learn something, in the basin where the scavenging si
 term in the iron budget, and I was reporting a property of my grading rule as though it were a
 property of the model.
 
-I am running the control that decides whether that is real. If I fit the Southern Ocean on its own,
-there is no other basin for the shared network to borrow from, so whatever the rate does there is
-local. If it collapses, the leg was inherited and your degeneracy reading stands unchanged. If it
-holds, then Southern Ocean data breaks the degeneracy that concentration alone cannot, which would
-be worth aiming the UDE at directly. I wrote the decision rule down before starting so I am not
-choosing the interpretation after seeing it. Either way I will send the number.
+I ran the control that decides whether that is real, and it holds. Fitting the Southern Ocean on its
+own, with no other basin for the shared network to borrow from, scavenging still comes back in 30
+of 50 seeds against zero of 50 untrained. I wrote the decision rule down before starting and I
+expected the other answer, so this is the result surprising me rather than me choosing it. The two
+checks I set in advance both behaved: iron solubility stayed at 50 of 50, so the fit is not broken,
+and the rain ratio went to zero of 50, which it must, since the Southern Ocean has no calcite data
+and there is now no other basin to inherit from. The only things in that loss are surface and
+subsurface iron.
+
+So the degeneracy is not wrong, it is not quite exact. Scavenging is about four fifths of the
+surface iron sink at your values, and the rest is uptake and mixing, which do not scale with it.
+The Southern Ocean is where that leftover is largest, because it is iron limited and the sink
+dominates. My honest reading is that the ratio is what concentration pins everywhere, and the
+Southern Ocean has just enough curvature left over to separate the two. I have not shown that is the
+mechanism, only that the recovery is local.
+
+Worth saying plainly: the other basins do still help. With all three the Southern Ocean leg is 39 to
+50 of 50, alone it is 30 of 50. So there is real local information and pooling adds to it.
 
 **The diatom caveat.** I said the result leans on a small set of informative cells rather than good
 coverage. That is right for the configuration without the mixed layer depth input, and wrong for
@@ -86,10 +99,20 @@ Lucas
 
 ## Notes for me, not for the email
 
-- Item 1 is **blocked** on job 237913 and its grader 237914. The pre-registered rule is in
-  `docs/findings/2026-07-30_prereg_scavrat_southern_ocean.md`: LOCAL if k >= 25 and
-  P(>=k | n=50, p) < 0.01, POOLING if not above p at P < 0.05, otherwise AMBIGUOUS and reported as
-  such. Do not send before it lands; the paragraph as written promises a number.
+- Item 1 is **UNBLOCKED**. Jobs 238079/238080, `verify_run` exit 0 on both arms, 50/50 each.
+  `scav_rat` 30/50 against untrained 0/50, P = 3.15e-24. Rule was k >= 25 and P < 0.01, both met,
+  neither marginal. Controls held: `alpfe` 50/50, `R_PICPOC` 0/50.
+- The first attempt (237913) gave the identical counts but **failed the gate at exit 2** because the
+  config declared `DANIELS_RPICPOC_W` and `POSI_W` on a basin with zero cells for either. The re-run
+  is **bitwise identical**, all six parameters, all 50 seeds, max relative difference 0.000e+00. Do
+  not mention this to Jon; it is internal bookkeeping, not a result. But do not quote 237913 either.
+- **Do not** claim the mechanism in the email. "Nearly flat rather than flat" is the honest framing
+  and the 79.7% figure is from the shipped 2-layer box at Carroll values, not from this run. The
+  separating experiment is a refit with the subsurface iron term removed, and it has not been run.
+- The rain-ratio paragraph should now also carry that the live value is **0.041886**, not 0.04245,
+  and that the calcifiers are types 2 and 3 which are large eukaryotes and **Synechococcus**. That
+  last point is worth asking him about: a picoplankton calcifier is an unusual choice and may be a
+  deliberate stand-in.
 - Item 3 rests on `2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md`. Two anchored points.
   The email already says "not claiming a law", keep that.
 - The 111x PIC:POC spread is from the target caches and is a standing-stock ratio, not a production
