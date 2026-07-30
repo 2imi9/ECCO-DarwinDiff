@@ -2,7 +2,8 @@
 
 **Date:** 2026-07-30 · **Jobs:** 237761 (prep) → 237762 (6 arms) → 237763 (score) → 238005
 (clip audit) · **Artifacts:** `/work/neu/p2026_0089_neu/daily_logspace/` ·
-**Status: DRAFT, scoring in progress. Numbers below are marked as final or pending.**
+**Status: FINAL for the six training arms (all scored). The clipping audit (238005) is still
+pending and is the only open item.**
 
 ## What this tested
 
@@ -44,20 +45,37 @@ In the trainer's own log space, skill against persistence across the six runs is
 +0.224**, against roughly **−4.0** for the linear model scored in log space. That is the single
 largest effect measured on this model.
 
-## Result 2, PENDING: it still does not beat a per-cell AR(1)
+## Result 2, FINAL: it still does not beat a per-cell AR(1)
 
-Scored by `emulator_baselines_v2` against the full free-baseline panel with block-bootstrap CIs:
+Scored by `emulator_baselines_v2` against the full free-baseline panel with block-bootstrap CIs,
+all six arms:
 
 | arm | vs persistence | vs BEST free baseline | best |
 |---|---|---|---|
-| linear (job 236516) | −4.003 [−4.947, −3.204] | −4.094 [−5.069, −3.269] | `ar1_percell` |
-| `log4_s0` | −0.323 [−0.381, −0.261] | **−0.347** [−0.403, −0.279] | `ar1_percell` |
-| `log4_s1` | −0.320 [−0.378, −0.257] | **−0.344** [−0.401, −0.275] | `ar1_percell` |
-| remaining arms | pending | pending | |
+| linear (job 236516) | −4.0031 [−4.947, −3.204] | **−4.0940** [−5.068, −3.269] | `ar1_percell` |
+| `log4_s0` | −0.3225 | −0.3465 | `ar1_percell` |
+| `log4_s1` | −0.3197 | −0.3437 | `ar1_percell` |
+| `log4_s2` | −0.3192 | −0.3432 | `ar1_percell` |
+| `log5_s0` | −0.3227 | −0.3467 | `ar1_percell` |
+| `log5_s1` | −0.3265 | −0.3506 | `ar1_percell` |
+| `log5_s2` | −0.3258 | −0.3499 | `ar1_percell` |
+| **`log4` mean** | | **−0.3445** (sd 0.0015) | |
+| **`log5` mean** | | **−0.3491** (sd 0.0017) | |
 
-So log-space training closes roughly 92% of the gap, from −4.09 to about −0.345, and **still loses
-to a per-cell annual AR(1)**, with the CI clear of zero. The seed-to-seed spread is 0.003, so this
-is not noise.
+Log-space training closes **91.6%** of the gap, from −4.094 to −0.345, and **still loses to a
+per-cell annual AR(1)** with the CI clear of zero. Seed spread is 0.0015, so this is not noise, and
+`ar1_percell` is the winning baseline in every single arm.
+
+### The dead-channel hypothesis is essentially a null
+
+`log4` beats `log5` by **0.0046**, consistent in sign across all three seed pairs against a seed sd
+of about 0.0016. So removing `surfChl4` from training is a real effect and a negligible one: about
+1.3% of the remaining gap. The worry that a numerically-zero channel amplified to unit variance by
+`standardize` would poison a fifth of the training gradient is **measured and it does not matter**.
+
+That is worth stating positively. Two candidate causes were separated in one experiment, and the
+answer is that log space carries essentially all of the effect and the dead channel carries none of
+it.
 
 ## The caveat that must travel with those numbers
 
@@ -96,9 +114,24 @@ that is physically valid by construction.
 
 ## Pending
 
-- the remaining four arms, and whether `log4` beats `log5` (early indication: `log4` marginally
-  better in the trainer's metric, 0.219 and 0.224 against 0.201 to 0.219)
-- job 238005, the strictly-positive restriction
+- job 238005, the strictly-positive restriction, which says how pessimistic −0.345 is
 - whether the same under-application of `--log-tracers` explains the **monthly** −0.161 against
   seasonal AR(1): the published monthly run logs `Chl1` only and leaves PIC, POC and FeT linear,
-  despite the repo's own default including them. Jobs 237982 and 237983 test it.
+  despite the repo's own default including them. Jobs 237982 and 238012 test it. First reading is
+  that logging them eliminates non-physical output entirely (max negative fraction 0.138 → 0.000),
+  which is a space-independent physics win whatever the skill does.
+
+## For the record: what to say about daily now
+
+Track 1 (the parameter learner) was already closed on two independent grounds. Track 2 is now
+closed too, on a measurement rather than an assumption, and the statement is narrow and defensible:
+
+> A daily surface-chlorophyll emulator of v05, trained in log space so that it is physically valid
+> by construction, beats persistence in its own working space but loses to a free per-cell AR(1) by
+> 0.345 with the CI clear of zero. The earlier +0.408 was a linear-space artifact. Daily
+> autocorrelation of 0.994 to 0.996 makes AR(1) a genuinely hard baseline, and the emulator does
+> not clear it.
+
+The remaining open direction is not architecture and not the metric. It is that a one-step daily
+operator is being asked to beat a baseline that already knows the persistence structure almost
+perfectly, and nothing in this experiment suggests more capacity would change that.
