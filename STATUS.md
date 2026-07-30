@@ -281,8 +281,16 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
     at **42/50, 39/50 and 50/50** across the three observations-only arms (and 49/50 in the
     flagship) against an untrained **0/50**, and is **0/50** in both `eqpac` and `natlsubpolar`.
     The 0/50 *majority* in the obs-only arms is the 2-of-3 rule, not a measurement that nothing was
-    learned. Whether that is local identifiability or inheritance through the shared DINN is
-    pre-registered and running. See `docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md`.
+    learned. **RESOLVED 2026-07-30 (jobs 238079/238080, verify_run exit 0): it is LOCAL.** A
+    single-AOI `southernoceanpac` fit, with nothing for the shared DINN to pool from, recovers
+    `scav_rat` **30/50 against untrained 0/50, P=3.15e-24**, from GEOTRACES surface and subsurface
+    iron alone. The pre-registered rule (k>=25 and P<0.01) fires and both controls held exactly:
+    `alpfe` 50/50, `R_PICPOC` 0/50 as it must with zero Daniels cells and no basin to inherit from.
+    Pooling still adds (39-50/50 in company vs 30/50 alone), so both halves are measured.
+    Consequence: the flagship trio's sole binding leg is carrying a **basin-specific** result
+    reported as a global one. See
+    `docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md` and
+    `2026-07-30_per_aoi_legs_vs_their_own_null.md`.
   - **The degeneracy is a gauge symmetry, and no UDE can remove it.** Any learned sink
     `S = r0 * g(state)` is homogeneous of degree one in `r0`, so `(alpfe, r0) -> (λ·alpfe, λ·r0)`
     leaves the predicted iron field unchanged for *every* `g`. A network inside a multiplicative
