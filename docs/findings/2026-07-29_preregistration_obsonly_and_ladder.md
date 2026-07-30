@@ -487,6 +487,89 @@ formally ungradable in the `pointwise` arm** (its null is saturated at 50/50, no
 
 ---
 
+---
+
+## 3.6 LADDER VERDICT — an inverted U. More degrees of freedom is strictly worse.
+
+Grader 232938 fired at 20:28 UTC; `peraoi_dinn` graded separately, all `verify_run` exit 0.
+
+| rung | free values | **trio per-AOI** | alpfe | scav_rat | R_PICPOC |
+|---|---|---|---|---|---|
+| global scalar | 6 | **0/50** | — | — | — |
+| **shared DINN, published flagship** | **406** | **25/50** | 49/50 | 25/50 | 50/50 |
+| per-AOI DINN | 3 × 406 = 1218 | **3/50** | 33/50 | 4/50 | 40/50 |
+| free per-cell field | 17,106 | **0/40** (filling) | — | — | — |
+
+Flagship row is `n50e2k_percell_trio`, the published values. Its independent reproduction `ctrl_n50`
+gives a trio of 25/50 on the same seeds, one seed apart on the `scav_rat` leg; the two runs must not
+be merged into one row.
+
+**The pre-registered "free field WORSE than DINN" branch fires (§3.1), so "the per-cell architecture
+is load-bearing" is EARNED rather than assumed.** But the per-AOI rung makes a sharper statement than
+the free field does, and it is the one to quote.
+
+**`peraoi_dinn` is architecturally identical to the flagship.** Same class, same `n_input_channels=1`,
+same `hidden_dim`, same 406 weights per network. The *only* change is that each AOI gets its own copy
+instead of sharing one. That single change takes the trio from **25/50 to 3/50**, and `scav_rat` from
+26/50 to 4/50 — despite the arm having **three times as many free parameters**.
+
+So the load-bearing thing is not per-cell resolution and not capacity. **It is cross-AOI pooling.**
+Removing only the sharing destroys the result while adding 812 parameters. That is a clean isolation
+of the mechanism, and it agrees with main's causal control (`57ee408`), where the Southern Ocean
+`R_PICPOC` leg collapses 1.27× → 13.06× when the anchor it inherits from other basins is removed.
+
+**Why this matters more than the free-field arm.** The free field confounds three changes at once
+(per-cell freedom, per-AOI freedom, loss of pooling). `peraoi_dinn` changes exactly one. The
+monotone-in-parameters ordering 6 → 406 → 1218 → 17,106 giving 0 → **25** → 3 → 0 is an inverted U
+whose peak is at the *sharing* architecture, not at the largest one.
+
+**Honest caveats.** The free-field arm is at 40/50 and its trio is 0/40 so far, consistent with the
+§3.1d prediction that it cannot pool; it must reach 50 before being quoted. And per §3.5a the
+under-determination objection applies to the obs-only arms, not to these, which all run the flagship
+config with the dense base block on.
+
+---
+
+## 3.7 OBS-ONLY VERDICT, all four arms (grader 232938, all exit 0)
+
+| arm | channels | alpfe | scav_rat | diatomgraz | R_PICPOC | **of 4** |
+|---|---|---|---|---|---|---|
+| Q1 `obsonly_mld` (Darwin IC) | 2 | **50/50** | 0/50 | **50/50** | **30/50** | **3** |
+| Q2 `obsonly_litic` (no MLD) | 1 | **50/50** | 0/50 | 33/50 *(P=0.447)* | **32/50** | **2** |
+| **Q1+Q2 `obsonly_mld_litic`** | 2 | **50/50** | 0/50 | **50/50** | **43/50** | **3** |
+
+**MLD is exactly what makes it 3-of-4, and the arms isolate it.** Without the MLD channel (Q2)
+`diatomgraz` is 33/50 against a 32/50 untrained baseline, **P = 0.447** — the same coin flip that
+retired the 35/50 count. With MLD it is 50/50, **P = 4.22e-09**. The 2-of-4 versus 3-of-4 question
+that this batch existed to answer has a one-word answer: **MLD**.
+
+**Q2 also closes what it was built to close.** With a *literature* initial condition and no MLD,
+`alpfe` holds 50/50 (P = 1.13e-35, k\* = 16) and `R_PICPOC` holds 32/50 (P = 4.89e-27, k\* = 7). Both
+clear their pre-registered thresholds, so **neither rests on Darwin's pickup state.** The forcing half
+remains open.
+
+### Q3 `chl2w20` — the pre-registered FALSIFIER fired. The lever is dead.
+
+| `CHL2_W_EXTRA` | 0 | 8 | **20** |
+|---|---|---|---|
+| **Biggrow** | 6/50 | 12/50 | **7/50** |
+
+§2.4 fixed the rule in advance: *"`Biggrow` ≤ 12 → the dose-response has saturated or was a bump.
+Report the ladder as non-monotone and drop the lever as a route to `Biggrow`."* The ladder is
+**6 → 12 → 7**, non-monotone. **Dropped.**
+
+And W=20 does real damage, which the pre-registered gate also required checking: `scav_rat` halves
+from 26/50 to **13/50** and `alpfe` falls 49/50 → 43/50. `diatomgraz` goes to 0/50.
+
+`Smallgrow` stayed flat at 5/50 across the whole ladder, which is the fourth independent confirmation
+of the discriminating prediction from the Fisher decomposition. That part of the H3 analysis survives;
+the lever built on it does not.
+
+**STATUS must not be rewritten to say `Biggrow` responds to `CHL2_W_EXTRA`.** The 12/50 at W=8 was a
+bump.
+
+---
+
 ## 4. What would falsify the framework this session is building
 
 The identifiability contract claims it can say what is inferable before the fit. Three ways it fails:
