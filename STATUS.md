@@ -137,8 +137,18 @@ comparison in the last row.**
    climatology baseline and inflated skill-vs-climatology by +0.37 to +0.78.
 2. **The "~9-month horizon" is RETRACTED.** Against a correct seasonal climatology it is 1 step.
 3. **"v05 daily ends 2012-03-31" was an artifact of #1.** It ends **2018-12-31**, which nearly
-   doubles the MODIS overlap.
-4. **The single-step numbers describe a ~2-month operator, not a monthly one.** The validation set
+   doubles the MODIS overlap. *(Refined 2026-07-30: 2018-12-31 is the terminal file **stamp**;
+   the last day of **data** is 2018-12-30, because MITgcm stamps a time-average with its
+   interval END. The `.meta` gives `timeInterval = [9860.0, 9861.0]` days. Quote the averaging
+   window, not the stamp, in any pre-registered test. See
+   `docs/findings/2026-07-30_daily_archive_era_and_completeness.md`.)*
+4. **The v05 **monthly** `.meta` `timeInterval` field is wrong and must never be read.** It
+   declares an averaging window shrinking from 27.27 d (1992) to 10.25 d (2018) at −0.710 d/yr,
+   in two independently staged trees. The **data are true full-month means** (verified against
+   daily `surfChl1`, which is the same `TRAC27`: agreement to 1.53e-07 where the metadata claims
+   a 10.5-day window). Use `timeStepNumber`. The **daily** sidecars are self-consistent and
+   unaffected. See `docs/findings/2026-07-30_monthly_timeinterval_metadata_is_wrong.md`.
+5. **The single-step numbers describe a ~2-month operator, not a monthly one.** The validation set
    has a median gap of 61 days. On genuinely-monthly pairs the flagship scores **+0.0026** — no
    skill over persistence — while a model trained only on 1-month pairs scores **+0.4756**.
 
