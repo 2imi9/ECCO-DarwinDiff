@@ -84,7 +84,19 @@ def analytic_chance(n_samples: int = 200_000, seed: int = 0) -> dict[str, float]
 
 
 def per_aoi_2of3(run_dir: str):
-    """Count per-AOI >=2-of-3 co-recovery per parameter over the seeds in run_dir."""
+    """Count per-AOI majority co-recovery per parameter over the seeds in run_dir.
+
+    The rule is >=2-of-3 for a multi-AOI run and >=1-of-1 for a SINGLE-AOI run,
+    mirroring scripts/verify_run.py:263-270 exactly.
+
+    The single-AOI branch is not cosmetic. A global-scalar fit produces the SAME
+    value in every AOI, so a 3-AOI global-scalar run has three identical legs and
+    the 2-of-3 rule degenerates to 1-of-1 anyway; the well-posed design is three
+    separate single-AOI runs. With a hardcoded `>= 2` those runs grade as 0/50 no
+    matter what they recovered, which would silently condemn the observations-only
+    global-scalar experiment that `main` pre-registered as the well-posed estimator
+    for that configuration.
+    """
     files = sorted(glob.glob(os.path.join(run_dir, "*.json")))
     counts, n = defaultdict(int), 0
     aois = defaultdict(set)
@@ -102,7 +114,8 @@ def per_aoi_2of3(run_dir: str):
             aois[name] |= set(per_aoi)
             if carroll is None or not per_aoi:
                 continue
-            if sum(1 for v in per_aoi.values() if band_ok(v, carroll)) >= 2:
+            need = 2 if len(per_aoi) >= 2 else 1
+            if sum(1 for v in per_aoi.values() if band_ok(v, carroll)) >= need:
                 counts[name] += 1
     return counts, n, aois
 
@@ -176,7 +189,11 @@ def main() -> None:
 
     for d in args.dirs:
         counts, n, aois = per_aoi_2of3(d)
-        print(f"\n=== {os.path.basename(d.rstrip('/\\'))}  (n={n}) ===")
+        # Compute the label OUTSIDE the f-string: a backslash inside an f-string
+        # expression is a SyntaxError before Python 3.12, which made this gate
+        # importable on the cluster (3.12+) and unusable on a 3.11 workstation.
+        _label = os.path.basename(d.rstrip("/\\")) or d
+        print(f"\n=== {_label}  (n={n}) ===")
         if n == 0:
             print("  no gradeable seed JSONs found")
             continue

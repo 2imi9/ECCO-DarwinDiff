@@ -116,7 +116,12 @@ def _per_aoi_counts(run_dir: Path, names: list[str]) -> tuple[dict[str, int], in
                 continue
             good = sum(1 for v in per_aoi.values()
                        if band_of(abs(v - pub) / abs(pub)) in CAL_PLUS)
-            if good >= 2:
+            # >=2-of-3 for a multi-AOI run, >=1-of-1 for a single-AOI run, mirroring
+            # verify_run.py:263-270. A hardcoded 2 grades every single-AOI run as
+            # 0/n regardless of what it recovered, which would silently condemn the
+            # global-scalar observations-only design (a global scalar gives all AOIs
+            # the same value, so the well-posed form is separate single-AOI runs).
+            if good >= (2 if len(per_aoi) >= 2 else 1):
                 counts[n] += 1
     return counts, len(files)
 
