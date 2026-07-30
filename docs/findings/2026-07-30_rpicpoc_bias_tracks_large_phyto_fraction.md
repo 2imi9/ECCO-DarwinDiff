@@ -1,5 +1,24 @@
 # R_PICPOC's per-AOI bias tracks the inverse large-phytoplankton fraction, in the two basins that carry the anchor
 
+> ## ⚠ PARTLY SUPERSEDED the same day by `2026-07-30_rain_ratio_which_value_is_live.md`
+>
+> This note assumed the calcifying fraction is `Chl1 + Chl2` (diatoms plus large eukaryotes).
+> Darwin 3 source says otherwise: `data.traits:36` gives `0.0, 2*4.1886E-2, 4*0.0`, so the
+> calcifiers are types **2 and 3**, which in our box's ordering are **large eukaryotes and
+> Synechococcus**, `Chl2 + Chl3`. One of the two is picoplankton.
+>
+> With the correct grouping the quantitative fit is worse. `natlsubpolar` still lands almost
+> exactly (1/f 1.043 against a measured bias of 1.029) but `eqpac` **overshoots by about 2.9x**
+> (1/f 4.329 against 1.518).
+>
+> **Survives:** the offset is systematic and tightly converged, not noise; the anchor constrains a
+> product; the box applies the ratio to more types than Darwin does.
+> **Does not survive:** that `1/f` predicts the magnitude. It fit better under the wrong grouping,
+> which is what post-hoc matching on two points does.
+>
+> Also note the live ratio is **0.041886**, not the published 0.04245, and chlorophyll fraction is
+> a proxy for production share rather than equal to it. Read that note first.
+
 **Date:** 2026-07-30 · **Arms:** `obsonly_mld_litic` (n=50, verify_run exit 0), caches
 `/home/qi_zim_neu/dd_data/ecco_darwin_v5/cache/*.pt` ·
 **Verdict: supportive of the R_PICPOC times f_calc hypothesis and NOT statistically established,
