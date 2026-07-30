@@ -1172,6 +1172,29 @@ def save_checkpoint(path, model, config, means, stds):
     return p
 
 
+def _is_safetensors_file(p: Path) -> bool:
+    """Detect the on-disk format by CONTENT, never by filename.
+
+    ``save_checkpoint`` falls back to a torch ``.pt`` payload when the safetensors
+    package is missing, but it keeps the caller's ``.safetensors`` path. Dispatching on
+    the suffix therefore fails to read a checkpoint this repo wrote itself, whenever it
+    was written on a machine without safetensors installed (CI is one). Sniffing the
+    magic bytes makes the reader the true inverse of the writer in both cases.
+
+    torch pickles start with the zip magic ``PK\\x03\\x04`` or the legacy pickle opcode
+    ``\\x80``; a safetensors file starts with a little-endian uint64 header length
+    followed by JSON, so byte 8 is ``{``.
+    """
+    try:
+        with open(p, "rb") as fh:
+            head = fh.read(9)
+    except OSError:
+        return False
+    if head[:4] == b"PK\x03\x04" or head[:1] == b"\x80":
+        return False
+    return len(head) == 9 and head[8:9] == b"{"
+
+
 def read_checkpoint(path):
     """Read a :func:`save_checkpoint` file back into ``(state_dict, means, stds, config)``.
 
@@ -1179,12 +1202,15 @@ def read_checkpoint(path):
     spectral weights were stored as a real view with a trailing size-2 axis and their
     keys recorded in the ``complex_keys`` metadata. They are rebuilt here with
     ``view_as_complex``. Torch ``.pt`` checkpoints round-trip directly.
+
+    The format is chosen by content, not by suffix, so a ``.safetensors``-named file that
+    actually holds a torch fallback payload still loads. See :func:`_is_safetensors_file`.
     """
     p = Path(path)
     if not p.is_file():
         raise SystemExit(f"--load-model: no such checkpoint {p}")
 
-    if p.suffix == ".safetensors":
+    if _is_safetensors_file(p):
         try:
             from safetensors import safe_open
         except Exception as exc:  # pragma: no cover - import guard

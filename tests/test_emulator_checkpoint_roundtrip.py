@@ -27,6 +27,13 @@ import emulator_poc as ep  # noqa: E402
 
 CHANS = ["Chl1_k0", "Chl2_k0"]
 
+try:  # CI installs neither safetensors nor a GPU; the loader must work regardless.
+    import safetensors  # noqa: F401
+
+    HAS_SAFETENSORS = True
+except ImportError:
+    HAS_SAFETENSORS = False
+
 
 def _tiny_model():
     """A 2-channel forcing-free FNO2d on a small grid: real weights + complex spectral."""
@@ -71,6 +78,7 @@ def test_roundtrip_restores_every_weight_bitwise(tmp_path):
         assert torch.equal(s_sd[k].cpu(), d_sd[k].cpu()), f"{k} did not round-trip bitwise"
 
 
+@pytest.mark.skipif(not HAS_SAFETENSORS, reason="safetensors not installed")
 def test_complex_spectral_weights_survive_the_real_view_packing(tmp_path):
     """safetensors has no complex dtype; w1/w2 are stored as a real view and rebuilt."""
     src = _tiny_model()
@@ -154,3 +162,52 @@ def test_torch_pt_fallback_round_trips(tmp_path):
     assert cfg["channel_names"] == CHANS
     for k, v in src.state_dict().items():
         assert torch.equal(sd[k].cpu(), v.cpu())
+
+
+def test_a_torch_payload_under_a_safetensors_name_still_loads(tmp_path, monkeypatch):
+    """The reader must be the true inverse of the writer, including its fallback.
+
+    `save_checkpoint` falls back to a torch `.pt` payload when safetensors is missing but
+    KEEPS the caller's `.safetensors` path, so dispatching on the suffix cannot read a
+    checkpoint this repo wrote itself. That is not hypothetical: CI has no safetensors,
+    and every such checkpoint was unreadable until read_checkpoint sniffed the content.
+    """
+    import builtins
+
+    real_import = builtins.__import__
+
+    def no_safetensors(name, *a, **kw):
+        if name.startswith("safetensors"):
+            raise ImportError("simulated: safetensors not installed")
+        return real_import(name, *a, **kw)
+
+    src = _tiny_model()
+    means = np.array([1.0, 2.0]); stds = np.array([3.0, 4.0])
+    path = tmp_path / "ck.safetensors"
+
+    monkeypatch.setattr(builtins, "__import__", no_safetensors)
+    ep.save_checkpoint(path, src, {"channel_names": CHANS}, means, stds)
+    monkeypatch.undo()
+
+    assert path.is_file(), "fallback must still write to the requested path"
+    assert not ep._is_safetensors_file(path), "fixture must exercise the torch fallback"
+
+    sd, ck_means, ck_stds, cfg = ep.read_checkpoint(path)
+    assert np.allclose(ck_means, means) and np.allclose(ck_stds, stds)
+    assert cfg["channel_names"] == CHANS
+    for k, v in src.state_dict().items():
+        assert torch.equal(sd[k].cpu(), v.cpu())
+
+
+def test_format_is_detected_by_content_not_suffix(tmp_path):
+    """A genuine safetensors file is recognised whatever it is named."""
+    if not HAS_SAFETENSORS:
+        pytest.skip("safetensors not installed")
+    p = ep.save_checkpoint(tmp_path / "ck.safetensors", _tiny_model(),
+                           {"channel_names": CHANS}, np.zeros(2), np.ones(2))
+    assert ep._is_safetensors_file(p)
+    misnamed = tmp_path / "ck.pt"
+    misnamed.write_bytes(p.read_bytes())
+    assert ep._is_safetensors_file(misnamed), "content, not the suffix, decides"
+    sd, m, s, cfg = ep.read_checkpoint(misnamed)
+    assert cfg["channel_names"] == CHANS
