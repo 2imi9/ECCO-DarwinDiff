@@ -104,7 +104,8 @@ def main() -> int:
                          "at the optimum residuals ~0 so GN ~ the true Hessian. Verified in-run "
                          "against 2*J^T J ~ FD-Hessian(theta*).")
     ap.add_argument("--loss", default="full",
-                    choices=["full", "realiron", "realbsi", "realpic", "realgraze", "realbsi_synth"],
+                    choices=["full", "realiron", "realbsi", "realdaniels", "realpic",
+                             "realgraze", "realbsi_synth"],
                     help="'full' = exact runner joint loss; 'realiron' = ONLY the REAL "
                          "GEOTRACES dissolved-iron residual (surf+sub, for alpfe/scav_rat); "
                          "'realbsi' = ONLY the REAL GEOTRACES biogenic-silica residual (for "
@@ -300,10 +301,56 @@ def main() -> int:
             z = z + R.POSI_W * (resid ** 2).flatten(1).sum(dim=1) / b["n_posi_f"] / scale
         return z
 
+    def real_daniels_loss_vec(theta: torch.Tensor) -> torch.Tensor:
+        """ONLY the REAL Daniels 2018 CP:PP rain-ratio residual, summed over AOIs.
+
+        Replicates the runner's DANIELS_RPICPOC_W block (run_v3.0 lines ~1878-1883)
+        exactly: the box's surface PIC:POC ratio against the Darwin-INDEPENDENT
+        Daniels CP:PP observation, scale-normalised per AOI.
+
+        This is the observable that actually identifies R_PICPOC in the flagship.
+        It exists because neither ``realiron`` nor ``realbsi`` carries ANY rain-ratio
+        information (both give R_PICPOC a Fisher information of identically 0), so
+        without it R_PICPOC has no positive structural clause. ``realpic`` is NOT a
+        substitute: that is MODIS-Aqua PIC, the shelved satellite path, and it is not
+        what the flagship fits.
+
+        COVERAGE CAVEAT that must travel with any number from this loss: Daniels has
+        no coverage in southernoceanpac, so the term auto-gates off there and this is
+        a 2-AOI object (eqpac and natlsubpolar), not a 3-AOI one.
+
+        mort_total cancels in the box ratio, so this pins R_PICPOC orthogonally to
+        the iron pair.
+        """
+        S = theta.shape[1]
+        set_seeds(S)
+        z = theta.new_zeros(S)
+        for b in bundles:
+            if not (R.DANIELS_RPICPOC_W > 0 and b["n_daniels"] > 0):
+                continue
+            H, W = b["mask_f"].shape
+            pb = theta.reshape(6, S, 1, 1).expand(6, S, H, W)
+            _, state = aoi_loss(b, pb)
+            ratio_pred = state[R.I_PIC_1] / state[R.I_POC_1].clamp(min=1e-9)
+            resid = (ratio_pred - b["daniels_target_t"][None]) * b["daniels_mask_f"][None]
+            scale = (b["daniels_target_t"][b["daniels_mask_t"]] ** 2).mean().clamp(min=1e-30)
+            z = z + (R.DANIELS_RPICPOC_W * R.DANIELS_AOI_W[b["key"]]
+                     * (resid ** 2).flatten(1).sum(dim=1) / b["n_daniels_f"] / scale)
+        return z
+
     # Select which loss the optimum/Hessian/profile operate on (late-bound by the helpers).
     if args.loss == "realiron":
         loss_vec = real_iron_loss_vec
         print("    LOSS = realiron (GEOTRACES dissolved-iron residual ONLY)")
+    elif args.loss == "realdaniels":
+        _cov = [b["key"] for b in bundles if b["n_daniels"] > 0]
+        if not _cov:
+            raise SystemExit(
+                "realdaniels: no AOI in this run has Daniels CP:PP coverage. "
+                "Check DANIELS_DATA_PATH and DANIELS_RPICPOC_W>0.")
+        loss_vec = real_daniels_loss_vec
+        print(f"    LOSS = realdaniels (real Daniels CP:PP rain-ratio residual ONLY; "
+              f"AOIs with coverage: {_cov})")
     elif args.loss == "realbsi":
         loss_vec = real_bsi_loss_vec
         print("    LOSS = realbsi (GEOTRACES biogenic-silica residual ONLY)")
@@ -602,12 +649,14 @@ def main() -> int:
     # the trap that invalidated 9/13 runs on 2026-07-19.
     if args.mode == "fisher_gn":
         import math as _math
-        if args.loss not in {"realiron", "realbsi"}:
+        if args.loss not in {"realiron", "realbsi", "realdaniels"}:
             raise SystemExit(
-                "fisher_gn currently supports --loss realiron (iron pair alpfe/scav_rat) or "
-                "realbsi (diatomgraz) -- the residual-vector losses whose scaling is exact here. "
-                "The 'full' joint loss does not expose its residual vector; realpic scaling is "
-                "not yet replicated. Choose realiron or realbsi.")
+                "fisher_gn supports --loss realiron (iron pair alpfe/scav_rat), realbsi "
+                "(diatomgraz) or realdaniels (R_PICPOC) -- the residual-vector losses whose "
+                "scaling is replicated exactly here. The 'full' joint loss does not expose its "
+                "residual vector; realpic (MODIS-Aqua) scaling is not replicated and is in any "
+                "case the shelved satellite path, not what the flagship fits. "
+                "Choose realiron, realbsi or realdaniels.")
 
         def resid_vec(theta_6):
             """Scaled residual vector rho for the selected loss at a single theta [6];
@@ -636,6 +685,20 @@ def main() -> int:
                         r = (bsi_pred - b["posi_target_t"][None]) * b["posi_mask_f"][None]
                         sc = (b["posi_target_t"][b["posi_mask_t"]] ** 2).mean().clamp(min=1e-30)
                         coef = (R.POSI_W / (b["n_posi_f"] * sc)).sqrt()
+                        parts.append(coef * r.reshape(-1))
+                elif args.loss == "realdaniels":
+                    # Mirrors real_daniels_loss_vec above. The loss contribution is
+                    #   W * AOI_W * sum(resid^2) / n_f / scale
+                    # so the residual-vector entry is sqrt(W * AOI_W / (n_f * scale)) * resid,
+                    # giving ||rho||^2 == loss. The self-check below refuses to emit an
+                    # artifact if that identity fails, so a scaling error is a failed job
+                    # rather than a wrong number.
+                    if R.DANIELS_RPICPOC_W > 0 and b["n_daniels"] > 0:
+                        ratio_pred = state[R.I_PIC_1] / state[R.I_POC_1].clamp(min=1e-9)
+                        r = (ratio_pred - b["daniels_target_t"][None]) * b["daniels_mask_f"][None]
+                        sc = (b["daniels_target_t"][b["daniels_mask_t"]] ** 2).mean().clamp(min=1e-30)
+                        w = R.DANIELS_RPICPOC_W * R.DANIELS_AOI_W[b["key"]]
+                        coef = (w / (b["n_daniels_f"] * sc)).sqrt()
                         parts.append(coef * r.reshape(-1))
             return torch.cat(parts) if parts else theta_star.new_zeros(1)
 

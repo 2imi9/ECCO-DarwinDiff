@@ -141,10 +141,12 @@ from darwindiff.carroll6 import (
     K_FE,
     P,
     PARAM_BOUNDS,
+    N_PARAMS,
     PARAM_NAMES,
     PHI_DUST,
     Q_FE,
     bounded_params,
+    log_mask_from_names,
 )
 from darwindiff.carroll6_5pft import (
     MU_DEFAULT_DIATOM,
@@ -216,7 +218,7 @@ from darwindiff.daniels_loader import (
     load_daniels_points,
 )
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
-from darwindiff.networks import DINN, GlobalScalarNet
+from darwindiff.networks import DINN, GlobalScalarNet, PerCellFreeField
 from darwindiff.safe_load import safe_torch_load
 from darwindiff.gating import (
     GATING_POLICIES,
@@ -321,6 +323,20 @@ USE_AOI_ID_CHANNEL = os.environ.get("AOI_ID_CHANNEL", "0") == "1"
 # to 32/64 to test whether the shared-MLP capacity is the binding constraint
 # on the regime-specific parameter mappings (diatomgraz especially).
 DINN_HIDDEN_DIM = int(os.environ.get("DINN_HIDDEN_DIM", "16"))
+# Per-parameter LOG-SCALE bounding. Comma-separated registry names, e.g.
+# PARAM_LOG_SCALE=scav_rat. Empty (default) -> None -> the historical LINEAR
+# sigmoid map, bitwise identical to every run before 2026-07-28.
+#
+# Why it exists: bounded_params interpolates linearly between (lo, hi). For
+# scav_rat that range spans 100x (3e-8..3e-6), so the top decade occupies 90.9%
+# of the sigmoid and the bottom decade only 9.1%. Under the init distribution
+# just 7.5% of prior mass lands below Carroll and the median start is 2.52x
+# Carroll, i.e. nearly every seed begins well above the target with almost no
+# resolution on the way down. Log bounding makes the map geometric, putting the
+# theta=0 start at the geometric mean (0.50x Carroll, rel offset 0.502 -- still
+# OUTSIDE the 0.40 Cal band, so this does not hand the metric a free recovery).
+PARAM_LOG_SCALE = os.environ.get("PARAM_LOG_SCALE", "")
+PARAM_LOG_SCALE_MASK = log_mask_from_names(PARAM_LOG_SCALE)
 # v3.0+: add MLD as a 3rd env channel (after SST + AOI ID) when set. MLD is
 # regime-distinctive (winter convection in N Atl vs perennial-thermocline
 # in Eq Pac) and biology-relevant.
@@ -347,6 +363,11 @@ _ENABLED_EXTRA_ENV = [(rawkey, lbl) for (flag, rawkey, lbl) in _EXTRA_ENV_SPEC
 # the existing 1/11-weighted Chl1 loss apparently isn't pulling hard
 # enough. Default 0 = no extra term; existing v3.0 JSONs reproduce.
 CHL1_W_EXTRA = float(os.environ.get("CHL1_W_EXTRA", "0.0"))
+# CHL2_W_EXTRA mirrors CHL1_W_EXTRA for the LARGE-phytoplankton channel
+# (state[I_LGE] vs Darwin Chl2), which is the observable carrying Biggrow.
+# See the loss-term comment for the Fisher evidence motivating it. Default 0.0
+# keeps every existing run bitwise identical.
+CHL2_W_EXTRA = float(os.environ.get("CHL2_W_EXTRA", "0.0"))
 # v3.0+: per-AOI DINNs with cross-AOI consistency penalty. PER_AOI_DINN=1
 # builds N_AOIS * N_SEEDS independent DINNs (each (seed, AOI) pair gets its
 # own net) instead of N_SEEDS shared DINNs applied across AOIs. The
@@ -364,6 +385,16 @@ USE_PER_AOI_DINN = os.environ.get("PER_AOI_DINN", "0") == "1"
 # integrator, loss, scoring) is identical, so per-cell-vs-global is a clean A/B.
 # Takes precedence over PER_AOI_DINN (a global scalar is global by construction).
 USE_GLOBAL_SCALAR = os.environ.get("GLOBAL_SCALAR", "0") == "1"
+# Ablation control: POINTWISE=1 replaces the per-cell DINN with an UNCONSTRAINED
+# free parameter field, one learnable value per parameter per grid cell, no
+# network and no covariate conditioning. This is the third rung of the
+# parameterisation ladder and the control the inverse-problems literature uses
+# for a neural field (Xu & Darve, ADCME): DINN-vs-global-scalar shows per-cell
+# STRUCTURE matters, DINN-vs-free-field shows whether the NETWORK does.
+# Bound to one grid, so it is per-AOI by construction -- run PER_AOI_DINN=1
+# alongside it to separate per-cell freedom from per-AOI freedom.
+# Precedence: GLOBAL_SCALAR > POINTWISE > PER_AOI_DINN > shared DINN.
+USE_POINTWISE = os.environ.get("POINTWISE", "0") == "1"
 CONSISTENCY_LAMBDA = float(os.environ.get("CONSISTENCY_LAMBDA", "0.0"))
 # POOL_PARAMS (partial pooling): which Carroll-6 params are pulled toward cross-AOI
 # agreement by CONSISTENCY_LAMBDA; the rest stay fully per-AOI free. Implements the
@@ -1595,10 +1626,29 @@ if USE_GLOBAL_SCALAR:
     for s in SEEDS:
         torch.manual_seed(s)
         n = GlobalScalarNet(n_input_channels=n_input_channels,
-                            hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
+                            hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
         shared_nets.append(n)
     for k in AOIS_KEYS:
         nets_per_aoi[k] = shared_nets  # alias: one global vector applied to every AOI/cell
+elif USE_POINTWISE:
+    # Free per-cell field. Bound to a grid, so one instance per (seed, AOI) --
+    # it cannot be aliased across AOIs the way the shared DINN is. Seeded
+    # (seed + aoi_idx * 10000) to match the PER_AOI_DINN convention exactly, so
+    # the two per-AOI rungs of the ladder differ ONLY in parameterisation.
+    _shape_by_key = {b["key"]: b["ocean_mask"].shape for b in bundles}
+    _n_free = sum(N_PARAMS * h * w for (h, w) in _shape_by_key.values())
+    print(f"\n[ABLATION] Building {N_SEEDS * N_AOIS} POINTWISE free per-cell fields "
+          f"(one per (seed, AOI); NO network, NO covariate conditioning, NO smoothness "
+          f"penalty) -- {_n_free:,} free values per seed vs DINN's ~406 weights...")
+    for aoi_idx, k in enumerate(AOIS_KEYS):
+        h, w = _shape_by_key[k]
+        nets_per_aoi[k] = []
+        for s in SEEDS:
+            torch.manual_seed(s + aoi_idx * 10000)
+            n = PerCellFreeField(height=h, width=w, n_input_channels=n_input_channels,
+                                 hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
+            nets_per_aoi[k].append(n)
+        print(f"    {k}: {h}x{w} grid -> {N_PARAMS * h * w:,} free values per seed")
 elif USE_PER_AOI_DINN:
     print(f"\nBuilding {N_SEEDS * N_AOIS} per-AOI DINN networks "
           f"(one per (seed, AOI); lambda_consistency={CONSISTENCY_LAMBDA})...")
@@ -1606,14 +1656,14 @@ elif USE_PER_AOI_DINN:
         nets_per_aoi[k] = []
         for s in SEEDS:
             torch.manual_seed(s + aoi_idx * 10000)
-            n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
+            n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
             nets_per_aoi[k].append(n)
 else:
     print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
     shared_nets: list[DINN] = []
     for s in SEEDS:
         torch.manual_seed(s)
-        n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=6).to(device)
+        n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
         shared_nets.append(n)
     for k in AOIS_KEYS:
         nets_per_aoi[k] = shared_nets  # alias: all AOIs reference the same per-seed nets
@@ -1629,7 +1679,14 @@ for k in AOIS_KEYS:
             if id(p) not in seen_param_ids:
                 seen_param_ids.add(id(p))
                 all_params.append(p)
-optimizer = torch.optim.Adam(all_params, lr=5e-3)
+# Default 5e-3 reproduces every prior run. The knob exists so the PRIOR CONTROL
+# (NB23_LR=0 with NB23_N_EPOCHS=1) can score UNTRAINED networks through the exact
+# same grading path -- same collapse to a per-AOI arithmetic mean, same band
+# thresholds, same JSON schema -- giving an EMPIRICAL chance rate per parameter
+# rather than one computed from the bounds. N_EPOCHS=0 is not usable for this
+# because loss_history[-1] would index an empty tensor.
+NB23_LR = float(os.environ.get("NB23_LR", "5e-3"))
+optimizer = torch.optim.Adam(all_params, lr=NB23_LR)
 
 _COMPILE_STEP = os.environ.get("TORCH_COMPILE_BATCHED", "1") == "1"
 if _COMPILE_STEP:
@@ -1742,6 +1799,29 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
     if CHL1_W_EXTRA > 0:
         l_chl1_extra = tb(state[I_DIATOM], bundle["chl_z"]["Chl1"])
         z = z + CHL1_W_EXTRA * l_chl1_extra
+
+    # CHL2_W_EXTRA: the Chl2 analogue of CHL1_W_EXTRA, for Biggrow.
+    #
+    # Motivated by a Gauss-Newton Fisher decomposition of the pattern objective
+    # (docs/findings/2026-07-28_session_evidence_log.md section H). Two things
+    # that analysis showed, both against expectation:
+    #   * The growth pair is NOT mutually degenerate -- Smallgrow+Biggrow is the
+    #     LEAST degenerate of all 15 pairs (2x2 cond 1.20, conditional
+    #     correlation -0.088), against 5.42 for the iron pair. So the standard
+    #     "total NPP gives only the biomass-weighted mean" framing does not
+    #     describe this objective, where each growth rate has its own PFT target.
+    #   * They are instead INFORMATION-STARVED: relative Fisher information
+    #     0.055 (Biggrow) and 0.053 (Smallgrow) against diatomgraz at 1.000.
+    # Biggrow's signal is clean and concentrated -- Chl2/P_lge contributes 25.9
+    # against ~2.5-3.1 from every other field -- so it is the one growth
+    # parameter with a specific observable worth up-weighting. (Smallgrow's is
+    # diffuse and its largest single contribution is FeT, so it is read partly
+    # through iron and should NOT be expected to respond the same way.)
+    #
+    # Default 0.0 -> bitwise no-op, so every prior run reproduces.
+    if CHL2_W_EXTRA > 0:
+        l_chl2_extra = tb(state[I_LGE], bundle["chl_z"]["Chl2"])
+        z = z + CHL2_W_EXTRA * l_chl2_extra
 
     if GEOTRACES_POC_SUB_W > 0 and bundle["n_geo_poc"] > 0:
         residual = (state[I_POC_2] - bundle["geo_poc_target_t"][None]) * bundle["geo_poc_mask_f"][None]
@@ -1900,7 +1980,10 @@ if __name__ == "__main__":
         for bundle in bundles:
             env = bundle["env_1ch_dev"]
             aoi_nets = nets_per_aoi[bundle["key"]]
-            per_seed_params = [bounded_params(net(env), bounds_dev) for net in aoi_nets]
+            per_seed_params = [
+                bounded_params(net(env), bounds_dev, log_mask=PARAM_LOG_SCALE_MASK)
+                for net in aoi_nets
+            ]
             params_b = torch.stack(per_seed_params, dim=1)  # [6, N_seeds, H, W]
             # Stage 1 gating: route each parameter's gradient to only its AOI
             # loss(es). Straight-through, so forward values (hence the per-AOI
@@ -2018,20 +2101,73 @@ if __name__ == "__main__":
     for seed_idx, seed in enumerate(SEEDS):
         print(f"\n=== Seed {seed} recovery ===")
         per_aoi_means = {}
+        # ALTERNATIVE COLLAPSE STATISTICS -- recorded, never used for the primary verdict.
+        #
+        # The per-AOI collapse is an ARITHMETIC mean over ocean cells. For a parameter
+        # spanning decades that is the wrong summary: the arithmetic mean of a positive
+        # field is dominated by its largest cells, and by Jensen's inequality it is >= the
+        # geometric mean, with ratio exp(sigma^2/2) for a lognormal field of log-sd sigma.
+        # `scav_rat` spans 100x in its bounds, so this is a live concern, and it is
+        # sharpened by an unexplained discrepancy in the record: EKI reports `scav_rat`
+        # biased LOW while an arithmetic-mean collapse biases HIGH (evidence log B5,
+        # flagged 2026-07-28 and never tested).
+        #
+        # The collapse is pure REPORTING -- it is not in the loss and does not touch
+        # training -- so all three statistics can be computed from the SAME fit. That
+        # makes this an exactly PAIRED comparison (identical seeds, identical weights,
+        # identical fields) rather than an A/B across arms, which is strictly stronger.
+        #
+        # `joint_recovered` / `per_aoi_recovered` remain ARITHMETIC so every prior run
+        # reproduces bit-identically; these are additive fields only.
+        per_aoi_means_geom = {}
+        per_aoi_means_median = {}
+        per_aoi_log_sd = {}
         # Cache per-AOI per-cell sums + cell counts in one forward pass each,
         # then reuse for both per-AOI means and joint mean (Greptile P2 PR #48).
-        weighted_sum = torch.zeros(6, device=device)
+        weighted_sum = torch.zeros(N_PARAMS, device=device)
         weighted_count = torch.zeros((), device=device)
+        weighted_log_sum = torch.zeros(N_PARAMS, device=device)
+        _pooled_ocean_vals = []
         for bundle in bundles:
             with torch.no_grad():
                 net = nets_per_aoi[bundle["key"]][seed_idx]
-                params_b = bounded_params(net(bundle["env_1ch_dev"]), bounds_dev)
+                params_b = bounded_params(
+                    net(bundle["env_1ch_dev"]), bounds_dev,
+                    log_mask=PARAM_LOG_SCALE_MASK,
+                )
             mask_f = bundle["mask_f"]
             n_ocean_f = bundle["n_ocean_f"]
             per_cell_sum = (params_b * mask_f[None]).flatten(1).sum(dim=1)  # [6]
             per_aoi_means[bundle["key"]] = (per_cell_sum / n_ocean_f).cpu().numpy()
             weighted_sum = weighted_sum + per_cell_sum
             weighted_count = weighted_count + mask_f.sum()
+            # Geometric mean: exp(mean(log p)) over OCEAN cells only. bounded_params
+            # guarantees p in (lo, hi) with lo > 0 for every registry entry, so log is
+            # safe; the clamp is belt-and-braces against a float32 underflow to 0.
+            _logp = params_b.clamp(min=1e-300).log()
+            _per_cell_log_sum = (_logp * mask_f[None]).flatten(1).sum(dim=1)  # [6]
+            per_aoi_means_geom[bundle["key"]] = (
+                torch.exp(_per_cell_log_sum / n_ocean_f).cpu().numpy())
+            weighted_log_sum = weighted_log_sum + _per_cell_log_sum
+            # Median over ocean cells. Masked by selection, NOT by multiplication --
+            # multiplying land cells by 0 would inject a spike of zeros at the low end
+            # and drag the median down, which is exactly the kind of silent metric bug
+            # the straddle guard exists to catch.
+            _ocean_sel = mask_f.reshape(-1) > 0
+            _ocean_vals = params_b.flatten(1)[:, _ocean_sel]                 # [6, n_ocean]
+            per_aoi_means_median[bundle["key"]] = (
+                _ocean_vals.median(dim=1).values.cpu().numpy())
+            _pooled_ocean_vals.append(_ocean_vals)
+            # THE diagnostic that decides whether the collapse choice matters at all.
+            # arithmetic/geometric = exp(sigma^2/2) for a lognormal field of log-sd sigma,
+            # and the Cal band is +/-40% RELATIVE, so the arithmetic collapse alone pushes a
+            # perfectly geom-centred field out of the band once
+            #     exp(sigma^2/2) - 1 > 0.40  <=>  sigma > sqrt(2*ln(1.4)) = 0.8203.
+            # Below ~0.3 the effect is under 5% and cannot matter; above ~0.82 it is
+            # decisive on its own. Recording sigma per AOI per parameter makes this an
+            # answered question rather than a standing worry.
+            per_aoi_log_sd[bundle["key"]] = (
+                _ocean_vals.clamp(min=1e-300).log().std(dim=1, unbiased=True).cpu().numpy())
         # Two joint-recovery interpretations:
         #   cellweighted: cell-weighted mean across all AOIs combined (AOIs with
         #     more cells dominate; previously the only definition).
@@ -2043,6 +2179,15 @@ if __name__ == "__main__":
         joint_means_aoiweighted = np.mean(
             [per_aoi_means[k] for k in AOIS_KEYS], axis=0
         )
+        # Joint analogues of the alternative collapses. Cell-weighted geometric mean is
+        # exp(sum(log p) / total ocean cells); the pooled median is over every ocean cell
+        # in every AOI concatenated, which is the honest joint median (a median of medians
+        # is not a median).
+        joint_means_geom_cellweighted = (
+            torch.exp(weighted_log_sum / weighted_count).cpu().numpy())
+        joint_means_median_pooled = (
+            torch.cat(_pooled_ocean_vals, dim=1).median(dim=1).values.cpu().numpy()
+            if _pooled_ocean_vals else joint_means_cellweighted)
         # The "primary" joint_means used for n_cal_grade reporting is configurable
         # via JOINT_RECOVERY_MODE; default "cellweighted" so previously-reported
         # joint_recovered values reproduce bit-identically. Set to "aoiweighted"
@@ -2092,6 +2237,24 @@ if __name__ == "__main__":
                 "joint_aoiweighted_abs_rel_offset": aw_rel,
                 "joint_aoiweighted_band": aw_band,
                 "per_aoi_recovered": {k: float(per_aoi_means[k][i]) for k in AOIS_KEYS},
+                # Alternative collapse statistics, PAIRED with the arithmetic ones above
+                # (same seed, same weights, same per-cell field). Reporting only; the
+                # primary verdict keys are untouched so prior runs reproduce bitwise.
+                # A parameter spanning decades is expected to differ most here: the
+                # arithmetic mean exceeds the geometric by exp(sigma^2/2) for a lognormal
+                # field of log-sd sigma, and the recovery band is RELATIVE, so the gap
+                # translates directly into pass/fail.
+                "per_aoi_recovered_geom": {
+                    k: float(per_aoi_means_geom[k][i]) for k in AOIS_KEYS},
+                "per_aoi_recovered_median": {
+                    k: float(per_aoi_means_median[k][i]) for k in AOIS_KEYS},
+                "joint_geom_cellweighted_recovered": float(joint_means_geom_cellweighted[i]),
+                "joint_median_pooled_recovered": float(joint_means_median_pooled[i]),
+                # Per-cell log-sd of the recovered field. Decides whether the collapse
+                # choice can matter: arith/geom = exp(sigma^2/2), and sigma > 0.8203
+                # is where the arithmetic mean alone clears the +/-40% band.
+                "per_aoi_log_sd": {
+                    k: float(per_aoi_log_sd[k][i]) for k in AOIS_KEYS},
             }
         print(f"       -> joint {n_cal_joint}/6 cal-grade ({n_exc_joint} Excellent)")
 
@@ -2115,7 +2278,21 @@ if __name__ == "__main__":
             "dinn_n_input_channels": n_input_channels,
             "joint_recovery_mode": JOINT_RECOVERY_MODE,
             "chl1_w_extra": CHL1_W_EXTRA,
+            "chl2_w_extra": CHL2_W_EXTRA,
+            "param_log_scale": PARAM_LOG_SCALE,
+            "lr": NB23_LR,
             "per_aoi_dinn": USE_PER_AOI_DINN,
+            # Which rung of the parameterisation ladder produced this run. Recorded
+            # so a grader can never pool arms that differ in parameterisation, and
+            # so an architecture-matched untrained baseline can be checked rather
+            # than assumed. `global_scalar` was previously NOT recorded, which meant
+            # the 0/50 control's own artifacts did not say they were the control.
+            "global_scalar": USE_GLOBAL_SCALAR,
+            "pointwise_free_field": USE_POINTWISE,
+            "n_free_param_values": (
+                sum(N_PARAMS * int(b["ocean_mask"].shape[0]) * int(b["ocean_mask"].shape[1])
+                    for b in bundles) if USE_POINTWISE else None
+            ),
             "consistency_lambda": CONSISTENCY_LAMBDA,
             "pool_params": sorted(_pool_set) if _pool_spec else "all",
             "gating_policy": GATING_POLICY_SPEC if USE_GATING else "ungated",

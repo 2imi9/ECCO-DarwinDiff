@@ -61,9 +61,37 @@ Each parameter has its pre-optimization default visible in a commented-out line 
 
 ## What this means for DarwinDiff
 
-**Calibration coverage gap: 6 / 103 ≈ 5.8 %.** The other ~94 % of independently tunable knobs sit at expert or literature defaults applied uniformly across the global ocean. Many are single global scalars: `Kdop = 2 / (100 × 86400)` controls DOC remineralization rate everywhere on Earth, `kgrazesat = 0.085` is one number for grazing half-saturation across all ocean conditions, `phytoTempOptimum` is one curve per phytoplankton class with no spatial variation. Replacing such scalars with MLP-predicted spatial fields, which is what DarwinDiff's parameter-learner does, is a structurally cheap upgrade per parameter that reaches well past the Green's functions ceiling of "a handful at a time."
+**Calibration coverage gap: 6 / 103 ≈ 5.8 %.** The other ~94 % of independently tunable knobs sit at expert or literature defaults applied uniformly across the global ocean. Many are single global scalars: `Kdop = 2 / (100 × 86400)` controls DOC remineralization rate everywhere on Earth, `kgrazesat = 0.085` is one number for grazing half-saturation across all ocean conditions, `phytoTempOptimum` is one curve per phytoplankton class with no spatial variation. Replacing such scalars with MLP-predicted spatial fields, which is what DarwinDiff's parameter-learner
+does, removes the **cost** barrier that confines Green's functions to a handful of parameters at a
+time: an additional parameter costs an extra channel on the MLP head rather than a fresh ensemble of
+recompiled forward runs. **Whether that converts into more *recovered* parameters is unproven.**
 
-Savelli et al. 2026 explicitly flagged the 100-day fixed DOC remineralization (`Kdop` in the source) as a real limitation. Other parameters in the 94 % likely sit in the same shape: known to be uncertain, plausibly important, but unreached by Green's functions because Green's functions cannot afford them.
+DarwinDiff has so far only targeted the same Carroll-6, and its own results characterize a structural
+ceiling there: no single config recovers all four observables, and the trade-off is structural rather
+than an optimization limit ([STATUS.md](../STATUS.md), jobs 185779 + 192298). Identifiability is
+parameter-specific rather than uniformly cheap. Measured on real observations at n=50, `alpfe` and
+`R_PICPOC` recover decisively while `scav_rat` collapses to 0/50 and the joint trio to 0/50 once
+Darwin's own output is dropped as a target
+([2026-07-28 evidence log](findings/2026-07-28_session_evidence_log.md) §G5). And a recovery count is
+not self-interpreting: against a *measured* untrained-network baseline, `diatomgraz` scores 0.640 with
+no training at all, so its counts largely track its bounds rather than any observational constraint
+(§G1, §G4).
+
+Extending past the six is a scoping hypothesis and a multi-year follow-on direction, **not a
+demonstrated capability**. This distinction matters most for the UDE proposal, where a learned closure
+replaces one scalar with tens to hundreds of free weights: `ScavClosure` carries 67 free parameters
+against `scav_rat`'s 1, and the calcite closure as actually run carries 353 against `R_PICPOC`'s 1.
+The cost argument survives that substitution unchanged. The identifiability argument does not, and our
+own stress test says why: a learned closure reached 0.0065 relative error on the DFe band the
+trajectory visited and **2.877 on the full range**, identically across all four regularization
+configurations, because a regularizer cannot manufacture information about states the trajectory never
+enters (`docs/findings/ude_stress_2026-07-21/`).
+
+Savelli et al. 2026 explicitly flagged the 100-day fixed DOC remineralization (`Kdop` in the source)
+as a real limitation. Other parameters in the 94 % likely sit in the same shape: known to be uncertain
+and plausibly important. Whether Green's functions leave them unreached because of **cost** or because
+they are **unidentifiable** is not something we have measured. We have identifiability results for six
+parameters and none for the other ~97, so this document should not assert either.
 
 ## Darwin 3 (v06/llc270) — also audited
 

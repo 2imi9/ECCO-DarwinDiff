@@ -59,7 +59,19 @@ from __future__ import annotations
 import contextlib
 import datetime
 import email.utils
-import fcntl
+
+try:
+  import fcntl
+except ModuleNotFoundError:  # Windows has no fcntl; locking is a no-op there.
+
+  class _FcntlShim:
+    LOCK_EX = 0
+    LOCK_UN = 0
+
+    def flock(self, *_args, **_kwargs):
+      return None
+
+  fcntl = _FcntlShim()
 import gzip
 import http.client
 import json
@@ -67,6 +79,7 @@ import logging
 import os
 import random
 import re
+import tempfile
 import time
 from typing import Any, Iterator
 import urllib.error
@@ -130,7 +143,9 @@ class _RateLimiter:
       qps: Maximum queries per second.
     """
     self._min_interval = 1.0 / qps
-    self._lock_file = f"/tmp/{PROJECT_NAME}-{hostname}.lock"
+    self._lock_file = os.path.join(
+        tempfile.gettempdir(), f"{PROJECT_NAME}-{hostname}.lock"
+    )
 
   def wait(self, min_sleep: float = 0.0):
     """Block until the next request is allowed.
@@ -146,14 +161,22 @@ class _RateLimiter:
         f.seek(0)
         content = f.read().strip()
         last_ts = float(content) if content else 0.0
-        now = time.monotonic()
+        # Wall clock, NOT time.monotonic(): this timestamp is persisted to a
+        # file and compared across processes and reboots. time.monotonic() has
+        # an arbitrary per-boot epoch, so a value written before a reboot can
+        # exceed the current reading, making (now - last_ts) negative and the
+        # computed gap enormous (observed: a 14.6-hour sleep).
+        now = time.time()
         gap = self._min_interval - (now - last_ts)
+        # Defence in depth: a stale or corrupt timestamp must never produce a
+        # sleep longer than a single rate-limit interval.
+        gap = min(max(gap, 0.0), self._min_interval)
         delay = max(gap, min_sleep)
         if delay > 0:
           time.sleep(delay)
         f.seek(0)
         f.truncate()
-        f.write(str(time.monotonic()))
+        f.write(str(time.time()))
         f.flush()
       finally:
         fcntl.flock(f, fcntl.LOCK_UN)

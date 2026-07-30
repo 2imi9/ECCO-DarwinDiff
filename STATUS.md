@@ -65,11 +65,24 @@ prototype-level and **unconfirmed** (constant-IC/forcing approximation; needs a 
 > *dissolved* SiO₂ against GLODAP, a different quantity. It is **not recovered on real data**
 > (best 4/10 = chance) **with the DINN on SST only** — but that is no longer the whole story. Adding
 > **MLD** as a DINN input channel recovers it **10/10** (2026-07-22), and with the biogenic-silica
-> diagnostic OFF (`POSI_W=0`) it still reaches **35/50 per-AOI** via chlorophyll + MLD, so it is
+> diagnostic OFF (`POSI_W=0`) it reaches **35/50 per-AOI** via chlorophyll + MLD — **but see the
+> 2026-07-29 correction below: that count does not survive its own untrained control** — so it is
 > **input-limited, not structural**, and not a bSi tautology. The honest ceiling is that the Chl target
 > is Darwin's own output: **recoverable from a non-circular model-internal observable, not recovered
 > from independent real data.** Say that; do not reach for a structural-identifiability claim.
 > See also `docs/findings/2026-07-19_diatomgraz_claim_audit.md`.
+>
+> **⚠️ CORRECTION 2026-07-29 — the 35/50 number is retired.** An empirical chance baseline (the real
+> pipeline at `NB23_LR=0, NB23_N_EPOCHS=1`, so networks stay at initialisation, n=50, `verify_run`
+> exit 0) measures what an **untrained** network scores. With the architecture matched
+> (`MLD_CHANNEL=1`, job 227876) `diatomgraz` scores **34/50 untrained**. The reported 35/50 beats that
+> by one seed, **P = 0.447**. The cause is structural: bounds (0.05, 1.0) against Carroll 0.83003 put
+> the Cal-grade band at [0.498, 1.0], 52.8 % of the range, with the midpoint *inside* it at rel 0.367.
+> So the count measures the bounds, not the observations. This is now enforced in code
+> (`tests/test_param_registry_wiring.py`, `KNOWN_PRIOR_CONTAMINATED`).
+> **`diatomgraz` is not refuted** — the `geo1+MLD` **10/10** result is P = 0.021 against the same
+> baseline and remains the headline verdict. Only the 35/50 count is retired.
+> Detail: `docs/findings/2026-07-28_session_evidence_log.md` §G1/§G4.
 
 ## Track 2 — forward emulator: current state (2026-07-19)
 
