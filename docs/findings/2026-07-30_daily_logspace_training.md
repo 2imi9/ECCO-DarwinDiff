@@ -112,9 +112,50 @@ That is a cleaner statement than the one it replaces. The earlier `+0.408` was a
 artifact; the honest number is about **−0.345 against the strongest free baseline**, from a model
 that is physically valid by construction.
 
+## Result 3, FINAL: the −0.345 is pessimistic for three channels and honest for the fourth
+
+Job 238005 restricted the score to cells where prediction, truth and persistence are all strictly
+positive, which is the subset where log space is genuinely defined. Per channel, `log4` seeds:
+
+| channel | clipped | log skill, **all cells** | log skill, **strictly positive** | linear skill |
+|---|---|---|---|---|
+| surfChl1 | 0.11% | −0.573 to −0.580 | **−0.012 to −0.019** | +0.32 to +0.35 |
+| surfChl2 | 0.11% | −0.644 to −0.663 | −0.233 to −0.251 | +0.31 to +0.37 |
+| surfChl3 | 0.05% | −0.802 to −0.824 | −0.346 to −0.378 | −0.03 to +0.20 |
+| surfChl5 | **0.00%** | −1.080 to −1.083 | **−1.080 to −1.083** | +0.05 to +0.06 |
+
+**0.11% of cells cost surfChl1 0.56 in log skill.** Restricted to where log is defined, surfChl1 is
+at parity with persistence (−0.013), not 0.57 below it. Since a log-trained model cannot emit
+non-positive output, every one of those clipped cells comes from truth or persistence, and at such
+a cell persistence copies the same non-positive value and scores an exact zero while the model is
+charged for predicting a physically sensible positive. The scorer's 1e-12 floor (issue #215) is
+therefore **biased toward persistence**, and the bias is large.
+
+`surfChl5` is the control that proves this is a real mechanism and not special pleading: it has
+**zero** clipped cells, so its all-cell and strictly-positive numbers are identical to four
+decimals, and its −1.08 is genuine.
+
+### And that exposes a specific, actionable defect in how we apply `--log-transform`
+
+`surfChl5` is the one channel log-training made **worse**. It is also the only strictly-positive
+one and by far the narrowest: median 0.063 with physical_std 0.016, a coefficient of variation near
+0.26, against surfChl1's median 0.0094 with std 0.111, a CV near 12. Its fitted log floor was
+0.0289, three orders of magnitude above the others.
+
+So the log transform helps the wide-dynamic-range channels that carry non-positive values and
+**hurts the narrow strictly-positive one**, which is the textbook expectation and which we have
+been applying uniformly. `--log-tracers` should be selected per channel on dynamic range and
+non-positivity, not applied as a blanket list. Note this cuts against the repo default, which names
+`Chl1..Chl5,PIC,POC,FeT` without qualification.
+
+**None of this changes the headline.** The winning baseline is `ar1_percell` in every arm and the
+comparison is internally consistent because all predictors are floored identically. But the honest
+report is: **−0.345 against the best free baseline, and that figure is pessimistic by roughly 0.4
+to 0.55 on three of four channels because of a scorer floor we already knew was stale.**
+
 ## Pending
 
-- job 238005, the strictly-positive restriction, which says how pessimistic −0.345 is
+- job 238005 seed 6 of 6 (five in, all consistent)
 - whether the same under-application of `--log-tracers` explains the **monthly** −0.161 against
   seasonal AR(1): the published monthly run logs `Chl1` only and leaves PIC, POC and FeT linear,
   despite the repo's own default including them. Jobs 237982 and 238012 test it. First reading is
