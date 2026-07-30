@@ -61,6 +61,20 @@ reproduce something that varies by two orders of magnitude between basins. I do 
 changes the calcite work, but it does make me more cautious about reporting one recovered number
 for it.
 
+**On the forward tool, no change, and I tried to break it.** I said it beats persistence at one
+step but not a seasonal autoregressive baseline. The most likely way that could have been wrong is
+that three of the six tracers were being scaled in the wrong space, so I retrained with them fixed
+and scored both versions in two common metric spaces. Each version looks better in the space it was
+trained in, and neither beats the free baseline in either. The old number reproduces. One thing did
+improve: with the fix the model stops producing negative concentrations entirely, and it is far
+more repeatable between runs, so I will keep it for that reason rather than for skill.
+
+I also chased the same question on daily data, since that was the obvious next thing. Same answer,
+and it moved a lot: the daily version was off by about four in the wrong units, and fixing the
+scaling recovers almost all of that, but it still loses to a per-cell autoregression. Daily
+autocorrelation is around 0.995, so that baseline is very hard to beat and I do not think more
+capacity changes it.
+
 Nothing here changes the growth pair or the shallow dissolution result.
 
 Tuesday 4 August still works for me, any time.

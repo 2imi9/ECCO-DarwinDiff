@@ -92,6 +92,25 @@ prototype-level and **unconfirmed** (constant-IC/forcing approximation; needs a 
 > and significantly WORSE than seasonal AR(1) (−0.161 ± 0.015, every seed). "Beats persistence" was a weak
 > baseline; PIC/POC's edge was mechanical headroom. Retire the beats-persistence framing. (Single AOI eqpac;
 > seed is ruled out, a different AOI could differ.) The persistence-relative numbers below are superseded.**
+>
+> **CONFIRMED 2026-07-30 against a direct attempt to overturn it (jobs 237982/238012).** The most
+> plausible mechanism, that the published run logs `Chl1` only and leaves PIC/POC/FeT in linear
+> space, was tested at n=3 per arm in **two** common metric spaces so only the training differs.
+> Each arm wins in the space it trained in and **neither beats its best free baseline in either**.
+> `logchl1` in the mostly-linear space gives **−0.1841 ± 0.010**, reproducing the published −0.161.
+> Logging PIC/POC/FeT does buy a real physics win, max non-physical fraction **0.138 → 0.000** and
+> 35x better seed reproducibility, but not skill. Note the winning baseline **changes with metric
+> space** (`ar1_seasonal_percell` linear, `anomaly_persist` log), so any "loses to X" claim must
+> name the space. See `docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md`.
+>
+> **DAILY IS NOW CLOSED FOR TRACK 2 TOO (2026-07-30, jobs 237762/237763/238005).** The pre-existing
+> daily emulator's `+0.408` was a linear-space artifact. Retrained in log space, so physically valid
+> by construction, it closes **91.6%** of the collapse (−4.094 → **−0.345 ± 0.0015**, n=6) and still
+> loses to a per-cell AR(1) with the CI clear of zero. Daily lag-1 r of 0.994–0.996 makes AR(1) a
+> genuinely hard baseline. Removing the dead `surfChl4` channel changes it by 0.0046, a null.
+> Caveat: the scorer floors log at 1e-12 while the trainer floors at a percentile (#215), and that
+> floor **favours persistence**, so −0.345 is pessimistic by roughly 0.4–0.55 on three of four
+> channels. See `docs/findings/2026-07-30_daily_logspace_training.md`.
 
 A separate build from the UDE/identifiability work below. **All numbers are self-consistency
 against v05 output; nothing here has been validated against observations except the chlorophyll
@@ -257,6 +276,20 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   **25/50 at 2000 epochs** (→ 41/50 at 4000 epochs), and the cell-weighted metric that inflates such counts
   can **straddle** Carroll (per-AOI legs landing on opposite sides). Read 38/40 as "the pair recovers,
   carried by `alpfe`; `scav_rat` is basin-fragile," not "`scav_rat` is 95 % solved."
+  - **Sharpened 2026-07-30: "basin-fragile" is specifically "Southern Ocean only."** Grading each
+    AOI leg against *its own* untrained baseline, `scav_rat` clears its null in `southernoceanpac`
+    at **42/50, 39/50 and 50/50** across the three observations-only arms (and 49/50 in the
+    flagship) against an untrained **0/50**, and is **0/50** in both `eqpac` and `natlsubpolar`.
+    The 0/50 *majority* in the obs-only arms is the 2-of-3 rule, not a measurement that nothing was
+    learned. Whether that is local identifiability or inheritance through the shared DINN is
+    pre-registered and running. See `docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md`.
+  - **The degeneracy is a gauge symmetry, and no UDE can remove it.** Any learned sink
+    `S = r0 * g(state)` is homogeneous of degree one in `r0`, so `(alpfe, r0) -> (λ·alpfe, λ·r0)`
+    leaves the predicted iron field unchanged for *every* `g`. A network inside a multiplicative
+    sink adds free directions along that orbit rather than removing one, which also predicts the
+    DOF ladder's inverted U. **Bug #217:** `closures.py:130` carries a free `log_r0`, exactly
+    redundant with `scav_rat`, so any profile likelihood against that closure is flat *by theorem*.
+    See `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md`.
 - **`R_PICPOC` — recovers** against a real calcite anchor (Daniels CP:PP / MODIS PIC), landing at the
   real ~0.05 — *consistent with* Carroll within the wide Cal band, **not** a validation of 0.0425
   (Carroll's value is itself under-constrained; see below).
