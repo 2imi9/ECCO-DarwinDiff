@@ -281,6 +281,25 @@ def main(argv=None):
     ap.add_argument("--emu-json", default="/scratch/qi_zim_neu/depth/depth_chl_emulator.json")
     ap.add_argument("--out", default="/scratch/qi_zim_neu/depth/emulator_baseline_matrix_v2.json")
     ap.add_argument("--log-tracers", default=None)
+    ap.add_argument(
+        "--delta-t-seconds",
+        type=float,
+        default=None,
+        help="Rederive the time axis as iters*delta_t/86400 instead of trusting the cube's "
+        "stored `times_days`. Cubes built before PR #186 carry delta_t=900 s where v05 runs "
+        "at 1200 s, so their times_days are 0.75x truth. Only the SEASONAL baselines depend "
+        "on this (build_splits and the linear trend are invariant to a uniform rescaling of "
+        "t), but those are exactly the baselines this script exists to compute. Pass 1200 "
+        "for any v05 cube whose implied delta_t is 900.",
+    )
+    ap.add_argument(
+        "--drop-channels",
+        default=None,
+        help="Comma-separated channel names to exclude from scoring (matched against the "
+        "cube's chan_names). Use for channels that are numerically dead and were trained on "
+        "anyway -- e.g. surfChl4, whose physical_std is 2.9e-08 and which is negative in "
+        "~100%% of ocean cells, so its skill ratio is a division by noise.",
+    )
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--block-rows", type=int, default=15, help="block height in grid rows (lat)")
     ap.add_argument("--block-cols", type=int, default=36, help="block width in grid cols (lon)")
@@ -315,6 +334,36 @@ def main(argv=None):
     lons = np.asarray(fields["lons"], dtype=float)               # [W]
     val_iters = [int(x) for x in fields["val_iters"]]
     H, W = valid_mask.shape
+
+    # ---- time axis: rederive from iters when the cube's own is calendar-contaminated ----
+    if args.delta_t_seconds:
+        implied = (
+            float(times_days[1] * 86400.0 / cube_iters[1]) if len(cube_iters) > 1 and cube_iters[1] else float("nan")
+        )
+        times_days = np.asarray(cube_iters, dtype=float) * float(args.delta_t_seconds) / 86400.0
+        print(
+            f"[time] rederived from iters at delta_t={args.delta_t_seconds:g}s "
+            f"(cube implied {implied:g}s); median step "
+            f"{float(np.median(np.diff(times_days))):.4f} d"
+        )
+
+    # ---- optional channel drop (dead channels distort pooled skill) ----
+    if args.drop_channels:
+        drop = {s.strip() for s in args.drop_channels.split(",") if s.strip()}
+        unknown = drop - set(chan)
+        if unknown:
+            raise SystemExit(f"--drop-channels: not in the cube's chan_names: {sorted(unknown)}")
+        keep = np.array([c not in drop for c in chan], dtype=bool)
+        if not keep.any():
+            raise SystemExit("--drop-channels: every channel was dropped")
+        print(f"[drop] excluding {sorted(drop)}; scoring {int(keep.sum())} of {C} channels")
+        chan = [c for c, k in zip(chan, keep) if k]
+        C = len(chan)
+        is_log = is_log[keep]
+        state = state[:, keep]
+        pred_phys = pred_phys[:, keep]
+        true_phys = true_phys[:, keep]
+        pers_phys = pers_phys[:, keep]
 
     # locate val pairs in the cube; verify the dumped fields == cube snapshots (v1 asserts)
     tgt_idx = np.array([cube_iters.index(v) for v in val_iters])
@@ -523,6 +572,14 @@ def main(argv=None):
             "aoi": str(fields["aoi"]) if "aoi" in fields.files else cfg.get("aoi"),
             "residual": residual, "val_frac": val_frac, "adjacency_tol": adjacency_tol,
             "log_tracers": sorted(log_tracers),
+            # Provenance for the two choices that change what the seasonal baselines mean.
+            "delta_t_seconds": args.delta_t_seconds,
+            "time_axis": ("rederived from iters" if args.delta_t_seconds else "cube times_days"),
+            "dropped_channels": (
+                sorted({s.strip() for s in args.drop_channels.split(",") if s.strip()})
+                if args.drop_channels else []
+            ),
+            "scored_channels": list(chan),
             "n_channels": C, "n_val_pairs": int(Nval),
             "n_train_months": int(train_months.size), "n_train_pairs": int(train_pairs.size),
             "n_valid_cells": int(ncells),
