@@ -90,8 +90,11 @@ def test_bare_finding_filenames_resolve():
 def test_settled_rows_all_cite_a_location():
     """A SETTLED row without a 'where' is an assertion, not an index entry."""
     text = _map_text()
-    lo = text.lower().find("settled")
-    assert lo != -1
+    # Anchor on the HEADING, not the first occurrence of the word: the preamble names the
+    # `research_map_db.py settled` command, so a bare find() slices the Schema section instead.
+    m = re.search(r"^##\s*\d+\.\s*SETTLED\b.*$", text, re.MULTILINE | re.IGNORECASE)
+    assert m, "research map has no '## N. SETTLED' heading"
+    lo = m.start()
     # take the SETTLED section up to the next top-level heading
     rest = text[lo:]
     end = rest.find("\n## ", 1)
