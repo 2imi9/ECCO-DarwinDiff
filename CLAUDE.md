@@ -56,6 +56,29 @@ CLAIM ⋈ SUPPORTS ⋈ σ_gate≠exit0(EVIDENCE)  where live             = ∅  
 
 **Run `settled` before starting, and `check` before committing a finding.**
 
+### Three artifacts, one source
+
+| file | what it is for | do not |
+|---|---|---|
+| `docs/research_map.md` | reading as prose; the session-start index | hand-edit — regenerate it |
+| `docs/research_map.json` | reading the whole relational model in one file read | hand-edit — export it |
+| the in-memory DB | asking questions: joins, constraints, `settled` | expect it to persist |
+
+Neither generated file is a second source of truth. The markdown is rendered from
+`docs/findings/research_map_corpus.json` by `scripts/gen_research_map.py`; the JSON is exported from
+the same in-memory database the SQL commands query, so a schema or constraint change propagates to
+it automatically. Use SQL to **ask** (one command, joins, constraints) and JSON to **read in bulk**
+(the entire structure without a shell round-trip per question).
+
+```bash
+python scripts/gen_research_map.py                   # corpus JSON -> research_map.md
+python scripts/research_map_db.py export-json        # the DB       -> research_map.json
+```
+
+`test_research_map_json_mirror_is_current` fails when the committed JSON falls behind the build, so
+"the mirror follows the SQL" is enforced rather than promised. **After changing the map, the schema
+or the corpus, re-run both and commit all three together.**
+
 ## Issue tracker is the plan of record
 
 The GitHub issue tracker (`2imi9/ECCO-DarwinDiff`) holds the forward plan for the
