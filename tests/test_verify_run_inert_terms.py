@@ -84,6 +84,35 @@ class TestInertTermDetection:
             assert len(out) == 1, f"{w_key} -> {n_key} not detected"
             assert w_key in out[0]
 
+    def test_iron_ablation_arms_declare_honestly(self, vr) -> None:
+        """The scav_rat mechanism split turns one iron term off and leaves the other on.
+
+        Both arms must pass clean, because a zero weight is an honest declaration -- and the
+        surviving term must still be certified as live from the artifact rather than from a
+        stdout line, which is why the counts are recorded per AOI at all.
+        """
+        so = {"southernoceanpac": 13}
+        sub = {"southernoceanpac": 14}
+        # surface-only ablation
+        assert vr.inert_terms({
+            "geotraces_w": 1.0, "n_geo_surf_cells_per_aoi": so,
+            "geotraces_sub_w": 0.0, "n_geo_sub_cells_per_aoi": sub,
+        }) == []
+        # subsurface-only ablation
+        assert vr.inert_terms({
+            "geotraces_w": 0.0, "n_geo_surf_cells_per_aoi": so,
+            "geotraces_sub_w": 1.0, "n_geo_sub_cells_per_aoi": sub,
+        }) == []
+
+    def test_iron_term_declared_on_an_aoi_with_no_iron_is_caught(self, vr) -> None:
+        """The gap this closes: the whole scav_rat claim rests on GEOTRACES being live, and
+        until now nothing compared the iron weights against their cell counts."""
+        out = vr.inert_terms({
+            "geotraces_sub_w": 1.0, "n_geo_sub_cells_per_aoi": _zero(),
+        })
+        assert len(out) == 1
+        assert "geotraces_sub_w" in out[0]
+
     def test_multiple_inert_terms_all_reported(self, vr) -> None:
         out = vr.inert_terms({
             "daniels_rpicpoc_w": 1.0, "n_daniels_cells_per_aoi": _zero(),
