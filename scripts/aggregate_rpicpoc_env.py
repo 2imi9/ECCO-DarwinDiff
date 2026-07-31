@@ -20,6 +20,10 @@ from __future__ import annotations
 import glob
 import json
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from darwindiff.grading import required_legs  # noqa: E402
 
 PARAMS = ["alpfe", "scav_rat", "Smallgrow", "Biggrow", "diatomgraz", "R_PICPOC"]
 CAL = 0.40
@@ -75,7 +79,7 @@ def report(runs_dir: str) -> None:
                 arel = _rel(entry["per_aoi_recovered"][a], pub)
                 if arel <= CAL:
                     n_aoi_cal += 1; aoi_cal_tally[a] += 1
-            if n_aoi_cal >= 2:
+            if n_aoi_cal >= required_legs(len(aois)):
                 peraoi_corec += 1; peraoi_cal_per_seed[r["seed"]] += 1
         tally_str = " ".join(f"{a[:4]}={aoi_cal_tally[a]}" for a in aois)
         print(f"{p:<11}{mean:>12.4g}{std:>9.2g}{pub:>10.4g}"

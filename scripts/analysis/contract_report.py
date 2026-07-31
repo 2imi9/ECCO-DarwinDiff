@@ -47,6 +47,7 @@ from darwindiff.contract import (  # noqa: E402
     contract,
 )
 from darwindiff.diagnostics import band_of  # noqa: E402
+from darwindiff.grading import required_legs  # noqa: E402
 
 CAL_PLUS = {"Excellent", "Cal-grade"}
 
@@ -121,7 +122,7 @@ def _per_aoi_counts(run_dir: Path, names: list[str]) -> tuple[dict[str, int], in
             # 0/n regardless of what it recovered, which would silently condemn the
             # global-scalar observations-only design (a global scalar gives all AOIs
             # the same value, so the well-posed form is separate single-AOI runs).
-            if good >= (2 if len(per_aoi) >= 2 else 1):
+            if good >= required_legs(len(per_aoi)):
                 counts[n] += 1
     return counts, len(files)
 

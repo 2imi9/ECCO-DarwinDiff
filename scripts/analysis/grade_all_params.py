@@ -44,6 +44,7 @@ sys.path.insert(
 
 from darwindiff.carroll6 import PARAMS, PARAM_NAMES  # noqa: E402
 from darwindiff.diagnostics import BAND_CAL_GRADE_MAX  # noqa: E402
+from darwindiff.grading import required_legs  # noqa: E402
 
 CAL_MAX = BAND_CAL_GRADE_MAX  # 0.40
 
@@ -114,7 +115,7 @@ def per_aoi_2of3(run_dir: str):
             aois[name] |= set(per_aoi)
             if carroll is None or not per_aoi:
                 continue
-            need = 2 if len(per_aoi) >= 2 else 1
+            need = required_legs(len(per_aoi))
             if sum(1 for v in per_aoi.values() if band_ok(v, carroll)) >= need:
                 counts[name] += 1
     return counts, n, aois

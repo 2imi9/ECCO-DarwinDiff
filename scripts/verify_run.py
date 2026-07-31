@@ -33,6 +33,11 @@ Exit codes (the loop branches on these):
     3  INCOMPLETE          -- fewer seeds than expected (re-run / wait)
     4  CRASHED_NO_JSON     -- training likely ran but JSON write failed (recover from .log)
     5  NO_DATA             -- nothing on disk (the run did not happen)
+    6  NO_BASELINE         -- --require-baseline set but no untrained control given
+    7  UNGRADED            -- no per_aoi_recovered payload at all, so the honest per-AOI
+                             metric is uncomputable. Only cell-weighted counts exist and
+                             they must not be quoted as recovery. Distinct from a
+                             STRADDLE, which is a real measurement and stays advisory.
 """
 from __future__ import annotations
 
@@ -61,6 +66,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 try:
     from darwindiff.carroll6 import PARAMS as _REGISTRY
+    from darwindiff.grading import required_legs
 except Exception as _exc:  # pragma: no cover - environment failure, not logic
     raise SystemExit(
         f"verify_run: cannot import the Carroll-N registry from {ROOT / 'src'}: {_exc}\n"
@@ -262,12 +268,9 @@ def verify_seed(path: Path) -> dict:
     for p in PARAMS:
         n_aois = len((params[p].get("per_aoi_recovered", {}) or {}))
         per_aoi_n[p] = n_aois
-        if n_aois >= 2:
-            ok = per_aoi_calplus.get(p, 0) >= 2
-        elif n_aois == 1:
-            ok = per_aoi_calplus.get(p, 0) >= 1
-        else:
-            ok = False
+        # Threshold comes from darwindiff.grading, the single definition. Zero AOIs is
+        # never recovered; required_legs() is total but cannot be met against no legs.
+        ok = n_aois >= 1 and per_aoi_calplus.get(p, 0) >= required_legs(n_aois)
         per_aoi_recovered[p] = ok
         # straddle: cell-weighted claims recovery, per-AOI refuses it
         if n_aois >= 2 and bands[p] in CAL_PLUS and not ok:
@@ -395,6 +398,22 @@ def verify_config_dir(cdir: Path, expect_seeds: int | None) -> dict:
             f"be computed. Only the cell-weighted count exists, and it must not be "
             f"quoted as recovery.")
 
+    # A straddle stays advisory on purpose: it is a real, informative measurement, and
+    # the cell-weighted metric being wrong is exactly why we grade per-AOI. Failing on
+    # it would fire on most honest runs and train readers to ignore the gate.
+    #
+    # Missing per-AOI payload is a DIFFERENT condition and must gate. When NO parameter
+    # carries per_aoi_recovered, the honest metric is not merely inverted, it is
+    # uncomputable -- yet the run would otherwise exit 0 VERIFIED, so "we cannot grade
+    # this" reads as "this is graded and clean". That is the one case where exit 0 makes
+    # a claim the artifact cannot support, so it becomes UNGRADED.
+    #
+    # Deliberately restricted to the ALL-parameters case, which is unambiguous. A run
+    # missing per-AOI data for only some parameters keeps its per-parameter flag, since
+    # its remaining parameters are still honestly graded.
+    if n and missing_aoi and len(missing_aoi) == len(PARAMS) and status == "VERIFIED":
+        status = "UNGRADED"
+
     return {
         "config": cdir.name, "path": str(cdir), "status": status,
         "n": n, "expected_seeds": expected,
@@ -414,7 +433,8 @@ def verify_config_dir(cdir: Path, expect_seeds: int | None) -> dict:
     }
 
 
-SEVERITY = {"VERIFIED": 0, "INCOMPLETE": 3, "CRASHED_NO_JSON": 4, "NO_DATA": 5, "DISCREPANCY": 2}
+SEVERITY = {"VERIFIED": 0, "INCOMPLETE": 3, "CRASHED_NO_JSON": 4, "NO_DATA": 5,
+            "DISCREPANCY": 2, "UNGRADED": 7}
 
 
 def config_dirs(root: Path) -> list[Path]:
@@ -536,7 +556,8 @@ def main() -> int:
             print("     Pass --baseline <untrained run dir>.")
 
     tag = {0: "VERIFIED & COMPLETE", 2: "DISCREPANCY", 3: "INCOMPLETE",
-           4: "CRASHED_NO_JSON", 5: "NO_DATA", 6: "NO_BASELINE"}[worst]
+           4: "CRASHED_NO_JSON", 5: "NO_DATA", 6: "NO_BASELINE",
+           7: "UNGRADED (no per-AOI payload)"}[worst]
     print(f"\n==> exit {worst} ({tag})")
     return worst
 

@@ -252,6 +252,15 @@ def parse_args(argv=None) -> argparse.Namespace:
         "(load on H200 with map_location); no effect on metrics.",
     )
     p.add_argument(
+        "--load-model",
+        default=None,
+        help="Restore weights + standardization stats from a --save-model checkpoint and "
+        "SKIP training (epochs forced to 0), then run the normal evaluation, rollout and "
+        "--dump-fields path. Use to re-score an existing model under new baselines without "
+        "retraining. The architecture flags (--modes/--width/--layers) and the cube must "
+        "match the checkpoint; both are verified and the run aborts on a mismatch.",
+    )
+    p.add_argument(
         "--log-transform",
         action="store_true",
         help="Log-transform log-normal tracers (default Chl1..Chl5) BEFORE z-scoring and "
@@ -1163,6 +1172,142 @@ def save_checkpoint(path, model, config, means, stds):
     return p
 
 
+def _is_safetensors_file(p: Path) -> bool:
+    """Detect the on-disk format by CONTENT, never by filename.
+
+    ``save_checkpoint`` falls back to a torch ``.pt`` payload when the safetensors
+    package is missing, but it keeps the caller's ``.safetensors`` path. Dispatching on
+    the suffix therefore fails to read a checkpoint this repo wrote itself, whenever it
+    was written on a machine without safetensors installed (CI is one). Sniffing the
+    magic bytes makes the reader the true inverse of the writer in both cases.
+
+    torch pickles start with the zip magic ``PK\\x03\\x04`` or the legacy pickle opcode
+    ``\\x80``; a safetensors file starts with a little-endian uint64 header length
+    followed by JSON, so byte 8 is ``{``.
+    """
+    try:
+        with open(p, "rb") as fh:
+            head = fh.read(9)
+    except OSError:
+        return False
+    if head[:4] == b"PK\x03\x04" or head[:1] == b"\x80":
+        return False
+    return len(head) == 9 and head[8:9] == b"{"
+
+
+def read_checkpoint(path):
+    """Read a :func:`save_checkpoint` file back into ``(state_dict, means, stds, config)``.
+
+    Inverts the safetensors packing: that format has no complex dtype, so the FNO2d
+    spectral weights were stored as a real view with a trailing size-2 axis and their
+    keys recorded in the ``complex_keys`` metadata. They are rebuilt here with
+    ``view_as_complex``. Torch ``.pt`` checkpoints round-trip directly.
+
+    The format is chosen by content, not by suffix, so a ``.safetensors``-named file that
+    actually holds a torch fallback payload still loads. See :func:`_is_safetensors_file`.
+    """
+    p = Path(path)
+    if not p.is_file():
+        raise SystemExit(f"--load-model: no such checkpoint {p}")
+
+    if _is_safetensors_file(p):
+        try:
+            from safetensors import safe_open
+        except Exception as exc:  # pragma: no cover - import guard
+            raise SystemExit(f"--load-model: {p} is safetensors but the package is missing: {exc}")
+        sd, means, stds = {}, None, None
+        with safe_open(str(p), framework="pt") as f:
+            md = f.metadata() or {}
+            config = json.loads(md.get("config", "{}"))
+            complex_keys = set(json.loads(md.get("complex_keys", "[]")))
+            for k in f.keys():
+                t = f.get_tensor(k)
+                if k == "stats.means":
+                    means = t
+                elif k == "stats.stds":
+                    stds = t
+                elif k.startswith("model."):
+                    kk = k[len("model."):]
+                    sd[kk] = torch.view_as_complex(t.contiguous()) if kk in complex_keys else t
+                else:  # pragma: no cover - forward-compat
+                    raise SystemExit(f"--load-model: unexpected tensor key {k!r} in {p}")
+    else:
+        blob = torch.load(str(p), map_location="cpu", weights_only=False)
+        sd = blob["state_dict"]
+        means, stds = blob["means"], blob["stds"]
+        config = blob.get("config", {})
+
+    if means is None or stds is None:
+        raise SystemExit(f"--load-model: {p} has no standardization stats (stats.means/stats.stds)")
+    return sd, np.asarray(means, dtype=np.float64), np.asarray(stds, dtype=np.float64), config
+
+
+def load_checkpoint(path, model, means, stds, chan_names, *, stats_rtol=1e-5):
+    """Restore ``model``'s weights from ``path`` and verify this run reconstructs its z-space.
+
+    ``means``/``stds`` are the statistics recomputed from the cube by this run.  They are
+    *verified* against the checkpoint's rather than replaced by them.  ``standardize()`` is
+    deterministic given the same cube, ``--val-frac``, ``--adjacency-tol`` and channel set,
+    so the two must agree; if they do not, this run is feeding the model a different z-space
+    than it was trained in and every metric would be meaningless.  Better to stop than to
+    quietly score a model against the wrong standardization.
+
+    Returns the checkpoint's config dict.
+    """
+    sd, ck_means, ck_stds, config = read_checkpoint(path)
+
+    ck_chans = list(config.get("channel_names") or [])
+    if ck_chans and list(chan_names) != ck_chans:
+        raise SystemExit(
+            f"--load-model: channel mismatch.\n  checkpoint: {ck_chans}\n  this run : {list(chan_names)}"
+        )
+
+    _arch_hint = (
+        f"  Check --modes/--width/--layers against the checkpoint config "
+        f"(modes={config.get('modes')} width={config.get('width')} layers={config.get('layers')})."
+    )
+    try:
+        # strict=False tolerates key *sets* differing so the message below can list them,
+        # but torch still raises RuntimeError on a shape clash -- catch that too, so a wrong
+        # --width aborts with an actionable line instead of a raw traceback.
+        missing, unexpected = model.load_state_dict(sd, strict=False)
+    except RuntimeError as exc:
+        raise SystemExit(
+            f"--load-model: state_dict does not match the built architecture.\n{exc}\n{_arch_hint}"
+        )
+    if missing or unexpected:
+        raise SystemExit(
+            f"--load-model: state_dict does not match the built architecture.\n"
+            f"  missing   : {sorted(missing)[:6]}\n  unexpected: {sorted(unexpected)[:6]}\n"
+            + _arch_hint
+        )
+
+    if ck_means.shape != means.shape or ck_stds.shape != stds.shape:
+        raise SystemExit(
+            f"--load-model: stats shape mismatch (checkpoint {ck_means.shape}/{ck_stds.shape} "
+            f"vs this run {means.shape}/{stds.shape})"
+        )
+    d_mean = np.abs(ck_means - means) / np.maximum(np.abs(ck_stds), 1e-30)  # in units of sigma
+    d_std = np.abs(ck_stds - stds) / np.maximum(np.abs(ck_stds), 1e-30)
+    worst = float(max(d_mean.max(initial=0.0), d_std.max(initial=0.0)))
+    if worst > stats_rtol:
+        rows = "\n".join(
+            f"    {n}: mean {m0:.6g} vs {m1:.6g} | std {s0:.6g} vs {s1:.6g}"
+            for n, m0, m1, s0, s1 in zip(chan_names, ck_means, means, ck_stds, stds)
+        )
+        raise SystemExit(
+            "--load-model: this run does not reproduce the checkpoint's standardization "
+            f"(worst deviation {worst:.3e} > {stats_rtol:g}).\n"
+            "  The cube, --val-frac, --adjacency-tol, --log-transform and the channel set must "
+            "match the training run.\n  checkpoint vs this run:\n" + rows
+        )
+    print(
+        f"      [load-model] standardization reproduced (worst deviation {worst:.2e} sigma)",
+        flush=True,
+    )
+    return config
+
+
 def main(argv=None) -> int:
     args = parse_args(argv)
 
@@ -1320,7 +1465,18 @@ def main(argv=None) -> int:
     n_params = sum(p.numel() for p in model.parameters())
     print(f"      operator={op_kind}  params={n_params:,}", flush=True)
 
-    print(f"[4/5] training {args.epochs} epochs (masked next-state MSE) ...", flush=True)
+    loaded_config = None
+    if args.load_model:
+        print(f"      [load-model] restoring {args.load_model}", flush=True)
+        loaded_config = load_checkpoint(
+            args.load_model, model, means, stds, data["chan_names"]
+        )
+        args.epochs = 0  # evaluate the restored weights; never train on top of them
+
+    if args.load_model:
+        print("[4/5] SKIPPING training (--load-model: evaluating restored weights) ...", flush=True)
+    else:
+        print(f"[4/5] training {args.epochs} epochs (masked next-state MSE) ...", flush=True)
     metrics, zt, zf, mask_t, pred_z = train_and_eval(
         args, data, splits, z_state, means, stds, z_forcing, model, device, dtype, floors
     )
@@ -1398,6 +1554,10 @@ def main(argv=None) -> int:
             "layers": args.layers,
             "operator": op_kind,
             "n_params": int(n_params),
+            # Provenance when re-scoring an existing model: `epochs` above is 0 because THIS
+            # run trained nothing, so the checkpoint's own config is carried alongside it.
+            "loaded_from": args.load_model,
+            "trained_config": loaded_config,
             "residual": bool(args.residual),
             "rollout_train_k": int(args.rollout_train_k),
             "seed": args.seed,

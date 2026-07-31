@@ -92,6 +92,25 @@ prototype-level and **unconfirmed** (constant-IC/forcing approximation; needs a 
 > and significantly WORSE than seasonal AR(1) (−0.161 ± 0.015, every seed). "Beats persistence" was a weak
 > baseline; PIC/POC's edge was mechanical headroom. Retire the beats-persistence framing. (Single AOI eqpac;
 > seed is ruled out, a different AOI could differ.) The persistence-relative numbers below are superseded.**
+>
+> **CONFIRMED 2026-07-30 against a direct attempt to overturn it (jobs 237982/238012).** The most
+> plausible mechanism, that the published run logs `Chl1` only and leaves PIC/POC/FeT in linear
+> space, was tested at n=3 per arm in **two** common metric spaces so only the training differs.
+> Each arm wins in the space it trained in and **neither beats its best free baseline in either**.
+> `logchl1` in the mostly-linear space gives **−0.1841 ± 0.010**, reproducing the published −0.161.
+> Logging PIC/POC/FeT does buy a real physics win, max non-physical fraction **0.138 → 0.000** and
+> 35x better seed reproducibility, but not skill. Note the winning baseline **changes with metric
+> space** (`ar1_seasonal_percell` linear, `anomaly_persist` log), so any "loses to X" claim must
+> name the space. See `docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md`.
+>
+> **DAILY IS NOW CLOSED FOR TRACK 2 TOO (2026-07-30, jobs 237762/237763/238005).** The pre-existing
+> daily emulator's `+0.408` was a linear-space artifact. Retrained in log space, so physically valid
+> by construction, it closes **91.6%** of the collapse (−4.094 → **−0.345 ± 0.0015**, n=6) and still
+> loses to a per-cell AR(1) with the CI clear of zero. Daily lag-1 r of 0.994–0.996 makes AR(1) a
+> genuinely hard baseline. Removing the dead `surfChl4` channel changes it by 0.0046, a null.
+> Caveat: the scorer floors log at 1e-12 while the trainer floors at a percentile (#215), and that
+> floor **favours persistence**, so −0.345 is pessimistic by roughly 0.4–0.55 on three of four
+> channels. See `docs/findings/2026-07-30_daily_logspace_training.md`.
 
 A separate build from the UDE/identifiability work below. **All numbers are self-consistency
 against v05 output; nothing here has been validated against observations except the chlorophyll
@@ -137,8 +156,18 @@ comparison in the last row.**
    climatology baseline and inflated skill-vs-climatology by +0.37 to +0.78.
 2. **The "~9-month horizon" is RETRACTED.** Against a correct seasonal climatology it is 1 step.
 3. **"v05 daily ends 2012-03-31" was an artifact of #1.** It ends **2018-12-31**, which nearly
-   doubles the MODIS overlap.
-4. **The single-step numbers describe a ~2-month operator, not a monthly one.** The validation set
+   doubles the MODIS overlap. *(Refined 2026-07-30: 2018-12-31 is the terminal file **stamp**;
+   the last day of **data** is 2018-12-30, because MITgcm stamps a time-average with its
+   interval END. The `.meta` gives `timeInterval = [9860.0, 9861.0]` days. Quote the averaging
+   window, not the stamp, in any pre-registered test. See
+   `docs/findings/2026-07-30_daily_archive_era_and_completeness.md`.)*
+4. **The v05 **monthly** `.meta` `timeInterval` field is wrong and must never be read.** It
+   declares an averaging window shrinking from 27.27 d (1992) to 10.25 d (2018) at −0.710 d/yr,
+   in two independently staged trees. The **data are true full-month means** (verified against
+   daily `surfChl1`, which is the same `TRAC27`: agreement to 1.53e-07 where the metadata claims
+   a 10.5-day window). Use `timeStepNumber`. The **daily** sidecars are self-consistent and
+   unaffected. See `docs/findings/2026-07-30_monthly_timeinterval_metadata_is_wrong.md`.
+5. **The single-step numbers describe a ~2-month operator, not a monthly one.** The validation set
    has a median gap of 61 days. On genuinely-monthly pairs the flagship scores **+0.0026** — no
    skill over persistence — while a model trained only on 1-month pairs scores **+0.4756**.
 
@@ -247,6 +276,28 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   **25/50 at 2000 epochs** (→ 41/50 at 4000 epochs), and the cell-weighted metric that inflates such counts
   can **straddle** Carroll (per-AOI legs landing on opposite sides). Read 38/40 as "the pair recovers,
   carried by `alpfe`; `scav_rat` is basin-fragile," not "`scav_rat` is 95 % solved."
+  - **Sharpened 2026-07-30: "basin-fragile" is specifically "Southern Ocean only."** Grading each
+    AOI leg against *its own* untrained baseline, `scav_rat` clears its null in `southernoceanpac`
+    at **42/50, 39/50 and 50/50** across the three observations-only arms (and 49/50 in the
+    flagship) against an untrained **0/50**, and is **0/50** in both `eqpac` and `natlsubpolar`.
+    The 0/50 *majority* in the obs-only arms is the 2-of-3 rule, not a measurement that nothing was
+    learned. **RESOLVED 2026-07-30 (jobs 238079/238080, verify_run exit 0): it is LOCAL.** A
+    single-AOI `southernoceanpac` fit, with nothing for the shared DINN to pool from, recovers
+    `scav_rat` **30/50 against untrained 0/50, P=3.15e-24**, from GEOTRACES surface and subsurface
+    iron alone. The pre-registered rule (k>=25 and P<0.01) fires and both controls held exactly:
+    `alpfe` 50/50, `R_PICPOC` 0/50 as it must with zero Daniels cells and no basin to inherit from.
+    Pooling still adds (39-50/50 in company vs 30/50 alone), so both halves are measured.
+    Consequence: the flagship trio's sole binding leg is carrying a **basin-specific** result
+    reported as a global one. See
+    `docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md` and
+    `2026-07-30_per_aoi_legs_vs_their_own_null.md`.
+  - **The degeneracy is a gauge symmetry, and no UDE can remove it.** Any learned sink
+    `S = r0 * g(state)` is homogeneous of degree one in `r0`, so `(alpfe, r0) -> (λ·alpfe, λ·r0)`
+    leaves the predicted iron field unchanged for *every* `g`. A network inside a multiplicative
+    sink adds free directions along that orbit rather than removing one, which also predicts the
+    DOF ladder's inverted U. **Bug #217:** `closures.py:130` carries a free `log_r0`, exactly
+    redundant with `scav_rat`, so any profile likelihood against that closure is flat *by theorem*.
+    See `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md`.
 - **`R_PICPOC` — recovers** against a real calcite anchor (Daniels CP:PP / MODIS PIC), landing at the
   real ~0.05 — *consistent with* Carroll within the wide Cal band, **not** a validation of 0.0425
   (Carroll's value is itself under-constrained; see below).
