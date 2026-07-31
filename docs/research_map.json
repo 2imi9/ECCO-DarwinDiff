@@ -7740,11 +7740,25 @@
      "words": 1073
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_below_null_is_bias_compensation_and_partly_an_artifact.md",
+     "name": "2026-07-31_below_null_is_bias_compensation_and_partly_an_artifact.md",
+     "date": "2026-07-31",
+     "retracted": 0,
+     "words": 893
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_citation_audit.md",
      "name": "2026-07-31_citation_audit.md",
      "date": "2026-07-31",
      "retracted": 0,
      "words": 644
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_depth_mechanism_does_not_replicate_in_eqpac.md",
+     "name": "2026-07-31_depth_mechanism_does_not_replicate_in_eqpac.md",
+     "date": "2026-07-31",
+     "retracted": 1,
+     "words": 1538
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_ghgc_eccodarwin_stac_statistics_count_the_fill_value.md",
@@ -7768,11 +7782,25 @@
      "words": 1194
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_prereg_integration_window_swap.md",
+     "name": "2026-07-31_prereg_integration_window_swap.md",
+     "date": "2026-07-31",
+     "retracted": 0,
+     "words": 903
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
      "name": "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
      "date": "2026-07-31",
-     "retracted": 0,
-     "words": 998
+     "retracted": 1,
+     "words": 1227
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_window_swap_retracts_the_depth_result.md",
+     "name": "2026-07-31_window_swap_retracts_the_depth_result.md",
+     "date": "2026-07-31",
+     "retracted": 1,
+     "words": 861
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/compute_time_compiled_h200.md",
@@ -35039,8 +35067,13 @@
  "advisories": {
   "live claims sourced from a document that carries a retraction banner -- review each": {
    "sql": "SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d\n        ON instr(c.doc, d.name) > 0\n        WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'",
-   "count": 26,
+   "count": 30,
    "rows": [
+    [
+     "ded38",
+     "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
+     "Depth breaking the degeneracy is not in tension with the gauge symmetr"
+    ],
     [
      "ded168",
      "2026-07-27_conditioning_precision_hypothesis.md",
@@ -35127,6 +35160,11 @@
      "scav_rat recovery tracks iron-block conditioning almost monotonically "
     ],
     [
+     "ind358",
+     "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
+     "Surface and subsurface iron identify DIFFERENT parameters, and the pat"
+    ],
+    [
      "ind369",
      "2026-07-19_emulator_honest_bounds.md",
      "The CaCO3 stoichiometry check (Delta-ALK ~ -2Delta-PIC) was badly desi"
@@ -35162,9 +35200,19 @@
      "The tracer-group skill ordering (particulate > iron/chlorophyll > carb"
     ],
     [
+     "abd526",
+     "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
+     "scav_rat is identifiable from the VERTICAL STRUCTURE of dissolved iron"
+    ],
+    [
      "abd535",
      "2026-07-19_emulator_honest_bounds.md",
      "The carbonate closure check passes but is UNINFORMATIVE - it cannot di"
+    ],
+    [
+     "abd536",
+     "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
+     "The column OSSE's amplitude/shape mechanism, proposed on synthetic dat"
     ],
     [
      "abd549",
@@ -36549,7 +36597,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 171,
+  "document": 175,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
