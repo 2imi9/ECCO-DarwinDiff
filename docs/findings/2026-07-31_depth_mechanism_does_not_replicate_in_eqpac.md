@@ -1,5 +1,37 @@
 # The depth mechanism does not replicate in eqpac, and the failure is more informative than the original
 
+> **⚠️ CORRECTED 2026-07-31 (same day) — the DEPTH interpretation is now in serious doubt, and a
+> competing explanation fits the numbers better. The measured counts and gates stand; the mechanism
+> does not.**
+>
+> The subsurface iron channel **has not converged inside the integration window**. `N_STEPS=200` at
+> `DT=0.25` is **50 days**, while the L2 iron relaxation time is `1/(scav_rat_per_day · POC_2)` =
+> **384 days**. The run covers 0.13 of one e-fold and reaches **12.2%** of the way to equilibrium.
+> The exact `d ln DFe₂ / d ln scav_rat = −1` identity quoted below is **asymptotic** and this
+> configuration never approaches it; the measured elasticity at 200 steps is about **−0.41**, while
+> the hardcoded initial condition `LIT_IC[10] = 5.0e-4` carries log-leverage **0.983**.
+>
+> Worse, these arms ran `darwin_ic=False`, so `state0` is **uniform across every basin** and the box
+> has no horizontal transport. The forward sensitivities are then identical across eqpac, natl and
+> sopac to four decimals, so **no forward-model quantity can explain the basin difference at all**.
+>
+> The competing explanation, which orders correctly:
+>
+> | AOI | observed subsurface median | basin-blind box @50 d | \|log distance\| | `scav_rat` |
+> |---|---|---|---|---|
+> | southernoceanpac | 0.2245 nM | 0.2671 nM | **0.174** | **33/50** |
+> | eqpac | 0.4404 nM | 0.2671 nM | 0.500 | 6/50 |
+> | natlsubpolar | 0.5638 nM | 0.2671 nM | 0.745 | not run |
+>
+> `scav_rat` recovers in exactly the basin where a hardcoded, basin-independent transient happens to
+> land nearest the data. That explanation involves no depth structure whatsoever.
+>
+> **Decisive test, pre-registered separately:** at `N_STEPS=100` the box sits at 0.4047 nM, near
+> eqpac rather than the Southern Ocean, so the two basins should **trade places**. If they do, the
+> depth mechanism is a window artifact. If they do not, it survives and is strengthened.
+>
+> Found by the identifiability panel, then verified independently from the source.
+
 **Date:** 2026-07-31 · **Jobs:** 240673 (4 arms x 50 seeds) + 240694 (grade) ·
 **Gate:** `verify_run` **exit 0 on all four arms**, `GATE_FAIL=0`, every arm complete at 50/50 ·
 **Pre-registration:** `2026-07-31_prereg_depth_mechanism_replication_eqpac.md`, written before any
