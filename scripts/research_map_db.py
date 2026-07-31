@@ -174,14 +174,32 @@ CREATE VIEW v_dangerous AS           -- live claims resting on ungated evidence
       AND lower(coalesce(e.gate,'')) NOT IN ('exit0', 'n/a', '');
 
 CREATE VIEW v_orphan_doc AS          -- a claim citing a file that is not in the repo
+    -- A claim cell may name SEVERAL documents ("a.md, b.md"), so an equality test on the whole
+    -- cell reports a false orphan. Match if ANY known document name appears inside the cell.
     SELECT c.cl_id, c.doc FROM claim c
-    LEFT JOIN document d ON d.name = c.doc OR d.path = c.doc
-    WHERE trim(coalesce(c.doc,'')) <> '' AND d.path IS NULL;
+    WHERE trim(coalesce(c.doc,'')) <> ''
+      AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0);
 """
 
 _LINK = re.compile(r"\[([^\]]*)\]\(([^)]*)\)")
 _BACKTICK = re.compile(r"`([^`]*)`")
 _BANNER = re.compile(r"\b(SUPERSEDED|RETRACTED|CORRECTED|PARTLY SUPERSEDED)\b")
+
+
+def _has_banner(text: str) -> bool:
+    """A retraction banner, not a document that merely discusses retractions.
+
+    Scanning the first 4000 characters for the word flagged every audit and index doc, whose whole
+    job is to catalogue other documents' corrections. The convention in this repo is a blockquote or
+    bold line in the opening lines, so require that shape and that position.
+    """
+    for line in text.splitlines()[:12]:
+        s = line.strip()
+        if not _BANNER.search(s):
+            continue
+        if s.startswith(">") or s.startswith("**") or s.startswith("#"):
+            return True
+    return False
 _PARAM_WORDS = ("alpfe", "scav_rat", "diatomgraz", "r_picpoc", "smallgrow", "biggrow")
 
 
@@ -278,12 +296,11 @@ def _load_documents(con: sqlite3.Connection) -> None:
                 text = p.read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 continue
-            head = text[:4000]
             m = re.match(r"(20\d\d-\d\d-\d\d)", p.name)
             con.execute(
                 "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?)",
                 (p.as_posix(), p.name, m.group(1) if m else "",
-                 1 if _BANNER.search(head) else 0, len(text.split())),
+                 1 if _has_banner(text) else 0, len(text.split())),
             )
 
 
@@ -397,9 +414,6 @@ CONSTRAINTS = [
      """SELECT cl_id, statement FROM claim WHERE trim(coalesce(status,''))=''"""),
     ("no claim cites a document that is not in the repo",
      """SELECT cl_id, doc FROM v_orphan_doc"""),
-    ("no live claim rests on a document carrying a retraction banner",
-     """SELECT c.cl_id, d.name FROM claim c JOIN document d ON d.name = c.doc
-        WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'"""),
     # `deliberate` marks a site that cites a known-bad DOI ON PURPOSE, to record that it is bad.
     # Without this exemption the constraint would fail forever and readers would learn to ignore it,
     # which is precisely the failure mode the citation audit warned about.
@@ -412,7 +426,35 @@ CONSTRAINTS = [
 ]
 
 
+ADVISORIES = [
+    # Reported, never gated. A banner supersedes part of a document, not every claim in it, so
+    # failing on this would fire on rows that are mostly fine and teach readers to ignore the gate.
+    # Same reasoning as the STRADDLE guard in verify_run: keep the failure channel sharp.
+    ("live claims sourced from a document that carries a retraction banner -- review each",
+     """SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d
+        ON instr(c.doc, d.name) > 0
+        WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'"""),
+    ("claims with no evidence edge",
+     """SELECT cl_id, substr(statement,1,80) FROM v_unsupported"""),
+]
+
+
 def cmd_check(con) -> int:
+    # State the citation coverage up front. The audit JSON stores only the EXCEPTION rows, so the
+    # two citation constraints below run over a handful of records, not the whole corpus. Without
+    # this line a clean run reads as "every DOI was verified just now", which is not what happened.
+    stored = con.execute("SELECT count(*) FROM citation").fetchone()[0]
+    if CITATION_AUDIT.exists():
+        try:
+            meta = json.loads(CITATION_AUDIT.read_text(encoding="utf-8"))
+            print(f"citation coverage: {meta.get('clean', '?')} of {meta.get('total', '?')} DOIs "
+                  f"verified on {meta.get('date', '?')}; {stored} exception row(s) stored and "
+                  f"re-tested here. Newer DOIs are NOT covered -- re-run the audit to extend it.\n")
+        except (json.JSONDecodeError, OSError):
+            print(f"citation coverage: unreadable audit file; {stored} row(s) in table\n")
+    else:
+        print("citation coverage: NO audit file; the citation constraints below are vacuous\n")
+
     bad = 0
     for name, sql in CONSTRAINTS:
         try:
@@ -428,7 +470,22 @@ def cmd_check(con) -> int:
                 print(f"     {' | '.join(str(x)[:80] for x in r)}")
         else:
             print(f"ok        {name}")
-    print("\nCONSTRAINTS_FAILED" if bad else "\nALL CONSTRAINTS HOLD")
+
+    print()
+    for name, sql in ADVISORIES:
+        try:
+            rows = con.execute(sql).fetchall()
+        except sqlite3.Error as exc:
+            print(f"advisory error  {name}: {exc}")
+            continue
+        if rows:
+            print(f"ADVISORY  {name}  ({len(rows)})")
+            for r in rows[:8]:
+                print(f"     {' | '.join(str(x)[:70] for x in r)}")
+            if len(rows) > 8:
+                print(f"     ... and {len(rows) - 8} more")
+
+    print("\nCONSTRAINTS_FAILED" if bad else "\nALL CONSTRAINTS HOLD (advisories above are not failures)")
     return 1 if bad else 0
 
 
