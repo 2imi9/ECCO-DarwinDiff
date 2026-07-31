@@ -151,6 +151,10 @@ def _rel(recovered: float, reference: float) -> float:
 #: The check is one-directional on purpose: a *zero* weight with a nonzero cell count is
 #: normal (counts are computed whether or not the term is used).
 _TERM_CELL_KEYS = {
+    # The iron terms are the ones the scav_rat / alpfe claims rest on, so they are the
+    # ones most worth certifying from the artifact rather than from a stdout line.
+    "geotraces_w": "n_geo_surf_cells_per_aoi",
+    "geotraces_sub_w": "n_geo_sub_cells_per_aoi",
     "daniels_rpicpoc_w": "n_daniels_cells_per_aoi",
     "alk_abs_w": "n_alk_abs_cells_per_aoi",
     "pic_abs_w": "n_pic_abs_cells_per_aoi",
