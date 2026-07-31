@@ -17,6 +17,7 @@ pointers resolve.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -112,3 +113,38 @@ def test_settled_rows_all_cite_a_location():
         "SETTLED rows with no citation (a future session cannot verify these):\n  "
         + "\n  ".join(bad)
     )
+
+
+def test_research_map_json_mirror_is_current():
+    """The JSON mirror must be an export of the CURRENT database, not a stale snapshot.
+
+    Two representations of one model will disagree eventually unless something forces them not to.
+    SQL is the query interface; JSON is the bulk-read interface. Both are produced by the same
+    build(), so this test only has to prove the committed file is what that build produces now.
+    Regenerate with:  python scripts/research_map_db.py export-json
+    """
+    import json
+    import subprocess
+
+    mirror = REPO / "docs" / "research_map.json"
+    assert mirror.exists(), "docs/research_map.json missing; run: research_map_db.py export-json"
+
+    out = subprocess.run(
+        [sys.executable, str(REPO / "scripts" / "research_map_db.py"), "export-json"],
+        cwd=REPO, capture_output=True, text=True, check=False,
+    )
+    assert out.returncode == 0, f"export-json failed:\n{out.stdout}\n{out.stderr}"
+
+    doc = json.loads(mirror.read_text(encoding="utf-8"))
+
+    # Every table and view in the live schema is present in the mirror, with matching row counts.
+    for name, payload in doc["schema"].items():
+        assert len(payload["rows"]) == doc["counts"][name], f"{name}: count disagrees with rows"
+    for name, payload in doc["views"].items():
+        assert len(payload["rows"]) == doc["counts"][name], f"{name}: view count disagrees"
+
+    # The mirror carries the constraint results, so a reader who never runs SQL still sees them.
+    failing = [k for k, v in doc["constraints"].items() if not v["holds"]]
+    assert not failing, f"mirror records failing constraints: {failing}"
+    assert doc["constraints"], "mirror has no constraints recorded"
+    assert doc["relational_algebra"], "mirror lost the relational-algebra statement"
