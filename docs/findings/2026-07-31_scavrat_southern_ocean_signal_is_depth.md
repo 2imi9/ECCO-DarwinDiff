@@ -1,5 +1,17 @@
 # The Southern Ocean scavenging signal is DEPTH, and it confirms a prediction made nine days earlier
 
+> **⚠️ CORRECTED 2026-07-31 (same day) — the DEPTH interpretation is under active challenge. The
+> counts and gates below stand; the mechanism may not.**
+>
+> The subsurface iron channel has not converged in the 50-day integration window (L2 relaxation time
+> 384 days, so 12.2% of the way to equilibrium), and these arms ran `darwin_ic=False`, giving a
+> basin-uniform initial state in a box with no horizontal transport. The forward sensitivities are
+> then identical across all three basins to four decimals. A competing explanation orders the
+> recovery correctly without any depth structure: the Southern Ocean's observed subsurface median
+> (0.2245 nM) is the closest of the three basins to the box's basin-blind 50-day value (0.2671 nM).
+> See `docs/findings/2026-07-31_depth_mechanism_does_not_replicate_in_eqpac.md` for the full
+> correction and the pre-registered window-swap test that decides it.
+
 **Date:** 2026-07-31 · **Jobs:** 239556 (4 arms) + 239560 (grade) ·
 **Gate:** `verify_run` **exit 0 on all four arms** · **Pre-registration:**
 `2026-07-30_prereg_scavrat_mechanism_surface_vs_depth.md`, written with zero JSONs on disk ·
