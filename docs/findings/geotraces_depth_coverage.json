@@ -1,0 +1,63 @@
+{
+ "source": "D:\\geotraces\\GEOTRACES_IDP2025_Seawater.nc",
+ "qc_flags": [
+  49,
+  50
+ ],
+ "surface_depth_max_m": 50.0,
+ "subsurface_depth_m": [
+  50.0,
+  1000.0
+ ],
+ "grid_resolution_deg": 1.0,
+ "coverage": {
+  "eqpac": {
+   "surface_bins": 25,
+   "subsurface_bins": 27,
+   "surface_samples": 52,
+   "subsurface_samples": 297,
+   "samples_below_1000m_unused": 141,
+   "grid_cells_in_aoi": 1000
+  },
+  "natlsubpolar": {
+   "surface_bins": 13,
+   "subsurface_bins": 13,
+   "surface_samples": 31,
+   "subsurface_samples": 115,
+   "samples_below_1000m_unused": 94,
+   "grid_cells_in_aoi": 450
+  },
+  "southernoceanpac": {
+   "surface_bins": 14,
+   "subsurface_bins": 16,
+   "surface_samples": 40,
+   "subsurface_samples": 157,
+   "samples_below_1000m_unused": 47,
+   "grid_cells_in_aoi": 1200
+  },
+  "midatl": {
+   "surface_bins": 22,
+   "subsurface_bins": 23,
+   "surface_samples": 52,
+   "subsurface_samples": 282,
+   "samples_below_1000m_unused": 308,
+   "grid_cells_in_aoi": 600
+  },
+  "npac": {
+   "surface_bins": 29,
+   "subsurface_bins": 31,
+   "surface_samples": 212,
+   "subsurface_samples": 518,
+   "samples_below_1000m_unused": 279,
+   "grid_cells_in_aoi": 600
+  },
+  "npsg": {
+   "surface_bins": 12,
+   "subsurface_bins": 13,
+   "surface_samples": 28,
+   "subsurface_samples": 122,
+   "samples_below_1000m_unused": 82,
+   "grid_cells_in_aoi": 525
+  }
+ }
+}
