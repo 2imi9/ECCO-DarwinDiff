@@ -585,7 +585,22 @@ else:
     print("Per-AOI gating: OFF (ungated baseline)")
 
 DT = 0.25
-N_STEPS = 200
+# N_STEPS: the integration window, in units of DT days. Hardcoded at 200 (= 50 days) since the
+# box was written and never swept until 2026-07-31.
+#
+# WHY IT MATTERS. The L2 iron relaxation time is 1/(scav_rat_per_day * POC_2) = 384 days, so a
+# 50-day window covers 0.13 of one e-fold and reaches 12.2% of the way to equilibrium. The
+# subsurface iron the loss sees is therefore dominated by the hardcoded initial condition
+# (LIT_IC[10] = 5.0e-4, log-leverage 0.983) rather than by scav_rat (elasticity about -0.41,
+# against the asymptotic -1). Because DARWIN_IC defaults off, state0 is also identical in every
+# basin and the box has no horizontal transport, so the forward sensitivities come out equal
+# across AOIs to four decimals.
+#
+# That makes the window a candidate explanation for the whole 2026-07-31 depth result: the box's
+# basin-blind DFe_2 is 0.2671 nM at 200 steps and 0.4047 nM at 100, against observed subsurface
+# medians of sopac 0.2245, eqpac 0.4404, natl 0.5638 nM. See
+# docs/findings/2026-07-31_prereg_integration_window_swap.md.
+N_STEPS = int(os.environ.get("N_STEPS", "200"))
 
 print(f"AOIS: {AOIS_KEYS}  (joint training across {N_AOIS} AOIs)")
 print(f"Per-AOI weights: {AOI_W}")
