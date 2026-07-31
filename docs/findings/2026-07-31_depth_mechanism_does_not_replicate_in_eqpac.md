@@ -5,11 +5,25 @@
 > does not.**
 >
 > The subsurface iron channel **has not converged inside the integration window**. `N_STEPS=200` at
-> `DT=0.25` is **50 days**, while the L2 iron relaxation time is `1/(scav_rat_per_day · POC_2)` =
-> **384 days**. The run covers 0.13 of one e-fold and reaches **12.2%** of the way to equilibrium.
-> The exact `d ln DFe₂ / d ln scav_rat = −1` identity quoted below is **asymptotic** and this
-> configuration never approaches it; the measured elasticity at 200 steps is about **−0.41**, while
-> the hardcoded initial condition `LIT_IC[10] = 5.0e-4` carries log-leverage **0.983**.
+> `DT=0.25` is **50 days**, and integrating the real box shows it reaches only **47.5%** of the way
+> to the L2 equilibrium. (An earlier version of this banner said 12.2%, computed from the *initial*
+> `POC_2` of 0.05; `POC_2` actually grows to ~0.33, speeding scavenging ~6.6x. The corrected figure
+> is 47.5% and the conclusion is unchanged.) The exact `d ln DFe₂ / d ln scav_rat = −1` identity
+> quoted below is **asymptotic**; the measured elasticity at 200 steps is about **−0.41**, while the
+> hardcoded initial condition `LIT_IC[10] = 5.0e-4` carries log-leverage **0.983**.
+>
+> The sharper statement: the box's subsurface iron **sweeps downward through every basin's observed
+> median**, so the integration window silently selects which basin the model agrees with.
+>
+> | window | box DFe₂ | nearest basin |
+> |---|---|---|
+> | ~73 steps | 0.4404 nM | eqpac |
+> | 100 steps | 0.4047 nM | (between) |
+> | **200 steps, what ran** | **0.2671 nM** | heading for sopac |
+> | ~243 steps | 0.2245 nM | southernoceanpac |
+>
+> The run's window sits nearest **southernoceanpac**, which is the only basin where `scav_rat`
+> recovers.
 >
 > Worse, these arms ran `darwin_ic=False`, so `state0` is **uniform across every basin** and the box
 > has no horizontal transport. The forward sensitivities are then identical across eqpac, natl and
