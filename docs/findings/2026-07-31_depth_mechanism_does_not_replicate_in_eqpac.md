@@ -1,5 +1,13 @@
 # The depth mechanism does not replicate in eqpac, and the failure is more informative than the original
 
+> **🛑 RETRACTED 2026-07-31 — the interpretation does not survive an integration-window swap.**
+> Job 241109 held everything byte-identical and changed only `N_STEPS`. The basins TRADE PLACES:
+> at 100 steps `eq_sub` recovers `scav_rat` **23/50** and `so_sub` **0/50**; at 200 steps it is
+> 6/50 and 33/50; at 400 steps 0/50 and 35/50. Every pre-registered leg passes at P < 0.01 and
+> the falsifier clears (`alpfe` in `eq_surf` 49/50 → 50/50, the converged surface channel is
+> window-insensitive). The counts and gates below stand; the depth interpretation is withdrawn.
+> See `docs/findings/2026-07-31_window_swap_retracts_the_depth_result.md`.
+
 > **⚠️ CORRECTED 2026-07-31 (same day) — the DEPTH interpretation is now in serious doubt, and a
 > competing explanation fits the numbers better. The measured counts and gates stand; the mechanism
 > does not.**
