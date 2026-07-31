@@ -32,7 +32,12 @@ does not duplicate them. Every number is `verify_run`-gated (exit 0) and cites i
 ## 2. Recovery vs conditioning (→ [`overnight_recovery_sweep_groupA.md`](2026-07-23_overnight_recovery_sweep_groupA.md) §3/LEAD A; [`overnight_geometry_and_seasonal.md`](2026-07-23_overnight_geometry_and_seasonal.md) §1,5)
 - Per-AOI iron 2×2 condition: **sopac 2.22 < eqpac 34.7 < natl 50.8** (PSD GN-Fisher, job 189403).
   Conditioning separates the well-conditioned SO from the two degenerate basins but does **not** rank eqpac
-  vs natl. The **profile span** (eqpac 3.69 > natl 1.30 > sopac 1.12) tracks recovery order.
+  vs natl. **CORRECTED 2026-07-31 — the profile span does NOT track recovery order; it is the exact
+  inverse.** Span runs eqpac 3.69 > natl 1.30 > sopac 1.12 while per-AOI `scav_rat` recovery runs
+  sopac 49 > natl 20 > eqpac 7, and 3.69 is the *most curved* profile, not the flattest. Neither
+  conditioning nor span ranks the basins. This line was the one copy that correction commit
+  `1643a64` (2026-07-26) missed; it survived four days and was found by the research-map fidelity
+  audit on 2026-07-31.
 - Per-AOI iron sloppiness **5.19 / 5.99 / 4.99 decades** — now quotable (retires the earlier provisional 3.96).
 - The aggregate "cond 3022→2.2 / ~1400×" from job 188077 is **Southern-Ocean-driven**; eqpac/natl stay
   ratio-degenerate even with subsurface iron.

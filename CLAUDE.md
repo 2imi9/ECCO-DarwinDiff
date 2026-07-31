@@ -3,6 +3,100 @@
 This file is loaded into every Claude Code session on this repo. Keep it short; deep
 context lives in [STATUS.md](STATUS.md) (canonical results) and `docs/`.
 
+## READ FIRST, EVERY SESSION: [docs/research_map.md](docs/research_map.md)
+
+**Before proposing, designing, or launching anything, read the research map.** It is the index of
+what is already known and how strongly, organised by inference mode (deductive / inductive /
+abductive) over evidence, claims and open hypotheses.
+
+Two sections are mandatory and take under a minute:
+
+1. **§1 SETTLED — do not re-derive.** Questions already answered, with the answer and the file.
+   If the thing you are about to work on is in that table, it is done. Say so and move on.
+2. **§6 SUPERSEDES.** The retraction chain. A number that appears in an old doc may be retracted;
+   this is where you find out before quoting it.
+
+**This is not optional bookkeeping.** On 2026-07-30 one session re-derived work the repo already
+contained **four separate times** (the GHG Center assessment twice, the rain-ratio precedence, the
+1-D column study), one of them at a cost of 1.52M tokens. Every one would have been caught by §1.
+
+When a session produces a durable result, a retraction, or answers a standing question, **update
+the map in the same commit as the finding**, not later.
+
+### The SQL harness — query the map, do not just read it
+
+`scripts/research_map_db.py` parses the map's tables into an in-memory relational database and
+ships the canonical queries. **SQL here is a guidance layer, not storage**: nothing is persisted,
+the markdown stays the single source of truth, and the database is rebuilt on every invocation. If
+a table stops parsing, the integrity test fails and you find out immediately.
+
+```bash
+python scripts/research_map_db.py settled daily      # BEFORE STARTING WORK: is this already answered?
+python scripts/research_map_db.py superseded 0.408   # is this number retracted?
+python scripts/research_map_db.py trace D1           # what a claim rests on, and what rests on it
+python scripts/research_map_db.py param scav_rat     # everything known about one parameter
+python scripts/research_map_db.py dangerous          # live claims on ungated or missing evidence
+python scripts/research_map_db.py check              # all integrity constraints; exit 1 on violation
+python scripts/research_map_db.py sql "SELECT ..."   # arbitrary read-only SQL
+```
+
+It assembles from four sources so nothing is maintained twice: the map's tables, the Carroll-N
+registry in `src/darwindiff/carroll6.py`, `docs/findings/citation_audit.json`, and the presence and
+retraction banners of every file under `docs/findings` and `docs/research_notes`.
+
+**ENFORCED** — `check` exits 1 on any of these:
+
+```
+π_cl(σ_live(CLAIM))  ∩  π_old(SUPERSEDES)         = ∅   matched on normalised PROSE, not on ids
+σ_mode=inductive ∧ numbers IS NULL (CLAIM)        = ∅   PRESENCE only — see the caveat below
+σ_doc ∉ DOCUMENT (CLAIM)                          = ∅   every cited file exists
+σ_verdict=RESOLVES_MISMATCH (CITATION)            = ∅   no DOI points at the wrong paper
+σ_verdict ∈ {DEAD, FABRICATED} (CITATION)         = ∅
+σ_doc IS NULL (SETTLED)                           = ∅   a settled answer must say where it lives
+σ_status IS NULL (CLAIM)                          = ∅
+```
+
+**REPORTED, NOT ENFORCED** — `check` prints these and keeps exit 0. They are real properties with
+real violations today; gating on them would fail every run and train you to ignore the gate, which
+is the same reasoning that keeps STRADDLE advisory in `verify_run`:
+
+```
+CLAIM ⋈ SUPPORTS ⋈ σ_gate≠exit0(EVIDENCE) where live     39 rows   `dangerous` lists them
+σ_live(CLAIM) ⋈ σ_retracted(DOCUMENT)                    26 rows   review each by hand
+CLAIM − π_cl(SUPPORTS)                                  291 rows   claims with no evidence edge
+```
+
+**Two caveats, because a green `check` otherwise reads stronger than it is.** "Carries its
+untrained null" is a presence check on the merged `n / null` column: the corpus has no separate
+null field, so *no* constraint here can verify that a matched baseline exists. And the citation
+constraints run over the audit's **exception rows only, 1 of 130** — `check` prints its own
+coverage line to say so.
+
+**Run `settled` before starting, and `check` before committing a finding.**
+
+### Three artifacts, one source
+
+| file | what it is for | do not |
+|---|---|---|
+| `docs/research_map.md` | reading as prose; the session-start index | hand-edit — regenerate it |
+| `docs/research_map.json` | reading the whole relational model in one file read | hand-edit — export it |
+| the in-memory DB | asking questions: joins, constraints, `settled` | expect it to persist |
+
+Neither generated file is a second source of truth. The markdown is rendered from
+`docs/findings/research_map_corpus.json` by `scripts/gen_research_map.py`; the JSON is exported from
+the same in-memory database the SQL commands query, so a schema or constraint change propagates to
+it automatically. Use SQL to **ask** (one command, joins, constraints) and JSON to **read in bulk**
+(the entire structure without a shell round-trip per question).
+
+```bash
+python scripts/gen_research_map.py                   # corpus JSON -> research_map.md
+python scripts/research_map_db.py export-json        # the DB       -> research_map.json
+```
+
+`test_research_map_json_mirror_is_current` fails when the committed JSON falls behind the build, so
+"the mirror follows the SQL" is enforced rather than promised. **After changing the map, the schema
+or the corpus, re-run both and commit all three together.**
+
 ## Issue tracker is the plan of record
 
 The GitHub issue tracker (`2imi9/ECCO-DarwinDiff`) holds the forward plan for the

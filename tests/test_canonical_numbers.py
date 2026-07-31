@@ -89,7 +89,16 @@ def _tracked_markdown() -> list[Path]:
     )
     files = [REPO / p for p in out.stdout.split("\n") if p.strip()]
     # The archive is a deliberate historical record and may contain superseded claims.
-    return [p for p in files if p.exists() and "docs/archive/" not in p.as_posix()]
+    #
+    # docs/research_map.md is exempt for two compounding reasons. It is GENERATED from the docs
+    # under docs/findings and docs/research_notes, which this guard already scans directly, so
+    # scanning the rendering adds no coverage -- a real drift is caught at its source. And its
+    # SUPERSEDES and TRAPS sections exist precisely to hold dead numbers ("the flagship's scav_rat
+    # is 26/50" recorded as the error, next to the correction), so every one of them trips a guard
+    # that cannot distinguish quoting a dead number from recording that it is dead. Same allowlist
+    # principle as deliberate=true in docs/findings/citation_audit.json.
+    skip = ("docs/archive/", "docs/research_map.md")
+    return [p for p in files if p.exists() and not any(s in p.as_posix() for s in skip)]
 
 
 #: A line may say 26/50 only if it also identifies the separate arm it belongs to.
