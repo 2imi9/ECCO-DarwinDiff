@@ -1,0 +1,22 @@
+{
+  "date": "2026-07-31",
+  "total": 130,
+  "clean": 129,
+  "rows": [
+    {
+      "doi": "10.1029/2005PA001258",
+      "verdict": "RESOLVES_MISMATCH",
+      "claimed_as": "Parekh et al. 2006 iron-cycle model underlying Darwin's routines",
+      "actual_first_author": "Parekh",
+      "actual_year": "2006",
+      "actual_title": "Physical and biological regulation of the soft tissue carbon pump",
+      "actual_venue": "Paleoceanography",
+      "citing_docs": [
+        "docs/research_notes/2026-07-20_external_validation_iron_residence_alpfe.md:185"
+      ],
+      "note": "FIXED in 2026-07-07_jon_schultz_meeting_capture.md on 2026-07-31. The remaining site cites it deliberately as a known-bad DOI and is correct as written.",
+      "deliberate": true
+    }
+  ],
+  "allowlist_policy": "deliberate=true marks a site that cites a known-bad DOI ON PURPOSE to record that it is bad. It exempts that row from the integrity constraint. Never set it to silence a real error."
+}

@@ -66,9 +66,19 @@ config files, adversarially checked, CONFIRMED):**
   caption any held-out-iron result as station-level, upper-ocean, non-winter-biased.
 
 **Primary iron references (Jon sent 2026-07-07) — the citation backbone for the iron section:**
-- **Parekh et al. 2005** (GBC, doi:10.1029/2004GB002280) / **2006** (Paleoceanography, doi:10.1029/2005PA001258)
+- **Parekh, Follows & Boyle 2005** (GBC, doi:10.1029/2004GB002280)
   — the iron-cycle model underlying Darwin's routines: ocean iron input = dust × Fe-fraction × solubility;
   free-Fe′/organic-ligand equilibrium (Fe′+L′⇌FeL, `L_T`~1e-3); scavenging `r_scav = τ_scav·I_scav·POM^0.58`.
+  <!-- CITATION CORRECTED 2026-07-31 (docs/findings/2026-07-31_citation_audit.md). This line
+       previously also cited doi:10.1029/2005PA001258 as a Parekh "2006" iron-cycle paper. That DOI
+       is real but is a DIFFERENT paper: Parekh, Follows, Dutkiewicz & Ito (2006), "Physical and
+       biological regulation of the soft tissue carbon pump", Paleoceanography — a glacial-CO2
+       soft-tissue-pump study, not an iron-cycle model. The iron attribution belongs to the 2005
+       GBC paper alone. Project memory flagged this on 2026-07-20 and it survived here for eleven
+       days, because writing a finding down does not repair the document that carries the error. -->
+- **Parekh, Follows, Dutkiewicz & Ito 2006** (Paleoceanography, doi:10.1029/2005PA001258)
+  — *soft-tissue carbon pump*, listed here only to keep the record straight about what that DOI is.
+  It is **not** an iron-cycle reference and must not be cited as one.
   Grounds our `alpfe·dust − scav·Fe·POC` as the **Parekh reduction**, and the scavenging closure design (PR-3).
 - **Mahowald et al. 2006** (JGR, doi:10.1029/2005JD006653) = *total dust* deposition; **2009** (Ann. Rev. Mar.
   Sci., doi:10.1146/annurev.marine.010908.163727) = *soluble-iron* deposition (Fe-fraction × solubility ≈ 1).
