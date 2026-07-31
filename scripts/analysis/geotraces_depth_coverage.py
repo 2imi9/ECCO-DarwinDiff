@@ -16,14 +16,16 @@ surface is DEPTH <= 50 m, subsurface is 50 m <= DEPTH <= 1000 m, QC flags (49, 5
 
     python scripts/analysis/geotraces_depth_coverage.py
 
-COUNTS ARE PRE-MASK UPPER BOUNDS. The runner drops bins where any v05 field is non-finite
-(`loss_mask = (count > 0) & ocean_mask`), and that mask needs the v05 cube, which lives on the
-cluster and not here. So these counts are the binning WITHOUT the land/missing trim.
+COUNTS ARE APPROXIMATE, IN BOTH DIRECTIONS. Two things differ from the runner. It drops bins where
+any v05 field is non-finite (`loss_mask = (count > 0) & ocean_mask`), which only REMOVES bins; and
+it lays its grid on the model's own edges rather than on the AOI corner, which can move a sample
+across a boundary and ADD one. The v05 cube needed for the mask lives on the cluster, not here.
 
-The southernoceanpac anchor calibrates the gap: this script returns 14 surface / 16 subsurface
-where the ablation arms, which applied the mask, reported 13 / 14. The mask removes 1-2 bins. The
-script asserts that relationship -- raw >= published, and within MASK_SLACK -- so a real binning
-drift still fails loudly while the known mask offset does not masquerade as one.
+Both anchors are measured, and they disagree in sign, which is why this is a tolerance and not a
+bound: southernoceanpac comes out 14/16 here against a masked 13/14 (this script HIGH by 1/2),
+while eqpac comes out 25/27 against a masked 26/28 (this script LOW by 1/1). So the check is
+|approx - masked| <= MASK_SLACK in either direction. An earlier version asserted approx >= masked
+on the reasoning that a mask can only remove bins; eqpac falsified it.
 
 Use these for RANKING AOIs. For any count that gets quoted as a number, take the masked value from
 the run's own `GEOTRACES bins in-AOI:` log line, which is computed with the mask applied.
@@ -53,9 +55,11 @@ SUB_DEPTH_MIN = 50.0
 SUB_DEPTH_MAX = 1000.0
 RES = 1.0
 
-# Masked counts the published ablation arms reported. This script runs pre-mask, so it must come
-# out at or above these, by no more than the land/missing trim.
-PUBLISHED_MASKED = {"southernoceanpac": (13, 14)}
+# Masked counts measured by the runner itself, from its `GEOTRACES bins in-AOI:` log line.
+#   southernoceanpac: job 239556 (the published surface-vs-depth ablation arms)
+#   eqpac:            job 240662 (the replication smoke test)
+# This script runs without the mask and on a different grid origin, so it may land either side.
+PUBLISHED_MASKED = {"southernoceanpac": (13, 14), "eqpac": (26, 28)}
 MASK_SLACK = 3
 
 
@@ -129,23 +133,22 @@ def main() -> int:
     for key, (ms, mb) in PUBLISHED_MASKED.items():
         gs, gb = rows[key]["surface_bins"], rows[key]["subsurface_bins"]
         for label, got, pub in (("surface", gs, ms), ("subsurface", gb, mb)):
-            if got < pub:
-                bad.append(f"{key} {label}: pre-mask {got} is BELOW the masked published {pub}; "
-                           "the mask can only remove bins, so the binning is wrong")
-            elif got - pub > MASK_SLACK:
-                bad.append(f"{key} {label}: pre-mask {got} exceeds masked published {pub} by "
-                           f"{got - pub} > MASK_SLACK={MASK_SLACK}; larger than a land trim")
+            if abs(got - pub) > MASK_SLACK:
+                bad.append(f"{key} {label}: approx {got} differs from the runner's masked {pub} "
+                           f"by {got - pub:+d}, exceeding MASK_SLACK={MASK_SLACK}; that is larger "
+                           "than a mask trim plus a grid-origin shift, so the binning is wrong")
     if bad:
         print("\nBINNING DRIFT -- these counts are not consistent with the published arms:")
         for b in bad:
             print(f"  {b}")
         return 1
-    ms, mb = PUBLISHED_MASKED["southernoceanpac"]
-    gs = rows["southernoceanpac"]["surface_bins"]
-    gb = rows["southernoceanpac"]["subsurface_bins"]
-    print(f"\nanchor ok: southernoceanpac pre-mask {gs}/{gb} vs masked published {ms}/{mb} "
-          f"(mask removes {gs - ms}/{gb - mb}). Counts above are UPPER BOUNDS -- use for ranking, "
-          f"and take any quoted number from the run's own log line.")
+    print()
+    for key, (ms, mb) in sorted(PUBLISHED_MASKED.items()):
+        gs, gb = rows[key]["surface_bins"], rows[key]["subsurface_bins"]
+        print(f"anchor ok: {key:<18} approx {gs}/{gb} vs runner masked {ms}/{mb} "
+              f"(offset {gs - ms:+d}/{gb - mb:+d})")
+    print("Counts above are APPROXIMATE IN BOTH DIRECTIONS -- use them for RANKING. "
+          "Take any quoted number from the run's own log line.")
 
     out = Path(a.out)
     out.write_text(json.dumps({

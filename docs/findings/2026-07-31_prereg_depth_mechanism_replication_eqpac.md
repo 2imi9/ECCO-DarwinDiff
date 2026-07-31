@@ -108,8 +108,16 @@ Writing these now so the result cannot be fitted to whichever story is convenien
   Verified by `md5sum` on the cluster. This is issue #218 observed a second time.
 - **Time limit raised to 2 hours per array task.** The Southern Ocean run lost `so_repro` to a
   one-hour timeout at ~1491 s per 10 seeds; 2 hours removes that failure mode.
-- **Coverage numbers above are pre-mask upper bounds.** The runner drops bins where any v05 field
-  is non-finite. The masked counts will be read from each arm's own
-  `GEOTRACES bins in-AOI:` log line and reported with the result.
+- **Coverage numbers above are approximate in both directions, not upper bounds.** Written first as
+  "upper bounds" on the reasoning that a mask can only remove bins. The smoke test falsified that
+  within the hour: the runner reports eqpac **surface 26, subsurface 28** where the table says
+  25/27, because the runner also lays its grid on the model's edges rather than the AOI corner,
+  which can move a sample across a boundary and *add* a bin. Southern Ocean goes the other way
+  (table 14/16, runner 13/14). The check is now a two-sided tolerance and both anchors are pinned
+  in the script. Nothing about the collinearity argument changes: eqpac masked is 26 surface to 28
+  subsurface, still ~1:1.
+- **The masked eqpac counts are the ones to quote**: surface 26, subsurface 28, against
+  southernoceanpac's 13 and 14. The replication basin has **twice** the subsurface coverage of the
+  original, which is what makes a null result there informative rather than ambiguous.
 - **No count from a short arm will be graded as complete.** Any arm finishing under 50/50 is
   refilled or disclosed, per the standing rule.
