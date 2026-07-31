@@ -1,8 +1,14 @@
-# DRAFT follow-up to Jon, 2026-07-30. NOT SENT, but no longer blocked.
+# Follow-up to Jon, 2026-07-30. SENT by Lucas.
 
-Three things in the last note need revising, and two of them make the result stronger. The Southern
-Ocean control has landed (job 238079/238080, `verify_run` exit 0), so the scavenging paragraph now
-carries a real number. **Still needs a human read before sending.**
+**Status: sent.** Kept as the record of what was prepared and why.
+
+**The exact text sent may differ from what is below.** Lucas sent it directly, so do not quote this
+file as the wording Jon received. Treat it as the reasoning and the numbers behind the message, not
+as a transcript of it.
+
+Three things in the previous note needed revising, and two of them made the result stronger. The
+Southern Ocean control landed first (jobs 238079/238080, `verify_run` exit 0), so the scavenging
+paragraph carries a verified number rather than a promise.
 
 ---
 

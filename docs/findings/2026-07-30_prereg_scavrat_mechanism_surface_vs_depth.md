@@ -75,6 +75,23 @@ P < 0.01 and to roughly **18-20/50** at P < 0.05. **A drop to 25/50 is not detec
 So "not significantly different from 30/50" must not be reported as "unchanged". McNemar is more
 powerful but its power depends on the discordance rate, which is unknown in advance.
 
+**Exact power curve, computed before any result exists** (the array was still `PENDING` with zero
+JSONs on disk; the estimate above was written by hand and the "18-20" end of it was loose):
+
+| `so_surf` or `so_sub` vs parent 30/50 | Fisher two-sided P | detectable? |
+|---|---|---|
+| 25/50 | 0.4216 | no |
+| 22/50 | 0.1609 | no |
+| 20/50 | 0.0713 | **no** — the hand estimate was wrong here |
+| 18/50 | 0.0272 | P < 0.05 |
+| 15/50 | 0.0046 | P < 0.01 |
+| 12/50 | 0.0005 | P < 0.01 |
+
+So the P < 0.05 boundary is at **18-19/50**, not 20. **The decision rule above is unchanged** — this
+refines a stated approximation, it does not move a threshold. The same validation reproduced the
+parent's three published P-values exactly (3.15e-24, 3.75e-24, 7.36e-08), which is the check that
+the grader applies the same rule the parent was graded under.
+
 ## The falsifier, written now
 
 If **both** ablation arms collapse **and** `alpfe` also collapses in `so_surf`, then a single iron
