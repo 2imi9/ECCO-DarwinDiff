@@ -29,13 +29,28 @@ USAGE
     python scripts/research_map_db.py dangerous          # live claims resting on weak ground
     python scripts/research_map_db.py sql "SELECT ..."   # arbitrary read-only SQL
 
-THE CONSTRAINTS, as relational algebra written in SQL (see CONSTRAINTS below):
+ENFORCED (`check` exits 1). Relational algebra, written in SQL in CONSTRAINTS below:
 
-    pi_cl(sigma_{status=live}(CLAIM)) INTERSECT pi_old(SUPERSEDES)          = {}
-    sigma_{mode=inductive AND null IS NULL}(CLAIM)                          = {}
-    CLAIM |><| SUPPORTS |><| sigma_{gate != exit0}(EVIDENCE) where live     = {}
-    sigma_{doc NOT IN DOCUMENT}(CLAIM)                                      = {}
-    sigma_{verdict=RESOLVES_MISMATCH}(CITATION)                             = {}
+    pi_cl(sigma_{live}(CLAIM)) INTERSECT pi_old(SUPERSEDES)   = {}   on normalised PROSE, not ids
+    sigma_{mode=inductive AND numbers IS NULL}(CLAIM)         = {}   presence only, see caveat
+    sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}
+    sigma_{verdict=RESOLVES_MISMATCH}(CITATION)               = {}
+    sigma_{verdict IN (DEAD, FABRICATED)}(CITATION)           = {}
+    sigma_{doc IS NULL}(SETTLED)                              = {}
+    sigma_{status IS NULL}(CLAIM)                             = {}
+
+REPORTED BUT NOT ENFORCED (`check` prints, never fails). These are real properties that currently
+have violations; gating on them would fail every run and train readers to ignore the gate:
+
+    CLAIM |><| SUPPORTS |><| sigma_{gate != exit0}(EVIDENCE) where live     -- 39 rows
+    sigma_{live}(CLAIM) |><| sigma_{retracted}(DOCUMENT)                    -- 26 rows
+    CLAIM - pi_cl(SUPPORTS)                                                 -- 291 rows
+
+TWO CAVEATS, stated because a passing `check` otherwise reads stronger than it is:
+  * "carries its untrained null" is a PRESENCE check on the merged `n / null` column. The corpus
+    has no separate null field, so no constraint here can verify a matched baseline exists.
+  * the citation constraints run over the audit's EXCEPTION rows only (1 of 130). `check` prints
+    its own coverage line for this reason.
 """
 
 from __future__ import annotations
@@ -116,7 +131,8 @@ CREATE TABLE derives (               -- deductive dependency edges: to_cl follow
 CREATE TABLE supersedes (
     old    TEXT,
     new    TEXT,
-    reason TEXT
+    reason TEXT,
+    doc    TEXT                       -- where the retraction is recorded; the chain needs a cite
 );
 
 CREATE TABLE hypothesis (
@@ -344,6 +360,9 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
     if not map_path.is_file():
         raise SystemExit(f"{map_path} not found. CLAUDE.md tells every session to read it.")
     con = sqlite3.connect(":memory:")
+    # nrm() lets a constraint compare PROSE across tables. Claim IDs are synthetic (ded40) while
+    # supersedes.old holds the retracted sentence, so any join on the id can never match.
+    con.create_function("nrm", 1, lambda s: re.sub(r"[^a-z0-9]+", "", (s or "").lower()))
     con.executescript(SCHEMA)
     _load_documents(con)
     _load_parameters(con)
@@ -385,14 +404,23 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
                              _get(r, header, "locator", "artifact", "path"), _get(r, header, "job"),
                              _get(r, header, "gate"), None, _get(r, header, "date")))
             elif kind == "hypothesis":
+                # The key must be UNIQUE PER ROW. It used to fall back to statement[:12], which
+                # with INSERT OR REPLACE silently destroyed 7 of 99 hypotheses whose statements
+                # merely began alike -- including two RIVAL explanations of the same Southern
+                # Ocean result ("...comes from DEPTH STRUCTURE" vs "...because scavenging is
+                # ~79.7% of the surface sink"), so the map lost the competing hypothesis it
+                # exists to keep visible. Fall back to a row counter instead.
+                hy_id = (_get(r, header, "hy_id", "hyp id", "id")
+                         or f"hy{con.execute('SELECT count(*) FROM hypothesis').fetchone()[0]:03d}")
                 con.execute("INSERT OR REPLACE INTO hypothesis VALUES (?,?,?,?,?,?)",
-                            (_get(r, header, "hy_id", "hyp id", "id") or _get(r, header, "statement")[:12],
+                            (hy_id,
                              _get(r, header, "statement"), _get(r, header, "predict"),
                              _get(r, header, "falsifier"), _get(r, header, "status"),
                              _get(r, header, "prereg", "doc")))
             elif kind == "supersedes":
-                con.execute("INSERT INTO supersedes VALUES (?,?,?)",
-                            (_get(r, header, "old"), _get(r, header, "new"), _get(r, header, "reason")))
+                con.execute("INSERT INTO supersedes VALUES (?,?,?,?)",
+                            (_get(r, header, "old"), _get(r, header, "new"),
+                             _get(r, header, "reason"), _get(r, header, "doc")))
             elif kind == "trap":
                 con.execute("INSERT INTO trap VALUES (?,?,?)",
                             (_get(r, header, "trap"), _get(r, header, "doc"), _get(r, header, "category")))
@@ -401,11 +429,18 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
 
 
 CONSTRAINTS = [
-    ("no live claim is also superseded",
-     """SELECT c.cl_id, c.statement FROM claim c JOIN supersedes s
-        ON length(c.cl_id) > 1 AND lower(s.old) LIKE '%' || lower(c.cl_id) || '%'
+    # This compared claim.cl_id (synthetic, "ded40") against supersedes.old (the retracted
+    # SENTENCE), so the join had zero possible matches and the constraint passed vacuously from
+    # the day it was written. It now compares the normalised prose: a live claim that restates
+    # the first 60 significant characters of a retracted statement is the failure it was meant
+    # to catch. 60 is long enough that an incidental shared opening does not trip it.
+    ("no live claim restates a superseded statement",
+     """SELECT c.cl_id, substr(c.statement,1,70) FROM claim c JOIN supersedes s
+        ON length(nrm(s.old)) >= 60
+       AND instr(nrm(c.statement), substr(nrm(s.old), 1, 60)) > 0
         WHERE lower(coalesce(c.status,'')) LIKE '%live%'"""),
-    ("every inductive claim carries its untrained null",
+    ("every inductive claim carries a numbers cell (NOT a verified untrained null -- the corpus "
+     "has no separate null field, so this checks presence, not that a matched baseline exists)",
      """SELECT cl_id, statement FROM claim
         WHERE mode='inductive' AND trim(coalesce(null_baseline,''))=''"""),
     ("every settled answer says where it lives",
@@ -434,7 +469,10 @@ ADVISORIES = [
      """SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d
         ON instr(c.doc, d.name) > 0
         WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'"""),
-    ("claims with no evidence edge",
+    ("live claims resting on UNGATED evidence (advertised as a constraint, never enforced; "
+     "run `dangerous` for the full list)",
+     """SELECT cl_id, gate, substr(statement,1,60) FROM v_dangerous"""),
+    ("claims with no evidence edge at all",
      """SELECT cl_id, substr(statement,1,80) FROM v_unsupported"""),
 ]
 

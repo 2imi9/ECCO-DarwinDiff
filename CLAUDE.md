@@ -44,15 +44,33 @@ It assembles from four sources so nothing is maintained twice: the map's tables,
 registry in `src/darwindiff/carroll6.py`, `docs/findings/citation_audit.json`, and the presence and
 retraction banners of every file under `docs/findings` and `docs/research_notes`.
 
-The constraints it enforces are the map's rules written as relational algebra:
+**ENFORCED** — `check` exits 1 on any of these:
 
 ```
-π_cl(σ_status=live(CLAIM))  ∩  π_old(SUPERSEDES)                  = ∅   no live claim is retracted
-σ_mode=inductive ∧ null IS NULL (CLAIM)                           = ∅   every count carries its null
-CLAIM ⋈ SUPPORTS ⋈ σ_gate≠exit0(EVIDENCE)  where live             = ∅   no live claim on ungated evidence
-σ_doc ∉ DOCUMENT (CLAIM)                                          = ∅   every citation resolves
-σ_verdict=RESOLVES_MISMATCH (CITATION)                            = ∅   no DOI points at the wrong paper
+π_cl(σ_live(CLAIM))  ∩  π_old(SUPERSEDES)         = ∅   matched on normalised PROSE, not on ids
+σ_mode=inductive ∧ numbers IS NULL (CLAIM)        = ∅   PRESENCE only — see the caveat below
+σ_doc ∉ DOCUMENT (CLAIM)                          = ∅   every cited file exists
+σ_verdict=RESOLVES_MISMATCH (CITATION)            = ∅   no DOI points at the wrong paper
+σ_verdict ∈ {DEAD, FABRICATED} (CITATION)         = ∅
+σ_doc IS NULL (SETTLED)                           = ∅   a settled answer must say where it lives
+σ_status IS NULL (CLAIM)                          = ∅
 ```
+
+**REPORTED, NOT ENFORCED** — `check` prints these and keeps exit 0. They are real properties with
+real violations today; gating on them would fail every run and train you to ignore the gate, which
+is the same reasoning that keeps STRADDLE advisory in `verify_run`:
+
+```
+CLAIM ⋈ SUPPORTS ⋈ σ_gate≠exit0(EVIDENCE) where live     39 rows   `dangerous` lists them
+σ_live(CLAIM) ⋈ σ_retracted(DOCUMENT)                    26 rows   review each by hand
+CLAIM − π_cl(SUPPORTS)                                  291 rows   claims with no evidence edge
+```
+
+**Two caveats, because a green `check` otherwise reads stronger than it is.** "Carries its
+untrained null" is a presence check on the merged `n / null` column: the corpus has no separate
+null field, so *no* constraint here can verify that a matched baseline exists. And the citation
+constraints run over the audit's **exception rows only, 1 of 130** — `check` prints its own
+coverage line to say so.
 
 **Run `settled` before starting, and `check` before committing a finding.**
 
