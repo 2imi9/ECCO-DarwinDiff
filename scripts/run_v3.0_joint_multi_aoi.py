@@ -600,6 +600,15 @@ DT = 0.25
 # basin-blind DFe_2 is 0.2671 nM at 200 steps and 0.4047 nM at 100, against observed subsurface
 # medians of sopac 0.2245, eqpac 0.4404, natl 0.5638 nM. See
 # docs/findings/2026-07-31_prereg_integration_window_swap.md.
+#
+# CORRECTION 2026-07-31: an earlier version of this comment said "DARWIN_IC defaults off". It does
+# NOT -- line 303 reads os.environ.get("DARWIN_IC", "1"), so per-basin Darwin ICs are the DEFAULT.
+# The basin-uniform state0 above applies only to arms that set DARWIN_IC=0 explicitly, which the
+# 2026-07-31 depth arms did. The FLAGSHIP uses Darwin ICs and is therefore NOT basin-blind: it
+# starts at FeT_L2 of 0.5353 / 0.7544 / 0.5393 nM and POC_L2 of 0.339 / 0.153 / 0.630 in
+# eqpac / natl / sopac, which makes the L2 decay rate differ ~4x across basins (tau = 57 / 125 /
+# 31 days). It is still a transient at 200 steps, so the window matters, but the mechanism is
+# per-basin rather than a single shared curve.
 N_STEPS = int(os.environ.get("N_STEPS", "200"))
 
 print(f"AOIS: {AOIS_KEYS}  (joint training across {N_AOIS} AOIs)")
