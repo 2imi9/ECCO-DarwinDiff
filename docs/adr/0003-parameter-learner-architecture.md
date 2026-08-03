@@ -1,6 +1,6 @@
 # ADR-0003: Parameter-learner architecture after the per-parameter trunk result
 
-**Status:** Proposed
+**Status:** Proposed — **Option B amended the same day, see the addendum at the foot**
 **Date:** 2026-08-03
 **Deciders:** Lucas Qi (implementer). Science framing to be sanity-checked with Jon Lauderdale.
 **Supersedes nothing.** Related: [0001](0001-differentiable-darwin-calcite-port.md),
@@ -111,3 +111,43 @@ addressable on the estimator side at all, and the next move is observational (a 
        numbers registry in `tests/test_canonical_numbers.py` in the same commit.
 5. [ ] Either way, record `dinn_hidden_dim` as a first-class reported variable — it is already
        in the artifact, but no published table carries it.
+
+---
+
+## Addendum (same day): job 258439 landed, and Option B is NOT adopted
+
+The control ran. Width 16 → 39 lifts `scav_rat` **45/100 → 77/100**, Fisher **P = 5.6e-06**, with
+**both split halves clearing 0.01** (37/50 vs 20/50 and 40/50 vs 25/50), nulls 0/50 at both
+widths, controls undamaged, and exactly one of 71 recorded config keys differing. On the criteria
+this ADR set out, Option B won.
+
+**It is still not adopted, because the criteria were incomplete.** Re-counting the same artifacts
+with only the pass threshold moved:
+
+| band | 0.30 | 0.35 | **0.40** | 0.45 | 0.50 |
+|---|---|---|---|---|---|
+| cap16 | 13 | 22 | **45** | 81 | 99 |
+| cap39 | 13 | 31 | **77** | 100 | 100 |
+| difference | **+0** | +9 | **+32** | +19 | **+1** |
+
+The effect is **maximal exactly at the reported band** and vanishes on both sides. The underlying
+accuracy change is real but small — North Atlantic median relative error 0.413 → 0.384, about 7% —
+and it doubles the count only because 91/100 of that basin's mass sits within ±0.10 of the
+threshold. Meanwhile the **Southern Ocean gets worse** (median 0.051 → 0.083) invisibly, because
+both medians are far inside the band, and the cell-weighted metric shows no gain at all
+(71 → 67).
+
+**Decision: keep Option C (width 16) for now.** Width 39 trades a small North Atlantic gain for a
+real Southern Ocean loss and looks decisive only on a threshold metric read at one threshold.
+
+**This ADR's real output is a change to how architecture is judged here.** Two tests are now
+required before any architectural claim, and they are not redundant — this result passed the first
+convincingly and failed the second:
+
+1. **split-half** — the effect must hold in both seed halves independently;
+2. **band sensitivity** — the effect must not peak at the reported pass threshold.
+
+See `docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md` and
+`docs/findings/2026-08-03_the_pass_band_is_load_bearing.md`. Jobs 258694 (width dose-response) and
+258713 (width × epochs 2×2) remain the right follow-ups and must be graded with the band sweep
+alongside the count.

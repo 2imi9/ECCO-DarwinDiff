@@ -26,16 +26,22 @@ architecture-matched untrained null**.
 
 ## The map
 
-| parameter | best measured | its own untrained null | best-known configuration | class |
-|---|---|---|---|---|
-| `alpfe` | **50/50** | 10/50 flagship arch · 13/50 per-param · 15/50 widened | flagship `geo1`; insensitive | **point-identified**, method-independent |
-| `R_PICPOC` | **50/50** | 0/50 | flagship `geo1` **+ real Daniels CP:PP anchor** | **identified given a real absolute anchor** |
-| `scav_rat` | **83/100** | 0/50 | **added network capacity** (width 39 shared trunk) | **regionally identifiable**; one basin model-limited |
-| `diatomgraz` | **0/100** | **70–77/100** untrained at 0.40 | none | **anti-recovered — training moves it AWAY** |
-| `Smallgrow` | — | — | — | excluded: non-identifiable from *time-mean* observables |
-| `Biggrow` | — | — | — | excluded: unobservable by construction |
+| parameter | best measured | its own untrained null | **band-robust?** | best-known configuration | class |
+|---|---|---|---|---|---|
+| `alpfe` | **98/100** at *every* band 0.20–0.60 | **0/100 at ≤0.30**, 20/100 at 0.40 | **YES, flat** | flagship `geo1`; insensitive. **Quote at ≤0.30** | **point-identified**, method-independent |
+| `R_PICPOC` | **99/100** (33/100 even at ≤0.20) | **0/100 at every band** | **YES** above 0.35 | flagship `geo1` **+ real Daniels CP:PP anchor** | **identified given a real absolute anchor** |
+| `scav_rat` | 45/100 at 0.40 — but **22/100 at 0.35 and 81/100 at 0.45** | 0/100 at every band | **NO — knife edge** | none established; width 39 not adopted | **recovering (null 0) but the COUNT is not a stable effect size** |
+| `diatomgraz` | 3/100 at 0.40 | **64/100** at 0.40; untrained beats trained at *every* band ≥0.30 | n/a | none | **anti-recovered — training moves it AWAY** |
+| `Smallgrow` | — | — | — | — | excluded: non-identifiable from *time-mean* observables |
+| `Biggrow` | — | — | — | — | excluded: unobservable by construction |
 
-**Three recovered, one unestablished, two excluded.** Not "3 of 4".
+**Two solid, one knife-edge, one anti-recovered, two excluded.** The band-robustness column is
+the one added last and it is the one that matters most: `alpfe` and `R_PICPOC` hold their counts
+across the whole threshold range, which is a genuine strengthening, while `scav_rat` swings
+**22 → 81** across ±0.05 around the reported band. Since CLAUDE.md records that the joint trio
+count *equals* `scav_rat`'s — it is the sole binding leg — **the flagship's joint headline
+inherits that knife edge.** See
+[2026-08-03_the_pass_band_is_load_bearing.md](2026-08-03_the_pass_band_is_load_bearing.md).
 
 ### `alpfe` — solved, and the least interesting
 
