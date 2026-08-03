@@ -7841,8 +7841,8 @@
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
      "name": "2026-08-03_capacity_is_the_scav_rat_lever.md",
      "date": "2026-08-03",
-     "retracted": 0,
-     "words": 1327
+     "retracted": 1,
+     "words": 1470
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_information_weighted_routing_is_worse.md",
@@ -7863,7 +7863,7 @@
      "name": "2026-08-03_per_parameter_operating_points.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 1835
+     "words": 1836
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
@@ -7892,6 +7892,13 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 1329
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
+     "name": "2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 843
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_flagship_is_bound_to_a_code_build.md",
@@ -36799,7 +36806,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 191,
+  "document": 192,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,

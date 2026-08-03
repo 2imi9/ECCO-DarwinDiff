@@ -140,12 +140,25 @@ both medians are far inside the band, and the cell-weighted metric shows no gain
 **Decision: keep Option C (width 16) for now.** Width 39 trades a small North Atlantic gain for a
 real Southern Ocean loss and looks decisive only on a threshold metric read at one threshold.
 
-**This ADR's real output is a change to how architecture is judged here.** Two tests are now
-required before any architectural claim, and they are not redundant — this result passed the first
-convincingly and failed the second:
+**Second addendum — the width effect is not merely a bad trade, it is a POOLING ARTIFACT.** An
+adversarial verification pass, run after the above was already written and committed, collapsed
+the same fits three ways: arithmetic **45 → 77/100** (P = 5.6e-06), geometric **16 → 17/100**
+(P = 1.000), median **37 → 27/100** (reverses). Per-cell `log_sd` rises monotonically with width
+(natl 0.879 → 1.001) and arithmetic = geometric × exp(σ²/2), so widening makes the field noisier
+and the arithmetic collapse drifts toward Carroll from below. **There is no accuracy gain to
+trade.** Option B is rejected outright rather than merely deferred.
+
+**This ADR's real output is a change to how architecture is judged here.** Three tests are now
+required, and none is sufficient alone — this result passed the first two and was still an
+artifact:
 
 1. **split-half** — the effect must hold in both seed halves independently;
-2. **band sensitivity** — the effect must not peak at the reported pass threshold.
+2. **band sensitivity** — the effect must not peak at the reported pass threshold;
+3. **pooler invariance** — for `scav_rat`, the effect must survive the geometric and median
+   collapses, which are recorded in every artifact and had never been read.
+
+The generalisable lesson is that 1 and 2 test the claim harder *on its own terms*, while 3 came
+from asking a different question: **what else in the pipeline could produce this number.**
 
 See `docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md` and
 `docs/findings/2026-08-03_the_pass_band_is_load_bearing.md`. Jobs 258694 (width dose-response) and

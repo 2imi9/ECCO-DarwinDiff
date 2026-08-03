@@ -1,5 +1,16 @@
 # Trunk width moves `scav_rat` — but the headline count is a band-edge amplifier, and the underlying accuracy change is small and mixed in sign
 
+> **⛔ RETRACTED the same day. The effect is a POOLING artifact and there is no accuracy gain at
+> all.** The same fits collapsed three ways: arithmetic **45 → 77/100** (P = 5.6e-06), geometric
+> **16 → 17/100** (P = 1.000), median **37 → 27/100** (reverses). The effect exists only under the
+> arithmetic mean. Per-cell `log_sd` rises monotonically with width (natl 0.879 → 1.001), and for
+> a log-normal field arithmetic = geometric × exp(σ²/2), so a wider net produces a noisier field
+> whose arithmetic collapse drifts toward Carroll from below. **Width does not recover `scav_rat`
+> better; it makes the field noisier and the reported statistic converts that into apparent
+> accuracy.** Everything below about band-edge amplification and basin trades is still true and
+> still worth reading — it just is not the deepest problem.
+> See [2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md](2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md).
+
 **Date:** 2026-08-03 · **Job:** 258439 · **All four arms `verify_run` exit 0**
 · **Status: the count result is real and replicates; the SIZE of it is an artifact of where the
 pass band sits. Do not adopt width 39 on this evidence.**

@@ -136,7 +136,18 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   from *time-mean* observables only (a seasonal prototype recovers it natl 9/10, unconfirmed). `R_PICPOC` is recoverable given a
   real calcite anchor (Daniels/MODIS). The surrogate gap is dimensional (the 0-D box homogenizes
   spatial structure), so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).
-- **Every reported effect must pass TWO tests, and they are not redundant.** (1) **Split-half** —
+- **`scav_rat` MUST be reported under the geometric pooler (or all three), never the arithmetic
+  one alone.** Every artifact records `per_aoi_recovered`, `per_aoi_recovered_geom` and
+  `per_aoi_recovered_median` from the same fit. A 2026-08-03 width result read 45 → 77/100
+  arithmetic (P = 5.6e-06), **16 → 17/100 geometric (P = 1.000)** and 37 → 27/100 median. The
+  cause: per-cell `log_sd` rises with capacity, and arithmetic = geometric × exp(σ²/2), so **any
+  intervention that adds per-cell dispersion inflates the arithmetic count without improving the
+  fit.** `scav_rat` is a log-scale parameter over two decades, so the arithmetic collapse is the
+  wrong operation on its own terms. Also report `per_aoi_log_sd` — it is already in every artifact
+  and nothing has ever read it. This retro-explains `ind352` (26/50 arithmetic vs 13/50 geometric).
+  See [docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md](docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md).
+- **Every reported effect must pass TWO tests — necessary, and NOT sufficient** (the width claim
+  passed both and was still an artifact; the pooler check is what caught it). (1) **Split-half** —
   it must hold in both seed halves independently; a P = 0.0128 architectural effect at n=50
   became an exact tie (38/50 vs 38/50) on fresh seeds. (2) **Band sensitivity** — re-count at
   ±0.05 around the pass band; an effect that *peaks* at the reported threshold is threshold
