@@ -218,6 +218,7 @@ from darwindiff.daniels_loader import (
     load_daniels_points,
 )
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
+from darwindiff.provenance import stamp as _prov_stamp
 from darwindiff.networks import DINN, PerParamDINN, GlobalScalarNet, PerCellFreeField
 from darwindiff.safe_load import safe_torch_load
 from darwindiff.gating import (
@@ -2312,6 +2313,11 @@ if __name__ == "__main__":
         result = {
             "seed": seed,
             "aois": AOIS_KEYS,
+            # WHAT CODE PRODUCED THIS NUMBER. Added 2026-08-03 after the published
+            # flagship was found bound to a code build: same config, same seeds,
+            # scav_rat 60% on the 2026-07-26 tree and 2% on HEAD, with nothing able
+            # to detect it because no artifact recorded its own code version.
+            "code_provenance": _prov_stamp(__file__),
             "aoi_weights": AOI_W,
             "n_aois": N_AOIS,
             # The integration window. Recorded because it is now swept: before
