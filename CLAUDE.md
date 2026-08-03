@@ -146,13 +146,24 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   wrong operation on its own terms. Also report `per_aoi_log_sd` — it is already in every artifact
   and nothing has ever read it. This retro-explains `ind352` (26/50 arithmetic vs 13/50 geometric).
   See [docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md](docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md).
-- **Every reported effect must pass TWO tests — necessary, and NOT sufficient** (the width claim
-  passed both and was still an artifact; the pooler check is what caught it). (1) **Split-half** —
-  it must hold in both seed halves independently; a P = 0.0128 architectural effect at n=50
-  became an exact tie (38/50 vs 38/50) on fresh seeds. (2) **Band sensitivity** — re-count at
-  ±0.05 around the pass band; an effect that *peaks* at the reported threshold is threshold
-  geometry, not accuracy. The 2026-08-03 capacity result passed the first convincingly and
-  failed the second. Both checks run on artifacts already on disk and cost one query.
+- **Every reported effect must pass THREE checks — each necessary, none sufficient.** The
+  2026-08-03 width claim passed the first two and was still an artifact.
+  (1) **Out-of-sample replication — and splitting ONE array in half is NOT that.** A genuinely
+  fresh submission is required: the per-parameter effect died exactly this way (45/50 vs 34/50
+  became **38/50 vs 38/50** on seeds run in a *later job*). Within a single array the halves are
+  an arbitrary partition of one sample, and a permutation test over 10,000 re-splits of the width
+  arms puts **P(both halves significant) = 0.926** — near-automatic given a significant aggregate,
+  so it carries almost no information. Cite a separate job, or state that you have no replication.
+  (2) **Band sensitivity** — re-count at ±0.05 around the pass band; an effect that *peaks* at the
+  reported threshold is threshold geometry, not accuracy.
+  (3) **Pooler invariance** for `scav_rat` — see the bullet above.
+  All three run on artifacts already on disk and cost one query each.
+- **The per-AOI ≥2-of-3 rule is close to degenerate for `scav_rat`; do not call it a three-basin
+  test.** Measured on the width arms: `southernoceanpac` passes **99–100/100** in every arm, a
+  free vote, and there is **not one seed** in either arm where natl passes and the parameter
+  fails. So ≥2-of-3 collapses to **≥1-of-{eqpac, natl}** — and eqpac fires at an identical 12/100
+  in both arms on largely *different* seeds (overlap 2 of 12), i.e. seed noise. The headline is
+  effectively a one-basin test wearing a three-basin label.
   **`scav_rat` is a knife edge (22/100 at 0.35, 45 at 0.40, 81 at 0.45) and it is the sole
   binding leg, so the joint trio headline inherits that.** `alpfe` (98/100 flat from 0.20 to
   0.60) and `R_PICPOC` are threshold-robust — quote `alpfe` at **≤0.30**, where its untrained

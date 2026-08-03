@@ -90,6 +90,36 @@ is the wrong operation on its own terms, independent of everything above.
 3. Split-half and band-sensitivity remain necessary and are **not sufficient** — this claim passed
    both.
 
+## Three further objections from the same pass, all upheld
+
+**1. The split-half was not a replication, and the check as I wrote it was wrong.** All 100 seeds
+per arm were one simultaneously-submitted array (258439, tasks starting 15:57–16:01; tasks 4 and
+5, i.e. seeds 40–49 and 50–59, launched in the same instant). A permutation test over 10,000
+random re-splits of that same n=100 gives **P(both halves reach Fisher P < 0.05) = 0.9256**. So
+"both halves significant" was expected 93% of the time by construction.
+
+The distinction that matters: the per-parameter effect died on a split-half because seeds 50–99
+were run in a **later, separate job** (258256 extending 257056). That was a genuine out-of-sample
+replication. Splitting one array is not. CLAUDE.md is corrected accordingly.
+
+The real replication for width 39 exists and was not cited: `pp_ctrl39` is the identical config in
+a different job and gives **72/100** against `cap39`'s 77/100. Consistent — but it replicates the
+*arithmetic* number, which the pooler analysis shows is the artifact.
+
+**2. The ≥2-of-3 rule is close to degenerate for `scav_rat`.** `southernoceanpac` passes 99–100/100
+in every arm — a free vote — and there is **not one seed** in either arm where natl passes and the
+parameter fails. So the rule collapses to **≥1-of-{eqpac, natl}**, and eqpac fires at an identical
+12/100 in both arms on largely *different* seeds (overlap 2 of 12, i.e. seed noise). The headline
+is a one-basin test wearing a three-basin label.
+
+**3. `diatomgraz`'s Excellent band is wiped out by width**, 20/100 → 0/100, P = 6.6e-07, in both
+halves. That is the same signal reported here as locally identifiable in eqpac, and it confirms
+from a second direction that widening destroys it.
+
+Two smaller ones, recorded: Fisher is technically the wrong test (the arms are seed-matched and
+therefore paired — McNemar is correct, though it does not change the verdict), and `Smallgrow`
+degrades 13/100 → 5/100 under width 39 with the same sign in both halves.
+
 ## Credit, and the lesson about the checks
 
 This was found by an adversarial verification pass run *after* the finding had been written up,
