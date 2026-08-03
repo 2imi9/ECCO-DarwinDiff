@@ -76,16 +76,38 @@ def code_digest(paths: list[Path]) -> str:
     return h.hexdigest()[:16]
 
 
+def config_files_from_env(var: str = "DD_PROVENANCE_FILES") -> list[Path]:
+    """Paths listed in an env var, ``os.pathsep``-separated. Missing entries are dropped."""
+    raw = os.environ.get(var, "")
+    return [p for p in (Path(x).expanduser() for x in raw.split(os.pathsep) if x.strip())
+            if p.is_file()]
+
+
 def stamp(runner_file: str | os.PathLike | None = None) -> dict:
     """Provenance block for a run artifact. Never raises.
 
     Returns ``git_sha``, ``git_dirty``, ``git_describe``, ``code_digest``, ``runner_md5``,
-    ``runner_file``. Any field may be ``None``; a ``None`` git SHA on the cluster is expected
-    and is exactly why ``code_digest`` exists.
+    ``runner_file``, and ``config_digest`` / ``config_files``. Any field may be ``None``; a
+    ``None`` git SHA on the cluster is expected and is exactly why ``code_digest`` exists.
+
+    WHY CONFIGS ARE HASHED TOO
+    --------------------------
+    Three separate runs were lost on 2026-08-03, and none of them to the science: the
+    reproducibility appendix omitted three levers, `flagship_geo1.sh` did not pin the learning
+    rate, and a config copied from Windows arrived with CRLF so every value carried a trailing
+    carriage return. **The transmission path from repo to run is where this project loses runs**,
+    and it had the least machinery around it -- `code_digest` recorded what code ran while
+    nothing recorded which config bytes it ran with.
+
+    Point ``DD_PROVENANCE_FILES`` at the sourced config(s) and every artifact carries their
+    digest, so two runs can be compared on configuration without either one being a git
+    checkout, and a silently-mangled config is visible after the fact instead of inferred.
+    Line endings are normalised, so the same config on Windows and Linux hashes equal.
     """
     out: dict = {
         "git_sha": None, "git_dirty": None, "git_describe": None,
         "code_digest": None, "runner_md5": None, "runner_file": None,
+        "config_digest": None, "config_files": None,
     }
     try:
         here = Path(__file__).resolve()
@@ -100,6 +122,15 @@ def stamp(runner_file: str | os.PathLike | None = None) -> dict:
 
         targets = [pkg] + ([runner] if runner and runner.is_file() else [])
         out["code_digest"] = code_digest(targets)
+
+        cfgs = config_files_from_env()
+        if cfgs:
+            out["config_files"] = {
+                c.name: hashlib.md5(
+                    c.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:12]
+                for c in cfgs
+            }
+            out["config_digest"] = code_digest(cfgs)
 
         sha = _git(repo, "rev-parse", "HEAD")
         if sha:

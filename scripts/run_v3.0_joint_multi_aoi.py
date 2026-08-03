@@ -592,6 +592,12 @@ if USE_GATING and USE_PER_AOI_DINN:
 # basins, so this does not covertly change the effective learning rate (which on 2026-08-03 was
 # shown to move scav_rat from 26/50 to 1/50 on its own).
 AOI_PARAM_WEIGHTS = os.environ.get("AOI_PARAM_WEIGHTS", "")
+# Hash the routing rule alongside the sourced config, so an artifact records the exact bytes
+# of every input that shaped it -- not just the code. DD_PROVENANCE_FILES is set by the sbatch.
+if AOI_PARAM_WEIGHTS:
+    _pf = os.environ.get("DD_PROVENANCE_FILES", "")
+    os.environ["DD_PROVENANCE_FILES"] = (
+        _pf + os.pathsep + AOI_PARAM_WEIGHTS) if _pf else AOI_PARAM_WEIGHTS
 USE_AOI_PARAM_WEIGHTS = bool(AOI_PARAM_WEIGHTS)
 if USE_AOI_PARAM_WEIGHTS and USE_GATING:
     raise ValueError(

@@ -92,3 +92,54 @@ def test_stamp_reports_this_repo() -> None:
     if s["git_sha"] is not None:
         assert len(s["git_sha"]) == 12
         assert isinstance(s["git_dirty"], bool)
+
+
+def test_config_digest_records_the_bytes_that_were_sourced(tmp_path: Path, monkeypatch) -> None:
+    """The transmission path is where runs are actually lost, so hash what arrived."""
+    cfg = tmp_path / "flagship.sh"
+    cfg.write_text("export A=1\nexport B=2\n", encoding="utf-8", newline="")
+    monkeypatch.setenv("DD_PROVENANCE_FILES", str(cfg))
+    s = stamp()
+    assert s["config_digest"], "a sourced config must be hashed"
+    assert "flagship.sh" in (s["config_files"] or {})
+
+
+def test_config_digest_is_line_ending_insensitive(tmp_path: Path, monkeypatch) -> None:
+    """The exact 2026-08-03 failure: the same config copied from Windows arrives as CRLF.
+
+    Its *content* is unchanged, so it must hash equal -- otherwise every Windows-side sync
+    would look like a config change and the signal would be ignored. The CRLF problem is
+    caught by the sbatch guard, which fails on it; the digest's job is to identify content.
+    """
+    # SAME basename in different directories. code_digest hashes the relative path as well as
+    # the bytes, so a rename counts as a change -- using two different filenames here would
+    # test the name and pass for the wrong reason.
+    (tmp_path / "x").mkdir()
+    (tmp_path / "y").mkdir()
+    a, b = tmp_path / "x" / "flagship.sh", tmp_path / "y" / "flagship.sh"
+    a.write_text("export A=1\nexport B=2\n", encoding="utf-8", newline="")
+    b.write_text("export A=1\r\nexport B=2\r\n", encoding="utf-8", newline="")
+    monkeypatch.setenv("DD_PROVENANCE_FILES", str(a))
+    da = stamp()["config_digest"]
+    monkeypatch.setenv("DD_PROVENANCE_FILES", str(b))
+    assert stamp()["config_digest"] == da
+
+
+def test_config_digest_changes_when_a_value_changes(tmp_path: Path, monkeypatch) -> None:
+    """NB23_LR=5e-3 vs 1e-3 moved scav_rat 26/50 -> 1/50. That must be visible in the artifact."""
+    (tmp_path / "p").mkdir()
+    (tmp_path / "q").mkdir()
+    a, b = tmp_path / "p" / "flagship.sh", tmp_path / "q" / "flagship.sh"
+    a.write_text("export NB23_LR=5e-3\n", encoding="utf-8", newline="")
+    b.write_text("export NB23_LR=1e-3\n", encoding="utf-8", newline="")
+    monkeypatch.setenv("DD_PROVENANCE_FILES", str(a))
+    da = stamp()["config_digest"]
+    monkeypatch.setenv("DD_PROVENANCE_FILES", str(b))
+    assert stamp()["config_digest"] != da
+
+
+def test_absent_config_var_is_not_an_error(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("DD_PROVENANCE_FILES", raising=False)
+    s = stamp()
+    assert s["config_digest"] is None and s["config_files"] is None
+    assert s["code_digest"], "code provenance must still work without a config"
