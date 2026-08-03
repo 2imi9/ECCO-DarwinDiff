@@ -12,7 +12,7 @@ weighting, with each parameter's **total** gradient held fixed.
 
 | arm | `alpfe` | `scav_rat` | `diatomgraz` | `R_PICPOC` |
 |---|---|---|---|---|
-| flagship (uniform `AOI_W`) | 49/50 | **26/50** | 2/50 | **50/50** |
+| flagship-config control, re-run here (published 25/50) | 49/50 | **26/50** | 2/50 | **50/50** |
 | information-weighted | **50/50** | **11/50** | 1/50 | **45/50** |
 | both untrained nulls | 10/50 | 0/50 | 32/50 | 0/50 |
 

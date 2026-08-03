@@ -11,7 +11,7 @@ observables** while the capacity-matched control clears at most three.
 
 | arm | `alpfe` | `scav_rat` | `diatomgraz` | `R_PICPOC` | clears |
 |---|---|---|---|---|---|
-| flagship (shared, 406 w) | 49/50 | 26/50 | — | 50/50 | **3 of 4** |
+| flagship-config control re-run in 256953 (published 25/50) | 49/50 | 26/50 | — | 50/50 | **3 of 4** |
 | capacity-matched (shared, 1878 w) | 49/50 | 34/50 | — | 50/50 | **3 of 4** |
 | per-parameter (6 trunks, 1926 w) | 50/50 | 45/50 | — | 50/50 | **3 of 4** |
 
@@ -27,7 +27,7 @@ for the matched control, 3.47e-10 for the flagship; `R_PICPOC` P = 1.98e-29 thro
 `scav_rat`, per-AOI ≥2-of-3 at n=50, each against its own untrained null of 0/50:
 
 ```
-flagship          406 weights   26/50  (52%)
+flagship re-run   406 weights   26/50  (52%)   published flagship is 25/50
 capacity-matched 1878 weights   34/50  (68%)     <- +8 seeds from capacity alone
 per-parameter    1926 weights   45/50  (90%)     <- +11 seeds on top, at equal budget
 ```
