@@ -366,6 +366,19 @@ iron + a real calcite anchor (the headline); **`silicate_scope`** is *synthetic*
 | **Biggrow** | ❌ | 0/7 | silicate_scope | not identified (synthetic, real, or seasonal) | ✅ fails-tight (0.68–0.71) |
 | **Trio {alpfe,scav_rat,R_PICPOC}** | ✅ per-cell | **25/50 per-AOI** 2000ep → **~41/50** 4000ep (n=50; 33/50 cell-wtd) | geo1 | **per-cell load-bearing** (0/50 global); joint tracks scav_rat's binding leg (25/50 at 2000ep, rises with it to ~41/50 at 4000ep); cleanest quantitative result | ✅ {7,8,7}/10 |
 
+> **⚠️ CORRECTED 2026-08-03 — "3-of-4 frontier" and "two operating points" both overstate this.**
+> Both count a `diatomgraz` leg graded in a band its prior already sits inside (midpoint rel
+> **0.367**, inside 0.40; untrained rate **0.64**). At the ≤10% band `diatomgraz` is **0/50
+> trained and 0/50 untrained** in all three 2026-08-03 arms, and the "non-circular handle"
+> 35/50 sits against a matched untrained **34/50**, P = 0.447. The second config's
+> distinguishing member is exactly that leg, so **the second operating point is not
+> established** — it is the first plus a parameter that scores well because the band is wide.
+> Honest framing: **three recovered, one not established, two excluded by construction.** The
+> conflict below survives as a loss-landscape statement, not as two comparable configurations.
+> `ind262` (3 of 3 basins beat the untrained rate in the MLD arm) is a per-basin result at the
+> contaminated band and is **not** retracted.
+> See [docs/findings/2026-08-03_per_parameter_operating_points.md](docs/findings/2026-08-03_per_parameter_operating_points.md).
+
 **No single config recovers all four observables per-AOI, and the trade-off is STRUCTURAL** (2026-07-23, jobs 185779 + 192298, VERIFIED): flagship geo1 holds {alpfe, scav_rat, R_PICPOC}; the MLD/dgchl config holds {alpfe, diatomgraz, R_PICPOC} but drops scav_rat. The decisive test — full flagship loss + MLD at **4000 epochs** — gives diatomgraz **0/10** (and degrades alpfe→4/10, scav_rat→6/10), so more optimization does NOT bridge it: scav_rat needs the Darwin-pattern term while diatomgraz needs MLD, and the two genuinely conflict. The 3-of-4 frontier is a real identifiability trade-off, not an optimization artifact. See `docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md` and `2026-07-23_observable_frontier_config_analysis.md`.
 
 Supporting: **per-AOI Fisher** — the Southern Ocean is the *best-conditioned* iron AOI (cond 2.2, 4.99
