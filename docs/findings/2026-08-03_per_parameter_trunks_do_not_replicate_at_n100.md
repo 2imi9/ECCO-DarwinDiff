@@ -48,6 +48,14 @@ confirm again that nulls are architecture-dependent and cannot be borrowed.
 
 ### `diatomgraz` is not merely unrecovered — training moves it AWAY from Carroll
 
+> **⚠️ REFINED LATER THE SAME DAY, and the refinement is a positive result.** This section is
+> right about `natlsubpolar` and `southernoceanpac` and **wrong to generalise**. Graded *per leg*
+> at a tight band, `diatomgraz` is **locally identifiable in the equatorial Pacific**: its eqpac
+> leg is 20/100 at ≤5% (P = 2e-04) and 40/100 at ≤10% (P = 5.5e-09) against an untrained **0/50**.
+> The anti-recovery below is real but confined to the other two basins. The aggregate at the 0.40
+> band shows neither, because the untrained null already passes there (33/50, P = 0.254).
+> See [2026-08-03_the_pass_band_is_load_bearing.md](2026-08-03_the_pass_band_is_load_bearing.md).
+
 This is new at n=100 and it is a stronger statement than anything previously recorded. At the
 0.40 band the **untrained** networks score **70/100 and 77/100**, because the prior midpoint
 (rel 0.367) sits inside that band. The **trained** networks score **0/100 and 1/100**.
