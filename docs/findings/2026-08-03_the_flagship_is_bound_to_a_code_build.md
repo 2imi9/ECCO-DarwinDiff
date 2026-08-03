@@ -1,3 +1,23 @@
+> # RETRACTED 2026-08-03, same day, by the bisect this document launched
+>
+> **The central claim of this document is WRONG. There is no code regression.**
+>
+> The 16-way bisect (job 256342) returned and **every tree reproduces the flagship, including
+> HEAD**. At the runner's default learning rate, today's code gives `scav_rat` 7/10 with the
+> North Atlantic leg at 6/10, consistent with the published 26/50 and natl 19/50.
+>
+> The real cause is that `scripts/configs/flagship_geo1.sh` **did not pin `NB23_LR`**, whose
+> runner default is **5e-3**. The window-sweep pre-registration specified `1e-3`, and both
+> job 244487 and job 255511 ran at `1e-3`. At that learning rate `scav_rat` collapses outside
+> the Southern Ocean and `R_PICPOC`'s Southern Ocean leg goes 80% to 0%.
+>
+> So the falsifier was right both times and my configuration was wrong both times, in two
+> different ways. The claim below that `R_PICPOC`'s Southern Ocean leg collapsed is also
+> retracted: at the correct learning rate it is 8/10, matching the published 40/50 exactly.
+>
+> Superseded by `docs/findings/2026-08-03_the_regression_was_a_learning_rate.md`.
+> Kept unedited below as the record of a wrong inference that survived into a committed finding.
+
 # The flagship is bound to a code build: a regression, not a config
 
 **Date:** 2026-08-03 · **Status:** cause localised to a commit range, bisect running (job 256342)

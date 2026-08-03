@@ -47,7 +47,10 @@ S=/scratch/qi_zim_neu/flagwin2
 I=$SLURM_ARRAY_TASK_ID
 A=$(( I / 5 )); K=$(( I % 5 ))
 WINS=(100 200 400 100 200 400)
-LRS=(1e-3 1e-3 1e-3 0 0 0)
+# 5e-3 is the runner default and what the flagship used. The pre-registration said 1e-3,
+# an unexplained deviation that cost two 30-task arrays: at 1e-3 scav_rat collapses outside
+# the Southern Ocean and the falsifier fires. 0 = the untrained null arms.
+LRS=(5e-3 5e-3 5e-3 0 0 0)
 TAGS=(fs_w100 fs_w200 fs_w400 fs_null_w100 fs_null_w200 fs_null_w400)
 W=${WINS[$A]}; LR=${LRS[$A]}; TAG=${TAGS[$A]}
 SEEDS=$(seq -s, $(( K * 10 )) $(( K * 10 + 9 )))

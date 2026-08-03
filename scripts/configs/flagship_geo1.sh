@@ -56,6 +56,14 @@ export CHL1_W_EXTRA=3
 export NB23_PINN_WEIGHT=3               # iron-budget steady-state residual
 export USE_EPPLEY_T=1                   # omitted from the appendix row
 export NB23_N_EPOCHS=2000
+# THE FOURTH OMISSION, found 2026-08-03. This file did not pin the learning rate, and the
+# flagship never set it either -- it used the runner default. On 2026-08-01 and again on
+# 2026-08-02 the window sweep overrode it to 1e-3, and BOTH runs failed the pre-registered
+# falsifier: scav_rat collapses to 1/50 outside the Southern Ocean at 1e-3 and R_PICPOC's
+# Southern Ocean leg goes 80% -> 0%. At the default it reproduces (HEAD, lr=5e-3, n=10:
+# alpfe 10/10, scav_rat 7/10, R_PICPOC 10/10 with sopac 8/10 against a published 40/50).
+# Pinned explicitly so the flagship can never again depend on an unstated default.
+export NB23_LR=5e-3
 # The integration window, 200 * DT = 50 days. Every published flagship count was produced
 # at this window. It was hardcoded until 2026-07-31 and is now env-configurable, so it is
 # pinned here: `scav_rat` is anchored on subsurface iron that is only 47.5% converged at

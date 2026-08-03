@@ -44,6 +44,11 @@ _REQUIRED = {
     "DANIELS_RPICPOC_W": "1",
     "RATIO_W": "0",
     "GLOBAL_SCALAR": "0",
+    # Added 2026-08-03. The guard shipped on 2026-08-02 asserted seven variables and NOT the
+    # learning rate, so it passed a run that was wrong in the one lever that mattered: the
+    # window sweep at 1e-3 gave scav_rat 1/50 against a published 26/50 and was misdiagnosed
+    # as a code regression. A perimeter guard that omits the centre certifies the failure.
+    "NB23_LR": "5e-3",
 }
 
 
