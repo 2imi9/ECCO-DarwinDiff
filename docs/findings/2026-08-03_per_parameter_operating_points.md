@@ -31,7 +31,7 @@ architecture-matched untrained null**.
 | `alpfe` | **50/50** | 10/50 flagship arch · 13/50 per-param · 15/50 widened | flagship `geo1`; insensitive | **point-identified**, method-independent |
 | `R_PICPOC` | **50/50** | 0/50 | flagship `geo1` **+ real Daniels CP:PP anchor** | **identified given a real absolute anchor** |
 | `scav_rat` | **83/100** | 0/50 | **added network capacity** (width 39 shared trunk) | **regionally identifiable**; one basin model-limited |
-| `diatomgraz` | **0/50** at ≤10% | 0/50 at ≤10% (0.64 at ≤0.40) | none | **not established at an uncontaminated band** |
+| `diatomgraz` | **0/100** | **70–77/100** untrained at 0.40 | none | **anti-recovered — training moves it AWAY** |
 | `Smallgrow` | — | — | — | excluded: non-identifiable from *time-mean* observables |
 | `Biggrow` | — | — | — | excluded: unobservable by construction |
 
@@ -140,10 +140,17 @@ parameter"**. The evidence, all of it already in the repo:
 - and the bSi observable it is graded through is **partly circular**, being algebraically
   back-solved from diatom biomass (`ded116`).
 
+**And at n=100 the statement gets stronger than "not recovered".** Pooling the untrained arms of
+job 258256 to n=100, at the 0.40 band the **untrained** networks score **70/100 and 77/100**
+while the **trained** ones score **0/100 and 1/100**. Training does not fail to find
+`diatomgraz`; it actively drives it out of a band the untrained network was already sitting in,
+in both architectures. The observable set is not uninformative about this parameter — it has the
+**wrong sign** for it, which is consistent with the bSi target being partly circular (`ded116`).
+
 What is *not* retracted: `ind262` records `diatomgraz` beating its own untrained rate in 3 of 3
 basins in the MLD arm. That is a per-basin result at the contaminated band and it has not been
-disproven here. The correct statement is the narrow one: **`diatomgraz` has not been shown to
-recover against its own null at a band where recovery is meaningful.**
+disproven here — though the anti-recovery result above makes re-measuring it against a
+same-architecture null at n=100 the obvious next step.
 
 ## What this does to "two operating points"
 

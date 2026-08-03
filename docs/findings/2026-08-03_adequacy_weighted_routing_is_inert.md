@@ -40,27 +40,33 @@ The pre-registration's second arm drops the **most adequate** and **largest** ir
 (southernoceanpac, 1296 cells vs eqpac's 1071). Its purpose was to kill the adequacy reading if
 "dropping any FeT block helps".
 
-> **⏳ `adq_so0` IS NOT YET REPORTABLE.** One of its five tasks was still training at the time of
-> writing, so the arm stands at 40/50 seeds and `verify_run` returns **exit 3 (INCOMPLETE)**. Its
-> counts are deliberately withheld here rather than quoted with a caveat — the gate exists
-> precisely to stop a partial arm from entering the record, and it caught this. The direction
-> stated below is the pre-registered *prediction*; the measured value goes in once the arm
-> passes at exit 0.
+`adq_so0` completed at 50/50, `verify_run` exit 0. All three trained arms, with per-AOI legs:
 
-If the falsifier lands as predicted, the two arms answer differently:
+| arm | `scav_rat` | eqpac | natl | sopac | vs `adq_ctrl` |
+|---|---|---|---|---|---|
+| `adq_ctrl` | 20/50 | 4 | 16 | 49 | — |
+| `adq_eq0` (drop **inadequate** block) | 21/50 | 4 | 18 | 49 | P = 1.0000 |
+| `adq_so0` (drop **adequate** block) | **11/50** | 8 | **3** | 50 | P = 0.0828 |
 
-- drop the block where the model **cannot** fit (eqpac) → **nothing happens**;
-- drop the block where the model **can** fit (sopac) → **large loss of recovery**.
+The two arms do answer differently — dropping the adequate block roughly halves `scav_rat` while
+dropping the inadequate one does nothing — but **that asymmetry is P = 0.0828 at n=50 and does
+not clear this project's 0.01 bar.** It is suggestive, not established, and after watching a
+P = 0.0128 effect evaporate at n=100 earlier the same day, it is quoted as directional only.
 
-That asymmetry is exactly what the adequacy measure predicted about which blocks carry the
-recovery, and it is the opposite of what a "less iron loss is better" explanation predicts. So:
+**The leg decomposition is the part worth keeping, and it is not subtle.** Dropping sopac's iron
+block leaves sopac's *own* leg untouched at 50/50 and collapses **natl from 16 to 3**. So that
+block is load-bearing for a *different basin* than the one it belongs to — the shared DINN is
+exporting it. That is the same pooling mechanism already documented for `R_PICPOC`'s Southern
+Ocean leg, showing up on the iron side.
 
-> **The adequacy diagnostic is validated as a description. It is refuted as an intervention.**
+So, stated at the strength the evidence supports:
 
-The measure correctly identifies which observable blocks are load-bearing. But removing an
-inadequate block frees nothing, because an unreachable residual was never competing for the
-optimiser's attention in the first place — it contributes gradient that is large but
-*uninformative*, and deleting it neither helps nor hurts.
+> **The adequacy diagnostic is validated as a description of which blocks a fit depends on. It
+> is refuted as an intervention.**
+
+Removing an inadequate block frees nothing, because an unreachable residual was never competing
+for the optimiser's attention — it contributes gradient that is large but *uninformative*, and
+deleting it neither helps nor hurts.
 
 ## Why this does not rescue Hypothesis A
 
