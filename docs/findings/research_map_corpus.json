@@ -2504,6 +2504,16 @@
    "question": "Was the committed flagship config actually deployed to the cluster that runs the jobs?",
    "answer": "NO - as of 2026-08-02, ~/emulator_poc/scripts/configs/flagship_geo1.sh did not exist on AICR at all, so even a correct sbatch that sourced it would have failed. The fix committed on 2026-07-29 lived only in the repository. The cluster checkout is not a git repository (issue #218); its runner did happen to match branch HEAD exactly, but nothing could have verified that in advance. Synced 2026-08-02.",
    "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md"
+  },
+  {
+   "question": "Does ScavClosure still carry a free multiplicative level redundant with scav_rat?",
+   "answer": "No, fixed 2026-08-02 (issue #217). log_r0 was an nn.Parameter and is now a fixed float, exactly as EnvCalciteClosure holds R0 fixed. Removing it alone does not close the gauge - a network that learns a CONSTANT tanh output is a level smuggled back in - so the correction is additionally mean-centred in log space over a FIXED reference support (recomputed each forward because the weights move, never over the current batch). A constant readout now maps to G == 1 for every bias, verified over several. G == 1 bitwise at init, so the untrained null is exact.",
+   "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md"
+  },
+  {
+   "question": "Did the ScavClosure free-level bug invalidate any published flat scav_rat profile?",
+   "answer": "NO - nothing to retract. ScavClosure has never been fit to real data (verified 2026-07-29 and re-verified 2026-08-02: it appears only in closures.py, two test files, trainer.py docstrings and research notes; there is no e2_real_iron runner). The published scav_rat profile in docs/findings/iron_scav_rat_profile.json is mode=twin through the prescribed-transport ANALYTIC model on the registry parameter, not through the closure, so its flat band reflects the real alpfe/scav_rat concentration degeneracy and stands.",
+   "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
   }
  ],
  "claims": [
@@ -8793,6 +8803,12 @@
    "new": "REFUTED. so_repro used per_aoi_recovered, a field that exists, so it was never vacuous. Re-measured at 480 values, 0.000e+00. The depth arms DO have a verified reproducibility certificate.",
    "reason": "Recorded as an open doubt on 2026-08-01 and carried into the next session's next-action list. Checked directly rather than assumed.",
    "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+  },
+  {
+   "old": "ScavClosure's correction is 1 + eps*tanh(MLP), confined to [0.8, 1.2] at eps=0.2.",
+   "new": "The shipped shape factor G is that correction divided by its geometric mean over a fixed reference support, so it is confined to [(1-eps)/(1+eps), (1+eps)/(1-eps)] = [0.667, 1.5] at eps=0.2. Wider than originally stated, still bounded and strictly positive.",
+   "reason": "Consequence of the #217 gauge fix on 2026-08-02. The free parameter count drops with it, 67 -> 66 (no env), 83/99 -> 82/98 (+1/+2 env channels).",
+   "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
   }
  ],
  "hypotheses": [
@@ -10762,6 +10778,10 @@
   {
    "trap": "N_STEPS was recorded in NO run artifact before 2026-08-02, so the arms of an integration-window sweep were indistinguishable on the one variable the sweep varied. Fixed by recording n_steps and dt_days in the artifact config block. Any window analysis over artifacts written before that date must recover the window from the output directory or the job log, not from the artifact.",
    "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md"
+  },
+  {
+   "trap": "Since 2026-08-02 a CONSTANT readout in ScavClosure is normalised away to G == 1 exactly. So a synthetic-twin test that builds its 'truth' by perturbing only the readout BIAS produces a truth identical to the untrained closure, and the test then passes while comparing nothing. Perturb a readout WEIGHT (shape) instead, and assert the twin's field actually differs from the untrained one before fitting.",
+   "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md"
   }
  ]
 }

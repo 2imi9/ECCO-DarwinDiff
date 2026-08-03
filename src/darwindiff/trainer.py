@@ -198,9 +198,10 @@ def train_ude_closure(
     single ``target`` tensor this API takes.
 
     Robustness: ``weight_decay`` is applied **only to the flexible MLP** parameters, not
-    to a closure's physically-anchored scalars (``ScavClosure.log_r0``/``raw_p`` anchor at
-    *nonzero* values, so decaying them toward 0 would fabricate a scav-rate / p-exponent
-    signal). A **structural-coupling guard** rejects a hook/observable pairing the closure
+    to a closure's physically-anchored scalars (``ScavClosure.raw_p`` anchors at a *nonzero*
+    value, so decaying it toward 0 would fabricate a p-exponent signal; the scav rate
+    ``log_r0`` is no longer trainable at all). A **structural-coupling guard** rejects a
+    hook/observable pairing the closure
     cannot influence (e.g. ``calcite_closure`` vs ``dfe_observable`` — calcite never feeds
     DFe — which would otherwise train silently with zero gradient). A **finite guard**
     aborts (preserving the last-good parameters) and records ``aborted`` in history if the
@@ -211,7 +212,9 @@ def train_ude_closure(
     of ``{epoch, train_loss, val_r2}``.
     """
     # weight_decay only on the flexible correction MLP; never on nonzero-anchored scalars.
-    anchored = {"log_r0", "raw_p"}
+    # `log_r0` stopped being a Parameter in 2026-08-02 (issue #217: it was a free level,
+    # exactly redundant with `scav_rat`) so it no longer reaches named_parameters at all.
+    anchored = {"raw_p"}
     decay_p, nodecay_p = [], []
     for name, p in closure.named_parameters():
         (nodecay_p if name in anchored else decay_p).append(p)

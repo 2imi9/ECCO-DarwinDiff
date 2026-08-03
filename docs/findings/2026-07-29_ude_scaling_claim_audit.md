@@ -80,8 +80,8 @@ Measured by instantiating the real classes and summing `p.numel()` over `require
 
 | object | free parameters | replaces |
 |---|---|---|
-| `ScavClosure()` no env | **67** | `scav_rat`, 1 scalar |
-| `ScavClosure` +1 / +2 env channels | **83 / 99** | same |
+| `ScavClosure()` no env | **66** | `scav_rat`, 1 scalar |
+| `ScavClosure` +1 / +2 env channels | **82 / 98** | same |
 | `EnvCalciteClosure` as run in the E2 (n_env=2, hidden=16) | **353** | `R_PICPOC`, 1 scalar |
 | `EnvCalciteClosure` regularized arm (hidden=4) | **41** | same |
 | `DINN(n_input_channels=1)`, the entire flagship learner | **406** | all 6 parameters |
@@ -98,7 +98,7 @@ Two measurements say capacity is neither the disease nor the cure:
 
 ### What actually changes is the estimand
 
-A UDE replaces a scalar with a bounded multiplicative envelope over a continuous domain. Both closures are bounded by construction, which is worth stating accurately: `EnvCalciteClosure` returns `10**(A*tanh(MLP))`, confined to [0.1, 10] at the run's A=1.0 (`src/darwindiff/closures.py:28, :80`); `ScavClosure`'s correction is `1 + eps*tanh(MLP)`, confined to [0.8, 1.2] at eps=0.2 (`closures.py:89, :162`). So it is not an unbounded function. It is still a function on a domain, and our measured coverage of that domain is the problem.
+A UDE replaces a scalar with a bounded multiplicative envelope over a continuous domain. Both closures are bounded by construction, which is worth stating accurately: `EnvCalciteClosure` returns `10**(A*tanh(MLP))`, confined to [0.1, 10] at the run's A=1.0 (`src/darwindiff/closures.py:28, :80`); `ScavClosure`'s correction is `1 + eps*tanh(MLP)`, confined to [0.8, 1.2] at eps=0.2 (`closures.py:89, :162`). **Updated 2026-08-02 (issue #217):** that correction is now divided by its own geometric mean over a fixed reference support, so the shipped shape factor `G` is confined to [(1-eps)/(1+eps), (1+eps)/(1-eps)] = **[0.667, 1.5]** at eps=0.2, and the free multiplicative level (`log_r0`, one parameter, hence 67 -> 66 above) is gone. Still bounded; the bound is wider than this line originally said. So it is not an unbounded function. It is still a function on a domain, and our measured coverage of that domain is the problem.
 
 **Coverage, measured:**
 

@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (501 questions)
+## 1. SETTLED — do not re-derive (503 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -104,6 +104,7 @@ this table, it is done: say so and move on.
 | Did the MODIS half-cell binning bug (fixed in PR #189 / ac8af55) change any v05-vs-MODIS chlorophyll conclusion? | No - the bug was cosmetic. Every headline number moved by < 0.003. eqpac bias -0.0773 -> -0.0759 dex (0.837x -> 0.840x), r_anomaly +0.3307 -> +0.3285; natl bias -0.6959 -> -0.6973 dex (0.201x, 5.0x low both ways), r_anomaly +0.0440 -> +0.0… | `docs/findings/2026-07-21_chl_binning_recompute.md` |
 | Did the numerically-dead surfChl4 channel poison daily training? | Essentially no - the hypothesis is a null. log4 (surfChl4 removed) beats log5 by 0.0046 against a seed sd of about 0.0016: consistent in sign across all three seed pairs, so a real effect, but about 1.3% of the remaining gap. Log space car… | `docs/findings/2026-07-30_daily_logspace_training.md` |
 | Did the pre-registered Southern Ocean controls hold? | Yes, exactly. alpfe must stay high: 50/50 against untrained 17/50 (0.340). R_PICPOC must collapse (southernoceanpac has ZERO Daniels cells, so with no other basin there is no calcite anchor at all): 0/50. diatomgraz was declared uninformat… | `docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md` |
+| Did the ScavClosure free-level bug invalidate any published flat scav_rat profile? | NO - nothing to retract. ScavClosure has never been fit to real data (verified 2026-07-29 and re-verified 2026-08-02: it appears only in closures.py, two test files, trainer.py docstrings and research notes; there is no e2_real_iron runner… | `docs/findings/2026-07-29_ude_scaling_claim_audit.md` |
 | Do alpfe and R_PICPOC rest on Darwin's pickup initial condition? | No, the IC half of the Darwin dependency is CLOSED. With a literature IC and no MLD (obsonly_litic): alpfe 50/50 (P = 1.13e-35, k* = 16) and R_PICPOC 32/50 (P = 4.89e-27, k* = 7). Both clear their pre-registered thresholds. The FORCING hal… | `docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md` |
 | Do covariate input channels rescue scav_rat? | No. scav_rat stays 0/10 across all five arms (the lone 2/10 at MLD+wind is within noise). The binding sink leg is unmoved by input information; it needs the Phase-2 sink anchor (234Th flux + export partition). | `docs/findings/2026-07-22_covariate_channels_result.md` |
 | Do flagship ocean/atmosphere emulators report a simple statistical null baseline? | Mostly no, and this is broader than we thought. Samudra (arXiv:2412.03795v1), Samudra 2 (arXiv:2606.02610), SamudrACE (arXiv:2509.12490v2) and ACE2 (arXiv:2411.11268v1) report NONE - 4 of 4. OceanNet (10.5194/os-21-1065-2025) and Bire et a… | `docs/research_notes/2026-07-25_deep_research_sweep.md` |
@@ -174,6 +175,7 @@ this table, it is done: say so and move on.
 | Does scav_rat recover in a single-AOI Southern Ocean fit, and by what mechanism? | Yes — 30/50 against an untrained 0/50, P = 3.15e-24, verify_run exit 0 on both arms, 27 GEOTRACES bins. The recovery is LOCAL: with no other basin present there is nothing to pool from. Controls held: alpfe 50/50 (untrained 17/50), R_PICPO… | `docs/findings/2026-07-30_prereg_scavrat_mechanism_surface_vs_depth.md` |
 | Does scav_rat recover in a single-AOI Southern Ocean fit, with no other basin to pool from? | Yes. 30/50 against an untrained chance rate of 0.060, P(X>=30) = 3.15e-24. The pre-registered rule (LOCAL if k>=25 AND P<0.01) fires on both clauses and neither is marginal. The live loss is GEOTRACES surface and subsurface iron ONLY - no … | `docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md` |
 | Does scav_rat survive an anchors-only loss (all Darwin-pattern terms removed)? | No. scav_rat per-AOI collapses to 0/10 (from 25/50 in the flagship) while its cell-weighted count stays at 8/10 - the classic straddle. The joint trio also drops to 0/10 because scav_rat is the binding leg. scav_rat's per-AOI recovery is p… | `docs/findings/2026-07-21_anchors_only_ablation.md` |
+| Does ScavClosure still carry a free multiplicative level redundant with scav_rat? | No, fixed 2026-08-02 (issue #217). log_r0 was an nn.Parameter and is now a fixed float, exactly as EnvCalciteClosure holds R0 fixed. Removing it alone does not close the gauge - a network that learns a CONSTANT tanh output is a level smugg… | `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md` |
 | Does seasonal (time-resolved) fitting break the recovery ceiling? | No - it is an AOI-selective redistribution of constraint whose sign tracks local seasonality strength, not a net win. Deltas (seasonal minus time-mean Cal+ out of 10 seeds, job 189324): sopac alpfe +5, natl Smallgrow +4 (9 vs 5), natl alpf… | `docs/findings/2026-07-23_overnight_geometry_and_seasonal.md` |
 | Does subsurface GEOTRACES iron resolve the alpfe/scav_rat degeneracy everywhere? | No - it is Southern-Ocean-driven. Per-AOI GN-Fisher 2x2 on the real surf+sub loss: southernoceanpac cond 2.22 (conditional corr -0.191, NOT ratio-like), eqpac cond 34.7 (corr +0.939, ratio-like), natlsubpolar cond 50.8 (corr +0.961, ratio-… | `docs/findings/2026-07-23_overnight_geometry_and_seasonal.md` |
 | Does the 'few informative cells' caveat apply to the reported obs-only diatomgraz result? | No, it is too pessimistic for the arm it describes. In obsonly_mld_litic diatomgraz clears its own null in ALL THREE AOIs (50/36, 42/34, 50/32). The 96.1% zero-gradient figure is about CELLS and is correct, but does not imply regional conc… | `docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md` |
@@ -1260,7 +1262,7 @@ Inference to the best explanation. **Not a result until it predicts something it
 
 ---
 
-## 6. SUPERSEDES — the retraction chain (289)
+## 6. SUPERSEDES — the retraction chain (290)
 
 **This is what stops a dead number coming back.** Before quoting any figure from an older
 document, check it here.
@@ -1556,10 +1558,11 @@ document, check it here.
 | The seasonal sin/cos time-encoding experiment rejected at -0.073 as a clean negative. | CONFOUNDED and probably a FALSE negative - it computed day-of-year from the 0.75x axis, so it encoded the wrong season for ~94% of samples. It should be re-run. | Downstream consequence of the delta_t calendar bug. Any experiment whose inputs derived from wall-clock time is similarly suspect; the forcing-concat negative (-0.010) i… | `docs/findings/2026-07-19_emulator_honest_bounds.md` |
 | The window-swap no-op control reports BITWISE IDENTICAL at max relative difference 0.000e+00. | VACUOUS - it compared ZERO values. It read params[k]['joint'], a key artifacts do not have (they store joint_recovered). Every lookup returned None, every value was skip… | Same shape as the SUPERSEDES constraint that passed on an empty join since it was written: a check that passes on nothing is indistinguishable from a check that passes o… | `docs/findings/2026-08-02_reproducibility_controls_rerun.md` |
 | The earlier so_repro certificate may share the vacuous-field defect and should be re-run before any reproducibility claim. | REFUTED. so_repro used per_aoi_recovered, a field that exists, so it was never vacuous. Re-measured at 480 values, 0.000e+00. The depth arms DO have a verified reproduci… | Recorded as an open doubt on 2026-08-01 and carried into the next session's next-action list. Checked directly rather than assumed. | `docs/findings/2026-08-02_reproducibility_controls_rerun.md` |
+| ScavClosure's correction is 1 + eps*tanh(MLP), confined to [0.8, 1.2] at eps=0.2. | The shipped shape factor G is that correction divided by its geometric mean over a fixed reference support, so it is confined to [(1-eps)/(1+eps), (1+eps)/(1-eps)] = [0.… | Consequence of the #217 gauge fix on 2026-08-02. The free parameter count drops with it, 67 -> 66 (no env), 83/99 -> 82/98 (+1/+2 env channels). | `docs/findings/2026-07-29_ude_scaling_claim_audit.md` |
 
 ---
 
-## 7. TRAPS — process failures that cost time (234)
+## 7. TRAPS — process failures that cost time (235)
 
 | trap | doc |
 |---|---|
@@ -1797,6 +1800,7 @@ document, check it here.
 | scripts/configs/flagship_geo1.sh exported USE_MLD_CHANNEL and USE_AOI_ID_CHANNEL until 2026-08-02. Those are the runner's internal PYTHON identifiers; its environment variables are MLD_CHANNEL and AOI_ID_CHANNEL. Nothin… | `docs/findings/2026-08-02_flagship_window_sweep_relaunch.md` |
 | A warning banner in the reproducibility appendix did NOT stop the flagship recipe being re-typed by hand - it was followed anyway on 2026-08-01, a second time, costing a 30-task array. Prose does not prevent this class … | `docs/findings/2026-08-02_flagship_window_sweep_relaunch.md` |
 | N_STEPS was recorded in NO run artifact before 2026-08-02, so the arms of an integration-window sweep were indistinguishable on the one variable the sweep varied. Fixed by recording n_steps and dt_days in the artifact c… | `docs/findings/2026-08-02_flagship_window_sweep_relaunch.md` |
+| Since 2026-08-02 a CONSTANT readout in ScavClosure is normalised away to G == 1 exactly. So a synthetic-twin test that builds its 'truth' by perturbing only the readout BIAS produces a truth identical to the untrained c… | `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md` |
 
 ---
 

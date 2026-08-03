@@ -7625,7 +7625,7 @@
      "name": "2026-07-29_ude_scaling_claim_audit.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 4342
+     "words": 4403
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_bsose_trac06_is_total_dissolved_iron.md",
@@ -11896,6 +11896,12 @@
      "dont": ""
     },
     {
+     "question": "Did the ScavClosure free-level bug invalidate any published flat scav_rat profile?",
+     "answer": "NO - nothing to retract. ScavClosure has never been fit to real data (verified 2026-07-29 and re-verified 2026-08-02: it appears only in closures.py, two test files, trainer.py docstrings and research notes; there is no e2_real_iron runner…",
+     "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md",
+     "dont": ""
+    },
+    {
      "question": "Do alpfe and R_PICPOC rest on Darwin's pickup initial condition?",
      "answer": "No, the IC half of the Darwin dependency is CLOSED. With a literature IC and no MLD (obsonly_litic): alpfe 50/50 (P = 1.13e-35, k = 16) and R_PICPOC 32/50 (P = 4.89e-27, k = 7). Both clear their pre-registered thresholds. The FORCING hal…",
      "doc": "docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md",
@@ -12313,6 +12319,12 @@
      "question": "Does scav_rat survive an anchors-only loss (all Darwin-pattern terms removed)?",
      "answer": "No. scav_rat per-AOI collapses to 0/10 (from 25/50 in the flagship) while its cell-weighted count stays at 8/10 - the classic straddle. The joint trio also drops to 0/10 because scav_rat is the binding leg. scav_rat's per-AOI recovery is p…",
      "doc": "docs/findings/2026-07-21_anchors_only_ablation.md",
+     "dont": ""
+    },
+    {
+     "question": "Does ScavClosure still carry a free multiplicative level redundant with scav_rat?",
+     "answer": "No, fixed 2026-08-02 (issue #217). log_r0 was an nn.Parameter and is now a fixed float, exactly as EnvCalciteClosure holds R0 fixed. Removing it alone does not close the gauge - a network that learns a CONSTANT tanh output is a level smugg…",
+     "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
      "dont": ""
     },
     {
@@ -16339,6 +16351,12 @@
      "new": "REFUTED. so_repro used per_aoi_recovered, a field that exists, so it was never vacuous. Re-measured at 480 values, 0.000e+00. The depth arms DO have a verified reproduci…",
      "reason": "Recorded as an open doubt on 2026-08-01 and carried into the next session's next-action list. Checked directly rather than assumed.",
      "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+    },
+    {
+     "old": "ScavClosure's correction is 1 + epstanh(MLP), confined to [0.8, 1.2] at eps=0.2.",
+     "new": "The shipped shape factor G is that correction divided by its geometric mean over a fixed reference support, so it is confined to [(1-eps)/(1+eps), (1+eps)/(1-eps)] = [0.…",
+     "reason": "Consequence of the #217 gauge fix on 2026-08-02. The free parameter count drops with it, 67 -> 66 (no env), 83/99 -> 82/98 (+1/+2 env channels).",
+     "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
     }
    ]
   },
@@ -18923,6 +18941,11 @@
     {
      "trap": "N_STEPS was recorded in NO run artifact before 2026-08-02, so the arms of an integration-window sweep were indistinguishable on the one variable the sweep varied. Fixed by recording n_steps and dt_days in the artifact c…",
      "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
+     "category": ""
+    },
+    {
+     "trap": "Since 2026-08-02 a CONSTANT readout in ScavClosure is normalised away to G == 1 exactly. So a synthetic-twin test that builds its 'truth' by perturbing only the readout BIAS produces a truth identical to the untrained c…",
+     "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
      "category": ""
     }
    ]
@@ -36689,10 +36712,10 @@
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 501,
-  "supersedes": 289,
+  "settled": 503,
+  "supersedes": 290,
   "supports": 279,
-  "trap": 234,
+  "trap": 235,
   "v_claim_evidence": 570,
   "v_dangerous": 39,
   "v_live": 510,

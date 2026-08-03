@@ -84,9 +84,34 @@ class EnvCalciteClosure(nn.Module):
 
 
 class ScavClosure(nn.Module):
-    r"""Learned iron-*scavenging* sink closure.
+    r"""Learned iron-*scavenging* sink closure. Learns **shape**, never the rate.
 
-        ``scav_sink(DFe, POC; env) = r0 * (POC/POC0)**p * DFe * (1 + eps*tanh(MLP(feat)))``
+        ``scav_sink(DFe, POC; env) = r0 * (POC/POC0)**p * DFe * G``
+        ``G = (1 + eps*tanh(MLP(feat))) / exp(mean_ref log(1 + eps*tanh(MLP(feat))))``
+
+    **The level is not learnable, by construction (issue #217).** ``r0`` is a fixed
+    float derived from ``scav_rat_per_day``, exactly as
+    :class:`EnvCalciteClosure` holds ``R0`` fixed. It was an ``nn.Parameter`` until
+    2026-08-02, which made it *exactly* redundant with the registry parameter
+    ``scav_rat``: the sink is homogeneous of degree one in the level, so
+    ``(scav_rat, r0) -> (lambda*scav_rat, r0/lambda)`` leaves the predicted field
+    unchanged and any profile likelihood of ``scav_rat`` against this closure was
+    **flat by theorem rather than by measurement**. See
+    ``docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md``.
+
+    Removing the parameter alone does not close the gauge: a network that learns a
+    *constant* ``tanh`` output is a multiplicative level smuggled back in. So ``G`` is
+    **mean-centred in log space over a fixed reference support** (``ref_feat``),
+    recomputed every forward pass because the weights move, but never taken over the
+    current batch -- a batch-dependent normaliser would make the closure's meaning
+    depend on what it was evaluated on. The geometric mean of ``G`` over that support
+    is 1 by construction, so ``scav_rat`` carries the entire level and the network
+    carries only shape.
+
+    The default reference support is a **convention, not a derived quantity**: a 3x3
+    lattice over ``f1 = log10(DFe)+4`` and ``f2 = log10(POC/POC0)`` at the
+    standardised-env origin. Pass ``ref_feat`` to state a different one. Changing it
+    changes what "level" means and therefore what the closure claims.
 
     Motivation (finding 2026-07-07): iron *solubility* (``alpfe``) is a global
     scalar already baked into the (soluble) forcing, so the learnable iron physics
@@ -118,6 +143,7 @@ class ScavClosure(nn.Module):
         POC0: float = 0.5,
         hidden: int = 16,
         eps: float = 0.2,
+        ref_feat: torch.Tensor | None = None,
     ) -> None:
         super().__init__()
         base = (
@@ -127,7 +153,10 @@ class ScavClosure(nn.Module):
         )
         self.POC0 = float(POC0)
         self.eps = float(eps)
-        self.log_r0 = nn.Parameter(torch.tensor(math.log(base * self.POC0)))
+        # FIXED level, not an nn.Parameter -- see the class docstring and issue #217.
+        # Held in log space so the forward is unchanged and `exp(log r0)` keeps the same
+        # round-off it always had (the init-anchor test asserts rtol=1e-6, not equality).
+        self.log_r0 = float(math.log(base * self.POC0))
         # p = softplus(raw_p); log(e - 1) makes softplus == 1 exactly at init
         self.raw_p = nn.Parameter(torch.tensor(math.log(math.e - 1.0)))
         self._has_env = env is not None
@@ -142,13 +171,43 @@ class ScavClosure(nn.Module):
         nn.init.zeros_(self.net[-1].weight)
         nn.init.zeros_(self.net[-1].bias)  # corr == 1 at init
 
+        if ref_feat is None:
+            # Convention (see docstring): DFe at 1e-5 / 1e-4 / 1e-3 crossed with
+            # POC/POC0 at 0.1 / 1 / 10, env columns at the standardised origin.
+            grid = torch.tensor([-1.0, 0.0, 1.0])
+            f1, f2 = torch.meshgrid(grid, grid, indexing="ij")
+            ref_feat = torch.stack([f1.reshape(-1), f2.reshape(-1)], dim=-1)
+            if n_env:
+                ref_feat = torch.cat(
+                    [ref_feat, ref_feat.new_zeros(ref_feat.shape[0], n_env)], dim=-1)
+        if int(ref_feat.shape[-1]) != 2 + n_env:
+            raise ValueError(
+                f"ref_feat has {int(ref_feat.shape[-1])} columns, expected {2 + n_env} "
+                f"(2 state features + {n_env} env channels)"
+            )
+        self.register_buffer("ref_feat", ref_feat)
+
     @property
     def p(self) -> torch.Tensor:
         """The learnable POC exponent (init 1.0; Darwin/Parekh reference 0.58)."""
         return F.softplus(self.raw_p)
 
+    def _corr(self, feat: torch.Tensor) -> torch.Tensor:
+        """The raw bounded correction in ``[1-eps, 1+eps]``, before mean-centring."""
+        return 1.0 + self.eps * torch.tanh(self.net(feat).squeeze(-1))
+
+    def G(self, feat: torch.Tensor) -> torch.Tensor:
+        """The **level-free** shape factor: geometric mean 1 over ``ref_feat``.
+
+        Recomputed each call because the weights move during training; taken over the
+        fixed reference support, never the batch. At init the readout is zero, so
+        ``_corr == 1`` exactly, ``log`` of it is exactly 0, and ``G == 1`` bitwise.
+        """
+        log_mean = torch.log(self._corr(self.ref_feat.to(feat.dtype))).mean()
+        return self._corr(feat) / torch.exp(log_mean)
+
     def forward(self, DFe: torch.Tensor, POC: torch.Tensor) -> torch.Tensor:
-        r0 = torch.exp(self.log_r0)
+        r0 = math.exp(self.log_r0)
         # floor the normalised POC before BOTH the log feature and the pow
         # backbone: pocn**p has an infinite d/dp (and d/dPOC for p<1) at pocn=0,
         # so the clamp keeps the closure autograd-clean across the p<1 (Parekh
@@ -159,5 +218,4 @@ class ScavClosure(nn.Module):
         feat = torch.stack([f1, f2], dim=-1)                 # [..., cells, 2]
         if self._has_env:
             feat = torch.cat([feat, self.env.to(feat.dtype)], dim=-1)
-        corr = 1.0 + self.eps * torch.tanh(self.net(feat).squeeze(-1))
-        return r0 * pocn.pow(self.p) * DFe * corr
+        return r0 * pocn.pow(self.p) * DFe * self.G(feat)
