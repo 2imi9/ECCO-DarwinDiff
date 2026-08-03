@@ -1,5 +1,15 @@
 # Per-parameter trunks lift `scav_rat` a long way, and do not lift the frontier
 
+> **⚠️ THE SECONDARY EFFECT BELOW IS RETRACTED — it does not replicate (2026-08-03, job 258256).**
+> Extended to n=100 the same day: `scav_rat` **83/100** for per-parameter vs **72/100** for the
+> capacity-matched control, Fisher **P = 0.0897**, clearing neither 0.01 nor 0.05. Split by seed
+> block, seeds 0–49 give the 45/50 vs 34/50 reported here (P = 0.0128) and the fresh seeds 50–99
+> give **38/50 vs 38/50, P = 1.0000** — an exact tie. The entire effect was in the first block.
+> **Do not quote 45/50 vs 34/50.** What replicates is capacity, not architecture.
+> The pre-registered refusal to accept P = 0.0128 was correct and is why this was caught.
+> See [2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md](2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md).
+> The PRIMARY verdict below (H1 rejected, the frontier survives) is **unaffected** and stands.
+
 **Date:** 2026-08-03 · **Job:** 257056 · **Status:** pre-registered primary outcome **REJECTED**;
 a large secondary effect that does not clear the same bar
 **Pre-registration:** `docs/findings/2026-08-03_prereg_per_parameter_routing.md`
@@ -11,7 +21,7 @@ observables** while the capacity-matched control clears at most three.
 
 | arm | `alpfe` | `scav_rat` | `diatomgraz` | `R_PICPOC` | clears |
 |---|---|---|---|---|---|
-| flagship-config control re-run in 256953 (published 25/50) | 49/50 | 26/50 | — | 50/50 | **3 of 4** |
+| baseline from a separate arm, not run here (`logscale/ctrl_n50`; published flagship 25/50) | 49/50 | 26/50 | — | 50/50 | **3 of 4** |
 | capacity-matched (shared, 1878 w) | 49/50 | 34/50 | — | 50/50 | **3 of 4** |
 | per-parameter (6 trunks, 1926 w) | 50/50 | 45/50 | — | 50/50 | **3 of 4** |
 
@@ -27,7 +37,7 @@ for the matched control, 3.47e-10 for the flagship; `R_PICPOC` P = 1.98e-29 thro
 `scav_rat`, per-AOI ≥2-of-3 at n=50, each against its own untrained null of 0/50:
 
 ```
-flagship re-run   406 weights   26/50  (52%)   published flagship is 25/50
+separate arm      406 weights   26/50  (52%)   logscale/ctrl_n50; published flagship 25/50
 capacity-matched 1878 weights   34/50  (68%)     <- +8 seeds from capacity alone
 per-parameter    1926 weights   45/50  (90%)     <- +11 seeds on top, at equal budget
 ```
