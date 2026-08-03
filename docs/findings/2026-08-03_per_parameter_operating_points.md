@@ -31,7 +31,7 @@ architecture-matched untrained null**.
 | `alpfe` | **98/100** at *every* band 0.20–0.60 | **0/100 at ≤0.30**, 20/100 at 0.40 | **YES, flat** | flagship `geo1`; insensitive. **Quote at ≤0.30** | **point-identified**, method-independent |
 | `R_PICPOC` | **99/100** (33/100 even at ≤0.20) | **0/100 at every band** | **YES** above 0.35 | flagship `geo1` **+ real Daniels CP:PP anchor** | **identified given a real absolute anchor** |
 | `scav_rat` | 45/100 at 0.40 — but **22/100 at 0.35 and 81/100 at 0.45** | 0/100 at every band | **NO — knife edge** | none established; width 39 not adopted | **recovering (null 0) but the COUNT is not a stable effect size** |
-| `diatomgraz` | 3/100 at 0.40 | **64/100** at 0.40; untrained beats trained at *every* band ≥0.30 | n/a | none | **anti-recovered — training moves it AWAY** |
+| `diatomgraz` | **eqpac leg 40/100 at ≤10%** (aggregate 3/100 at 0.40) | eqpac leg **0/50 at ≤10%**; 33/50 at 0.40 | band must be **≤0.30** or it is blind | flagship `geo1`, graded **per-leg at ≤0.10** | **locally identifiable in eqpac; anti-recovered in natl and sopac** |
 | `Smallgrow` | — | — | — | — | excluded: non-identifiable from *time-mean* observables |
 | `Biggrow` | — | — | — | — | excluded: unobservable by construction |
 

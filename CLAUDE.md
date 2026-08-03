@@ -136,6 +136,20 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   from *time-mean* observables only (a seasonal prototype recovers it natl 9/10, unconfirmed). `R_PICPOC` is recoverable given a
   real calcite anchor (Daniels/MODIS). The surrogate gap is dimensional (the 0-D box homogenizes
   spatial structure), so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).
+- **Every reported effect must pass TWO tests, and they are not redundant.** (1) **Split-half** —
+  it must hold in both seed halves independently; a P = 0.0128 architectural effect at n=50
+  became an exact tie (38/50 vs 38/50) on fresh seeds. (2) **Band sensitivity** — re-count at
+  ±0.05 around the pass band; an effect that *peaks* at the reported threshold is threshold
+  geometry, not accuracy. The 2026-08-03 capacity result passed the first convincingly and
+  failed the second. Both checks run on artifacts already on disk and cost one query.
+  **`scav_rat` is a knife edge (22/100 at 0.35, 45 at 0.40, 81 at 0.45) and it is the sole
+  binding leg, so the joint trio headline inherits that.** `alpfe` (98/100 flat from 0.20 to
+  0.60) and `R_PICPOC` are threshold-robust — quote `alpfe` at **≤0.30**, where its untrained
+  null is 0/100 rather than the 20/100 it carries at 0.40. See
+  [docs/findings/2026-08-03_the_pass_band_is_load_bearing.md](docs/findings/2026-08-03_the_pass_band_is_load_bearing.md).
+- **Compare within a job, never across.** Cross-job comparison of nominally identical configs
+  cannot be defended here: older artifacts leave the deciding keys `<absent>`, not equal, and
+  *absent is unknown*. Any new arm needs its control in the same submission.
 - **Grade on the per-AOI ≥2-of-3 metric, never the cell-weighted one** — cell-weighted counts
   *straddle* (per-AOI legs landing on opposite sides of Carroll) and overstate recovery, most
   severely for `scav_rat`. Flagship = `n50e2k_percell_trio` (n=50, 2000 epochs): `alpfe` **49/50**,
@@ -145,17 +159,17 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
 - **Match the control to the epoch budget.** There are two anchor-off runs and both are real:
   `n50e2k_anchor_off` (2000 ep, the epoch-matched control for the flagship) gives `R_PICPOC` **6/50**;
   `n50_anchor_off` (1500 ep) gives **4/50**. Quote 6/50 against the 2000-epoch flagship.
-- **Do not write "the 3-of-4 frontier", and do not claim two operating points.** Both overstate
-  what is measured, because both count a `diatomgraz` leg graded in a contaminated band. Its
-  prior midpoint is rel **0.367**, inside the 0.40 pass band — the only one of the six — so an
-  untrained network scores **0.64** there for free. At the ≤10% band it is **0/50 trained and
-  0/50 untrained** in all three 2026-08-03 arms, and its one "non-circular handle" (35/50) sits
-  against a matched untrained **34/50**, P = 0.447 (`ind270`). The second operating point's
-  distinguishing member is exactly that leg, so it is **not established** — it is the first
-  operating point plus a parameter that scores well because the band is wide.
-  Honest framing: **three recovered, one not established at an uncontaminated band, two
-  excluded by construction.** The `scav_rat`-needs-Darwin-pattern vs `diatomgraz`-needs-MLD
-  conflict survives only as a loss-landscape statement, not as two comparable configurations.
-  Not retracted: `ind262` (`diatomgraz` beats its untrained rate in 3 of 3 basins in the MLD
-  arm) is a per-basin result at the contaminated band and is untouched by the above.
-  See [docs/findings/2026-08-03_per_parameter_operating_points.md](docs/findings/2026-08-03_per_parameter_operating_points.md).
+- **Do not write "the 3-of-4 frontier", and do not claim two operating points.** Both are stated
+  in an aggregate ≥2-of-3 count at a 0.40 band, and 2026-08-03 showed that count conveys neither
+  half of what is actually there. **`diatomgraz` is REGIONALLY IDENTIFIABLE in the equatorial
+  Pacific** — its eqpac leg is **40/100 at ≤10% and 20/100 at ≤5% against an untrained 0/50**
+  (P = 5.5e-09 and 2.0e-04) — **and anti-recovered in the other two**, where training pushes the
+  median from 0.38 out to 0.79 and 0.86 and both legs fall *below* their own nulls. The 0.40 band
+  is blind to all of this because `diatomgraz`'s prior midpoint (rel **0.367**) already sits
+  inside it, so its untrained null passes 33/50 there and P = 0.254.
+  **Grade `diatomgraz` per-leg at ≤0.10, never on the aggregate at 0.40.** This settles `ded1`
+  affirmatively: "carries no observational signal" is not merely unsupported, it is **false**.
+  The mirror of `scav_rat`, which is locally identifiable in the **Southern Ocean**.
+  Honest framing: **two globally recovered (`alpfe`, `R_PICPOC`), two regionally identifiable in
+  different basins (`scav_rat`, `diatomgraz`), two excluded by construction.**
+  See [docs/findings/2026-08-03_the_pass_band_is_load_bearing.md](docs/findings/2026-08-03_the_pass_band_is_load_bearing.md).

@@ -60,11 +60,58 @@ happens to park near the threshold.
 binding leg. The joint headline therefore inherits this knife edge.** The 25/50 is not wrong; it
 is one point on a steep curve, and it has been reported without the curve.
 
-### `diatomgraz` is anti-recovered at every band, not just at 0.40
+### `diatomgraz` is BOTH — locally recovered in eqpac and anti-recovered elsewhere
 
-Trained 1–17 across the sweep against an untrained 0–100. At every band from 0.30 up, the
-**untrained network outscores the trained one** (0.30: 1 vs 12; 0.40: 3 vs 64; 0.50: 11 vs 98).
-This is not a band artifact and it does not go away by choosing a different threshold.
+This is the result the band was hiding most, and it runs opposite to the `scav_rat` case: for
+`scav_rat` the 0.40 band sits at the steepest point of the curve and is **over-sensitive**; for
+`diatomgraz` the band is **too wide to see anything**, because its untrained null already passes
+there.
+
+The eqpac leg alone, trained (n=100) against its own untrained null (n=50):
+
+| band | trained | untrained | Fisher P |
+|---|---|---|---|
+| 0.05 | 20/100 | 0/50 | 2.0e-04 |
+| 0.10 | 40/100 | 0/50 | 5.5e-09 |
+| 0.15 | 54/100 | 0/50 | 3.3e-13 |
+| 0.20 | 59/100 | 1/50 | 3.0e-13 |
+| 0.30 | 71/100 | 4/50 | 6.4e-14 |
+| **0.40 (reported)** | **75/100** | **33/50** | **0.254 — cannot separate** |
+
+**At the reported band the effect is invisible. At every tighter band it is overwhelming.**
+Training moves the eqpac median relative error from 0.379 to **0.141**; the 40% band simply
+cannot resolve that, because 0.379 is already inside it.
+
+The other two basins are genuinely dead and genuinely anti-recovered: at band 0.20 both score
+**1/100** trained, and at 0.40 both fall *below* their own nulls (natl 2/100 vs 32/50, sopac
+3/100 vs 31/50, both P < 1e-4), with medians pushed from 0.38 out to 0.79 and 0.86.
+
+So the correct statement is **regional, exactly as it already is for `scav_rat`**:
+
+> `scav_rat` is locally identifiable in the **Southern Ocean**.
+> `diatomgraz` is locally identifiable in the **equatorial Pacific** — 20/100 at ≤5% and 40/100
+> at ≤10% against an untrained 0/50 — and is driven *away* from Carroll in the other two basins.
+
+The aggregate ≥2-of-3 count at band 0.40 reports **3/100** and conveys neither half of that.
+This also settles `ded1` affirmatively with a clean measurement: "diatomgraz carries no
+observational signal" is not merely unsupported, it is **false**.
+
+### The ≥2-of-3 aggregate also hides per-leg DAMAGE
+
+Separately from the band, the majority rule conceals harm to individual legs, because a
+parameter only needs two. Comparing width 16 against width 39 leg by leg:
+
+| parameter · leg | cap16 | cap39 | Fisher P | |
+|---|---|---|---|---|
+| `alpfe` · eqpac | 84/100 | **68/100** | 0.0125 | **degraded** (median 0.076 → 0.098) |
+| `diatomgraz` · eqpac | 75/100 | **56/100** | 0.0072 | **degraded** (median 0.141 → 0.225) |
+| `R_PICPOC` · sopac | 87/100 | 100/100 | 0.0002 | improved |
+| `scav_rat` · natl | 35/100 | 74/100 | <1e-4 | improved (band-amplified) |
+
+`alpfe`'s **aggregate is 98/100 in both arms** and shows none of this. So "the controls are
+undamaged" — which this session wrote before checking — is true only at the aggregate level,
+which is precisely the level that cannot see it. **Report per-leg counts against per-leg nulls,
+not just the majority.**
 
 ## Recommended practice
 

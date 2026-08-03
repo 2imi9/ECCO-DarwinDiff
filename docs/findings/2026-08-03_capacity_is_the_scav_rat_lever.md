@@ -101,6 +101,49 @@ split-half convincingly and still needed amending, so the two tests are not redu
 - **Open, and now the priority:** is the flagship's own published 25/50 band-edge sensitive in the
   same way? The same one-query check answers it, and it bears on the manuscript.
 
-Jobs **258694** (widths 8/24/80) and **258713** (width × epochs 2×2) were launched before this
-analysis and are still the right experiments — but they must be graded with the band-sensitivity
-sweep alongside the count, not on the count alone.
+## Addendum — the dose-response landed, and width 16 is close to optimal
+
+Job **258694** filled in widths 8, 24 and 80 at n=100 (all rc=0, same runner and config md5 as
+258439). Five points, reported as counts *and* as the underlying per-leg medians:
+
+| width | cnt@0.30 | cnt@0.35 | cnt@0.40 | cnt@0.45 | natl median | sopac median |
+|---|---|---|---|---|---|---|
+| 8 | 8 | 10 | 13 | 24 | 0.5155 | 0.0665 |
+| **16 (flagship)** | 13 | 22 | **45** | 81 | 0.4128 | **0.0511** |
+| 24 | 17 | 34 | 70 | 93 | 0.3870 | 0.0551 |
+| 39 | 13 | 31 | 77 | 100 | 0.3845 | 0.0831 |
+| 80 | 27 | 67 | 88 | 94 | **0.3292** | **0.1939** |
+
+**Width genuinely and monotonically improves North Atlantic accuracy** — natl median 0.516 →
+0.329 across the range. That part of the capacity story is real and is now established on five
+points rather than two, at the level of accuracy rather than of counts.
+
+**And it monotonically destroys everything else.**
+
+| width | 8 | 16 | 24 | 39 | 80 |
+|---|---|---|---|---|---|
+| sopac `scav_rat` median | 0.0665 | **0.0511** | 0.0551 | 0.0831 | **0.1939** |
+| `alpfe` eqpac leg | 89 | 84 | 71 | 68 | 72 |
+| `diatomgraz` eqpac leg @ ≤0.10 | 36 | **40** | 24 | **1** | **1** |
+
+Widening quadruples the Southern Ocean `scav_rat` error, degrades `alpfe`'s equatorial leg from
+89 to ~70, and **annihilates the one genuine `diatomgraz` signal the project has** — its eqpac
+local identifiability goes 40/100 → 1/100 between width 16 and width 39.
+
+None of that is visible in the aggregate ≥2-of-3 count, which rises monotonically with width
+(13 → 45 → 70 → 77 → 88) because it tracks only the basin that is crossing the band.
+
+## Verdict
+
+**The flagship's width 16 is near-optimal across the parameter set, and this run vindicates it.**
+It holds the best Southern Ocean accuracy, the best `diatomgraz` eqpac leg, a near-best `alpfe`
+eqpac leg, and gives up only North Atlantic `scav_rat` accuracy — the one thing the headline
+count is most sensitive to.
+
+"Capacity is the `scav_rat` lever" is therefore **withdrawn as an architectural recommendation**.
+Width buys one basin at the expense of two others and one whole parameter, and it looked like a
+clean win only because the metric that scored it was measuring the one leg that moves.
+
+Job **258713** (width × epochs 2×2) is still running and remains worth grading, but its
+interpretation is now bounded by this: any width gain must be charged against the sopac,
+`alpfe` and `diatomgraz` costs above.
