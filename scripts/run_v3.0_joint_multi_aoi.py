@@ -2287,6 +2287,12 @@ if __name__ == "__main__":
             "aois": AOIS_KEYS,
             "aoi_weights": AOI_W,
             "n_aois": N_AOIS,
+            # The integration window. Recorded because it is now swept: before
+            # 2026-07-31 it was hardcoded at 200 and no artifact needed to say so,
+            # which meant the arms of a window sweep were indistinguishable on the
+            # one variable the sweep varied.
+            "n_steps": N_STEPS,
+            "dt_days": DT,
             "geotraces_w": GEOTRACES_W,
             "n_geo_surf_cells_per_aoi": {b["key"]: b["n_geo_surf"] for b in bundles},
             "geotraces_sub_w": GEOTRACES_SUB_W,

@@ -56,14 +56,24 @@ export CHL1_W_EXTRA=3
 export NB23_PINN_WEIGHT=3               # iron-budget steady-state residual
 export USE_EPPLEY_T=1                   # omitted from the appendix row
 export NB23_N_EPOCHS=2000
+# The integration window, 200 * DT = 50 days. Every published flagship count was produced
+# at this window. It was hardcoded until 2026-07-31 and is now env-configurable, so it is
+# pinned here: `scav_rat` is anchored on subsurface iron that is only 47.5% converged at
+# 200 steps and moves with the window (issue #219). Sweeps override this deliberately.
+export N_STEPS=200
 
 # --- parameterisation ------------------------------------------------------------
 # Per-cell DINN, SST channel only. Per-cell is load-bearing: the global-scalar control
 # holds the trio 0/50.
 export GLOBAL_SCALAR=0
 export PER_AOI_DINN=0
-export USE_MLD_CHANNEL=0                # MLD helps diatomgraz but breaks scav_rat (2-basin mutex)
-export USE_AOI_ID_CHANNEL=0
+# The runner reads MLD_CHANNEL / AOI_ID_CHANNEL; USE_* are its internal Python names.
+# This file exported the USE_* spelling until 2026-08-02, which nothing reads. It was
+# inert rather than wrong, because both values equal the runner's defaults -- but that
+# is exactly the silent-default-change this file claims above to protect against.
+export MLD_CHANNEL=0                    # MLD helps diatomgraz but breaks scav_rat (2-basin mutex)
+export AOI_ID_CHANNEL=0
+export GATING_POLICY=ungated
 
 # --- terms explicitly OFF in the flagship ----------------------------------------
 # RATIO_W=0 matters: R_PICPOC is anchored by the real Daniels observation, NOT by Darwin's

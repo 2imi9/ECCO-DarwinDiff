@@ -7782,6 +7782,13 @@
      "words": 1194
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_prereg_flagship_window_sweep.md",
+     "name": "2026-07-31_prereg_flagship_window_sweep.md",
+     "date": "2026-07-31",
+     "retracted": 0,
+     "words": 839
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_prereg_integration_window_swap.md",
      "name": "2026-07-31_prereg_integration_window_swap.md",
      "date": "2026-07-31",
@@ -7801,6 +7808,20 @@
      "date": "2026-07-31",
      "retracted": 1,
      "words": 861
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
+     "name": "2026-08-02_flagship_window_sweep_relaunch.md",
+     "date": "2026-08-02",
+     "retracted": 0,
+     "words": 660
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-02_reproducibility_controls_rerun.md",
+     "name": "2026-08-02_reproducibility_controls_rerun.md",
+     "date": "2026-08-02",
+     "retracted": 0,
+     "words": 822
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/compute_time_compiled_h200.md",
@@ -11575,6 +11596,12 @@
      "dont": ""
     },
     {
+     "question": "Are recovery runs bitwise reproducible on the same config and seed?",
+     "answer": "NO. Same config (all 68 substantive recorded keys identical), same seeds, max relative difference 1.666e-02 across 480 values. The cause is that determinism is never requested: there is no torch.use_deterministic_algorithms, no cudnn.deter…",
+     "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md",
+     "dont": ""
+    },
+    {
      "question": "Are the &DARWIN_RANDOM_PARAMS scalars (val_R_PICPOC, diatomgraz, smallgrow, biggrow) live at runtime?",
      "answer": "No — inert. DARWIN_READ_TRAITS runs LAST in darwin_init_fixed.F and overwrites whatever generation produced. Smoking gun: data.darwin says val_R_PICPOC = 0.04245 while the loaded data.traits R_PICPOC = 0.0418860. An ensemble editing those …",
      "doc": "docs/findings/2026-07-23_v05_perturbation_recipe.md",
@@ -12244,6 +12271,12 @@
      "question": "Does R_PICPOC recovering 10/10 near 0.05 validate Carroll's 0.0425?",
      "answer": "No. Carroll's own value is under-constrained, so the only honest statement is that the two are consistent within a wide band. Do not present it as a validation.",
      "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "dont": ""
+    },
+    {
+     "question": "Does run-to-run nondeterminism flip any Cal grade?",
+     "answer": "Not in the sample measured: 0 observed flips of 60 (seed, param, AOI) units, grading two same-config replicates independently. 1 of 60 units had its own drift exceed its own margin - (seed 6, diatomgraz, eqpac), margin 0.0037 vs drift 0.00…",
+     "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md",
      "dont": ""
     },
     {
@@ -13627,6 +13660,12 @@
      "dont": ""
     },
     {
+     "question": "Was the committed flagship config actually deployed to the cluster that runs the jobs?",
+     "answer": "NO - as of 2026-08-02, ~/emulator_poc/scripts/configs/flagship_geo1.sh did not exist on AICR at all, so even a correct sbatch that sourced it would have failed. The fix committed on 2026-07-29 lived only in the repository. The cluster chec…",
+     "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
+     "dont": ""
+    },
+    {
      "question": "Was the diatomgraz profile-likelihood FLAT result ever actually measured, or invented from a legend caption?",
      "answer": "It WAS measured - in a 2026-06-28 run (issues #152/#120): span 0.039 in the full geo1 loss and span 0.118 against bSi alone (FLAT threshold < 0.05). It is absent from the 07-07 run because that run profiled only alpfe, scav_rat, R_PICPOC. …",
      "doc": "docs/findings/2026-07-19_diatomgraz_claim_audit.md",
@@ -13648,6 +13687,12 @@
      "question": "Was the non-positive Hessian eigenvalue at θ a genuine indefiniteness (rank-deficiency) or an artifact?",
      "answer": "An artifact of under-convergence, at the JOINT 3-AOI level. A 24-start global search gives eigenvalues [0.0, 0.0046, 0.0051, 0.093, 0.66, 2.29] — all ≥ 0, positive-semi-definite. The single zero direction is pure R_PICPOC (no calcite ancho…",
      "doc": "docs/findings/2026-07-21_saddle_fix_result.md",
+     "dont": ""
+    },
+    {
+     "question": "Was the so_repro bitwise reproducibility certificate vacuous, like the window-swap one?",
+     "answer": "NO - it is GENUINE and the 2026-08-01 doubt is retired. It compared per_aoi_recovered, a field that exists. Re-run over every recorded field: so_only vs so_repro = 480 values across 10 shared seeds, max relative difference 0.000e+00; the u…",
+     "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md",
      "dont": ""
     },
     {
@@ -14410,6 +14455,12 @@
      "question": "Why can't we use the field's standard validation (held-out cross-validation)?",
      "answer": "It is structurally unavailable: the 0-D box has no spatial structure, so the held-out GEOTRACES test returns negative R^2 by construction. This is the project's weakest flank against the Schartau/Kuhn-Fennel community and should be stated …",
      "doc": "docs/findings/2026-07-28_session_evidence_log.md, docs/research_notes/2026-07-07_track2_reshaped_plan.md",
+     "dont": ""
+    },
+    {
+     "question": "Why did the 2026-08-01 flagship window sweep (job 244487) fail its own falsifier?",
+     "answer": "It hand-copied the reproducibility-appendix row instead of sourcing scripts/configs/flagship_geo1.sh, omitting POSI_W=1, USE_EPPLEY_T=1 and the per-AOI weights {1,2,2}. Confirmed from the artifact: posi_w=0.0, use_eppley_t=False, aoi_weigh…",
+     "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
      "dont": ""
     },
     {
@@ -16276,6 +16327,18 @@
      "new": "CONFOUNDED and probably a FALSE negative - it computed day-of-year from the 0.75x axis, so it encoded the wrong season for ~94% of samples. It should be re-run.",
      "reason": "Downstream consequence of the delta_t calendar bug. Any experiment whose inputs derived from wall-clock time is similarly suspect; the forcing-concat negative (-0.010) i…",
      "doc": "docs/findings/2026-07-19_emulator_honest_bounds.md"
+    },
+    {
+     "old": "The window-swap no-op control reports BITWISE IDENTICAL at max relative difference 0.000e+00.",
+     "new": "VACUOUS - it compared ZERO values. It read params[k]['joint'], a key artifacts do not have (they store joint_recovered). Every lookup returned None, every value was skip…",
+     "reason": "Same shape as the SUPERSEDES constraint that passed on an empty join since it was written: a check that passes on nothing is indistinguishable from a check that passes o…",
+     "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+    },
+    {
+     "old": "The earlier so_repro certificate may share the vacuous-field defect and should be re-run before any reproducibility claim.",
+     "new": "REFUTED. so_repro used per_aoi_recovered, a field that exists, so it was never vacuous. Re-measured at 480 values, 0.000e+00. The depth arms DO have a verified reproduci…",
+     "reason": "Recorded as an open doubt on 2026-08-01 and carried into the next session's next-action list. Checked directly rather than assumed.",
+     "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
     }
    ]
   },
@@ -18835,6 +18898,31 @@
     {
      "trap": "A STRADDLE flag that fires only when cell-weighted minus per-AOI > 0 is silent whenever reverse seeds cancel straddling ones - archived example: cocc_c scav_rat has 2 straddling and 2 reversing seeds, both rows print 7/…",
      "doc": "docs/findings/2026-07-29_math_audit_index.md",
+     "category": ""
+    },
+    {
+     "trap": "Artifacts have NO bare joint key on a param entry. The keys are joint_recovered, joint_cellweighted_recovered, joint_aoiweighted_recovered, joint_geom_cellweighted_recovered, joint_median_pooled_recovered, joint_abs_r…",
+     "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md",
+     "category": ""
+    },
+    {
+     "trap": "Do NOT quote the maximum /rel_offset_A - rel_offset_B/ between two replicate runs as the drift. It was 0.218 in the measured pair while the underlying value drift was 1.7%, because a unit recovered far from Carroll has …",
+     "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md",
+     "category": ""
+    },
+    {
+     "trap": "scripts/configs/flagship_geo1.sh exported USE_MLD_CHANNEL and USE_AOI_ID_CHANNEL until 2026-08-02. Those are the runner's internal PYTHON identifiers; its environment variables are MLD_CHANNEL and AOI_ID_CHANNEL. Nothin…",
+     "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
+     "category": ""
+    },
+    {
+     "trap": "A warning banner in the reproducibility appendix did NOT stop the flagship recipe being re-typed by hand - it was followed anyway on 2026-08-01, a second time, costing a 30-task array. Prose does not prevent this class …",
+     "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
+     "category": ""
+    },
+    {
+     "trap": "N_STEPS was recorded in NO run artifact before 2026-08-02, so the arms of an integration-window sweep were indistinguishable on the one variable the sweep varied. Fixed by recording n_steps and dt_days in the artifact c…",
+     "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
      "category": ""
     }
    ]
@@ -36597,14 +36685,14 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 175,
+  "document": 178,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 496,
-  "supersedes": 287,
+  "settled": 501,
+  "supersedes": 289,
   "supports": 279,
-  "trap": 229,
+  "trap": 234,
   "v_claim_evidence": 570,
   "v_dangerous": 39,
   "v_live": 510,

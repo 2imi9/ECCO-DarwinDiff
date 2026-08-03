@@ -34,23 +34,24 @@ for ARM in so_sub_w100 eq_sub_w100 prior_so_w100 prior_eq_w100 eq_surf_w100 \
 done
 
 echo ""
-echo "### BITWISE NO-OP CONTROL: repro_w200 vs the original eq_sub (job 240673)"
-echo "### The runner changed (3d5ebe67 -> 2fb90c86). At N_STEPS=200 it must be identical."
-$PY - <<'PY'
-import json, glob, os
-a = sorted(glob.glob('/scratch/qi_zim_neu/window/repro_w200/*.json'))
-b = {os.path.basename(p): p for p in glob.glob('/scratch/qi_zim_neu/eq_mech/eq_sub/*.json')}
-worst, n = 0.0, 0
-for pa in a:
-    pb = b.get(os.path.basename(pa))
-    if not pb: continue
-    ja, jb = json.load(open(pa)), json.load(open(pb))
-    for k in ja.get('params', {}):
-        va = ja['params'][k].get('joint'); vb = jb['params'][k].get('joint')
-        if isinstance(va,(int,float)) and isinstance(vb,(int,float)) and vb:
-            worst = max(worst, abs(va-vb)/abs(vb)); n += 1
-print(f"compared {n} parameter values across {len(a)} shared seeds")
-print(f"max relative difference: {worst:.3e}  ->  {'BITWISE IDENTICAL' if worst==0.0 else 'DIFFERS'}")
-PY
+echo "### NO-OP CONTROL: repro_w200 vs the original eq_sub (job 240673)"
+echo "### The runner changed (3d5ebe67 -> 2fb90c86). At N_STEPS=200 it must agree."
+#
+# This block used to inline a comparison that read params[k]['joint'] -- a key artifacts do
+# not have (they store 'joint_recovered'). Every lookup returned None, nothing was compared,
+# the running max stayed at its 0.0 initialiser, and it printed "BITWISE IDENTICAL" having
+# examined zero values. Re-run honestly on 2026-08-02 it reports DIFFERS at 1.7%.
+# compare_run_bitwise.py exits 2 rather than 0 when it compares too few values.
+$PY scripts/analysis/compare_run_bitwise.py \
+    /scratch/qi_zim_neu/window/repro_w200 /scratch/qi_zim_neu/eq_mech/eq_sub \
+    --min-values 100
+echo "[noop-control] exit=$?  (0 identical, 1 differs, 2 VACUOUS)"
+
+echo ""
+echo "### Does that drift flip any Cal grade? (the question the drift size alone cannot answer)"
+$PY scripts/analysis/grade_flip_under_drift.py \
+    /scratch/qi_zim_neu/window/repro_w200 /scratch/qi_zim_neu/eq_mech/eq_sub
+echo "[grade-flip] exit=$?  (0 no flips, 1 a grade flipped, 2 VACUOUS)"
+
 echo ""; echo "### GATE_FAIL=$fail"
 exit $fail

@@ -2479,6 +2479,31 @@
    "question": "Is the alpfe/scav_rat iron degeneracy the same everywhere?",
    "answer": "No, it is basin-dependent. Subsurface iron resolves it in the Southern Ocean (2x2 condition number 2.2) but NOT in the equatorial Pacific / North Atlantic (condition 35-51, still ratio-degenerate, per-AOI conditional correlation +0.94). The real-loss GN-Fisher later reproduced the SO figure as cond 2.224. NOTE: source doc ARCHIVED 2026-07-24, superseded by the 2026-07-24 lineage synthesis §5.",
    "doc": "docs/research_notes/2026-07-23_closure_theory_questions.md (+ cond 2.224 from docs/research_notes/2026-07-30_next_session_start_here.md:158-165)"
+  },
+  {
+   "question": "Was the so_repro bitwise reproducibility certificate vacuous, like the window-swap one?",
+   "answer": "NO - it is GENUINE and the 2026-08-01 doubt is retired. It compared per_aoi_recovered, a field that exists. Re-run over every recorded field: so_only vs so_repro = 480 values across 10 shared seeds, max relative difference 0.000e+00; the untrained null prior_so_only vs prior_so_abl = 2400 values across 50 seeds, also 0.000e+00. The depth arms' certificate stands.",
+   "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+  },
+  {
+   "question": "Are recovery runs bitwise reproducible on the same config and seed?",
+   "answer": "NO. Same config (all 68 substantive recorded keys identical), same seeds, max relative difference 1.666e-02 across 480 values. The cause is that determinism is never requested: there is no torch.use_deterministic_algorithms, no cudnn.deterministic and no CUBLAS_WORKSPACE_CONFIG anywhere in scripts/ or src/, and torch.manual_seed fixes initialisation, not GPU reduction order. The honest statement is 'reproduces to about 1.7%, not bitwise'; the bitwise-identical results are the lucky cases, not the norm.",
+   "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+  },
+  {
+   "question": "Does run-to-run nondeterminism flip any Cal grade?",
+   "answer": "Not in the sample measured: 0 observed flips of 60 (seed, param, AOI) units, grading two same-config replicates independently. 1 of 60 units had its own drift exceed its own margin - (seed 6, diatomgraz, eqpac), margin 0.0037 vs drift 0.0046 - and it did not flip. That parameter is already KNOWN_PRIOR_CONTAMINATED and not interpreted. No alpfe, scav_rat or R_PICPOC unit came within its own drift of the boundary. SCOPE: one pair, eqpac only, 10 seeds, N_STEPS=200, stripped loss - not the flagship.",
+   "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+  },
+  {
+   "question": "Why did the 2026-08-01 flagship window sweep (job 244487) fail its own falsifier?",
+   "answer": "It hand-copied the reproducibility-appendix row instead of sourcing scripts/configs/flagship_geo1.sh, omitting POSI_W=1, USE_EPPLEY_T=1 and the per-AOI weights {1,2,2}. Confirmed from the artifact: posi_w=0.0, use_eppley_t=False, aoi_weights={1.0,1.0,1.0}. fs_w200 returned scav_rat 3/50 against the published 25/50 (alpfe 50/50, within noise). Job 244487 is INVALID; no window conclusion may be drawn from it. Relaunched as job 255511 writing to flagwin2/, with flagwin/ kept as evidence.",
+   "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md"
+  },
+  {
+   "question": "Was the committed flagship config actually deployed to the cluster that runs the jobs?",
+   "answer": "NO - as of 2026-08-02, ~/emulator_poc/scripts/configs/flagship_geo1.sh did not exist on AICR at all, so even a correct sbatch that sourced it would have failed. The fix committed on 2026-07-29 lived only in the repository. The cluster checkout is not a git repository (issue #218); its runner did happen to match branch HEAD exactly, but nothing could have verified that in advance. Synced 2026-08-02.",
+   "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md"
   }
  ],
  "claims": [
@@ -8756,6 +8781,18 @@
    "new": "CONFOUNDED and probably a FALSE negative - it computed day-of-year from the 0.75x axis, so it encoded the wrong season for ~94% of samples. It should be re-run.",
    "reason": "Downstream consequence of the delta_t calendar bug. Any experiment whose inputs derived from wall-clock time is similarly suspect; the forcing-concat negative (-0.010) is unaffected only if forcing was matched by iteration rather than by date - verify before relying on it.",
    "doc": "docs/findings/2026-07-19_emulator_honest_bounds.md"
+  },
+  {
+   "old": "The window-swap no-op control reports BITWISE IDENTICAL at max relative difference 0.000e+00.",
+   "new": "VACUOUS - it compared ZERO values. It read params[k]['joint'], a key artifacts do not have (they store joint_recovered). Every lookup returned None, every value was skipped, and the running maximum stayed at its 0.0 initialiser. Re-run honestly over every recorded field it reports DIFFERS at 1.666e-02 across 480 values.",
+   "reason": "Same shape as the SUPERSEDES constraint that passed on an empty join since it was written: a check that passes on nothing is indistinguishable from a check that passes on everything. compare_run_bitwise.py now exits 2 when it compares fewer than --min-values values.",
+   "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+  },
+  {
+   "old": "The earlier so_repro certificate may share the vacuous-field defect and should be re-run before any reproducibility claim.",
+   "new": "REFUTED. so_repro used per_aoi_recovered, a field that exists, so it was never vacuous. Re-measured at 480 values, 0.000e+00. The depth arms DO have a verified reproducibility certificate.",
+   "reason": "Recorded as an open doubt on 2026-08-01 and carried into the next session's next-action list. Checked directly rather than assumed.",
+   "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
   }
  ],
  "hypotheses": [
@@ -10705,6 +10742,26 @@
   {
    "trap": "A STRADDLE flag that fires only when cell-weighted minus per-AOI > 0 is silent whenever reverse seeds cancel straddling ones - archived example: cocc_c scav_rat has 2 straddling and 2 reversing seeds, both rows print 7/10, no flag, exit 0. Tolerable for a marginal count, not for a JOINT one, because cancellation permutes which seeds pass. Related open item: flags never touch the exit code, so a straddling run is still blessed under a gate-on-exit-0 convention.",
    "doc": "docs/findings/2026-07-29_math_audit_index.md"
+  },
+  {
+   "trap": "Artifacts have NO bare `joint` key on a param entry. The keys are joint_recovered, joint_cellweighted_recovered, joint_aoiweighted_recovered, joint_geom_cellweighted_recovered, joint_median_pooled_recovered, joint_abs_rel_offset, joint_band, joint_carroll_published, per_aoi_recovered (+ _geom, _median) and per_aoi_log_sd. Reading .get('joint') returns None for every parameter and silently compares nothing - which is how a reproducibility certificate came to be issued on an empty set.",
+   "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+  },
+  {
+   "trap": "Do NOT quote the maximum |rel_offset_A - rel_offset_B| between two replicate runs as the drift. It was 0.218 in the measured pair while the underlying value drift was 1.7%, because a unit recovered far from Carroll has a large rec/carroll, so a small RELATIVE change in the recovered value is a large change in its rel_offset - while sitting nowhere near the decision boundary. Compare each unit's drift to its OWN margin.",
+   "doc": "docs/findings/2026-08-02_reproducibility_controls_rerun.md"
+  },
+  {
+   "trap": "scripts/configs/flagship_geo1.sh exported USE_MLD_CHANNEL and USE_AOI_ID_CHANNEL until 2026-08-02. Those are the runner's internal PYTHON identifiers; its environment variables are MLD_CHANNEL and AOI_ID_CHANNEL. Nothing read the USE_* spelling, so those two lines pinned nothing - inside the file whose header promises that setting defaults explicitly stops a future default change from silently moving the flagship. Guarded now by test_flagship_config_guard.py, which requires every exported name to be read somewhere in scripts/ or src/.",
+   "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md"
+  },
+  {
+   "trap": "A warning banner in the reproducibility appendix did NOT stop the flagship recipe being re-typed by hand - it was followed anyway on 2026-08-01, a second time, costing a 30-task array. Prose does not prevent this class of error. The guard has to be executable: an sbatch-level assertion that exits 3 on config drift, plus a test that any training sbatch claiming the flagship sources flagship_geo1.sh.",
+   "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md"
+  },
+  {
+   "trap": "N_STEPS was recorded in NO run artifact before 2026-08-02, so the arms of an integration-window sweep were indistinguishable on the one variable the sweep varied. Fixed by recording n_steps and dt_days in the artifact config block. Any window analysis over artifacts written before that date must recover the window from the output directory or the job log, not from the artifact.",
+   "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md"
   }
  ]
 }
