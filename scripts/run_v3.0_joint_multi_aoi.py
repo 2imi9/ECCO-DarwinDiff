@@ -221,6 +221,7 @@ from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_ce
 from darwindiff.provenance import stamp as _prov_stamp
 from darwindiff.networks import DINN, PerParamDINN, GlobalScalarNet, PerCellFreeField
 from darwindiff.safe_load import safe_torch_load
+from darwindiff.gating import PARAM_NAMES as _GATE_PARAM_NAMES
 from darwindiff.gating import (
     GATING_POLICIES,
     apply_gate,
@@ -609,7 +610,7 @@ if USE_AOI_PARAM_WEIGHTS:
     for _k in AOIS_KEYS:
         print("    " + _k + ": " + "  ".join(
             f"{_n}={float(gate_vectors[_k][_i]):.3f}"
-            for _i, _n in enumerate([p.name for p in PARAMS])))
+            for _i, _n in enumerate(_GATE_PARAM_NAMES)))
 else:
     gate_vectors = build_gate_vectors(_gating_policy, AOIS_KEYS, device=device)
 if USE_GATING:
