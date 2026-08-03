@@ -11,7 +11,7 @@ and both job 244487 and job 255511 ran at 1e-3.
 
 | run | code | lr | `scav_rat` | natl leg | `R_PICPOC` sopac |
 |---|---|---|---|---|---|
-| published flagship | 2026-07-28 build | (default) | 26/50 (52%) | 19/50 (38%) | 40/50 (80%) |
+| flagship reproduction `logscale/ctrl_n50` | 2026-07-28 build | (default) | 26/50, i.e. reproduces published 25/50 to one seed | 19/50 (38%) | 40/50 (80%) |
 | bisect **t15 = HEAD** | **today** | **5e-3** | **7/10 (70%)** | **6/10 (60%)** | **8/10 (80%)** |
 | `fs_w200` | today | **1e-3** | 1/50 (2%) | 0/50 (0%) | 0/50 (0%) |
 
@@ -88,6 +88,9 @@ Buys, and this is the part worth keeping:
   now false. The config *is* why. Banner it.
 - The window-sweep pre-registration specified `1e-3` with no stated reason. Any future sweep must
   justify a deviation from the flagship's optimiser settings or inherit them.
-- `test_canonical_numbers.py` records `scav_rat: 25`, but the official grader on the nearest
-  surviving reproduction gives **26/50**, with 25/50 being the *iron-pair joint* count. The
-  marginal and the joint are being conflated. Separate open item.
+- **Not a defect after all:** `test_canonical_numbers.py` records `scav_rat: 25` and the official
+  grader on `logscale/ctrl_n50` gives 26/50. That is the already-documented one-seed reproduction
+  difference (the guard's own comment records an independent reproduction landing 26/50 against the
+  published 25/50), not a conflation. `ctrl_n50` is a *reproduction*, not the flagship. The real
+  open item is narrower: the flagship's own artifacts, `n50e2k_percell_trio`, exist nowhere, so
+  25/50 cannot be re-graded from the run that produced it.
