@@ -218,7 +218,7 @@ from darwindiff.daniels_loader import (
     load_daniels_points,
 )
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
-from darwindiff.networks import DINN, GlobalScalarNet, PerCellFreeField
+from darwindiff.networks import DINN, PerParamDINN, GlobalScalarNet, PerCellFreeField
 from darwindiff.safe_load import safe_torch_load
 from darwindiff.gating import (
     GATING_POLICIES,
@@ -395,6 +395,11 @@ USE_GLOBAL_SCALAR = os.environ.get("GLOBAL_SCALAR", "0") == "1"
 # alongside it to separate per-cell freedom from per-AOI freedom.
 # Precedence: GLOBAL_SCALAR > POINTWISE > PER_AOI_DINN > shared DINN.
 USE_POINTWISE = os.environ.get("POINTWISE", "0") == "1"
+# PER_PARAM=1: one independent DINN trunk per PARAMETER (no representation sharing).
+# The ladder's missing rung -- every other rung varies spatial sharing, none varied
+# parameter sharing. Lower precedence than the spatial rungs, which are mutually
+# exclusive with it by construction (a global scalar is already unshared per cell).
+USE_PER_PARAM = os.environ.get("PER_PARAM", "0") == "1"
 CONSISTENCY_LAMBDA = float(os.environ.get("CONSISTENCY_LAMBDA", "0.0"))
 # POOL_PARAMS (partial pooling): which Carroll-6 params are pulled toward cross-AOI
 # agreement by CONSISTENCY_LAMBDA; the rest stay fully per-AOI free. Implements the
@@ -1682,6 +1687,28 @@ elif USE_PER_AOI_DINN:
             torch.manual_seed(s + aoi_idx * 10000)
             n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
             nets_per_aoi[k].append(n)
+elif USE_PER_PARAM:
+    # The missing rung. Every other rung above varies SPATIAL sharing; this one varies
+    # PARAMETER sharing, which nothing had ever varied (0 of 3000 artifacts). One
+    # independent trunk per parameter, so no weight is shared between two parameters'
+    # predictions and the MLD-helps-diatomgraz / MLD-breaks-scav_rat conflict has no
+    # shared representation to fight over. Pre-registration:
+    # docs/findings/2026-08-03_prereg_per_parameter_routing.md
+    _w_match = PerParamDINN.matched_hidden_dim(
+        n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS)
+    print(f"\n[LADDER] Building {N_SEEDS} PER-PARAMETER nets ({N_PARAMS} independent trunks "
+          f"per seed, hidden_dim={DINN_HIDDEN_DIM}). NOTE: this has ~{N_PARAMS}x the weights "
+          f"of one shared trunk -- the capacity-matched control is PER_PARAM=0 with "
+          f"DINN_HIDDEN_DIM={_w_match}, and a lift measured against the default width is "
+          f"confounded with capacity, not evidence about parameter sharing.")
+    shared_nets = []
+    for s in SEEDS:
+        torch.manual_seed(s)
+        n = PerParamDINN(n_input_channels=n_input_channels,
+                         hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
+        shared_nets.append(n)
+    for k in AOIS_KEYS:
+        nets_per_aoi[k] = shared_nets
 else:
     print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
     shared_nets: list[DINN] = []
@@ -2321,6 +2348,7 @@ if __name__ == "__main__":
             # the 0/50 control's own artifacts did not say they were the control.
             "global_scalar": USE_GLOBAL_SCALAR,
             "pointwise_free_field": USE_POINTWISE,
+            "per_param_dinn": USE_PER_PARAM,
             "n_free_param_values": (
                 sum(N_PARAMS * int(b["ocean_mask"].shape[0]) * int(b["ocean_mask"].shape[1])
                     for b in bundles) if USE_POINTWISE else None
@@ -2410,6 +2438,7 @@ if __name__ == "__main__":
         jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
         chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
         peraoi_tag = f"_peraoi_lam{CONSISTENCY_LAMBDA}" if USE_PER_AOI_DINN else ""
+        perparam_tag = "_perparam" if USE_PER_PARAM else ""
         _gate_preset = GATING_POLICY_SPEC if GATING_POLICY_SPEC in GATING_POLICIES else "custom"
         gate_tag = f"_gate-{_gate_preset}" if USE_GATING else ""
         pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
@@ -2441,7 +2470,7 @@ if __name__ == "__main__":
                 f"{aoi_w_tag}"
                 f"{jrm_tag}"
                 f"{chl1_extra_tag}"
-                f"{peraoi_tag}"
+                f"{peraoi_tag}{perparam_tag}"
                 f"{gate_tag}"
                 f"{pic_abs_tag}"
                 f"{poc_abs_tag}"

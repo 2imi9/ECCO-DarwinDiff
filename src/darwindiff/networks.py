@@ -135,6 +135,102 @@ class DINN(nn.Module):
         return self.net(env)
 
 
+class PerParamDINN(nn.Module):
+    r"""One independent per-cell network per parameter — no representation sharing.
+
+    WHY THIS EXISTS
+    ---------------
+    The parameterisation ladder (``GLOBAL_SCALAR > POINTWISE > PER_AOI_DINN > DINN``) varies
+    **spatial** sharing at every rung: one scalar, a per-cell free field, one network per basin.
+    None of them varies **parameter** sharing. :class:`DINN` puts all ``N_PARAMS`` outputs on one
+    shared trunk, so every parameter is forced through a single representation of a single
+    input-channel set.
+
+    That is a candidate cause of the 3-of-4 observable frontier. The Fisher rank is 4/4 in eqpac
+    and natlsubpolar — the information to recover all four is present — yet no single configuration
+    recovers more than three, and the documented conflict is representational rather than
+    informational: the MLD input channel helps ``diatomgraz`` and breaks ``scav_rat``. An input
+    channel cannot change what the observations contain; it changes what the shared trunk can
+    express. See ``docs/findings/2026-08-03_prereg_per_parameter_routing.md``.
+
+    This module removes that sharing entirely: ``n_outputs`` independent trunks, each emitting one
+    parameter, each seeing all input channels. It is a drop-in for :class:`DINN` — same forward
+    signature, same unbounded output ordered by the registry — so
+    :func:`darwindiff.carroll6.bounded_params` applies unchanged.
+
+    CAPACITY IS THE CONFOUND. Independent trunks at the same ``hidden_dim`` have roughly
+    ``n_outputs`` times the parameters of one shared trunk, and "a bigger network fits better" is
+    exactly the confound that made the 2026-07-12 resolution-sharpening result null. Use
+    :meth:`matched_hidden_dim` to size a shared-trunk control to the same budget, and compare
+    against that, not against the default width.
+
+    Args:
+        n_input_channels: environmental channels per cell.
+        hidden_dim: width of each per-parameter trunk.
+        n_outputs: number of parameters, one trunk each.
+        n_hidden_layers: 1x1 hidden layers per trunk.
+
+    Forward:
+        ``[n_input_channels, H, W] -> [n_outputs, H, W]``, or batched
+        ``[B, n_input_channels, H, W] -> [B, n_outputs, H, W]``.
+    """
+
+    def __init__(
+        self,
+        n_input_channels: int = 3,
+        hidden_dim: int = 16,
+        n_outputs: int = N_PARAMS,
+        n_hidden_layers: int = 2,
+    ) -> None:
+        super().__init__()
+        self.n_outputs = int(n_outputs)
+        self.heads = nn.ModuleList([
+            DINN(
+                n_input_channels=n_input_channels,
+                hidden_dim=hidden_dim,
+                n_outputs=1,
+                n_hidden_layers=n_hidden_layers,
+            )
+            for _ in range(self.n_outputs)
+        ])
+
+    @staticmethod
+    def matched_hidden_dim(
+        n_input_channels: int,
+        hidden_dim: int,
+        n_outputs: int = N_PARAMS,
+        n_hidden_layers: int = 2,
+    ) -> int:
+        """Width a shared-trunk :class:`DINN` needs to match this module's parameter count.
+
+        Returns the largest width whose shared-trunk count does not exceed the per-parameter
+        budget, so the capacity-matched control is never *advantaged*. Search rather than solve:
+        the count is quadratic in width once ``n_hidden_layers > 1`` and an off-by-one here would
+        silently reintroduce the confound it exists to remove.
+        """
+        def count(cls_kwargs: dict) -> int:
+            return sum(p.numel() for p in DINN(**cls_kwargs).parameters())
+
+        budget = n_outputs * count({
+            "n_input_channels": n_input_channels, "hidden_dim": hidden_dim,
+            "n_outputs": 1, "n_hidden_layers": n_hidden_layers,
+        })
+        best = 1
+        for w in range(1, 4096):
+            if count({
+                "n_input_channels": n_input_channels, "hidden_dim": w,
+                "n_outputs": n_outputs, "n_hidden_layers": n_hidden_layers,
+            }) <= budget:
+                best = w
+            else:
+                break
+        return best
+
+    def forward(self, env: torch.Tensor) -> torch.Tensor:
+        outs = [h(env) for h in self.heads]
+        return torch.cat(outs, dim=0 if env.ndim == 3 else 1)
+
+
 class _PerCellLayerNorm(nn.Module):
     """LayerNorm over the channel dim only, applied independently at each (h, w).
 
