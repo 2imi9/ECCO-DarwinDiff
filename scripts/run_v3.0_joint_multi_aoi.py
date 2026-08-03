@@ -225,6 +225,7 @@ from darwindiff.gating import (
     GATING_POLICIES,
     apply_gate,
     build_gate_vectors,
+    build_weight_vectors_from_rule,
     resolve_policy,
     validate_policy,
 )
@@ -583,7 +584,34 @@ if USE_GATING and USE_PER_AOI_DINN:
         "per-parameter gradients within one shared DINN, while PER_AOI_DINN "
         "gives each AOI its own network. Pick one."
     )
-gate_vectors = build_gate_vectors(_gating_policy, AOIS_KEYS, device=device)
+# AOI_PARAM_WEIGHTS: path to a routing rule emitted by scripts/analysis/emit_routing_rule.py.
+# SOFT per-(parameter, AOI) gradient weighting, derived from Fisher information at the PRIOR
+# MIDPOINT rather than from which basin recovered best -- the latter would be selection on the
+# answer. The rule holds the per-parameter TOTAL gradient fixed and only redistributes it across
+# basins, so this does not covertly change the effective learning rate (which on 2026-08-03 was
+# shown to move scav_rat from 26/50 to 1/50 on its own).
+AOI_PARAM_WEIGHTS = os.environ.get("AOI_PARAM_WEIGHTS", "")
+USE_AOI_PARAM_WEIGHTS = bool(AOI_PARAM_WEIGHTS)
+if USE_AOI_PARAM_WEIGHTS and USE_GATING:
+    raise ValueError(
+        "AOI_PARAM_WEIGHTS and GATING_POLICY are mutually exclusive: both write the "
+        "per-parameter gate. Soft weights subsume binary routing -- use one."
+    )
+if USE_AOI_PARAM_WEIGHTS:
+    import json as _json
+    with open(AOI_PARAM_WEIGHTS, encoding="utf-8") as _f:
+        _rule = _json.load(_f)
+    gate_vectors = build_weight_vectors_from_rule(
+        _rule, AOIS_KEYS, AOI_W, device=device)
+    USE_GATING = True
+    GATING_POLICY_SPEC = f"aoi_param_weights:{os.path.basename(AOI_PARAM_WEIGHTS)}"
+    print(f"Per-(parameter, AOI) SOFT weights ENABLED from {AOI_PARAM_WEIGHTS}")
+    for _k in AOIS_KEYS:
+        print("    " + _k + ": " + "  ".join(
+            f"{_n}={float(gate_vectors[_k][_i]):.3f}"
+            for _i, _n in enumerate([p.name for p in PARAMS])))
+else:
+    gate_vectors = build_gate_vectors(_gating_policy, AOIS_KEYS, device=device)
 if USE_GATING:
     print(f"Per-AOI gating ENABLED ({GATING_POLICY_SPEC}): "
           + "; ".join(f"{k}->{_gating_policy.get(k, [])}" for k in AOIS_KEYS))
@@ -2362,6 +2390,9 @@ if __name__ == "__main__":
             "consistency_lambda": CONSISTENCY_LAMBDA,
             "pool_params": sorted(_pool_set) if _pool_spec else "all",
             "gating_policy": GATING_POLICY_SPEC if USE_GATING else "ungated",
+            "aoi_param_weights_file": AOI_PARAM_WEIGHTS or None,
+            "aoi_param_weights": ({k: [float(x) for x in gate_vectors[k]]
+                                   for k in AOIS_KEYS} if USE_AOI_PARAM_WEIGHTS else None),
             "gating_map": {k: _gating_policy.get(k, []) for k in AOIS_KEYS} if USE_GATING else {},
             "pic_abs_w": PIC_ABS_W,
             "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
