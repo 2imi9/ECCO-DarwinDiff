@@ -11718,6 +11718,12 @@
    ],
    "rows": [
     {
+     "question": "abd555 asked why the ARITHMETIC collapse biases scav_rat's summary HIGH while EKI independently reports the recovered value biased LOW. Is that a real conflict?",
+     "answer": "NO - there is no conflict, and the arithmetic collapse is the outlier. TWO INDEPENDENT ESTIMATORS AGREE scav_rat is recovered LOW. (1) EKI (eki_fullbox_trio.py, Iglesias-Law-Stuart, J=256, 30 iters, derivative-free, NO DINN and NO autograd, three global scalars in log space, loss = real GEOTRACES surf/sub dFe + real Daniels CP:PP only) returns scav_rat 2.1e-7 against Carroll 6.025e-7 = 0.349x, rel offset 0.65, Loose. (2) The geometric collapse of the DINN per-cell fit, measured 2026-08-04, returns 0.43x in eqpac and natlsubpolar, 0.89x in southernoceanpac (3-AOI) and 0.73x single-AOI. The ARITHMETIC collapse of the SAME fits reads 0.45x / 0.58x / 0.95x and 1.39x, i.e. it lifts the estimate toward Carroll and, in the single-AOI Southern Ocean, past it. So the low bias is the estimate and the high bias is the REPORTING STATISTIC. Note what this does NOT establish: Carroll's value is itself a Green's-functions point estimate with no published uncertainty, so 'biased low' means low relative to Carroll, not relative to truth.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "dont": ""
+    },
+    {
      "question": "Are R_PICPOC and scav_rat non-identifiable for the same reason?",
      "answer": "No - two distinct mechanisms, and that taxonomy is the Track-2 result. calcite R_PICPOC: observable (PIC:POC) is approximately the parameter but the obs are too sparse/noisy => DATA-LIMITED. iron scav_rat: observable (DFe concentration) is dense and env-predictable but is a low-information projection of the rate => OBSERVABILITY-LIMITED, structural, more iron data would not close it.",
      "doc": "docs/research_notes/2026-07-09_calcite_identifiability_map.md",
@@ -13707,6 +13713,12 @@
      "question": "Should conservation be a hard architectural constraint in the emulator?",
      "answer": "No - soft loss penalties with small weights. Samudra learned conservation without hard constraints, and the one physics-informed BGC 1D-CNN that hard-constrained it (arXiv 2606.27168) DIVERGED EARLIER and underperformed persistence at 10-day range vs an unconstrained LSTM. Conservation is a tie-breaker, gated on short-range skill not regressing.",
      "doc": "docs/research_notes/2026-07-23_3d_emulator_earth2studio_design.md",
+     "dont": ""
+    },
+    {
+     "question": "Should EKI/CES be run to improve scav_rat recovery?",
+     "answer": "NO, and this is already settled twice over - it is recorded that five independent estimator routes (EnKF rank <= N-1, CES flat ridge, history-matching NROY ray, KOH theta-delta ridge, SINDy non-uniqueness) all hit the same wall, that no estimator breaks a rank-1 structural null, and that 'CES/EKI as recovery' belongs on the list of methods CORRECTLY REJECTED (blocked by: single realization / rank-1 null). The standing directive is ADOPT EKI/CES AS A DIAGNOSTIC ONLY, NEVER AS A RECOVERY IMPROVEMENT. What EKI is genuinely worth: it closed the 'DINN + autograd artifact' attack by reproducing the backprop verdict without gradients, and its low scav_rat estimate is now the independent confirmation that the arithmetic collapse was inflating. Its ensemble spread is NOT a posterior - eki_core.eki is the ILS-2013 inversion OPTIMIZER with no inflation or localization and its ensemble collapses, so a calibrated interval still needs the EKS/sample stage.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
      "dont": ""
     },
     {
@@ -19182,6 +19194,11 @@
     {
      "trap": "Black et al. (2020) Supporting Information Table S1 carries the PER-STATION georeferenced Fe export values (the committed CSV has only per-study/province ranges, n=20). The Wiley host is behind a Cloudflare interstitial and returns a 'Just a moment...' challenge to automated fetches, so it cannot be retrieved programmatically. The paper is open-access CC-BY-4.0 - download S1 by hand if per-station coverage is needed to rescue E3.",
      "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "category": ""
+    },
+    {
+     "trap": "Do NOT propose EKI/CES (or EnKF, history matching, KOH GP emulators, SINDy) as a way to improve scav_rat recovery. It is settled that no ESTIMATOR breaks the rank-1 alpfe<->scav_rat null - only a new OBSERVABLE that projects source and sink differently does. EKI's role is diagnostic: it reproduces the backprop verdict without autograd, and its scav_rat estimate of 0.349x Carroll is the independent check that the arithmetic collapse was inflating, not evidence that a better estimator is available.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
      "category": ""
     }
    ]
@@ -36953,10 +36970,10 @@
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 510,
+  "settled": 512,
   "supersedes": 296,
   "supports": 279,
-  "trap": 241,
+  "trap": 242,
   "v_claim_evidence": 570,
   "v_dangerous": 39,
   "v_live": 510,

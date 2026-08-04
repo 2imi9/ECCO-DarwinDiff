@@ -46,13 +46,14 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (510 questions)
+## 1. SETTLED — do not re-derive (512 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
 
 | question | answer | where |
 |---|---|---|
+| abd555 asked why the ARITHMETIC collapse biases scav_rat's summary HIGH while EKI independently reports the recovered value biased LOW. Is that a rea… | NO - there is no conflict, and the arithmetic collapse is the outlier. TWO INDEPENDENT ESTIMATORS AGREE scav_rat is recovered LOW. (1) EKI (eki_fullbox_trio.py, Iglesias-Law-Stuart, J=256, 30 iters, derivative-free, NO DINN and NO autograd… | `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md` |
 | Are R_PICPOC and scav_rat non-identifiable for the same reason? | No - two distinct mechanisms, and that taxonomy is the Track-2 result. calcite R_PICPOC: observable (PIC:POC) is approximately the parameter but the obs are too sparse/noisy => DATA-LIMITED. iron scav_rat: observable (DFe concentration) is… | `docs/research_notes/2026-07-09_calcite_identifiability_map.md` |
 | Are recovery runs bitwise reproducible on the same config and seed? | NO. Same config (all 68 substantive recorded keys identical), same seeds, max relative difference 1.666e-02 across 480 values. The cause is that determinism is never requested: there is no torch.use_deterministic_algorithms, no cudnn.deter… | `docs/findings/2026-08-02_reproducibility_controls_rerun.md` |
 | Are the &DARWIN_RANDOM_PARAMS scalars (val_R_PICPOC, diatomgraz, smallgrow, biggrow) live at runtime? | No — inert. DARWIN_READ_TRAITS runs LAST in darwin_init_fixed.F and overwrites whatever generation produced. Smoking gun: data.darwin says val_R_PICPOC = 0.04245 while the loaded data.traits R_PICPOC = 0.0418860. An ensemble editing those … | `docs/findings/2026-07-23_v05_perturbation_recipe.md` |
@@ -385,6 +386,7 @@ this table, it is done: say so and move on.
 | Should --log-transform be applied to every tracer channel? | No - select per channel on dynamic range and non-positivity. Log training helped the wide-range channels carrying non-positive values (surfChl1 CV ~12) and HURT the one narrow strictly-positive channel: surfChl5 (median 0.063, physical_std… | `docs/findings/2026-07-30_daily_logspace_training.md` |
 | Should a Fe-prime (free iron) observation row be added to the iron inversion? | No, keep it OUT. Under Darwin's fixed ligand it is a deterministic function of DFe and adds zero rank. Only INDEPENDENT ligand data (CLE-AdCSV) would help. | `docs/findings/2026-07-22_two_anchor_redteam.md` |
 | Should conservation be a hard architectural constraint in the emulator? | No - soft loss penalties with small weights. Samudra learned conservation without hard constraints, and the one physics-informed BGC 1D-CNN that hard-constrained it (arXiv 2606.27168) DIVERGED EARLIER and underperformed persistence at 10-d… | `docs/research_notes/2026-07-23_3d_emulator_earth2studio_design.md` |
+| Should EKI/CES be run to improve scav_rat recovery? | NO, and this is already settled twice over - it is recorded that five independent estimator routes (EnKF rank <= N-1, CES flat ridge, history-matching NROY ray, KOH theta-delta ridge, SINDy non-uniqueness) all hit the same wall, that no es… | `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md` |
 | Should I report all-months Pearson r for a model-vs-satellite chlorophyll comparison? | No, it is UNINFORMATIVE and biased in whichever direction the regime's seasonality pushes it. N. Atlantic r_all = +0.779 vs r_anomaly = +0.044 (flattered by a shared spring bloom); eqpac r_all = +0.034 vs r_anomaly = +0.331 (maligned by th… | `docs/findings/2026-07-19_eqpac_chlorophyll_vs_modis.md` |
 | Should scav_rat be bounded on a log/geometric scale instead of linear? | No measurable benefit; keep the linear default and disclose. The A/B already existed on disk (job 227773, n=50 per arm, matched untrained baselines, all verify_run exit 0): trio 25/50 -> 31/50, exact McNemar two-sided P = 0.3075 (15 gains,… | `docs/findings/2026-07-30_param_log_scale_resolved.md` |
 | Should surfChl4 ever be used as an emulator target again? | Never. 99.6% of its predictions and 100% of its truth values are non-positive, so log space is undefined for it, and its linear skill of -606 is a division by noise. (The underlying reason is caveat 1 of docs/findings/2026-07-13_daily_surf… | `docs/findings/2026-07-30_daily_emulator_rescored_vs_ar1.md` |
@@ -1575,7 +1577,7 @@ document, check it here.
 
 ---
 
-## 7. TRAPS — process failures that cost time (241)
+## 7. TRAPS — process failures that cost time (242)
 
 | trap | doc |
 |---|---|
@@ -1820,6 +1822,7 @@ document, check it here.
 | E3 (wire the 210Po/210Pb + Fe-export sink anchors into the loss) is recorded as 'the highest-value item in the document' and predicted to be the only intervention able to move eqpac - but the iron-side data has ZERO eqp… | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
 | Do NOT propose daily v05 data for the parameter learner. It is settled and closed on three independent grounds: daily v05 is surface-2D only (16 diagnostics, none of the 3-D tracers the loss uses); the anomaly variance … | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
 | Black et al. (2020) Supporting Information Table S1 carries the PER-STATION georeferenced Fe export values (the committed CSV has only per-study/province ranges, n=20). The Wiley host is behind a Cloudflare interstitial… | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
+| Do NOT propose EKI/CES (or EnKF, history matching, KOH GP emulators, SINDy) as a way to improve scav_rat recovery. It is settled that no ESTIMATOR breaks the rank-1 alpfe<->scav_rat null - only a new OBSERVABLE that pro… | `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md` |
 
 ---
 
