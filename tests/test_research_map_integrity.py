@@ -30,6 +30,10 @@ CLAUDE_MD = REPO / "CLAUDE.md"
 _DOC_REF = re.compile(r"(?:docs|src|scripts|tests)/[A-Za-z0-9_./-]+\.(?:md|py|F|h)")
 # Bare findings filenames, which the map cites in prose (e.g. `2026-07-30_foo.md`).
 _BARE_FINDING = re.compile(r"`(20\d\d-\d\d-\d\d_[A-Za-z0-9_.-]+\.md)`")
+# An answer whose only source is a gitignored local-only note. This IS a location -- it names
+# the file -- it is simply one a reader cannot open, and gen_research_map.docref() marks it
+# explicitly rather than dropping the row and silently deleting an answered question.
+_LOCAL_ONLY = re.compile(r"LOCAL-ONLY source, not in the repo: [A-Za-z0-9_.\-]+\.md")
 
 REQUIRED_SECTIONS = [
     "SETTLED",
@@ -64,15 +68,36 @@ def test_map_has_the_load_bearing_sections(section):
     assert section.lower() in _map_text().lower(), f"research map is missing its {section} section"
 
 
-def test_every_referenced_file_exists():
-    """A pointer that does not resolve is the failure mode that makes a map dangerous."""
+def _tracked_files() -> set[str]:
+    """Files that exist IN THE REPOSITORY, not merely on this disk.
+
+    This distinction is the whole point. `Path.exists()` is local state: seven
+    docs/research_notes files are gitignored by name as deliberately local-only working
+    notes, so a disk check passed on the author's machine for weeks while the committed map
+    cited seven files nobody who cloned the repo could open. CI caught it; the author's
+    suite never could. Same absent-is-not-equal shape the repo keeps hitting, one level up.
+    """
+    import subprocess
+    out = subprocess.run(["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True)
+    return {line.strip().replace("\\", "/") for line in out.stdout.splitlines() if line.strip()}
+
+
+def test_every_referenced_file_is_tracked_in_the_repo():
+    """A pointer that does not resolve FOR A READER is the failure that makes a map dangerous.
+
+    Checked against `git ls-files`, deliberately NOT against the filesystem, so this fails on
+    the machine that introduced it rather than only in CI.
+    """
     text = _map_text()
     refs = set(_DOC_REF.findall(text))
-    missing = sorted(r for r in refs if not (REPO / r).exists())
+    tracked = _tracked_files()
+    missing = sorted(r for r in refs if r not in tracked)
     assert not missing, (
-        "research map references files that do not exist:\n  "
+        "research map references files that are not tracked in the repo:\n  "
         + "\n  ".join(missing)
-        + "\nEither restore them or update the map."
+        + "\nThese may exist on your disk and still be invisible to every other reader "
+          "(e.g. gitignored local-only notes). Either track them or drop the citation; "
+          "regenerate with: python scripts/gen_research_map.py"
     )
 
 
@@ -108,7 +133,8 @@ def test_settled_rows_all_cite_a_location():
         and "question" not in ln.lower()
     ]
     assert rows, "SETTLED section has no table rows"
-    bad = [ln.strip()[:100] for ln in rows if not (_DOC_REF.search(ln) or _BARE_FINDING.search(ln))]
+    bad = [ln.strip()[:100] for ln in rows
+           if not (_DOC_REF.search(ln) or _BARE_FINDING.search(ln) or _LOCAL_ONLY.search(ln))]
     assert not bad, (
         "SETTLED rows with no citation (a future session cannot verify these):\n  "
         + "\n  ".join(bad)
