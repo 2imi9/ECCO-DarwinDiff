@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (512 questions)
+## 1. SETTLED — do not re-derive (514 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -187,6 +187,7 @@ this table, it is done: say so and move on.
 | Does the 1-D column result (transport rescues held-out R2) mean transport rescues generalization on real data? | No. The synthetic 1-D column go/no-go is real but bounded: holding out ~30% of layers, a transport-free local box gives held-out R2 ~= -0.3 while the same fit WITH vertical mixing gives ~= +1.0. That is a SYNTHETIC VERTICAL-1D CAPACITY res… | `docs/research_notes/2026-07-07_jon_questions_track2.md`, `docs/findings/2026-07-29_jon_reply_crosscheck.md` |
 | Does the 10/10 diatomgraz recovery from dense Darwin POSi contradict the FLAT profile-likelihood verdict? | No - it confirms it. FLAT was measured on the loss WITHOUT dense Darwin POSi; the 0/10 -> 10/10 recovery came WITH it (POSI_DARWIN_W 0.0 -> 0.5, 20/20 under Eppley). The profile's own prescription was 'needs a NEW observable, not reweighti… | `docs/findings/2026-07-19_diatomgraz_claim_audit.md` |
 | Does the 169× FeMIP iron residence-time spread need exotic physics to explain? | No. The identity τ = inventory / input reproduces every model's residence time exactly, so the 169× spread decomposes as 130× from input × 1.3× from inventory — a single source↔scavenging identifiability degeneracy. Tagliabue 2016 Table 2:… | `docs/research_notes/2026-07-21_jon_update.md` |
+| Does the 2026-07-30 'keep linear, do not re-run' decision on the scav_rat bounding map survive being re-graded under the geometric and median collaps… | YES, the decision stands - but it is UNDERPOWERED, not null, and the recorded reason for it is wrong. Job 264591 (n=50 x 4 arms in ONE submission, NB23_LR pinned 5e-3, 20/20 COMPLETED, pre-registered). Paired exact McNemar on the trio, sam… | LOCAL-ONLY source, not in the repo: 2026-08-04_bounding_map_ab_under_all_three_collapses.md |
 | Does the >=2-of-3 'co-recovery' metric require the parameters to recover in the SAME AOI? | No. In scripts/analysis/grade_joint_percell.py:47-57 each trio parameter independently needs >=2 of 3 AOIs in band and the joint is the conjunction over parameters, with no requirement that the qualifying pairs overlap. The per-AOI tallies… | `docs/research_notes/2026-07-25_deep_research_sweep.md` |
 | Does the alpfe sign-flip 'coin flip' claim replicate at n=50? | Not as symmetric. pattern loss 17/50 positive (0.34), Wilson [0.224, 0.478]; absolute loss 13/50 (0.26), Wilson [0.159, 0.396]. BOTH CIs exclude 0.5. But the equifinality claim SURVIVES: mean/r_alpfe/ ~0.88 (excellent fit) yet both signs s… | `docs/findings/2026-07-22_signflip_n50_result.md` |
 | Does the box need a standing-stock-vs-production-ratio correction to match the Daniels CP:PP target? | No — settled from our side, no Jon needed. carroll6 uses a SINGLE `W_SINK` for both POC and PIC (there is no W_SINK_PIC) and the 5-tracer box has no cocco PFT, so standing-stock PIC:POC EQUALS the production ratio Daniels measures. No targ… | `docs/research_notes/2026-07-09_e2_calcite_preregistration.md` |
@@ -208,6 +209,7 @@ this table, it is done: say so and move on.
 | Does the flagship's joint trio survive the geometric collapse? | NO, it halves: 25/50 arithmetic -> 12/50 geometric (23/50 median). scav_rat is the sole binding leg and falls 26/50 -> 13/50 on the reproduction; the entire effect is the North Atlantic leg, 19 -> 5, the only leg with per-cell log_sd (0.94… | `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md` |
 | Does the flagship's scav_rat 25/50 contradict the July covariate runs' scav_rat 0-2/10? | No. They are different configurations. The July lineage deliberately zeroed DARWIN_PATTERN_W, POC_SUB_W, CHL1_W_EXTRA and NB23_PINN_WEIGHT, which the flagship carries. The manuscript is honest and internally consistent; do NOT report 'MLD … | `docs/findings/2026-07-23_observable_frontier_config_analysis.md` |
 | Does the FNO / neural-operator literature (GINO, Geo-FNO, PINO, AFNO, U-FNO, PhysicsNeMo, Earth2Studio) change the decision to shelve the parameter-c… | No, unanimous verdict across 9 topics (8 reinforce shelving, 1 accelerates the UDE), keep it shelved. Blocker 1, data scarcity: GINO needed ~500 full CFD solves, U-FNO 4,500 ECLIPSE simulations of 5,500 total, FourCastNet ERA5 ~37 years ho… | `docs/research_notes/2026-07-08_fno_neural_operator_emulator_decision.md` |
+| Does the geometric bounding map really cost R_PICPOC 5 seeds, as recorded on 2026-07-30? | PARTLY an arithmetic-collapse artifact. Job 264591 paired McNemar, linear vs geometric map: arithmetic 50/50 -> 45/50, 5 losses, P = 0.0625 (reproducing 227773); GEOMETRIC 50/50 -> 48/50, only 2 losses, P = 0.50; median 50/50 -> 47/50, 3 l… | LOCAL-ONLY source, not in the repo: 2026-08-04_bounding_map_ab_under_all_three_collapses.md |
 | Does the GP15 transect reach the equatorial Pacific (so a scavenging-rate anchor is available there)? | Yes. GP15 Leg 2 (Hilo->Papeete, RR1815, Oct-Nov 2018) crosses the equator: BCO-DMO 883797, DOI 10.26008/1912/bco-dmo.883797.1, CC-BY-4.0. Staged as data/cochran_gp15_po_pb/leg2_dissolved_total_po_pb.csv (10.76 KB), parsed by the existing l… | `docs/findings/2026-07-28_gp15_leg2_correction.md` |
 | Does the Menemenlis Table S1 '~1.7% parameter contribution' show the Carroll parameters are weakly constrained? | No, it does not follow. First guess 0.35067 -> baseline 0.11547 -> optimized 0.11148, so the parameter fit is 0.00399 of the 0.23919 total, ~1.7%, with n = 4,038,777 constraints. But that is a DEPTH-WEIGHTED full-ocean cost dominated by a … | `docs/findings/2026-07-28_table_s1_decomposition.md` |
 | Does the observations-only configuration reach 3-of-4? | Yes, in the strict arm obsonly_mld_litic (targets AND initial conditions both Darwin-free), n=50, verify_run exit 0 VERIFIED & COMPLETE, graded against architecture-matched prior_mld_n50 (2ch): alpfe 50/50 (k*=23, null 0.320, P=1.81e-25), … | `docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md` |
@@ -1577,7 +1579,7 @@ document, check it here.
 
 ---
 
-## 7. TRAPS — process failures that cost time (242)
+## 7. TRAPS — process failures that cost time (243)
 
 | trap | doc |
 |---|---|
@@ -1823,6 +1825,7 @@ document, check it here.
 | Do NOT propose daily v05 data for the parameter learner. It is settled and closed on three independent grounds: daily v05 is surface-2D only (16 diagnostics, none of the 3-D tracers the loss uses); the anomaly variance … | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
 | Black et al. (2020) Supporting Information Table S1 carries the PER-STATION georeferenced Fe export values (the committed CSV has only per-study/province ranges, n=20). The Wiley host is behind a Cloudflare interstitial… | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
 | Do NOT propose EKI/CES (or EnKF, history matching, KOH GP emulators, SINDy) as a way to improve scav_rat recovery. It is settled that no ESTIMATOR breaks the rank-1 alpfe<->scav_rat null - only a new OBSERVABLE that pro… | `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md` |
+| Do NOT read the scav_rat row of the bounding-map A/B on its own. The geometric map raises scav_rat's UNTRAINED rate from 0/50 to 8/50 (measured twice, jobs 263466 and 264591, and pooler-invariant at 8/8/8), so part of a… | LOCAL-ONLY source, not in the repo: 2026-08-04_bounding_map_ab_under_all_three_collapses.md |
 
 ---
 
