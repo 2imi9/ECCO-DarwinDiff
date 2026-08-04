@@ -35,7 +35,7 @@ by name via `P.<name>`, never by position; the order is load-bearing):
 | # | Name | Role | Carroll value | Observable? |
 |---|---|---|---|---|
 | 1 | `alpfe` | scalar on already-soluble Fe flux (≈1; **NOT a solubility**) | 0.92831 | ✅ observable |
-| 2 | `scav_rat` | iron scavenging rate (s⁻¹) | 6.025e-7 | ✅ observable (the binding leg) |
+| 2 | `scav_rat` | iron scavenging rate (s⁻¹) | 6.025e-7 | ⚠️ regionally observable — established in the Southern Ocean; the North Atlantic leg is collapse-dependent (the binding leg) |
 | 3 | `Smallgrow` | small-phyto growth rate (d⁻¹) | 0.66098 | ❌ unobservable* |
 | 4 | `Biggrow` | large-phyto growth rate (d⁻¹) | 0.43148 | ❌ unobservable |
 | 5 | `diatomgraz` | diatom palatability (–) | 0.83003 | ✅ observable (input-limited) |
@@ -88,7 +88,7 @@ consequences you must never forget:
 
 The corollary — the **central verified result** — is that the **per-cell architecture is load-bearing**:
 a per-cell DINN holds the target trio {`alpfe`, `scav_rat`, `R_PICPOC`} while a single global-scalar
-vector holds ~0 (disjoint confidence intervals; 7/10 vs 0/10 at n=10, 25/50 vs 0/50 at n=50). That
+vector holds ~0 (disjoint confidence intervals; 7/10 vs 0/10 at n=10, 25/50 arithmetic — 12/50 geometric, 23/50 median — vs 0/50 at n=50). That
 contrast *is* the paper-#1 result.
 
 ## 5. identifiability ≠ recoverability
@@ -96,9 +96,9 @@ contrast *is* the paper-#1 result.
 A parameter can carry Fisher information yet still not recover, because recovery is downstream of
 optimization and coverage. `scav_rat` is the worked example: with subsurface GEOTRACES iron it is
 *well-conditioned* (the source/loss ratio degeneracy breaks ~1400×), yet its recovery is largely
-**optimization-limited** — 25→41/50 per-AOI just by training to 4000 epochs instead of 2000, with the
-equatorial Pacific (6/50) the residual *information*-limited basin. When you read a recovery count, ask
-which of three it is: information-limited, optimization-limited, or a metric straddle (per-AOI legs on
+**optimization-limited — but that is NOT established**: the 25→41/50 rise at 4000 epochs (`ep4k_n50`) is arithmetic-only and un-auditable (that run predates the 2026-07-29 collapse keys), leaving the
+equatorial Pacific (8/50 arithmetic, 8/50 geometric, 10/50 median on the 2000-epoch collapse-instrumented reproduction) the residual *information*-limited basin. When you read a recovery count, ask
+which of four it is: information-limited, optimization-limited, a collapse artifact (arithmetic vs geometric vs median — for `scav_rat` that choice alone moves 26/50 to 13/50, all of it the North Atlantic leg, 19→5), or a metric straddle (per-AOI legs on
 opposite sides of Carroll — the cell-weighted count can lie).
 
 ## 6. The two tracks
@@ -119,7 +119,7 @@ opposite sides of Carroll — the cell-weighted count can lie).
 
 ## 7. The verify_run discipline (the trust gate)
 
-Every headline number passes `scripts/verify_run.py` (exit 0). It never trusts a stored number: it
+Every headline number passes `scripts/verify_run.py` (exit 0), and every new `scav_rat` count must additionally clear `scripts/analysis/pooler_audit.py` — which grades all three collapses from the same fit and exits 2 on the 119 of 211 run dirs (2131 of 6683 seed artifacts) that predate the 2026-07-29 collapse keys and so cannot be pooler-checked at all. It never trusts a stored number: it
 re-derives each recovery band from the raw per-seed `joint_recovered` vs the canonical
 `carroll6.CARROLL_VALUES`, counts seeds, and flags any mismatch. **A nonzero exit means "no trustworthy
 result" — never headline a number this script did not bless.** When you read a claim in this repo, check
@@ -170,12 +170,12 @@ top-of-file docstring for its exact levers before launching.
   constant-through-transport null out of sample, so transport does not close the surrogate gap on real
   data. What is genuinely open is the *regional* build itself and the observing-system question it
   exposes, not the gate ([#176](https://github.com/2imi9/ECCO-DarwinDiff/issues/176)).
-- **Calibrated credible intervals.** The derivative-free EKI reaches the same verdict as backprop but
+- **Calibrated credible intervals.** The derivative-free EKI is DIAGNOSTIC ONLY, not a recovery improvement; it lands `scav_rat` at 2.1e-7 = 0.349× Carroll, agreeing with the *geometric* collapse rather than with the arithmetic-pooled backprop headline, and it
   gives a posterior **mean only** (the ensemble collapses); an EKS/CES sampling stage is future work
   ([#187](https://github.com/2imi9/ECCO-DarwinDiff/issues/187)).
 - **Seasonal `Smallgrow` confirmation** — the North-Atlantic 9/10 prototype needs a native interannual
   fit (current version uses a constant-IC/forcing approximation).
-- **Equatorial-Pacific `scav_rat`** — the 6/50 information-limited residual, the most degenerate basin;
+- **Equatorial-Pacific `scav_rat`** — the 8/50-arithmetic / 8/50-geometric / 10/50-median information-limited residual on the collapse-instrumented reproduction, the most degenerate basin;
   needs a real scavenging-rate observable (²³⁴Th), not more epochs.
 - **The surrogate→GCM ranking check** — a small ECCO-Darwin v05 perturbation ensemble to confirm the
   surrogate Fisher ranking transfers ([#163](https://github.com/2imi9/ECCO-DarwinDiff/issues/163);

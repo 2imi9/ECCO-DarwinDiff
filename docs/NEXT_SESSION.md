@@ -18,7 +18,7 @@ before starting — long-context drift lost detail before, so ground in these fi
 - **Paper #1 (Track-1 identifiability/recovery study) — submission-quality** since 2026-07-05.
   Local-only `docs/paper/main.tex` (gitignored; `cd docs/paper && latexmk -pdf main.tex`). Result:
   0-D differentiable surrogate + per-cell DINN identifies the demonstrated-observable trio
-  {alpfe, scav_rat, R_PICPOC}; per-cell load-bearing (33/50 n=50 vs 0/50 global). Waiting on **Jon**
+  {alpfe, scav_rat, R_PICPOC}; per-cell load-bearing (per-AOI at n=50: 25/50 arithmetic, 12/50 geometric, 23/50 median, vs 0/50 global). Waiting on **Jon**
   (review / authorship / venue). Frame as a *write-up*, not a submission, in comms to collaborators.
 - **Paper #2 (Track-2 differentiable-Darwin) — COMPLETE as an identifiability-limits map** (2026-07-10).
   The original "learn real closures from data" thesis is honestly bounded: transport does **not** close
@@ -29,7 +29,7 @@ before starting — long-context drift lost detail before, so ground in these fi
 
 A **3-closure map** — none of Darwin's targetable BGC closures is constrainable by real obs, for three
 distinct reasons (`docs/findings/figures/fig1_identifiability_map.png`):
-- **iron `scav_rat` — observability wall** (structural): DFe concentration is a low-info projection of
+- **iron `scav_rat` — observability wall** (structural vs practical UNSETTLED — ded77 is open, and StructuralIdentifiability.jl can settle it symbolically with no data and no cluster time): DFe concentration is a low-info projection of
   the rate. A "particulate:dissolved partitioning breaks the wall (~14×)" result this session was a
   **construction artifact** (pFe/DFe cancels algebraically) — caught by adversarial verification and
   **retracted**. Don't revive it without reading `docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md`.
@@ -60,8 +60,7 @@ scavenged-Fe observable; per-PFT production.
 ## If continuing autonomously (non-Jon work only)
 1. ~~Merge branch → `main`~~ **DONE** (#180, 2026-07-10) and ~~regenerate/commit the iron
    env-predictability JSON~~ **DONE** (`21f238e`; R6-1 closed, GLOBAL-Ω +0.14 reproduced).
-   2. A *positive* result now requires **new observing-system data** (the three levers above) —
-   none is a re-run; needs Jon's steer. 3. Optionally promote the write-up to a full manuscript.
+   2. Two of these levers need neither new data nor Jon's steer. The scavenged-Fe lever already has data on disk — GP15 ²¹⁰Po/²¹⁰Pb has **0** points in eqpac/natlsubpolar/southernoceanpac but **92** in `npac` — so the sink-anchor test is mislocated, not blocked, and can run single-AOI in `npac` today; and the structural-vs-practical wall (`ded77`) can be settled symbolically with StructuralIdentifiability.jl, no data and no cluster time. The remaining levers still require **new observing-system data** — 3. Optionally promote the write-up to a full manuscript.
 
 ## Hard constraints
 - **Local RTX 5090 is usually IN USE** — CPU (`CUDA_VISIBLE_DEVICES=-1`) for identifiability work;
@@ -69,7 +68,7 @@ scavenged-Fe observable; per-PFT production.
   Cluster (Explorer H200, `ssh explorer`) for anything heavy.
 - Commit conventions: scope-prefixed titles, **NO Co-Authored-By**, non-squash merges, `2imi9/`
   branches, **explicit paths** (shared checkout can carry another session's untracked WIP — verify
-  `git branch --show-current` before every commit). `verify_run.py`-gate any recovery number.
+  `git branch --show-current` before every commit). `verify_run.py`-gate any recovery number, and `scripts/analysis/pooler_audit.py`-gate any `scav_rat` number — it exits 2 on the 119 of 211 run dirs that carry no collapse keys, and `<absent>` is a gate, never a fallback to the arithmetic count.
 - Pre-existing untracked prior-session WIP in the tree (`ude_forcing_design.py`, hybrid_*, column_ude_*,
   a stray root `main.tex` — manuscript is local-only, do NOT commit it). Leave it alone.
 - Adversarially verify any identifiability/numerics claim where the observable is *constructed from*

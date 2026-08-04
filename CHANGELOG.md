@@ -16,7 +16,7 @@ Replaces Green's-functions calibration with gradient descent through a different
 - Real-data loaders: GEOTRACES IDP2025 (dissolved iron, biogenic silica), GLODAP (DIC/ALK),
   Daniels 2018 CP:PP + MODIS-Aqua (calcite / rain ratio).
 - Verified-experiment loop (`scripts/verify_run.py`): every recovery number re-derived from raw and
-  gated (exit 0 = trustworthy).
+  gated (exit 0 = trustworthy). The gate does **not** check the per-AOI collapse: any `scav_rat` count additionally requires `scripts/analysis/pooler_audit.py`, and 119 of 211 run dirs (2131 of 6683 seed artifacts) carry no collapse keys at all.
 - Diagnostics: self-twin method-proof (`scripts/self_twin_recovery.py`), box-vs-Darwin fidelity
   (`scripts/box_vs_darwin_fidelity.py`), FIM/profile sloppiness (`scripts/identifiability_sloppiness.py`),
   per-AOI co-recovery aggregator (`scripts/aggregate_daniels_recovery.py`).
@@ -25,16 +25,16 @@ Replaces Green's-functions calibration with gradient descent through a different
 
 ### Results (verified, `verify_run.py`-gated)
 - **Iron pair** (`alpfe`, `scav_rat`) recovers from real GEOTRACES dissolved iron, carried by `alpfe`
-  (**49/50** per-AOI at n=50); `scav_rat` is basin-fragile (**26/50** per-AOI at 2000 epochs → **41/50** at
-  4000 epochs, with the equatorial Pacific leg stuck at 6/50). The earlier **38/40 (95 %)** headline is an
+  (**49/50** per-AOI at n=50 — but `alpfe` rails against its upper bound of 1.0, which sits only 7.72 % above Carroll's 0.92831, so the signal is real (98/100 vs untrained 0/100 at band 0.10) while the precision is bound-limited and unresolved pending a widened-bound arm); `scav_rat` is basin-fragile (**26/50** per-AOI at 2000 epochs under the **arithmetic** collapse, **13/50** under the geometric collapse → **41/50** at
+  4000 epochs, with the equatorial Pacific leg stuck at 6/50 — that 4000-epoch arm predates the collapse instrumentation, so it is arithmetic-only and un-auditable). The earlier **38/40 (95 %)** headline is an
   n=40 count that predates the per-AOI reconciliation and reads too optimistically.
 - **`R_PICPOC`** recovers against a real calcite anchor (Daniels CP:PP / MODIS PIC); the best config
   (`geo1`) recovers `R_PICPOC` **50/50 per-AOI** in the n=50 flagship (`n50e2k_percell_trio`, 2000 epochs), and the
   real anchor is what drives it (anchor-off control, 1500 epochs `n50_anchor_off` → **4/50**; the epoch-matched 2000-epoch control `n50e2k_anchor_off` → **6/50**). The same config holds
-  **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 25/50 seeds** under the honest per-AOI ≥2-of-3 metric
+  **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 25/50 seeds** under the honest per-AOI ≥2-of-3 metric with the **arithmetic** collapse (**12/50** under the geometric collapse; only the North Atlantic leg moves, 19 → 5)
   (33/50 cell-weighted — that metric straddles and must not be quoted as recovery), versus **0/50** for the
-  global-scalar control — a 3-of-4-observable frontier whose binding leg is `scav_rat` (26/50 at 2000 epochs,
-  41/50 at 4000). The earlier n=10 sweep (7/10; 8/10 in the original run) is the precursor, not the headline.
+  global-scalar control — a 3-of-4-observable frontier whose binding leg is `scav_rat` (26/50 arithmetic / 13/50 geometric at 2000 epochs,
+  41/50 at 4000, arithmetic-only and un-auditable). The earlier n=10 sweep (7/10; 8/10 in the original run) is the precursor, not the headline.
   Recovery lands at real ~0.05, consistent with Carroll within the wide Cal band; the load-bearing finding is
   that Carroll's *global* `R_PICPOC` is itself under-constrained and mis-specified vs a regionally-variable rain ratio.
 - The **surrogate gap is dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15),
@@ -47,7 +47,7 @@ Replaces Green's-functions calibration with gradient descent through a different
   MLD input channel takes it to 10/10, and with the biogenic-silica diagnostic off (`POSI_W=0`) it still
   reaches **35/50 per-AOI** through chlorophyll + MLD — so it is not a bSi tautology. The Chl target is
   Darwin's own output, so the honest claim is "recoverable from a non-circular model-internal observable",
-  not "recovered from independent real data". The 3-of-4 frontier is **structural**: `geo1` holds
+  not "recovered from independent real data". Whether the 3-of-4 frontier is **structural or merely practical is still open** (`ded77`): `geo1` holds
   {`alpfe`, `scav_rat`, `R_PICPOC`} and the MLD-channel + heavy-Daniels config holds
   {`alpfe`, `diatomgraz`, `R_PICPOC`}; `scav_rat` needs the Darwin-pattern term, `diatomgraz` needs MLD,
   and they conflict even at 4000 epochs.
