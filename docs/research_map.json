@@ -7926,7 +7926,7 @@
      "name": "2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "date": "2026-08-04",
      "retracted": 0,
-     "words": 1144
+     "words": 1419
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
@@ -19161,7 +19161,7 @@
      "category": ""
     },
     {
-     "trap": "E3 (wire the 210Po/210Pb + Fe-export sink anchors into the loss) is recorded as 'the highest-value item in the document' and its loaders and data are on disk - but the iron-side data does NOT cover eqpac, the basin the …",
+     "trap": "E3 (wire the 210Po/210Pb + Fe-export sink anchors into the loss) is recorded as 'the highest-value item in the document' and predicted to be the only intervention able to move eqpac - but the iron-side data has ZERO eqp…",
      "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "category": ""
     },

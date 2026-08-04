@@ -27,8 +27,24 @@ prediction — iron-block κ collapsing 2930 → ~7 and eqpac rising materially 
 testable with what we hold. This would have surfaced only *after* one implementation day plus one
 cluster night.
 
-**What E3 can still test:** the anchor covers 19.68–56.06 N, which is the North Pacific, not any
-current AOI.
+**What E3 can still test — the experiment is MISLOCATED, not dead.** The anchor covers
+19.68–56.06 N, which is not one of the flagship's three AOIs but *is* squarely inside two AOIs
+already defined in `AOI_BY_KEY`:
+
+| AOI | bounds | GP15 points | distinct stations |
+|---|---|---|---|
+| **`npac`** | 30–50 N, −160 – −130 | **92** | **6** |
+| **`npsg`** | 15–30 N, −170 – −135 | **48** | **5** |
+
+So the ²¹⁰Po/²¹⁰Pb rate observable can be wired in and tested today — as a **single-AOI `npac`
+run** (or `npac` + `npsg`, 11 stations / 140 measurements) against an architecture-matched
+untrained null. That is exactly the template that established `scav_rat` in the Southern Ocean:
+`so_only` is single-AOI, sited where the anchor actually lives, and it produced the project's one
+result where `scav_rat` clears its own null (30/50 arithmetic, 49/50 geometric, vs untrained 0/50).
+
+What must change is the **claim**, not the experiment. E3 is currently written as "the only
+intervention predicted to move eqpac"; it cannot speak to eqpac at all. Re-scope it to "the first
+RATE observable for `scav_rat`, tested where the data is," and it becomes runnable immediately.
 
 ### The other two components, checked (2026-08-04)
 
