@@ -2514,6 +2514,26 @@
    "question": "Did the ScavClosure free-level bug invalidate any published flat scav_rat profile?",
    "answer": "NO - nothing to retract. ScavClosure has never been fit to real data (verified 2026-07-29 and re-verified 2026-08-02: it appears only in closures.py, two test files, trainer.py docstrings and research notes; there is no e2_real_iron runner). The published scav_rat profile in docs/findings/iron_scav_rat_profile.json is mode=twin through the prescribed-transport ANALYTIC model on the registry parameter, not through the closure, so its flat band reflects the real alpfe/scav_rat concentration degeneracy and stands.",
    "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
+  },
+  {
+   "question": "Does the flagship's joint trio survive the geometric collapse?",
+   "answer": "NO, it halves: 25/50 arithmetic -> 12/50 geometric (23/50 median). scav_rat is the sole binding leg and falls 26/50 -> 13/50 on the reproduction; the entire effect is the North Atlantic leg, 19 -> 5, the only leg with per-cell log_sd (0.940) above the decisive 0.820. alpfe (49/50) and R_PICPOC (50/50) are EXACTLY invariant. Measured on collapse/collapse_n50, bitwise identical to logscale/ctrl_n50 on 50/50 seeds; replicated out-of-sample by wxe/w16e2k (job 258713, n=100): 48 -> 19 with natl 37 -> 7. Paired McNemar 13 arithmetic-only vs 0 geometric-only, P = 2.4e-04.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "question": "Can the published flagship n50e2k_percell_trio be pooler-audited from its own artifacts?",
+   "answer": "NO. The artifacts DO exist (Explorer, /projects/schultz/qi.zim/runs/, 50 seeds) and re-grade to the published tuple, but they were written 2026-07-05 and the collapse keys were added 2026-07-29 (c4323ae); no weights were saved. Use the bitwise-identical instrumented twin collapse/collapse_n50. Do NOT substitute the arithmetic key - absent is unknown, not equal.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "question": "Which parameters does the choice of collapse statistic actually affect?",
+   "answer": "ONLY scav_rat. alpfe and R_PICPOC are identical under arithmetic, geometric and median in every run measured, with per-cell log_sd <= 0.21 against the decisive threshold sqrt(2 ln 1.4) = 0.820; diatomgraz moves by at most one seed. The observations-only arms are exactly invariant (log_sd = 0.000). The collapse question is a scav_rat question and nothing else.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "question": "Which direction does the arithmetic collapse bias the scav_rat count?",
+   "answer": "BOTH, depending on the basin. arithmetic = geometric x exp(sigma^2/2), so the direction is set by where the geometric centre sits in the 0.60x-1.40x band. natlsubpolar sits at 0.43x Carroll, below the band, and the inflation carries it up across the edge - manufacturing passes (5 -> 19/50). The single-AOI Southern Ocean sits at 0.73x, inside the band, and the same inflation carries it out past the top (49 -> 30/50) - so the arithmetic collapse UNDERSTATES the one basin where scav_rat is established. Under the geometric collapse scav_rat is biased LOW everywhere (0.43x-0.89x Carroll).",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
   }
  ],
  "claims": [
@@ -8809,6 +8829,42 @@
    "new": "The shipped shape factor G is that correction divided by its geometric mean over a fixed reference support, so it is confined to [(1-eps)/(1+eps), (1+eps)/(1-eps)] = [0.667, 1.5] at eps=0.2. Wider than originally stated, still bounded and strictly positive.",
    "reason": "Consequence of the #217 gauge fix on 2026-08-02. The free parameter count drops with it, 67 -> 66 (no env), 83/99 -> 82/98 (+1/+2 env channels).",
    "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
+  },
+  {
+   "old": "Every artifact records per_aoi_recovered, per_aoi_recovered_geom and per_aoi_recovered_median from the same fit, and per_aoi_log_sd is already in every artifact.",
+   "new": "The three collapse keys were added on 2026-07-29 (c4323ae). 119 of 211 run directories and 2131 of 6683 seed artifacts carry NONE of them, including the published flagship, both anchor-off controls, ep4k_n50, ctrl_n50 and the per-cell/global ablation. Those runs cannot be pooler-checked at all.",
+   "reason": "Full inventory of Explorer and AICR, 2026-08-04, via scripts/analysis/pooler_audit.py, which prints <absent> and exits 2 rather than falling back to the arithmetic key.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "old": "Any intervention that increases per-cell dispersion in the scav_rat field will raise its arithmetic per-AOI count without improving the fit.",
+   "new": "Only where the geometric centre lies BELOW the band. The arithmetic collapse multiplies by exp(sigma^2/2); below the band that manufactures passes (natlsubpolar 0.43x -> 0.58x Carroll, geometric 5/50 vs arithmetic 19/50), INSIDE it the same inflation destroys them (single-AOI Southern Ocean 0.73x -> 1.39x, geometric 49/50 vs arithmetic 30/50).",
+   "reason": "The Southern Ocean is the counter-example and it is the basin the one established scav_rat claim rests on, so the general form over-generalised a real North Atlantic effect. Measured 2026-08-04.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "old": "The canonical flagship artifacts are missing - n50e2k_percell_trio exists nowhere - so the published tuple cannot be re-graded from its own run, and that is the only live provenance defect.",
+   "new": "They exist at /projects/schultz/qi.zim/runs/n50e2k_percell_trio on Explorer (50 seeds, written 2026-07-05) and re-grade to exactly the published tuple: alpfe 49/50, R_PICPOC 50/50, scav_rat 25/50, diatomgraz 3/50. The defect is narrower: they predate the collapse instrumentation, so the tuple can be re-graded but NOT pooler-checked.",
+   "reason": "Located by cluster inventory on 2026-08-04.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "old": "The flagship joint trio is 25/50 per-AOI.",
+   "new": "25/50 ARITHMETIC and 12/50 GEOMETRIC; the number must carry its collapse. scav_rat falls with it and alpfe / R_PICPOC do not move at all. Measured on collapse/collapse_n50, bitwise identical to the flagship reproduction logscale/ctrl_n50 on 50/50 seeds, and replicated out-of-sample by wxe/w16e2k (job 258713, n=100): 48/100 arithmetic vs 19/100 geometric.",
+   "reason": "Pooler audit, 2026-08-04. The entire difference is the North Atlantic leg, 19 -> 5, the only leg whose per-cell log_sd (0.940) exceeds the decisive threshold of 0.820.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "old": "scav_rat is a knife edge: 22/100 at 0.35, 45 at 0.40, 81 at 0.45.",
+   "new": "That is the ARITHMETIC collapse. Under the geometric collapse the Southern Ocean leg reads 48 / 49 / 50 at the same three bands - at ceiling and threshold-robust, like alpfe. The knife edge is itself partly a collapse artifact.",
+   "reason": "Band sensitivity re-run under all three collapses on so_only, 2026-08-04.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "old": "The Southern Ocean scav_rat result is confirmed by two runs, jobs 237913 and 238079/238080.",
+   "new": "Those are ONE result. All 50 seeds are bitwise identical on per_aoi_recovered, _geom and per_aoi_log_sd; the danielsW/posiW difference is inert in that single-AOI configuration. The Southern Ocean claim has NO replication.",
+   "reason": "Direct value comparison, 2026-08-04.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
   }
  ],
  "hypotheses": [
@@ -10782,6 +10838,18 @@
   {
    "trap": "Since 2026-08-02 a CONSTANT readout in ScavClosure is normalised away to G == 1 exactly. So a synthetic-twin test that builds its 'truth' by perturbing only the readout BIAS produces a truth identical to the untrained closure, and the test then passes while comparing nothing. Perturb a readout WEIGHT (shape) instead, and assert the twin's field actually differs from the untrained one before fitting.",
    "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md"
+  },
+  {
+   "trap": "A missing collapse key is a blocking UNKNOWN, never a silent fallback to the arithmetic number. Runs before 2026-07-29 record only per_aoi_recovered, and 119 of 211 run dirs are in that group. Reading the absence as 'the pooler does not matter here' is the same absent-is-not-equal fallacy that produced the retracted code-regression finding. scripts/analysis/pooler_audit.py prints <absent> and exits 2 - treat that exit code as a gate.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "trap": "so_only and so_only2 are ONE result, not two. All 50 seeds are bitwise identical; the danielsW/posiW difference is inert in that single-AOI configuration. Citing both as agreement is citing the same fit twice, and the Southern Ocean scav_rat claim therefore has no replication.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "trap": "Claim ids (ind342, abd555, ...) are NOT stable. gen_research_map.py sorts claims by (status, statement) and research_map_db.py numbers them positionally, so adding one claim -- or changing one claim's status -- renumbers every claim after it alphabetically. A trial insertion of 7 claims changed the meaning of 328 of 563 existing ids. Before adding CLAIM rows, check whether the id stability defect is fixed; SUPERSEDES / SETTLED / TRAPS rows are prose-keyed and safe to add.",
+   "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
   }
  ]
 }

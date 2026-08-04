@@ -78,9 +78,15 @@ Buys, and this is the part worth keeping:
   result: the Southern Ocean leg is robust to the optimiser and the other two are not, which is
   independent support for the finding that `scav_rat` is *locally* identifiable there and
   optimisation-limited elsewhere.
-- The canonical flagship artifacts are still missing (`n50e2k_percell_trio` exists nowhere), so the
+- ~~The canonical flagship artifacts are still missing (`n50e2k_percell_trio` exists nowhere), so the
   published tuple still cannot be re-graded from its own run. That remains open and is now the only
-  live provenance defect of the three claimed today.
+  live provenance defect of the three claimed today.~~
+  **CORRECTED 2026-08-04:** they are not missing. They are at
+  `/projects/schultz/qi.zim/runs/n50e2k_percell_trio` on **Explorer** (50 seeds, written
+  2026-07-05) and re-grade to exactly the published tuple — `alpfe` 49/50, `R_PICPOC` 50/50,
+  `scav_rat` 25/50, `diatomgraz` 3/50. The defect is real but narrower than stated: they predate
+  the collapse instrumentation (2026-07-29, `c4323ae`), so the tuple can be re-graded but **not
+  pooler-checked**. See `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md`.
 
 ## Corrections to make elsewhere
 

@@ -137,15 +137,27 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   real calcite anchor (Daniels/MODIS). The surrogate gap is dimensional (the 0-D box homogenizes
   spatial structure), so identifiability comes from real absolute anchors — see [STATUS.md](STATUS.md).
 - **`scav_rat` MUST be reported under the geometric pooler (or all three), never the arithmetic
-  one alone.** Every artifact records `per_aoi_recovered`, `per_aoi_recovered_geom` and
-  `per_aoi_recovered_median` from the same fit. A 2026-08-03 width result read 45 → 77/100
-  arithmetic (P = 5.6e-06), **16 → 17/100 geometric (P = 1.000)** and 37 → 27/100 median. The
-  cause: per-cell `log_sd` rises with capacity, and arithmetic = geometric × exp(σ²/2), so **any
-  intervention that adds per-cell dispersion inflates the arithmetic count without improving the
-  fit.** `scav_rat` is a log-scale parameter over two decades, so the arithmetic collapse is the
-  wrong operation on its own terms. Also report `per_aoi_log_sd` — it is already in every artifact
-  and nothing has ever read it. This retro-explains `ind352` (26/50 arithmetic vs 13/50 geometric).
-  See [docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md](docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md).
+  one alone.** Run `python scripts/analysis/pooler_audit.py RUN_DIR [--null NULL_DIR] [--legs]`.
+  It grades all three collapses from the same fit, pairs them with McNemar, and prints
+  `per_aoi_log_sd`. **The collapse choice affects `scav_rat` and nothing else** — `alpfe` and
+  `R_PICPOC` are exactly invariant in every run measured (`log_sd` ≤ 0.21 against a decisive
+  threshold of σ = √(2 ln 1.4) = 0.820).
+  **The flagship trio is 25/50 arithmetic and 12/50 geometric** (`scav_rat` 26 → 13), measured on
+  `collapse/collapse_n50`, which is bitwise identical to the flagship reproduction `ctrl_n50` on
+  50/50 seeds. The whole difference is the **North Atlantic** leg, 19 → 5.
+  **The bias is NOT one-directional.** arithmetic = geometric × exp(σ²/2), so the direction is
+  decided by where the geometric centre sits in the ±40% band: *below* it the inflation
+  manufactures passes (natl 0.43× → 0.58× Carroll), *inside* it the inflation destroys them
+  (single-AOI Southern Ocean 0.73× → 1.39×, so `scav_rat` reads **30/50 arithmetic but 49/50
+  geometric**, P = 6.3e-59). The arithmetic pooler has been *understating* the one basin where
+  `scav_rat` is established. Under the geometric collapse `scav_rat` is systematically biased
+  **low** everywhere (0.43×–0.89× Carroll).
+  **⚠️ The keys only exist from 2026-07-29 (`c4323ae`).** 119 of 211 run dirs — including the
+  published flagship, both anchor-off controls, `ep4k_n50`, `ctrl_n50`, `abl_global`/`abl_percell`
+  — carry none of them and **cannot be pooler-checked at all**. `pooler_audit.py` prints
+  `<absent>` and exits 2; that is a gate, never a fallback to the arithmetic number.
+  See [docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md)
+  and [docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md](docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md).
 - **Every reported effect must pass THREE checks — each necessary, none sufficient.** The
   2026-08-03 width claim passed the first two and was still an artifact.
   (1) **Out-of-sample replication — and splitting ONE array in half is NOT that.** A genuinely
@@ -165,9 +177,11 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   in both arms on largely *different* seeds (overlap 2 of 12), i.e. seed noise. The headline is
   effectively a one-basin test wearing a three-basin label.
   **`scav_rat` is a knife edge (22/100 at 0.35, 45 at 0.40, 81 at 0.45) and it is the sole
-  binding leg, so the joint trio headline inherits that.** `alpfe` (98/100 flat from 0.20 to
-  0.60) and `R_PICPOC` are threshold-robust — quote `alpfe` at **≤0.30**, where its untrained
-  null is 0/100 rather than the 20/100 it carries at 0.40. See
+  binding leg, so the joint trio headline inherits that** — but note **that knife edge is itself
+  partly an arithmetic-collapse artifact**: in the Southern Ocean the geometric collapse reads
+  48/49/50 at the same three bands, i.e. at ceiling and threshold-robust. `alpfe` (98/100 flat
+  from 0.20 to 0.60) and `R_PICPOC` are threshold-robust — quote `alpfe` at **≤0.30**, where its
+  untrained null is 0/100 rather than the 20/100 it carries at 0.40. See
   [docs/findings/2026-08-03_the_pass_band_is_load_bearing.md](docs/findings/2026-08-03_the_pass_band_is_load_bearing.md).
 - **Compare within a job, never across.** Cross-job comparison of nominally identical configs
   cannot be defended here: older artifacts leave the deciding keys `<absent>`, not equal, and
@@ -175,9 +189,11 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
 - **Grade on the per-AOI ≥2-of-3 metric, never the cell-weighted one** — cell-weighted counts
   *straddle* (per-AOI legs landing on opposite sides of Carroll) and overstate recovery, most
   severely for `scav_rat`. Flagship = `n50e2k_percell_trio` (n=50, 2000 epochs): `alpfe` **49/50**,
-  `R_PICPOC` **50/50**, `scav_rat` **25/50**, trio **25/50** vs **0/50** global-scalar. The trio count
+  `R_PICPOC` **50/50**, `scav_rat` **25/50**, trio **25/50** vs **0/50** global-scalar — all
+  **arithmetic**; the trio is **12/50 geometric** (see the pooler bullet above). The trio count
   *equals* `scav_rat`'s — it is the sole binding leg. At 4000 epochs (`ep4k_n50`) `scav_rat` and the
-  trio both rise to **41/50** (natl 20→40, SO 49→48, eqpac 7→6).
+  trio both rise to **41/50** (natl 20→40, SO 49→48, eqpac 7→6) — but `ep4k_n50` predates the
+  collapse instrumentation, so that 41/50 is **arithmetic-only and unauditable**.
   **⚠️ Do NOT cite that 4000-epoch rise as evidence `scav_rat` is optimisation-limited.** A 2×2
   (width × epochs, n=100/cell, one job 258713) shows the epoch lever is a **bad trade**: it buys a
   **pooler-dependent** natl gain (better under arithmetic and geometric, *worse* under median) and

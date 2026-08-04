@@ -7897,8 +7897,8 @@
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
      "name": "2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
      "date": "2026-08-03",
-     "retracted": 0,
-     "words": 1170
+     "retracted": 1,
+     "words": 1385
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_flagship_is_bound_to_a_code_build.md",
@@ -7919,7 +7919,7 @@
      "name": "2026-08-03_the_regression_was_a_learning_rate.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 862
+     "words": 920
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
@@ -7927,6 +7927,13 @@
      "date": "2026-08-04",
      "retracted": 0,
      "words": 946
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "name": "2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "date": "2026-08-04",
+     "retracted": 0,
+     "words": 1706
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/compute_time_compiled_h200.md",
@@ -11935,6 +11942,12 @@
      "dont": ""
     },
     {
+     "question": "Can the published flagship n50e2k_percell_trio be pooler-audited from its own artifacts?",
+     "answer": "NO. The artifacts DO exist (Explorer, /projects/schultz/qi.zim/runs/, 50 seeds) and re-grade to the published tuple, but they were written 2026-07-05 and the collapse keys were added 2026-07-29 (c4323ae); no weights were saved. Use the bit…",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "dont": ""
+    },
+    {
      "question": "Can the v05 adjoint give us the Jacobian for a Gauss-Newton Fisher?",
      "answer": "No. One adjoint integration returns J^T r, the gradient of ONE scalar objective, not the observation x parameter Jacobian a Gauss-Newton Fisher needs. For 4 controls, verified CENTRAL DIFFERENCES are the simpler route; v05 has no turnkey D…",
      "doc": "docs/research_notes/2026-07-23_expert_review_corrections.md",
@@ -12580,6 +12593,12 @@
      "question": "Does the flagship's calcification structure match Darwin's?",
      "answer": "No. USE_COCCOLITH_ONLY_CALCITE = False (carroll6_5pft_2layer.py:158) and the flagship run record contains 'use_coccolith_only_calcite': false, so the box computes dPIC = R_PICPOC  mort_total with mort_total = mort_s + mort_l + graze_l (ca…",
      "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "dont": ""
+    },
+    {
+     "question": "Does the flagship's joint trio survive the geometric collapse?",
+     "answer": "NO, it halves: 25/50 arithmetic -> 12/50 geometric (23/50 median). scav_rat is the sole binding leg and falls 26/50 -> 13/50 on the reproduction; the entire effect is the North Atlantic leg, 19 -> 5, the only leg with per-cell log_sd (0.94…",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
      "dont": ""
     },
     {
@@ -14365,6 +14384,12 @@
      "dont": ""
     },
     {
+     "question": "Which direction does the arithmetic collapse bias the scav_rat count?",
+     "answer": "BOTH, depending on the basin. arithmetic = geometric x exp(sigma^2/2), so the direction is set by where the geometric centre sits in the 0.60x-1.40x band. natlsubpolar sits at 0.43x Carroll, below the band, and the inflation carries it up …",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "dont": ""
+    },
+    {
      "question": "Which dust-source dataset should anchor the alpfe leg, and how?",
      "answer": "Xu & Weber 2021 (GBC, 10.1029/2021GB007049) Al-inverse soluble-Fe deposition, constrained by in-ocean dissolved Al so it is disciplined by the same class of data the inversion sees. Place the anchor in a dust-DOMINATED AOI (Saharan N. Atla…",
      "doc": "docs/findings/2026-07-22_two_anchor_redteam.md",
@@ -14476,6 +14501,12 @@
      "question": "Which paper venue should the Track-2 workshop submission target?",
      "answer": "CCAI, not 'AI for Stochastic Dynamics' — 'recommendation reverses to CCAI, unless diffusion is re-run'. The 'diffusion adds no skill' paper rests on four missing artifacts and cannot be written honestly without re-running EDM diffusion; th…",
      "doc": "docs/findings/2026-07-28_track2_artifact_audit.md",
+     "dont": ""
+    },
+    {
+     "question": "Which parameters does the choice of collapse statistic actually affect?",
+     "answer": "ONLY scav_rat. alpfe and R_PICPOC are identical under arithmetic, geometric and median in every run measured, with per-cell log_sd <= 0.21 against the decisive threshold sqrt(2 ln 1.4) = 0.820; diatomgraz moves by at most one seed. The obs…",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
      "dont": ""
     },
     {
@@ -16462,6 +16493,42 @@
      "new": "The shipped shape factor G is that correction divided by its geometric mean over a fixed reference support, so it is confined to [(1-eps)/(1+eps), (1+eps)/(1-eps)] = [0.…",
      "reason": "Consequence of the #217 gauge fix on 2026-08-02. The free parameter count drops with it, 67 -> 66 (no env), 83/99 -> 82/98 (+1/+2 env channels).",
      "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
+    },
+    {
+     "old": "Every artifact records per_aoi_recovered, per_aoi_recovered_geom and per_aoi_recovered_median from the same fit, and per_aoi_log_sd is already in every artifact.",
+     "new": "The three collapse keys were added on 2026-07-29 (c4323ae). 119 of 211 run directories and 2131 of 6683 seed artifacts carry NONE of them, including the published flagsh…",
+     "reason": "Full inventory of Explorer and AICR, 2026-08-04, via scripts/analysis/pooler_audit.py, which prints <absent> and exits 2 rather than falling back to the arithmetic key.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+    },
+    {
+     "old": "Any intervention that increases per-cell dispersion in the scav_rat field will raise its arithmetic per-AOI count without improving the fit.",
+     "new": "Only where the geometric centre lies BELOW the band. The arithmetic collapse multiplies by exp(sigma^2/2); below the band that manufactures passes (natlsubpolar 0.43x ->…",
+     "reason": "The Southern Ocean is the counter-example and it is the basin the one established scav_rat claim rests on, so the general form over-generalised a real North Atlantic eff…",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+    },
+    {
+     "old": "The canonical flagship artifacts are missing - n50e2k_percell_trio exists nowhere - so the published tuple cannot be re-graded from its own run, and that is the only liv…",
+     "new": "They exist at /projects/schultz/qi.zim/runs/n50e2k_percell_trio on Explorer (50 seeds, written 2026-07-05) and re-grade to exactly the published tuple: alpfe 49/50, R_PI…",
+     "reason": "Located by cluster inventory on 2026-08-04.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+    },
+    {
+     "old": "The flagship joint trio is 25/50 per-AOI.",
+     "new": "25/50 ARITHMETIC and 12/50 GEOMETRIC; the number must carry its collapse. scav_rat falls with it and alpfe / R_PICPOC do not move at all. Measured on collapse/collapse_n…",
+     "reason": "Pooler audit, 2026-08-04. The entire difference is the North Atlantic leg, 19 -> 5, the only leg whose per-cell log_sd (0.940) exceeds the decisive threshold of 0.820.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+    },
+    {
+     "old": "scav_rat is a knife edge: 22/100 at 0.35, 45 at 0.40, 81 at 0.45.",
+     "new": "That is the ARITHMETIC collapse. Under the geometric collapse the Southern Ocean leg reads 48 / 49 / 50 at the same three bands - at ceiling and threshold-robust, like a…",
+     "reason": "Band sensitivity re-run under all three collapses on so_only, 2026-08-04.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+    },
+    {
+     "old": "The Southern Ocean scav_rat result is confirmed by two runs, jobs 237913 and 238079/238080.",
+     "new": "Those are ONE result. All 50 seeds are bitwise identical on per_aoi_recovered, _geom and per_aoi_log_sd; the danielsW/posiW difference is inert in that single-AOI config…",
+     "reason": "Direct value comparison, 2026-08-04.",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
     }
    ]
   },
@@ -19051,6 +19118,21 @@
     {
      "trap": "Since 2026-08-02 a CONSTANT readout in ScavClosure is normalised away to G == 1 exactly. So a synthetic-twin test that builds its 'truth' by perturbing only the readout BIAS produces a truth identical to the untrained c…",
      "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
+     "category": ""
+    },
+    {
+     "trap": "A missing collapse key is a blocking UNKNOWN, never a silent fallback to the arithmetic number. Runs before 2026-07-29 record only per_aoi_recovered, and 119 of 211 run dirs are in that group. Reading the absence as 'th…",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "category": ""
+    },
+    {
+     "trap": "so_only and so_only2 are ONE result, not two. All 50 seeds are bitwise identical; the danielsW/posiW difference is inert in that single-AOI configuration. Citing both as agreement is citing the same fit twice, and the S…",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "category": ""
+    },
+    {
+     "trap": "Claim ids (ind342, abd555, ...) are NOT stable. gen_research_map.py sorts claims by (status, statement) and research_map_db.py numbers them positionally, so adding one claim -- or changing one claim's status -- renumber…",
+     "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
      "category": ""
     }
    ]
@@ -36813,14 +36895,14 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 193,
+  "document": 194,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 503,
-  "supersedes": 290,
+  "settled": 507,
+  "supersedes": 296,
   "supports": 279,
-  "trap": 235,
+  "trap": 238,
   "v_claim_evidence": 570,
   "v_dangerous": 39,
   "v_live": 510,

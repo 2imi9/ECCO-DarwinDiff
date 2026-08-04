@@ -1,0 +1,1088 @@
+{
+  "generated_by": "scripts/analysis/pooler_audit.py",
+  "runs": {
+    "flagship_twin_collapse_n50": {
+      "run": "C:\\ddaud\\collapse\\collapse_n50",
+      "null": null,
+      "n": 50,
+      "aois": [
+        "eqpac",
+        "natlsubpolar",
+        "southernoceanpac"
+      ],
+      "band": null,
+      "params": {
+        "Biggrow": {
+          "arithmetic": {
+            "count": 6,
+            "n": 50
+          },
+          "geometric": {
+            "count": 5,
+            "n": 50
+          },
+          "median": {
+            "count": 3,
+            "n": 50
+          },
+          "log_sd": {
+            "eqpac": 0.010525754187256098,
+            "natlsubpolar": 0.14140073955059052,
+            "southernoceanpac": 0.05598839186131954
+          }
+        },
+        "R_PICPOC": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50
+          },
+          "median": {
+            "count": 50,
+            "n": 50
+          },
+          "log_sd": {
+            "eqpac": 0.03606824018061161,
+            "natlsubpolar": 0.21419089287519455,
+            "southernoceanpac": 0.14239133894443512
+          }
+        },
+        "Smallgrow": {
+          "arithmetic": {
+            "count": 7,
+            "n": 50
+          },
+          "geometric": {
+            "count": 2,
+            "n": 50
+          },
+          "median": {
+            "count": 1,
+            "n": 50
+          },
+          "log_sd": {
+            "eqpac": 0.04282250255346298,
+            "natlsubpolar": 0.7465330362319946,
+            "southernoceanpac": 0.1621561422944069
+          }
+        },
+        "alpfe": {
+          "arithmetic": {
+            "count": 49,
+            "n": 50
+          },
+          "geometric": {
+            "count": 49,
+            "n": 50
+          },
+          "median": {
+            "count": 49,
+            "n": 50
+          },
+          "log_sd": {
+            "eqpac": 0.0015785879804752767,
+            "natlsubpolar": 0.00029368452669586986,
+            "southernoceanpac": 0.00018824882135959342
+          }
+        },
+        "diatomgraz": {
+          "arithmetic": {
+            "count": 2,
+            "n": 50
+          },
+          "geometric": {
+            "count": 1,
+            "n": 50
+          },
+          "median": {
+            "count": 2,
+            "n": 50
+          },
+          "log_sd": {
+            "eqpac": 0.023407951928675175,
+            "natlsubpolar": 0.5007437616586685,
+            "southernoceanpac": 0.13763032108545303
+          }
+        },
+        "scav_rat": {
+          "arithmetic": {
+            "count": 26,
+            "n": 50
+          },
+          "geometric": {
+            "count": 13,
+            "n": 50
+          },
+          "median": {
+            "count": 24,
+            "n": 50
+          },
+          "log_sd": {
+            "eqpac": 0.24548394978046417,
+            "natlsubpolar": 0.9401117861270905,
+            "southernoceanpac": 0.37880679965019226
+          }
+        },
+        "_trio": {
+          "arithmetic": {
+            "count": 25,
+            "n": 50
+          },
+          "geometric": {
+            "count": 12,
+            "n": 50
+          },
+          "median": {
+            "count": 23,
+            "n": 50
+          }
+        }
+      },
+      "note": "bitwise-identical to logscale/ctrl_n50 (50/50 seeds), which reproduces the published flagship n50e2k_percell_trio to one seed"
+    },
+    "w16e2k_job258713": {
+      "run": "C:\\ddaud\\wxe\\w16e2k",
+      "null": "C:\\ddaud\\wxe\\w16_null",
+      "n": 100,
+      "aois": [
+        "eqpac",
+        "natlsubpolar",
+        "southernoceanpac"
+      ],
+      "band": null,
+      "params": {
+        "Biggrow": {
+          "arithmetic": {
+            "count": 10,
+            "n": 100,
+            "null": 0,
+            "P": 0.07753905734561137
+          },
+          "geometric": {
+            "count": 6,
+            "n": 100,
+            "null": 0,
+            "P": 0.5593072758258063
+          },
+          "median": {
+            "count": 2,
+            "n": 100,
+            "null": 0,
+            "P": 0.9848289032899585
+          },
+          "log_sd": {
+            "eqpac": 0.013929618522524834,
+            "natlsubpolar": 0.15917903929948807,
+            "southernoceanpac": 0.061938393861055374
+          }
+        },
+        "R_PICPOC": {
+          "arithmetic": {
+            "count": 99,
+            "n": 100,
+            "null": 0,
+            "P": 1.0241858287736074e-119
+          },
+          "geometric": {
+            "count": 100,
+            "n": 100,
+            "null": 0,
+            "P": 6.533186235000685e-123
+          },
+          "median": {
+            "count": 100,
+            "n": 100,
+            "null": 0,
+            "P": 6.533186235000685e-123
+          },
+          "log_sd": {
+            "eqpac": 0.03618232160806656,
+            "natlsubpolar": 0.23009666800498962,
+            "southernoceanpac": 0.1437402293086052
+          }
+        },
+        "Smallgrow": {
+          "arithmetic": {
+            "count": 12,
+            "n": 100,
+            "null": 6,
+            "P": 0.5457817087190768
+          },
+          "geometric": {
+            "count": 1,
+            "n": 100,
+            "null": 6,
+            "P": 0.9999971928396888
+          },
+          "median": {
+            "count": 1,
+            "n": 100,
+            "null": 6,
+            "P": 0.9999971928396888
+          },
+          "log_sd": {
+            "eqpac": 0.03909662924706936,
+            "natlsubpolar": 0.7549026310443878,
+            "southernoceanpac": 0.16221998631954193
+          }
+        },
+        "alpfe": {
+          "arithmetic": {
+            "count": 98,
+            "n": 100,
+            "null": 10,
+            "P": 1.0090625542876785e-65
+          },
+          "geometric": {
+            "count": 98,
+            "n": 100,
+            "null": 10,
+            "P": 1.0090625542876785e-65
+          },
+          "median": {
+            "count": 98,
+            "n": 100,
+            "null": 10,
+            "P": 1.0090625542876785e-65
+          },
+          "log_sd": {
+            "eqpac": 0.001617310510482639,
+            "natlsubpolar": 0.00026699440786615014,
+            "southernoceanpac": 0.00017421234224457294
+          }
+        },
+        "diatomgraz": {
+          "arithmetic": {
+            "count": 3,
+            "n": 100,
+            "null": 32,
+            "P": 1.0
+          },
+          "geometric": {
+            "count": 2,
+            "n": 100,
+            "null": 32,
+            "P": 1.0
+          },
+          "median": {
+            "count": 6,
+            "n": 100,
+            "null": 32,
+            "P": 1.0
+          },
+          "log_sd": {
+            "eqpac": 0.022343216463923454,
+            "natlsubpolar": 0.473078116774559,
+            "southernoceanpac": 0.11277004703879356
+          }
+        },
+        "scav_rat": {
+          "arithmetic": {
+            "count": 48,
+            "n": 100,
+            "null": 0,
+            "P": 8.989354064037694e-32
+          },
+          "geometric": {
+            "count": 19,
+            "n": 100,
+            "null": 0,
+            "P": 7.193324180123141e-06
+          },
+          "median": {
+            "count": 39,
+            "n": 100,
+            "null": 0,
+            "P": 5.103718640506225e-22
+          },
+          "log_sd": {
+            "eqpac": 0.2557182013988495,
+            "natlsubpolar": 0.936480700969696,
+            "southernoceanpac": 0.38354799151420593
+          }
+        },
+        "_trio": {
+          "arithmetic": {
+            "count": 45,
+            "n": 100
+          },
+          "geometric": {
+            "count": 17,
+            "n": 100
+          },
+          "median": {
+            "count": 37,
+            "n": 100
+          }
+        }
+      },
+      "note": "same nominal 3-AOI config, separate job, n=100 -- out-of-sample replication"
+    },
+    "so_only_singleAOI": {
+      "run": "C:\\ddaud\\so_only\\so_only",
+      "null": "C:\\ddaud\\so_only\\prior_so_only",
+      "n": 50,
+      "aois": [
+        "southernoceanpac"
+      ],
+      "band": null,
+      "params": {
+        "Biggrow": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "southernoceanpac": 0.25639568269252777
+          }
+        },
+        "R_PICPOC": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "southernoceanpac": 0.129994198679924
+          }
+        },
+        "Smallgrow": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 3,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 3,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 5,
+            "P": 1.0000000000000016
+          },
+          "log_sd": {
+            "southernoceanpac": 0.5925180613994598
+          }
+        },
+        "alpfe": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 17,
+            "P": 3.749262534817051e-24
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 16,
+            "P": 1.8092513943330674e-25
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 17,
+            "P": 3.749262534817051e-24
+          },
+          "log_sd": {
+            "southernoceanpac": 0.0011212186655029655
+          }
+        },
+        "diatomgraz": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 36,
+            "P": 7.355713773372798e-08
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 36,
+            "P": 7.355713773372798e-08
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 36,
+            "P": 7.355713773372798e-08
+          },
+          "log_sd": {
+            "southernoceanpac": 0.2724881172180176
+          }
+        },
+        "scav_rat": {
+          "arithmetic": {
+            "count": 30,
+            "n": 50,
+            "null": 0,
+            "P": 3.151988863077135e-24
+          },
+          "geometric": {
+            "count": 49,
+            "n": 50,
+            "null": 0,
+            "P": 6.33961948624862e-59
+          },
+          "median": {
+            "count": 28,
+            "n": 50,
+            "null": 0,
+            "P": 1.467861901171109e-21
+          },
+          "log_sd": {
+            "southernoceanpac": 1.3097947239875793
+          }
+        },
+        "_trio": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50
+          },
+          "median": {
+            "count": 0,
+            "n": 50
+          }
+        }
+      },
+      "note": "single-AOI Southern Ocean; the one basin where scav_rat clears its own null"
+    },
+    "obsonly_sopac": {
+      "run": "C:\\ddaud\\gs_obsonly\\gs_sopac",
+      "null": "C:\\ddaud\\gs_obsonly\\gs_sopac_prior",
+      "n": 50,
+      "aois": [
+        "southernoceanpac"
+      ],
+      "band": null,
+      "params": {
+        "Biggrow": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "log_sd": {
+            "southernoceanpac": 0.0
+          }
+        },
+        "R_PICPOC": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "southernoceanpac": 0.0
+          }
+        },
+        "Smallgrow": {
+          "arithmetic": {
+            "count": 13,
+            "n": 50,
+            "null": 0,
+            "P": 5.62927162113108e-06
+          },
+          "geometric": {
+            "count": 13,
+            "n": 50,
+            "null": 0,
+            "P": 5.62927162113108e-06
+          },
+          "median": {
+            "count": 13,
+            "n": 50,
+            "null": 0,
+            "P": 5.62927162113108e-06
+          },
+          "log_sd": {
+            "southernoceanpac": 0.0
+          }
+        },
+        "alpfe": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "log_sd": {
+            "southernoceanpac": 0.0
+          }
+        },
+        "diatomgraz": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 50,
+            "P": 0.9999999999500011
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 50,
+            "P": 0.9999999999500011
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 50,
+            "P": 0.9999999999500011
+          },
+          "log_sd": {
+            "southernoceanpac": 0.0
+          }
+        },
+        "scav_rat": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "log_sd": {
+            "southernoceanpac": 0.0
+          }
+        },
+        "_trio": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50
+          },
+          "median": {
+            "count": 0,
+            "n": 50
+          }
+        }
+      },
+      "note": "observations-only Southern Ocean"
+    },
+    "obsonly_natl": {
+      "run": "C:\\ddaud\\gs_obsonly\\gs_natl",
+      "null": "C:\\ddaud\\gs_obsonly\\gs_natl_prior",
+      "n": 50,
+      "aois": [
+        "natlsubpolar"
+      ],
+      "band": null,
+      "params": {
+        "Biggrow": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "natlsubpolar": 0.0
+          }
+        },
+        "R_PICPOC": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "natlsubpolar": 0.0
+          }
+        },
+        "Smallgrow": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "natlsubpolar": 0.0
+          }
+        },
+        "alpfe": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "log_sd": {
+            "natlsubpolar": 0.0
+          }
+        },
+        "diatomgraz": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 50,
+            "P": 1.0
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 50,
+            "P": 1.0
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 50,
+            "P": 1.0
+          },
+          "log_sd": {
+            "natlsubpolar": 0.0
+          }
+        },
+        "scav_rat": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "natlsubpolar": 0.0
+          }
+        },
+        "_trio": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50
+          },
+          "median": {
+            "count": 0,
+            "n": 50
+          }
+        }
+      },
+      "note": "observations-only North Atlantic"
+    },
+    "obsonly_eqpac": {
+      "run": "C:\\ddaud\\gs_obsonly\\gs_eqpac",
+      "null": "C:\\ddaud\\gs_obsonly\\gs_eqpac_prior",
+      "n": 50,
+      "aois": [
+        "eqpac"
+      ],
+      "band": null,
+      "params": {
+        "Biggrow": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "log_sd": {
+            "eqpac": 0.0
+          }
+        },
+        "R_PICPOC": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "eqpac": 0.0
+          }
+        },
+        "Smallgrow": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "eqpac": 0.0
+          }
+        },
+        "alpfe": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 0,
+            "P": 8.082812774647626e-62
+          },
+          "log_sd": {
+            "eqpac": 0.0
+          }
+        },
+        "diatomgraz": {
+          "arithmetic": {
+            "count": 50,
+            "n": 50,
+            "null": 50,
+            "P": 0.9999999999500011
+          },
+          "geometric": {
+            "count": 50,
+            "n": 50,
+            "null": 50,
+            "P": 0.9999999999500011
+          },
+          "median": {
+            "count": 50,
+            "n": 50,
+            "null": 50,
+            "P": 0.9999999999500011
+          },
+          "log_sd": {
+            "eqpac": 0.0
+          }
+        },
+        "scav_rat": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "median": {
+            "count": 0,
+            "n": 50,
+            "null": 0,
+            "P": 0.9999999999999972
+          },
+          "log_sd": {
+            "eqpac": 0.0
+          }
+        },
+        "_trio": {
+          "arithmetic": {
+            "count": 0,
+            "n": 50
+          },
+          "geometric": {
+            "count": 0,
+            "n": 50
+          },
+          "median": {
+            "count": 0,
+            "n": 50
+          }
+        }
+      },
+      "note": "observations-only equatorial Pacific"
+    }
+  },
+  "band_sensitivity_flagship_twin": {
+    "0.35": {
+      "scav_rat": {
+        "arithmetic": {
+          "count": 13,
+          "n": 50
+        },
+        "geometric": {
+          "count": 6,
+          "n": 50
+        },
+        "median": {
+          "count": 10,
+          "n": 50
+        },
+        "log_sd": {
+          "eqpac": 0.24548394978046417,
+          "natlsubpolar": 0.9401117861270905,
+          "southernoceanpac": 0.37880679965019226
+        }
+      },
+      "trio": {
+        "arithmetic": {
+          "count": 12,
+          "n": 50
+        },
+        "geometric": {
+          "count": 5,
+          "n": 50
+        },
+        "median": {
+          "count": 10,
+          "n": 50
+        }
+      }
+    },
+    "0.4": {
+      "scav_rat": {
+        "arithmetic": {
+          "count": 26,
+          "n": 50
+        },
+        "geometric": {
+          "count": 13,
+          "n": 50
+        },
+        "median": {
+          "count": 24,
+          "n": 50
+        },
+        "log_sd": {
+          "eqpac": 0.24548394978046417,
+          "natlsubpolar": 0.9401117861270905,
+          "southernoceanpac": 0.37880679965019226
+        }
+      },
+      "trio": {
+        "arithmetic": {
+          "count": 25,
+          "n": 50
+        },
+        "geometric": {
+          "count": 12,
+          "n": 50
+        },
+        "median": {
+          "count": 23,
+          "n": 50
+        }
+      }
+    },
+    "0.45": {
+      "scav_rat": {
+        "arithmetic": {
+          "count": 38,
+          "n": 50
+        },
+        "geometric": {
+          "count": 16,
+          "n": 50
+        },
+        "median": {
+          "count": 44,
+          "n": 50
+        },
+        "log_sd": {
+          "eqpac": 0.24548394978046417,
+          "natlsubpolar": 0.9401117861270905,
+          "southernoceanpac": 0.37880679965019226
+        }
+      },
+      "trio": {
+        "arithmetic": {
+          "count": 37,
+          "n": 50
+        },
+        "geometric": {
+          "count": 15,
+          "n": 50
+        },
+        "median": {
+          "count": 43,
+          "n": 50
+        }
+      }
+    }
+  }
+}
