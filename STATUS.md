@@ -284,7 +284,14 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
     learned. **RESOLVED 2026-07-30 (jobs 238079/238080, verify_run exit 0): it is LOCAL.** A
     single-AOI `southernoceanpac` fit, with nothing for the shared DINN to pool from, recovers
     `scav_rat` **30/50 against untrained 0/50, P=3.15e-24**, from GEOTRACES surface and subsurface
-    iron alone. The pre-registered rule (k>=25 and P<0.01) fires and both controls held exactly:
+    iron alone. **That 30/50 is the arithmetic collapse and it UNDERSTATES the result: under the
+    geometric collapse it is 49/50 (P = 6.3e-59), and threshold-robust at ceiling (48/49/50 at
+    bands 0.35/0.40/0.45) where the arithmetic count is a knife edge (20/30/35).** Here the
+    per-cell `log_sd` is 1.310, so the arithmetic mean inflates the estimate ×2.36 and carries it
+    from 0.73× Carroll out past the band's 1.40× top edge (2026-08-04 pooler audit). Caveat from
+    the same audit: jobs 238079/238080 and the earlier 237913 are **bitwise identical on all 50
+    seeds**, so this result has **no replication**.
+    The pre-registered rule (k>=25 and P<0.01) fires and both controls held exactly:
     `alpfe` 50/50, `R_PICPOC` 0/50 as it must with zero Daniels cells and no basin to inherit from.
     Pooling still adds (39-50/50 in company vs 30/50 alone), so both halves are measured.
     Consequence: the flagship trio's sole binding leg is carrying a **basin-specific** result
@@ -314,6 +321,14 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   41/50 at 4000 epochs** (`ep4k_n50`; largely optimization-limited; natl 20→40, SO 49→48, eqpac 7→6);
   the trio-joint tracks it exactly and rises with it to 41/50. Global-scalar control: **0/50** on the trio. (Reconciled 2026-07-21 from the raw per-seed `per_aoi_recovered` fields — this replaces the
   earlier "≤25/50" bound with the exact count.)
+  **⚠️ POOLER (2026-08-04):** every count above is the **arithmetic** collapse. Under the geometric
+  collapse the trio is **12/50** and `scav_rat` **13/50**, measured on `collapse/collapse_n50`
+  (bitwise identical to the flagship reproduction `ctrl_n50` on 50/50 seeds) and replicated
+  out-of-sample by `wxe/w16e2k` (job 258713, n=100: 48 → 19). The entire difference is the North
+  Atlantic leg, 19 → 5 — the only leg whose per-cell `log_sd` (0.940) exceeds the decisive 0.820.
+  `alpfe` (49/50) and `R_PICPOC` (50/50) are **exactly invariant**. The 4000-epoch `41/50` predates
+  the collapse instrumentation and is **arithmetic-only and unauditable**. See
+  [docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md).
 - **`diatomgraz` — recovers 10/10 once MLD is a DINN input channel (2026-07-22); input-limited, not
   structural.** With the DINN on SST only it is not recovered (best 4/10 = chance) — but adding **MLD** as a
   per-cell DINN input channel recovers it **10/10** (median 0.70), by fixing the Southern Ocean AOI where
