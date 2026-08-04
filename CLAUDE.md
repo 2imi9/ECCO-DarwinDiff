@@ -54,6 +54,7 @@ retraction banners of every file under `docs/findings` and `docs/research_notes`
 σ_verdict ∈ {DEAD, FABRICATED} (CITATION)         = ∅
 σ_doc IS NULL (SETTLED)                           = ∅   a settled answer must say where it lives
 σ_status IS NULL (CLAIM)                          = ∅
+σ_prose ENDS WITH "…" (SETTLED ∪ CLAIM ∪ TRAP …)  = ∅   no markdown truncation leaked into the DB
 ```
 
 **REPORTED, NOT ENFORCED** — `check` prints these and keeps exit 0. They are real properties with
@@ -81,6 +82,16 @@ coverage line to say so.
 | `docs/research_map.md` | reading as prose; the session-start index | hand-edit — regenerate it |
 | `docs/research_map.json` | reading the whole relational model in one file read | hand-edit — export it |
 | the in-memory DB | asking questions: joins, constraints, `settled` | expect it to persist |
+
+**The markdown is TRUNCATED and the database is NOT.** `gen_research_map.cell()` cuts every cell
+when it renders (settled answers at 240 characters, claim statements at 230, traps at 220) so the
+tables stay readable. `research_map_db.py` parses that markdown and then **rehydrates every prose
+column from the corpus JSON**, so queries and `settled` see the full text. Until 2026-08-04 they did
+not: 87% of settled answers were cut and 35% of the corpus was unsearchable, and a missed search
+printed *"This may be genuinely new work"* — a false negative that reads exactly like a true one.
+So **quote numbers and detail from a query or the JSON, never from the rendered table**, which may
+end mid-sentence. `check` enforces that no cut text reaches the database and prints a `text
+coverage:` line saying how many rows were rehydrated.
 
 Neither generated file is a second source of truth. The markdown is rendered from
 `docs/findings/research_map_corpus.json` by `scripts/gen_research_map.py`; the JSON is exported from
