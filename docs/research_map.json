@@ -7922,6 +7922,13 @@
      "words": 862
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
+     "name": "2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
+     "date": "2026-08-04",
+     "retracted": 0,
+     "words": 946
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/compute_time_compiled_h200.md",
      "name": "compute_time_compiled_h200.md",
      "date": "",
@@ -36806,7 +36813,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 192,
+  "document": 193,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,

@@ -178,6 +178,17 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   `R_PICPOC` **50/50**, `scav_rat` **25/50**, trio **25/50** vs **0/50** global-scalar. The trio count
   *equals* `scav_rat`'s — it is the sole binding leg. At 4000 epochs (`ep4k_n50`) `scav_rat` and the
   trio both rise to **41/50** (natl 20→40, SO 49→48, eqpac 7→6).
+  **⚠️ Do NOT cite that 4000-epoch rise as evidence `scav_rat` is optimisation-limited.** A 2×2
+  (width × epochs, n=100/cell, one job 258713) shows the epoch lever is a **bad trade**: it buys a
+  **pooler-dependent** natl gain (better under arithmetic and geometric, *worse* under median) and
+  pays with a **pooler-invariant** Southern Ocean loss of **1.4–1.75×** at 4000 epochs alone
+  (P = 1.6e-09 geometric), rising to **2.7–5.1×** with width added. The SO is the **one** basin
+  where `scav_rat` is established (30/50 vs untrained 0/50, P = 3.15e-24). The reported count is
+  blind to it: a 5× accuracy loss shows as 9 seeds, because the SO sits far inside a 40% band —
+  that "SO 49→48" is one seed hiding a 1.75× degradation. **Keep the flagship at width 16 /
+  2000 epochs**; it is the best cell in the 2×2 for the SO under all three poolers. Affects
+  `ind342`, `ind345`, `ind353`, `ind354`. See
+  [docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md](docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md).
 - **Match the control to the epoch budget.** There are two anchor-off runs and both are real:
   `n50e2k_anchor_off` (2000 ep, the epoch-matched control for the flagship) gives `R_PICPOC` **6/50**;
   `n50_anchor_off` (1500 ep) gives **4/50**. Quote 6/50 against the 2000-epoch flagship.
