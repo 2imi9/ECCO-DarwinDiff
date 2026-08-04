@@ -53,6 +53,14 @@ standing caveat `ind435`: thorium-derived `scav_rat` partitions are systematical
 bias does not average down with N, so an equatorial thorium anchor needs its bias budget stated
 before it is wired in, not after.
 
+**One route checked and closed off (2026-08-04):** the committed `black2020` CSV holds only
+per-study/province ranges, and its own loader docstring notes that the **per-station georeferenced**
+values live in Wiley Supporting Information Table S1. Retrieving S1 would be the cheapest way to
+improve coverage — but the AGU/Wiley host sits behind a Cloudflare interstitial and returns a
+`Just a moment...` challenge to automated requests, so it cannot be fetched programmatically and
+no attempt was made to work around the bot check. The paper is open-access CC-BY-4.0, so **S1 can
+be downloaded by hand**; that is the action item, not more scripting.
+
 ## 2. The wall we are fighting can be identified exactly, without data
 
 `ded77` stands as a live claim: *"No architecture can fix structural non-identifiability, and we

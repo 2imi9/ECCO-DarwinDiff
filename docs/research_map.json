@@ -7922,6 +7922,13 @@
      "words": 920
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "name": "2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "date": "2026-08-04",
+     "retracted": 0,
+     "words": 1144
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
      "name": "2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
      "date": "2026-08-04",
@@ -11846,6 +11853,12 @@
      "dont": ""
     },
     {
+     "question": "Can candidate observational anchors be screened before spending implementation days and cluster nights on them?",
+     "answer": "YES, symbolically. Structural identifiability is a property of the (model, observable set) pair, so adding a candidate observable to g and re-running assess_identifiability / find_identifiable_functions predicts in minutes whether that anc…",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "dont": ""
+    },
+    {
      "question": "Can daily ECCO-Darwin v5 output replace monthly for the parameter learner?",
      "answer": "No. Daily v5 is surface-2D only — 16 diagnostics (CO2_flux, O2_flux, SIarea, SIheff, SSSanom, SST, apCO2, pCO2, pH, surfChl1-5, surfDIC_tend, surfPCO2, wspeed). It does not contain the 3-D tracers the loss uses (POC, PIC, DIC, ALK, FeT, su…",
      "doc": "docs/research_notes/2026-06-06_daily_data_defer.md",
@@ -12071,6 +12084,12 @@
      "question": "Do the emulator cubes' 4 chlorophyll channels represent total chlorophyll?",
      "answer": "Yes — surfChl4 contributes −0.002% of total Chl, so the 4 channels are total chlorophyll. Units match exactly (mg m-3), no conversion needed. Confounds: linear mean is 86.5% above geometric mean (use log10 throughout), and January satellit…",
      "doc": "docs/findings/2026-07-19_results_matrix.md",
+     "dont": ""
+    },
+    {
+     "question": "Do the on-disk E3 sink-anchor datasets reach eqpac, the basin E3 predicts it is the only intervention able to move?",
+     "answer": "The two IRON-side components do NOT. GP15 210Po/210Pb (gp15_1814_particulate_po_pb.csv n=76, leg1_dissolved_total_po_pb.csv n=89) spans latitude 19.68-56.06 N, longitude -156.96 to -152.00; the eqpac AOI is (-5..15 lat, -160..-110 lon), so…",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "dont": ""
     },
     {
@@ -13607,6 +13626,12 @@
      "question": "Is there a defensible methodological novelty in Track 1, and is it currently claimed?",
      "answer": "Yes, exactly one, and it is NOT currently framed that way. Schartau 2017 Sect. 5.2 says profile-likelihood evaluation 'is impracticable for most marine ecosystem model applications, because of the associated computational costs'. Our diffe…",
      "doc": "docs/research_notes/2026-07-25_deep_research_sweep.md",
+     "dont": ""
+    },
+    {
+     "question": "Is there a method that decides STRUCTURAL vs PRACTICAL non-identifiability exactly, symbolically, before any fitting? (ded77 says we do not know whic…",
+     "answer": "YES - differential-algebra structural identifiability. StructuralIdentifiability.jl (Dong, Goodbrake, Harrington & Pogudin 2023, SIAM J. Applied Algebra and Geometry 7(1):194-235, DOI 10.1137/22M1469067) assesses local AND global identifia…",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "dont": ""
     },
     {
@@ -19133,6 +19158,21 @@
     {
      "trap": "Claim ids (ind342, abd555, ...) are NOT stable. gen_research_map.py sorts claims by (status, statement) and research_map_db.py numbers them positionally, so adding one claim -- or changing one claim's status -- renumber…",
      "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "category": ""
+    },
+    {
+     "trap": "E3 (wire the 210Po/210Pb + Fe-export sink anchors into the loss) is recorded as 'the highest-value item in the document' and its loaders and data are on disk - but the iron-side data does NOT cover eqpac, the basin the …",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "category": ""
+    },
+    {
+     "trap": "Do NOT propose daily v05 data for the parameter learner. It is settled and closed on three independent grounds: daily v05 is surface-2D only (16 diagnostics, none of the 3-D tracers the loss uses); the anomaly variance …",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "category": ""
+    },
+    {
+     "trap": "Black et al. (2020) Supporting Information Table S1 carries the PER-STATION georeferenced Fe export values (the committed CSV has only per-study/province ranges, n=20). The Wiley host is behind a Cloudflare interstitial…",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "category": ""
     }
    ]
@@ -36895,14 +36935,14 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 194,
+  "document": 195,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 507,
+  "settled": 510,
   "supersedes": 296,
   "supports": 279,
-  "trap": 238,
+  "trap": 241,
   "v_claim_evidence": 570,
   "v_dangerous": 39,
   "v_live": 510,

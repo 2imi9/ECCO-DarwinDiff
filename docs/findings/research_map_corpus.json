@@ -2534,6 +2534,21 @@
    "question": "Which direction does the arithmetic collapse bias the scav_rat count?",
    "answer": "BOTH, depending on the basin. arithmetic = geometric x exp(sigma^2/2), so the direction is set by where the geometric centre sits in the 0.60x-1.40x band. natlsubpolar sits at 0.43x Carroll, below the band, and the inflation carries it up across the edge - manufacturing passes (5 -> 19/50). The single-AOI Southern Ocean sits at 0.73x, inside the band, and the same inflation carries it out past the top (49 -> 30/50) - so the arithmetic collapse UNDERSTATES the one basin where scav_rat is established. Under the geometric collapse scav_rat is biased LOW everywhere (0.43x-0.89x Carroll).",
    "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "question": "Do the on-disk E3 sink-anchor datasets reach eqpac, the basin E3 predicts it is the only intervention able to move?",
+   "answer": "The two IRON-side components do NOT. GP15 210Po/210Pb (gp15_1814_particulate_po_pb.csv n=76, leg1_dissolved_total_po_pb.csv n=89) spans latitude 19.68-56.06 N, longitude -156.96 to -152.00; the eqpac AOI is (-5..15 lat, -160..-110 lon), so longitudes overlap and latitudes miss by 4.68 degrees - this is GP15 LEG 1, Alaska to Hawaii. black2020 Fe export (n=20 georeferenced studies, global spread -76.5 to 81 N) has 0/20 in eqpac and exactly 1/20 in natlsubpolar (North Atlantic, 50.0 N / -28.0, 234Th) - n=1 is not a usable anchor but should be recorded so it is not rediscovered as coverage. rufas2024 POC flux DOES carry an explicit EqPac site, but it is SITE-KEYED Martin-b attenuation, not a gridded flux field, so it constrains particle attenuation rather than iron scavenging and wiring it is a different task from the one E3 specifies. Net: across all three AOIs the iron-side sink anchor totals ONE study-level point. Measured 2026-08-04 directly from the CSVs against AOI_BY_KEY.",
+   "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
+  },
+  {
+   "question": "Is there a method that decides STRUCTURAL vs PRACTICAL non-identifiability exactly, symbolically, before any fitting? (ded77 says we do not know which wall we are hitting.)",
+   "answer": "YES - differential-algebra structural identifiability. StructuralIdentifiability.jl (Dong, Goodbrake, Harrington & Pogudin 2023, SIAM J. Applied Algebra and Geometry 7(1):194-235, DOI 10.1137/22M1469067) assesses local AND global identifiability of ODE parameters and states with NO data and NO cluster time, and find_identifiable_functions returns generators of ALL identifiable functions - i.e. it derives the identifiable COMBINATION when individual parameters are not identifiable (the documented example returns p1+p3, p1*p3, p2*p4 for a model where p1 and p3 are individually non-identifiable). Requirement: f and g rational in states, parameters and inputs. The Darwin box qualifies - Monod kinetics are rational (the package's own example is beta1*x1*x2/(chi1+x2)) and Eppley exp(0.0633*T) enters as a known external input u(t), since T is a forcing not a state. known_ic lets Darwin-pickup initial conditions be declared known. Julia is not in this stack but this is a one-off symbolic analysis, not a training-loop dependency. Verified from package documentation 2026-08-04.",
+   "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
+  },
+  {
+   "question": "Can candidate observational anchors be screened before spending implementation days and cluster nights on them?",
+   "answer": "YES, symbolically. Structural identifiability is a property of the (model, observable set) pair, so adding a candidate observable to g and re-running assess_identifiability / find_identifiable_functions predicts in minutes whether that anchor can break a given degeneracy AT ALL. An anchor that leaves a parameter structurally non-identifiable cannot be rescued by any weighting, capacity, epoch budget or optimiser (ded77). VALIDATE IT FIRST ON A KNOWN ANSWER: run the observable set with and without the Daniels calcite anchor, where R_PICPOC goes 6/50 -> 50/50 empirically; if the symbolic analysis reproduces that flip, the method is trustworthy on unknown cases.",
+   "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
   }
  ],
  "claims": [
@@ -10850,6 +10865,18 @@
   {
    "trap": "Claim ids (ind342, abd555, ...) are NOT stable. gen_research_map.py sorts claims by (status, statement) and research_map_db.py numbers them positionally, so adding one claim -- or changing one claim's status -- renumbers every claim after it alphabetically. A trial insertion of 7 claims changed the meaning of 328 of 563 existing ids. Before adding CLAIM rows, check whether the id stability defect is fixed; SUPERSEDES / SETTLED / TRAPS rows are prose-keyed and safe to add.",
    "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "trap": "E3 (wire the 210Po/210Pb + Fe-export sink anchors into the loss) is recorded as 'the highest-value item in the document' and its loaders and data are on disk - but the iron-side data does NOT cover eqpac, the basin the experiment predicts it will move, and totals ONE study-level point across all three AOIs. CHECK OBSERVATIONAL COVERAGE AGAINST THE TARGET AOI BEFORE IMPLEMENTING. A loader existing is not evidence the data reaches the basin.",
+   "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
+  },
+  {
+   "trap": "Do NOT propose daily v05 data for the parameter learner. It is settled and closed on three independent grounds: daily v05 is surface-2D only (16 diagnostics, none of the 3-D tracers the loss uses); the anomaly variance fraction is the same daily as monthly; and daily lag-1 r of 0.994-0.996 collapses the effective sample size. Daily adds cadence, not information.",
+   "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
+  },
+  {
+   "trap": "Black et al. (2020) Supporting Information Table S1 carries the PER-STATION georeferenced Fe export values (the committed CSV has only per-study/province ranges, n=20). The Wiley host is behind a Cloudflare interstitial and returns a 'Just a moment...' challenge to automated fetches, so it cannot be retrieved programmatically. The paper is open-access CC-BY-4.0 - download S1 by hand if per-station coverage is needed to rescue E3.",
+   "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
   }
  ]
 }
