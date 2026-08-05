@@ -336,7 +336,10 @@ def _infer_track(text: str) -> str:
 # Seven research notes are gitignored BY NAME (.gitignore:100-106) at the author's direction, so
 # they exist on this machine and nowhere a reader can reach. Enumerating documents from the DISK
 # let them into the table here and only here: the orphan constraint passed locally and failed in
-# CI, where 31 claim citations dangle. Enumerate from the REPO instead and declare the seven, so
+# CI, where 8 claims (2 of them live) cite no document that a fresh checkout contains. Measured
+# with the v_orphan_doc predicate restricted to local_only=0; an earlier note said 31, which was
+# a count of filename occurrences in the corpus file, not of claims. Enumerate from the REPO and
+# declare the seven, so
 # both environments build the same table. Same shape as citation.deliberate -- an exemption that is
 # written down and counted, not a silent pass. An eighth undeclared local citation still fails.
 LOCAL_ONLY_DOCS = (

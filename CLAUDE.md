@@ -75,8 +75,9 @@ constraints run over the audit's **exception rows only, 1 of 130** — `check` p
 coverage line to say so. And `DOCUMENT` is built from `git ls-files` **plus** the seven declared
 `LOCAL_ONLY_DOCS`, never from a disk walk: those notes are gitignored by name (`.gitignore:100-106`),
 so a disk walk found them on the author's machine and nowhere else — the orphan constraint passed
-locally and failed in CI on 31 dangling citations. Claims resting *only* on such a note are exempt
-from the gate and **counted by the advisory above** — 2 today (`ded123`, `ind339`).
+locally and failed in CI, where **8 claims (2 live)** cite no document a fresh checkout contains.
+Claims resting *only* on such a note are exempt from the gate and **counted by the advisory
+above** — 2 today (`ded123`, `ind339`).
 
 **Run `settled` before starting, and `check` before committing a finding.**
 
