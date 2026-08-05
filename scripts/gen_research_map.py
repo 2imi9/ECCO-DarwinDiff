@@ -13,16 +13,35 @@ land, append rows to the corpus JSON and re-run this script.
 import json
 import pathlib
 import re
+import subprocess
 from collections import defaultdict
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 OUT = REPO / "docs" / "research_map.md"
 M = json.loads((REPO / "docs" / "findings" / "research_map_corpus.json").read_text(encoding="utf-8"))
 
+# The doc index is built from what is TRACKED, not from what is on this disk. Seven
+# docs/research_notes files are gitignored by name as deliberately local-only working notes;
+# globbing the filesystem let the rendered map cite them, so the committed map pointed at
+# seven files no other reader could open and the integrity test passed locally anyway.
+# `git ls-files` makes the renderer see the repository the way a reader sees it.
+def _tracked_docs() -> set:
+    try:
+        out = subprocess.run(["git", "ls-files", "docs"], cwd=REPO,
+                             capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return set()          # not a git checkout: fall back to the filesystem below
+    return {p.strip().replace("\\", "/") for p in out.stdout.splitlines() if p.strip()}
+
+
+_TRACKED = _tracked_docs()
 DOCS = {}
 for _sub in ("findings", "research_notes"):
     for _p in (REPO / "docs" / _sub).glob("*.md"):
-        DOCS[_p.name] = f"docs/{_sub}/{_p.name}"
+        _rel = f"docs/{_sub}/{_p.name}"
+        if _TRACKED and _rel not in _TRACKED:
+            continue          # local-only note: real on this disk, invisible to every reader
+        DOCS[_p.name] = _rel
 
 
 def cell(s, n=210):
@@ -33,12 +52,24 @@ def cell(s, n=210):
 
 
 def docref(d):
-    """Keep only doc references that actually resolve, so the integrity test stays meaningful."""
+    """Keep only doc references that actually resolve, so the integrity test stays meaningful.
+
+    A citation whose ONLY source is a gitignored local-only note is not dropped: a row with no
+    doc is filtered out entirely by the callers, which would silently delete answered questions
+    from the index and hand back the re-derivation risk the map exists to remove. Instead the
+    row survives carrying an explicit unverifiable-source marker. Deliberately emitted WITHOUT
+    backticks and WITHOUT a docs/ prefix so neither integrity test mistakes it for a resolvable
+    pointer.
+    """
     if not d:
         return ""
     names = re.findall(r"[A-Za-z0-9_.\-]+\.md", str(d))
     keep = list(dict.fromkeys(n for n in names if n in DOCS))[:3]
-    return ", ".join(f"`{DOCS[n]}`" for n in keep)
+    if keep:
+        return ", ".join(f"`{DOCS[n]}`" for n in keep)
+    if names:
+        return f"LOCAL-ONLY source, not in the repo: {names[0]}"
+    return ""
 
 
 def norm(s):

@@ -95,11 +95,11 @@ z-scored Darwin pattern terms → backprop → DINN weights.
 - The surrogate gap is **dimensional** — the 0-D box homogenizes (tracer CV → ~1e-15), so box-vs-Darwin
   pattern correlations are *not* fidelity metrics. Identifiability comes only from real **absolute**
   anchors.
-- **Per-cell is load-bearing:** the trio {alpfe, scav_rat, R_PICPOC} holds **25/50 per-AOI** (33/50
+- **Per-cell is load-bearing:** the trio {alpfe, scav_rat, R_PICPOC} holds **25/50 per-AOI arithmetic — 12/50 geometric, 23/50 median** (33/50
   cell-weighted) vs **0/50** for a single global scalar. `alpfe` is method-independent but
   weight-conditional; `scav_rat` is the weakest leg; `R_PICPOC` is anchored by real Daniels.
 - The iron source↔scavenging degeneracy **is** the published FeMIP problem (Tagliabue 2016) — a rank-1
-  sloppy inverse problem. Methods upgrade path: EKI/CES + Fisher-eigenbasis (#187, `eki_core.py`).
+  sloppy inverse problem. Methods *diagnostic* path (NOT a recovery improvement): EKI/CES + Fisher-eigenbasis (#187, `eki_core.py`) — EKI lands `scav_rat` at 2.1e-7 = 0.349× Carroll, agreeing with the geometric collapse.
 - Growth pair {Smallgrow, Biggrow} is unobservable by construction; `diatomgraz` is **input-limited, not
   data-blocked** — at chance from SST alone, 10/10 once MLD is a DINN input, and 35/50 per-AOI on a
   non-circular Chl+MLD target with the bSi diagnostic off. That is model-internal consistency, not
@@ -149,7 +149,7 @@ profile-targeting structure-preserving build (#176).
 |---|---|---|
 | Anchors | GEOTRACES IDP2025 iron, Daniels CP:PP + MODIS PIC calcite, GLODAP, SOCAT | `data/`, loaders in `src/darwindiff/` |
 | Clusters | Explorer (H200, automation, key-auth); AICR (B200, throughput, interactive) | `docs/cluster_setup.md`, `reference_nu_explorer_access` |
-| Trust gate | `verify_run.py` re-derives every recovery number from raw (exit 0 = safe) | `scripts/` |
+| Trust gate | `verify_run.py` re-derives every recovery number from raw (exit 0 = safe); `analysis/pooler_audit.py` is the second gate for `scav_rat` (exit 2 = un-auditable — 119 of 211 run dirs carry no collapse keys) | `scripts/` |
 | Registry | `carroll6.PARAMS` single source of truth for parameter order | `src/darwindiff/carroll6.py` |
 
 ---

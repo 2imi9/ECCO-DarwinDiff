@@ -110,7 +110,7 @@ reintroduce bare `params[3]`-style positional unpacking.
    `scav_rat` / `Biggrow` / `R_PICPOC` **0.000**. A parameter whose bounds
    midpoint falls inside the ±40 % band scores as "recovered" from an untrained
    network most of the time. **Choose bounds so the midpoint sits outside the
-   band**, and report every count next to its baseline.
+   band**, and so that neither bound sits inside the ±40 % band around the target, and report every count next to its baseline. `alpfe` shows the second failure: its upper bound 1.0 is only 7.72 % above Carroll 0.92831, so trained per-AOI medians are 0.99226 / 0.99937 / 0.99924, 27/45/49 of 50 seeds land within 1 % of the bound, and the band sweep is a step function (0/50 at 0.05 and 0.06, 49/50 at 0.08 and above). The signal there is real (98/100 vs untrained 0/100 at band 0.10), but the count cannot establish accuracy: the recovery distribution is a spike at the rail, and the precision stays unresolved pending a widened-bound arm.
 8. **If you add a DINN input channel, the baseline must match the architecture.**
    Changing `n_input_channels` changes the initialisation distribution and hence
    the chance rate, so a covariate result graded against a different-architecture
@@ -124,7 +124,7 @@ reintroduce bare `params[3]`-style positional unpacking.
    parameter while still exiting 0 `VERIFIED`. A run artifact carrying a
    parameter the gate does not know is now rejected as `MALFORMED` rather than
    partially graded. Add `--require-baseline` in loops and CI so a number can
-   never be recorded without the step-7 chance baseline attached.
+   never be recorded without the step-7 chance baseline attached. `verify_run.py` does **not** grade the per-AOI collapse, so any `scav_rat` count must also pass `python scripts/analysis/pooler_audit.py <run_dir>`; the collapse keys exist only from 2026-07-29, 119 of 211 run dirs carry none, and on those the audit prints `<absent>` and exits 2 — that is a gate, not a fallback to the arithmetic number.
 
 ### To remove a parameter
 

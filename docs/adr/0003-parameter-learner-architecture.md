@@ -54,9 +54,9 @@ fresh seeds 50–99 gave **38/50 vs 38/50, P = 1.0000**. Pooled P = 0.0897.
 | Evidence | **Strongest surviving candidate, not yet established within a job** |
 | Risk | Larger nets score higher untrained; needs a matched null |
 
-**Pros:** width 39 reaches `scav_rat` **72/100** where the published width-16 flagship is 25/50,
+**Pros:** width 39 reaches `scav_rat` **72/100 arithmetic** where the published width-16 flagship is **25/50 arithmetic** (the geometric collapse of a bitwise-identical reproduction, `collapse/collapse_n50`, reads **13/50**),
 and it is the arm that reaches a clean **100/100** in the Southern Ocean. Consistent with the
-4000-epoch result (25 → 41/50 on identical data), which is also an optimisation effect.
+4000-epoch result (25 → 41/50 on identical data, both ARITHMETIC-only and un-auditable — `ep4k_n50` carries no collapse keys), which is also an optimisation effect.
 **Cons:** the 72/100-vs-25/50 comparison is **cross-job**, and this session established that
 cross-job comparison here is unsafe — 14 recorded keys differ against the older artifact and
 every one is `<absent>`, including `lr`. Absent is unknown, not equal.
@@ -64,7 +64,7 @@ every one is `<absent>`, including `lr`. Absent is unknown, not equal.
 ### Option C — keep the flagship width-16 shared trunk
 
 **Pros:** it is what every published number was measured on; zero risk.
-**Cons:** leaves `scav_rat` at 25/50 when a one-variable change plausibly doubles it.
+**Cons:** leaves `scav_rat` at 25/50 arithmetic (13/50 geometric) when a one-variable change plausibly doubles it.
 
 ### Option D — adequacy-based loss masking (`FET_AOI_W`)
 
@@ -99,7 +99,7 @@ produced one effect (P = 0.0128) that evaporated on replication, so it is not a 
 sample size for this metric.
 **To revisit:** if 258439 shows width is also inert, then `scav_rat`'s remaining gap is not
 addressable on the estimator side at all, and the next move is observational (a real
-`234Th`/`210Po` scavenging anchor) rather than architectural.
+`234Th`/`210Po` scavenging anchor, which must be run **single-AOI in npac** — GP15 `210Po`/`210Pb` has **0 points** in eqpac, natlsubpolar and southernoceanpac, and 92 points / 6 stations in npac) rather than architectural.
 
 ## Action items
 
@@ -155,7 +155,7 @@ artifact:
 1. **split-half** — the effect must hold in both seed halves independently;
 2. **band sensitivity** — the effect must not peak at the reported pass threshold;
 3. **pooler invariance** — for `scav_rat`, the effect must survive the geometric and median
-   collapses, which are recorded in every artifact and had never been read.
+   collapses, which are recorded only in artifacts written from 2026-07-29 (`c4323ae`) onward and had never been read.
 
 The generalisable lesson is that 1 and 2 test the claim harder *on its own terms*, while 3 came
 from asking a different question: **what else in the pipeline could produce this number.**

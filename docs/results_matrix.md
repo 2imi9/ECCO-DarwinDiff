@@ -11,7 +11,7 @@ found**. [Project Status](status.md) links here for the current best; the
 > **Verdict (2026-07-05):** Track 1 (this matrix, tables A/B) is **scientifically complete** — a
 > *surrogate-to-model identifiability study*, not a 6/6 recovery chase. The **estimator /
 > loss-weighting / box-structure space is exhausted** (~0 more box-tuning experiments worth
-> running; every ceiling-breaker is refuted — the ceiling is the 0-D box surrogate, not the
+> running; every ceiling-breaker tested so far is refuted — the ceiling is *believed* to be the 0-D box surrogate, not the
 > optimizer). The remaining high-EV levers are **not Track-1 box tuning**: they are **off-box /
 > real-scale** and belong to Track 2 (the #1 being a **macronutrient NO3/PO4 tracer + drawdown
 > loss** inside a transport-carrying differentiable model), or data-staging (dense POSi, native
@@ -20,11 +20,11 @@ found**. [Project Status](status.md) links here for the current best; the
 > on the box only and unbuilt at real scale.
 
 **Scoring** ([`diagnostics.band_of`](dinn_design.md)): *Excellent* ≤ 5 % off Carroll ·
-*Cal-grade* ≤ 40 %. Counts are `seeds-recovered / seeds-run`, every number gated by
+*Cal-grade* ≤ 40 %. Counts are `seeds-recovered / seeds-run` under the **arithmetic** collapse — `alpfe` and `R_PICPOC` are collapse-invariant in every run measured, but every `scav_rat`-bearing count here predates the 2026-07-29 collapse keys (119 of 211 run dirs carry none), so none of them can be pooler-audited, and `verify_run.py` exit 0 does not check the collapse. Every number is gated by
 [`scripts/verify_run.py`](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/scripts/verify_run.py)
 (exit 0 = re-derived from raw). The honest target is **4 observable params**
 {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair
-{`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real data constrains
+{`Smallgrow`, `Biggrow`} is **excluded, not failed** — `Biggrow` unobservable by construction, `Smallgrow` non-identifiable from *time-mean* observables (no real data constrains
 growth rates) and is excluded from the target, not counted as a miss.
 
 ---
@@ -36,7 +36,7 @@ growth rates) and is excluded from the target, not counted as a miss.
 > observations and *why*, not a 6/6 recovery chase: `alpfe` = method-independent,
 > mass-balance-identified; `R_PICPOC` = recovers via a real calcite anchor (and a single global
 > value is under-constrained — the bulk ratio should vary regionally); `scav_rat` = requires
-> per-cell (weakest leg); `diatomgraz` + the growth pair = unobservable from staged data. Honest
+> per-cell (weakest leg globally, but locally identifiable — Southern Ocean single-AOI 30/50 arithmetic, P = 3.2e-24, and 49/50 geometric, P = 6.3e-59, vs an architecture-matched untrained null); `diatomgraz` + the growth pair = unobservable from staged data. Honest
 > limit: this is a **consistency check against Carroll's own values, not a cross-validated
 > discovery against the GCM** — held-out real-data R² is negative because the 0-D box homogenizes
 > (the surrogate gap), which is a **finding**, not a flaw, and is what forces identifiability to
@@ -58,7 +58,7 @@ growth rates) and is excluded from the target, not counted as a miss.
 |---|---|---|---|---|
 | **native LLC270** | **Native** res, Eq Pac | Does native resolution change iron recovery? | Resolution *selects* which iron param recovers (native → `alpfe`, 1° → `scav_rat`; **8/10 each, per PRs [#122](https://github.com/2imi9/ECCO-DarwinDiff/issues/122) / [#123](https://github.com/2imi9/ECCO-DarwinDiff/issues/123)** — not archived) — it does **not** lift the recovery count ([cluster_setup.md](cluster_setup.md)) | Native resolution is not a 6/6 unlock — it reshuffles *which* iron param recovers |
 | **R_PICPOC fix** (`RATIO_MAX` + Daniels) | 1° box, 3-AOI | Was `R_PICPOC` a "6/6 wall"? | **`R_PICPOC` 10/10**, landing at real ~0.05 (*consistent with* Carroll's 0.0425 within the ±40 % Cal band — not a validation) once the SO ratio target is sanitized (`RATIO_MAX=2`) + a real calcite anchor (Daniels CP:PP / MODIS) is added | **Refutes the "wall"**: the gap was a contaminated target + a missing real observation, not calcite physics or resolution. Deeper spine-D result: Carroll's *global* `R_PICPOC` is itself under-constrained and mis-specified vs a regionally-variable rain ratio (Daniels eqpac ~0.039, ≈1.6× global) |
-| **`geo1` hold-together** _(current best)_ | 1° box, 3-AOI | Joint hold of the observable trio | **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly 7/10** (3-of-4-observable frontier; tied with `base`/`dan2` at n=10) | The current operating point — real, Darwin-independent anchors hold 3 of 4 |
+| **`geo1` hold-together** _(superseded as the operating point by the n=50 flagship `n50e2k_percell_trio`)_ | 1° box, 3-AOI | Joint hold of the observable trio | **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly 7/10 arithmetic** (un-auditable — this run predates the 2026-07-29 collapse keys; tied with `base`/`dan2` at n=10) | The current operating point — real, Darwin-independent anchors hold 3 of 4 |
 | **per-cell vs global** | 1° box, 3-AOI, `geo1` | Is the per-cell DINN load-bearing? | per-cell **7/10** vs global scalar **0/10** for the trio (`scav_rat` 8/0, `R_PICPOC` 9/0; Fisher p < 0.01) | Identifiability is **parameter-specific**: `alpfe` is **method-independent / mass-balance-identified** (a DINN-free global-scalar and a gradient-free estimator reach the same `alpfe` optimum), but `scav_rat` and `R_PICPOC` genuinely **require** the per-cell structure (0/10 without it). So the per-cell DINN is load-bearing for the trio, not a pattern-matching artifact against Darwin |
 
 ## C. Track-2 hybrid — feasibility only (self-twin / synthetic, **not** real Darwin)
@@ -88,9 +88,9 @@ growth rates) and is excluded from the target, not counted as a miss.
 
 ## Reading the matrix
 
-- **The current operating point is `geo1`** (table B): real GEOTRACES iron + a real Daniels/MODIS
-  calcite anchor hold {`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 7/10 seeds. `diatomgraz` is an
-  open iron-pair tradeoff (recoverable in principle via dense Darwin POSi/TRAC16, not yet staged).
+- **The current operating point is the flagship `n50e2k_percell_trio`** (n=50, 2000 epochs; real GEOTRACES iron + a real Daniels/MODIS
+  calcite anchor): `alpfe` **49/50**, `R_PICPOC` **50/50**, `scav_rat` **25/50** arithmetic, trio **25/50** arithmetic — and **13/50** and **12/50** under the geometric collapse, measured on `collapse/collapse_n50`, a bitwise-identical reproduction (the flagship itself carries no collapse keys and cannot be pooler-audited). `geo1` (table B) is the earlier n=10 operating point, arithmetic and un-auditable. `diatomgraz` is
+  regionally identifiable (equatorial Pacific) and graded per-leg at the honest band, not on the ±40 % aggregate.
 - **"6/6" is the wrong frame.** The growth pair is unobservable; `R_PICPOC` was never a wall (table B
   refutes it). The honest target is the 4 observable params. The deeper spine-D result is that Carroll's
   *global* `R_PICPOC` is itself **under-constrained** and should be regional (the real rain ratio varies by

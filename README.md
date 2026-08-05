@@ -58,27 +58,40 @@ final = carroll6_integrate(state0, params, dt=0.25, n_steps=200)
 ```
 
 Every reported number is gated: `uv run python scripts/verify_run.py <run-dir>` must exit 0.
+`scav_rat` additionally requires `scripts/analysis/pooler_audit.py` — and 119 of 211 run dirs
+carry no collapse keys, so they exit 2 rather than being auditable at all.
 
 ## Results
 
 Flagship `n50e2k_percell_trio` — n=50 seeds, 2000 epochs. Metric is **per-AOI ≥2-of-3**, never
-cell-weighted (which straddles Carroll and overstates recovery).
+cell-weighted (which straddles Carroll and overstates recovery). Counts are under the
+**arithmetic** per-AOI collapse unless a second figure is given.
 
 | Parameter | | Note |
 |---|---|---|
-| `R_PICPOC` | **50/50** | 6/50 without a real calcite anchor |
-| `alpfe` | **49/50** | strong in every basin |
-| `scav_rat` | **25/50** | S. Ocean 49, eq. Pacific 7 |
-| `diatomgraz` | **3/50** | inverts `scav_rat` — 37 at the equator |
-| trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** | vs **0/50** global-scalar |
+| `R_PICPOC` | **50/50** | 6/50 without a real calcite anchor; collapse-invariant |
+| `alpfe` | **49/50** | every basin, and collapse-invariant — but **railed at its 1.0 bound**, see below |
+| `scav_rat` | **25/50** arith · **13/50** geom | the North Atlantic leg carries the difference, 19 → 5 |
+| `diatomgraz` | **3/50** | inverts `scav_rat` — 40/100 at ≤10% at the equator |
+| trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** arith · **12/50** geom | vs **0/50** global-scalar |
+
+**Two of these numbers do not mean what they look like.** `scav_rat` is a log-scale parameter and
+the arithmetic collapse inflates it by `exp(σ²/2)`, so the trio roughly halves under the geometric
+collapse; the flagship's own artifacts predate the instrumentation, so this is measured on a
+bitwise-identical twin. And `alpfe`'s bounds are (0.05, **1.0**) against a Carroll value of
+**0.92831**, so the ceiling sits 7.72% above truth and the fit saturates there — 45–49 of 50 seeds
+land within 1% of the bound, and the band sweep is a step function (0/50 at 0.05 and 0.06, 49/50
+from 0.08 up). The *signal* is real and overwhelming (98/100 against an untrained 0/100 at a 0.10
+band). The *precision* is bound-limited and unresolved pending a widened-bound arm.
 
 The denominator is **4, not 6** — the growth pair is excluded, not failed, for two different
 reasons. `Biggrow` is unobservable by construction (never recovers, seasonal included); `Smallgrow`
 is not identifiable from the **time-mean** observables this study fits, though a seasonal prototype
 recovers it in strong-bloom basins (N. Atlantic 9/10, unconfirmed). `scav_rat` and `diatomgraz`
-recover in opposite basins, so no config gets all four:
-the **3-of-4 frontier is structural**. The binding constraint is the observing system, not the
-method.
+recover in opposite basins, so no config gets all four. Whether that ceiling is **structural**
+(information the observations do not carry) or **practical** (optimisation) is still open — `ded77`
+is unsettled, and differential-algebra structural identifiability can settle it symbolically, with
+no data and no cluster time.
 
 **Forward emulator — a clean negative result.** Positivity holds in log space (0% negative
 concentrations on all six tracers) but **mass is not conserved** — Chl1 drifts +130% over six

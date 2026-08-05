@@ -2559,6 +2559,16 @@
    "question": "Should EKI/CES be run to improve scav_rat recovery?",
    "answer": "NO, and this is already settled twice over - it is recorded that five independent estimator routes (EnKF rank <= N-1, CES flat ridge, history-matching NROY ray, KOH theta-delta ridge, SINDy non-uniqueness) all hit the same wall, that no estimator breaks a rank-1 structural null, and that 'CES/EKI as recovery' belongs on the list of methods CORRECTLY REJECTED (blocked by: single realization / rank-1 null). The standing directive is ADOPT EKI/CES AS A DIAGNOSTIC ONLY, NEVER AS A RECOVERY IMPROVEMENT. What EKI is genuinely worth: it closed the 'DINN + autograd artifact' attack by reproducing the backprop verdict without gradients, and its low scav_rat estimate is now the independent confirmation that the arithmetic collapse was inflating. Its ensemble spread is NOT a posterior - eki_core.eki is the ILS-2013 inversion OPTIMIZER with no inflation or localization and its ensemble collapses, so a calibrated interval still needs the EKS/sample stage.",
    "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "question": "Does the 2026-07-30 'keep linear, do not re-run' decision on the scav_rat bounding map survive being re-graded under the geometric and median collapses?",
+   "answer": "YES, the decision stands - but it is UNDERPOWERED, not null, and the recorded reason for it is wrong. Job 264591 (n=50 x 4 arms in ONE submission, NB23_LR pinned 5e-3, 20/20 COMPLETED, pre-registered). Paired exact McNemar on the trio, same 50 seeds: arithmetic 25/50 vs 31/50, 9 ctrl-only vs 15 logsr-only, P = 0.3075 - REPRODUCING job 227773 EXACTLY five days later on a different code build. Geometric 12/50 vs 22/50, 7 vs 17, P = 0.0639. Median 23/50 vs 26/50, P = 0.7201. Not significant under any collapse, so keep the linear map. BUT 2026-07-30 concluded the map 'moves individual fits a great deal while leaving the aggregate where it was'; under the geometric collapse the aggregate moves 83% (12 -> 22) against 24% (25 -> 31) arithmetic, and P falls 0.3075 -> 0.0639. The arithmetic collapse was UNDERSTATING the bounding-map effect, the same direction as every other pooler finding. If revisited, the experiment is n=100 under the geometric collapse, not another n=50.",
+   "doc": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md"
+  },
+  {
+   "question": "Does the geometric bounding map really cost R_PICPOC 5 seeds, as recorded on 2026-07-30?",
+   "answer": "PARTLY an arithmetic-collapse artifact. Job 264591 paired McNemar, linear vs geometric map: arithmetic 50/50 -> 45/50, 5 losses, P = 0.0625 (reproducing 227773); GEOMETRIC 50/50 -> 48/50, only 2 losses, P = 0.50; median 50/50 -> 47/50, 3 losses, P = 0.25. R_PICPOC is pooler-invariant in the FLAGSHIP configuration (log_sd <= 0.21), so this is not the scav_rat dispersion mechanism - it is that the two arms differ and grading the difference arithmetically overstates it. The surviving cost is 2 seeds, not 5. alpfe is 49/50 -> 50/50 under all three collapses, invariant as everywhere else.",
+   "doc": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md"
   }
  ],
  "claims": [
@@ -10891,6 +10901,10 @@
   {
    "trap": "Do NOT propose EKI/CES (or EnKF, history matching, KOH GP emulators, SINDy) as a way to improve scav_rat recovery. It is settled that no ESTIMATOR breaks the rank-1 alpfe<->scav_rat null - only a new OBSERVABLE that projects source and sink differently does. EKI's role is diagnostic: it reproduces the backprop verdict without autograd, and its scav_rat estimate of 0.349x Carroll is the independent check that the arithmetic collapse was inflating, not evidence that a better estimator is available.",
    "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "trap": "Do NOT read the scav_rat row of the bounding-map A/B on its own. The geometric map raises scav_rat's UNTRAINED rate from 0/50 to 8/50 (measured twice, jobs 263466 and 264591, and pooler-invariant at 8/8/8), so part of any marginal gain is prior rather than learning. Read the TRIO, whose untrained baseline is 0/50 in BOTH arms under ALL THREE collapses and is therefore immune to the prior shift.",
+   "doc": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md"
   }
  ]
 }
