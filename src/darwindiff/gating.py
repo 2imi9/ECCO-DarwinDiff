@@ -181,3 +181,54 @@ def apply_gate(params: torch.Tensor, gate_vec: torch.Tensor) -> torch.Tensor:
     g = gate_vec.reshape(shape).to(dtype=params.dtype, device=params.device)
     detached = params.detach()
     return detached + g * (params - detached)
+
+
+def build_weight_vectors_from_rule(
+    rule: dict,
+    aoi_keys: list[str],
+    aoi_loss_weights: dict[str, float],
+    device: str | torch.device | None = None,
+    dtype: torch.dtype = torch.float32,
+) -> dict[str, torch.Tensor]:
+    """Soft per-(parameter, AOI) gradient weights from a derived routing rule.
+
+    :func:`apply_gate` is a straight-through mask -- ``detached + g * (params - detached)`` --
+    whose forward value is ``params`` for **any** ``g`` and whose backward scales the gradient
+    by ``g``. Nothing about it requires ``g`` to be binary, so soft weighting needs no change
+    there: only the vectors differ.
+
+    ``rule`` is the JSON emitted by ``scripts/analysis/emit_routing_rule.py``: per parameter, a
+    distribution over AOIs proportional to the Fisher information that AOI's observations carry
+    about that parameter, evaluated at the prior midpoint. It never reads Carroll's values, so
+    routing by it is not selection on the answer.
+
+    TOTAL GRADIENT IS HELD FIXED, AND THIS IS THE POINT.
+    ---------------------------------------------------
+    The runner already multiplies each AOI's loss by ``aoi_loss_weights`` (the flagship's
+    ``{1, 2, 2}``). If the rule's weights were applied on top, the *total* gradient reaching each
+    parameter would change as well as its distribution across basins -- and a change in total
+    gradient is a change in effective learning rate. On 2026-08-03 an unpinned learning rate
+    (5e-3 vs 1e-3) moved ``scav_rat`` from 26/50 to 1/50, so an experiment that varies routing and
+    effective LR together would be uninterpretable in exactly the way that cost two arrays.
+
+    So the returned gate satisfies, for every parameter ``j``::
+
+        sum_a  aoi_loss_weights[a] * gate[a][j]  ==  sum_a aoi_loss_weights[a]
+
+    i.e. the same total as ungated. Only the *distribution* over AOIs changes. Verified by
+    ``tests/test_gating_weights.py``.
+    """
+    n = len(PARAM_NAMES)
+    weights = rule["weights"] if "weights" in rule else rule
+    total = float(sum(aoi_loss_weights[a] for a in aoi_keys))
+    vectors: dict[str, torch.Tensor] = {}
+    for a in aoi_keys:
+        vec = torch.zeros(n, dtype=dtype, device=device)
+        w_a = float(aoi_loss_weights[a])
+        for name, idx in _PARAM_INDEX.items():
+            share = float(weights.get(name, {}).get(a, 1.0 / len(aoi_keys)))
+            # gate = share * total / aoi_weight, so that aoi_weight * gate == share * total
+            # and the per-parameter sum over AOIs is `total`, matching ungated exactly.
+            vec[idx] = 0.0 if w_a == 0.0 else share * total / w_a
+        vectors[a] = vec
+    return vectors

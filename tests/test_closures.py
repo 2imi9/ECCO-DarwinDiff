@@ -75,8 +75,13 @@ def test_scav_baseline_byte_identical():
 
 
 def test_scav_sink_nonneg_and_bounded_correction():
-    """For any weights the sink is >=0 and its correction factor stays in
-    [1-eps, 1+eps] (bounded deformation of the Parekh backbone)."""
+    """For any weights the sink is >=0 and its shape factor stays bounded.
+
+    The bound widened when G became mean-centred (issue #217): G = corr / gm with both
+    corr and the reference geometric mean gm in [1-eps, 1+eps], so
+    G in [(1-eps)/(1+eps), (1+eps)/(1-eps)]. Still a bounded, strictly positive
+    deformation of the Parekh backbone, which is what keeps the sink a proper loss term.
+    """
     clo = ScavClosure(eps=0.2)
     torch.manual_seed(5)
     for p in clo.net.parameters():
@@ -85,10 +90,12 @@ def test_scav_sink_nonneg_and_bounded_correction():
     poc = 0.1 + 0.5 * torch.rand(8, 8)
     sink = clo(dfe, poc)
     assert (sink >= 0.0).all()
-    backbone = torch.exp(clo.log_r0) * (poc / clo.POC0).pow(clo.p) * dfe
+    backbone = math.exp(clo.log_r0) * (poc / clo.POC0).pow(clo.p) * dfe
     corr = sink / backbone
-    assert corr.min().item() >= 1.0 - clo.eps - 1e-6
-    assert corr.max().item() <= 1.0 + clo.eps + 1e-6
+    lo = (1.0 - clo.eps) / (1.0 + clo.eps)
+    hi = (1.0 + clo.eps) / (1.0 - clo.eps)
+    assert corr.min().item() >= lo - 1e-6
+    assert corr.max().item() <= hi + 1e-6
 
 
 def test_scav_trains_through_transport():
@@ -104,8 +111,10 @@ def test_scav_trains_through_transport():
     fN = integrate(tend, state0, dt=0.25, n_steps=80, method="rk4", checkpoint_segment=20)
     fN.pow(2).mean().backward()
     named = dict(clo.named_parameters())
-    for g in (named["log_r0"].grad, named["raw_p"].grad):
-        assert g is not None and torch.isfinite(g).all()
+    # log_r0 is deliberately absent: it is a fixed level, not a Parameter (issue #217).
+    assert "log_r0" not in named
+    g = named["raw_p"].grad
+    assert g is not None and torch.isfinite(g).all()
     assert any(
         p.grad is not None and torch.isfinite(p.grad).all() and p.grad.abs().sum().item() > 0.0
         for p in clo.parameters()
@@ -165,17 +174,106 @@ def test_env_calcite_g_formula_pinned():
     torch.testing.assert_close(g, torch.full_like(g, expected))
 
 
+def test_a_constant_readout_is_normalised_away():
+    """A constant correction is a multiplicative LEVEL, and the level belongs to scav_rat.
+
+    Zero readout weights with bias b used to give corr == 1 + eps*tanh(b), i.e. a uniform
+    rescaling of the sink -- exactly the free level that made `scav_rat` non-identifiable
+    by construction (issue #217). Mean-centring in log space maps every constant to 1, so
+    the gauge direction is no longer reachable by any weight setting.
+    """
+    clo = ScavClosure(eps=0.2)
+    dfe = 1.0e-4 * torch.ones(3, 3)
+    poc = 0.5 * torch.ones(3, 3)
+    backbone = math.exp(clo.log_r0) * (poc / clo.POC0).pow(clo.p) * dfe
+    for b in (0.5, -1.3, 2.0):
+        with torch.no_grad():
+            clo.net[-1].weight.zero_()
+            clo.net[-1].bias.fill_(b)
+        corr = clo(dfe, poc) / backbone
+        torch.testing.assert_close(corr, torch.ones_like(corr), rtol=1e-6, atol=1e-7)
+
+
 def test_scav_corr_formula_pinned():
-    """Pin corr = 1 + eps*tanh(a): zero readout weights, bias b -> corr == 1+eps*tanh(b).
-    Catches the corr sign flip that survived the original gates."""
+    """Pin the SHAPE: G is the bounded correction divided by its reference geometric mean.
+
+    Catches the corr sign flip that survived the original gates. Uses a non-constant
+    readout, because a constant one is now normalised away by construction.
+    """
     clo = ScavClosure(eps=0.2)
     with torch.no_grad():
         clo.net[-1].weight.zero_()
-        clo.net[-1].bias.fill_(0.5)
-    dfe = 1.0e-4 * torch.ones(3, 3)
-    poc = 0.5 * torch.ones(3, 3)
-    sink = clo(dfe, poc)
-    backbone = torch.exp(clo.log_r0) * (poc / clo.POC0).pow(clo.p) * dfe
-    corr = sink / backbone
-    expected = 1.0 + 0.2 * math.tanh(0.5)
-    torch.testing.assert_close(corr, torch.full_like(corr, expected))
+        clo.net[-1].weight[0, 1] = 0.9      # respond to f2 = log10(POC/POC0) only
+        clo.net[-1].bias.fill_(0.3)
+    dfe = 1.0e-4 * torch.ones(4)
+    poc = clo.POC0 * torch.tensor([0.25, 0.5, 2.0, 4.0])
+
+    # by hand: a = 0.9 * tanh_hidden_out + 0.3 is what the net computes; instead of
+    # reimplementing the hidden layer, pin G against _corr, which is the pinned formula.
+    f1 = torch.log10(dfe) + 4.0
+    f2 = torch.log10(poc / clo.POC0)
+    feat = torch.stack([f1, f2], dim=-1)
+    raw = 1.0 + clo.eps * torch.tanh(clo.net(feat).squeeze(-1))
+    gm = torch.exp(torch.log(clo._corr(clo.ref_feat)).mean())
+    backbone = math.exp(clo.log_r0) * (poc / clo.POC0).pow(clo.p) * dfe
+
+    torch.testing.assert_close(clo(dfe, poc) / backbone, raw / gm)
+    assert not torch.allclose(raw, raw[0].expand_as(raw)), "readout must vary for this test"
+
+
+def test_scav_G_is_exactly_one_at_init():
+    """Acceptance criterion (#217): G == 1 bitwise at init, so the closure reproduces the
+    bilinear sink and the untrained null is exact rather than approximate.
+
+    Bitwise, not approximately: the readout is zero-initialised so _corr is exactly 1.0,
+    log of that is exactly 0.0, the mean of zeros is exactly 0.0, and exp(0) is exactly 1.
+    """
+    for env in (None, torch.randn(6, 3)):
+        clo = ScavClosure(env=env, eps=0.2)
+        feat = torch.randn(6, 2 if env is None else 5)
+        G = clo.G(feat)
+        assert torch.equal(G, torch.ones_like(G)), "G must be bitwise 1 at initialisation"
+
+
+def test_scav_has_no_free_multiplicative_level():
+    """Acceptance criterion (#217): the gauge is CLOSED.
+
+    Scaling the whole sink by a constant lambda != 1 must not be achievable by any weight
+    setting. Two independent checks:
+
+    1. No parameter named `log_r0` exists -- the level is a fixed float, not learnable.
+    2. Search over readout biases (the only way a bounded tanh net can emit a constant):
+       every one of them leaves the sink unchanged, so the orbit has been removed rather
+       than merely re-parameterised.
+    """
+    clo = ScavClosure(eps=0.2)
+    assert "log_r0" not in dict(clo.named_parameters())
+    assert isinstance(clo.log_r0, float)
+
+    dfe = 1.0e-4 * (0.5 + torch.rand(5, 5))
+    poc = 0.1 + 0.5 * torch.rand(5, 5)
+    with torch.no_grad():
+        clo.net[-1].weight.zero_()
+        clo.net[-1].bias.zero_()
+    base = clo(dfe, poc).clone()
+    for b in (-2.0, -0.4, 0.4, 2.0):
+        with torch.no_grad():
+            clo.net[-1].bias.fill_(b)
+        torch.testing.assert_close(clo(dfe, poc), base, rtol=1e-6, atol=0.0)
+
+
+def test_scav_reference_support_is_fixed_not_per_batch():
+    """The normaliser must not depend on the data the closure is evaluated on.
+
+    A batch-dependent mean would make the closure's meaning a function of its evaluation
+    set, so two identical states in different batches would scavenge differently.
+    """
+    clo = ScavClosure(eps=0.2)
+    torch.manual_seed(11)
+    for p in clo.net.parameters():
+        nn.init.normal_(p, std=2.0)
+    dfe = 1.0e-4 * torch.tensor([[1.0, 2.0, 3.0]])
+    poc = clo.POC0 * torch.tensor([[0.5, 1.0, 2.0]])
+    alone = clo(dfe[:, :1], poc[:, :1])
+    together = clo(dfe, poc)[:, :1]
+    torch.testing.assert_close(alone, together, rtol=1e-6, atol=0.0)

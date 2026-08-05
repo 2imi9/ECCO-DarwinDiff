@@ -218,12 +218,15 @@ from darwindiff.daniels_loader import (
     load_daniels_points,
 )
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
-from darwindiff.networks import DINN, GlobalScalarNet, PerCellFreeField
+from darwindiff.provenance import stamp as _prov_stamp
+from darwindiff.networks import DINN, PerParamDINN, GlobalScalarNet, PerCellFreeField
 from darwindiff.safe_load import safe_torch_load
+from darwindiff.gating import PARAM_NAMES as _GATE_PARAM_NAMES
 from darwindiff.gating import (
     GATING_POLICIES,
     apply_gate,
     build_gate_vectors,
+    build_weight_vectors_from_rule,
     resolve_policy,
     validate_policy,
 )
@@ -395,6 +398,11 @@ USE_GLOBAL_SCALAR = os.environ.get("GLOBAL_SCALAR", "0") == "1"
 # alongside it to separate per-cell freedom from per-AOI freedom.
 # Precedence: GLOBAL_SCALAR > POINTWISE > PER_AOI_DINN > shared DINN.
 USE_POINTWISE = os.environ.get("POINTWISE", "0") == "1"
+# PER_PARAM=1: one independent DINN trunk per PARAMETER (no representation sharing).
+# The ladder's missing rung -- every other rung varies spatial sharing, none varied
+# parameter sharing. Lower precedence than the spatial rungs, which are mutually
+# exclusive with it by construction (a global scalar is already unshared per cell).
+USE_PER_PARAM = os.environ.get("PER_PARAM", "0") == "1"
 CONSISTENCY_LAMBDA = float(os.environ.get("CONSISTENCY_LAMBDA", "0.0"))
 # POOL_PARAMS (partial pooling): which Carroll-6 params are pulled toward cross-AOI
 # agreement by CONSISTENCY_LAMBDA; the rest stay fully per-AOI free. Implements the
@@ -577,7 +585,40 @@ if USE_GATING and USE_PER_AOI_DINN:
         "per-parameter gradients within one shared DINN, while PER_AOI_DINN "
         "gives each AOI its own network. Pick one."
     )
-gate_vectors = build_gate_vectors(_gating_policy, AOIS_KEYS, device=device)
+# AOI_PARAM_WEIGHTS: path to a routing rule emitted by scripts/analysis/emit_routing_rule.py.
+# SOFT per-(parameter, AOI) gradient weighting, derived from Fisher information at the PRIOR
+# MIDPOINT rather than from which basin recovered best -- the latter would be selection on the
+# answer. The rule holds the per-parameter TOTAL gradient fixed and only redistributes it across
+# basins, so this does not covertly change the effective learning rate (which on 2026-08-03 was
+# shown to move scav_rat from 26/50 to 1/50 on its own).
+AOI_PARAM_WEIGHTS = os.environ.get("AOI_PARAM_WEIGHTS", "")
+# Hash the routing rule alongside the sourced config, so an artifact records the exact bytes
+# of every input that shaped it -- not just the code. DD_PROVENANCE_FILES is set by the sbatch.
+if AOI_PARAM_WEIGHTS:
+    _pf = os.environ.get("DD_PROVENANCE_FILES", "")
+    os.environ["DD_PROVENANCE_FILES"] = (
+        _pf + os.pathsep + AOI_PARAM_WEIGHTS) if _pf else AOI_PARAM_WEIGHTS
+USE_AOI_PARAM_WEIGHTS = bool(AOI_PARAM_WEIGHTS)
+if USE_AOI_PARAM_WEIGHTS and USE_GATING:
+    raise ValueError(
+        "AOI_PARAM_WEIGHTS and GATING_POLICY are mutually exclusive: both write the "
+        "per-parameter gate. Soft weights subsume binary routing -- use one."
+    )
+if USE_AOI_PARAM_WEIGHTS:
+    import json as _json
+    with open(AOI_PARAM_WEIGHTS, encoding="utf-8") as _f:
+        _rule = _json.load(_f)
+    gate_vectors = build_weight_vectors_from_rule(
+        _rule, AOIS_KEYS, AOI_W, device=device)
+    USE_GATING = True
+    GATING_POLICY_SPEC = f"aoi_param_weights:{os.path.basename(AOI_PARAM_WEIGHTS)}"
+    print(f"Per-(parameter, AOI) SOFT weights ENABLED from {AOI_PARAM_WEIGHTS}")
+    for _k in AOIS_KEYS:
+        print("    " + _k + ": " + "  ".join(
+            f"{_n}={float(gate_vectors[_k][_i]):.3f}"
+            for _i, _n in enumerate(_GATE_PARAM_NAMES)))
+else:
+    gate_vectors = build_gate_vectors(_gating_policy, AOIS_KEYS, device=device)
 if USE_GATING:
     print(f"Per-AOI gating ENABLED ({GATING_POLICY_SPEC}): "
           + "; ".join(f"{k}->{_gating_policy.get(k, [])}" for k in AOIS_KEYS))
@@ -600,6 +641,15 @@ DT = 0.25
 # basin-blind DFe_2 is 0.2671 nM at 200 steps and 0.4047 nM at 100, against observed subsurface
 # medians of sopac 0.2245, eqpac 0.4404, natl 0.5638 nM. See
 # docs/findings/2026-07-31_prereg_integration_window_swap.md.
+#
+# CORRECTION 2026-07-31: an earlier version of this comment said "DARWIN_IC defaults off". It does
+# NOT -- line 303 reads os.environ.get("DARWIN_IC", "1"), so per-basin Darwin ICs are the DEFAULT.
+# The basin-uniform state0 above applies only to arms that set DARWIN_IC=0 explicitly, which the
+# 2026-07-31 depth arms did. The FLAGSHIP uses Darwin ICs and is therefore NOT basin-blind: it
+# starts at FeT_L2 of 0.5353 / 0.7544 / 0.5393 nM and POC_L2 of 0.339 / 0.153 / 0.630 in
+# eqpac / natl / sopac, which makes the L2 decay rate differ ~4x across basins (tau = 57 / 125 /
+# 31 days). It is still a transient at 200 steps, so the window matters, but the mechanism is
+# per-basin rather than a single shared curve.
 N_STEPS = int(os.environ.get("N_STEPS", "200"))
 
 print(f"AOIS: {AOIS_KEYS}  (joint training across {N_AOIS} AOIs)")
@@ -1673,6 +1723,28 @@ elif USE_PER_AOI_DINN:
             torch.manual_seed(s + aoi_idx * 10000)
             n = DINN(n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
             nets_per_aoi[k].append(n)
+elif USE_PER_PARAM:
+    # The missing rung. Every other rung above varies SPATIAL sharing; this one varies
+    # PARAMETER sharing, which nothing had ever varied (0 of 3000 artifacts). One
+    # independent trunk per parameter, so no weight is shared between two parameters'
+    # predictions and the MLD-helps-diatomgraz / MLD-breaks-scav_rat conflict has no
+    # shared representation to fight over. Pre-registration:
+    # docs/findings/2026-08-03_prereg_per_parameter_routing.md
+    _w_match = PerParamDINN.matched_hidden_dim(
+        n_input_channels=n_input_channels, hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS)
+    print(f"\n[LADDER] Building {N_SEEDS} PER-PARAMETER nets ({N_PARAMS} independent trunks "
+          f"per seed, hidden_dim={DINN_HIDDEN_DIM}). NOTE: this has ~{N_PARAMS}x the weights "
+          f"of one shared trunk -- the capacity-matched control is PER_PARAM=0 with "
+          f"DINN_HIDDEN_DIM={_w_match}, and a lift measured against the default width is "
+          f"confounded with capacity, not evidence about parameter sharing.")
+    shared_nets = []
+    for s in SEEDS:
+        torch.manual_seed(s)
+        n = PerParamDINN(n_input_channels=n_input_channels,
+                         hidden_dim=DINN_HIDDEN_DIM, n_outputs=N_PARAMS).to(device)
+        shared_nets.append(n)
+    for k in AOIS_KEYS:
+        nets_per_aoi[k] = shared_nets
 else:
     print(f"\nBuilding {N_SEEDS} shared DINN networks (one per seed; applied to each AOI's env input)...")
     shared_nets: list[DINN] = []
@@ -2276,8 +2348,19 @@ if __name__ == "__main__":
         result = {
             "seed": seed,
             "aois": AOIS_KEYS,
+            # WHAT CODE PRODUCED THIS NUMBER. Added 2026-08-03 after the published
+            # flagship was found bound to a code build: same config, same seeds,
+            # scav_rat 60% on the 2026-07-26 tree and 2% on HEAD, with nothing able
+            # to detect it because no artifact recorded its own code version.
+            "code_provenance": _prov_stamp(__file__),
             "aoi_weights": AOI_W,
             "n_aois": N_AOIS,
+            # The integration window. Recorded because it is now swept: before
+            # 2026-07-31 it was hardcoded at 200 and no artifact needed to say so,
+            # which meant the arms of a window sweep were indistinguishable on the
+            # one variable the sweep varied.
+            "n_steps": N_STEPS,
+            "dt_days": DT,
             "geotraces_w": GEOTRACES_W,
             "n_geo_surf_cells_per_aoi": {b["key"]: b["n_geo_surf"] for b in bundles},
             "geotraces_sub_w": GEOTRACES_SUB_W,
@@ -2306,6 +2389,7 @@ if __name__ == "__main__":
             # the 0/50 control's own artifacts did not say they were the control.
             "global_scalar": USE_GLOBAL_SCALAR,
             "pointwise_free_field": USE_POINTWISE,
+            "per_param_dinn": USE_PER_PARAM,
             "n_free_param_values": (
                 sum(N_PARAMS * int(b["ocean_mask"].shape[0]) * int(b["ocean_mask"].shape[1])
                     for b in bundles) if USE_POINTWISE else None
@@ -2313,6 +2397,9 @@ if __name__ == "__main__":
             "consistency_lambda": CONSISTENCY_LAMBDA,
             "pool_params": sorted(_pool_set) if _pool_spec else "all",
             "gating_policy": GATING_POLICY_SPEC if USE_GATING else "ungated",
+            "aoi_param_weights_file": AOI_PARAM_WEIGHTS or None,
+            "aoi_param_weights": ({k: [float(x) for x in gate_vectors[k]]
+                                   for k in AOIS_KEYS} if USE_AOI_PARAM_WEIGHTS else None),
             "gating_map": {k: _gating_policy.get(k, []) for k in AOIS_KEYS} if USE_GATING else {},
             "pic_abs_w": PIC_ABS_W,
             "n_pic_abs_cells_per_aoi": {b["key"]: b["n_pic_abs"] for b in bundles},
@@ -2395,6 +2482,7 @@ if __name__ == "__main__":
         jrm_tag = f"_jrm{jrm}" if jrm != "cellweighted" else ""
         chl1_extra_tag = f"_chl1W{CHL1_W_EXTRA}" if CHL1_W_EXTRA > 0 else ""
         peraoi_tag = f"_peraoi_lam{CONSISTENCY_LAMBDA}" if USE_PER_AOI_DINN else ""
+        perparam_tag = "_perparam" if USE_PER_PARAM else ""
         _gate_preset = GATING_POLICY_SPEC if GATING_POLICY_SPEC in GATING_POLICIES else "custom"
         gate_tag = f"_gate-{_gate_preset}" if USE_GATING else ""
         pic_abs_tag = f"_picabsW{PIC_ABS_W}" if PIC_ABS_W > 0 else ""
@@ -2426,7 +2514,7 @@ if __name__ == "__main__":
                 f"{aoi_w_tag}"
                 f"{jrm_tag}"
                 f"{chl1_extra_tag}"
-                f"{peraoi_tag}"
+                f"{peraoi_tag}{perparam_tag}"
                 f"{gate_tag}"
                 f"{pic_abs_tag}"
                 f"{poc_abs_tag}"

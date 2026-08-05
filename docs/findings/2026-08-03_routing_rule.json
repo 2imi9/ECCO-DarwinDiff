@@ -1,0 +1,232 @@
+{
+ "method": "per_parameter_per_aoi_fisher_at_prior_midpoint",
+ "theta_0": {
+  "alpfe": 0.525000000372529,
+  "scav_rat": 1.5150000525210316e-06,
+  "Smallgrow": 1.050000000745058,
+  "Biggrow": 1.050000000745058,
+  "diatomgraz": 0.525000000372529,
+  "R_PICPOC": 0.7524999999441206
+ },
+ "theta_0_is": "prior midpoint (lo+hi)/2 -- where bounded_params maps an untrained net",
+ "uses_carroll_values": false,
+ "rel_eps": 0.02,
+ "aois": [
+  "eqpac",
+  "natlsubpolar",
+  "southernoceanpac"
+ ],
+ "weights": {
+  "alpfe": {
+   "eqpac": 0.3861820489207889,
+   "natlsubpolar": 0.17381580923523854,
+   "southernoceanpac": 0.4400021418439726
+  },
+  "scav_rat": {
+   "eqpac": 0.3936469366314396,
+   "natlsubpolar": 0.1767817907140052,
+   "southernoceanpac": 0.42957127265455525
+  },
+  "Smallgrow": {
+   "eqpac": 0.407405734607079,
+   "natlsubpolar": 0.19716037154893476,
+   "southernoceanpac": 0.39543389384398614
+  },
+  "Biggrow": {
+   "eqpac": 0.4066651004294156,
+   "natlsubpolar": 0.19704801286089843,
+   "southernoceanpac": 0.39628688670968604
+  },
+  "diatomgraz": {
+   "eqpac": 0.6333261753588899,
+   "natlsubpolar": 0.3665665796734949,
+   "southernoceanpac": 0.00010724496761520838
+  },
+  "R_PICPOC": {
+   "eqpac": 0.5666510810927234,
+   "natlsubpolar": 0.4333489189072765,
+   "southernoceanpac": 0.0
+  }
+ },
+ "raw_information": {
+  "alpfe": {
+   "eqpac": 1683.9130139472704,
+   "natlsubpolar": 757.9086185360965,
+   "southernoceanpac": 1918.5908171710798
+  },
+  "scav_rat": {
+   "eqpac": 1226.267006000054,
+   "natlsubpolar": 550.700785504036,
+   "southernoceanpac": 1338.1764961502372
+  },
+  "Smallgrow": {
+   "eqpac": 315.4245943768656,
+   "natlsubpolar": 152.64691912840414,
+   "southernoceanpac": 306.15566982359456
+  },
+  "Biggrow": {
+   "eqpac": 316.29546161653326,
+   "natlsubpolar": 153.2597513842381,
+   "southernoceanpac": 308.22350782514405
+  },
+  "diatomgraz": {
+   "eqpac": 769.2626469817963,
+   "natlsubpolar": 445.2460491071633,
+   "southernoceanpac": 0.13026391592989475
+  },
+  "R_PICPOC": {
+   "eqpac": 134.18830320594708,
+   "natlsubpolar": 102.62109799942941,
+   "southernoceanpac": 0.0
+  }
+ },
+ "information_by_observable": {
+  "alpfe": {
+   "eqpac": {
+    "DFe_surface": 16.712934886049858,
+    "DFe_subsurface": 40.61561715508796,
+    "PIC_over_POC": 2.25932990886576e-05,
+    "bSi_surface": 64.29886101669852,
+    "POC_subsurface": 1562.285578296135
+   },
+   "natlsubpolar": {
+    "DFe_surface": 8.697376839783058,
+    "DFe_subsurface": 10.592886805306257,
+    "PIC_over_POC": 1.4297370052251347e-07,
+    "bSi_surface": 42.172417299638695,
+    "POC_subsurface": 696.4459374483947
+   },
+   "southernoceanpac": {
+    "DFe_surface": 8.767596500555788,
+    "DFe_subsurface": 9.83734315700138,
+    "PIC_over_POC": 0.0,
+    "POC_subsurface": 1899.9858775135226
+   }
+  },
+  "scav_rat": {
+   "eqpac": {
+    "DFe_surface": 11.653525706627178,
+    "DFe_subsurface": 80.84088966817579,
+    "PIC_over_POC": 1.6399582464159143e-05,
+    "bSi_surface": 45.602978279357785,
+    "POC_subsurface": 1088.1695959463107
+   },
+   "natlsubpolar": {
+    "DFe_surface": 6.381758558372408,
+    "DFe_subsurface": 29.307238247711236,
+    "PIC_over_POC": 1.1181738817185447e-07,
+    "bSi_surface": 27.171759448609585,
+    "POC_subsurface": 487.84002913752545
+   },
+   "southernoceanpac": {
+    "DFe_surface": 6.647142163243615,
+    "DFe_subsurface": 32.66454033983781,
+    "PIC_over_POC": 0.0,
+    "POC_subsurface": 1298.8648136471559
+   }
+  },
+  "Smallgrow": {
+   "eqpac": {
+    "DFe_surface": 10.412293864008857,
+    "DFe_subsurface": 9.476000270152792,
+    "PIC_over_POC": 4.177238138037601e-06,
+    "bSi_surface": 48.53967029506075,
+    "POC_subsurface": 246.9966257704051
+   },
+   "natlsubpolar": {
+    "DFe_surface": 5.412676549173468,
+    "DFe_subsurface": 7.334487104131818,
+    "PIC_over_POC": 3.5570069197715316e-08,
+    "bSi_surface": 27.92811580563402,
+    "POC_subsurface": 111.97163963389477
+   },
+   "southernoceanpac": {
+    "DFe_surface": 5.537861090862261,
+    "DFe_subsurface": 5.4092192958457295,
+    "PIC_over_POC": 0.0,
+    "POC_subsurface": 295.2085894368866
+   }
+  },
+  "Biggrow": {
+   "eqpac": {
+    "DFe_surface": 10.42702379376532,
+    "DFe_subsurface": 9.402466543382756,
+    "PIC_over_POC": 4.156219860003806e-06,
+    "bSi_surface": 47.70365506460365,
+    "POC_subsurface": 248.76231205856166
+   },
+   "natlsubpolar": {
+    "DFe_surface": 5.427171283645574,
+    "DFe_subsurface": 7.212460958006971,
+    "PIC_over_POC": 3.1024291401328595e-08,
+    "bSi_surface": 27.569897318293332,
+    "POC_subsurface": 113.05022179326792
+   },
+   "southernoceanpac": {
+    "DFe_surface": 5.561225026962301,
+    "DFe_subsurface": 5.149970726444517,
+    "PIC_over_POC": 0.0,
+    "POC_subsurface": 297.51231207173726
+   }
+  },
+  "diatomgraz": {
+   "eqpac": {
+    "DFe_surface": 0.0020969096268132308,
+    "DFe_subsurface": 0.00771685544502867,
+    "PIC_over_POC": 6.77469879132104e-09,
+    "bSi_surface": 769.147393214194,
+    "POC_subsurface": 0.10543999575570986
+   },
+   "natlsubpolar": {
+    "DFe_surface": 0.0007223343110364126,
+    "DFe_subsurface": 0.006146041558773166,
+    "PIC_over_POC": 3.4157539373979323e-09,
+    "bSi_surface": 445.19872758228803,
+    "POC_subsurface": 0.0404531455897302
+   },
+   "southernoceanpac": {
+    "DFe_surface": 0.0006742115466825966,
+    "DFe_subsurface": 0.004246916579912563,
+    "PIC_over_POC": 0.0,
+    "POC_subsurface": 0.1253427878032996
+   }
+  },
+  "R_PICPOC": {
+   "eqpac": {
+    "DFe_surface": 0.0,
+    "DFe_subsurface": 0.0,
+    "PIC_over_POC": 134.18830320594708,
+    "bSi_surface": 0.0,
+    "POC_subsurface": 0.0
+   },
+   "natlsubpolar": {
+    "DFe_surface": 0.0,
+    "DFe_subsurface": 0.0,
+    "PIC_over_POC": 102.62109799942941,
+    "bSi_surface": 0.0,
+    "POC_subsurface": 0.0
+   },
+   "southernoceanpac": {
+    "DFe_surface": 0.0,
+    "DFe_subsurface": 0.0,
+    "PIC_over_POC": 0.0,
+    "POC_subsurface": 0.0
+   }
+  }
+ },
+ "contrast_best_over_worst": {
+  "alpfe": 2.5314276289361186,
+  "scav_rat": 2.4299520381570794,
+  "Smallgrow": 2.0663672491911584,
+  "Biggrow": 2.0637868635421945,
+  "diatomgraz": 5905.416258143176,
+  "R_PICPOC": null
+ },
+ "aois_with_zero_information": {
+  "R_PICPOC": [
+   "southernoceanpac"
+  ]
+ },
+ "low_contrast_parameters": [],
+ "limitation": "Ranks observation sets only. Cannot rank an input channel (e.g. MLD), which changes the parameterisation rather than the information and never enters the Fisher."
+}

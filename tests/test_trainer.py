@@ -135,23 +135,35 @@ class TestSyntheticTwin:
         assert all(moved), f"some params never moved: {moved}"
 
     def test_scav_closure_trains_all_params(self) -> None:
-        # ScavClosure's scientific scalars log_r0 (rate) and raw_p (POC exponent) live
-        # OUTSIDE .net; fit it through the trainer on a scav twin and assert they move.
+        # ScavClosure's one scientific scalar raw_p (POC exponent) lives OUTSIDE .net; fit
+        # it through the trainer on a scav twin and assert it moves. The rate log_r0 is no
+        # longer trainable (issue #217: it was a free level, exactly redundant with
+        # scav_rat), so the twin must differ in SHAPE -- exponent and readout weight.
         env, params, tc, ic, _, _, _ = self._setup()
         truth = ScavClosure(scav_rat_per_day=None, eps=0.2).to(F64)
         with torch.no_grad():
-            truth.raw_p.add_(0.5); truth.log_r0.add_(0.3)  # non-trivial truth
+            truth.raw_p.add_(0.5)
+            # A readout *weight*, not a bias: a constant readout is mean-centred away, so
+            # perturbing the bias alone would leave truth identical to the untrained
+            # closure and this test would pass while comparing nothing.
+            truth.net[-1].weight[0, 1] = 1.1
         tgt = dfe_observable(rollout_field(ic, params, tc, self.N_STEPS, scav_closure=truth)).detach()
+
+        clo = ScavClosure(eps=0.2).to(F64)
+        base = dfe_observable(rollout_field(ic, params, tc, self.N_STEPS, scav_closure=clo)).detach()
+        assert not torch.allclose(tgt, base), "twin must differ from the untrained closure"
+
         g = torch.Generator().manual_seed(2)
         vm = torch.rand(*tgt.shape, generator=g) < 0.25
-        clo = ScavClosure(eps=0.2).to(F64)
-        p0, r0 = float(clo.raw_p.detach()), float(clo.log_r0.detach())
+        p0 = float(clo.raw_p.detach())
+        w0 = clo.net[-1].weight.detach().clone()
         train_ude_closure(
             clo, ic, params, tc, self.N_STEPS, observable=dfe_observable, target=tgt,
             train_mask=~vm, hook="scav_closure", epochs=25, lr=3e-2,
         )
-        assert abs(float(clo.raw_p.detach()) - p0) > 1e-4     # POC exponent moved
-        assert abs(float(clo.log_r0.detach()) - r0) > 1e-4    # scav rate moved
+        assert abs(float(clo.raw_p.detach()) - p0) > 1e-4          # POC exponent moved
+        assert not torch.allclose(clo.net[-1].weight.detach(), w0)  # shape readout moved
+        assert isinstance(clo.log_r0, float)                        # level still not trainable
 
     def test_tbptt_recovers_and_beats_null(self) -> None:
         # Truncated BPTT (fixed: score only the final, converged window) must recover the
