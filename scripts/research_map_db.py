@@ -8,16 +8,25 @@ nothing made "has this been settled?" a one-command question. This makes it one,
 further: claims are JOINED to the evidence and the parameters they rest on, so an unsupported or
 retracted claim is findable by query rather than by memory.
 
-SOURCES. The database is assembled from four places, so no relation has to be maintained by hand
+SOURCES. The database is assembled from five places, so no relation has to be maintained by hand
 twice:
 
     docs/research_map.md            settled, claim, hypothesis, supersedes, trap, derives
+    docs/findings/research_map_corpus.json  the SAME rows, untruncated -- see TEXT below
     src/darwindiff/carroll6.py      parameter  (the registry is the single source of truth)
     docs/findings/citation_audit.json   citation  (written by the citation-verification workflow)
     docs/findings/*.md              document   (existence and supersession banners)
 
-That last one matters: it lets a query ask "does this claim cite a file that exists, and does that
-file carry a RETRACTED banner?" without anybody remembering to cross-check.
+The document source matters: it lets a query ask "does this claim cite a file that exists, and does
+that file carry a RETRACTED banner?" without anybody remembering to cross-check.
+
+TEXT. The markdown is a READING view and `gen_research_map.cell()` cuts every cell in it -- settled
+answers at 240 characters, claim statements at 230, traps at 220. This module parses that markdown,
+so until 2026-08-04 the database held the CUT text and `settled` searched it: 87% of settled answers
+were truncated, 35% of the corpus (83,957 of 242,118 characters) was unsearchable, and a miss
+printed "This may be genuinely new work" -- a false negative indistinguishable from a true one, in
+the tool built to prevent exactly that. `_rehydrate()` now widens every prose column back to the
+corpus text after the parse. The markdown keeps its truncation; the database does not. Issue #228.
 
 USAGE
 
@@ -38,6 +47,7 @@ ENFORCED (`check` exits 1). Relational algebra, written in SQL in CONSTRAINTS be
     sigma_{verdict IN (DEAD, FABRICATED)}(CITATION)           = {}
     sigma_{doc IS NULL}(SETTLED)                              = {}
     sigma_{status IS NULL}(CLAIM)                             = {}
+    sigma_{prose ENDS WITH ellipsis}(SETTLED u CLAIM u ...)   = {}   no markdown cut leaked in
 
 REPORTED BUT NOT ENFORCED (`check` prints, never fails). These are real properties that currently
 have violations; gating on them would fail every run and train readers to ignore the gate:
@@ -60,6 +70,7 @@ import json
 import re
 import sqlite3
 import sys
+import textwrap
 from pathlib import Path
 
 # Windows consoles default to cp1252 and the map contains typographic minus signs and arrows.
@@ -72,6 +83,11 @@ for _stream in (sys.stdout, sys.stderr):
 REPO = Path(__file__).resolve().parents[1]
 MAP = REPO / "docs" / "research_map.md"
 CITATION_AUDIT = REPO / "docs" / "findings" / "citation_audit.json"
+CORPUS = REPO / "docs" / "findings" / "research_map_corpus.json"
+
+#: The character `gen_research_map.cell()` appends when it cuts a cell. Its presence in the
+#: database after `_rehydrate` means a row failed to match the corpus and is still truncated.
+ELLIPSIS = "…"
 
 SCHEMA = """
 -- ---------------------------------------------------------------- core entities
@@ -356,6 +372,125 @@ def _load_citations(con: sqlite3.Connection) -> None:
             )
 
 
+def _flat(s) -> str:
+    """Single-line form. Matches gen_research_map.cell()'s whitespace handling, minus the cut."""
+    return re.sub(r"\s+", " ", str(s or "")).strip()
+
+
+def _key_full(s) -> str:
+    """Normalised text, uncut. Used to break key collisions by prefix containment."""
+    return re.sub(r"[^a-z0-9]+", "", str(s or "").lower())
+
+
+def _key(s) -> str:
+    """The same normalised 60-char prefix gen_research_map.py dedups its tables on."""
+    return _key_full(s)[:60]
+
+
+#: (db table, key column, corpus section, ((db column, corpus fields in fallback order), ...)).
+#: The key column is named identically in both, which is what makes the join possible at all.
+_REHYDRATE = (
+    ("settled", "question", "settled",
+     (("question", ("question",)), ("answer", ("answer",)))),
+    ("trap", "trap", "traps",
+     (("trap", ("trap",)),)),
+    ("supersedes", "old", "supersedes",
+     (("old", ("old",)), ("new", ("new",)), ("reason", ("reason",)))),
+    ("claim", "statement", "claims",
+     (("statement", ("statement",)), ("detail", ("why_this_mode", "numbers")),
+      ("null_baseline", ("numbers",)))),
+    ("hypothesis", "statement", "hypotheses",
+     (("statement", ("statement",)), ("predicts", ("predicts",)),
+      ("falsifier", ("falsifier",)))),
+)
+
+_MISSING = object()
+
+#: Counters from the most recent build(), so `check` can report coverage instead of asserting it.
+LAST_REHYDRATION: dict = {}
+
+
+def _rehydrate(con: sqlite3.Connection) -> dict:
+    """Widen markdown-truncated prose back to the corpus's full text. -> counters.
+
+    WHY. `gen_research_map.cell()` cuts every cell when it renders the markdown -- settled answers
+    at 240 characters, claim statements at 230, traps at 220. This module parses that markdown, so
+    before this step the database held the CUT text, and `settled` -- the check CLAUDE.md makes
+    mandatory before starting work -- searched it. Measured 2026-08-04: 87% of settled answers were
+    truncated and 35% of the corpus (83,957 of 242,118 characters) was unsearchable. A miss printed
+    "This may be genuinely new work", which reads as a clean negative rather than "your term may be
+    past character 240" -- the exact failure the map exists to prevent, in the tool built to prevent
+    it. See issue #228.
+
+    The markdown stays a READING view and keeps its truncation; only the database is widened.
+
+    This runs AFTER the parse and only ever rewrites text columns of rows that already exist. It
+    cannot change row counts or the synthesised `cl_id` / `hy_id` values, which #227 makes
+    load-bearing -- claim ids are positional, so a step that added or dropped a row here would
+    renumber hundreds of citations.
+
+    Collisions are resolved EXACTLY, not guessed. Two claims really do share a normalised
+    60-character key here (`ded110` and `ded111`, both opening "The alpfe/scav_rat degeneracy is a
+    one-parameter multiplicative gauge symmetry..."), which is the same shape of collision that
+    once silently destroyed 7 of 99 hypotheses through INSERT OR REPLACE. Because the cut text is
+    by construction a PREFIX of the full text, a tie is broken by asking which candidate the
+    database's own value actually prefixes. If that still leaves more than one, neither is used and
+    the row is counted as ambiguous rather than resolved by position.
+    """
+    counts = {"widened": 0, "ambiguous": 0, "unmatched": 0, "corpus": 0}
+    if not CORPUS.is_file():
+        counts["no_corpus"] = 1
+        return counts
+    try:
+        corpus = json.loads(CORPUS.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        counts["no_corpus"] = 1
+        return counts
+
+    for table, keycol, section, cols in _REHYDRATE:
+        index: dict = {}
+        for row in corpus.get(section, []) or []:
+            k = _key(row.get(keycol))
+            if k:
+                index.setdefault(k, []).append(row)
+        counts["corpus"] += sum(len(v) for v in index.values())
+
+        # table/keycol come from the _REHYDRATE literal above, never from input.
+        for rowid, keyval in con.execute(
+                f"SELECT rowid, {keycol} FROM {table}").fetchall():
+            cands = index.get(_key(keyval))
+            if not cands:
+                counts["unmatched"] += 1
+                continue
+            if len(cands) > 1:
+                # The rendered cell is a prefix of the corpus text, so ask which candidate the
+                # database's own value actually prefixes. Compare normalised, because cell()
+                # rewrites "|" and drops "\" on the way into the markdown.
+                stem = _key_full(str(keyval).rstrip(ELLIPSIS))
+                cands = [c for c in cands if _key_full(c.get(keycol)).startswith(stem)] or cands
+            if len(cands) != 1:
+                counts["ambiguous"] += 1
+                continue
+            row = cands[0]
+            sets, vals = [], []
+            for dbcol, fields in cols:
+                val = ""
+                for f in fields:
+                    if row.get(f):
+                        val = row[f]
+                        break
+                val = _flat(val)
+                if val:                       # never blank a column the parse already filled
+                    sets.append(f"{dbcol}=?")
+                    vals.append(val)
+            if sets:
+                con.execute(
+                    f"UPDATE {table} SET {', '.join(sets)} WHERE rowid=?",
+                    (*vals, rowid))
+                counts["widened"] += 1
+    return counts
+
+
 def build(map_path: Path = MAP) -> sqlite3.Connection:
     if not map_path.is_file():
         raise SystemExit(f"{map_path} not found. CLAUDE.md tells every session to read it.")
@@ -424,6 +559,9 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
             elif kind == "trap":
                 con.execute("INSERT INTO trap VALUES (?,?,?)",
                             (_get(r, header, "trap"), _get(r, header, "doc"), _get(r, header, "category")))
+    # The markdown is a reading view and is truncated by design; the database must not be. #228.
+    LAST_REHYDRATION.clear()
+    LAST_REHYDRATION.update(_rehydrate(con))
     con.commit()
     return con
 
@@ -458,6 +596,24 @@ CONSTRAINTS = [
     ("no citation is fabricated or dead",
      """SELECT doi, verdict, doc FROM citation
         WHERE verdict IN ('DEAD','SUSPECT_FABRICATED') AND deliberate = 0"""),
+    # The markdown truncates every cell; this module parses the markdown; so without _rehydrate
+    # the DB -- and `settled`, the mandatory pre-work check -- searched cut prose. 87% of settled
+    # answers were affected and 35% of the corpus was unsearchable (#228). char(8230) is the U+2026
+    # ellipsis gen_research_map.cell() appends when it cuts, so a row still carrying it here failed
+    # to match the corpus and is still truncated.
+    ("no prose is left truncated by the markdown rendering (#228)",
+     """SELECT 'settled.answer' AS col, substr(answer,1,60) AS text FROM settled
+          WHERE answer LIKE '%' || char(8230)
+        UNION ALL SELECT 'settled.question', substr(question,1,60) FROM settled
+          WHERE question LIKE '%' || char(8230)
+        UNION ALL SELECT 'claim.statement', substr(statement,1,60) FROM claim
+          WHERE statement LIKE '%' || char(8230)
+        UNION ALL SELECT 'trap.trap', substr(trap,1,60) FROM trap
+          WHERE trap LIKE '%' || char(8230)
+        UNION ALL SELECT 'supersedes.old', substr(old,1,60) FROM supersedes
+          WHERE old LIKE '%' || char(8230)
+        UNION ALL SELECT 'hypothesis.statement', substr(statement,1,60) FROM hypothesis
+          WHERE statement LIKE '%' || char(8230)"""),
 ]
 
 
@@ -492,6 +648,20 @@ def cmd_check(con) -> int:
             print(f"citation coverage: unreadable audit file; {stored} row(s) in table\n")
     else:
         print("citation coverage: NO audit file; the citation constraints below are vacuous\n")
+
+    # State the text coverage too. The markdown this DB is parsed from truncates every cell, so
+    # without rehydration `settled` searches cut prose (#228). Report it rather than assume it.
+    rh = LAST_REHYDRATION
+    if rh.get("no_corpus"):
+        print(f"text coverage: corpus {CORPUS.name} NOT FOUND -- prose is TRUNCATED as rendered "
+              f"(settled answers at 240 chars). Searches will miss text past the cut.\n")
+    elif rh:
+        note = ""
+        if rh.get("ambiguous") or rh.get("unmatched"):
+            note = (f"; {rh.get('ambiguous', 0)} ambiguous and {rh.get('unmatched', 0)} unmatched "
+                    f"rows LEFT TRUNCATED")
+        print(f"text coverage: {rh.get('widened', 0)} rows rehydrated to full corpus text{note}. "
+              f"The markdown stays truncated by design; the database does not.\n")
 
     bad = 0
     for name, sql in CONSTRAINTS:
@@ -532,13 +702,26 @@ def cmd_settled(con, term) -> int:
     rows = con.execute("SELECT question, answer, doc, dont FROM settled "
                        "WHERE lower(question) LIKE ? OR lower(answer) LIKE ?", (q, q)).fetchall()
     if not rows:
+        # Say what was actually searched. Until #228 this line was printed over TRUNCATED prose,
+        # so "nothing settled" could mean "your term sits past character 240 of an answer" -- a
+        # false negative that reads exactly like a true one.
+        n_rows, n_chars = con.execute(
+            "SELECT count(*), coalesce(sum(length(question) + length(answer)), 0) "
+            "FROM settled").fetchone()
         print(f"nothing settled matching {term!r}. This may be genuinely new work.")
+        print(f"  (searched {n_rows} settled rows, {n_chars:,} characters, untruncated)")
         return 0
     print(f"ALREADY SETTLED matching {term!r} ({len(rows)}). Do not re-derive:\n")
     for question, answer, doc, dont in rows:
-        print(f"  Q: {question}\n  A: {answer}\n  -> {doc}")
+        print(f"  Q: {question}")
+        # Answers run past 1,500 characters now that they are not cut, so wrap rather than
+        # emit one unreadable line.
+        for i, line in enumerate(textwrap.wrap(answer, 96) or [""]):
+            print(f"  {'A:' if i == 0 else '  '} {line}")
+        print(f"  -> {doc}")
         if dont:
-            print(f"  do not: {dont}")
+            for i, line in enumerate(textwrap.wrap(dont, 96)):
+                print(f"  {'do not:' if i == 0 else '       '} {line}")
         print()
     return 0
 

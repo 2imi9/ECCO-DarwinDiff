@@ -148,3 +148,131 @@ def test_research_map_json_mirror_is_current():
     assert not failing, f"mirror records failing constraints: {failing}"
     assert doc["constraints"], "mirror has no constraints recorded"
     assert doc["relational_algebra"], "mirror lost the relational-algebra statement"
+
+
+# --------------------------------------------------------------------- #228: no truncated prose
+#
+# `gen_research_map.cell()` cuts every markdown cell (settled answers at 240 characters), and
+# research_map_db.py parses that markdown. So the database -- and `settled`, the check CLAUDE.md
+# makes mandatory before starting work -- searched CUT prose. Measured 2026-08-04 before the fix:
+# 87% of settled answers truncated, 35% of the corpus unsearchable, and a miss printed "may be
+# genuinely new work", which reads exactly like a true negative.
+
+
+def _db():
+    sys.path.insert(0, str(REPO / "scripts"))
+    import research_map_db as rmdb
+    return rmdb
+
+
+def test_database_holds_the_corpus_full_text_not_the_truncated_markdown():
+    """Every rehydrated column must match the corpus length, not the markdown's cut length."""
+    import json
+
+    rmdb = _db()
+    con = rmdb.build()
+    corpus = json.loads(rmdb.CORPUS.read_text(encoding="utf-8"))
+
+    longest = max(len(rmdb._flat(r.get("answer"))) for r in corpus["settled"])
+    db_longest = con.execute("SELECT max(length(answer)) FROM settled").fetchone()[0]
+    assert db_longest == longest, (
+        f"settled.answer in the DB tops out at {db_longest} but the corpus has {longest}; "
+        "the markdown truncation is leaking into the database (#228)"
+    )
+    assert longest > 240, (
+        "this test is vacuous unless the corpus actually contains an answer longer than the "
+        f"240-char markdown cut; longest is {longest}"
+    )
+
+
+def test_settled_search_finds_text_past_the_markdown_cut():
+    """A term that appears only after character 240 of an answer must still be findable."""
+    import json
+
+    rmdb = _db()
+    con = rmdb.build()
+    corpus = json.loads(rmdb.CORPUS.read_text(encoding="utf-8"))
+
+    probe = None
+    for r in corpus["settled"]:
+        flat = rmdb._flat(r.get("answer"))
+        if len(flat) > 400:
+            for word in re.findall(r"[A-Za-z]{8,}", flat[320:]):
+                if word.lower() not in flat[:240].lower():
+                    probe = word.lower()
+                    break
+        if probe:
+            break
+    assert probe, "no corpus answer carries a distinctive word past char 320; cannot probe"
+
+    hits = con.execute(
+        "SELECT count(*) FROM settled WHERE lower(answer) LIKE ?", (f"%{probe}%",)).fetchone()[0]
+    assert hits, f"{probe!r} appears past the 240-char cut and settled cannot find it (#228)"
+
+
+def test_truncation_constraint_is_not_vacuous():
+    """Negative control: with the corpus unavailable the constraint MUST fire.
+
+    A check that cannot fail teaches readers to ignore the gate -- the exact reasoning recorded
+    for the vacuous supersedes join and for STRADDLE staying advisory in verify_run.
+    """
+    import pathlib
+
+    rmdb = _db()
+    sql = next(sql for name, sql in rmdb.CONSTRAINTS if "#228" in name)
+
+    con = rmdb.build()
+    assert not con.execute(sql).fetchall(), "prose is truncated with the corpus present"
+
+    real = rmdb.CORPUS
+    try:
+        rmdb.CORPUS = pathlib.Path("no_such_research_map_corpus.json")
+        degraded = rmdb.build()
+        assert degraded.execute(sql).fetchall(), (
+            "constraint found nothing even with rehydration disabled -- it is vacuous"
+        )
+    finally:
+        rmdb.CORPUS = real
+
+
+def test_rehydration_leaves_no_row_unmatched_or_ambiguous():
+    """Silent partial coverage is the failure mode; require the join to be total.
+
+    Ambiguity is real here: ded110 and ded111 share their first 60 normalised characters. The
+    tie is broken by prefix containment, not by position, so both resolve.
+    """
+    rmdb = _db()
+    rmdb.build()
+    counts = rmdb.LAST_REHYDRATION
+    assert counts.get("widened", 0) > 1000, f"suspiciously few rows rehydrated: {counts}"
+    assert counts.get("unmatched", 0) == 0, f"rows the corpus could not match: {counts}"
+    assert counts.get("ambiguous", 0) == 0, f"rows left truncated by key collision: {counts}"
+
+
+def test_rehydration_does_not_change_row_counts_or_ids():
+    """#227 makes claim ids positional, so a step that added or dropped a row would renumber
+    hundreds of citations. Rehydration may only ever widen text in place."""
+    import pathlib
+
+    rmdb = _db()
+    con = rmdb.build()
+    with_corpus = {
+        t: con.execute(f"SELECT count(*) FROM {t}").fetchone()[0]  # - literal names
+        for t in ("settled", "claim", "trap", "supersedes", "hypothesis")
+    }
+    ids = [r[0] for r in con.execute("SELECT cl_id FROM claim ORDER BY cl_id").fetchall()]
+
+    real = rmdb.CORPUS
+    try:
+        rmdb.CORPUS = pathlib.Path("no_such_research_map_corpus.json")
+        bare = rmdb.build()
+        without = {
+            t: bare.execute(f"SELECT count(*) FROM {t}").fetchone()[0]
+            for t in with_corpus
+        }
+        bare_ids = [r[0] for r in bare.execute("SELECT cl_id FROM claim ORDER BY cl_id").fetchall()]
+    finally:
+        rmdb.CORPUS = real
+
+    assert with_corpus == without, f"rehydration changed row counts: {with_corpus} vs {without}"
+    assert ids == bare_ids, "rehydration changed claim ids; #227 makes those positional"

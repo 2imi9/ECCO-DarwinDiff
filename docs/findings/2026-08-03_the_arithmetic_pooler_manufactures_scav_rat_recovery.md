@@ -1,3 +1,24 @@
+> # CORRECTED 2026-08-04 — the retraction stands, the GENERALISATION does not
+>
+> The width retraction below is **upheld in full**, and so is the mechanism. What is too strong is
+> the general statement in §"The general statement, which outlives this experiment":
+>
+> > *"Any intervention that increases per-cell dispersion in the `scav_rat` field will raise its
+> > arithmetic per-AOI count without improving the fit."*
+>
+> **That holds only where the geometric centre lies BELOW the ±40% band.** The arithmetic collapse
+> multiplies by `exp(σ²/2)`; below the band that inflation manufactures passes, but *inside* it the
+> same inflation carries the estimate out the top and **destroys** them. The counter-example is the
+> single-AOI Southern Ocean — the one basin where `scav_rat` is established — where the geometric
+> centre is 0.73× Carroll and `scav_rat` reads **30/50 arithmetic but 49/50 geometric**.
+>
+> Two further corrections: `per_aoi_log_sd` is **not** "already in every artifact" (it exists only
+> from 2026-07-29, in 92 of 211 run dirs), and the claim that this "casts doubt on" the flagship's
+> 25/50 is now settled rather than suspected — the trio is **12/50 geometric**.
+>
+> Superseded in part by `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md`.
+> Kept unedited below; the width result and the mechanism are correct as written.
+
 # The arithmetic pooler manufactures `scav_rat` recovery — any intervention that adds per-cell dispersion will "work"
 
 **Date:** 2026-08-03 · **Evidence:** jobs 258439 + 258694, five widths, n=100 each
