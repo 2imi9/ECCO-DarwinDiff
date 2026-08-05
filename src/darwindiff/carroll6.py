@@ -51,8 +51,9 @@ reference_darwin3.md.
 from __future__ import annotations
 
 import math
+import os
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import SimpleNamespace
 
 import torch
@@ -205,6 +206,33 @@ PARAMS: tuple[Param, ...] = (
     ),
 )
 
+
+# ---- Experiment lever: alpfe's UPPER bound ------------------------------------
+# `alpfe` rails at its 1.0 bound. Carroll is 0.92831, so the ~8% we have been quoting as an
+# accuracy is the BOUND-TO-CARROLL DISTANCE, not a measurement: most seeds land within one
+# percent of the bound, and a band sweep is a step function (0/50 at 0.06, 49/50 at 0.08).
+# The signal is real and strong (98/100 vs an untrained 0/100 at band 0.10); the PRECISION is
+# what is unmeasured.
+#
+# DD_ALPFE_HI widens the upper bound for ONE arm so bound geometry can be told apart from real
+# precision. Reading: the fit runs on to ~1.4 => there is no upper-side information and the
+# quoted precision is entirely geometry; it stops near 0.93 => the precision is real.
+#
+# Unset (the default) reproduces the registry exactly, so every existing run stays
+# bit-identical. This is the only sanctioned way to move a bound -- editing PARAMS in place
+# would silently change the meaning of every artifact already on disk.
+_ALPFE_HI_ENV = os.environ.get("DD_ALPFE_HI", "").strip()
+if _ALPFE_HI_ENV:
+    _alpfe_hi = float(_ALPFE_HI_ENV)
+    _alpfe_lo = next(p for p in PARAMS if p.name == "alpfe").bounds[0]
+    if _alpfe_hi <= _alpfe_lo:
+        raise ValueError(
+            f"DD_ALPFE_HI={_alpfe_hi} must exceed alpfe's lower bound {_alpfe_lo}"
+        )
+    PARAMS = tuple(
+        replace(p, bounds=(_alpfe_lo, _alpfe_hi)) if p.name == "alpfe" else p
+        for p in PARAMS
+    )
 
 # ---- Derived layout — regenerated from PARAMS; do not edit by hand. -----------
 # CARROLL_VALUES / PARAM_BOUNDS reproduce the exact float32 values of the

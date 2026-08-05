@@ -216,3 +216,58 @@ def test_gating_param_index_is_registry() -> None:
     from darwindiff import gating
 
     assert gating._PARAM_INDEX == PARAM_INDEX
+
+
+# --------------------------------------------------------------------------- DD_ALPFE_HI
+# The lever exists because `alpfe` rails at its 1.0 bound, so the precision we quote is the
+# bound-to-Carroll distance rather than a measurement. These tests pin the two properties that
+# make it safe to ship: it is INERT unless set, and when set it moves alpfe and nothing else.
+# Each runs in a subprocess because the override is applied at import time.
+
+def _bounds_under(env: dict[str, str] | None) -> list[list[float]]:
+    import json
+    import os
+    import subprocess
+    import sys
+
+    child = dict(os.environ)
+    child.pop("DD_ALPFE_HI", None)
+    child.update(env or {})
+    out = subprocess.run(
+        [sys.executable, "-c",
+         "import json;from darwindiff.carroll6 import PARAM_BOUNDS;"
+         "print(json.dumps(PARAM_BOUNDS.tolist()))"],
+        capture_output=True, text=True, env=child, check=True,
+    )
+    return json.loads(out.stdout)
+
+
+def test_alpfe_hi_lever_is_inert_when_unset() -> None:
+    """Absent the env var the registry is byte-for-byte the shipped one."""
+    assert _bounds_under(None)[PARAM_INDEX["alpfe"]] == [pytest.approx(0.05), pytest.approx(1.0)]
+
+
+def test_alpfe_hi_lever_widens_only_alpfe() -> None:
+    base = _bounds_under(None)
+    wide = _bounds_under({"DD_ALPFE_HI": "1.6"})
+    i = PARAM_INDEX["alpfe"]
+    assert wide[i] == [pytest.approx(0.05), pytest.approx(1.6)]
+    # every other row is untouched -- the lever must not perturb the joint fit it is measured in
+    for j, (b, w) in enumerate(zip(base, wide)):
+        if j != i:
+            assert b == w, f"row {j} moved; the lever is not isolated"
+
+
+def test_alpfe_hi_lever_rejects_a_bound_below_the_floor() -> None:
+    import os
+    import subprocess
+    import sys
+
+    child = dict(os.environ)
+    child["DD_ALPFE_HI"] = "0.01"
+    out = subprocess.run(
+        [sys.executable, "-c", "import darwindiff.carroll6"],
+        capture_output=True, text=True, env=child, check=False,
+    )
+    assert out.returncode != 0
+    assert "must exceed alpfe's lower bound" in out.stderr
