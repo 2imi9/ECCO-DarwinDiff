@@ -42,7 +42,7 @@ ENFORCED (`check` exits 1). Relational algebra, written in SQL in CONSTRAINTS be
 
     pi_cl(sigma_{live}(CLAIM)) INTERSECT pi_old(SUPERSEDES)   = {}   on normalised PROSE, not ids
     sigma_{mode=inductive AND numbers IS NULL}(CLAIM)         = {}   presence only, see caveat
-    sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}
+    sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}   DOCUMENT is the REPO, not disk
     sigma_{verdict=RESOLVES_MISMATCH}(CITATION)               = {}
     sigma_{verdict IN (DEAD, FABRICATED)}(CITATION)           = {}
     sigma_{doc IS NULL}(SETTLED)                              = {}
@@ -52,15 +52,20 @@ ENFORCED (`check` exits 1). Relational algebra, written in SQL in CONSTRAINTS be
 REPORTED BUT NOT ENFORCED (`check` prints, never fails). These are real properties that currently
 have violations; gating on them would fail every run and train readers to ignore the gate:
 
+    sigma_{live}(CLAIM) |><| sigma_{local_only}(DOCUMENT), sole cite       -- 2 rows
     CLAIM |><| SUPPORTS |><| sigma_{gate != exit0}(EVIDENCE) where live     -- 39 rows
     sigma_{live}(CLAIM) |><| sigma_{retracted}(DOCUMENT)                    -- 26 rows
     CLAIM - pi_cl(SUPPORTS)                                                 -- 291 rows
 
-TWO CAVEATS, stated because a passing `check` otherwise reads stronger than it is:
+THREE CAVEATS, stated because a passing `check` otherwise reads stronger than it is:
   * "carries its untrained null" is a PRESENCE check on the merged `n / null` column. The corpus
     has no separate null field, so no constraint here can verify a matched baseline exists.
   * the citation constraints run over the audit's EXCEPTION rows only (1 of 130). `check` prints
     its own coverage line for this reason.
+  * DOCUMENT is built from `git ls-files` plus the declared LOCAL_ONLY_DOCS, never from a disk
+    walk. Enumerating from disk made the orphan constraint pass on the author's machine and fail
+    in CI, where the seven gitignored notes do not exist. The mirror is now byte-identical from a
+    tracked-files-only checkout, which is the negative control ADR-0004 asks for.
 """
 
 from __future__ import annotations
@@ -69,6 +74,7 @@ import argparse
 import json
 import re
 import sqlite3
+import subprocess
 import sys
 import textwrap
 from pathlib import Path
@@ -92,11 +98,12 @@ ELLIPSIS = "…"
 SCHEMA = """
 -- ---------------------------------------------------------------- core entities
 CREATE TABLE document (
-    path      TEXT PRIMARY KEY,
-    name      TEXT,
-    date      TEXT,
-    retracted INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner
-    words     INTEGER
+    path       TEXT PRIMARY KEY,
+    name       TEXT,
+    date       TEXT,
+    retracted  INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner
+    words      INTEGER,
+    local_only INTEGER DEFAULT 0    -- 1 = deliberately gitignored; on disk here, absent for a reader
 );
 
 CREATE TABLE parameter (
@@ -211,6 +218,14 @@ CREATE VIEW v_orphan_doc AS          -- a claim citing a file that is not in the
     SELECT c.cl_id, c.doc FROM claim c
     WHERE trim(coalesce(c.doc,'')) <> ''
       AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0);
+
+CREATE VIEW v_local_only_cite AS     -- a live claim whose only backing is a file the reader cannot open
+    SELECT DISTINCT c.cl_id, d.name, substr(c.statement,1,70) AS statement
+    FROM claim c JOIN document d ON instr(c.doc, d.name) > 0
+    WHERE d.local_only = 1
+      AND lower(coalesce(c.status,'')) LIKE '%live%'
+      AND NOT EXISTS (SELECT 1 FROM document t
+                      WHERE t.local_only = 0 AND instr(c.doc, t.name) > 0);
 """
 
 _LINK = re.compile(r"\[([^\]]*)\]\(([^)]*)\)")
@@ -318,22 +333,83 @@ def _infer_track(text: str) -> str:
     return "data"
 
 
+# Seven research notes are gitignored BY NAME (.gitignore:100-106) at the author's direction, so
+# they exist on this machine and nowhere a reader can reach. Enumerating documents from the DISK
+# let them into the table here and only here: the orphan constraint passed locally and failed in
+# CI, where 31 claim citations dangle. Enumerate from the REPO instead and declare the seven, so
+# both environments build the same table. Same shape as citation.deliberate -- an exemption that is
+# written down and counted, not a silent pass. An eighth undeclared local citation still fails.
+LOCAL_ONLY_DOCS = (
+    "docs/research_notes/2026-05-03_overnight.md",
+    "docs/research_notes/2026-05-21_jon_meeting_brief.md",
+    "docs/research_notes/2026-05-23_cleanup_audit.md",
+    "docs/research_notes/2026-05-23_compute_ladder.md",
+    "docs/research_notes/2026-05-23_overnight_diff_full_darwin.md",
+    "docs/research_notes/2026-05-23_overnight_executed.md",
+    "docs/research_notes/2026-06-06_daily_data_defer.md",
+)
+
+
+def _tracked_doc_paths() -> list[str] | None:
+    """Repo-relative doc paths git knows about, or None if git cannot answer.
+
+    None is NOT the same as "no documents": falling through to an empty list would empty the
+    document table and make every claim an orphan at once.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(REPO), "ls-files", "docs/findings", "docs/research_notes"],
+            capture_output=True, text=True, timeout=30, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return out.stdout.splitlines() if out.returncode == 0 else None
+
+
 def _load_documents(con: sqlite3.Connection) -> None:
+    tracked = _tracked_doc_paths()
+    if tracked is None:
+        print("WARNING: git could not list files, falling back to disk. Untracked notes may enter "
+              "the document table, and this run will not match CI.", file=sys.stderr)
+
     for sub in ("findings", "research_notes"):
         d = REPO / "docs" / sub
         if not d.is_dir():
             continue
-        for p in sorted(d.glob("*.md")):
+        prefix = f"docs/{sub}/"
+        if tracked is None:
+            names = sorted(p.name for p in d.glob("*.md"))
+        else:
+            # Direct children only, matching the glob("*.md") this replaced -- ls-files also
+            # returns nested paths such as research_notes/art/.
+            names = sorted(r[len(prefix):] for r in tracked
+                           if r.startswith(prefix) and r.endswith(".md") and "/" not in r[len(prefix):])
+        for name in names:
+            p = d / name
             try:
                 text = p.read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 continue
-            m = re.match(r"(20\d\d-\d\d-\d\d)", p.name)
+            m = re.match(r"(20\d\d-\d\d-\d\d)", name)
             con.execute(
-                "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?)",
-                (p.as_posix(), p.name, m.group(1) if m else "",
-                 1 if _has_banner(text) else 0, len(text.split())),
+                "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?,?)",
+                # Repo-relative. This was p.as_posix(), an ABSOLUTE path, so the exported mirror
+                # carried 196 "C:/Users/Frank/..." strings and could not byte-match a rebuild
+                # anywhere else -- the mirror test could never have passed in CI.
+                (prefix + name, name, m.group(1) if m else "",
+                 1 if _has_banner(text) else 0, len(text.split()), 0),
             )
+
+    # Declared local-only notes. Written from the constant, never read from disk, so the row is
+    # identical whether or not the file happens to be present. All seven are banner-free (checked
+    # 2026-08-04), so retracted=0 is the measured value and not a convenient default.
+    for rel in LOCAL_ONLY_DOCS:
+        name = rel.rsplit("/", 1)[1]
+        m = re.match(r"(20\d\d-\d\d-\d\d)", name)
+        con.execute(
+            "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?,?)",
+            (rel, name, m.group(1) if m else "", 0, 0, 1),
+        )
 
 
 def _load_parameters(con: sqlite3.Connection) -> None:
@@ -585,7 +661,11 @@ CONSTRAINTS = [
      """SELECT question, answer FROM settled WHERE trim(coalesce(doc,''))=''"""),
     ("no claim has an empty status",
      """SELECT cl_id, statement FROM claim WHERE trim(coalesce(status,''))=''"""),
-    ("no claim cites a document that is not in the repo",
+    # The seven LOCAL_ONLY_DOCS are inside `document`, so claims citing them are not orphans here.
+    # That exemption is deliberate and is COUNTED by the advisory below rather than hidden: the
+    # files are gitignored by the author, so gating on them would fail forever and teach readers to
+    # ignore the gate. Any OTHER missing file is still a hard failure.
+    ("no claim cites a document that is neither in the repo nor a declared local-only note",
      """SELECT cl_id, doc FROM v_orphan_doc"""),
     # `deliberate` marks a site that cites a known-bad DOI ON PURPOSE, to record that it is bad.
     # Without this exemption the constraint would fail forever and readers would learn to ignore it,
@@ -618,6 +698,11 @@ CONSTRAINTS = [
 
 
 ADVISORIES = [
+    # The price of the local-only exemption above, stated in rows. These live claims rest on a
+    # file no reader outside this machine can open, which is a provenance defect even though it is
+    # not a build failure. Shrinking this list means publishing the note or re-citing the claim.
+    ("live claims whose ONLY cited document is a declared local-only note -- a reader cannot check them",
+     """SELECT cl_id, name, statement FROM v_local_only_cite"""),
     # Reported, never gated. A banner supersedes part of a document, not every claim in it, so
     # failing on this would fire on rows that are mostly fine and teach readers to ignore the gate.
     # Same reasoning as the STRADDLE guard in verify_run: keep the failure channel sharp.

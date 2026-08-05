@@ -35,7 +35,7 @@
   "ENFORCED (`check` exits 1). Relational algebra, written in SQL in CONSTRAINTS below:",
   "pi_cl(sigma_{live}(CLAIM)) INTERSECT pi_old(SUPERSEDES)   = {}   on normalised PROSE, not ids",
   "sigma_{mode=inductive AND numbers IS NULL}(CLAIM)         = {}   presence only, see caveat",
-  "sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}",
+  "sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}   DOCUMENT is the REPO, not disk",
   "sigma_{verdict=RESOLVES_MISMATCH}(CITATION)               = {}",
   "sigma_{verdict IN (DEAD, FABRICATED)}(CITATION)           = {}",
   "sigma_{doc IS NULL}(SETTLED)                              = {}",
@@ -43,14 +43,19 @@
   "sigma_{prose ENDS WITH ellipsis}(SETTLED u CLAIM u ...)   = {}   no markdown cut leaked in",
   "REPORTED BUT NOT ENFORCED (`check` prints, never fails). These are real properties that currently",
   "have violations; gating on them would fail every run and train readers to ignore the gate:",
+  "sigma_{live}(CLAIM) |><| sigma_{local_only}(DOCUMENT), sole cite       -- 2 rows",
   "CLAIM |><| SUPPORTS |><| sigma_{gate != exit0}(EVIDENCE) where live     -- 39 rows",
   "sigma_{live}(CLAIM) |><| sigma_{retracted}(DOCUMENT)                    -- 26 rows",
   "CLAIM - pi_cl(SUPPORTS)                                                 -- 291 rows",
-  "TWO CAVEATS, stated because a passing `check` otherwise reads stronger than it is:",
+  "THREE CAVEATS, stated because a passing `check` otherwise reads stronger than it is:",
   "* \"carries its untrained null\" is a PRESENCE check on the merged `n / null` column. The corpus",
   "has no separate null field, so no constraint here can verify a matched baseline exists.",
   "* the citation constraints run over the audit's EXCEPTION rows only (1 of 130). `check` prints",
-  "its own coverage line for this reason."
+  "its own coverage line for this reason.",
+  "* DOCUMENT is built from `git ls-files` plus the declared LOCAL_ONLY_DOCS, never from a disk",
+  "walk. Enumerating from disk made the orphan constraint pass on the author's machine and fail",
+  "in CI, where the seven gitignored notes do not exist. The mirror is now byte-identical from a",
+  "tracked-files-only checkout, which is the negative control ADR-0004 asks for."
  ],
  "schema": {
   "citation": {
@@ -6941,1386 +6946,1583 @@
    "rows": []
   },
   "document": {
-   "ddl": "CREATE TABLE document (\n    path      TEXT PRIMARY KEY,\n    name      TEXT,\n    date      TEXT,\n    retracted INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner\n    words     INTEGER\n)",
+   "ddl": "CREATE TABLE document (\n    path       TEXT PRIMARY KEY,\n    name       TEXT,\n    date       TEXT,\n    retracted  INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner\n    words      INTEGER,\n    local_only INTEGER DEFAULT 0    -- 1 = deliberately gitignored; on disk here, absent for a reader\n)",
    "columns": [
     "path",
     "name",
     "date",
     "retracted",
-    "words"
+    "words",
+    "local_only"
    ],
    "rows": [
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "path": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
      "name": "2026-07-07_jon_schultz_meeting_capture.md",
      "date": "2026-07-07",
      "retracted": 0,
-     "words": 2477
+     "words": 2477,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-07_overnight_h200_identifiability_profiles.md",
+     "path": "docs/findings/2026-07-07_overnight_h200_identifiability_profiles.md",
      "name": "2026-07-07_overnight_h200_identifiability_profiles.md",
      "date": "2026-07-07",
      "retracted": 0,
-     "words": 419
+     "words": 419,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-07_transport_helps_probe.md",
+     "path": "docs/findings/2026-07-07_transport_helps_probe.md",
      "name": "2026-07-07_transport_helps_probe.md",
      "date": "2026-07-07",
      "retracted": 0,
-     "words": 493
+     "words": 493,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-09_symbolic_distillation_identifiability_oracle.md",
+     "path": "docs/findings/2026-07-09_symbolic_distillation_identifiability_oracle.md",
      "name": "2026-07-09_symbolic_distillation_identifiability_oracle.md",
      "date": "2026-07-09",
      "retracted": 0,
-     "words": 1199
+     "words": 1199,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-10_e2_powered_result.md",
+     "path": "docs/findings/2026-07-10_e2_powered_result.md",
      "name": "2026-07-10_e2_powered_result.md",
      "date": "2026-07-10",
      "retracted": 0,
-     "words": 809
+     "words": 809,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md",
+     "path": "docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md",
      "name": "2026-07-10_iron_partitioning_breaks_the_wall.md",
      "date": "2026-07-10",
      "retracted": 0,
-     "words": 963
+     "words": 963,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-13_daily_surface_emulator.md",
+     "path": "docs/findings/2026-07-13_daily_surface_emulator.md",
      "name": "2026-07-13_daily_surface_emulator.md",
      "date": "2026-07-13",
      "retracted": 1,
-     "words": 826
+     "words": 826,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-13_global_monthly_emulator.md",
+     "path": "docs/findings/2026-07-13_global_monthly_emulator.md",
      "name": "2026-07-13_global_monthly_emulator.md",
      "date": "2026-07-13",
      "retracted": 0,
-     "words": 1142
+     "words": 1142,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-14_3d_emulator.md",
+     "path": "docs/findings/2026-07-14_3d_emulator.md",
      "name": "2026-07-14_3d_emulator.md",
      "date": "2026-07-14",
      "retracted": 1,
-     "words": 759
+     "words": 759,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-14_emulator_loop.md",
+     "path": "docs/findings/2026-07-14_emulator_loop.md",
      "name": "2026-07-14_emulator_loop.md",
      "date": "2026-07-14",
      "retracted": 1,
-     "words": 1401
+     "words": 1401,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_diatomgraz_claim_audit.md",
+     "path": "docs/findings/2026-07-19_diatomgraz_claim_audit.md",
      "name": "2026-07-19_diatomgraz_claim_audit.md",
      "date": "2026-07-19",
      "retracted": 0,
-     "words": 949
+     "words": 949,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_emulator_honest_bounds.md",
+     "path": "docs/findings/2026-07-19_emulator_honest_bounds.md",
      "name": "2026-07-19_emulator_honest_bounds.md",
      "date": "2026-07-19",
      "retracted": 1,
-     "words": 4341
+     "words": 4341,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_eqpac_chlorophyll_vs_modis.md",
+     "path": "docs/findings/2026-07-19_eqpac_chlorophyll_vs_modis.md",
      "name": "2026-07-19_eqpac_chlorophyll_vs_modis.md",
      "date": "2026-07-19",
      "retracted": 0,
-     "words": 2254
+     "words": 2254,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_results_matrix.md",
+     "path": "docs/findings/2026-07-19_results_matrix.md",
      "name": "2026-07-19_results_matrix.md",
      "date": "2026-07-19",
      "retracted": 0,
-     "words": 1885
+     "words": 1885,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_silicate_fim_artifact_audit.md",
+     "path": "docs/findings/2026-07-19_silicate_fim_artifact_audit.md",
      "name": "2026-07-19_silicate_fim_artifact_audit.md",
      "date": "2026-07-19",
      "retracted": 0,
-     "words": 1989
+     "words": 1989,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_silicate_observable_scope.md",
+     "path": "docs/findings/2026-07-19_silicate_observable_scope.md",
      "name": "2026-07-19_silicate_observable_scope.md",
      "date": "2026-07-19",
      "retracted": 0,
-     "words": 1681
+     "words": 1681,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_two_negatives.md",
+     "path": "docs/findings/2026-07-19_two_negatives.md",
      "name": "2026-07-19_two_negatives.md",
      "date": "2026-07-19",
      "retracted": 0,
-     "words": 2051
+     "words": 2051,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-19_v05_chlorophyll_vs_modis.md",
+     "path": "docs/findings/2026-07-19_v05_chlorophyll_vs_modis.md",
      "name": "2026-07-19_v05_chlorophyll_vs_modis.md",
      "date": "2026-07-19",
      "retracted": 0,
-     "words": 953
+     "words": 953,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-20_rollout_ceiling_mechanism.md",
+     "path": "docs/findings/2026-07-20_rollout_ceiling_mechanism.md",
      "name": "2026-07-20_rollout_ceiling_mechanism.md",
      "date": "2026-07-20",
      "retracted": 0,
-     "words": 1484
+     "words": 1484,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_anchors_only_ablation.md",
+     "path": "docs/findings/2026-07-21_anchors_only_ablation.md",
      "name": "2026-07-21_anchors_only_ablation.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 486
+     "words": 486,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_caltech_neural_operator_scan.md",
+     "path": "docs/findings/2026-07-21_caltech_neural_operator_scan.md",
      "name": "2026-07-21_caltech_neural_operator_scan.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 809
+     "words": 809,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_chl_binning_recompute.md",
+     "path": "docs/findings/2026-07-21_chl_binning_recompute.md",
      "name": "2026-07-21_chl_binning_recompute.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 325
+     "words": 325,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_emulator_geometry_flat.md",
+     "path": "docs/findings/2026-07-21_emulator_geometry_flat.md",
      "name": "2026-07-21_emulator_geometry_flat.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 558
+     "words": 558,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_eqpac_alone_ablation.md",
+     "path": "docs/findings/2026-07-21_eqpac_alone_ablation.md",
      "name": "2026-07-21_eqpac_alone_ablation.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 374
+     "words": 374,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_joint_number_reconciliation.md",
+     "path": "docs/findings/2026-07-21_joint_number_reconciliation.md",
      "name": "2026-07-21_joint_number_reconciliation.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 667
+     "words": 667,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_saddle_fix_result.md",
+     "path": "docs/findings/2026-07-21_saddle_fix_result.md",
      "name": "2026-07-21_saddle_fix_result.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 469
+     "words": 469,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-21_ude_stress_result.md",
+     "path": "docs/findings/2026-07-21_ude_stress_result.md",
      "name": "2026-07-21_ude_stress_result.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 443
+     "words": 443,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_anchors_only_n50_verified.md",
+     "path": "docs/findings/2026-07-22_anchors_only_n50_verified.md",
      "name": "2026-07-22_anchors_only_n50_verified.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 454
+     "words": 454,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_citation_method_lessons.md",
+     "path": "docs/findings/2026-07-22_citation_method_lessons.md",
      "name": "2026-07-22_citation_method_lessons.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 1409
+     "words": 1409,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_column_osse_result.md",
+     "path": "docs/findings/2026-07-22_column_osse_result.md",
      "name": "2026-07-22_column_osse_result.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 616
+     "words": 616,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_covariate_channels_result.md",
+     "path": "docs/findings/2026-07-22_covariate_channels_result.md",
      "name": "2026-07-22_covariate_channels_result.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 1087
+     "words": 1087,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_diatomgraz_realgraze_diagnostic.md",
+     "path": "docs/findings/2026-07-22_diatomgraz_realgraze_diagnostic.md",
      "name": "2026-07-22_diatomgraz_realgraze_diagnostic.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 861
+     "words": 861,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_dust_anchor_ab_b200.md",
+     "path": "docs/findings/2026-07-22_dust_anchor_ab_b200.md",
      "name": "2026-07-22_dust_anchor_ab_b200.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 950
+     "words": 950,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_dust_anchor_phase0.md",
+     "path": "docs/findings/2026-07-22_dust_anchor_phase0.md",
      "name": "2026-07-22_dust_anchor_phase0.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 482
+     "words": 482,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_eki_fullbox_result.md",
+     "path": "docs/findings/2026-07-22_eki_fullbox_result.md",
      "name": "2026-07-22_eki_fullbox_result.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 386
+     "words": 386,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_gap_closure_and_fable_validation.md",
+     "path": "docs/findings/2026-07-22_gap_closure_and_fable_validation.md",
      "name": "2026-07-22_gap_closure_and_fable_validation.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 734
+     "words": 734,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_iron_bottleneck_solution_map.md",
+     "path": "docs/findings/2026-07-22_iron_bottleneck_solution_map.md",
      "name": "2026-07-22_iron_bottleneck_solution_map.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 830
+     "words": 830,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
+     "path": "docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
      "name": "2026-07-22_neuralbgc_m2lines_landscape.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 975
+     "words": 975,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_realbox_geometry_result.md",
+     "path": "docs/findings/2026-07-22_realbox_geometry_result.md",
      "name": "2026-07-22_realbox_geometry_result.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 587
+     "words": 587,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_signflip_n50_result.md",
+     "path": "docs/findings/2026-07-22_signflip_n50_result.md",
      "name": "2026-07-22_signflip_n50_result.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 355
+     "words": 355,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_two_anchor_osse_verified.md",
+     "path": "docs/findings/2026-07-22_two_anchor_osse_verified.md",
      "name": "2026-07-22_two_anchor_osse_verified.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 414
+     "words": 414,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-22_two_anchor_redteam.md",
+     "path": "docs/findings/2026-07-22_two_anchor_redteam.md",
      "name": "2026-07-22_two_anchor_redteam.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 715
+     "words": 715,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_box_silica_feasibility.md",
+     "path": "docs/findings/2026-07-23_box_silica_feasibility.md",
      "name": "2026-07-23_box_silica_feasibility.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 2049
+     "words": 2049,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_critique_literature_grounding.md",
+     "path": "docs/findings/2026-07-23_critique_literature_grounding.md",
      "name": "2026-07-23_critique_literature_grounding.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1787
+     "words": 1787,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_data_sources_ghgcenter_earthmover.md",
+     "path": "docs/findings/2026-07-23_data_sources_ghgcenter_earthmover.md",
      "name": "2026-07-23_data_sources_ghgcenter_earthmover.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1086
+     "words": 1086,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_depth_emulator_e2s_result.md",
+     "path": "docs/findings/2026-07-23_depth_emulator_e2s_result.md",
      "name": "2026-07-23_depth_emulator_e2s_result.md",
      "date": "2026-07-23",
      "retracted": 1,
-     "words": 808
+     "words": 808,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_emulator_baseline_matrix.md",
+     "path": "docs/findings/2026-07-23_emulator_baseline_matrix.md",
      "name": "2026-07-23_emulator_baseline_matrix.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1739
+     "words": 1739,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_emulator_baselines_v2.md",
+     "path": "docs/findings/2026-07-23_emulator_baselines_v2.md",
      "name": "2026-07-23_emulator_baselines_v2.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1310
+     "words": 1310,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_emulator_multiseed.md",
+     "path": "docs/findings/2026-07-23_emulator_multiseed.md",
      "name": "2026-07-23_emulator_multiseed.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 854
+     "words": 854,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_inverse_method_citations.md",
+     "path": "docs/findings/2026-07-23_inverse_method_citations.md",
      "name": "2026-07-23_inverse_method_citations.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1125
+     "words": 1125,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_joint_profile_multipoint.md",
+     "path": "docs/findings/2026-07-23_joint_profile_multipoint.md",
      "name": "2026-07-23_joint_profile_multipoint.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 607
+     "words": 607,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_logchl_step_a_result.md",
+     "path": "docs/findings/2026-07-23_logchl_step_a_result.md",
      "name": "2026-07-23_logchl_step_a_result.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 615
+     "words": 615,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_novelty_literature_scan.md",
+     "path": "docs/findings/2026-07-23_novelty_literature_scan.md",
      "name": "2026-07-23_novelty_literature_scan.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 504
+     "words": 504,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_observable_frontier_config_analysis.md",
+     "path": "docs/findings/2026-07-23_observable_frontier_config_analysis.md",
      "name": "2026-07-23_observable_frontier_config_analysis.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1096
+     "words": 1096,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_observation_design.md",
+     "path": "docs/findings/2026-07-23_observation_design.md",
      "name": "2026-07-23_observation_design.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1653
+     "words": 1653,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_overnight_geometry_and_seasonal.md",
+     "path": "docs/findings/2026-07-23_overnight_geometry_and_seasonal.md",
      "name": "2026-07-23_overnight_geometry_and_seasonal.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1340
+     "words": 1340,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md",
+     "path": "docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md",
      "name": "2026-07-23_overnight_recovery_sweep_groupA.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1233
+     "words": 1233,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_parameter_completion_matrix.md",
+     "path": "docs/findings/2026-07-23_parameter_completion_matrix.md",
      "name": "2026-07-23_parameter_completion_matrix.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 831
+     "words": 831,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_percell_crlb_map.md",
+     "path": "docs/findings/2026-07-23_percell_crlb_map.md",
      "name": "2026-07-23_percell_crlb_map.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 919
+     "words": 919,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_recovery_table_verified.md",
+     "path": "docs/findings/2026-07-23_recovery_table_verified.md",
      "name": "2026-07-23_recovery_table_verified.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1328
+     "words": 1328,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_rigorous_identifiability_Q1Q2.md",
+     "path": "docs/findings/2026-07-23_rigorous_identifiability_Q1Q2.md",
      "name": "2026-07-23_rigorous_identifiability_Q1Q2.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 940
+     "words": 940,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_rpicpoc_protection_result.md",
+     "path": "docs/findings/2026-07-23_rpicpoc_protection_result.md",
      "name": "2026-07-23_rpicpoc_protection_result.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 757
+     "words": 757,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_subiron_scav_rat_result.md",
+     "path": "docs/findings/2026-07-23_subiron_scav_rat_result.md",
      "name": "2026-07-23_subiron_scav_rat_result.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 655
+     "words": 655,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_surrogate_jacobian_validation.md",
+     "path": "docs/findings/2026-07-23_surrogate_jacobian_validation.md",
      "name": "2026-07-23_surrogate_jacobian_validation.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1763
+     "words": 1763,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-23_v05_perturbation_recipe.md",
+     "path": "docs/findings/2026-07-23_v05_perturbation_recipe.md",
      "name": "2026-07-23_v05_perturbation_recipe.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 2002
+     "words": 2002,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-24_bgc_operator_lineage_synthesis.md",
+     "path": "docs/findings/2026-07-24_bgc_operator_lineage_synthesis.md",
      "name": "2026-07-24_bgc_operator_lineage_synthesis.md",
      "date": "2026-07-24",
      "retracted": 0,
-     "words": 3376
+     "words": 3376,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-24_ghgcenter_positioning.md",
+     "path": "docs/findings/2026-07-24_ghgcenter_positioning.md",
      "name": "2026-07-24_ghgcenter_positioning.md",
      "date": "2026-07-24",
      "retracted": 0,
-     "words": 2326
+     "words": 2326,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-24_overnight_session_summary.md",
+     "path": "docs/findings/2026-07-24_overnight_session_summary.md",
      "name": "2026-07-24_overnight_session_summary.md",
      "date": "2026-07-24",
      "retracted": 0,
-     "words": 1048
+     "words": 1048,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-24_parameter_specific_schema.md",
+     "path": "docs/findings/2026-07-24_parameter_specific_schema.md",
      "name": "2026-07-24_parameter_specific_schema.md",
      "date": "2026-07-24",
      "retracted": 0,
-     "words": 1288
+     "words": 1288,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-24_reproducibility_methods_appendix.md",
+     "path": "docs/findings/2026-07-24_reproducibility_methods_appendix.md",
      "name": "2026-07-24_reproducibility_methods_appendix.md",
      "date": "2026-07-24",
      "retracted": 0,
-     "words": 895
+     "words": 895,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-24_research_refinement.md",
+     "path": "docs/findings/2026-07-24_research_refinement.md",
      "name": "2026-07-24_research_refinement.md",
      "date": "2026-07-24",
      "retracted": 0,
-     "words": 1022
+     "words": 1022,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-25_e2s_conformance_verified.md",
+     "path": "docs/findings/2026-07-25_e2s_conformance_verified.md",
      "name": "2026-07-25_e2s_conformance_verified.md",
      "date": "2026-07-25",
      "retracted": 0,
-     "words": 537
+     "words": 537,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
+     "path": "docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
      "name": "2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
      "date": "2026-07-25",
      "retracted": 0,
-     "words": 144
+     "words": 144,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-25_surrogate_to_gcm_validation.md",
+     "path": "docs/findings/2026-07-25_surrogate_to_gcm_validation.md",
      "name": "2026-07-25_surrogate_to_gcm_validation.md",
      "date": "2026-07-25",
      "retracted": 0,
-     "words": 1701
+     "words": 1701,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-26_emulator_baseline_literature.md",
+     "path": "docs/findings/2026-07-26_emulator_baseline_literature.md",
      "name": "2026-07-26_emulator_baseline_literature.md",
      "date": "2026-07-26",
      "retracted": 0,
-     "words": 541
+     "words": 541,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-27_conditioning_precision_hypothesis.md",
+     "path": "docs/findings/2026-07-27_conditioning_precision_hypothesis.md",
      "name": "2026-07-27_conditioning_precision_hypothesis.md",
      "date": "2026-07-27",
      "retracted": 1,
-     "words": 1500
+     "words": 1500,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-27_independent_validation_scope.md",
+     "path": "docs/findings/2026-07-27_independent_validation_scope.md",
      "name": "2026-07-27_independent_validation_scope.md",
      "date": "2026-07-27",
      "retracted": 0,
-     "words": 790
+     "words": 790,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_bling_comparability.md",
+     "path": "docs/findings/2026-07-28_bling_comparability.md",
      "name": "2026-07-28_bling_comparability.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 499
+     "words": 499,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_eqpac_observation_design.md",
+     "path": "docs/findings/2026-07-28_eqpac_observation_design.md",
      "name": "2026-07-28_eqpac_observation_design.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 598
+     "words": 598,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_gp15_leg2_correction.md",
+     "path": "docs/findings/2026-07-28_gp15_leg2_correction.md",
      "name": "2026-07-28_gp15_leg2_correction.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 782
+     "words": 782,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_project_evidence_matrix.md",
+     "path": "docs/findings/2026-07-28_project_evidence_matrix.md",
      "name": "2026-07-28_project_evidence_matrix.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 1589
+     "words": 1589,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_regional_product_extents.md",
+     "path": "docs/findings/2026-07-28_regional_product_extents.md",
      "name": "2026-07-28_regional_product_extents.md",
      "date": "2026-07-28",
      "retracted": 1,
-     "words": 1633
+     "words": 1633,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_residual_angle_measured.md",
+     "path": "docs/findings/2026-07-28_residual_angle_measured.md",
      "name": "2026-07-28_residual_angle_measured.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 730
+     "words": 730,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_session_evidence_log.md",
+     "path": "docs/findings/2026-07-28_session_evidence_log.md",
      "name": "2026-07-28_session_evidence_log.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 7793
+     "words": 7793,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_table_s1_decomposition.md",
+     "path": "docs/findings/2026-07-28_table_s1_decomposition.md",
      "name": "2026-07-28_table_s1_decomposition.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 584
+     "words": 584,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-28_track2_artifact_audit.md",
+     "path": "docs/findings/2026-07-28_track2_artifact_audit.md",
      "name": "2026-07-28_track2_artifact_audit.md",
      "date": "2026-07-28",
      "retracted": 0,
-     "words": 396
+     "words": 396,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_bsose_extent_and_first_iron_field_comparison.md",
+     "path": "docs/findings/2026-07-29_bsose_extent_and_first_iron_field_comparison.md",
      "name": "2026-07-29_bsose_extent_and_first_iron_field_comparison.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 953
+     "words": 953,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_calcite_pooling_artifact.md",
+     "path": "docs/findings/2026-07-29_calcite_pooling_artifact.md",
      "name": "2026-07-29_calcite_pooling_artifact.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 2602
+     "words": 2602,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_coccolith_only_screen.md",
+     "path": "docs/findings/2026-07-29_coccolith_only_screen.md",
      "name": "2026-07-29_coccolith_only_screen.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 1552
+     "words": 1552,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_contract_prior_art.md",
+     "path": "docs/findings/2026-07-29_contract_prior_art.md",
      "name": "2026-07-29_contract_prior_art.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 1326
+     "words": 1326,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_flagship_recipe_gap.md",
+     "path": "docs/findings/2026-07-29_flagship_recipe_gap.md",
      "name": "2026-07-29_flagship_recipe_gap.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 533
+     "words": 533,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_gnfisher_structural_clause.md",
+     "path": "docs/findings/2026-07-29_gnfisher_structural_clause.md",
      "name": "2026-07-29_gnfisher_structural_clause.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 2370
+     "words": 2370,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_inert_anchor_passes_the_gate.md",
+     "path": "docs/findings/2026-07-29_inert_anchor_passes_the_gate.md",
      "name": "2026-07-29_inert_anchor_passes_the_gate.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 1002
+     "words": 1002,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "path": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
      "name": "2026-07-29_jon_reply_crosscheck.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 5502
+     "words": 5502,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_lauderdale_answers.md",
+     "path": "docs/findings/2026-07-29_lauderdale_answers.md",
      "name": "2026-07-29_lauderdale_answers.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 2372
+     "words": 2372,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_math_audit_index.md",
+     "path": "docs/findings/2026-07-29_math_audit_index.md",
      "name": "2026-07-29_math_audit_index.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 1153
+     "words": 1153,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md",
+     "path": "docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md",
      "name": "2026-07-29_preregistration_obsonly_and_ladder.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 5632
+     "words": 5632,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-29_ude_scaling_claim_audit.md",
+     "path": "docs/findings/2026-07-29_ude_scaling_claim_audit.md",
      "name": "2026-07-29_ude_scaling_claim_audit.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 4403
+     "words": 4403,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_bsose_trac06_is_total_dissolved_iron.md",
+     "path": "docs/findings/2026-07-30_bsose_trac06_is_total_dissolved_iron.md",
      "name": "2026-07-30_bsose_trac06_is_total_dissolved_iron.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 786
+     "words": 786,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_daily_archive_era_and_completeness.md",
+     "path": "docs/findings/2026-07-30_daily_archive_era_and_completeness.md",
      "name": "2026-07-30_daily_archive_era_and_completeness.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 722
+     "words": 722,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_daily_design_workflow_recovered.md",
+     "path": "docs/findings/2026-07-30_daily_design_workflow_recovered.md",
      "name": "2026-07-30_daily_design_workflow_recovered.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 847
+     "words": 847,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_daily_emulator_artifact_is_contaminated.md",
+     "path": "docs/findings/2026-07-30_daily_emulator_artifact_is_contaminated.md",
      "name": "2026-07-30_daily_emulator_artifact_is_contaminated.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 620
+     "words": 620,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_daily_emulator_rescored_vs_ar1.md",
+     "path": "docs/findings/2026-07-30_daily_emulator_rescored_vs_ar1.md",
      "name": "2026-07-30_daily_emulator_rescored_vs_ar1.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 1169
+     "words": 1169,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_daily_logspace_training.md",
+     "path": "docs/findings/2026-07-30_daily_logspace_training.md",
      "name": "2026-07-30_daily_logspace_training.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 1714
+     "words": 1714,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
+     "path": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
      "name": "2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 1245
+     "words": 1245,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md",
+     "path": "docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md",
      "name": "2026-07-30_monthly_log_tracers_does_not_rescue_it.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 768
+     "words": 768,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_monthly_timeinterval_metadata_is_wrong.md",
+     "path": "docs/findings/2026-07-30_monthly_timeinterval_metadata_is_wrong.md",
      "name": "2026-07-30_monthly_timeinterval_metadata_is_wrong.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 784
+     "words": 784,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_param_log_scale_resolved.md",
+     "path": "docs/findings/2026-07-30_param_log_scale_resolved.md",
      "name": "2026-07-30_param_log_scale_resolved.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 781
+     "words": 781,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md",
+     "path": "docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md",
      "name": "2026-07-30_per_aoi_legs_vs_their_own_null.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 1245
+     "words": 1245,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_prereg_scavrat_mechanism_surface_vs_depth.md",
+     "path": "docs/findings/2026-07-30_prereg_scavrat_mechanism_surface_vs_depth.md",
      "name": "2026-07-30_prereg_scavrat_mechanism_surface_vs_depth.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 1204
+     "words": 1204,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_prereg_scavrat_southern_ocean.md",
+     "path": "docs/findings/2026-07-30_prereg_scavrat_southern_ocean.md",
      "name": "2026-07-30_prereg_scavrat_southern_ocean.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 981
+     "words": 981,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_rain_ratio_which_value_is_live.md",
+     "path": "docs/findings/2026-07-30_rain_ratio_which_value_is_live.md",
      "name": "2026-07-30_rain_ratio_which_value_is_live.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 987
+     "words": 987,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
+     "path": "docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
      "name": "2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
      "date": "2026-07-30",
      "retracted": 1,
-     "words": 1059
+     "words": 1059,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
+     "path": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "name": "2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 1073
+     "words": 1073,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_below_null_is_bias_compensation_and_partly_an_artifact.md",
+     "path": "docs/findings/2026-07-31_below_null_is_bias_compensation_and_partly_an_artifact.md",
      "name": "2026-07-31_below_null_is_bias_compensation_and_partly_an_artifact.md",
      "date": "2026-07-31",
      "retracted": 0,
-     "words": 893
+     "words": 893,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_citation_audit.md",
+     "path": "docs/findings/2026-07-31_citation_audit.md",
      "name": "2026-07-31_citation_audit.md",
      "date": "2026-07-31",
      "retracted": 0,
-     "words": 644
+     "words": 644,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_depth_mechanism_does_not_replicate_in_eqpac.md",
+     "path": "docs/findings/2026-07-31_depth_mechanism_does_not_replicate_in_eqpac.md",
      "name": "2026-07-31_depth_mechanism_does_not_replicate_in_eqpac.md",
      "date": "2026-07-31",
      "retracted": 1,
-     "words": 1538
+     "words": 1538,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_ghgc_eccodarwin_stac_statistics_count_the_fill_value.md",
+     "path": "docs/findings/2026-07-31_ghgc_eccodarwin_stac_statistics_count_the_fill_value.md",
      "name": "2026-07-31_ghgc_eccodarwin_stac_statistics_count_the_fill_value.md",
      "date": "2026-07-31",
      "retracted": 0,
-     "words": 663
+     "words": 663,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_no_nasa_account_needed_v05_is_already_built.md",
+     "path": "docs/findings/2026-07-31_no_nasa_account_needed_v05_is_already_built.md",
      "name": "2026-07-31_no_nasa_account_needed_v05_is_already_built.md",
      "date": "2026-07-31",
      "retracted": 0,
-     "words": 921
+     "words": 921,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_prereg_depth_mechanism_replication_eqpac.md",
+     "path": "docs/findings/2026-07-31_prereg_depth_mechanism_replication_eqpac.md",
      "name": "2026-07-31_prereg_depth_mechanism_replication_eqpac.md",
      "date": "2026-07-31",
      "retracted": 0,
-     "words": 1194
+     "words": 1194,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_prereg_flagship_window_sweep.md",
+     "path": "docs/findings/2026-07-31_prereg_flagship_window_sweep.md",
      "name": "2026-07-31_prereg_flagship_window_sweep.md",
      "date": "2026-07-31",
      "retracted": 0,
-     "words": 839
+     "words": 839,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_prereg_integration_window_swap.md",
+     "path": "docs/findings/2026-07-31_prereg_integration_window_swap.md",
      "name": "2026-07-31_prereg_integration_window_swap.md",
      "date": "2026-07-31",
      "retracted": 0,
-     "words": 903
+     "words": 903,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
+     "path": "docs/findings/2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
      "name": "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
      "date": "2026-07-31",
      "retracted": 1,
-     "words": 1227
+     "words": 1227,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-07-31_window_swap_retracts_the_depth_result.md",
+     "path": "docs/findings/2026-07-31_window_swap_retracts_the_depth_result.md",
      "name": "2026-07-31_window_swap_retracts_the_depth_result.md",
      "date": "2026-07-31",
      "retracted": 1,
-     "words": 861
+     "words": 861,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-02_flagship_does_not_reproduce_and_the_config_is_not_why.md",
+     "path": "docs/findings/2026-08-02_flagship_does_not_reproduce_and_the_config_is_not_why.md",
      "name": "2026-08-02_flagship_does_not_reproduce_and_the_config_is_not_why.md",
      "date": "2026-08-02",
      "retracted": 0,
-     "words": 879
+     "words": 879,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
+     "path": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
      "name": "2026-08-02_flagship_window_sweep_relaunch.md",
      "date": "2026-08-02",
      "retracted": 0,
-     "words": 660
+     "words": 660,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-02_reproducibility_controls_rerun.md",
+     "path": "docs/findings/2026-08-02_reproducibility_controls_rerun.md",
      "name": "2026-08-02_reproducibility_controls_rerun.md",
      "date": "2026-08-02",
      "retracted": 0,
-     "words": 822
+     "words": 822,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_adequacy_weighted_routing_is_inert.md",
+     "path": "docs/findings/2026-08-03_adequacy_weighted_routing_is_inert.md",
      "name": "2026-08-03_adequacy_weighted_routing_is_inert.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 786
+     "words": 786,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
+     "path": "docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
      "name": "2026-08-03_capacity_is_the_scav_rat_lever.md",
      "date": "2026-08-03",
      "retracted": 1,
-     "words": 1470
+     "words": 1470,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_information_weighted_routing_is_worse.md",
+     "path": "docs/findings/2026-08-03_information_weighted_routing_is_worse.md",
      "name": "2026-08-03_information_weighted_routing_is_worse.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 778
+     "words": 778,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_aoi_weights_from_information.md",
+     "path": "docs/findings/2026-08-03_per_parameter_aoi_weights_from_information.md",
      "name": "2026-08-03_per_parameter_aoi_weights_from_information.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 784
+     "words": 784,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_operating_points.md",
+     "path": "docs/findings/2026-08-03_per_parameter_operating_points.md",
      "name": "2026-08-03_per_parameter_operating_points.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 1836
+     "words": 1836,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
+     "path": "docs/findings/2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
      "name": "2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 943
+     "words": 943,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_trunks_lift_scav_rat_but_not_the_frontier.md",
+     "path": "docs/findings/2026-08-03_per_parameter_trunks_lift_scav_rat_but_not_the_frontier.md",
      "name": "2026-08-03_per_parameter_trunks_lift_scav_rat_but_not_the_frontier.md",
      "date": "2026-08-03",
      "retracted": 1,
-     "words": 892
+     "words": 892,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_prereg_adequacy_weighted_routing.md",
+     "path": "docs/findings/2026-08-03_prereg_adequacy_weighted_routing.md",
      "name": "2026-08-03_prereg_adequacy_weighted_routing.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 956
+     "words": 956,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_prereg_per_parameter_routing.md",
+     "path": "docs/findings/2026-08-03_prereg_per_parameter_routing.md",
      "name": "2026-08-03_prereg_per_parameter_routing.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 1329
+     "words": 1329,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
+     "path": "docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
      "name": "2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
      "date": "2026-08-03",
      "retracted": 1,
-     "words": 1385
+     "words": 1385,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_flagship_is_bound_to_a_code_build.md",
+     "path": "docs/findings/2026-08-03_the_flagship_is_bound_to_a_code_build.md",
      "name": "2026-08-03_the_flagship_is_bound_to_a_code_build.md",
      "date": "2026-08-03",
      "retracted": 1,
-     "words": 929
+     "words": 929,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_pass_band_is_load_bearing.md",
+     "path": "docs/findings/2026-08-03_the_pass_band_is_load_bearing.md",
      "name": "2026-08-03_the_pass_band_is_load_bearing.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 1326
+     "words": 1326,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_regression_was_a_learning_rate.md",
+     "path": "docs/findings/2026-08-03_the_regression_was_a_learning_rate.md",
      "name": "2026-08-03_the_regression_was_a_learning_rate.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 920
+     "words": 920,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "path": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "name": "2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "date": "2026-08-04",
      "retracted": 0,
-     "words": 1419
+     "words": 1419,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md",
+     "path": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md",
      "name": "2026-08-04_bounding_map_ab_under_all_three_collapses.md",
      "date": "2026-08-04",
      "retracted": 0,
-     "words": 914
+     "words": 914,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
+     "path": "docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
      "name": "2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
      "date": "2026-08-04",
      "retracted": 0,
-     "words": 946
+     "words": 946,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
+     "path": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
      "name": "2026-08-04_pooler_audit_the_flagship_trio_halves.md",
      "date": "2026-08-04",
      "retracted": 0,
-     "words": 1706
+     "words": 1706,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/compute_time_compiled_h200.md",
+     "path": "docs/findings/compute_time_compiled_h200.md",
      "name": "compute_time_compiled_h200.md",
      "date": "",
      "retracted": 0,
-     "words": 323
+     "words": 323,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-05-03_overnight.md",
-     "name": "2026-05-03_overnight.md",
-     "date": "2026-05-03",
-     "retracted": 0,
-     "words": 3006
-    },
-    {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-05-21_jon_meeting_brief.md",
-     "name": "2026-05-21_jon_meeting_brief.md",
-     "date": "2026-05-21",
-     "retracted": 0,
-     "words": 2267
-    },
-    {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-05-23_cleanup_audit.md",
-     "name": "2026-05-23_cleanup_audit.md",
-     "date": "2026-05-23",
-     "retracted": 0,
-     "words": 902
-    },
-    {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-05-23_compute_ladder.md",
-     "name": "2026-05-23_compute_ladder.md",
-     "date": "2026-05-23",
-     "retracted": 0,
-     "words": 2418
-    },
-    {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-05-23_overnight_diff_full_darwin.md",
-     "name": "2026-05-23_overnight_diff_full_darwin.md",
-     "date": "2026-05-23",
-     "retracted": 0,
-     "words": 1147
-    },
-    {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-05-23_overnight_executed.md",
-     "name": "2026-05-23_overnight_executed.md",
-     "date": "2026-05-23",
-     "retracted": 0,
-     "words": 3948
-    },
-    {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-06-06_daily_data_defer.md",
-     "name": "2026-06-06_daily_data_defer.md",
-     "date": "2026-06-06",
-     "retracted": 0,
-     "words": 240
-    },
-    {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-06_ude_closure_identifiability_recipe.md",
+     "path": "docs/research_notes/2026-07-06_ude_closure_identifiability_recipe.md",
      "name": "2026-07-06_ude_closure_identifiability_recipe.md",
      "date": "2026-07-06",
      "retracted": 0,
-     "words": 1489
+     "words": 1489,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-06_ude_phase1_design_brief.md",
+     "path": "docs/research_notes/2026-07-06_ude_phase1_design_brief.md",
      "name": "2026-07-06_ude_phase1_design_brief.md",
      "date": "2026-07-06",
      "retracted": 0,
-     "words": 1938
+     "words": 1938,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-06_ude_phase1_implementation_brief.md",
+     "path": "docs/research_notes/2026-07-06_ude_phase1_implementation_brief.md",
      "name": "2026-07-06_ude_phase1_implementation_brief.md",
      "date": "2026-07-06",
      "retracted": 0,
-     "words": 2304
+     "words": 2304,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-07_deep_review_e2_readiness.md",
+     "path": "docs/research_notes/2026-07-07_deep_review_e2_readiness.md",
      "name": "2026-07-07_deep_review_e2_readiness.md",
      "date": "2026-07-07",
      "retracted": 0,
-     "words": 3362
+     "words": 3362,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-07_jon_questions_track2.md",
+     "path": "docs/research_notes/2026-07-07_jon_questions_track2.md",
      "name": "2026-07-07_jon_questions_track2.md",
      "date": "2026-07-07",
      "retracted": 0,
-     "words": 932
+     "words": 932,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-07_param_conditioned_emulator_decision.md",
+     "path": "docs/research_notes/2026-07-07_param_conditioned_emulator_decision.md",
      "name": "2026-07-07_param_conditioned_emulator_decision.md",
      "date": "2026-07-07",
      "retracted": 0,
-     "words": 3472
+     "words": 3472,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-07_track2_reshaped_plan.md",
+     "path": "docs/research_notes/2026-07-07_track2_reshaped_plan.md",
      "name": "2026-07-07_track2_reshaped_plan.md",
      "date": "2026-07-07",
      "retracted": 0,
-     "words": 2149
+     "words": 2149,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-08_fno_neural_operator_emulator_decision.md",
+     "path": "docs/research_notes/2026-07-08_fno_neural_operator_emulator_decision.md",
      "name": "2026-07-08_fno_neural_operator_emulator_decision.md",
      "date": "2026-07-08",
      "retracted": 0,
-     "words": 1544
+     "words": 1544,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-08_overnight_summary.md",
+     "path": "docs/research_notes/2026-07-08_overnight_summary.md",
      "name": "2026-07-08_overnight_summary.md",
      "date": "2026-07-08",
      "retracted": 0,
-     "words": 1250
+     "words": 1250,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-09_calcite_identifiability_map.md",
+     "path": "docs/research_notes/2026-07-09_calcite_identifiability_map.md",
      "name": "2026-07-09_calcite_identifiability_map.md",
      "date": "2026-07-09",
      "retracted": 0,
-     "words": 2954
+     "words": 2954,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-09_e2_calcite_preregistration.md",
+     "path": "docs/research_notes/2026-07-09_e2_calcite_preregistration.md",
      "name": "2026-07-09_e2_calcite_preregistration.md",
      "date": "2026-07-09",
      "retracted": 0,
-     "words": 729
+     "words": 729,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-09_parameter_conditioned_emulator_update.md",
+     "path": "docs/research_notes/2026-07-09_parameter_conditioned_emulator_update.md",
      "name": "2026-07-09_parameter_conditioned_emulator_update.md",
      "date": "2026-07-09",
      "retracted": 0,
-     "words": 1600
+     "words": 1600,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-09_track2_identifiability_writeup.md",
+     "path": "docs/research_notes/2026-07-09_track2_identifiability_writeup.md",
      "name": "2026-07-09_track2_identifiability_writeup.md",
      "date": "2026-07-09",
      "retracted": 0,
-     "words": 2957
+     "words": 2957,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-10_jon_decision_brief.md",
+     "path": "docs/research_notes/2026-07-10_jon_decision_brief.md",
      "name": "2026-07-10_jon_decision_brief.md",
      "date": "2026-07-10",
      "retracted": 0,
-     "words": 1288
+     "words": 1288,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-10_reproducibility_appendix.md",
+     "path": "docs/research_notes/2026-07-10_reproducibility_appendix.md",
      "name": "2026-07-10_reproducibility_appendix.md",
      "date": "2026-07-10",
      "retracted": 0,
-     "words": 1219
+     "words": 1219,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-10_track2_summary_for_discussion.md",
+     "path": "docs/research_notes/2026-07-10_track2_summary_for_discussion.md",
      "name": "2026-07-10_track2_summary_for_discussion.md",
      "date": "2026-07-10",
      "retracted": 0,
-     "words": 712
+     "words": 712,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-11_emulator_build_plan.md",
+     "path": "docs/research_notes/2026-07-11_emulator_build_plan.md",
      "name": "2026-07-11_emulator_build_plan.md",
      "date": "2026-07-11",
      "retracted": 1,
-     "words": 1874
+     "words": 1874,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-20_external_validation_iron_residence_alpfe.md",
+     "path": "docs/research_notes/2026-07-20_external_validation_iron_residence_alpfe.md",
      "name": "2026-07-20_external_validation_iron_residence_alpfe.md",
      "date": "2026-07-20",
      "retracted": 0,
-     "words": 2713
+     "words": 2713,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md",
+     "path": "docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md",
      "name": "2026-07-20_iron_degeneracy_math_validation.md",
      "date": "2026-07-20",
      "retracted": 0,
-     "words": 1189
+     "words": 1189,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
+     "path": "docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
      "name": "2026-07-20_parameter_learner_architecture_options.md",
      "date": "2026-07-20",
      "retracted": 0,
-     "words": 930
+     "words": 930,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-21_jon_update.md",
+     "path": "docs/research_notes/2026-07-21_jon_update.md",
      "name": "2026-07-21_jon_update.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 1571
+     "words": 1571,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "path": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
      "name": "2026-07-21_jon_update_presenting_script.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 1587
+     "words": 1587,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-21_manuscript_redteam.md",
+     "path": "docs/research_notes/2026-07-21_manuscript_redteam.md",
      "name": "2026-07-21_manuscript_redteam.md",
      "date": "2026-07-21",
      "retracted": 0,
-     "words": 1052
+     "words": 1052,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-22_ecco_darwin_v06_research.md",
+     "path": "docs/research_notes/2026-07-22_ecco_darwin_v06_research.md",
      "name": "2026-07-22_ecco_darwin_v06_research.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 1179
+     "words": 1179,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-22_next_direction_rpicpoc_protection.md",
+     "path": "docs/research_notes/2026-07-22_next_direction_rpicpoc_protection.md",
      "name": "2026-07-22_next_direction_rpicpoc_protection.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 1198
+     "words": 1198,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-22_overnight_session_report.md",
+     "path": "docs/research_notes/2026-07-22_overnight_session_report.md",
      "name": "2026-07-22_overnight_session_report.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 1326
+     "words": 1326,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-22_session_handoff.md",
+     "path": "docs/research_notes/2026-07-22_session_handoff.md",
      "name": "2026-07-22_session_handoff.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 836
+     "words": 836,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_1hr_run_summary.md",
+     "path": "docs/research_notes/2026-07-23_1hr_run_summary.md",
      "name": "2026-07-23_1hr_run_summary.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 766
+     "words": 766,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
+     "path": "docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
      "name": "2026-07-23_2hr_checkpoint_verified.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 723
+     "words": 723,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_3d_emulator_earth2studio_design.md",
+     "path": "docs/research_notes/2026-07-23_3d_emulator_earth2studio_design.md",
      "name": "2026-07-23_3d_emulator_earth2studio_design.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 3075
+     "words": 3075,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_closure_theory_questions.md",
+     "path": "docs/research_notes/2026-07-23_closure_theory_questions.md",
      "name": "2026-07-23_closure_theory_questions.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 990
+     "words": 990,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_expert_review_corrections.md",
+     "path": "docs/research_notes/2026-07-23_expert_review_corrections.md",
      "name": "2026-07-23_expert_review_corrections.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1572
+     "words": 1572,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_learned_closure_lineage.md",
+     "path": "docs/research_notes/2026-07-23_learned_closure_lineage.md",
      "name": "2026-07-23_learned_closure_lineage.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 496
+     "words": 496,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_manuscript_critical_path_plan.md",
+     "path": "docs/research_notes/2026-07-23_manuscript_critical_path_plan.md",
      "name": "2026-07-23_manuscript_critical_path_plan.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 796
+     "words": 796,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-23_session_handoff.md",
+     "path": "docs/research_notes/2026-07-23_session_handoff.md",
      "name": "2026-07-23_session_handoff.md",
      "date": "2026-07-23",
      "retracted": 0,
-     "words": 1217
+     "words": 1217,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-24_next_session_prompts.md",
+     "path": "docs/research_notes/2026-07-24_next_session_prompts.md",
      "name": "2026-07-24_next_session_prompts.md",
      "date": "2026-07-24",
      "retracted": 0,
-     "words": 964
+     "words": 964,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-25_deep_research_sweep.md",
+     "path": "docs/research_notes/2026-07-25_deep_research_sweep.md",
      "name": "2026-07-25_deep_research_sweep.md",
      "date": "2026-07-25",
      "retracted": 0,
-     "words": 8271
+     "words": 8271,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-25_next_session_start_here.md",
+     "path": "docs/research_notes/2026-07-25_next_session_start_here.md",
      "name": "2026-07-25_next_session_start_here.md",
      "date": "2026-07-25",
      "retracted": 0,
-     "words": 663
+     "words": 663,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-27_hierarchical_inversion_design.md",
+     "path": "docs/research_notes/2026-07-27_hierarchical_inversion_design.md",
      "name": "2026-07-27_hierarchical_inversion_design.md",
      "date": "2026-07-27",
      "retracted": 0,
-     "words": 7529
+     "words": 7529,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "path": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
      "name": "2026-07-29_jon_reply_part1_DRAFT.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 985
+     "words": 985,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-29_observations_only_scope.md",
+     "path": "docs/research_notes/2026-07-29_observations_only_scope.md",
      "name": "2026-07-29_observations_only_scope.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 3966
+     "words": 3966,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "path": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
      "name": "2026-07-30_jon_followup_SENT.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 1515
+     "words": 1515,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-30_next_session_start_here.md",
+     "path": "docs/research_notes/2026-07-30_next_session_start_here.md",
      "name": "2026-07-30_next_session_start_here.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 2047
+     "words": 2047,
+     "local_only": 0
     },
     {
-     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/research_notes/2026-07-30_session_handoff.md",
+     "path": "docs/research_notes/2026-07-30_session_handoff.md",
      "name": "2026-07-30_session_handoff.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 2070
+     "words": 2070,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_notes/2026-05-03_overnight.md",
+     "name": "2026-05-03_overnight.md",
+     "date": "2026-05-03",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1
+    },
+    {
+     "path": "docs/research_notes/2026-05-21_jon_meeting_brief.md",
+     "name": "2026-05-21_jon_meeting_brief.md",
+     "date": "2026-05-21",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1
+    },
+    {
+     "path": "docs/research_notes/2026-05-23_cleanup_audit.md",
+     "name": "2026-05-23_cleanup_audit.md",
+     "date": "2026-05-23",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1
+    },
+    {
+     "path": "docs/research_notes/2026-05-23_compute_ladder.md",
+     "name": "2026-05-23_compute_ladder.md",
+     "date": "2026-05-23",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1
+    },
+    {
+     "path": "docs/research_notes/2026-05-23_overnight_diff_full_darwin.md",
+     "name": "2026-05-23_overnight_diff_full_darwin.md",
+     "date": "2026-05-23",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1
+    },
+    {
+     "path": "docs/research_notes/2026-05-23_overnight_executed.md",
+     "name": "2026-05-23_overnight_executed.md",
+     "date": "2026-05-23",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1
+    },
+    {
+     "path": "docs/research_notes/2026-06-06_daily_data_defer.md",
+     "name": "2026-06-06_daily_data_defer.md",
+     "date": "2026-06-06",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1
     }
    ]
   },
@@ -12531,7 +12733,7 @@
     {
      "question": "Does the 2026-07-30 'keep linear, do not re-run' decision on the scav_rat bounding map survive being re-graded under the geometric and median collapses?",
      "answer": "YES, the decision stands - but it is UNDERPOWERED, not null, and the recorded reason for it is wrong. Job 264591 (n=50 x 4 arms in ONE submission, NB23_LR pinned 5e-3, 20/20 COMPLETED, pre-registered). Paired exact McNemar on the trio, same 50 seeds: arithmetic 25/50 vs 31/50, 9 ctrl-only vs 15 logsr-only, P = 0.3075 - REPRODUCING job 227773 EXACTLY five days later on a different code build. Geometric 12/50 vs 22/50, 7 vs 17, P = 0.0639. Median 23/50 vs 26/50, P = 0.7201. Not significant under any collapse, so keep the linear map. BUT 2026-07-30 concluded the map 'moves individual fits a great deal while leaving the aggregate where it was'; under the geometric collapse the aggregate moves 83% (12 -> 22) against 24% (25 -> 31) arithmetic, and P falls 0.3075 -> 0.0639. The arithmetic collapse was UNDERSTATING the bounding-map effect, the same direction as every other pooler finding. If revisited, the experiment is n=100 under the geometric collapse, not another n=50.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-04_bounding_map_ab_under_all_three_collapses.md",
+     "doc": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md",
      "dont": ""
     },
     {
@@ -12663,7 +12865,7 @@
     {
      "question": "Does the geometric bounding map really cost R_PICPOC 5 seeds, as recorded on 2026-07-30?",
      "answer": "PARTLY an arithmetic-collapse artifact. Job 264591 paired McNemar, linear vs geometric map: arithmetic 50/50 -> 45/50, 5 losses, P = 0.0625 (reproducing 227773); GEOMETRIC 50/50 -> 48/50, only 2 losses, P = 0.50; median 50/50 -> 47/50, 3 losses, P = 0.25. R_PICPOC is pooler-invariant in the FLAGSHIP configuration (log_sd <= 0.21), so this is not the scav_rat dispersion mechanism - it is that the two arms differ and grading the difference arithmetically overstates it. The surviving cost is 2 seeds, not 5. alpfe is 49/50 -> 50/50 under all three collapses, invariant as everywhere else.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-04_bounding_map_ab_under_all_three_collapses.md",
+     "doc": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md",
      "dont": ""
     },
     {
@@ -19222,7 +19424,7 @@
     },
     {
      "trap": "Do NOT read the scav_rat row of the bounding-map A/B on its own. The geometric map raises scav_rat's UNTRAINED rate from 0/50 to 8/50 (measured twice, jobs 263466 and 264591, and pooler-invariant at 8/8/8), so part of any marginal gain is prior rather than learning. Read the TRIO, whose untrained baseline is 0/50 in BOTH arms under ALL THREE collapses and is therefore immune to the prior shift.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-04_bounding_map_ab_under_all_three_collapses.md",
+     "doc": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md",
      "category": ""
     }
    ]
@@ -31897,6 +32099,26 @@
     }
    ]
   },
+  "v_local_only_cite": {
+   "ddl": "CREATE VIEW v_local_only_cite AS     -- a live claim whose only backing is a file the reader cannot open\n    SELECT DISTINCT c.cl_id, d.name, substr(c.statement,1,70) AS statement\n    FROM claim c JOIN document d ON instr(c.doc, d.name) > 0\n    WHERE d.local_only = 1\n      AND lower(coalesce(c.status,'')) LIKE '%live%'\n      AND NOT EXISTS (SELECT 1 FROM document t\n                      WHERE t.local_only = 0 AND instr(c.doc, t.name) > 0)",
+   "columns": [
+    "cl_id",
+    "name",
+    "statement"
+   ],
+   "rows": [
+    {
+     "cl_id": "ded123",
+     "name": "2026-05-23_compute_ladder.md",
+     "statement": "The compute ladder from Stage 0 to Stage 5 is achievable at $0 persona"
+    },
+    {
+     "cl_id": "ind339",
+     "name": "2026-05-03_overnight.md",
+     "statement": "Said Ouala co-authors three of the most methodologically adjacent pape"
+    }
+   ]
+  },
   "v_orphan_doc": {
    "ddl": "CREATE VIEW v_orphan_doc AS          -- a claim citing a file that is not in the repo\n    -- A claim cell may name SEVERAL documents (\"a.md, b.md\"), so an equality test on the whole\n    -- cell reports a false orphan. Match if ANY known document name appears inside the cell.\n    SELECT c.cl_id, c.doc FROM claim c\n    WHERE trim(coalesce(c.doc,'')) <> ''\n      AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0)",
    "columns": [
@@ -35436,7 +35658,7 @@
    "holds": true,
    "violations": []
   },
-  "no claim cites a document that is not in the repo": {
+  "no claim cites a document that is neither in the repo nor a declared local-only note": {
    "sql": "SELECT cl_id, doc FROM v_orphan_doc",
    "holds": true,
    "violations": []
@@ -35458,6 +35680,22 @@
   }
  },
  "advisories": {
+  "live claims whose ONLY cited document is a declared local-only note -- a reader cannot check them": {
+   "sql": "SELECT cl_id, name, statement FROM v_local_only_cite",
+   "count": 2,
+   "rows": [
+    [
+     "ded123",
+     "2026-05-23_compute_ladder.md",
+     "The compute ladder from Stage 0 to Stage 5 is achievable at $0 persona"
+    ],
+    [
+     "ind339",
+     "2026-05-03_overnight.md",
+     "Said Ouala co-authors three of the most methodologically adjacent pape"
+    ]
+   ]
+  },
   "live claims sourced from a document that carries a retraction banner -- review each": {
    "sql": "SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d\n        ON instr(c.doc, d.name) > 0\n        WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'",
    "count": 30,
@@ -37001,6 +37239,7 @@
   "v_claim_evidence": 570,
   "v_dangerous": 39,
   "v_live": 510,
+  "v_local_only_cite": 2,
   "v_orphan_doc": 0,
   "v_unsupported": 291
  }

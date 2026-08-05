@@ -49,7 +49,7 @@ retraction banners of every file under `docs/findings` and `docs/research_notes`
 ```
 π_cl(σ_live(CLAIM))  ∩  π_old(SUPERSEDES)         = ∅   matched on normalised PROSE, not on ids
 σ_mode=inductive ∧ numbers IS NULL (CLAIM)        = ∅   PRESENCE only — see the caveat below
-σ_doc ∉ DOCUMENT (CLAIM)                          = ∅   every cited file exists
+σ_doc ∉ DOCUMENT (CLAIM)                          = ∅   cited file is in the REPO, not just on disk
 σ_verdict=RESOLVES_MISMATCH (CITATION)            = ∅   no DOI points at the wrong paper
 σ_verdict ∈ {DEAD, FABRICATED} (CITATION)         = ∅
 σ_doc IS NULL (SETTLED)                           = ∅   a settled answer must say where it lives
@@ -62,16 +62,21 @@ real violations today; gating on them would fail every run and train you to igno
 is the same reasoning that keeps STRADDLE advisory in `verify_run`:
 
 ```
+σ_live(CLAIM) ⋈ σ_local_only(DOCUMENT), sole cite          2 rows   reader cannot open the source
 CLAIM ⋈ SUPPORTS ⋈ σ_gate≠exit0(EVIDENCE) where live     39 rows   `dangerous` lists them
 σ_live(CLAIM) ⋈ σ_retracted(DOCUMENT)                    26 rows   review each by hand
 CLAIM − π_cl(SUPPORTS)                                  291 rows   claims with no evidence edge
 ```
 
-**Two caveats, because a green `check` otherwise reads stronger than it is.** "Carries its
+**Three caveats, because a green `check` otherwise reads stronger than it is.** "Carries its
 untrained null" is a presence check on the merged `n / null` column: the corpus has no separate
-null field, so *no* constraint here can verify that a matched baseline exists. And the citation
+null field, so *no* constraint here can verify that a matched baseline exists. The citation
 constraints run over the audit's **exception rows only, 1 of 130** — `check` prints its own
-coverage line to say so.
+coverage line to say so. And `DOCUMENT` is built from `git ls-files` **plus** the seven declared
+`LOCAL_ONLY_DOCS`, never from a disk walk: those notes are gitignored by name (`.gitignore:100-106`),
+so a disk walk found them on the author's machine and nowhere else — the orphan constraint passed
+locally and failed in CI on 31 dangling citations. Claims resting *only* on such a note are exempt
+from the gate and **counted by the advisory above** — 2 today (`ded123`, `ind339`).
 
 **Run `settled` before starting, and `check` before committing a finding.**
 
