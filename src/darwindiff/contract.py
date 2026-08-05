@@ -58,6 +58,7 @@ __all__ = [
     "ALIASING_GATE",
     "RESCALE_MARGIN",
     "rescale_is_admissible",
+    "bound_proximity_risk",
     "EXIT_OK",
     "EXIT_FAIL",
     "EXIT_INCOMPLETE",
@@ -106,6 +107,66 @@ EXIT_INCOMPLETE = 7
 
 _KINDS = ("scalar", "field", "relation", "stochastic")
 _SCOPES = ("global", "per_aoi", "per_cell")
+
+
+def bound_proximity_risk(
+    param: str,
+    *,
+    band: float = CAL_GRADE_BAND,
+    bounds: tuple[float, float] | None = None,
+    reference: float | None = None,
+) -> tuple[bool, str]:
+    """Could railing to a bound manufacture a Cal-grade pass for ``param``?
+
+    MEASURED, 2026-08-05, job 276927. A trained fit drives ``alpfe`` to whatever ceiling it is
+    given: median 0.9967 against a bound of 1.0 (99.7% of it), and 1.5940 against a bound of 1.6
+    (99.6% of it). It carries no upper-side information at all.
+
+    That makes the recovery COUNT unsafe whenever a bound lies inside the pass band, because the
+    fit lands there regardless of the data. ``alpfe``'s upper bound sits at rel 0.077 from
+    Carroll, well inside the 0.40 band, so its 49/50 is substantially the bound's doing. Widening
+    the bound to 1.6 collapses it to 0/50 while the untrained null RISES to 50/50, the prior
+    midpoint having moved to rel 0.111.
+
+    This screen is arithmetic on the registry and needs no run. It is the cheap generalisation of
+    that experiment to every parameter, and it exonerates as much as it accuses: ``R_PICPOC``'s
+    bounds are 0.88 and 34.3 band-units away, so its 50/50 CANNOT be bound geometry.
+
+    Distinct from :func:`rescale_is_admissible`, which asks whether a closure moves a parameter
+    out of its bounds. This asks whether the bounds themselves sit somewhere that lets a railed
+    fit score as recovered.
+
+    Returns:
+        ``(at_risk, reason)``. ``reason`` is populated either way.
+    """
+    if bounds is None or reference is None:
+        from darwindiff.carroll6 import PARAMS  # noqa: PLC0415
+
+        match = [p for p in PARAMS if p.name == param]
+        if not match:
+            raise ValueError(f"{param!r} is not in the Carroll-N registry")
+        bounds = bounds if bounds is not None else match[0].bounds
+        reference = reference if reference is not None else match[0].carroll_value
+
+    if not reference:
+        raise ValueError(f"{param}: a zero or missing reference has no relative band")
+
+    lo, hi = float(bounds[0]), float(bounds[1])
+    rel_lo = abs(lo - reference) / abs(reference)
+    rel_hi = abs(hi - reference) / abs(reference)
+    inside = [n for n, r in (("lower", rel_lo), ("upper", rel_hi)) if r <= band]
+
+    if inside:
+        which = " and ".join(inside)
+        return True, (
+            f"{param}: the {which} bound sits INSIDE the {band:g} band "
+            f"(rel lo {rel_lo:.3f}, hi {rel_hi:.3f}). A fit that rails to it scores as recovered "
+            f"regardless of the data, so the count cannot be read as accuracy."
+        )
+    return False, (
+        f"{param}: both bounds are outside the {band:g} band "
+        f"(rel lo {rel_lo:.3f}, hi {rel_hi:.3f}), so railing cannot manufacture a pass."
+    )
 
 
 def rescale_is_admissible(

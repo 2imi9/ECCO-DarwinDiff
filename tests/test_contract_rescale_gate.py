@@ -12,7 +12,12 @@ from __future__ import annotations
 import pytest
 
 from darwindiff.carroll6 import PARAMS
-from darwindiff.contract import RESCALE_MARGIN, rescale_is_admissible
+from darwindiff.contract import (
+    CAL_GRADE_BAND,
+    RESCALE_MARGIN,
+    bound_proximity_risk,
+    rescale_is_admissible,
+)
 
 
 def _span(name: str) -> float:
@@ -105,3 +110,42 @@ def test_rejects_a_non_positive_lower_bound() -> None:
     """A ratio span is undefined there, and silently returning True would be the wrong answer."""
     with pytest.raises(ValueError, match="span is undefined"):
         rescale_is_admissible("alpfe", 2.0, bounds=(0.0, 1.0))
+
+
+# ------------------------------------------------------------------ bound proximity screen
+# Measured 2026-08-05, job 276927: a trained fit drives alpfe to 99.7% of a 1.0 bound and 99.6%
+# of a 1.6 bound. So a bound lying inside the pass band manufactures a pass on its own.
+
+def test_alpfe_is_flagged_because_its_upper_bound_is_inside_the_band() -> None:
+    at_risk, why = bound_proximity_risk("alpfe")
+    assert at_risk
+    assert "upper" in why
+
+
+def test_r_picpoc_is_exonerated_by_arithmetic() -> None:
+    """The other half of the "recovered globally" claim, and this result must not touch it."""
+    at_risk, why = bound_proximity_risk("R_PICPOC")
+    assert not at_risk, why
+
+
+def test_exactly_alpfe_and_diatomgraz_are_at_risk() -> None:
+    flagged = sorted(p.name for p in PARAMS if bound_proximity_risk(p.name)[0])
+    assert flagged == ["alpfe", "diatomgraz"]
+
+
+def test_a_bound_exactly_on_the_band_edge_counts_as_at_risk() -> None:
+    """Inclusive on purpose: a fit railing to the edge still scores as recovered."""
+    ref = 1.0
+    at_risk, _ = bound_proximity_risk("alpfe", bounds=(0.01, 1.0 + CAL_GRADE_BAND), reference=ref)
+    assert at_risk
+
+
+def test_widening_a_bound_can_move_a_parameter_from_at_risk_to_safe() -> None:
+    """This is the experiment, expressed as arithmetic: 1.0 is inside the band, 1.6 is not."""
+    assert bound_proximity_risk("alpfe", bounds=(0.05, 1.0))[0] is True
+    assert bound_proximity_risk("alpfe", bounds=(0.05, 1.6))[0] is False
+
+
+def test_rejects_a_zero_reference() -> None:
+    with pytest.raises(ValueError, match="no relative band"):
+        bound_proximity_risk("alpfe", bounds=(0.05, 1.0), reference=0.0)
