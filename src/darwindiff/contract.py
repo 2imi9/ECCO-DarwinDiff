@@ -56,6 +56,8 @@ __all__ = [
     "contract",
     "CAL_GRADE_BAND",
     "ALIASING_GATE",
+    "RESCALE_MARGIN",
+    "rescale_is_admissible",
     "EXIT_OK",
     "EXIT_FAIL",
     "EXIT_INCOMPLETE",
@@ -79,6 +81,22 @@ ALIASING_GATE = 0.95
 #: `diatomgraz` sits at 0.64 measured, which is why its 35/50 was retired.
 PRIOR_CONTAMINATION_LIMIT = 0.25
 
+#: Rescale admissibility for a closure change, prescribed by
+#: docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md section 6.
+#:
+#: A closure that multiplies a graded parameter by some factor moves the thing we grade. If that
+#: factor exceeds the span of the parameter's own registry bounds, the Cal-grade target is void
+#: BEFORE a single epoch runs: the rescaled parameter cannot land inside its bounds at all, so a
+#: pass or a fail says nothing about the data.
+#:
+#: This is deliberately more discriminating than ALIASING_GATE, which needs a fitted closure to
+#: evaluate. This one is arithmetic on the registry and fires at design time. The ligand proposal
+#: fails it outright: `scav_rat` spans 100x and the ligand rescale is 61x to 2001x.
+#:
+#: The margin is 1.0, i.e. exactly the bounds span, with no slack. Slack here would be taste, and
+#: the span is already the widest value the registry admits.
+RESCALE_MARGIN = 1.0
+
 #: Significance level for "clears its measured null".
 ALPHA = 0.05
 
@@ -88,6 +106,73 @@ EXIT_INCOMPLETE = 7
 
 _KINDS = ("scalar", "field", "relation", "stochastic")
 _SCOPES = ("global", "per_aoi", "per_cell")
+
+
+def rescale_is_admissible(
+    param: str,
+    factor: float,
+    *,
+    margin: float = RESCALE_MARGIN,
+    bounds: tuple[float, float] | None = None,
+) -> tuple[bool, str]:
+    """Can a closure multiply ``param`` by ``factor`` and still be graded against Carroll?
+
+    A closure change that rescales a graded parameter moves the estimand. If the factor exceeds
+    the span of the parameter's own registry bounds, the rescaled value cannot land inside those
+    bounds at all, so the Cal-grade verdict carries no information about the data. This is a
+    DESIGN-TIME check: it is arithmetic on the registry and needs no fitted model, which makes it
+    strictly more discriminating than :data:`ALIASING_GATE`, which needs a trained closure.
+
+    Prescribed by ``docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md`` section 6,
+    which found five of six proposed iron closures re-encoded the degeneracy rather than breaking
+    it, and identified this as the check that would have caught the ligand proposal before any
+    compute was spent.
+
+    Args:
+        param: registry name, e.g. ``"scav_rat"``.
+        factor: the multiplicative rescale the closure applies. Reciprocals are equivalent, so
+            0.01 and 100 are treated alike.
+        margin: multiple of the bounds span allowed. Default :data:`RESCALE_MARGIN` = 1.0, i.e.
+            exactly the span.
+        bounds: override the registry, for testing.
+
+    Returns:
+        ``(admissible, reason)``. ``reason`` is always populated, including on a pass, so a
+        caller can log why it passed rather than only why it failed.
+
+    Raises:
+        ValueError: if ``param`` is not in the registry, or ``factor`` is not positive.
+    """
+    if not (factor > 0):
+        raise ValueError(f"rescale factor must be positive, got {factor}")
+
+    if bounds is None:
+        from darwindiff.carroll6 import PARAMS  # noqa: PLC0415  (keeps contract.py torch-light)
+
+        match = [p for p in PARAMS if p.name == param]
+        if not match:
+            raise ValueError(f"{param!r} is not in the Carroll-N registry")
+        bounds = match[0].bounds
+
+    lo, hi = float(bounds[0]), float(bounds[1])
+    if lo <= 0:
+        raise ValueError(f"{param}: span is undefined for a non-positive lower bound {lo}")
+
+    span = hi / lo
+    # a rescale and its reciprocal move the estimand equally far
+    eff = factor if factor >= 1.0 else 1.0 / factor
+    allowed = span * margin
+
+    if eff > allowed:
+        return False, (
+            f"{param}: rescale {eff:.4g}x exceeds its bounds span {span:.4g}x "
+            f"(margin {margin:g}). The Cal-grade target is VOID before training: the rescaled "
+            f"parameter cannot land inside [{lo:g}, {hi:g}] at all, so a pass or fail says "
+            f"nothing about the data."
+        )
+    return True, (
+        f"{param}: rescale {eff:.4g}x is within its bounds span {span:.4g}x (margin {margin:g})"
+    )
 
 
 class ClauseStatus:
