@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 580" width="1040" height="580" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<rect width="1040" height="580" fill="#fcfcfb"/>
+<text x="40" y="38" font-size="19" font-weight="600" fill="#0b0b0b">The pooled average decides the headline, and it moves one basin</text>
+<text x="40" y="60" font-size="12.5" fill="#52514e">Flagship twin <tspan font-family="ui-monospace, Consolas, monospace">collapse/collapse_n50</tspan>, n = 50 seeds, per-AOI &#8805;2-of-3 at the &#177;40% band. Bitwise identical to <tspan font-family="ui-monospace, Consolas, monospace">ctrl_n50</tspan> on all 50 seeds.</text>
+<rect x="40" y="76" width="11" height="11" rx="2" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="57" y="86" font-size="12" fill="#52514e">arithmetic</text>
+<rect x="130.0" y="76" width="11" height="11" rx="2" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="147.0" y="86" font-size="12" fill="#52514e">geometric</text>
+<rect x="213.4" y="76" width="11" height="11" rx="2" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="230.4" y="86" font-size="12" fill="#52514e">median</text>
+<text x="70" y="112" font-size="13" font-weight="600" fill="#0b0b0b">A &#183; Per parameter, and the joint trio</text>
+<text x="590" y="112" font-size="13" font-weight="600" fill="#0b0b0b">B &#183; <tspan font-family="ui-monospace, Consolas, monospace">scav_rat</tspan> broken out by basin</text>
+<line x1="70" y1="430.0" x2="480" y2="430.0" stroke="#b8b7b2" stroke-width="1"/>
+<text x="62" y="434.0" font-size="10.5" fill="#6b6a66" text-anchor="end">0</text>
+<line x1="70" y1="372.0" x2="480" y2="372.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="62" y="376.0" font-size="10.5" fill="#6b6a66" text-anchor="end">10</text>
+<line x1="70" y1="314.0" x2="480" y2="314.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="62" y="318.0" font-size="10.5" fill="#6b6a66" text-anchor="end">20</text>
+<line x1="70" y1="256.0" x2="480" y2="256.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="62" y="260.0" font-size="10.5" fill="#6b6a66" text-anchor="end">30</text>
+<line x1="70" y1="198.0" x2="480" y2="198.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="62" y="202.0" font-size="10.5" fill="#6b6a66" text-anchor="end">40</text>
+<line x1="70" y1="140.0" x2="480" y2="140.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="62" y="144.0" font-size="10.5" fill="#6b6a66" text-anchor="end">50</text>
+<line x1="590" y1="430.0" x2="1000" y2="430.0" stroke="#b8b7b2" stroke-width="1"/>
+<text x="582" y="434.0" font-size="10.5" fill="#6b6a66" text-anchor="end">0</text>
+<line x1="590" y1="372.0" x2="1000" y2="372.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="582" y="376.0" font-size="10.5" fill="#6b6a66" text-anchor="end">10</text>
+<line x1="590" y1="314.0" x2="1000" y2="314.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="582" y="318.0" font-size="10.5" fill="#6b6a66" text-anchor="end">20</text>
+<line x1="590" y1="256.0" x2="1000" y2="256.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="582" y="260.0" font-size="10.5" fill="#6b6a66" text-anchor="end">30</text>
+<line x1="590" y1="198.0" x2="1000" y2="198.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="582" y="202.0" font-size="10.5" fill="#6b6a66" text-anchor="end">40</text>
+<line x1="590" y1="140.0" x2="1000" y2="140.0" stroke="#e5e4e0" stroke-width="1"/>
+<text x="582" y="144.0" font-size="10.5" fill="#6b6a66" text-anchor="end">50</text>
+<text x="34" y="285.0" font-size="10.5" fill="#6b6a66" text-anchor="middle" transform="rotate(-90 34 285.0)">seeds passing (of 50)</text>
+<path d="M80.25,430 L80.25,149.8 Q80.25,145.8 84.25,145.8 L102.25,145.8 Q106.25,145.8 106.25,149.8 L106.25,430 Z" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="93.2" y="139.8" font-size="10.5" fill="#52514e" text-anchor="middle">49</text>
+<path d="M108.25,430 L108.25,149.8 Q108.25,145.8 112.25,145.8 L130.25,145.8 Q134.25,145.8 134.25,149.8 L134.25,430 Z" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="121.2" y="139.8" font-size="10.5" fill="#52514e" text-anchor="middle">49</text>
+<path d="M136.25,430 L136.25,149.8 Q136.25,145.8 140.25,145.8 L158.25,145.8 Q162.25,145.8 162.25,149.8 L162.25,430 Z" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="149.2" y="139.8" font-size="10.5" fill="#52514e" text-anchor="middle">49</text>
+<text x="121.2" y="450" font-size="11.5" fill="#0b0b0b" font-family="ui-monospace, Consolas, monospace" text-anchor="middle">alpfe</text>
+<path d="M182.75,430 L182.75,144.0 Q182.75,140.0 186.75,140.0 L204.75,140.0 Q208.75,140.0 208.75,144.0 L208.75,430 Z" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="195.8" y="134.0" font-size="10.5" fill="#52514e" text-anchor="middle">50</text>
+<path d="M210.75,430 L210.75,144.0 Q210.75,140.0 214.75,140.0 L232.75,140.0 Q236.75,140.0 236.75,144.0 L236.75,430 Z" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="223.8" y="134.0" font-size="10.5" fill="#52514e" text-anchor="middle">50</text>
+<path d="M238.75,430 L238.75,144.0 Q238.75,140.0 242.75,140.0 L260.75,140.0 Q264.75,140.0 264.75,144.0 L264.75,430 Z" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="251.8" y="134.0" font-size="10.5" fill="#52514e" text-anchor="middle">50</text>
+<text x="223.8" y="450" font-size="11.5" fill="#0b0b0b" font-family="ui-monospace, Consolas, monospace" text-anchor="middle">R_PICPOC</text>
+<path d="M285.25,430 L285.25,283.2 Q285.25,279.2 289.25,279.2 L307.25,279.2 Q311.25,279.2 311.25,283.2 L311.25,430 Z" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="298.2" y="273.2" font-size="10.5" fill="#52514e" text-anchor="middle">26</text>
+<path d="M313.25,430 L313.25,358.6 Q313.25,354.6 317.25,354.6 L335.25,354.6 Q339.25,354.6 339.25,358.6 L339.25,430 Z" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="326.2" y="348.6" font-size="10.5" fill="#52514e" text-anchor="middle">13</text>
+<path d="M341.25,430 L341.25,294.8 Q341.25,290.8 345.25,290.8 L363.25,290.8 Q367.25,290.8 367.25,294.8 L367.25,430 Z" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="354.2" y="284.8" font-size="10.5" fill="#52514e" text-anchor="middle">24</text>
+<text x="326.2" y="450" font-size="11.5" fill="#0b0b0b" font-family="ui-monospace, Consolas, monospace" text-anchor="middle">scav_rat</text>
+<path d="M387.75,430 L387.75,289.0 Q387.75,285.0 391.75,285.0 L409.75,285.0 Q413.75,285.0 413.75,289.0 L413.75,430 Z" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="400.8" y="279.0" font-size="10.5" fill="#52514e" text-anchor="middle">25</text>
+<path d="M415.75,430 L415.75,364.4 Q415.75,360.4 419.75,360.4 L437.75,360.4 Q441.75,360.4 441.75,364.4 L441.75,430 Z" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="428.8" y="354.4" font-size="10.5" fill="#0b0b0b" font-weight="700" text-anchor="middle">12</text>
+<path d="M443.75,430 L443.75,300.6 Q443.75,296.6 447.75,296.6 L465.75,296.6 Q469.75,296.6 469.75,300.6 L469.75,430 Z" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="456.8" y="290.6" font-size="10.5" fill="#52514e" text-anchor="middle">23</text>
+<text x="428.8" y="450" font-size="11.5" fill="#0b0b0b" font-weight="600" text-anchor="middle">trio</text>
+<path d="M617.3333333333334,430 L617.3333333333334,387.6 Q617.3333333333334,383.6 621.3333333333334,383.6 L639.3333333333334,383.6 Q643.3333333333334,383.6 643.3333333333334,387.6 L643.3333333333334,430 Z" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="630.3" y="377.6" font-size="10.5" fill="#52514e" text-anchor="middle">8</text>
+<path d="M645.3333333333334,430 L645.3333333333334,387.6 Q645.3333333333334,383.6 649.3333333333334,383.6 L667.3333333333334,383.6 Q671.3333333333334,383.6 671.3333333333334,387.6 L671.3333333333334,430 Z" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="658.3" y="377.6" font-size="10.5" fill="#52514e" text-anchor="middle">8</text>
+<path d="M673.3333333333334,430 L673.3333333333334,376.0 Q673.3333333333334,372.0 677.3333333333334,372.0 L695.3333333333334,372.0 Q699.3333333333334,372.0 699.3333333333334,376.0 L699.3333333333334,430 Z" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="686.3" y="366.0" font-size="10.5" fill="#52514e" text-anchor="middle">10</text>
+<text x="658.3" y="450" font-size="11.5" fill="#0b0b0b" font-family="ui-monospace, Consolas, monospace" text-anchor="middle">eqpac</text>
+<path d="M754.0,430 L754.0,323.8 Q754.0,319.8 758.0,319.8 L776.0,319.8 Q780.0,319.8 780.0,323.8 L780.0,430 Z" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="767.0" y="313.8" font-size="10.5" fill="#52514e" text-anchor="middle">19</text>
+<path d="M782.0,430 L782.0,405.0 Q782.0,401.0 786.0,401.0 L804.0,401.0 Q808.0,401.0 808.0,405.0 L808.0,430 Z" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="795.0" y="395.0" font-size="10.5" fill="#0b0b0b" font-weight="700" text-anchor="middle">5</text>
+<path d="M810.0,430 L810.0,341.2 Q810.0,337.2 814.0,337.2 L832.0,337.2 Q836.0,337.2 836.0,341.2 L836.0,430 Z" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="823.0" y="331.2" font-size="10.5" fill="#52514e" text-anchor="middle">16</text>
+<text x="795.0" y="450" font-size="11.5" fill="#0b0b0b" font-family="ui-monospace, Consolas, monospace" text-anchor="middle">natlsubpolar</text>
+<path d="M890.6666666666666,430 L890.6666666666666,149.8 Q890.6666666666666,145.8 894.6666666666666,145.8 L912.6666666666666,145.8 Q916.6666666666666,145.8 916.6666666666666,149.8 L916.6666666666666,430 Z" fill="#004488" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="903.7" y="139.8" font-size="10.5" fill="#52514e" text-anchor="middle">49</text>
+<path d="M918.6666666666666,430 L918.6666666666666,149.8 Q918.6666666666666,145.8 922.6666666666666,145.8 L940.6666666666666,145.8 Q944.6666666666666,145.8 944.6666666666666,149.8 L944.6666666666666,430 Z" fill="#3C7FB1" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="931.7" y="139.8" font-size="10.5" fill="#52514e" text-anchor="middle">49</text>
+<path d="M946.6666666666666,430 L946.6666666666666,149.8 Q946.6666666666666,145.8 950.6666666666666,145.8 L968.6666666666666,145.8 Q972.6666666666666,145.8 972.6666666666666,149.8 L972.6666666666666,430 Z" fill="#9BC4DF" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="959.7" y="139.8" font-size="10.5" fill="#52514e" text-anchor="middle">49</text>
+<text x="931.7" y="450" font-size="11.5" fill="#0b0b0b" font-family="ui-monospace, Consolas, monospace" text-anchor="middle">southernoceanpac</text>
+<rect x="734.7" y="118" width="120.7" height="312" fill="none" stroke="#0b0b0b" stroke-width="1" stroke-dasharray="3 3" opacity="0.42"/>
+<text x="40" y="478" font-size="11.5" fill="#52514e"><tspan font-family="ui-monospace, Consolas, monospace">alpfe</tspan> and <tspan font-family="ui-monospace, Consolas, monospace">R_PICPOC</tspan> are exactly invariant. The trio count equals</text>
+<text x="40" y="495" font-size="11.5" fill="#52514e"><tspan font-family="ui-monospace, Consolas, monospace">scav_rat</tspan>’s, so <tspan font-family="ui-monospace, Consolas, monospace">scav_rat</tspan> is the sole binding leg.</text>
+<text x="590" y="478" font-size="11.5" fill="#52514e">Only the North Atlantic moves. Its per-cell <tspan font-family="ui-monospace, Consolas, monospace">log_sd</tspan> is 0.940</text>
+<text x="590" y="495" font-size="11.5" fill="#52514e">(inflation &#215;1.56) against 0.245 at eqpac and 0.379 in the SO.</text>
+<line x1="40" y1="518" x2="1000" y2="518" stroke="#e5e4e0" stroke-width="1"/>
+<text x="40" y="536" font-size="10.5" fill="#6b6a66">Paired McNemar on <tspan font-family="ui-monospace, Consolas, monospace">scav_rat</tspan>, same seeds and same fits: 13 seeds pass under arithmetic only, 0 under geometric only, P = 2.4e-04. The collapse never flips a seed the other way.</text>
+<text x="40" y="553" font-size="10.5" fill="#6b6a66">Source: docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md &#183; graded with scripts/analysis/pooler_audit.py &#183; counts are the per-AOI &#8805;2-of-3 metric, not cell-weighted.</text>
+<text x="40" y="570" font-size="10.5" fill="#6b6a66">A separate single-AOI Southern Ocean run (<tspan font-family="ui-monospace, Consolas, monospace">so_only</tspan>) is not shown: there <tspan font-family="ui-monospace, Consolas, monospace">scav_rat</tspan> reads 30/50 arithmetic and 49/50 geometric. Do not conflate it with the SO leg above.</text>
+</svg>
