@@ -7831,6 +7831,20 @@
      "words": 822
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_adequacy_weighted_routing_is_inert.md",
+     "name": "2026-08-03_adequacy_weighted_routing_is_inert.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 786
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
+     "name": "2026-08-03_capacity_is_the_scav_rat_lever.md",
+     "date": "2026-08-03",
+     "retracted": 1,
+     "words": 1470
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_information_weighted_routing_is_worse.md",
      "name": "2026-08-03_information_weighted_routing_is_worse.md",
      "date": "2026-08-03",
@@ -7849,14 +7863,14 @@
      "name": "2026-08-03_per_parameter_operating_points.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 1606
+     "words": 1836
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
      "name": "2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
      "date": "2026-08-03",
      "retracted": 0,
-     "words": 610
+     "words": 943
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_trunks_lift_scav_rat_but_not_the_frontier.md",
@@ -7880,11 +7894,25 @@
      "words": 1329
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
+     "name": "2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 1170
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_flagship_is_bound_to_a_code_build.md",
      "name": "2026-08-03_the_flagship_is_bound_to_a_code_build.md",
      "date": "2026-08-03",
      "retracted": 1,
      "words": 929
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_pass_band_is_load_bearing.md",
+     "name": "2026-08-03_the_pass_band_is_load_bearing.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 1326
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_regression_was_a_learning_rate.md",
@@ -36778,7 +36806,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 188,
+  "document": 192,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,

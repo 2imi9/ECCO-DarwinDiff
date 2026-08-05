@@ -31,17 +31,46 @@ The pre-registration was right to refuse the n=50 number, and the refusal was wo
 the number: had 45/50 vs 34/50 been published at P = 0.0128 with a caveat, the caveat would
 have been carrying a result that is not there.
 
-## Controls, all holding
+## Controls, and one result that is not a control at all
 
-| | pp_head | pp_ctrl39 |
-|---|---|---|
-| `alpfe` | 100/100 | 98/100 |
-| `R_PICPOC` | 100/100 | 100/100 |
-| `diatomgraz` | **0/100** | **1/100** |
+Each arm against **its own** architecture-matched untrained null, all four pooled to n=100:
 
-`diatomgraz` at 0/100 and 1/100 at the ≤10% band confirms at n=100 what the n=50 arms found:
-it is not recovered by anything. `alpfe` and `R_PICPOC` are at ceiling in both arms, so the
-architecture change is neither helping nor harming them.
+| | pp_head | its null | pp_ctrl39 | its null |
+|---|---|---|---|---|
+| `alpfe` | 100/100 | 25/100 | 98/100 | 30/100 |
+| `scav_rat` | 83/100 | **0/100** | 72/100 | **0/100** |
+| `R_PICPOC` | 100/100 | **0/100** | 100/100 | **0/100** |
+| `diatomgraz` (0.40 band) | **0/100** | **70/100** | **1/100** | **77/100** |
+
+`scav_rat` and `R_PICPOC` clear nulls of 0/100 in both arms — so **both architectures recover
+them**; they simply do not differ from each other. The untrained `alpfe` rates (25/100, 30/100)
+confirm again that nulls are architecture-dependent and cannot be borrowed.
+
+### `diatomgraz` is not merely unrecovered — training moves it AWAY from Carroll
+
+> **⚠️ REFINED LATER THE SAME DAY, and the refinement is a positive result.** This section is
+> right about `natlsubpolar` and `southernoceanpac` and **wrong to generalise**. Graded *per leg*
+> at a tight band, `diatomgraz` is **locally identifiable in the equatorial Pacific**: its eqpac
+> leg is 20/100 at ≤5% (P = 2e-04) and 40/100 at ≤10% (P = 5.5e-09) against an untrained **0/50**.
+> The anti-recovery below is real but confined to the other two basins. The aggregate at the 0.40
+> band shows neither, because the untrained null already passes there (33/50, P = 0.254).
+> See [2026-08-03_the_pass_band_is_load_bearing.md](2026-08-03_the_pass_band_is_load_bearing.md).
+
+This is new at n=100 and it is a stronger statement than anything previously recorded. At the
+0.40 band the **untrained** networks score **70/100 and 77/100**, because the prior midpoint
+(rel 0.367) sits inside that band. The **trained** networks score **0/100 and 1/100**.
+
+Training does not fail to find `diatomgraz`. It actively drives it out of a band the untrained
+network was already in, in both architectures, on 100 seeds. The observable set is not
+uninformative about `diatomgraz` — it is **misleading** about it, which is consistent with the
+standing concern that the bSi target is partly circular, being algebraically back-solved from
+diatom biomass (`ded116`).
+
+Two consequences. Any future `diatomgraz` result quoted at the 0.40 band is uninterpretable
+without its untrained null on the same architecture, since the null is the *higher* number. And
+the honest framing is no longer "not established" but "the current observable set has the wrong
+sign for this parameter" — which makes a genuinely independent silica observation the only way
+forward, not more optimisation.
 
 ## The per-AOI legs say something the aggregate hides
 

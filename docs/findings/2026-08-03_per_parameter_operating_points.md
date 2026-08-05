@@ -26,16 +26,22 @@ architecture-matched untrained null**.
 
 ## The map
 
-| parameter | best measured | its own untrained null | best-known configuration | class |
-|---|---|---|---|---|
-| `alpfe` | **50/50** | 10/50 flagship arch · 13/50 per-param · 15/50 widened | flagship `geo1`; insensitive | **point-identified**, method-independent |
-| `R_PICPOC` | **50/50** | 0/50 | flagship `geo1` **+ real Daniels CP:PP anchor** | **identified given a real absolute anchor** |
-| `scav_rat` | **83/100** | 0/50 | **added network capacity** (width 39 shared trunk) | **regionally identifiable**; one basin model-limited |
-| `diatomgraz` | **0/50** at ≤10% | 0/50 at ≤10% (0.64 at ≤0.40) | none | **not established at an uncontaminated band** |
-| `Smallgrow` | — | — | — | excluded: non-identifiable from *time-mean* observables |
-| `Biggrow` | — | — | — | excluded: unobservable by construction |
+| parameter | best measured | its own untrained null | **band-robust?** | best-known configuration | class |
+|---|---|---|---|---|---|
+| `alpfe` | **98/100** at *every* band 0.20–0.60 | **0/100 at ≤0.30**, 20/100 at 0.40 | **YES, flat** | flagship `geo1`; insensitive. **Quote at ≤0.30** | **point-identified**, method-independent |
+| `R_PICPOC` | **99/100** (33/100 even at ≤0.20) | **0/100 at every band** | **YES** above 0.35 | flagship `geo1` **+ real Daniels CP:PP anchor** | **identified given a real absolute anchor** |
+| `scav_rat` | **16/100 geometric** (45/100 arithmetic at 0.40; 22 at 0.35, 81 at 0.45) | 0/100 at every band | **NO — knife edge, AND pooler-dependent** | flagship width 16; **grade geometric** | **regionally identifiable (Southern Ocean); the arithmetic count is inflated by per-cell dispersion** |
+| `diatomgraz` | **eqpac leg 40/100 at ≤10%** (aggregate 3/100 at 0.40) | eqpac leg **0/50 at ≤10%**; 33/50 at 0.40 | band must be **≤0.30** or it is blind | flagship `geo1`, graded **per-leg at ≤0.10** | **locally identifiable in eqpac; anti-recovered in natl and sopac** |
+| `Smallgrow` | — | — | — | — | excluded: non-identifiable from *time-mean* observables |
+| `Biggrow` | — | — | — | — | excluded: unobservable by construction |
 
-**Three recovered, one unestablished, two excluded.** Not "3 of 4".
+**Two solid, one knife-edge, one anti-recovered, two excluded.** The band-robustness column is
+the one added last and it is the one that matters most: `alpfe` and `R_PICPOC` hold their counts
+across the whole threshold range, which is a genuine strengthening, while `scav_rat` swings
+**22 → 81** across ±0.05 around the reported band. Since CLAUDE.md records that the joint trio
+count *equals* `scav_rat`'s — it is the sole binding leg — **the flagship's joint headline
+inherits that knife edge.** See
+[2026-08-03_the_pass_band_is_load_bearing.md](2026-08-03_the_pass_band_is_load_bearing.md).
 
 ### `alpfe` — solved, and the least interesting
 
@@ -140,10 +146,17 @@ parameter"**. The evidence, all of it already in the repo:
 - and the bSi observable it is graded through is **partly circular**, being algebraically
   back-solved from diatom biomass (`ded116`).
 
+**And at n=100 the statement gets stronger than "not recovered".** Pooling the untrained arms of
+job 258256 to n=100, at the 0.40 band the **untrained** networks score **70/100 and 77/100**
+while the **trained** ones score **0/100 and 1/100**. Training does not fail to find
+`diatomgraz`; it actively drives it out of a band the untrained network was already sitting in,
+in both architectures. The observable set is not uninformative about this parameter — it has the
+**wrong sign** for it, which is consistent with the bSi target being partly circular (`ded116`).
+
 What is *not* retracted: `ind262` records `diatomgraz` beating its own untrained rate in 3 of 3
 basins in the MLD arm. That is a per-basin result at the contaminated band and it has not been
-disproven here. The correct statement is the narrow one: **`diatomgraz` has not been shown to
-recover against its own null at a band where recovery is meaningful.**
+disproven here — though the anti-recovery result above makes re-measuring it against a
+same-architecture null at n=100 the obvious next step.
 
 ## What this does to "two operating points"
 
