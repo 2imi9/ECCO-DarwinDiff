@@ -7810,6 +7810,13 @@
      "words": 861
     },
     {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-02_flagship_does_not_reproduce_and_the_config_is_not_why.md",
+     "name": "2026-08-02_flagship_does_not_reproduce_and_the_config_is_not_why.md",
+     "date": "2026-08-02",
+     "retracted": 0,
+     "words": 879
+    },
+    {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
      "name": "2026-08-02_flagship_window_sweep_relaunch.md",
      "date": "2026-08-02",
@@ -7822,6 +7829,69 @@
      "date": "2026-08-02",
      "retracted": 0,
      "words": 822
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_information_weighted_routing_is_worse.md",
+     "name": "2026-08-03_information_weighted_routing_is_worse.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 778
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_aoi_weights_from_information.md",
+     "name": "2026-08-03_per_parameter_aoi_weights_from_information.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 784
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_operating_points.md",
+     "name": "2026-08-03_per_parameter_operating_points.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 1606
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
+     "name": "2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 610
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_per_parameter_trunks_lift_scav_rat_but_not_the_frontier.md",
+     "name": "2026-08-03_per_parameter_trunks_lift_scav_rat_but_not_the_frontier.md",
+     "date": "2026-08-03",
+     "retracted": 1,
+     "words": 892
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_prereg_adequacy_weighted_routing.md",
+     "name": "2026-08-03_prereg_adequacy_weighted_routing.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 956
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_prereg_per_parameter_routing.md",
+     "name": "2026-08-03_prereg_per_parameter_routing.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 1329
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_flagship_is_bound_to_a_code_build.md",
+     "name": "2026-08-03_the_flagship_is_bound_to_a_code_build.md",
+     "date": "2026-08-03",
+     "retracted": 1,
+     "words": 929
+    },
+    {
+     "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/2026-08-03_the_regression_was_a_learning_rate.md",
+     "name": "2026-08-03_the_regression_was_a_learning_rate.md",
+     "date": "2026-08-03",
+     "retracted": 0,
+     "words": 862
     },
     {
      "path": "C:/Users/Frank/OneDrive/Desktop/Github/ecco-darwindiff/docs/findings/compute_time_compiled_h200.md",
@@ -36708,7 +36778,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 178,
+  "document": 188,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,

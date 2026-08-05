@@ -570,6 +570,39 @@ AOI_W = {k: float(os.environ.get(f"AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEY
 # 2026-06-24). Set RATIO_AOI_W_NATLSUBPOLAR=0 to drop it. Default 1.0 = uniform.
 RATIO_AOI_W = {k: float(os.environ.get(f"RATIO_AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
 
+# Per-AOI multiplier on the Darwin-pattern FeT term ONLY (the RATIO_AOI_W analogue for
+# iron). This is the ADEQUACY lever.
+#
+# WHY IT EXISTS. Weighting AOIs by Fisher information made recovery worse (scav_rat
+# 26/50 -> 11/50, job 256953) because information is not helpfulness: a Fisher diagonal
+# measures how much an observable MOVES when the parameter moves, and is silent on
+# whether the residual it is driven against is one the box could ever reach. Where the
+# forward model is misspecified, high information up-weights confident error.
+#
+# The measured adequacy of the box's iron field, as the relative residual
+# ||model - Darwin|| / ||Darwin||, is NOT uniform across basins:
+#
+#     at the prior midpoint    eqpac 1.347   natl 0.915   sopac 0.883
+#     at the recovered optimum eqpac >=1.0   natl 0.621   sopac 0.554   (2026-07-28)
+#
+# eqpac's residual is at least as large as the signal at BOTH evaluation points, i.e. no
+# parameter value makes the box reproduce Darwin's equatorial iron. Fitting a parameter
+# through a forward map that cannot reach the target is not identifiability, and eqpac is
+# the one basin where scav_rat has never recovered (6-8/50 in every arm, at every
+# capacity, at 2000 and 4000 epochs).
+#
+# Set FET_AOI_W_EQPAC=0 to drop that term. Default 1.0 is a bit-identical no-op: the
+# normaliser below is adjusted by the same weight, so the surviving pattern terms keep
+# their mean-over-terms scaling and the intervention stays confined to the FeT term
+# rather than silently rescaling the whole pattern block for that AOI.
+#
+# SCOPE: this is the Darwin-pattern FeT term (surrogate vs surrogate). The real GEOTRACES
+# iron anchors (GEOTRACES_W, GEOTRACES_SUB_W) are separate targets and are NOT touched --
+# the adequacy measurement was made against Darwin's FeT field, so it says nothing about
+# the real observations, and no real data is discarded here.
+# Rule: docs/findings/2026-08-03_adequacy_rule.json (scripts/analysis/emit_adequacy_rule.py)
+FET_AOI_W = {k: float(os.environ.get(f"FET_AOI_W_{k.upper()}", "1.0")) for k in AOIS_KEYS}
+
 # Per-AOI parameter gating (Stage 1). GATING_POLICY selects which Carroll-6
 # parameters learn from which AOI's loss (see darwindiff.gating). Default
 # "ungated" reproduces pre-gating behaviour bitwise. Mutually exclusive with
@@ -654,6 +687,8 @@ N_STEPS = int(os.environ.get("N_STEPS", "200"))
 
 print(f"AOIS: {AOIS_KEYS}  (joint training across {N_AOIS} AOIs)")
 print(f"Per-AOI weights: {AOI_W}")
+if any(v != 1.0 for v in FET_AOI_W.values()):
+    print(f"ADEQUACY LEVER ACTIVE -- per-AOI Darwin-pattern FeT weights: {FET_AOI_W}")
 print(f"Seeds: {SEEDS} (N={N_SEEDS})")
 print(f"Config: fet_w={FET_W}, pinn_w={PINN_W}, geo_surf_w={GEOTRACES_W}, "
       f"geo_sub_w={GEOTRACES_SUB_W}, poc_sub_w={POC_SUB_W}, darwin_ic={USE_DARWIN_IC}")
@@ -1833,8 +1868,13 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
     bessel_div = max(int(n_ocean_f.item()) - 1, 1)
     tb = lambda p, z: term_batched(p, z, mask_f, n_ocean_f, bessel_div)
 
+    # Adequacy lever: per-AOI multiplier on the Darwin-pattern FeT term only. The
+    # normaliser carries the SAME weight, so the ten non-FeT terms keep their
+    # mean-over-terms scaling when FeT is dropped and this stays a one-term
+    # intervention. fet_w == FET_W reproduces the historical divisor exactly.
+    fet_w = FET_W * FET_AOI_W[bundle["key"]]
     z = (
-        FET_W * tb(dfe1, bundle["fet_z"])
+        fet_w * tb(dfe1, bundle["fet_z"])
         + tb(p_diatom, bundle["chl_z"]["Chl1"])
         + tb(p_lge,    bundle["chl_z"]["Chl2"])
         + tb(p_syn,    bundle["chl_z"]["Chl3"])
@@ -1845,7 +1885,7 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         + tb(dic,      bundle["dic_z"])
         + tb(alk,      bundle["alk_z"])
         + tb(co2_pred, bundle["co2_flux_z"])
-    ) * DARWIN_PATTERN_W / (FET_W + 10.0)
+    ) * DARWIN_PATTERN_W / (fet_w + 10.0)
 
     if PINN_W > 0:
         alpfe_b = params_b[P.alpfe]; scav_rat_b = params_b[P.scav_rat]
@@ -2365,6 +2405,10 @@ if __name__ == "__main__":
             "n_geo_surf_cells_per_aoi": {b["key"]: b["n_geo_surf"] for b in bundles},
             "geotraces_sub_w": GEOTRACES_SUB_W,
             "n_geo_sub_cells_per_aoi": {b["key"]: b["n_geo_sub"] for b in bundles},
+            # The adequacy lever. Recorded for the same reason n_steps is: an arm that
+            # varies a weight no artifact carries is indistinguishable from its control
+            # on the one variable it varied (#219).
+            "fet_aoi_w": dict(FET_AOI_W),
             "pinn_w": PINN_W,
             "pinn_type": PINN_TYPE,
             "use_darwin_ic": USE_DARWIN_IC,

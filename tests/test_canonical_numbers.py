@@ -84,10 +84,19 @@ def test_anchor_off_controls_are_distinguished_by_epoch():
 
 # ---------------------------------------------------------------- documentation guard
 def _tracked_markdown() -> list[Path]:
-    out = subprocess.run(
-        ["git", "ls-files", "*.md"], cwd=REPO, capture_output=True, text=True, check=False
-    )
-    files = [REPO / p for p in out.stdout.split("\n") if p.strip()]
+    # Tracked AND untracked-but-not-ignored. Scanning only tracked files makes this guard
+    # unable to do the one job it has: a new doc is invisible until it is committed, so the
+    # violation is committed FIRST and the guard reports it only on the next run. That is
+    # how three 2026-08-03 docs bound 26/50 to the flagship while the suite was reported
+    # green -- the suite was truthful about the files it could see.
+    #
+    # --exclude-standard honours .gitignore, so deliberately untracked local-only material
+    # (the manuscript under docs/paper) stays out.
+    files: list[Path] = []
+    for args in (["git", "ls-files", "*.md"],
+                 ["git", "ls-files", "--others", "--exclude-standard", "*.md"]):
+        out = subprocess.run(args, cwd=REPO, capture_output=True, text=True, check=False)
+        files += [REPO / p for p in out.stdout.split("\n") if p.strip()]
     # The archive is a deliberate historical record and may contain superseded claims.
     #
     # docs/research_map.md is exempt for two compounding reasons. It is GENERATED from the docs
@@ -124,6 +133,26 @@ _REPRODUCTION_MARKERS = (
     "versus 25/50",
     "falsification condition",
 )
+
+
+def test_the_guard_can_see_a_doc_that_is_not_committed_yet():
+    """Negative control for the guard's own blind spot.
+
+    Until 2026-08-03 this scanned `git ls-files` alone, so a doc violating the canonical
+    numbers passed review, got committed, and only then became visible. A guard that cannot
+    see the change under test is the same failure as a control that compares zero values.
+    """
+    probe = REPO / "docs" / "findings" / "_guard_selftest_uncommitted.md"
+    assert not probe.exists(), "stale probe from an interrupted run; delete it"
+    probe.write_text("flagship scav_rat 26/50\n", encoding="utf-8")
+    try:
+        seen = _tracked_markdown()
+        assert probe in seen, (
+            "an uncommitted doc under docs/findings is invisible to the canonical-number "
+            "guard, so a violation can always be committed before it is caught"
+        )
+    finally:
+        probe.unlink()
 
 
 def test_no_tracked_doc_binds_26_of_50_to_the_flagship():

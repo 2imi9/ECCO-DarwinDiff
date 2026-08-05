@@ -128,7 +128,10 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
 - Recovery results: compare against Carroll's published Green's-functions optima, report
   n≥10 with seed variance, DINN baseline only by default. **Framing is a surrogate-to-model
   identifiability study, not a 6/6 chase**: the observable denominator is **4** {`alpfe`,
-  `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is
+  `scav_rat`, `diatomgraz`, `R_PICPOC`} — but only **three** of those four have ever cleared
+  their own untrained null at an uncontaminated band; `diatomgraz` stays *in* the denominator
+  and is reported as not established, never quietly dropped to flatter the ratio. The growth
+  pair {`Smallgrow`, `Biggrow`} is
   **excluded, not failed** — `Biggrow` unobservable by construction, `Smallgrow` non-identifiable
   from *time-mean* observables only (a seasonal prototype recovers it natl 9/10, unconfirmed). `R_PICPOC` is recoverable given a
   real calcite anchor (Daniels/MODIS). The surrogate gap is dimensional (the 0-D box homogenizes
@@ -142,7 +145,17 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
 - **Match the control to the epoch budget.** There are two anchor-off runs and both are real:
   `n50e2k_anchor_off` (2000 ep, the epoch-matched control for the flagship) gives `R_PICPOC` **6/50**;
   `n50_anchor_off` (1500 ep) gives **4/50**. Quote 6/50 against the 2000-epoch flagship.
-- **The 3-of-4 frontier is structural — there are two operating points, not one.** No single
-  config recovers all four observables: `geo1` holds {`alpfe`, `scav_rat`, `R_PICPOC`}, while
-  MLD-channel + heavy Daniels weight holds {`alpfe`, `diatomgraz`, `R_PICPOC`}. `scav_rat` needs
-  the Darwin-pattern term; `diatomgraz` needs MLD; they conflict even at 4000 epochs.
+- **Do not write "the 3-of-4 frontier", and do not claim two operating points.** Both overstate
+  what is measured, because both count a `diatomgraz` leg graded in a contaminated band. Its
+  prior midpoint is rel **0.367**, inside the 0.40 pass band — the only one of the six — so an
+  untrained network scores **0.64** there for free. At the ≤10% band it is **0/50 trained and
+  0/50 untrained** in all three 2026-08-03 arms, and its one "non-circular handle" (35/50) sits
+  against a matched untrained **34/50**, P = 0.447 (`ind270`). The second operating point's
+  distinguishing member is exactly that leg, so it is **not established** — it is the first
+  operating point plus a parameter that scores well because the band is wide.
+  Honest framing: **three recovered, one not established at an uncontaminated band, two
+  excluded by construction.** The `scav_rat`-needs-Darwin-pattern vs `diatomgraz`-needs-MLD
+  conflict survives only as a loss-landscape statement, not as two comparable configurations.
+  Not retracted: `ind262` (`diatomgraz` beats its untrained rate in 3 of 3 basins in the MLD
+  arm) is a per-basin result at the contaminated band and is untouched by the above.
+  See [docs/findings/2026-08-03_per_parameter_operating_points.md](docs/findings/2026-08-03_per_parameter_operating_points.md).
