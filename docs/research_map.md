@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (525 questions)
+## 1. SETTLED — do not re-derive (526 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -186,6 +186,7 @@ this table, it is done: say so and move on.
 | Does scav_rat survive an anchors-only loss (all Darwin-pattern terms removed)? | No. scav_rat per-AOI collapses to 0/10 (from 25/50 in the flagship) while its cell-weighted count stays at 8/10 - the classic straddle. The joint trio also drops to 0/10 because scav_rat is the binding leg. scav_rat's per-AOI recovery is p… | `docs/findings/2026-07-21_anchors_only_ablation.md` |
 | Does ScavClosure still carry a free multiplicative level redundant with scav_rat? | No, fixed 2026-08-02 (issue #217). log_r0 was an nn.Parameter and is now a fixed float, exactly as EnvCalciteClosure holds R0 fixed. Removing it alone does not close the gauge - a network that learns a CONSTANT tanh output is a level smugg… | `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md` |
 | Does seasonal (time-resolved) fitting break the recovery ceiling? | No - it is an AOI-selective redistribution of constraint whose sign tracks local seasonality strength, not a net win. Deltas (seasonal minus time-mean Cal+ out of 10 seeds, job 189324): sopac alpfe +5, natl Smallgrow +4 (9 vs 5), natl alpf… | `docs/findings/2026-07-23_overnight_geometry_and_seasonal.md` |
+| Does subsurface dissolved-iron coverage predict which basins recover scav_rat (hy072)? | NO - the falsifier fires, on data already on disk. hy072 predicts the cross-basin ranking should TRACK subsurface bin count; its falsifier is 'a basin with substantial subsurface coverage and no scav_rat recovery'. Measured 2026-08-06 with… | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
 | Does subsurface GEOTRACES iron resolve the alpfe/scav_rat degeneracy everywhere? | No - it is Southern-Ocean-driven. Per-AOI GN-Fisher 2x2 on the real surf+sub loss: southernoceanpac cond 2.22 (conditional corr -0.191, NOT ratio-like), eqpac cond 34.7 (corr +0.939, ratio-like), natlsubpolar cond 50.8 (corr +0.961, ratio-… | `docs/findings/2026-07-23_overnight_geometry_and_seasonal.md` |
 | Does the 'few informative cells' caveat apply to the reported obs-only diatomgraz result? | No, it is too pessimistic for the arm it describes. In obsonly_mld_litic diatomgraz clears its own null in ALL THREE AOIs (50/36, 42/34, 50/32). The 96.1% zero-gradient figure is about CELLS and is correct, but does not imply regional conc… | `docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md` |
 | Does the 0-D box include silicate, and is 'dense-silica targets' a nutrient? | The box has NO dissolved-silicate tracer and no Si-limitation (5-tracer state [DFe, Ps, Pl, POC, PIC]). But 'dense-silica targets' means BIOGENIC silica (POSi/bSi), a diatom output diagnostic used to constrain diatomgraz, not a silicate nu… | `docs/findings/2026-07-07_jon_schultz_meeting_capture.md`, `docs/research_notes/2026-07-23_expert_review_corrections.md` |

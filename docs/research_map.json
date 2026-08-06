@@ -12669,6 +12669,12 @@
      "dont": ""
     },
     {
+     "question": "Does subsurface dissolved-iron coverage predict which basins recover scav_rat (hy072)?",
+     "answer": "NO - the falsifier fires, on data already on disk. hy072 predicts the cross-basin ranking should TRACK subsurface bin count; its falsifier is 'a basin with substantial subsurface coverage and no scav_rat recovery'. Measured 2026-08-06 with the repo's own dfe_aoi_1deg_grid over GEOTRACES IDP2025, 1-degree bins with dissolved Fe: eqpac 26 surface / 28 to 1000 m, kerguelen 18/20, southernoceanpac 13/14, natlsubpolar 13/13. Against the recovery record: eqpac has the MOST coverage (28) and the LEAST scav_rat recovery (7/50 at 2000 epochs, 6/50 at 4000), while southernoceanpac has HALF as many bins (14) and is the one basin where scav_rat is established (30/50 single-AOI vs untrained 0/50, P = 3.15e-24). That is the falsifier's exact condition. CAVEAT ON STRENGTH: this is an EXISTENCE result, not a correlation - the rank correlation over the three basins is rho = -0.50 with p = 0.67 at n = 3, which is worthless and must not be quoted as evidence of anti-ordering. What is established is that coverage alone does not explain the pattern, which is consistent with the standing eqpac-misspecification reading (ind278: eqpac FeT sin phi = 1.0000, residual at least as large as signal). Practical consequence: do NOT rank candidate AOIs by iron bin count expecting recovery to follow. Kerguelen-Crozet (20 bins) was chosen for regime similarity to southernoceanpac, not because its count is higher.",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "dont": ""
+    },
+    {
      "question": "abd555 asked why the ARITHMETIC collapse biases scav_rat's summary HIGH while EKI independently reports the recovered value biased LOW. Is that a real conflict?",
      "answer": "NO - there is no conflict, and the arithmetic collapse is the outlier. TWO INDEPENDENT ESTIMATORS AGREE scav_rat is recovered LOW. (1) EKI (eki_fullbox_trio.py, Iglesias-Law-Stuart, J=256, 30 iters, derivative-free, NO DINN and NO autograd, three global scalars in log space, loss = real GEOTRACES surf/sub dFe + real Daniels CP:PP only) returns scav_rat 2.1e-7 against Carroll 6.025e-7 = 0.349x, rel offset 0.65, Loose. (2) The geometric collapse of the DINN per-cell fit, measured 2026-08-04, returns 0.43x in eqpac and natlsubpolar, 0.89x in southernoceanpac (3-AOI) and 0.73x single-AOI. The ARITHMETIC collapse of the SAME fits reads 0.45x / 0.58x / 0.95x and 1.39x, i.e. it lifts the estimate toward Carroll and, in the single-AOI Southern Ocean, past it. So the low bias is the estimate and the high bias is the REPORTING STATISTIC. Note what this does NOT establish: Carroll's value is itself a Green's-functions point estimate with no published uncertainty, so 'biased low' means low relative to Carroll, not relative to truth.",
      "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
@@ -37344,7 +37350,7 @@
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 525,
+  "settled": 526,
   "supersedes": 297,
   "supports": 279,
   "trap": 243,
