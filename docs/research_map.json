@@ -8561,7 +8561,7 @@
      "name": "2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md",
      "date": "2026-08-06",
      "retracted": 0,
-     "words": 907,
+     "words": 1457,
      "local_only": 0
     },
     {
@@ -14390,6 +14390,12 @@
      "question": "What was the pre-registered E2 calcite pass criterion, so we don't re-litigate it?",
      "answer": "PASS <=> delta > 0 at physical kh AND K_num-shrinks (delta largest at physical kh, shrinking as kh grows over kh in {50,200,800}). Anything else is NOT a pass. Split: Omega_calcite upper quartile, hold='upper', q=0.25 fixed, n_val ~6 covered eqpac cells (train ~18) — acknowledged low-powered in advance. Metric: learned-minus-null held-out anomaly-R^2 vs the train basin mean, surface-gated closure. Config kh=50, kz=50, n_z=6, dt=0.25 d, dz=10 m. OUTCOME (separate doc): both runs failed both criteria.",
      "doc": "docs/research_notes/2026-07-09_e2_calcite_preregistration.md",
+     "dont": ""
+    },
+    {
+     "question": "How should dissolved-iron vertical structure be compared between AOIs, and does it explain the Kerguelen scav_rat null?",
+     "answer": "PER STATION, never pooled - and no, it does not explain the null. This is a live trap: pooling all QC-good Fe_D_CONC samples per AOI and ratioing the subsurface (50-1000 m) median to the surface (<=50 m) median gives southernoceanpac 2.84, eqpac 2.53, natlsubpolar 2.04 and kerguelen 0.91, which reads as 'Kerguelen alone has no vertical gradient, and it is the one basin that fails'. That is WRONG. Computing the ratio per station and taking the median over stations sampling both layers gives southernoceanpac 2.42 (IQR 1.46-2.73), eqpac 2.30 (1.71-3.22), natlsubpolar 2.28 (1.48-2.82) and kerguelen 2.00 (IQR 1.05-3.94) - an ordinary gradient. The pooled figure inverts because Kerguelen is a natural iron-FERTILISATION region (KEOPS/CROZEX plateau and island wakes) carrying many high-surface-iron stations that inflate the pooled surface median while a different subset dominates the pooled subsurface median; pooling across stations with different iron regimes compares two populations. What survives is weak and must not be over-read: Kerguelen has the LOWEST per-station median gradient (2.00 vs 2.28-2.42), by far the WIDEST spread (IQR 1.05-3.94), and the smallest fraction of stations with a clear gradient (0.62 vs eqpac's 0.89). Whether that heterogeneity defeats a shared per-cell network is untested speculation. SEPARATE domain error worth recording: Kerguelen's surface iron median is 0.54 nM against southernoceanpac's 0.08 nM, nearly 7x, so it is NOT 'the same HNLC scavenging-dominated regime' the AOI was selected on - it is naturally iron-fertilised. Measured 2026-08-06 from the staged GEOTRACES IDP2025 file, no fit.",
+     "doc": "docs/findings/2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md",
      "dont": ""
     },
     {
@@ -37370,7 +37376,7 @@
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 528,
+  "settled": 529,
   "supersedes": 297,
   "supports": 279,
   "trap": 243,

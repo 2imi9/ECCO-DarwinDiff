@@ -1,4 +1,4 @@
-# `scav_rat`'s regional identifiability does NOT transfer to a second HNLC basin with more iron data
+# `scav_rat` does NOT transfer to Kerguelen-Crozet — and the basin was not the regime I thought it was
 
 **Date:** 2026-08-06 · **Job:** 287354 (`dd-kerg`, 10 array tasks) ·
 **Artifacts:** `/scratch/qi_zim_neu/kerg/{kg_base,kg_null}` · **AOI:** `kerguelen` (−65..−45 N,
@@ -6,11 +6,18 @@
 Southern Ocean · `verify_run` **exit 0**.
 
 **Verdict: NO. Kerguelen-Crozet has MORE dissolved-iron coverage than the Southern Ocean Pacific
-box where `scav_rat` is established — 18/20 one-degree bins against 13/14 — in the same HNLC,
-scavenging-dominated regime. It recovers `scav_rat` 2/50 under the geometric collapse (10/50
-arithmetic, and the geometric reading is the required one). `alpfe` is 0/50, worse than its own
-untrained null. The failure mode is the rank-1 degeneracy: both iron parameters slide DOWN
-together, which is the ridge direction. Regime similarity plus more data is not sufficient.**
+box where `scav_rat` is established — 18/20 one-degree bins against 13/14 — and recovers
+`scav_rat` 2/50 under the geometric collapse (10/50 arithmetic, and the geometric reading is the
+required one). `alpfe` is 0/50, worse than its own untrained null. The failure mode is the rank-1
+degeneracy: both iron parameters slide DOWN together, which is the ridge direction.**
+
+**Two corrections to my own reasoning fall out of it, and both are in §6.** The basin is NOT "the
+same HNLC scavenging-dominated regime" I selected it on — its surface iron median is 0.54 nM
+against southernoceanpac's 0.08 nM, nearly 7x, because Kerguelen-Crozet is the classic natural
+iron-FERTILISATION region. And the obvious rescue hypothesis, that it lacks the vertical iron
+structure the Southern Ocean result depends on, is FALSE: it looks true when you pool samples
+(ratio 0.91) and is false per station (2.00, an ordinary gradient). The pooled statistic inverts
+the answer, and that trap is worth more than the hypothesis was.
 
 ## 1. The measurement
 
@@ -87,6 +94,55 @@ alternative basin the data supports.
 
 The open question moves to **what pins the ridge in southernoceanpac and not in Kerguelen**. The
 depth result (2026-07-31: `so_sub` 33/50 vs `so_surf` 14/50) says the Southern Ocean signal is
-vertical structure in dissolved iron. The obvious next check is whether Kerguelen's 20 subsurface
-bins carry the same vertical structure or are concentrated at the surface — a property of the
-sampling, not the basin, and measurable from the staged GEOTRACES file without any fit.
+vertical structure in dissolved iron, so the obvious next check was whether Kerguelen lacks it.
+**That check was run — see §6. It does not lack it, and the hypothesis is dead.**
+
+## 6. Addendum — the vertical-structure explanation was tested and does NOT hold
+
+§5 proposed the obvious next check: the Southern Ocean signal is depth structure in dissolved iron
+(2026-07-31, `so_sub` 33/50 vs `so_surf` 14/50), so does Kerguelen lack that structure?
+
+**Measured, and the answer depends entirely on how you aggregate — which is the finding.**
+
+Pooling all QC-good `Fe_D_CONC` samples in each AOI and taking the ratio of the subsurface
+(50–1000 m) median to the surface (≤50 m) median:
+
+| AOI | pooled sub/surf | surface median |
+|---|---|---|
+| southernoceanpac | 2.84 | 0.08 nM |
+| eqpac | 2.53 | 0.17 nM |
+| natlsubpolar | 2.04 | 0.29 nM |
+| **kerguelen** | **0.91** | **0.54 nM** |
+
+That looks decisive — Kerguelen alone has no vertical gradient, and it is the one basin that fails.
+It is also **wrong**. Computing the ratio **per station** and taking the median over stations that
+sample both layers:
+
+| AOI | stations with both | median ratio | IQR | frac > 1.5 |
+|---|---|---|---|---|
+| southernoceanpac | 14 | 2.42 | [1.46, 2.73] | 0.71 |
+| eqpac | 27 | 2.30 | [1.71, 3.22] | 0.89 |
+| natlsubpolar | 13 | 2.28 | [1.48, 2.82] | 0.69 |
+| **kerguelen** | **32** | **2.00** | **[1.05, 3.94]** | **0.62** |
+
+Kerguelen has a perfectly ordinary per-station vertical gradient. The pooled 0.91 is a pooling
+artifact: Kerguelen is a natural iron-fertilisation region (the KEOPS/CROZEX plateau and island
+wakes), so it carries many high-surface-iron stations that inflate the pooled SURFACE median, while
+a different subset of stations dominates the pooled SUBSURFACE median. Pooling across stations with
+very different iron regimes compares two different populations and inverts the answer.
+
+**So the vertical-structure hypothesis does not explain the Kerguelen null.** What survives is
+weaker and should not be over-read: Kerguelen has the lowest per-station median gradient of the
+four (2.00 against 2.28–2.42) and by far the widest spread (IQR 1.05–3.94 against ~1.3 wide
+elsewhere), and the smallest fraction of stations with a clear gradient (0.62 against eqpac's 0.89).
+Whether that heterogeneity is what defeats a shared per-cell network is speculation and is not
+tested here.
+
+**The trap is worth more than the hypothesis.** Anyone comparing iron vertical structure between
+AOIs from this file will reach for the pooled ratio, get 0.91 for Kerguelen, and conclude the basin
+is vertically homogeneous. It is not. Compute it per station.
+
+Related, and it undermines the premise this AOI was chosen on: Kerguelen's surface iron median is
+**0.54 nM**, against 0.08 nM in southernoceanpac — nearly 7x. It was selected as "the same HNLC,
+scavenging-dominated regime", and it is not iron-limited in the same way at all. That is a domain
+error on my part in choosing it, independent of how the fit behaved.

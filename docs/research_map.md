@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (528 questions)
+## 1. SETTLED — do not re-derive (529 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -271,6 +271,7 @@ this table, it is done: say so and move on.
 | How much more real silicate data would prognostic Si unlock? | ~630x: 6,968 in-AOI <=50 m QC-good GLODAP silicate bottles vs 11 bSi bottles. | `docs/findings/2026-07-23_box_silica_feasibility.md` |
 | How much real dissolved silicate is actually available in-AOI, if we wanted a prognostic SiO2 box? | 6,968 QC-good GLODAPv3 bottles at the runner's <=50 m depth cut: eqpac 1,267 / natlsubpolar 4,364 / southernoceanpac 1,337. Against the 11 GEOTRACES bSi bottles currently in the loss (eqpac 7, natl 4, SO 0) that is a ~630x increase, and it… | `docs/findings/2026-07-19_silicate_observable_scope.md` |
 | How much storage do we actually have on Explorer, and where should TB-scale inputs be staged? | /projects/schultz is 36 TB total with 8.2 TB free — NOT '3.3 PB'. Stage on /scratch (1.9 PB, 810 TB free, VAST). 'Home 111 TB free' is the shared /home filesystem (255 TB VAST), not a personal quota. | `docs/findings/2026-07-25_surrogate_to_gcm_validation.md` |
+| How should dissolved-iron vertical structure be compared between AOIs, and does it explain the Kerguelen scav_rat null? | PER STATION, never pooled - and no, it does not explain the null. This is a live trap: pooling all QC-good Fe_D_CONC samples per AOI and ratioing the subsurface (50-1000 m) median to the surface (<=50 m) median gives southernoceanpac 2.84,… | `docs/findings/2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md` |
 | How strong is persistence as a baseline in each regime? | Persistence skill relative to climatology is -0.27 globally (monthly), +0.22 over the equatorial Pacific, and +0.98 at daily cadence. So a persistence-relative number means something completely different at daily vs global-monthly, and glo… | `docs/findings/2026-07-13_global_monthly_emulator.md` |
 | How strong is the alpfe/scav_rat degeneracy in the real Fisher? | Much weaker than first claimed, and it is a RATIO S/k not a product. The earlier -0.77 was the coupling-inflated full-6 MARGINAL. The pure surf+subsurface 2x2 GN-Fisher is well-conditioned: cond 2.2, conditional correlation -0.155, sloppy … | `docs/research_notes/2026-07-23_1hr_run_summary.md` |
 | If a perturbed-parameter ensemble ever becomes affordable, how should the emulator be conditioned? | FiLM (feature-wise scale-and-shift per layer), which beats input-concatenation by roughly an order of magnitude when the parameter changes the operator, and trained on true Jacobian labels (derivative-informed, SC-FNO / DIFNO) — never plai… | `docs/research_notes/2026-07-09_parameter_conditioned_emulator_update.md` |
