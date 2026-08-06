@@ -126,3 +126,62 @@ cleanest route is a self-twin: generate the target from the box itself under a k
 using the same time-averaging the real target uses, and see which loss recovers the truth. A twin
 has no forward-model misspecification, so it isolates the comparison question completely — and it
 needs no new observations.
+
+## 7. Addendum — a third mechanism tested, and it weakens section 3's dimensional argument
+
+Section 3 argued the time-mean comparison is "the defensible one on dimensional grounds", because
+the target is a time average. That argument is weaker than it looked.
+
+The Darwin target is a climatological mean of a **quasi-steady** system. So the right question is
+not "is the model statistic a mean" but "which 50-day statistic better approximates the long-run
+state the climatology represents". Measured, integrating the box to a fixed point and comparing
+each 50-day statistic against it (relative distance, four physical tracers; the diatom is excluded
+because under constant forcing it goes extinct and its long-run value is the clamp floor, which
+makes any relative measure meaningless):
+
+| basin | endpoint@200 | time-mean@200 | closer |
+|---|---|---|---|
+| eqpac | 6.783 | 10.475 | ENDPOINT |
+| natlsubpolar | 9.517 | 15.178 | ENDPOINT |
+| southernoceanpac | 6.050 | 9.580 | ENDPOINT |
+
+**The endpoint is closer in all three basins, with no basin-dependent flip** — so this does not
+explain the swap either. The per-tracer breakdown is the interesting part:
+
+| tracer | endpoint | time-mean |
+|---|---|---|
+| DFe_1 | **0.00** | 0.43 |
+| POC_1 | **0.00** | 0.18 |
+| PIC_1 | **0.00** | 0.19 |
+| DFe_2 | **27.13** | 41.10 |
+
+(eqpac; the other basins are the same shape.)
+
+For every tracer that has converged by 200 steps the endpoint IS the long-run value — relative
+distance 0.00 — while the 50-day mean is contaminated by spin-up from the Darwin initial condition,
+which a Darwin climatology does not contain. **For those tracers the endpoint is the better match,
+not the worse one.** Section 3's dimensional argument holds only for tracers that have not
+converged.
+
+There is exactly one of those, and it is the one that matters: DFe_2 sits 27-38x from its fixed
+point at the operating window under both statistics. It is the observable that anchors scav_rat,
+and scav_rat is the only parameter whose identifiability swaps between the two losses.
+
+**Sharper hypothesis, replacing section 3's:** the comparison question is *tracer-dependent*. For
+converged tracers the endpoint is correct and the time mean adds spin-up error, which is why alpfe
+and R_PICPOC are largely indifferent to the switch. For DFe_2 neither statistic is right, because
+the box has not converged, and the two losses fail differently. The basin dependence would then be
+about how far each basin's DFe_2 trajectory has travelled by day 50, not about either loss being
+right in general.
+
+That is testable and is not tested here. **Three candidate mechanisms have now been tested and none
+survives**: vertical iron structure (killed by per-station aggregation), endpoint-vs-mean distance
+per basin (killed — basins indistinguishable and the ordering inverted), and long-run-proxy quality
+(killed here — no basin dependence). The swap in section 1 is a solid measurement with no mechanism
+behind it, and it should be reported that way.
+
+**Caveat applying to all three tests.** They use a 0-D box at each AOI's median cell under
+idealised constant forcing. Its long-run state is a degenerate fixed point — the diatom goes
+extinct — which is not what a Darwin climatology is, and the per-cell runs with real forcing may
+not converge to a fixed point at all. These tests refute a mechanism cheaply; they cannot
+establish one.

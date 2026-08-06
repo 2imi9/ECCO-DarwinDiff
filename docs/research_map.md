@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (532 questions)
+## 1. SETTLED — do not re-derive (533 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -376,6 +376,7 @@ this table, it is done: say so and move on.
 | Is the seismic checkerboard/spike test the same idea as the measured untrained null? | No, they sit on OPPOSITE sides of the control axis. Checkerboard is a POSITIVE control (known non-null input, full learning; catches 'the inversion cannot resolve this'). The measured untrained null is a NEGATIVE control (no learning at al… | `docs/findings/2026-07-29_contract_prior_art.md` |
 | Is the Southern Ocean leg of R_PICPOC 50/50 independently anchored? | No, it is INHERITED. The flagship's `n_daniels_cells_per_aoi` is {eqpac 34, natlsubpolar 26, southernoceanpac 0} in both n50 and ep4k. A clean epoch-matched control (DANIELS_RPICPOC_W=0, 2000 ep, n=10, exit 0) collapses the SO leg from 1.2… | `docs/findings/2026-07-29_inert_anchor_passes_the_gate.md` |
 | Is the Southern Ocean scav_rat recovery real, or borrowed from the other basins through the shared network? | Real and local. Fitting the SO alone: scav_rat 30/50 vs untrained 0/50, P = 3.15e-24; the pre-registered rule was k >= 25 and P < 0.01, both met and neither marginal. Pre-set controls held: alpfe 50/50 (fit not broken), R_PICPOC 0/50 (must… | `docs/research_notes/2026-07-30_jon_followup_SENT.md` |
+| Is the time-mean comparison dimensionally more correct than the endpoint comparison against a Darwin climatological target? | ONLY FOR UNCONVERGED TRACERS - the blanket dimensional argument is wrong. The Darwin target is a climatological mean of a QUASI-STEADY system, so the test is which 50-day statistic better approximates the long-run state, not which one is n… | `docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md` |
 | Is the time-mean loss's relocation of scav_rat recovery a joint-fit artifact or a property of the basins? | A PROPERTY OF THE BASIN CROSSED WITH THE LOSS - the joint-fit explanation is dead. Job 288619 ran 3 basins x {endpoint, time-mean} SINGLE-AOI, 9 arms x 50 seeds, each against its own untrained null, auto-graded by a dependent job (288620).… | `docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md` |
 | Is the Track-2 emulator data-bound — will more training pairs raise skill? | No. The learning curve saturates at n~55: +0.4167 (n=27), +0.4700 (n=55), +0.4701 (n=82), +0.4657 (n=110); 3 seeds per point at n=27/55/82 and 2 seeds at n=110; seed spread sigma 0.005-0.011. 55->82 buys +0.0001; 82->110 buys -0.0044. | `docs/findings/2026-07-19_two_negatives.md` |
 | Is the Track-2 emulator data-bound? Should we rebuild the cube for volume? | No. The learning curve is FLAT from n=55 (+0.4700 -> +0.4701 -> +0.4657), so more data is not the lever. The actual lever is Delta-t uniformity (+0.4730). The volume diagnosis was superseded the same day it was written. | `docs/findings/2026-07-19_emulator_honest_bounds.md` |

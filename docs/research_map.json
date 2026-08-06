@@ -8569,7 +8569,7 @@
      "name": "2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md",
      "date": "2026-08-06",
      "retracted": 0,
-     "words": 1173,
+     "words": 1731,
      "local_only": 0
     },
     {
@@ -14326,6 +14326,12 @@
      "question": "Is diatomgraz recovery circular (bSi back-solved from the model's own biomass)?",
      "answer": "Not necessarily - it recovers 35/50 per-AOI at n=50 with POSI_W=0, through chlorophyll + MLD. The honest statement is 'recoverable from a non-circular but still model-internal observable, not recovered from independent real data'.",
      "doc": "docs/findings/2026-07-23_box_silica_feasibility.md",
+     "dont": ""
+    },
+    {
+     "question": "Is the time-mean comparison dimensionally more correct than the endpoint comparison against a Darwin climatological target?",
+     "answer": "ONLY FOR UNCONVERGED TRACERS - the blanket dimensional argument is wrong. The Darwin target is a climatological mean of a QUASI-STEADY system, so the test is which 50-day statistic better approximates the long-run state, not which one is nominally a mean. Measured 2026-08-06 by integrating the box to its fixed point: relative distance from the long-run state is eqpac endpoint 6.783 vs time-mean 10.475, natlsubpolar 9.517 vs 15.178, southernoceanpac 6.050 vs 9.580 - the ENDPOINT is closer in all three basins with NO basin-dependent flip, so this does not explain the loss swap either. The per-tracer breakdown is the finding: DFe_1, POC_1 and PIC_1 all sit at relative distance 0.00 at 200 steps (fully converged, so the endpoint IS the long-run value) while their 50-day MEAN carries 0.18-0.43 of spin-up error from the Darwin initial condition - error a Darwin climatology does not contain. For converged tracers the endpoint is the BETTER match. The single exception is DFe_2 at 27-38x from its fixed point under both statistics, and it is the observable anchoring scav_rat, which is the only parameter whose identifiability swaps between losses. SHARPER HYPOTHESIS, untested: the comparison question is TRACER-DEPENDENT - endpoint correct for converged tracers (hence alpfe and R_PICPOC being largely indifferent to the switch), neither correct for DFe_2, and the two losses simply fail differently there. CAVEAT applying to this and the two other mechanism tests: all use a 0-D box at median cells under idealised constant forcing whose long-run state is a degenerate fixed point (the diatom goes extinct), which is not a Darwin climatology; such tests refute a mechanism cheaply but cannot establish one. THREE mechanisms are now tested and none survives - vertical iron structure, endpoint-vs-mean distance per basin, and long-run-proxy quality - so the loss/basin swap is a solid measurement with no mechanism behind it and must be reported that way.",
+     "doc": "docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md",
      "dont": ""
     },
     {
@@ -37402,7 +37408,7 @@
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 532,
+  "settled": 533,
   "supersedes": 297,
   "supports": 279,
   "trap": 243,
