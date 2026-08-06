@@ -20,8 +20,9 @@ echo "### basin x loss, graded $(date -u +%F_%T)"
 echo "### 3 basins x {endpoint, time-mean}, single-AOI, each vs its own untrained null"
 echo
 
+SUF=${SEED_BASE:-0}; [ "$SUF" -eq 0 ] && SUF="" || SUF="_s$SUF"
 for pair in "eq_end eq_null" "eq_mean eq_null" "na_end na_null" "na_mean na_null" "so_end so_null" "so_mean so_null"; do
-  set -- $pair; ARM=$1; NUL=$2
+  set -- $pair; ARM=$1$SUF; NUL=$2$SUF
   n=$(ls $S/$ARM 2>/dev/null | wc -l)
   echo "================================================================ $ARM  (n=$n)"
   if [ "$n" -lt 10 ]; then echo "  INCOMPLETE -- skipped"; echo; continue; fi
@@ -41,11 +42,13 @@ CAR = {"alpfe": 0.928309977054596, "scav_rat": 6.025023253641848e-07,
        "R_PICPOC": 0.04244999960064888}
 AOI_OF = {"eq": "eqpac", "na": "natlsubpolar", "so": "southernoceanpac"}
 print(f"{'arm':10} {'alpfe':>10} {'scav_rat':>10} {'R_PICPOC':>10}")
-for tag in ("eq_end","eq_mean","eq_null","na_end","na_mean","na_null","so_end","so_mean","so_null"):
+import os
+SUF = "" if os.environ.get("SEED_BASE","0")=="0" else "_s"+os.environ["SEED_BASE"]
+for tag in [t+SUF for t in ("eq_end","eq_mean","eq_null","na_end","na_mean","na_null","so_end","so_mean","so_null")]:
     fs = sorted(glob.glob(f"/scratch/qi_zim_neu/bxl/{tag}/*.json"))
     if not fs:
         print(f"{tag:10}   (missing)"); continue
-    aoi = AOI_OF[tag.split('_')[0]]
+    aoi = AOI_OF[tag.split("_")[0]]
     row = []
     for p in ("alpfe","scav_rat","R_PICPOC"):
         v = [json.load(open(f))["params"][p]["per_aoi_recovered_geom"][aoi] for f in fs]

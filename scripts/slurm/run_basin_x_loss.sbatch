@@ -51,7 +51,13 @@ TM_L=( 0          1          0          0            1            0            0
 LR_L=( 5e-3       5e-3       0          5e-3         5e-3         0            5e-3             5e-3             0)
 TAG_L=(eq_end     eq_mean    eq_null    na_end       na_mean      na_null      so_end           so_mean          so_null)
 AOI=${AOI_L[$A]}; TM=${TM_L[$A]}; LR=${LR_L[$A]}; TAG=${TAG_L[$A]}
-SEEDS=$(seq -s, $(( K * 10 )) $(( K * 10 + 9 )))
+
+# SEED_BASE shifts the whole block so a replication is a DISJOINT sample, and it is appended to
+# the tag so the replication cannot overwrite the run it is checking. Default 0 reproduces the
+# original submission exactly.
+SEED_BASE=${SEED_BASE:-0}
+[ "$SEED_BASE" -eq 0 ] || TAG="${TAG}_s${SEED_BASE}"
+SEEDS=$(seq -s, $(( SEED_BASE + K * 10 )) $(( SEED_BASE + K * 10 + 9 )))
 
 echo "[prov] host=$(hostname) runner md5=$(md5sum scripts/run_v3.0_joint_multi_aoi.py | cut -d' ' -f1)"
 echo "[prov] git=$(git rev-parse --short HEAD 2>/dev/null || echo none)"
