@@ -172,11 +172,26 @@ def test_research_map_json_mirror_is_current():
     regenerated = mirror.read_bytes()
     if committed != regenerated:
         mirror.write_bytes(committed)          # leave the tree as we found it
+        # SHOW THE DIFFERENCE. The previous message reported only the two lengths, which are
+        # equal whenever the mirror differs by reordering or by a same-width value -- so it
+        # printed "committed 2,293,348 bytes, build produces 2,293,348" and called that stale.
+        # A reader could not tell a genuinely stale mirror from a non-deterministic build, and
+        # the second is a bug in the exporter rather than something to fix by regenerating.
+        i = next((k for k in range(min(len(committed), len(regenerated)))
+                  if committed[k] != regenerated[k]), min(len(committed), len(regenerated)))
+        lo, hi = max(0, i - 120), i + 120
+        note = ""
+        if len(committed) == len(regenerated):
+            note = ("   (SAME LENGTH -- a reorder or a same-width value, i.e. a "
+                    "NON-DETERMINISTIC build, not a stale file)")
         raise AssertionError(
-            f"docs/research_map.json is STALE: committed {len(committed):,} bytes, "
-            f"build produces {len(regenerated):,}. The committed mirror does not match what "
-            "the current corpus generates.\n"
-            "Regenerate and commit it with the change that caused it:\n"
+            "docs/research_map.json does not match a fresh build.\n"
+            f"  committed   {len(committed):,} bytes\n"
+            f"  regenerated {len(regenerated):,} bytes{note}\n"
+            f"  first difference at byte {i:,}\n"
+            f"  committed   ...{committed[lo:hi].decode('utf-8', 'replace')!r}...\n"
+            f"  regenerated ...{regenerated[lo:hi].decode('utf-8', 'replace')!r}...\n"
+            "If the file is merely stale, regenerate and commit it with the change that caused it:\n"
             "    python scripts/gen_research_map.py\n"
             "    python scripts/research_map_db.py export-json"
         )

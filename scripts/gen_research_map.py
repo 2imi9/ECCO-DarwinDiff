@@ -276,7 +276,9 @@ w("**Repeat this pattern.** The strength came from step 2 producing a prediction
 w("*not* built to explain, and from step 3 happening before step 4.")
 w("")
 
-OUT.write_text("\n".join(L), encoding="utf-8")
+# newline="\n" explicitly: text mode translates \n to \r\n on Windows, so the same corpus
+# rendered a different file per platform. See the matching note in research_map_db.py.
+OUT.write_text("\n".join(L), encoding="utf-8", newline="\n")
 print(f"wrote {OUT}  {OUT.stat().st_size:,} bytes")
 print(f"  settled {len(settled)}  deductive {len(by_mode['deductive'])}  "
       f"inductive {len(by_mode['inductive'])}  abductive {len(by_mode['abductive'])}  "

@@ -9,3 +9,13 @@ uv.lock    text eol=lf
 
 # Apptainer definition files (shell-like; keep LF).
 *.def      text eol=lf
+
+# Generated map artifacts: LF in the WORKING TREE on every platform, not just in the index.
+# core.autocrlf=true would otherwise hand a Windows checkout CRLF copies, while the generators
+# write LF -- so `research_map_db.py export-json` produced a file that differed from the one
+# just checked out, and test_research_map_json_mirror_is_current failed on a clean clone
+# without anything being stale. These three are machine-written and never hand-edited, so
+# pinning the worktree encoding costs nothing and makes the byte comparison portable.
+docs/research_map.json                  text eol=lf
+docs/research_map.md                    text eol=lf
+docs/findings/research_map_corpus.json  text eol=lf
