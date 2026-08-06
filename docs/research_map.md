@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (522 questions)
+## 1. SETTLED — do not re-derive (523 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -158,6 +158,7 @@ this table, it is done: say so and move on.
 | Does collecting more of the same surface [DFe] data help the iron degeneracy? | No. A second identical surface-[DFe] survey gives exactly the trivial 2.00x variance drop, leaves the condition number unchanged at 2930, and has alignment 0.00 with the sloppy direction. POC, PIC and Fe-uptake flux behave the same (~2x, c… | `docs/findings/2026-07-23_observation_design.md` |
 | Does daily or seasonal data move the observable denominator from 4 to 6? | No. seasonal_chl_loss_batched (src/darwindiff/seasonal.py:122-134) needs chl_z of shape [12, 5, *spatial] and the only PFT-resolved chlorophyll that exists is Darwin's own (seasonal.py:74 says 'z-scored Darwin Chl targets'); MODIS-Aqua L3 … | `docs/findings/2026-07-30_daily_design_workflow_recovered.md` |
 | Does DarwinBGCPrognostic conform to NVIDIA's earth2studio PrognosticModel protocol? | Yes: isinstance(...) -> True, verified against earth2studio 0.18.0a0 commit 3400b69. The protocol needs exactly five members: __call__, create_iterator, input_coords, output_coords, to. Caveat: interface conformance only; an end-to-end ear… | `docs/findings/2026-07-25_e2s_conformance_verified.md` |
+| Does diatomgraz's equatorial-Pacific regional identifiability replicate out-of-sample, and does it survive the strict <=0.10 band? | YES to both, and this is the project's first genuine out-of-sample replication of a regional identifiability result. Graded per-leg on job 270032 (dd-flagwin3), a SEPARATE submission from the width arms the published number came from: at b… | `docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md` |
 | Does ECCO-Darwin v05 have Omega/saturation-gated calcite dissolution? | No. v05 has NO disscSelect switch, constant-rate dissolution ONLY. The Omega-dependent Naviaux-2019 / Keir modes are a post-v05 darwin3 addition and do not exist in v05's code (verified at pinned commit 24885b71). Our two-layer box's const… | `docs/findings/2026-07-29_jon_reply_crosscheck.md` |
 | Does EDM diffusion add emulator skill? | No. Zero skill anywhere and -0.03 on 3-D (+0.421 -> +0.395) despite 2,048 forward passes per field against the deep ensemble's 8. It only wins calibration (0.375). Do not build diffusion for skill; ENSEMBLE. | `docs/findings/2026-07-19_emulator_honest_bounds.md` |
 | Does forward-reconstruction accuracy certify that an emulator is invertible for parameters? | No. A standard FNO reaches state R2 ~0.986 but only R2 ~0.21-0.82 on d(state)/d(parameter), and multi-parameter inversion collapses below R2 0.64; sensitivity-constrained training (SC-FNO, arXiv:2505.08740) restores >0.94. Crucially the se… | `docs/research_notes/2026-07-07_param_conditioned_emulator_decision.md` |

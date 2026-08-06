@@ -10,9 +10,12 @@ only `N_STEPS` overridden · **`NB23_LR=5e-3`**, the value pinned on 2026-08-03 
 monotonically through the pass band as the window lengthens — 3.51x Carroll at 100 steps, 0.54x at
 200, 0.20x at 400 — so the published window is where a drift happens to cross the target, not a
 basin of stability. Over the same range `diatomgraz`'s equatorial-Pacific leg rises monotonically
-toward Carroll, reaching 0.95x and 45/50 (P = 0.0035) at 400 steps, where `scav_rat` is dead. No
-single window serves both parameters. This is ONE submission with NO replication, and it does not
-close [#219](https://github.com/2imi9/ECCO-DarwinDiff/issues/219).**
+toward Carroll, reaching 0.95x at 400 steps, where `scav_rat` is dead. No single window serves both
+parameters. The WINDOW claim is ONE submission with NO replication and does not close
+[#219](https://github.com/2imi9/ECCO-DarwinDiff/issues/219). The `diatomgraz` eqpac result is
+different: graded per-leg at ≤0.10 against an EMPTY null (§9) it is 18/50 at `w200`, P = 5.9e-07,
+and it reproduces the published width-arm figure from a separate submission — the project's first
+genuine out-of-sample replication of a regional identifiability result.**
 
 ## 1. The measurement
 
@@ -78,8 +81,12 @@ transient moves with the window. It does.
 
 The equatorial-Pacific leg count follows: 0/50 → 36/50 → **45/50**, against a window-independent
 untrained null of 33/50. Fisher one-sided: P = 1.0, P = 0.333, **P = 0.0035**. Only the 400-step arm
-clears its null, and it clears it at the 0.40 band where that null is heavily prior-contaminated —
-so the honest per-leg test at ≤0.10 would be sharper still, and is not available from this artifact.
+clears its null, and it clears it at the 0.40 band where that null is heavily prior-contaminated.
+
+**§9 regrades this per-leg at ≤0.10, where the null is empty, and the picture changes: the leg is
+18/50 at `w200` and 15/50 at `w400` against 0/50, so it does NOT keep climbing with window length.
+Most of the 36 → 45 climb above was the null moving, not the fit improving.** The window argument
+in this section rests on `scav_rat`, which is where it was measured.
 
 **The two parameters want opposite ends of the lever.** At 100 steps `diatomgraz` is anti-recovered
 in all three basins; at 400 steps `scav_rat` is dead in all three. The published 200 gets `scav_rat`
@@ -146,8 +153,7 @@ As established, `alpfe`'s ~8% is bound geometry and must not be quoted as an acc
   compare-within-a-job rule this gap cannot be read as a regression — but it does mean the w200 arm
   is a *sibling* of the flagship, not a reproduction of it, and the within-job w100/w200/w400
   comparison is the only comparison this artifact licenses.
-- **The `diatomgraz` result is at the wrong band.** 45/50 at 0.40 clears a contaminated null. The
-  standing rule is to grade `diatomgraz` per-leg at ≤0.10. That regrade is cheap and not done here.
+- ~~**The `diatomgraz` result is at the wrong band.**~~ **Done — see §9, and it replicates.**
 - **Provenance gap:** `code_provenance.git_sha` is `null` in every seed JSON
   ([#218](https://github.com/2imi9/ECCO-DarwinDiff/issues/218)). `code_digest` is `6d3918f8f57038eb`
   and `runner_md5` is `4d31555c309853b86c72de2acd877bf1`; those pin the build, but not to a commit.
@@ -166,3 +172,43 @@ That is a design constraint, not a tuning nuisance, and it suggests the obvious 
 sharing it. A per-parameter or per-basin integration window — or grading each parameter at the
 window where its own anchor has converged — is testable with the code that already exists, and this
 sweep is the evidence that it would change the answer.
+
+## 9. Addendum — `diatomgraz` at the strict band, and the first out-of-sample replication
+
+Added the same day, on the arms already staged, so it cost one query.
+
+§2 graded `diatomgraz` at the canonical 0.40 band, where its untrained null is 33/50 in the
+equatorial Pacific and the comparison is close to meaningless. The standing rule is to grade it
+**per-leg at ≤0.10**. Doing that:
+
+| band | window | eqpac leg (arith / geom / median) | null eqpac leg | P (geometric) |
+|---|---|---|---|---|
+| ≤0.10 | `w100` | 0 / 0 / 0 | 0/50 | — |
+| ≤0.10 | `w200` | **18 / 18 / 18** | **0/50** | **5.9e-07** |
+| ≤0.10 | `w400` | **15 / 15 / 16** | **0/50** | **8.9e-06** |
+| ≤0.05 | `w200` | 8 / 5 / 12 | 0/50 | 0.028 |
+| ≤0.05 | `w400` | 7 / 6 / 11 | 0/50 | 0.013 |
+
+The untrained null's eqpac leg is **0/50 at both strict bands under all three collapses**, so this
+is the clean comparison the 0.40 band could not give. At ≤0.10 the trained count is
+collapse-invariant (18/18/18); at ≤0.05 it is not (8/5/12), and the geometric reading is the one
+to quote.
+
+**This is an out-of-sample replication, and that is the check this project most often fails.** The
+published `diatomgraz` eqpac result — 40/100 at ≤0.10 and 20/100 at ≤0.05 against an untrained
+0/50 — comes from the **width arms**. Job 270032 is a **separate submission** with a different
+purpose, and its `w200` arm gives 18/50 at ≤0.10, i.e. 36/100 on the same scale. The repo's own
+three-check rule demands "a genuinely fresh submission", and notes that the per-parameter width
+effect died exactly here (45/50 vs 34/50 → 38/50 vs 38/50 in a later job). `diatomgraz`'s
+equatorial-Pacific leg does **not** die: it reproduces to within 4 counts per 100 at ≤0.10, with a
+0/50 null both times.
+
+So the "two regionally identifiable in different basins" half of the honest framing is now the
+better-supported half. `diatomgraz` in the equatorial Pacific has an independent replication at a
+band where its null is empty. `scav_rat` in the Southern Ocean still does not — the two runs that
+looked like a replication were shown on 2026-08-04 to be one result, bitwise identical on 50 seeds.
+
+Note the window interacts here too, but weakly: at ≤0.10 the eqpac leg is 18/50 at `w200` and
+15/50 at `w400`, so the strict-band signal does **not** keep climbing with window length the way
+the 0.40-band count did (36 → 45). The 0.40-band climb was substantially the null moving, not the
+fit improving. The window argument in §2 stands on `scav_rat`, which is where it was measured.
