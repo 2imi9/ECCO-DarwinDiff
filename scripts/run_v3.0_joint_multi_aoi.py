@@ -269,6 +269,7 @@ IC_CACHE_NAME = {
     "natlsubpolar": "darwin_ic_cache_natlsubpolar.npz",
     "southernoceanpac": "darwin_ic_cache_southernoceanpac.npz",
     "npsg": "darwin_ic_cache_npsg.npz",
+    "kerguelen": "darwin_ic_cache_kerguelen.npz",
 }
 
 AOIS_KEYS = [s.strip() for s in os.environ.get("AOIS", "eqpac,natlsubpolar").split(",") if s.strip()]
@@ -299,6 +300,29 @@ PINN_TYPE = os.environ.get("NB23_PINN_TYPE", "drift").lower()
 # OFF BY DEFAULT. Turning it on changes every published number, so it is an ARM with its own
 # control in the same submission, never a silent change to the flagship.
 TIME_MEAN_LOSS = os.environ.get("TIME_MEAN_LOSS", "0") == "1"
+
+# BLACK_ALPFE_W: weight on the Black et al. (2020) upper-ocean Fe EXPORT province anchor.
+#
+# It constrains `alpfe`, not `scav_rat`. The dataset was carried in this repo as the designated
+# SINK anchor for `scav_rat`; that premise fails on mass conservation, because at steady state
+# the box's total Fe removal equals `alpfe * PHI_DUST` and a 16x sweep of `scav_rat` moves it by
+# 0.00%. What it CAN do is pin the source, which is the leg that de-confounds the rank-1
+# alpfe<->scav_rat ridge from concentration data.
+#
+# OFF BY DEFAULT, AND NO PROVINCE CURRENTLY CLEARS THE BAR. Grading `alpfe` at the Cal band
+# needs the observation to 0.73; measured sigma/value by province:
+#
+#     npsg           1.42   (n=1)   short by  1.9x
+#     natlsubpolar   4.12   (n=1)   short by  5.6x
+#     kerguelen      7.29   (n=3)   short by  9.9x   <- MORE programs, WORSE spread
+#
+# Kerguelen holds the densest cluster in the compilation and is the worst of the three, because
+# its three programs span 0.400 to 7.618 mmol Fe m^-2 yr^-1, a factor of 19. Adding programs
+# widened the between-program scatter faster than it averaged down. The term is implemented,
+# tested and correct; it is waiting on data with a tighter spread -- the bot-blocked per-station
+# Supporting Information is the obvious candidate, since per-station values would replace
+# between-program scatter with within-province structure.
+BLACK_ALPFE_W = float(os.environ.get("BLACK_ALPFE_W", "0.0"))
 
 # PINN_DFE2_W: extend the steady-state drift residual to SUBSURFACE iron.
 #
@@ -1097,6 +1121,9 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         "posi_target_t": ps_t, "posi_mask_t": ps_mk, "posi_mask_f": ps_mf, "n_posi_f": ps_nf, "n_posi": 0,
         "posi_dw_target_t": pd_t, "posi_dw_mask_t": pd_mk, "posi_dw_mask_f": pd_mf, "n_posi_dw_f": pd_nf, "n_posi_dw": n_posi_dw,
         "f_co2_abs_target_t": fc_t, "f_co2_abs_mask_t": fc_mk, "f_co2_abs_mask_f": fc_mf, "n_f_co2_abs_f": fc_nf, "n_f_co2_abs": 0,
+        # Native-grid path does not wire the Black province anchor; n_black=0 makes the term
+        # skip rather than KeyError, matching how every other optional anchor stubs out here.
+        "black_value": 0.0, "black_sigma": 0.0, "n_black": 0,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -1626,6 +1653,31 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         N_TRACERS_2LAYER, N_SEEDS, H, W
     ).contiguous().to(device)
 
+    # Black et al. 2020 upper-ocean Fe EXPORT, as a per-province SCALAR (Shape B).
+    #
+    # It anchors `alpfe`, NOT `scav_rat`, and that is the opposite of how this dataset was
+    # carried in the repo. Measured 2026-08-05: at steady state the box's total Fe removal
+    # EQUALS `alpfe * PHI_DUST` by mass conservation, so the total export Black measures is
+    # pinned by the SOURCE and a 16x sweep of `scav_rat` moves it by 0.00%. Against `alpfe` the
+    # same observation needs 73% precision and has 412% in natlsubpolar (short by 6x) but 76%
+    # at Kerguelen-Crozet, where three programs cluster. See
+    # docs/findings/2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md
+    black_value, black_sigma, n_black = 0.0, 0.0, 0
+    if BLACK_ALPFE_W > 0:
+        try:
+            from darwindiff.black2020_fe_flux_loader import fe_export_province  # noqa: PLC0415
+            _v, _s, _n = fe_export_province(aoi)
+            if _n > 0 and np.isfinite(_v) and np.isfinite(_s) and _v > 0:
+                black_value, black_sigma, n_black = float(_v), float(max(_s, 1e-6)), int(_n)
+                print(f"  Black Fe-export province target: {black_value:.4g} "
+                      f"+/- {black_sigma:.4g} mmol Fe/m2/yr (n={n_black} programs, "
+                      f"sigma/value={black_sigma / black_value:.2f})")
+            else:
+                print(f"  [warn] BLACK_ALPFE_W={BLACK_ALPFE_W} but no Black coverage in "
+                      f"{aoi_key}; loss term will be skipped")
+        except Exception as exc:  # loader or data missing -> warn, never silently anchor
+            print(f"  [warn] Black loader failed ({exc}); term skipped")
+
     return {
         "key": aoi_key, "aoi": aoi, "H": H, "W": W,
         "ocean_mask": ocean_mask, "n_ocean": n_ocean,
@@ -1671,6 +1723,7 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "f_co2_abs_target_t": f_co2_abs_target_t, "f_co2_abs_mask_t": f_co2_abs_mask_t,
         "f_co2_abs_mask_f": f_co2_abs_mask_f, "n_f_co2_abs_f": n_f_co2_abs_f,
         "n_f_co2_abs": n_f_co2_abs,
+        "black_value": black_value, "black_sigma": black_sigma, "n_black": n_black,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -1989,6 +2042,27 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         rel2 = drift2 / state_final[I_DFE_2].clamp(min=1e-10)
         l_pinn2 = ((rel2 ** 2) * mask_f[None]).flatten(1).sum(dim=1) / n_ocean_f
         z = z + PINN_DFE2_W * l_pinn2
+
+    if BLACK_ALPFE_W > 0 and bundle["n_black"] > 0:
+        # Province-scalar Fe EXPORT against Black et al. (2020). The modelled counterpart is the
+        # TOTAL iron leaving the surface layer -- scavenged PLUS biogenic -- because a 234Th or
+        # sediment-trap export estimate measures particulate Fe crossing a horizon, not the
+        # scavenging term alone. Getting that wrong is what made this look like a `scav_rat`
+        # anchor for months.
+        from darwindiff.carroll6_5pft_2layer import H1 as _H1  # noqa: PLC0415
+        scav_flux = params_b[P.scav_rat] * 86400.0 * state[I_DFE_1] * state[I_POC_1]
+        f_fe_b = state[I_DFE_1] / (state[I_DFE_1] + K_FE)
+        growth_b = (
+            MU_DEFAULT_DIATOM * f_fe_b * state[I_DIATOM]
+            + params_b[P.Biggrow] * f_fe_b * state[I_LGE]
+            + MU_DEFAULT_SYN * f_fe_b * state[I_SYN]
+            + MU_DEFAULT_PROLL * f_fe_b * state[I_PROLL]
+            + params_b[P.Smallgrow] * f_fe_b * state[I_PROHL]
+        )
+        # mmol Fe m^-2 yr^-1, the unit both this loader and the Xu-Weber source anchor use.
+        fe_export = (scav_flux + Q_FE * growth_b) * _H1 * 365.25
+        pred = (fe_export * mask_f[None]).flatten(1).sum(dim=1) / n_ocean_f
+        z = z + BLACK_ALPFE_W * ((pred - bundle["black_value"]) / bundle["black_sigma"]) ** 2
 
     if GEOTRACES_W > 0 and bundle["n_geo_surf"] > 0:
         residual = (dfe1 - bundle["geo_surf_target_t"][None]) * bundle["geo_surf_mask_f"][None]
@@ -2503,6 +2577,8 @@ if __name__ == "__main__":
             # is unknown, and that has cost this project a sweep before.
             "time_mean_loss": TIME_MEAN_LOSS,
             "pinn_dfe2_w": PINN_DFE2_W,
+            "black_alpfe_w": BLACK_ALPFE_W,
+            "n_black_programs_per_aoi": {b["key"]: b["n_black"] for b in bundles},
             "use_darwin_ic": USE_DARWIN_IC,
             "poc_sub_w": POC_SUB_W,
             "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,

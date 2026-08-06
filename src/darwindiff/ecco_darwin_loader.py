@@ -134,6 +134,30 @@ SUBTROPICAL_PACIFIC_GYRE_AOI: AOI = AOI(
     lon_min=-170.0,
     lon_max=-135.0,
 )
+# Regional-identifiability lever (2026-08-06). Indian-sector Southern Ocean, Kerguelen and
+# Crozet. The reason to define it is IRON DATA DENSITY:
+#
+#   GEOTRACES dissolved Fe   18 surface / 20 total 1-degree bins -- MORE than
+#                            southernoceanpac's 13/14, the basin where scav_rat is established
+#
+# Same HNLC, scavenging-dominated regime as southernoceanpac, so the mechanism that made
+# scav_rat locally identifiable there should transfer. Bounded well inside the antimeridian.
+#
+# NOT a two-anchor site, despite holding the densest Black et al. 2020 cluster (3 of 20
+# programs: CROZEX, KEOPS-2 x2). CORRECTED 2026-08-06: an earlier version of this comment put
+# its sigma/value at 0.76 against the 0.73 needed to grade `alpfe`, i.e. borderline-feasible.
+# That was a standard-error shrink (sigma_log / n), not the 1-sigma spread the loader actually
+# returns. `fe_export_province` gives 2.177 +/- 15.875, sigma/value = **7.29** -- the WORST of
+# the three covered provinces, because the three programs span 0.400 to 7.618, a factor of 19.
+# Kerguelen is short by ~10x for an `alpfe` anchor where natlsubpolar is short by 5.6x. More
+# programs made the spread worse, not better.
+KERGUELEN_CROZET_AOI: AOI = AOI(
+    name="Kerguelen-Crozet",
+    lat_min=-65.0,
+    lat_max=-45.0,
+    lon_min=40.0,
+    lon_max=80.0,
+)
 
 
 # Canonical AOI lookup table for env-var-driven scripts. The runners
@@ -148,6 +172,7 @@ AOI_BY_KEY: dict[str, AOI] = {
     "midatl": MID_ATLANTIC_AOI,
     "npac": NORTH_PACIFIC_AOI,
     "npsg": SUBTROPICAL_PACIFIC_GYRE_AOI,
+    "kerguelen": KERGUELEN_CROZET_AOI,
 }
 
 
