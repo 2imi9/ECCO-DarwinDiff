@@ -8109,6 +8109,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md",
+     "name": "2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md",
+     "date": "2026-08-05",
+     "retracted": 0,
+     "words": 922,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/compute_time_compiled_h200.md",
      "name": "compute_time_compiled_h200.md",
      "date": "",
@@ -11993,6 +12001,12 @@
      "dont": ""
     },
     {
+     "question": "At the widened alpfe bound, does the untrained null still sit outside the pass band?",
+     "answer": "NO, and this is why the bound-matched null was essential. Widening the upper bound from 1.0 to 1.6 moves the untrained sigmoid midpoint from 0.525 to 0.825, i.e. from rel 0.434 to rel 0.111 against Carroll, crossing INTO the 0.40 band. Measured: ab_null_wide scores 50/50 while the trained ab_wide scores 0/50, so an untrained network beats the trained one. Run the widened arm without its own null and the result reads as 'widening breaks alpfe', which is not what happened. Same shape as the diatomgraz 35/50 retraction.",
+     "doc": "docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md",
+     "dont": ""
+    },
+    {
      "question": "Can a better estimator or architecture break the alpfe<->scav_rat degeneracy?",
      "answer": "No. Verdict from an 11-agent literature pass: the degeneracy is breakable ONLY by a new observable that projects source and sink differently. No estimator/architecture change ever will, confirmed across 5 estimators + EKI. And every genuinely degeneracy-breaking observable needs a MODEL extension, because the binding blocker is that the Track-1 surrogate is a 0-D box that homogenizes away the vertical/section structure carrying the information.",
      "doc": "docs/findings/2026-07-22_iron_bottleneck_solution_map.md",
@@ -13268,6 +13282,12 @@
      "question": "Is alpfe an iron dust solubility?",
      "answer": "No. Darwin3's own docs say to set it to 1 if the ironfile deposition is already soluble iron; ECCO-Darwin v05 forces with the soluble Mahowald-2009 product and sets ALPFE = 0.928. So alpfe is a near-unity dimensionless correction on already-soluble iron, not the ~1-2% fractional solubility of dust iron. The 'iron dust solubility' label was corrected in code.",
      "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "dont": ""
+    },
+    {
+     "question": "Is alpfe's quoted ~8% precision a measurement, or the distance from its upper bound to Carroll?",
+     "answer": "BOUND GEOMETRY, measured. Job 276927, four arms x 50 seeds in one submission. The trained fit rails to whatever ceiling it is given: median 0.9967 against a 1.0 bound (99.7% of it) and 1.5940 against a 1.6 bound (99.6% of it). alpfe carries NO upper-side information. Because its upper bound sits at rel 0.077 from Carroll, INSIDE the 0.40 band, a railed fit scores as recovered regardless of the data, so the 49/50 is substantially the bound's doing: widening the ceiling takes it to 0/50. What survives is the DIRECTION - 49/50 against an untrained 10/50 at bound 1.0 - so the data says alpfe is high but does not say it is 0.93. Do not quote 7.6% or 8% as an accuracy.",
+     "doc": "docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md",
      "dont": ""
     },
     {
@@ -14810,6 +14830,12 @@
      "question": "Which real observable constrains which parameter, measured on the real loss at Carroll?",
      "answer": "Clean one-to-one. realiron (GEOTRACES dissolved Fe): alpfe Fisher 2.60e-01 / CRLB 68.5, scav_rat 5.40e-01 / 78.2 - roughly 500x tighter than the next parameter. realbsi (biogenic Si): diatomgraz 8.16e-01 / CRLB 3,530 - roughly 38x tighter than the next. realdaniels: R_PICPOC 7.40e-01 / CRLB 1.353, all five others pinned at 0.994-1.000 of the ridge floor. Smallgrow and Biggrow have no real observable at all - that absence IS the finding.",
      "doc": "docs/findings/2026-07-29_gnfisher_structural_clause.md",
+     "dont": ""
+    },
+    {
+     "question": "Which recovery counts could be rail-to-bound artifacts, and is R_PICPOC one of them?",
+     "answer": "EXACTLY TWO, and R_PICPOC is NOT one. A count can be a rail-to-bound artifact precisely when a bound lies inside the pass band, which is arithmetic on the registry and needs no run. alpfe (rel hi 0.077) and diatomgraz (rel hi 0.205) qualify; scav_rat (0.950/3.979), Smallgrow (0.849/2.026), Biggrow (0.768/3.635) and R_PICPOC (0.882/34.336) do not. R_PICPOC is therefore EXONERATED by arithmetic: no railed fit can land inside its band, so its 50/50 cannot be bound geometry. alpfe is confirmed by experiment; diatomgraz is untested and already fails on prior contamination. Shipped as contract.bound_proximity_risk.",
+     "doc": "docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md",
      "dont": ""
     },
     {
@@ -37228,11 +37254,11 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 196,
+  "document": 197,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 514,
+  "settled": 517,
   "supersedes": 296,
   "supports": 279,
   "trap": 243,

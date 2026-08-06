@@ -786,9 +786,33 @@ def cmd_check(con) -> int:
 
 
 def cmd_settled(con, term) -> int:
-    q = f"%{term.lower()}%"
-    rows = con.execute("SELECT question, answer, doc, dont FROM settled "
-                       "WHERE lower(question) LIKE ? OR lower(answer) LIKE ?", (q, q)).fetchall()
+    # MATCHING IS PER-TERM, NOT WHOLE-PHRASE. This was a single LIKE on the entire query until
+    # 2026-08-05, which meant a multi-word search only hit when the words were CONTIGUOUS in the
+    # prose. Measured on the corpus that day: 5 of 7 plausible queries printed "may be genuinely
+    # new work" while the answer was present. "R_PICPOC anchor Daniels" returned nothing against
+    # 22 rows that contain all three words.
+    #
+    # That is the same false-negative shape #228 fixed for truncation, and it is worse, because
+    # this is the MANDATORY pre-work check. A session that searches before starting and is told
+    # its question is new will re-derive. CLAUDE.md opens with that happening four times.
+    #
+    # Exact phrase is still tried first and reported, since a contiguous hit is stronger evidence
+    # than a scatter of terms across a long answer.
+    terms = [t for t in term.lower().split() if t]
+    phrase = f"%{term.lower()}%"
+
+    def _run(sql, args):
+        return con.execute("SELECT question, answer, doc, dont FROM settled WHERE " + sql,
+                           args).fetchall()
+
+    rows = _run("lower(question) LIKE ? OR lower(answer) LIKE ?", (phrase, phrase))
+    how = "exact phrase"
+    if not rows and len(terms) > 1:
+        clause = " AND ".join(["(lower(question) LIKE ? OR lower(answer) LIKE ?)"] * len(terms))
+        args = [x for t in terms for x in (f"%{t}%", f"%{t}%")]
+        rows = _run(clause, args)
+        how = f"all {len(terms)} terms, not necessarily adjacent"
+
     if not rows:
         # Say what was actually searched. Until #228 this line was printed over TRUNCATED prose,
         # so "nothing settled" could mean "your term sits past character 240 of an answer" -- a
@@ -797,9 +821,11 @@ def cmd_settled(con, term) -> int:
             "SELECT count(*), coalesce(sum(length(question) + length(answer)), 0) "
             "FROM settled").fetchone()
         print(f"nothing settled matching {term!r}. This may be genuinely new work.")
-        print(f"  (searched {n_rows} settled rows, {n_chars:,} characters, untruncated)")
+        print(f"  (searched {n_rows} settled rows, {n_chars:,} characters, untruncated; "
+              f"tried exact phrase then all {len(terms)} term(s) separately)")
         return 0
-    print(f"ALREADY SETTLED matching {term!r} ({len(rows)}). Do not re-derive:\n")
+    print(f"ALREADY SETTLED matching {term!r} ({len(rows)}, matched on {how}). "
+          f"Do not re-derive:\n")
     for question, answer, doc, dont in rows:
         print(f"  Q: {question}")
         # Answers run past 1,500 characters now that they are not cut, so wrap rather than

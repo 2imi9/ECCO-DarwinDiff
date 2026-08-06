@@ -322,3 +322,42 @@ def test_rehydration_does_not_change_row_counts_or_ids():
 
     assert with_corpus == without, f"rehydration changed row counts: {with_corpus} vs {without}"
     assert ids == bare_ids, "rehydration changed claim ids; #227 makes those positional"
+
+
+def test_settled_search_matches_terms_not_only_contiguous_phrases():
+    """The mandatory pre-work check must not report a false negative on a multi-word query.
+
+    Until 2026-08-05 `cmd_settled` ran ONE `LIKE` over the whole query string, so a multi-word
+    search only hit when those words were adjacent in the prose. Measured on the corpus that day,
+    5 of 7 plausible queries printed "This may be genuinely new work" while the answer was
+    present; "R_PICPOC anchor Daniels" returned nothing against 22 rows containing all three
+    words. That is the same false-negative shape #228 fixed for truncation, in the one command
+    CLAUDE.md tells every session to run before starting.
+
+    NEGATIVE CONTROL is built in: the last assertion pins that a genuinely absent term still
+    reports absent, so this test fails if the fix is "match everything".
+    """
+    import subprocess
+    import sys
+
+    def settled(term):
+        out = subprocess.run(
+            [sys.executable, str(REPO / "scripts" / "research_map_db.py"), "settled", term],
+            cwd=REPO, capture_output=True, text=True, check=False,
+        )
+        assert out.returncode == 0, out.stderr
+        return out.stdout
+
+    # scattered terms, all present in the corpus, none adjacent
+    scattered = settled("R_PICPOC anchor Daniels")
+    assert "ALREADY SETTLED" in scattered, "scattered terms must still find the answer"
+    assert "not necessarily adjacent" in scattered, "the match mode should be stated"
+
+    # a single term must behave exactly as before, as an exact-phrase hit
+    single = settled("alpfe")
+    assert "ALREADY SETTLED" in single and "exact phrase" in single
+
+    # NEGATIVE CONTROL: something genuinely absent must still read absent
+    absent = settled("zzzz quixotic nonexistent tokens")
+    assert "nothing settled" in absent
+    assert "may be genuinely new work" in absent

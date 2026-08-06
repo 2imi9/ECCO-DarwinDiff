@@ -56,6 +56,9 @@ __all__ = [
     "contract",
     "CAL_GRADE_BAND",
     "ALIASING_GATE",
+    "RESCALE_MARGIN",
+    "rescale_is_admissible",
+    "bound_proximity_risk",
     "EXIT_OK",
     "EXIT_FAIL",
     "EXIT_INCOMPLETE",
@@ -79,6 +82,30 @@ ALIASING_GATE = 0.95
 #: `diatomgraz` sits at 0.64 measured, which is why its 35/50 was retired.
 PRIOR_CONTAMINATION_LIMIT = 0.25
 
+#: Rescale admissibility for a closure change, prescribed by
+#: docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md section 6.
+#:
+#: A closure that multiplies a graded parameter by some factor moves the thing we grade. The
+#: question the screen must answer is whether the rescaled parameter can still land in the
+#: CAL-GRADE BAND -- not merely inside its own registry bounds. If it cannot, the target is void
+#: BEFORE a single epoch runs: every seed fails at every band edge regardless of the data, so a
+#: pass or a fail says nothing about the data.
+#:
+#: Testing reachability of the BOUNDS instead of the BAND under-rejects, because the band is far
+#: narrower than the span. For `scav_rat` (bounds 3e-8..3e-6, span 100x, Carroll 6.025e-7) the
+#: bounds test admits any factor in [0.01, 100], while only [0.1205, 28.12] can reach the band at
+#: all. That gap is not academic: it is exactly the ligand proposal at 61x, which the bounds test
+#: passed and which cannot produce a gradeable value. The finding's "fails it outright" is
+#: correct; the earlier reading of it as imprecise was the screen's error, not the prose's.
+#:
+#: This is deliberately more discriminating than ALIASING_GATE, which needs a fitted closure to
+#: evaluate. This one is arithmetic on the registry and fires at design time. The ligand proposal
+#: fails it at BOTH ends: `scav_rat` admits [0.1205, 28.12] and the ligand rescale is 61x to 2001x.
+#:
+#: The margin is 1.0, i.e. exactly the reachability window, with no slack. Slack here would be
+#: taste, and the window is already the widest the grading rule admits.
+RESCALE_MARGIN = 1.0
+
 #: Significance level for "clears its measured null".
 ALPHA = 0.05
 
@@ -88,6 +115,161 @@ EXIT_INCOMPLETE = 7
 
 _KINDS = ("scalar", "field", "relation", "stochastic")
 _SCOPES = ("global", "per_aoi", "per_cell")
+
+
+def bound_proximity_risk(
+    param: str,
+    *,
+    band: float = CAL_GRADE_BAND,
+    bounds: tuple[float, float] | None = None,
+    reference: float | None = None,
+) -> tuple[bool, str]:
+    """Could railing to a bound manufacture a Cal-grade pass for ``param``?
+
+    MEASURED, 2026-08-05, job 276927. A trained fit drives ``alpfe`` to whatever ceiling it is
+    given: median 0.9967 against a bound of 1.0 (99.7% of it), and 1.5940 against a bound of 1.6
+    (99.6% of it). It carries no upper-side information at all.
+
+    That makes the recovery COUNT unsafe whenever a bound lies inside the pass band, because the
+    fit lands there regardless of the data. ``alpfe``'s upper bound sits at rel 0.077 from
+    Carroll, well inside the 0.40 band, so its 49/50 is substantially the bound's doing. Widening
+    the bound to 1.6 collapses it to 0/50 while the untrained null RISES to 50/50, the prior
+    midpoint having moved to rel 0.111.
+
+    This screen is arithmetic on the registry and needs no run. It is the cheap generalisation of
+    that experiment to every parameter, and it exonerates as much as it accuses: ``R_PICPOC``'s
+    bounds are 0.88 and 34.3 band-units away, so its 50/50 CANNOT be bound geometry.
+
+    Distinct from :func:`rescale_is_admissible`, which asks whether a closure moves a parameter
+    out of its bounds. This asks whether the bounds themselves sit somewhere that lets a railed
+    fit score as recovered.
+
+    Returns:
+        ``(at_risk, reason)``. ``reason`` is populated either way.
+    """
+    if bounds is None or reference is None:
+        from darwindiff.carroll6 import PARAMS  # noqa: PLC0415
+
+        match = [p for p in PARAMS if p.name == param]
+        if not match:
+            raise ValueError(f"{param!r} is not in the Carroll-N registry")
+        bounds = bounds if bounds is not None else match[0].bounds
+        reference = reference if reference is not None else match[0].carroll_value
+
+    if not reference:
+        raise ValueError(f"{param}: a zero or missing reference has no relative band")
+
+    lo, hi = float(bounds[0]), float(bounds[1])
+    rel_lo = abs(lo - reference) / abs(reference)
+    rel_hi = abs(hi - reference) / abs(reference)
+    inside = [n for n, r in (("lower", rel_lo), ("upper", rel_hi)) if r <= band]
+
+    if inside:
+        which = " and ".join(inside)
+        return True, (
+            f"{param}: the {which} bound sits INSIDE the {band:g} band "
+            f"(rel lo {rel_lo:.3f}, hi {rel_hi:.3f}). A fit that rails to it scores as recovered "
+            f"regardless of the data, so the count cannot be read as accuracy."
+        )
+    return False, (
+        f"{param}: both bounds are outside the {band:g} band "
+        f"(rel lo {rel_lo:.3f}, hi {rel_hi:.3f}), so railing cannot manufacture a pass."
+    )
+
+
+def rescale_is_admissible(
+    param: str,
+    factor: float,
+    *,
+    margin: float = RESCALE_MARGIN,
+    bounds: tuple[float, float] | None = None,
+    reference: float | None = None,
+    band: float = CAL_GRADE_BAND,
+) -> tuple[bool, str]:
+    """Can a closure multiply ``param`` by ``factor`` and still be graded against Carroll?
+
+    A closure change that rescales a graded parameter moves the estimand. The screen asks whether
+    the rescaled parameter can still reach the CAL-GRADE BAND -- the interval around the published
+    value that "recovered" is defined by. If the rescaled attainable range
+    ``[factor*lo, factor*hi]`` does not intersect ``reference * (1 +/- band)``, then every seed
+    fails no matter how good the data is, and the verdict carries no information. This is a
+    DESIGN-TIME check: arithmetic on the registry, no fitted model, which makes it strictly more
+    discriminating than :data:`ALIASING_GATE`, which needs a trained closure.
+
+    **Test the band, not the bounds.** An earlier version compared ``factor`` to the bounds span
+    ``hi/lo``, which answers a different question -- "can the rescaled value land back inside its
+    own bounds?" -- and under-rejects, because the band is much narrower than the span. For
+    ``scav_rat`` the span test admits ``[0.01, 100]`` while only ``[0.1205, 28.12]`` can reach the
+    band. The ligand proposal's 61x sits in that gap: admitted by the span test, ungradeable in
+    fact. Note the window is NOT symmetric in log space and reciprocals are NOT equivalent, because
+    Carroll's value need not sit at the geometric centre of the bounds -- for ``scav_rat`` it sits
+    2.008x above it.
+
+    Prescribed by ``docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md`` section 6,
+    which found five of six proposed iron closures re-encoded the degeneracy rather than breaking
+    it, and identified this as the check that would have caught the ligand proposal before any
+    compute was spent. Under the band test it does catch it, at both 61x and 2001x.
+
+    Args:
+        param: registry name, e.g. ``"scav_rat"``.
+        factor: the multiplicative rescale the closure applies.
+        margin: multiplicative slack on the reachability window. Default
+            :data:`RESCALE_MARGIN` = 1.0, i.e. exactly the window, no slack.
+        bounds: override the registry, for testing.
+        reference: override the graded reference value, for testing. Defaults to the registry's
+            Carroll value.
+        band: relative half-width defining "recovered". Defaults to :data:`CAL_GRADE_BAND`.
+
+    Returns:
+        ``(admissible, reason)``. ``reason`` is always populated, including on a pass, so a
+        caller can log why it passed rather than only why it failed.
+
+    Raises:
+        ValueError: if ``param`` is not in the registry, ``factor`` is not positive, the lower
+            bound is not positive, or the reference is zero.
+    """
+    if not (factor > 0):
+        raise ValueError(f"rescale factor must be positive, got {factor}")
+
+    if bounds is None or reference is None:
+        from darwindiff.carroll6 import PARAMS  # noqa: PLC0415  (keeps contract.py torch-light)
+
+        match = [p for p in PARAMS if p.name == param]
+        if not match:
+            raise ValueError(f"{param!r} is not in the Carroll-N registry")
+        bounds = bounds if bounds is not None else match[0].bounds
+        reference = reference if reference is not None else match[0].carroll_value
+
+    lo, hi = float(bounds[0]), float(bounds[1])
+    if lo <= 0:
+        raise ValueError(f"{param}: span is undefined for a non-positive lower bound {lo}")
+    if not reference:
+        raise ValueError(f"{param}: a zero or missing reference has no relative band")
+
+    ref = abs(float(reference))
+    span = hi / lo
+    band_lo, band_hi = ref * (1.0 - band), ref * (1.0 + band)
+
+    # The rescaled parameter can be graded iff its attainable range still meets the band.
+    f_max = margin * band_hi / lo
+    f_min = (band_lo / hi) / margin if band_lo > 0 else 0.0
+
+    if factor > f_max or factor < f_min:
+        side = "above" if factor > f_max else "below"
+        return False, (
+            f"{param}: rescale {factor:.4g}x falls {side} the admissible window "
+            f"[{f_min:.4g}, {f_max:.4g}] (margin {margin:g}, bounds span {span:.4g}x). The "
+            f"Cal-grade target is VOID before training: the rescaled parameter ranges over "
+            f"[{factor * lo:.4g}, {factor * hi:.4g}] and cannot reach the band "
+            f"[{band_lo:.4g}, {band_hi:.4g}] around {ref:.4g}, so a pass or fail says nothing "
+            f"about the data."
+        )
+    return True, (
+        f"{param}: rescale {factor:.4g}x is inside the admissible window "
+        f"[{f_min:.4g}, {f_max:.4g}] (margin {margin:g}); the rescaled range "
+        f"[{factor * lo:.4g}, {factor * hi:.4g}] still meets the band "
+        f"[{band_lo:.4g}, {band_hi:.4g}]"
+    )
 
 
 class ClauseStatus:
