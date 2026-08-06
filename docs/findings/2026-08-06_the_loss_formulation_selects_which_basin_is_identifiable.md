@@ -107,10 +107,11 @@ published `scav_rat` number rests on it.
 
 - **One submission for the swap.** The eqpac half is replicated; the Southern Ocean destruction
   (49 → 0) is measured once.
-- **No mechanism.** Two candidate mechanisms have now been tested and refuted — vertical iron
-  structure, and endpoint-vs-time-mean distance per basin (the basins are indistinguishable at
-  0.365–0.396, and natlsubpolar has the largest gap while behaving worst). Why the equatorial
-  Pacific prefers one comparison and the Southern Ocean the other is unknown.
+- **No mechanism.** **Three** candidate mechanisms have now been tested and refuted — vertical iron
+  structure, endpoint-vs-time-mean distance per basin (the basins are indistinguishable at
+  0.365–0.396, and natlsubpolar has the largest gap while behaving worst), and long-run-proxy
+  quality (§7, no basin dependence at all). Why the equatorial Pacific prefers one comparison and
+  the Southern Ocean the other is unknown.
 - **`R_PICPOC` degrades in eqpac under the time mean** (43/50 → 21/50 arithmetic), which no
   explanation here covers.
 
