@@ -8117,6 +8117,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "name": "2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "date": "2026-08-05",
+     "retracted": 0,
+     "words": 1722,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/compute_time_compiled_h200.md",
      "name": "compute_time_compiled_h200.md",
      "date": "",
@@ -12163,6 +12171,12 @@
      "dont": ""
     },
     {
+     "question": "Can the Black et al. 2020 upper-ocean Fe export compilation anchor scav_rat, as the SINK partner in the two-anchor iron inversion?",
+     "answer": "NO, and the refutation is structural rather than observational, so more coverage does not fix it. Black measures TOTAL upper-ocean particulate Fe export. The box loses dissolved iron by two routes, scavenging (scav_rat*DFe*POC) and biogenic uptake (Q_FE*growth), and gains it by one (alpfe*PHI_DUST). At steady state dDFe=0 forces scavenged + biogenic = alpfe*PHI_DUST, so the TOTAL export - exactly what Black measures - is pinned by the SOURCE and is independent of scav_rat by mass conservation. Measured: a 16x sweep of scav_rat (0.25x to 4x Carroll) moves the steady-state total by 0.00%, and the total equals alpfe*PHI_DUST*H*365.25 = 0.8477 mmol Fe/m2/yr to 6 significant figures. scav_rat sets HOW iron leaves, never HOW MUCH. It is a SOURCE anchor wearing a sink label. At the 200-step operating window the box is still transient so a little leverage survives: a 4x sweep moves the total by 5.15% (natlsubpolar) / 6.55% (southernoceanpac), needing observation precision better than 3.14% to grade scav_rat at the +/-40% Cal band, against Black's actual sigma/value of 412% - short by a factor of 131, and worse at longer windows (0.4% at 3200 steps). Coverage is the SMALLER problem and the only fixable one: 1 program of 20 across all three flagship AOIs (natlsubpolar GA01 GEOVIDE, a transect row the loader's own docstring says badly under-represents the program), 0 in eqpac and southernoceanpac, province scalar 3.056 +/- 12.601. Do NOT wire a BLACK_FE_EXPORT_W term against scav_rat: verify_run.inert_terms() would NOT catch it, because natlsubpolar is nonzero, so it would report live while carrying no information. Screened with scripts/analysis/anchor_leverage_screen.py, no cluster compute. The mass-conservation invariant is pinned as a regression test.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
+     "dont": ""
+    },
+    {
      "question": "Can the EKI ensemble spread be quoted as a posterior uncertainty on the Carroll-6 parameters?",
      "answer": "No. eki_core.eki is the ILS-2013 inversion OPTIMIZER (no inflation/localization) and its ensemble collapses. The reported CVs (alpfe 2%, scav_rat 6.4%, R_PICPOC 3.6%) and the apparent alpfe<->scav_rat sloppy axis are NOT posterior widths; only the point estimates are load-bearing. A calibrated interval needs the EKS/sample stage (CES).",
      "doc": "docs/findings/2026-07-22_eki_fullbox_result.md",
@@ -12693,7 +12707,7 @@
     {
      "question": "Does scav_rat recovery depend on the integration window N_STEPS, and if so by what mechanism?",
      "answer": "YES, decisively, and the mechanism is a monotone drift rather than a window optimum. Job 270032 (dd-flagwin3, 6 arms x 50 seeds, flagship_geo1.sh sourced with only N_STEPS overridden, NB23_LR=5e-3, all arms verify_run VERIFIED, GATE_FAIL=0) gives the trio 0/0/0 at 100 steps, 20/7/19 at 200, and 0/0/0 at 400, counts arithmetic/geometric/median. The values show why: scav_rat's median falls monotonically in EVERY basin as the window lengthens - eqpac 4.913x -> 0.425x -> 0.078x Carroll, natlsubpolar 3.116x -> 0.433x -> 0.238x, southernoceanpac 2.779x -> 0.881x -> 0.491x - so the pass band [0.60x, 1.40x] is crossed on the way past, and 200 steps is where the drift happens to intersect the target, not a basin of stability. At 200 steps under the geometric collapse ONLY the Southern Ocean leg is inside the band (0.881x); eqpac and natlsubpolar are already below its lower edge, which is why geometric reads 7/50 against arithmetic 20/50 - natlsubpolar carries per-AOI log-sd 0.934, above the sigma=0.820 threshold at which the collapse alone can clear the band. Pre-registered mechanism confirmed: subsurface DFe_2, the observable anchoring scav_rat, is only 47.5% converged at 200 steps while the alpfe and R_PICPOC anchors are 100% converged by 100. The DEATH of recovery at both neighbours is invariant across all 3 collapses and all 3 bands tested (0.35/0.40/0.45) - 18 cells, all zero - but the MAGNITUDE at the surviving window is not: 20 vs 7 is a factor of 3, and only the arithmetic reading supports the word 'recovers'. ONE submission, NO replication: this does NOT close #219.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
      "dont": ""
     },
     {
@@ -13899,7 +13913,7 @@
     {
      "question": "Is there a single integration window that serves both scav_rat and diatomgraz?",
      "answer": "NO - they want opposite ends of the lever, and this is a design constraint rather than a tuning nuisance. Over the same 100/200/400-step sweep (job 270032) scav_rat drifts monotonically DOWN out of the band while diatomgraz drifts monotonically UP toward Carroll. diatomgraz per-AOI medians: eqpac 0.064x -> 0.859x -> 0.952x Carroll, natlsubpolar 0.062x -> 0.166x -> 0.356x, southernoceanpac 0.062x -> 0.129x -> 0.351x. Its equatorial-Pacific leg count goes 0/50 -> 36/50 -> 45/50 against a window-independent untrained null of 33/50, Fisher one-sided P = 1.0, 0.333, 0.0035 - only the 400-step arm clears its null, and that is the window at which scav_rat is dead in all three basins (0/50 under every collapse and every band). At 100 steps diatomgraz is anti-recovered everywhere. The published 200 gets scav_rat marginally and diatomgraz barely. CAVEAT: the diatomgraz leg test above is at the 0.40 band where its null is heavily prior-contaminated; the standing rule is to grade diatomgraz per-leg at <=0.10, and that regrade is cheap and not yet done. The extension this opens is to stop sharing one global window - a per-parameter or per-basin window, or grading each parameter at the window where its own anchor has converged, is testable with code that already exists.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
      "dont": ""
     },
     {
@@ -14725,6 +14739,12 @@
      "dont": ""
     },
     {
+     "question": "Which iron observable CAN discriminate scav_rat, if bulk Fe export cannot?",
+     "answer": "The PARTITION of exported particulate iron, not its total. Measured on the same 0-D screen at the 200-step operating window: for a 4x change in scav_rat the TOTAL Fe export moves 5.15% while the BIOGENIC FRACTION of that export moves 44.41% - an order of magnitude more signal from the same fit. The scavenged fraction moves only 4.67%, because scavenging already dominates (90.5% of total removal at Carroll) and increasing it saturates; it is the biogenic complement that carries the discrimination. So the observable class needed is particulate Fe SPECIATION - scavenged (lithogenic/authigenic) versus biogenic Fe in sinking particles - rather than any measurement of bulk Fe export, however precise. This independently re-derives the standing ranking that a particulate-Fe SCAVENGING-RATE observable is the best new measurement for the alpfe<->scav_rat degeneracy, and it sorts the two staged sink loaders: Cochran GP15 210Po/210Pb measures scavenging specifically and is therefore in the right class, where Black 2020 is not. GP15's own gate is separate and unpassed - the staged CSVs hold 2 distinct stations, not the 6 recorded in the 2026-08-04 coverage note.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
+     "dont": ""
+    },
+    {
      "question": "Which lever moves which parameter in the covariate/anchor sweep?",
      "answer": "MLD channel lifts diatomgraz 3/10 -> 10/10. Heavy Daniels weight (dan_w=8) lifts R_PICPOC 5/10 -> 10/10. Adding wind on top of MLD wrecks R_PICPOC back to 0/10. The dust anchor (dustW5) nudges R_PICPOC 6 -> 8 but cannot substitute for MLD on diatomgraz.",
      "doc": "docs/findings/2026-07-23_recovery_table_verified.md",
@@ -14943,7 +14963,7 @@
     {
      "question": "Why is alpfe's recovery count nearly flat across the integration window, and does that mean alpfe is window-insensitive?",
      "answer": "NO. The flatness is the CEILING being flat, not the estimate being stable, and it strengthens rather than softens the bound-geometry result. Across 100/200/400 steps alpfe reads 50/49/46 and is identical under all three collapses. But per-AOI medians against an upper bound of 1.0 (= 1.077x Carroll) show natlsubpolar and southernoceanpac sitting AT the bound at every window tested: w100 0.589x/1.058x/1.075x, w200 1.069x/1.077x/1.076x, w400 1.057x/1.073x/1.070x for eqpac/natlsubpolar/southernoceanpac. Legs at or above 0.99 of the bound: 65/150 at w100, 121/150 at w200, 82/150 at w400. Only the equatorial-Pacific leg ever comes off the bound, and only at 100 steps - where its count DROPS to 24/50 while the two railed legs score 50/50 each. So the per-AOI >=2-of-3 rule is satisfied by the two railed legs alone at every window, and where alpfe is not railed its recovery is worse. Do not read alpfe's window-flatness as evidence of a stable estimate, and continue not to quote its ~8% as an accuracy.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
      "dont": ""
     },
     {
@@ -37272,11 +37292,11 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 197,
+  "document": 198,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 520,
+  "settled": 522,
   "supersedes": 296,
   "supports": 279,
   "trap": 243,
