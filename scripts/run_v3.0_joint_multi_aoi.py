@@ -284,6 +284,56 @@ N_SEEDS = len(SEEDS)
 FET_W = float(os.environ.get("NB23_FET_WEIGHT", "1.0"))
 PINN_W = float(os.environ.get("NB23_PINN_WEIGHT", "3.0"))
 PINN_TYPE = os.environ.get("NB23_PINN_TYPE", "drift").lower()
+
+# TIME_MEAN_LOSS: compare the model's TIME MEAN over the integration window to the target,
+# instead of its END STATE. The targets are built with `time_mean(ds_aoi)` -- they are
+# time-averaged Darwin fields -- while the model has always been sampled at a single instant,
+# t = N_STEPS * DT = 50 days. Those are different objects in the time dimension, and the
+# mismatch is the mechanical reason the window is load-bearing: an endpoint on a drifting
+# trajectory is maximally window-sensitive, a trajectory mean is not.
+#
+# Measured 2026-08-05 (job 270032): `scav_rat`'s median falls monotonically 3.51x -> 0.54x ->
+# 0.20x Carroll across 100/200/400 steps, in every basin. See
+# docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md
+#
+# OFF BY DEFAULT. Turning it on changes every published number, so it is an ARM with its own
+# control in the same submission, never a silent change to the flagship.
+TIME_MEAN_LOSS = os.environ.get("TIME_MEAN_LOSS", "0") == "1"
+
+# PINN_DFE2_W: extend the steady-state drift residual to SUBSURFACE iron.
+#
+# The existing PINN term constrains DFe_1 only -- surface iron, which is already ~100%
+# converged at 200 steps. `DFe_2` is the tracer that anchors `scav_rat`, it is only 47.5%
+# converged at 200 steps, and it carries NO steady-state constraint at all. So the one term in
+# the loss that pushes toward convergence is pointed at the tracer that had already converged.
+#
+# The residual is taken as a finite difference over one extra step rather than by re-deriving
+# the L2 iron budget here. For forward Euler `(x_{n+1} - x_n)/dt` IS `f(x_n)` exactly, so this
+# is the true tendency, it costs one step in 200, and -- the reason that matters -- it cannot
+# drift out of sync with the physics the way a hand-copied budget would.
+#
+# *** DO NOT USE THIS BELOW N_STEPS ~ 3200. IT PENALISES THE TRUTH. ***
+#
+# Measured 2026-08-06 at CARROLL'S OWN PARAMETERS, natlsubpolar median cell, relative drift
+# |dx/dt|/x per day:
+#
+#     step      day     DFe_1        DFe_2
+#        0      0.0     7.06e-02     7.87e-03
+#      200     50.0     2.84e-05     1.68e-02    <- the flagship operating point
+#      800    200.0     3.89e-08     1.27e-02
+#     3200    800.0     6.38e-12     1.62e-06
+#
+# Surface iron is converged by 200 steps and the existing PINN term is correctly ~zero at the
+# truth (bitwise: the loss is identical at NB23_PINN_WEIGHT 0 and 3). Subsurface iron is NOT:
+# its drift at day 50 is 600x the surface tracer's, and larger than it was at day 0. So a
+# steady-state penalty on DFe_2 evaluated at 200 steps is NONZERO AT CARROLL, and minimising
+# it moves the fit AWAY from the answer. The term is well-formed; the operating point is not
+# where it is admissible. It becomes meaningful only once the window reaches convergence,
+# which for DFe_2 is ~3200 steps.
+#
+# Kept, gated OFF, and documented rather than deleted, because it is the correct term for a
+# converged-window arm and this measurement is the reason not to pair it with a short one.
+PINN_DFE2_W = float(os.environ.get("PINN_DFE2_W", "0.0"))
 # DARWIN_PATTERN_W: scalar multiplier on the ENTIRE base z-scored Darwin-output
 # pattern block (FeT + Chl1-5 + POC + PIC + DIC + ALK + co2_flux, normalized by
 # FET_W+10). These are the non-fidelity "pattern" terms (paper gap-(a)); the box
@@ -1822,13 +1872,25 @@ else:
     _compiled_step = carroll6_5pft_2layer_step
 
 
-def _integrate(state0, params, dt, n_steps, T, S, wind, pco2_atm):
+def _integrate(state0, params, dt, n_steps, T, S, wind, pco2_atm, want_mean: bool = False):
+    """Integrate the box. Returns ``(final_state, mean_state_or_None)``.
+
+    ``want_mean`` accumulates a running mean over the window so the loss can compare a
+    time-mean model to a time-mean target (see ``TIME_MEAN_LOSS``). It is a running sum, not a
+    stored trajectory, so it costs one extra state tensor and nothing in the autograd graph
+    depth. The mean EXCLUDES ``state0`` and includes every integrated step, matching the
+    convention that the target is an average over the simulated period rather than over the
+    initial condition.
+    """
     from darwindiff.carroll6_5pft_2layer import H1, H2, KZ_M2_PER_DAY, R_REMIN
     state = state0
+    acc = None
     for _ in range(n_steps):
         state = _compiled_step(state, params, dt, T, S, wind, pco2_atm,
                                H1, H2, KZ_M2_PER_DAY, R_REMIN)
-    return state
+        if want_mean:
+            acc = state if acc is None else acc + state
+    return state, (acc / float(n_steps) if want_mean else None)
 
 
 # ============================== Batched losses (per AOI) ===================
@@ -1850,11 +1912,17 @@ def term_batched(pred_b: torch.Tensor, target_z: torch.Tensor,
 def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Compute per-seed loss for one AOI. Returns (loss [N_seeds], state [15, N_seeds, H, W])."""
     state0 = bundle["state0_per_seed"]
-    state = _integrate(
+    state_final, state_mean = _integrate(
         state0, params_b, DT, N_STEPS,
         T=bundle["T_dev"], S=bundle["S_dev"],
         wind=bundle["wind_dev"], pco2_atm=bundle["pco2_atm_dev"],
+        want_mean=TIME_MEAN_LOSS,
     )
+    # The OBSERVATION terms read `state`; the PHYSICS residual and the returned diagnostic
+    # state stay on the endpoint. A steady-state drift residual is a statement about an
+    # instant, so averaging it would be a category error -- a mean trajectory can look settled
+    # while every instant on it is drifting.
+    state = state_mean if TIME_MEAN_LOSS else state_final
     dfe1 = state[I_DFE_1]; dfe2 = state[I_DFE_2]
     poc = state[I_POC_1]; pic = state[I_PIC_1]; dic = state[I_DIC_1]; alk = state[I_ALK_1]
     p_diatom = state[I_DIATOM]; p_lge = state[I_LGE]
@@ -1888,22 +1956,39 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
     ) * DARWIN_PATTERN_W / (fet_w + 10.0)
 
     if PINN_W > 0:
+        # Always the ENDPOINT, never the window mean: a drift residual is a statement about an
+        # instant. state_final is state when TIME_MEAN_LOSS is off, so this is a no-op there.
+        sf = state_final
         alpfe_b = params_b[P.alpfe]; scav_rat_b = params_b[P.scav_rat]
         mu_proHL_b = params_b[P.Smallgrow]; mu_lge_b = params_b[P.Biggrow]
-        f_fe = state[I_DFE_1] / (state[I_DFE_1] + K_FE)
+        f_fe = sf[I_DFE_1] / (sf[I_DFE_1] + K_FE)
         growth_total = (
-            MU_DEFAULT_DIATOM * f_fe * state[I_DIATOM]
-            + mu_lge_b * f_fe * state[I_LGE]
-            + MU_DEFAULT_SYN * f_fe * state[I_SYN]
-            + MU_DEFAULT_PROLL * f_fe * state[I_PROLL]
-            + mu_proHL_b * f_fe * state[I_PROHL]
+            MU_DEFAULT_DIATOM * f_fe * sf[I_DIATOM]
+            + mu_lge_b * f_fe * sf[I_LGE]
+            + MU_DEFAULT_SYN * f_fe * sf[I_SYN]
+            + MU_DEFAULT_PROLL * f_fe * sf[I_PROLL]
+            + mu_proHL_b * f_fe * sf[I_PROHL]
         )
         iron_source = alpfe_b * PHI_DUST
-        iron_sink = scav_rat_b * 86400.0 * state[I_DFE_1] * state[I_POC_1] + Q_FE * growth_total
+        iron_sink = scav_rat_b * 86400.0 * sf[I_DFE_1] * sf[I_POC_1] + Q_FE * growth_total
         dDFe_dt = iron_source - iron_sink
-        rel_rate = dDFe_dt / state[I_DFE_1].clamp(min=1e-10)
+        rel_rate = dDFe_dt / sf[I_DFE_1].clamp(min=1e-10)
         l_pinn = ((rel_rate ** 2) * mask_f[None]).flatten(1).sum(dim=1) / n_ocean_f
         z = z + PINN_W * l_pinn
+
+    if PINN_DFE2_W > 0:
+        # Subsurface iron drift, taken as the EXACT tendency: for forward Euler
+        # (x_{n+1} - x_n)/dt == f(x_n). One extra step, and no second copy of the L2 iron
+        # budget to fall out of sync with the model.
+        from darwindiff.carroll6_5pft_2layer import H1, H2, KZ_M2_PER_DAY, R_REMIN
+        nxt = _compiled_step(state_final, params_b, DT,
+                             bundle["T_dev"], bundle["S_dev"],
+                             bundle["wind_dev"], bundle["pco2_atm_dev"],
+                             H1, H2, KZ_M2_PER_DAY, R_REMIN)
+        drift2 = (nxt[I_DFE_2] - state_final[I_DFE_2]) / DT
+        rel2 = drift2 / state_final[I_DFE_2].clamp(min=1e-10)
+        l_pinn2 = ((rel2 ** 2) * mask_f[None]).flatten(1).sum(dim=1) / n_ocean_f
+        z = z + PINN_DFE2_W * l_pinn2
 
     if GEOTRACES_W > 0 and bundle["n_geo_surf"] > 0:
         residual = (dfe1 - bundle["geo_surf_target_t"][None]) * bundle["geo_surf_mask_f"][None]
@@ -2062,7 +2147,9 @@ def aoi_loss(bundle: dict, params_b: torch.Tensor) -> tuple[torch.Tensor, torch.
         l = (residual ** 2).flatten(1).sum(dim=1) / bundle["n_f_co2_abs_f"] / scale
         z = z + F_CO2_ABS_W * l
 
-    return z, state
+    # The ENDPOINT is returned as the diagnostic state regardless of TIME_MEAN_LOSS, so
+    # `last_states_per_aoi` keeps meaning the same thing across arms and stays comparable.
+    return z, state_final
 
 
 # ============================== Training ==================================
@@ -2411,6 +2498,11 @@ if __name__ == "__main__":
             "fet_aoi_w": dict(FET_AOI_W),
             "pinn_w": PINN_W,
             "pinn_type": PINN_TYPE,
+            # The 2x2 arm identifiers. Recorded unconditionally so an arm can never be
+            # mistaken for the flagship by an artifact that simply omits the key -- absent
+            # is unknown, and that has cost this project a sweep before.
+            "time_mean_loss": TIME_MEAN_LOSS,
+            "pinn_dfe2_w": PINN_DFE2_W,
             "use_darwin_ic": USE_DARWIN_IC,
             "poc_sub_w": POC_SUB_W,
             "geotraces_poc_sub_w": GEOTRACES_POC_SUB_W,
