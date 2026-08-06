@@ -58,7 +58,14 @@ TMS=(0 1 0)
 LRS=(5e-3 5e-3 0)
 TAGS=(tm_ctrl tm_mean tm_null)
 TM=${TMS[$A]}; LR=${LRS[$A]}; TAG=${TAGS[$A]}
-SEEDS=$(seq -s, $(( K * 10 )) $(( K * 10 + 9 )))
+
+# SEED_BASE shifts the whole seed block, so a replication is a DISJOINT sample rather than a
+# re-run of the same 50 seeds. Default 0 reproduces job 287072 exactly. The tag carries the base
+# so a replication can never overwrite the run it is replicating -- which is how you end up
+# "replicating" a result against itself.
+SEED_BASE=${SEED_BASE:-0}
+[ "$SEED_BASE" -eq 0 ] || TAG="${TAG}_s${SEED_BASE}"
+SEEDS=$(seq -s, $(( SEED_BASE + K * 10 )) $(( SEED_BASE + K * 10 + 9 )))
 
 echo "[prov] host=$(hostname) runner md5=$(md5sum scripts/run_v3.0_joint_multi_aoi.py | cut -d' ' -f1)"
 echo "[prov] config md5=$(md5sum $CFG | cut -d' ' -f1) git=$(git rev-parse --short HEAD 2>/dev/null || echo none)"
