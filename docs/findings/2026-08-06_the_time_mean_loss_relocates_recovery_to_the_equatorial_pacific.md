@@ -12,7 +12,9 @@ natlsubpolar and southernoceanpac fall back to their untrained values. But in th
 Pacific both iron parameters recover together: `scav_rat` 50/50 within ±30% of Carroll under all
 three collapses against a null of 0/50, and `alpfe` 50/50 at 0.986× Carroll — NOT at its bound.
 That is the alpfe↔`scav_rat` pair jointly identified in one basin without bound geometry, which
-this project has not previously achieved anywhere. One submission, no replication.**
+this project has not previously achieved anywhere. REPLICATED on disjoint seeds in a separate
+submission (job 287277, §7) — all three required checks pass, a first for a regional
+identifiability claim here.**
 
 ## 1. The pre-registered falsifier, answered honestly
 
@@ -83,8 +85,7 @@ Read those two tables together and the result is unambiguous:
   It does not peak at the reported threshold; it saturates well inside it.
 - **Pooler invariance: passes.** 50/50/50 at 0.30 and 0.40 — identical under all three collapses.
 - **Prior contamination: none.** The null's eqpac leg is empty at every band under every collapse.
-- **Replication: ABSENT.** One submission. This is the check the project most often fails and the
-  reason nothing here should be quoted as established.
+- **Replication: PRESENT — see §7.** Job 287277, disjoint seeds, separate submission.
 
 `alpfe`'s eqpac leg is **50/50/50 at every band from 0.30 to 0.45**, so both members of the pair are
 simultaneously at ceiling in that basin, in the same 50 seeds.
@@ -118,8 +119,8 @@ variability, which is measurable from the existing cubes and is the obvious next
   headline is misreading it.
 - **natlsubpolar and southernoceanpac end up near-untrained under the time-mean loss.** That is a
   real degradation and it is not explained. Until it is, "fix the loss" is not a recommendation.
-- **No replication.** Single submission, and the project's own three-check rule puts replication
-  first precisely because effects of this size have died at this step before.
+- ~~No replication.~~ **Replicated** (§7). What replicates is the RELOCATION, not an improvement:
+  the aggregate trio is 0/50 and 3/50 in the two jobs.
 - **The control does not reproduce the published flagship** (21/7 vs 25/12), though it does
   reproduce job 270032 to three decimals. That gap is now seen in two independent jobs and needs
   its own investigation.
@@ -128,11 +129,55 @@ variability, which is measurable from the existing cubes and is the obvious next
 
 ## 6. What to do next
 
-1. **Replicate**, as a fresh submission. Nothing above is quotable until it survives that.
-2. **Explain the natl/SO collapse.** If the time-mean loss flattens the gradient in slow-adjusting
+1. ~~Replicate.~~ **Done — job 287277, §7.** The eqpac result survives; the aggregate does not move.
+2. **Explain the natl/SO collapse.** Now the single most important open question here: it is what
+   stands between a replicated single-basin result and a usable one. If the time-mean loss flattens the gradient in slow-adjusting
    basins, that is diagnosable from the per-AOI loss histories already written to the run JSONs.
 3. **Test the variability mechanism** — does the endpoint-minus-time-mean distance rank the basins
    the way the effect does?
 4. **Do not change the flagship loss.** The lever stays off by default. On the project's own
    grading metric it makes things worse, and the one thing it improves is a single-basin result
    with no replication.
+
+## 7. Replication — job 287277, disjoint seeds, separate submission
+
+**It replicates.** Same three arms, seeds **50–99** instead of 0–49, submitted separately with
+`SEED_BASE=50` so the sample is disjoint and cannot overwrite its own target.
+
+`scav_rat`, eqpac leg (arith / geom / median), trained vs a null that is 0/0/0 at every band in
+**both** jobs:
+
+| band | job 287072 (seeds 0–49) | job 287277 (seeds 50–99) |
+|---|---|---|
+| ≤0.10 | 18 / 1 / 41 | 15 / 3 / 42 |
+| ≤0.20 | **47 / 28 / 49** | **47 / 28 / 49** |
+| ≤0.30 | 50 / 50 / 49 | 49 / 49 / 49 |
+| ≤0.40 | 50 / 50 / 50 | 49 / 49 / 49 |
+
+The ≤0.20 row is identical in all three collapses. The recovered values agree to better than 0.5%:
+
+| eqpac median, ×Carroll | 287072 | 287277 |
+|---|---|---|
+| `scav_rat` trained | 0.806x | **0.809x** |
+| `alpfe` trained | 0.986x | **0.975x** |
+| `scav_rat` untrained null | 2.330x | 2.477x |
+| `alpfe` untrained null | 0.543x | 0.567x |
+
+`alpfe`'s eqpac leg is 50/50/50 and 48/48/48 in the two jobs, so the **pair** recovers jointly in
+both, and `alpfe` is off its bound in both (0.975–0.986x Carroll against a bound at 1.077x).
+
+The control replicates too — trio 21/7/17 (287072) against 24/8/20 (287277) — and reproduces the
+Southern Ocean picture: `scav_rat` southernoceanpac 50/50/50, natlsubpolar log-sd 0.933–0.948,
+above the σ = 0.820 threshold in both jobs.
+
+**All three required checks now pass for the eqpac result: replication, band sensitivity, and
+pooler invariance.** That is a first for a regional identifiability claim in this project —
+`scav_rat` in the Southern Ocean still has none, since the two runs that looked like a replication
+were shown on 2026-08-04 to be one result.
+
+**What replicates is the RELOCATION, not an improvement.** The aggregate trio under the time-mean
+loss is 0/50 and 3/50 in the two jobs. natlsubpolar and southernoceanpac collapse in both. The
+headline metric is unchanged and unimproved; what is now established is that the equatorial
+Pacific — the basin with the most iron data and a decade of failure to recover `scav_rat` — does
+recover both iron parameters once the model is compared to the target on the same time footing,
+and that this is reproducible.

@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (526 questions)
+## 1. SETTLED — do not re-derive (527 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -211,6 +211,7 @@ this table, it is done: say so and move on.
 | Does the docstring-prescribed pairing (COCCOLITH_ONLY + PIC_ABS_W > 0) rescue R_PICPOC? | No. PIC_ABS_W=0.02 pulls R_PICPOC from 1.012 to 0.149 (still 3.5x Carroll, recovery 1/10) and alpfe collapses 10/10 -> 1/10 (median 0.225), iron pair 0/10. There is no operating point in this screen where coccolith-only calcite and the tri… | `docs/findings/2026-07-29_coccolith_only_screen.md` |
 | Does the Earthmover / Arraylake marketplace host ECCO-Darwin, ocean BGC, or satellite ocean-color data we need? | No. USEFUL-BUT-GATED (weak). Launch catalog was weather/atmosphere only; mid-2026 ocean additions are NOC and OGS physical hindcasts. No ECCO, no ECCO-Darwin, no MODIS/PACE/chlorophyll. The one adjacent asset is analysis-ready World Ocean … | `docs/findings/2026-07-23_data_sources_ghgcenter_earthmover.md` |
 | Does the emulator's 1-step error concentrate near coastlines or domain edges - i.e. would a geometry-aware operator (GINO / SFNO / CoDA-NO) help? | No. corr(err, coastal proximity) is ~0 in all four regions: natlsubpolar -0.033, npac -0.008, sopac +0.018, midatl -0.008. The error is SPATIALLY FLAT, so geometry operators drop from 'MEDIUM, test first' to dead-end-by-evidence for the re… | `docs/findings/2026-07-21_emulator_geometry_flat.md` |
+| Does the equatorial-Pacific iron-pair recovery under the time-mean loss replicate out-of-sample? | YES, and all three required checks now pass, which is a first for a regional identifiability claim in this project. Job 287277 re-ran the three arms on seeds 50-99 (SEED_BASE=50, disjoint from job 287072's 0-49, separate submission, separa… | `docs/findings/2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md` |
 | Does the flagship's calcification structure match Darwin's? | No. USE_COCCOLITH_ONLY_CALCITE = False (carroll6_5pft_2layer.py:158) and the flagship run record contains 'use_coccolith_only_calcite': false, so the box computes dPIC = R_PICPOC * mort_total with mort_total = mort_s + mort_l + graze_l (ca… | `docs/findings/2026-07-29_lauderdale_answers.md` |
 | Does the flagship's joint trio survive the geometric collapse? | NO, it halves: 25/50 arithmetic -> 12/50 geometric (23/50 median). scav_rat is the sole binding leg and falls 26/50 -> 13/50 on the reproduction; the entire effect is the North Atlantic leg, 19 -> 5, the only leg with per-cell log_sd (0.94… | `docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md` |
 | Does the flagship's scav_rat 25/50 contradict the July covariate runs' scav_rat 0-2/10? | No. They are different configurations. The July lineage deliberately zeroed DARWIN_PATTERN_W, POC_SUB_W, CHL1_W_EXTRA and NB23_PINN_WEIGHT, which the flagship carries. The manuscript is honest and internally consistent; do NOT report 'MLD … | `docs/findings/2026-07-23_observable_frontier_config_analysis.md` |
