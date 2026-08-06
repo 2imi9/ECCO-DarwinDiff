@@ -193,7 +193,12 @@ def test_research_map_json_mirror_is_current():
             f"  regenerated ...{regenerated[lo:hi].decode('utf-8', 'replace')!r}...\n"
             "If the file is merely stale, regenerate and commit it with the change that caused it:\n"
             "    python scripts/gen_research_map.py\n"
-            "    python scripts/research_map_db.py export-json"
+            "    python scripts/research_map_db.py export-json\n"
+            "\n"
+            "NOTE: it is not only corpus edits that do this. The DOCUMENT table is built from\n"
+            "`git ls-files` over docs/findings/ and docs/research_notes/, so ADDING, RENAMING or\n"
+            "DELETING any file there changes the mirror too -- a docs-only commit can turn this\n"
+            "test red without the corpus being touched at all."
         )
 
     doc = json.loads(mirror.read_text(encoding="utf-8"))

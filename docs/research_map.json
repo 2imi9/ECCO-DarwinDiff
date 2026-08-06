@@ -8547,6 +8547,14 @@
      "retracted": 0,
      "words": 2252,
      "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-06_prereg_time_mean_loss.md",
+     "name": "2026-08-06_prereg_time_mean_loss.md",
+     "date": "2026-08-06",
+     "retracted": 0,
+     "words": 714,
+     "local_only": 0
     }
    ]
   },
@@ -37312,7 +37320,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 199,
+  "document": 200,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
