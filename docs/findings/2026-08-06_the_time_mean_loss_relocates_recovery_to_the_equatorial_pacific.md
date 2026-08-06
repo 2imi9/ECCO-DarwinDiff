@@ -181,3 +181,47 @@ headline metric is unchanged and unimproved; what is now established is that the
 Pacific — the basin with the most iron data and a decade of failure to recover `scav_rat` — does
 recover both iron parameters once the model is compared to the target on the same time footing,
 and that this is reproducible.
+
+## 8. Addendum — the proposed mechanism is REFUTED, and it fails in the wrong direction
+
+§4 proposed a mechanism and named its own test: the equatorial Pacific is the most dynamically
+active basin, so its state at day 50 is furthest from its own time average, so it suffered most
+from comparing an endpoint to a time mean — "that predicts the effect should scale with each
+basin's internal variability."
+
+Measured, at Carroll parameters, integrating the 15-tracer 2-layer box 200 steps from each AOI's
+own Darwin IC and comparing the endpoint against the running time mean:
+
+| AOI | DFe_1 | DFe_2 | POC_1 | PIC_1 | diatom | **mean** |
+|---|---|---|---|---|---|---|
+| eqpac | 0.302 | 0.332 | 0.227 | 0.230 | 0.759 | **0.370** |
+| natlsubpolar | 0.597 | 0.349 | 0.109 | 0.108 | 0.816 | **0.396** |
+| southernoceanpac | 0.308 | 0.347 | 0.191 | 0.200 | 0.779 | **0.365** |
+| kerguelen | 0.292 | 0.349 | 0.217 | 0.224 | 0.763 | **0.369** |
+
+(|endpoint − time_mean| / time_mean.)
+
+**The basins are indistinguishable — 0.365 to 0.396 — and the ordering is backwards.**
+`natlsubpolar` has the LARGEST endpoint-vs-mean discrepancy and is one of the two basins that
+collapses under the time-mean loss; eqpac is unremarkable at 0.370 and is the one that recovers.
+`DFe_1` alone makes it worse: natlsubpolar 0.597 against eqpac's 0.302, a 2x gap in the observable
+that anchors `alpfe`, pointing the wrong way.
+
+So the relocation is **not** explained by which basin's endpoint sits furthest from its own time
+mean. The prediction §4 made was specific, cheap, and wrong.
+
+**Caveat on strength.** This is a 0-D box at each AOI's median cell under idealised constant
+forcing, not the per-cell field with real forcing that the runs use. A per-cell version could
+differ in detail. But the spread here is 8% across four basins, and the effect being explained is
+the difference between 50/50 and near-untrained, so per-cell detail would have to be doing
+essentially all of the work.
+
+**Two proposed mechanisms are now dead** — vertical iron structure for the Kerguelen null
+(2026-08-06, killed by per-station aggregation) and endpoint-vs-mean distance for the relocation
+(killed here). Both were mine, both were plausible, both were cheap to test, and testing them cost
+less than either would have cost as an assumption carried into the next experiment.
+
+The live test is the basin x loss factorial (job 288619): 3 basins x {endpoint, time-mean},
+single-AOI, each against its own null. If natl and SO recover ALONE under the time-mean loss, the
+collapse is a joint-fit effect — weighting, shared network, or gradient competition — and not a
+property of the basins at all.

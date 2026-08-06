@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (529 questions)
+## 1. SETTLED — do not re-derive (530 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -229,6 +229,7 @@ this table, it is done: say so and move on.
 | Does the published reproducibility-appendix recipe reproduce the flagship? | No. Three load-bearing levers are absent: POSI_W=1.0, USE_EPPLEY_T=True, and per-AOI weights {eqpac 1, natl 2, sopac 2}. With the recipe as published, scav_rat and the trio are 0/10; adding only those three takes both to 8/10 (flagship n=5… | `docs/findings/2026-07-29_flagship_recipe_gap.md` |
 | Does the Southern Ocean have a real calcite anchor? | No. SO has no Daniels coverage; RATIO_MAX=2 is a sanitization workaround, not a constraint (without it low-POC cells inflate the target mean to 4.7e7 and collapse the loss). Do not trust SO in any calcite gate until a genuine SO PIC:POC an… | `docs/research_notes/2026-07-07_track2_reshaped_plan.md` |
 | Does the Southern Ocean local-identifiability result move the observable denominator off 4? | No. scav_rat was already in the denominator. What changes is the QUALIFIER: it is recoverable subject to a REGIONAL condition, and the flagship's 25/50 trio - whose sole binding leg is scav_rat - is carrying a basin-specific result reporte… | `docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md` |
+| Does the time-mean loss help the basin whose endpoint sits furthest from its own time mean? | NO - refuted, and the ordering runs backwards. The proposed mechanism for why TIME_MEAN_LOSS relocates recovery to the equatorial Pacific was that eqpac is the most dynamically active basin, so its day-50 endpoint is furthest from its own … | `docs/findings/2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md` |
 | Does the Track-2 depth emulator have real skill? | No. Against a per-cell SEASONAL AR(1) baseline with block-bootstrap CIs, the depth emulator's skill-vs-persistence CI straddles zero and it is WORSE than AR(1) (-0.16), robust across seeds 0-3 (job 188087). PIC/POC's 'win' was mechanical h… | `docs/research_notes/2026-07-23_session_handoff.md` |
 | Does the Track-2 differentiable transport conserve mass over decadal-plus rollouts? | Yes, decisively. Relative global mass drift is 0.0 at 200 and 2,000 steps and 5.31e-6 (Euler) / 5.39e-6 (RK4) at BOTH 20,000 and 100,000 steps, i.e. bounded and non-accumulating; max per-cell ~1.1e-5; state finite at every horizon. Euler a… | `docs/findings/2026-07-21_ude_stress_result.md` |
 | Does the Track-2 emulator have a ~9-month useful forecast horizon? | No, RETRACTED. Against a correctly-binned seasonal climatology the k8 emulator beats the baseline at ONE STEP only (+0.240, ~2 months elapsed), is at zero by step 2 (-0.018) and negative thereafter (step 12 = -0.748). | `docs/findings/2026-07-19_emulator_honest_bounds.md` |
