@@ -11,16 +11,22 @@
 % load-bearing -- the global-scalar control holds the trio at 0/50 against 25/50. A flat MLP
 % erases exactly the thing the result depends on.
 %
-% ROLE IS CARRIED BY STROKE DARKNESS AND LINE WEIGHT, not by hue -- there is no hue here.
-% The four role colours collapse onto one luminance ladder, and the ladder is what the
-% reader actually resolves. Rendered stroke values, after the !black mixes below:
-%   mygreen!50!black  -> black!61   real, measured, not ours   (forcing in, observations out)
-%   myblue!50!black   -> black!74   the model                  (network, parameter field, box)
-%   myorange!65!black -> black!82   a CHOICE we made           (the collapse)
-%   myred             -> black!100  the gradient, and nothing else
-% Fills stay faint tints (black!3 to black!9) exactly as in the colour version, so they read
-% as grouping, never as category. Do not add a fifth level: 74 and 82 are already the tightest
-% adjacent pair, and they are separated by line width (0.7pt vs 1.0pt) as much as by value.
+% ROLE IS CARRIED BY OUTLINE STRUCTURE, not by grey level.
+%
+% An earlier version of this file separated "measured" from "the model" by stroke darkness
+% alone, black!61 against black!74. Thirteen points of grey is not a distinction a reader
+% resolves -- certainly not after a photocopier -- and it is the v1 palette's mistake in
+% miniature: a difference that exists in the file and not in the eye. So the two categories
+% now carry the SAME stroke value and are told apart structurally:
+%
+%   measured, not ours   DOUBLE outline, rounded             (forcing in, observations out)
+%   the model            single outline, rounded             (network, parameter field, box)
+%   a CHOICE we made     single HEAVY outline, SHARP corners (the collapse)
+%   the gradient         dashed, and nothing else is dashed
+%
+% Each of those survives any reproduction that preserves black and white at all, which is
+% more than can be said for a luminance ladder. Fills stay faint tints so they read as
+% grouping, never as category.
 %
 % This is the one place the project's own greyscale rule is satisfied by construction rather
 % than by audit -- darwindiff-tikz-v2.sty documents that the v1 palette FAILED it, sky-blue
@@ -47,9 +53,9 @@
 \documentclass[tikz,border=10pt]{standalone}
 \usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds}
 
-\colorlet{myblue}{black!48}
-\colorlet{mygreen}{black!22}
-\colorlet{myorange}{black!72}
+\colorlet{myblue}{black!55}
+\colorlet{mygreen}{black!55}  % deliberately EQUAL to myblue -- the double outline distinguishes
+\colorlet{myorange}{black!80}
 \colorlet{myred}{black}
 \colorlet{myink}{black!78}
 
@@ -59,15 +65,17 @@
 % inside the isometric basis would send each shadow along the grid axes, so the implied
 % light source would rotate with the slab. Canvas space keeps one light direction for the
 % whole figure. Hard offset, no blur: blurred shadows render unevenly here.
-\newcommand{\slabc}[3]{%
-  \begin{scope}[shift={(#1,#2)}, x={(0.215cm,-0.095cm)}, y={(0.215cm,0.128cm)}]
+% #1 (optional) extra options for the SHEET OUTLINE only -- this is where `double` goes, so a
+% measured slab and a model slab differ by edge structure rather than by grey.
+\newcommand{\slabc}[4][]{%
+  \begin{scope}[shift={(#2,#3)}, x={(0.215cm,-0.095cm)}, y={(0.215cm,0.128cm)}]
     \fill[black, opacity=0.12, transform canvas={xshift=1.5pt, yshift=-1.5pt}]
       (-2,-2) -- (2,-2) -- (2,2) -- (-2,2) -- cycle;
-    \fill[#3!16, draw=#3!55!black, line width=0.45pt]
+    \fill[#4!16, draw=#4!55!black, line width=0.45pt, #1]
       (-2,-2) -- (2,-2) -- (2,2) -- (-2,2) -- cycle;
     \foreach \i in {-1,0,1}{
-      \draw[#3!38!black, line width=0.2pt] (\i,-2) -- (\i,2);
-      \draw[#3!38!black, line width=0.2pt] (-2,\i) -- (2,\i);
+      \draw[#4!38!black, line width=0.2pt] (\i,-2) -- (\i,2);
+      \draw[#4!38!black, line width=0.2pt] (-2,\i) -- (2,\i);
     }
   \end{scope}%
 }
@@ -86,7 +94,8 @@
   choicebox/.style={draw=myorange!65!black, line width=1pt, fill=myorange!12,
                   align=center, inner sep=5pt,
                   font=\sffamily\fontsize{6.5}{8}\selectfont, text=myink},
-  realbox/.style ={draw=mygreen!50!black, line width=0.7pt, rounded corners=1.5pt,
+  realbox/.style ={draw=mygreen!50!black, line width=0.6pt, rounded corners=1.5pt,
+                  double, double distance=1.1pt,
                   fill=mygreen!12, align=center, inner sep=4.5pt,
                   font=\sffamily\fontsize{6.5}{8}\selectfont, text=myink},
   callout/.style={rounded corners=2pt, align=center, inner sep=5.5pt, text width=3.9cm,
@@ -95,7 +104,7 @@
 ]
 
 % ============================================================ stage 1 : forcing (REAL)
-\slabc{0}{0}{mygreen}
+\slabc[double, double distance=0.9pt]{0}{0}{mygreen}
 \node[head] at (0,1.18) {Environment};
 \node[note]  at (0,-1.05) {SST per cell\\3 basins};
 
@@ -172,17 +181,25 @@
 \draw[tie, draw=myorange!65!black] (pB.south) -- (10.4,1.42);
 
 % ============================================================ legend
-% Colour is doing semantic work here, so it needs declaring. Four roles, in the order they
-% appear along the flow.
+% Outline structure is doing the semantic work here, so it needs declaring. Four roles, in
+% the order they appear along the flow. Each swatch uses the SAME grammar as the stage it
+% names -- double edge for measured, single for model, heavy sharp for the choice, dashed for
+% the gradient -- so the legend is checkable against the figure rather than merely adjacent.
+% The swatches are 0.34 x 0.22, not the 0.22 x 0.15 of the colour version. A double edge needs
+% room to read as two lines; at the smaller size it degrades to a thick single one, which is
+% precisely the ambiguity this variant exists to remove. Corner treatment is mirrored too --
+% rounded for the two rounded stages, sharp for the sharp one.
 \begin{scope}[shift={(0,-3.30)}]
-  \fill[mygreen!16, draw=mygreen!55!black, line width=0.45pt] (0,-0.075) rectangle ++(0.22,0.15);
-  \node[note, anchor=west] at (0.32,0) {measured, not ours};
+  \fill[mygreen!16, draw=mygreen!55!black, line width=0.45pt, rounded corners=1.2pt,
+        double, double distance=1.1pt] (0,-0.11) rectangle ++(0.34,0.22);
+  \node[note, anchor=west] at (0.48,0) {measured, not ours};
 
-  \fill[myblue!16, draw=myblue!55!black, line width=0.45pt] (3.05,-0.075) rectangle ++(0.22,0.15);
-  \node[note, anchor=west] at (3.37,0) {the model};
+  \fill[myblue!16, draw=myblue!55!black, line width=0.45pt, rounded corners=1.2pt]
+        (3.05,-0.11) rectangle ++(0.34,0.22);
+  \node[note, anchor=west] at (3.53,0) {the model};
 
-  \fill[myorange!12, draw=myorange!65!black, line width=0.7pt] (5.35,-0.075) rectangle ++(0.22,0.15);
-  \node[note, anchor=west] at (5.67,0) {a choice we made};
+  \fill[myorange!12, draw=myorange!65!black, line width=1pt] (5.35,-0.11) rectangle ++(0.34,0.22);
+  \node[note, anchor=west] at (5.83,0) {a choice we made};
 
   \draw[draw=myred, dashed, line width=0.9pt] (8.35,0) -- (8.72,0);
   \node[note, anchor=west] at (8.82,0) {gradient};

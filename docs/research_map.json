@@ -8081,7 +8081,7 @@
      "name": "2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "date": "2026-08-04",
      "retracted": 0,
-     "words": 1419,
+     "words": 1585,
      "local_only": 0
     },
     {
@@ -8114,6 +8114,14 @@
      "date": "2026-08-05",
      "retracted": 0,
      "words": 922,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
+     "name": "2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
+     "date": "2026-08-05",
+     "retracted": 0,
+     "words": 1332,
      "local_only": 0
     },
     {
@@ -12173,7 +12181,7 @@
     {
      "question": "Can the Black et al. 2020 upper-ocean Fe export compilation anchor scav_rat, as the SINK partner in the two-anchor iron inversion?",
      "answer": "NO, and the refutation is structural rather than observational, so more coverage does not fix it. Black measures TOTAL upper-ocean particulate Fe export. The box loses dissolved iron by two routes, scavenging (scav_rat*DFe*POC) and biogenic uptake (Q_FE*growth), and gains it by one (alpfe*PHI_DUST). At steady state dDFe=0 forces scavenged + biogenic = alpfe*PHI_DUST, so the TOTAL export - exactly what Black measures - is pinned by the SOURCE and is independent of scav_rat by mass conservation. Measured: a 16x sweep of scav_rat (0.25x to 4x Carroll) moves the steady-state total by 0.00%, and the total equals alpfe*PHI_DUST*H*365.25 = 0.8477 mmol Fe/m2/yr to 6 significant figures. scav_rat sets HOW iron leaves, never HOW MUCH. It is a SOURCE anchor wearing a sink label. At the 200-step operating window the box is still transient so a little leverage survives: a 4x sweep moves the total by 5.15% (natlsubpolar) / 6.55% (southernoceanpac), needing observation precision better than 3.14% to grade scav_rat at the +/-40% Cal band, against Black's actual sigma/value of 412% - short by a factor of 131, and worse at longer windows (0.4% at 3200 steps). Coverage is the SMALLER problem and the only fixable one: 1 program of 20 across all three flagship AOIs (natlsubpolar GA01 GEOVIDE, a transect row the loader's own docstring says badly under-represents the program), 0 in eqpac and southernoceanpac, province scalar 3.056 +/- 12.601. Do NOT wire a BLACK_FE_EXPORT_W term against scav_rat: verify_run.inert_terms() would NOT catch it, because natlsubpolar is nonzero, so it would report live while carrying no information. Screened with scripts/analysis/anchor_leverage_screen.py, no cluster compute. The mass-conservation invariant is pinned as a regression test.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
+     "doc": "docs/findings/2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
      "dont": ""
     },
     {
@@ -14741,7 +14749,7 @@
     {
      "question": "Which iron observable CAN discriminate scav_rat, if bulk Fe export cannot?",
      "answer": "The PARTITION of exported particulate iron, not its total. Measured on the same 0-D screen at the 200-step operating window: for a 4x change in scav_rat the TOTAL Fe export moves 5.15% while the BIOGENIC FRACTION of that export moves 44.41% - an order of magnitude more signal from the same fit. The scavenged fraction moves only 4.67%, because scavenging already dominates (90.5% of total removal at Carroll) and increasing it saturates; it is the biogenic complement that carries the discrimination. So the observable class needed is particulate Fe SPECIATION - scavenged (lithogenic/authigenic) versus biogenic Fe in sinking particles - rather than any measurement of bulk Fe export, however precise. This independently re-derives the standing ranking that a particulate-Fe SCAVENGING-RATE observable is the best new measurement for the alpfe<->scav_rat degeneracy, and it sorts the two staged sink loaders: Cochran GP15 210Po/210Pb measures scavenging specifically and is therefore in the right class, where Black 2020 is not. GP15's own gate is separate and unpassed - the staged CSVs hold 2 distinct stations, not the 6 recorded in the 2026-08-04 coverage note.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
+     "doc": "docs/findings/2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
      "dont": ""
     },
     {
@@ -16860,6 +16868,12 @@
      "new": "Those are ONE result. All 50 seeds are bitwise identical on per_aoi_recovered, _geom and per_aoi_log_sd; the danielsW/posiW difference is inert in that single-AOI configuration. The Southern Ocean claim has NO replication.",
      "reason": "Direct value comparison, 2026-08-04.",
      "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+    },
+    {
+     "old": "GP15 210Po/210Pb covers npac with 92 points at 6 distinct stations and npsg with 48 at 5, so npac+npsg offers 11 stations / 140 measurements.",
+     "new": "The POINT counts are right (92, 48, 140) but the STATION counts are wrong by a factor of three. Counted from both staged CSVs keyed on Station_ID against AOI_BY_KEY: npac holds 2 distinct stations (8, 14) and npsg holds 2 (18, 18.3) - FOUR combined, not 11. The 6/5 figures are unique (lat, lon) pairs, and one station contributes several coordinates across casts and phases. This changes the recommendation rather than just the number: hy061's own falsifier says three eqpac stations is too thin a spatial sample to move the block condition number, so the single-AOI npac proposal is thinner than a sample this project has already called too thin.",
+     "reason": "Direct count from data/cochran_gp15_po_pb/*.csv, 2026-08-05.",
+     "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
     }
    ]
   },
@@ -37292,12 +37306,12 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 198,
+  "document": 199,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
   "settled": 522,
-  "supersedes": 296,
+  "supersedes": 297,
   "supports": 279,
   "trap": 243,
   "v_claim_evidence": 570,

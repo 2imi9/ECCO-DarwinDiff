@@ -8940,6 +8940,12 @@
    "new": "Those are ONE result. All 50 seeds are bitwise identical on per_aoi_recovered, _geom and per_aoi_log_sd; the danielsW/posiW difference is inert in that single-AOI configuration. The Southern Ocean claim has NO replication.",
    "reason": "Direct value comparison, 2026-08-04.",
    "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "old": "GP15 210Po/210Pb covers npac with 92 points at 6 distinct stations and npsg with 48 at 5, so npac+npsg offers 11 stations / 140 measurements.",
+   "new": "The POINT counts are right (92, 48, 140) but the STATION counts are wrong by a factor of three. Counted from both staged CSVs keyed on Station_ID against AOI_BY_KEY: npac holds 2 distinct stations (8, 14) and npsg holds 2 (18, 18.3) - FOUR combined, not 11. The 6/5 figures are unique (lat, lon) pairs, and one station contributes several coordinates across casts and phases. This changes the recommendation rather than just the number: hy061's own falsifier says three eqpac stations is too thin a spatial sample to move the block condition number, so the single-AOI npac proposal is thinner than a sample this project has already called too thin.",
+   "reason": "Direct count from data/cochran_gp15_po_pb/*.csv, 2026-08-05.",
+   "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
   }
  ],
  "hypotheses": [

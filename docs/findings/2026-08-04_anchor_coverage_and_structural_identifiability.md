@@ -33,11 +33,24 @@ already defined in `AOI_BY_KEY`:
 
 | AOI | bounds | GP15 points | distinct stations |
 |---|---|---|---|
-| **`npac`** | 30–50 N, −160 – −130 | **92** | **6** |
-| **`npsg`** | 15–30 N, −170 – −135 | **48** | **5** |
+| **`npac`** | 30–50 N, −160 – −130 | **92** | ~~6~~ → **2** |
+| **`npsg`** | 15–30 N, −170 – −135 | **48** | ~~5~~ → **2** |
+
+> **CORRECTED 2026-08-05.** The station counts above were wrong by a factor of three, and the
+> error changes what this section recommends. Counted directly from both staged CSVs against
+> `AOI_BY_KEY`, keyed on `Station_ID`: `npac` holds **2** distinct stations (`8`, `14`) and
+> `npsg` holds **2** (`18`, `18.3`) — **4 combined, not 11**. The original 6/5 appears to be
+> unique `(lat, lon)` pairs counted across both files, which is not the same thing: a single
+> station contributes several coordinates across casts and phases. The **point** counts (92, 48,
+> 140) are correct and unchanged.
+>
+> This matters because `hy061`'s own falsifier already says three eqpac stations is too thin a
+> spatial sample to move the block condition number. `npac` has two. The single-AOI `npac`
+> proposal below is therefore **thinner than the sample this project has already called too
+> thin**, and should be re-costed on that basis rather than run on the strength of "92 points".
 
 So the ²¹⁰Po/²¹⁰Pb rate observable can be wired in and tested today — as a **single-AOI `npac`
-run** (or `npac` + `npsg`, 11 stations / 140 measurements) against an architecture-matched
+run** (or `npac` + `npsg`, 4 stations / 140 measurements) against an architecture-matched
 untrained null. That is exactly the template that established `scav_rat` in the Southern Ocean:
 `so_only` is single-AOI, sited where the anchor actually lives, and it produced the project's one
 result where `scav_rat` clears its own null (30/50 arithmetic, 49/50 geometric, vs untrained 0/50).
