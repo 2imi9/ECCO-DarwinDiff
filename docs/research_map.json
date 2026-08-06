@@ -8557,6 +8557,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/findings/2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md",
+     "name": "2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md",
+     "date": "2026-08-06",
+     "retracted": 0,
+     "words": 907,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
      "name": "2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
      "date": "2026-08-06",
@@ -12666,6 +12674,12 @@
      "question": "Did the ScavClosure free-level bug invalidate any published flat scav_rat profile?",
      "answer": "NO - nothing to retract. ScavClosure has never been fit to real data (verified 2026-07-29 and re-verified 2026-08-02: it appears only in closures.py, two test files, trainer.py docstrings and research notes; there is no e2_real_iron runner). The published scav_rat profile in docs/findings/iron_scav_rat_profile.json is mode=twin through the prescribed-transport ANALYTIC model on the registry parameter, not through the closure, so its flat band reflects the real alpfe/scav_rat concentration degeneracy and stands.",
      "doc": "docs/findings/2026-07-29_ude_scaling_claim_audit.md",
+     "dont": ""
+    },
+    {
+     "question": "Is scav_rat's regional identifiability a property of the HNLC regime, so that it transfers to another basin of the same type with more iron data?",
+     "answer": "NO - refuted for the one alternative basin the data supports. Kerguelen-Crozet (-65..-45 N, 40..80 E) was defined and fitted single-AOI on the so_only template, job 287354, verify_run exit 0. It has MORE dissolved-iron coverage than the Southern Ocean Pacific box where scav_rat is established: 18 surface / 20 total one-degree GEOTRACES bins against 13/14, in the same HNLC scavenging-dominated regime. It recovers scav_rat 2/50 under the GEOMETRIC collapse at the 0.40 band (10/50 arithmetic, P=0.00067, but geometric is the required reading for scav_rat and gives P=0.81) - a textbook case of why the pooler rule exists. alpfe is 0/50 against an untrained null of 11/50, i.e. training makes it WORSE than not training. The failure mode is diagnostic rather than dead: the fit moves a long way in every parameter but moves BOTH iron parameters DOWN TOGETHER, alpfe 0.540x -> 0.157x and scav_rat 2.452x -> 0.348x Carroll, which is the rank-1 degeneracy direction - lowering source and sink together leaves surface dissolved iron roughly unchanged, so the fit slides along the ridge and overshoots. The Southern Ocean single-AOI run on the same template does not do this, so whatever pins the ridge there is NOT iron coverage, since Kerguelen has 40% more. CONFOUND, stated: the Daniels calcite anchor is thin here, 6 cells against 34 in eqpac and 26 in natlsubpolar, and R_PICPOC is correspondingly 2/50 where it is 50/50 in the three-AOI runs - so this is not a fair test of R_PICPOC, only of the iron pair. Consequence: scav_rat stays regionally identifiable in exactly ONE basin, and the open question becomes what pins the ridge in southernoceanpac. The 2026-07-31 depth result (so_sub 33/50 vs so_surf 14/50) points at vertical structure in dissolved iron, so the next check is whether Kerguelen's 20 subsurface bins carry comparable vertical structure or are surface-concentrated - a property of the SAMPLING, measurable from the staged file with no fit.",
+     "doc": "docs/findings/2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md",
      "dont": ""
     },
     {
@@ -37352,11 +37366,11 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 201,
+  "document": 202,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 527,
+  "settled": 528,
   "supersedes": 297,
   "supports": 279,
   "trap": 243,

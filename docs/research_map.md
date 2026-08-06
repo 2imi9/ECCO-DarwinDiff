@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (527 questions)
+## 1. SETTLED — do not re-derive (528 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -324,6 +324,7 @@ this table, it is done: say so and move on.
 | Is scav_rat anchor-driven or pattern-driven? | PARTLY SUPERSEDED — read both halves. On anchors alone scav_rat is 0/50 on the per-AOI >=2-of-3 metric, and its genuine majority recovery (25/50 at geo1, n=50) REQUIRES the DINN/per-cell spatial pattern loss; alpfe (50/50) and R_PICPOC (28… | `docs/findings/2026-07-22_anchors_only_n50_verified.md`, `docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md`, `docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md` |
 | Is scav_rat identifiable from dissolved-iron concentration data? | No - this is the information wall, shown numerically. A 2-D (alpfe, scav_rat) sweep to quasi-steady state on the real eqpac footprint (26 GEOTRACES cells) against a self-twin target: the best fit recovers the truth (alpfe=0.99, scav_rat=7.… | `docs/research_notes/2026-07-09_calcite_identifiability_map.md` |
 | Is scav_rat's poor recovery an information wall or an optimization limit? | Substantially optimization-limited, with a residual information component. At 4000 epochs (vs 2000) scav_rat per-AOI rises 25/50 -> 41/50 at n=50 (natl 20/50 -> 40/50 [doc says 19; re-graded canonical leg is 20], sopac 48/50), with alpfe 4… | `docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md` |
+| Is scav_rat's regional identifiability a property of the HNLC regime, so that it transfers to another basin of the same type with more iron data? | NO - refuted for the one alternative basin the data supports. Kerguelen-Crozet (-65..-45 N, 40..80 E) was defined and fitted single-AOI on the so_only template, job 287354, verify_run exit 0. It has MORE dissolved-iron coverage than the So… | `docs/findings/2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md` |
 | Is scav_rat's Southern Ocean signal surface curvature or depth structure? | DEPTH. Volume-matched head-to-head: so_sub (subsurface iron only, 14 bins) 33/50 against null 0/50, P(>=k)=1.70e-28, RECOVERS; so_surf (surface only, 13 bins) 14/50, not above chance. Fisher exact two-sided P = 0.000268. The falsifier clea… | `docs/findings/2026-07-31_scavrat_southern_ocean_signal_is_depth.md` |
 | Is spatially-varying BGC parameter estimation novel? | No - there is direct 2025 prior art. Mamnun, Volker, Vrekoussis & Nerger 2025 (JGR-Oceans, 10.1029/2025JC022752) estimated nine REcoM2 parameters as spatially AND temporally varying fields via EnKF assimilation of satellite chlorophyll-a, … | `docs/research_notes/2026-07-25_deep_research_sweep.md` |
 | Is the +0.52 skill level of the global-monthly surface emulator an intrinsic predictability ceiling? | No - that framing is REFUTED by a CORRECTION banner in the doc itself. It is a single-model, single-seed plateau, epistemic (seed variance) not aleatoric. Deep ensembling over 8 seeds lifts skill on both configs where the control was run: … | `docs/findings/2026-07-14_emulator_loop.md` |
