@@ -1,6 +1,6 @@
 # The loss formulation selects which basin identifies `scav_rat`, and it is a trade
 
-**Date:** 2026-08-06 · **Job:** 288619 (`dd-bxl`, 45 tasks) + 288620 (auto-graded, `afterany`) ·
+**Date:** 2026-08-06 · **Jobs:** 288619 + 288620 (auto-graded, `afterany`); REPLICATED by 289204 + 289205 on disjoint seeds (section 8) ·
 **Artifacts:** `/scratch/qi_zim_neu/bxl/{eq,na,so}_{end,mean,null}` · **Design:** 3 basins ×
 {endpoint, time-mean}, **single-AOI**, each against its own untrained null, n=50 per arm ·
 **Config:** `flagship_geo1.sh` sourced, six-value assert · `verify_run` exit 0.
@@ -92,9 +92,10 @@ published `scav_rat` number rests on it.
 
 ## 4. What is solid
 
-- **Replication.** The eqpac time-mean result is replicated across three independent submissions
-  now: joint 287072, joint 287277 (disjoint seeds), and single-AOI 288619. The Southern Ocean
-  endpoint result is reproduced here too (49/43/46 single-AOI).
+- **Replication — BOTH halves, see section 8.** The whole factorial re-ran on disjoint seeds
+  (289204) and every cell agrees to about 1%. The eqpac time-mean result now stands across FOUR
+  independent submissions: joint 287072, joint 287277, single-AOI 288619, single-AOI 289204. The
+  Southern Ocean destruction reproduces at 47/40/44 -> 0/0/0 against 49/43/46 -> 0/0/0.
 - **Pooler invariance.** Both headline cells are identical under all three collapses (50/50/50 and
   0/0/0). The swap is not a collapse artifact.
 - **Nulls.** Every arm has its own architecture-matched untrained null, and all three nulls agree
@@ -105,8 +106,6 @@ published `scav_rat` number rests on it.
 
 ## 5. What is not
 
-- **One submission for the swap.** The eqpac half is replicated; the Southern Ocean destruction
-  (49 → 0) is measured once.
 - **No mechanism.** **Three** candidate mechanisms have now been tested and refuted — vertical iron
   structure, endpoint-vs-time-mean distance per basin (the basins are indistinguishable at
   0.365–0.396, and natlsubpolar has the largest gap while behaving worst), and long-run-proxy
@@ -186,3 +185,43 @@ idealised constant forcing. Its long-run state is a degenerate fixed point — t
 extinct — which is not what a Darwin climatology is, and the per-cell runs with real forcing may
 not converge to a fixed point at all. These tests refute a mechanism cheaply; they cannot
 establish one.
+
+## 8. REPLICATED — job 289204, disjoint seeds, whole factorial
+
+The swap is no longer half-replicated. Job 289204 re-ran all nine arms on seeds **50-99**
+(`SEED_BASE=50`, disjoint from 288619's 0-49, separate submission, separate output dirs), graded by
+its own dependent job 289205.
+
+`scav_rat` at band 0.40, arithmetic / geometric / median:
+
+| arm | job 288619 (seeds 0-49) | job 289204 (seeds 50-99) |
+|---|---|---|
+| eq_end | 1 / 1 / 1 | 1 / 2 / 1 |
+| **eq_mean** | **50 / 50 / 50** | **50 / 50 / 50** |
+| na_end | 0 / 0 / 1 | 1 / 0 / 0 |
+| na_mean | 3 / 3 / 3 | 3 / 3 / 4 |
+| **so_end** | **49 / 43 / 46** | **47 / 40 / 44** |
+| **so_mean** | **0 / 0 / 0** | **0 / 0 / 0** |
+
+Median recovered `scav_rat` as a multiple of Carroll:
+
+| arm | 288619 | 289204 |
+|---|---|---|
+| eq_end | 0.322 | 0.324 |
+| eq_mean | **0.751** | **0.751** |
+| na_end | 0.068 | 0.073 |
+| na_mean | 0.407 | 0.402 |
+| so_end | 0.623 | 0.622 |
+| so_mean | 2.078 | 2.083 |
+
+Every cell agrees to about 1%, and the two headline cells are identical to three digits. `alpfe` is
+50/50/50 under the time-mean loss in all three basins in **both** jobs, and 47-50/50 under the
+endpoint loss.
+
+**So both halves of the swap are now replicated.** The Southern Ocean destruction — the half
+measured once when this document was first written — reproduces at 47/40/44 → 0/0/0 against
+49/43/46 → 0/0/0. Section 5's "one submission for the swap" no longer applies.
+
+What remains unreplicated is nothing about the measurement, and everything about the explanation:
+three candidate mechanisms tested, none surviving (§7). The swap is now a solid, replicated,
+pooler-invariant, single-AOI fact with no mechanism behind it.
