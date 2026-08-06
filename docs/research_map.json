@@ -12691,6 +12691,12 @@
      "dont": ""
     },
     {
+     "question": "Does scav_rat recovery depend on the integration window N_STEPS, and if so by what mechanism?",
+     "answer": "YES, decisively, and the mechanism is a monotone drift rather than a window optimum. Job 270032 (dd-flagwin3, 6 arms x 50 seeds, flagship_geo1.sh sourced with only N_STEPS overridden, NB23_LR=5e-3, all arms verify_run VERIFIED, GATE_FAIL=0) gives the trio 0/0/0 at 100 steps, 20/7/19 at 200, and 0/0/0 at 400, counts arithmetic/geometric/median. The values show why: scav_rat's median falls monotonically in EVERY basin as the window lengthens - eqpac 4.913x -> 0.425x -> 0.078x Carroll, natlsubpolar 3.116x -> 0.433x -> 0.238x, southernoceanpac 2.779x -> 0.881x -> 0.491x - so the pass band [0.60x, 1.40x] is crossed on the way past, and 200 steps is where the drift happens to intersect the target, not a basin of stability. At 200 steps under the geometric collapse ONLY the Southern Ocean leg is inside the band (0.881x); eqpac and natlsubpolar are already below its lower edge, which is why geometric reads 7/50 against arithmetic 20/50 - natlsubpolar carries per-AOI log-sd 0.934, above the sigma=0.820 threshold at which the collapse alone can clear the band. Pre-registered mechanism confirmed: subsurface DFe_2, the observable anchoring scav_rat, is only 47.5% converged at 200 steps while the alpfe and R_PICPOC anchors are 100% converged by 100. The DEATH of recovery at both neighbours is invariant across all 3 collapses and all 3 bands tested (0.35/0.40/0.45) - 18 cells, all zero - but the MAGNITUDE at the surviving window is not: 20 vs 7 is a factor of 3, and only the arithmetic reading supports the word 'recovers'. ONE submission, NO replication: this does NOT close #219.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "dont": ""
+    },
+    {
      "question": "Does scav_rat survive an anchors-only loss (all Darwin-pattern terms removed)?",
      "answer": "No. scav_rat per-AOI collapses to 0/10 (from 25/50 in the flagship) while its cell-weighted count stays at 8/10 - the classic straddle. The joint trio also drops to 0/10 because scav_rat is the binding leg. scav_rat's per-AOI recovery is partially pattern-assisted, i.e. it leans on Darwin model output.",
      "doc": "docs/findings/2026-07-21_anchors_only_ablation.md",
@@ -13891,6 +13897,12 @@
      "dont": ""
     },
     {
+     "question": "Is there a single integration window that serves both scav_rat and diatomgraz?",
+     "answer": "NO - they want opposite ends of the lever, and this is a design constraint rather than a tuning nuisance. Over the same 100/200/400-step sweep (job 270032) scav_rat drifts monotonically DOWN out of the band while diatomgraz drifts monotonically UP toward Carroll. diatomgraz per-AOI medians: eqpac 0.064x -> 0.859x -> 0.952x Carroll, natlsubpolar 0.062x -> 0.166x -> 0.356x, southernoceanpac 0.062x -> 0.129x -> 0.351x. Its equatorial-Pacific leg count goes 0/50 -> 36/50 -> 45/50 against a window-independent untrained null of 33/50, Fisher one-sided P = 1.0, 0.333, 0.0035 - only the 400-step arm clears its null, and that is the window at which scav_rat is dead in all three basins (0/50 under every collapse and every band). At 100 steps diatomgraz is anti-recovered everywhere. The published 200 gets scav_rat marginally and diatomgraz barely. CAVEAT: the diatomgraz leg test above is at the 0.40 band where its null is heavily prior-contaminated; the standing rule is to grade diatomgraz per-leg at <=0.10, and that regrade is cheap and not yet done. The extension this opens is to stop sharing one global window - a per-parameter or per-basin window, or grading each parameter at the window where its own anchor has converged, is testable with code that already exists.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "dont": ""
+    },
+    {
      "question": "Is there an ARCHITECTURAL fix for the Track-1 parameter learner?",
      "answer": "No architecture can fix structural non-identifiability, and we do not yet know which wall diatomgraz has - as of 2026-07-19 alpfe reads FLAT by profile likelihood (span 0.0235) AND recovers 9-10/10, so the diagnostic cannot separate structural from practical. The binding gap is DIAGNOSTIC, not architectural. Ordered fix: (1) multi-start theta_star, (2) finish the FIM re-run, (3) only then NPE / amortised posterior. The HNODE expressiveness-identifiability trade-off applies to Track-2's UDE, not to Track-1's DINN, which PARAMETERISES the box rather than adding a competing learned term. Closest on-point reference: InVAErt networks.",
      "doc": "docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
@@ -14926,6 +14938,12 @@
      "question": "Why does the Track-2 emulator have a one-step rollout ceiling?",
      "answer": "Irreducible STATE-DEPENDENT one-step approximation error. Three named mechanisms were tested and eliminated: variance collapse (amplitude held at 0.95-0.99 of truth out to k=12), chaos (perturbations of 1% and 5% stay flat out to 12 steps, growth rate ~0), and subtractable constant bias (held-out variance explained: b_chan -0.01%, b_field +0.22%).",
      "doc": "docs/findings/2026-07-20_rollout_ceiling_mechanism.md",
+     "dont": ""
+    },
+    {
+     "question": "Why is alpfe's recovery count nearly flat across the integration window, and does that mean alpfe is window-insensitive?",
+     "answer": "NO. The flatness is the CEILING being flat, not the estimate being stable, and it strengthens rather than softens the bound-geometry result. Across 100/200/400 steps alpfe reads 50/49/46 and is identical under all three collapses. But per-AOI medians against an upper bound of 1.0 (= 1.077x Carroll) show natlsubpolar and southernoceanpac sitting AT the bound at every window tested: w100 0.589x/1.058x/1.075x, w200 1.069x/1.077x/1.076x, w400 1.057x/1.073x/1.070x for eqpac/natlsubpolar/southernoceanpac. Legs at or above 0.99 of the bound: 65/150 at w100, 121/150 at w200, 82/150 at w400. Only the equatorial-Pacific leg ever comes off the bound, and only at 100 steps - where its count DROPS to 24/50 while the two railed legs score 50/50 each. So the per-AOI >=2-of-3 rule is satisfied by the two railed legs alone at every window, and where alpfe is not railed its recovery is worse. Do not read alpfe's window-flatness as evidence of a stable estimate, and continue not to quote its ~8% as an accuracy.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-05_the_integration_window_is_a_contested_resource.md",
      "dont": ""
     },
     {
@@ -37258,7 +37276,7 @@
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
-  "settled": 517,
+  "settled": 520,
   "supersedes": 296,
   "supports": 279,
   "trap": 243,
