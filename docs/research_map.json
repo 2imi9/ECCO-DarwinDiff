@@ -8555,6 +8555,14 @@
      "retracted": 0,
      "words": 714,
      "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
+     "name": "2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
+     "date": "2026-08-06",
+     "retracted": 0,
+     "words": 1301,
+     "local_only": 0
     }
    ]
   },
@@ -12675,7 +12683,7 @@
     {
      "question": "Does comparing the model's TIME MEAN to the time-mean Darwin target, instead of its end state, improve recovery?",
      "answer": "NO on the headline metric, and the reason it matters anyway is that it RELOCATES recovery rather than improving or destroying it. Job 287072 (dd-tmloss, flagship_geo1.sh sourced, verify_run exit 0 on all three arms, pre-registered): the aggregate per-AOI >=2-of-3 trio goes 21/7/17 (arith/geom/median) in the endpoint control to 0/0/0 under TIME_MEAN_LOSS=1. The per-basin values show why. Under the time-mean loss natlsubpolar and southernoceanpac barely move from their untrained values for scav_rat (null 2.454x -> 2.243x, and 2.469x -> 2.184x Carroll) - they end up close to untrained. Meanwhile the EQUATORIAL PACIFIC moves a long way and lands on target: scav_rat 2.330x (null) -> 0.806x, alpfe 0.543x (null) -> 0.986x. So one basin is fitted well and two are effectively abandoned, and since >=2-of-3 needs two basins the aggregate reads 0/50. The natl/SO collapse is real, unexplained, and is the reason this is NOT a recommendation to change the flagship loss - the lever stays OFF by default. diatomgraz also goes to 0/50 everywhere including its established eqpac leg. One submission, NO replication.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
+     "doc": "docs/findings/2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
      "dont": ""
     },
     {
@@ -14703,7 +14711,7 @@
     {
      "question": "Has the alpfe<->scav_rat degeneracy ever been broken in a single basin without bound geometry?",
      "answer": "YES, once, in the equatorial Pacific under the time-mean loss (job 287072) - and this is the first time in the project. Both iron parameters land near Carroll in the SAME 50 seeds: scav_rat's eqpac leg is 50/50/50 (arith/geom/median) within +/-30% of Carroll and 47/28/49 at +/-20%, against an architecture-matched untrained null whose eqpac leg is 0/0/0 at EVERY band tested (0.10, 0.20, 0.30, 0.40, 0.45); alpfe's eqpac leg is 50/50/50 at every band from 0.30 to 0.45. Critically alpfe is NOT railed there: its eqpac median is 0.986x Carroll = 91.5% of its 1.0 bound, where the endpoint control sits at 99.7% and the bound itself is 1.077x Carroll, inside the pass band. So the pass is not bound geometry. Two of the three required checks pass - band sensitivity (at ceiling from 0.30 to 0.45, saturating well inside the threshold rather than peaking at it) and pooler invariance (identical under all three collapses) - and prior contamination is nil since the null is empty. REPLICATION IS ABSENT, one submission, and that is the check this project most often fails. Context that makes it interesting rather than lucky: eqpac holds 26 surface / 28 subsurface GEOTRACES bins, twice the Southern Ocean's 13/14, and had NEVER recovered scav_rat before (7/50 at best, 12/100 in the width arms) - a standing puzzle previously attributed to forward-model misspecification. The proposed alternative explanation is that the basin with the most data was the one most damaged by comparing a day-50 endpoint to a time mean, which predicts the effect should scale with each basin's internal variability. Untested. rho(alpfe,scav_rat) also flips -0.67 -> +0.58, unexplained.",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
+     "doc": "docs/findings/2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
      "dont": ""
     },
     {
@@ -37332,7 +37340,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 200,
+  "document": 201,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
