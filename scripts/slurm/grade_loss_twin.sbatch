@@ -20,6 +20,8 @@ echo "### target in {end, mean, long} x loss in {endpoint, time-mean}, single-AO
 echo
 
 SUF=${SEED_BASE:-0}; [ "$SUF" -eq 0 ] && SUF="" || SUF="_s$SUF"
+# 5 array chunks x 10 seeds per arm. Every arm must have all of them to be graded.
+NEED=50
 
 # THE HARNESS FALSIFIER FIRST. eq_ee/na_ee/so_ee (target=end, loss=endpoint) and
 # eq_mm/na_mm/so_mm (target=mean, loss=time-mean) compare IDENTICAL objects, so they must
@@ -28,10 +30,23 @@ SUF=${SEED_BASE:-0}; [ "$SUF" -eq 0 ] && SUF="" || SUF="_s$SUF"
 echo "################ MATCHED CELLS -- these MUST pass, or the twin says nothing ################"
 for pair in "eq_ee eq_null" "eq_mm eq_null" "na_ee na_null" "na_mm na_null" "so_ee so_null" "so_mm so_null"; do
   set -- $pair; ARM=$1$SUF; NUL=$2$SUF
-  n=$(ls $S/$ARM 2>/dev/null | wc -l)
-  echo "================================================================ $ARM  (n=$n)"
-  if [ "$n" -lt 10 ]; then echo "  INCOMPLETE -- skipped"; echo; continue; fi
-  echo -n "  verify_run: "; python scripts/verify_run.py $S/$ARM >/dev/null 2>&1; echo "exit=$?"
+  n=$(ls $S/$ARM/*.json 2>/dev/null | wc -l)
+  echo "================================================================ $ARM  (n=$n/$NEED)"
+  # An arm is 5 chunks x 10 seeds. Accepting a partial arm here would report counts, p-values and
+  # medians from, say, 10 seeds as though the pre-registered 50-seed experiment had completed --
+  # and nothing downstream would say otherwise. Refuse instead.
+  if [ "$n" -ne "$NEED" ]; then
+    echo "  INCOMPLETE ($n of $NEED seeds) -- NOT GRADED. Re-run the missing chunks; do not"
+    echo "  quote a partial arm, and do not compare it against a complete one."
+    echo; continue
+  fi
+  # verify_run's EXIT CODE gates the arm. Printing it and grading anyway is how an unverified
+  # number reaches a write-up.
+  python scripts/verify_run.py $S/$ARM >/dev/null 2>&1; vr=$?
+  echo "  verify_run: exit=$vr"
+  if [ "$vr" -ne 0 ]; then
+    echo "  VERIFY FAILED -- NOT GRADED (run verify_run.py by hand to see why)"; echo; continue
+  fi
   for b in 0.10 0.20 0.30 0.40; do
     echo "  --- band $b"
     python scripts/analysis/pooler_audit.py $S/$ARM --null $S/$NUL --band $b \
@@ -43,10 +58,23 @@ done
 echo "################ DECISIVE CELLS -- target=long, the analogue of a Darwin climatology ########"
 for pair in "eq_le eq_null" "eq_lm eq_null" "na_le na_null" "na_lm na_null" "so_le so_null" "so_lm so_null"; do
   set -- $pair; ARM=$1$SUF; NUL=$2$SUF
-  n=$(ls $S/$ARM 2>/dev/null | wc -l)
-  echo "================================================================ $ARM  (n=$n)"
-  if [ "$n" -lt 10 ]; then echo "  INCOMPLETE -- skipped"; echo; continue; fi
-  echo -n "  verify_run: "; python scripts/verify_run.py $S/$ARM >/dev/null 2>&1; echo "exit=$?"
+  n=$(ls $S/$ARM/*.json 2>/dev/null | wc -l)
+  echo "================================================================ $ARM  (n=$n/$NEED)"
+  # An arm is 5 chunks x 10 seeds. Accepting a partial arm here would report counts, p-values and
+  # medians from, say, 10 seeds as though the pre-registered 50-seed experiment had completed --
+  # and nothing downstream would say otherwise. Refuse instead.
+  if [ "$n" -ne "$NEED" ]; then
+    echo "  INCOMPLETE ($n of $NEED seeds) -- NOT GRADED. Re-run the missing chunks; do not"
+    echo "  quote a partial arm, and do not compare it against a complete one."
+    echo; continue
+  fi
+  # verify_run's EXIT CODE gates the arm. Printing it and grading anyway is how an unverified
+  # number reaches a write-up.
+  python scripts/verify_run.py $S/$ARM >/dev/null 2>&1; vr=$?
+  echo "  verify_run: exit=$vr"
+  if [ "$vr" -ne 0 ]; then
+    echo "  VERIFY FAILED -- NOT GRADED (run verify_run.py by hand to see why)"; echo; continue
+  fi
   for b in 0.10 0.20 0.30 0.40; do
     echo "  --- band $b"
     python scripts/analysis/pooler_audit.py $S/$ARM --null $S/$NUL --band $b \
@@ -71,14 +99,18 @@ for tag in [t + SUF for t in TAGS]:
     fs = sorted(glob.glob(f"/scratch/qi_zim_neu/twin/{tag}/*.json"))
     if not fs:
         print(f"{tag:10}   (missing)"); continue
+    if len(fs) != 50:
+        print(f"{tag:10} {len(fs):>4}   INCOMPLETE -- medians suppressed"); continue
     aoi = AOI_OF[tag.split("_")[0]]
     row = []
     for p in ("alpfe", "scav_rat", "R_PICPOC"):
         v = [json.load(open(f))["params"][p]["per_aoi_recovered_geom"][aoi] for f in fs]
         row.append(f"{st.median(v)/CAR[p]:10.3f}")
-    # P4 of the prereg: TWIN_TARGET=long is EXPECTED to degenerate the diatom pattern target,
-    # because under constant forcing the diatom goes extinct to the clamp floor. Surfaced here
-    # so the asymmetry between the long arms and the others is visible, never hidden.
+    # P4 predicted TWIN_TARGET=long would degenerate the diatom target. MEASURED AND REFUTED
+    # before submission (prereg section 7): nothing degenerates -- the diatom goes extinct
+    # heterogeneously, so Chl1's relative spatial sd EXPLODES to 4-8 instead of vanishing, while
+    # DFe2 loses 845x/51x/398x of its contrast. This column should therefore print "-" for every
+    # arm; a non-empty entry means the twin hit a case neither prediction covered.
     try:
         rep = json.load(open(fs[0]))["config"].get("twin_report") or {}
         deg = (rep.get("per_aoi", {}).get(aoi, {}) or {}).get("degenerate_targets", [])
