@@ -8579,6 +8579,14 @@
      "retracted": 0,
      "words": 2178,
      "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-08_prereg_loss_comparison_self_twin.md",
+     "name": "2026-08-08_prereg_loss_comparison_self_twin.md",
+     "date": "2026-08-08",
+     "retracted": 0,
+     "words": 1224,
+     "local_only": 0
     }
    ]
   },
@@ -37404,7 +37412,7 @@
   "citation": 1,
   "claim": 570,
   "derives": 0,
-  "document": 203,
+  "document": 204,
   "evidence": 279,
   "hypothesis": 99,
   "parameter": 6,
