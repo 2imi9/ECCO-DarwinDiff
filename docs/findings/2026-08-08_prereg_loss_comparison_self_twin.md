@@ -117,7 +117,54 @@ anchor regeneration, not a scientific finding.
 3. **The nulls pass** → the band is doing the work, not the fit; grade at a tighter band or
    report the arm as uninformative.
 
-## 7. What is deliberately NOT in this submission
+## 7. ADDENDUM — measured after submission, before any fit result exists
+
+Job 320993 was submitted at 04:20 UTC and is queued behind 108 running jobs with an estimated
+start of 09:12 UTC. **No arm has produced a single number.** Everything below is a property of
+the twin TARGETS, computed by integrating the box and measuring the fields — no fit involved —
+so it can be stated now without any possibility of retro-fitting.
+
+**P4 is REFUTED as stated, and its mechanism produces the opposite pathology.** No target was
+flagged degenerate in any basin at `long`. The diatom does not settle to a uniform clamp floor.
+It goes extinct *heterogeneously*, which drives its relative spatial sd the other way:
+
+| relative spatial sd | `Chl1` end → long | `co2_flux` end → long | **`DFe2` end → long** |
+|---|---|---|---|
+| eqpac | 0.241 → **4.035** | 0.277 → 1.235 | 0.0845 → **0.0001** |
+| natlsubpolar | 0.499 → **8.202** | 0.141 → 1.399 | 0.1323 → **0.0026** |
+| southernoceanpac | 0.688 → **6.074** | 0.105 → 0.963 | 0.2390 → **0.0006** |
+
+Two things follow, and neither was anticipated.
+
+**1. The `long` target is nearly information-free for `scav_rat`.** `DFe2` is the field
+`scav_rat` is anchored on, and its spatial contrast collapses by **845×, 51× and 398×** between
+the 200-step endpoint and the fixed point. At quasi-steady state the box's subsurface iron is
+spatially almost uniform. A pattern term over a uniform field carries no signal, so the two
+decisive cells may fail for `scav_rat` **in both losses**, for a structural reason that has
+nothing to do with the endpoint-versus-time-mean question.
+
+That does not void the experiment; it sharpens what a null there would mean. If both `long`
+cells fail while both matched cells pass, the result is not "the twin is insensitive" — it is
+**a quasi-steady climatological target cannot constrain `scav_rat` at all**, which would place
+the parameter's entire identifiability in the transient and support reading (b) in a stronger
+form than originally posed. That reading is now pre-registered too.
+
+**2. A limitation of the twin that the design did not account for.** Section 3 argued that
+under constant forcing a trailing mean at quasi-steady equals the fixed point, so the endpoint
+at long time is the right construction. That arithmetic is still correct, but it exposes the
+real gap: **the box is forced constantly and the actual Darwin climatology is a mean of a
+SEASONALLY forced system, which never reaches a fixed point.** So `long` is an analogue of a
+steady climatology, not of Darwin's. The honest statement is that this twin brackets the
+comparison question between two constructions the box can produce, and neither is Darwin's
+target exactly. A seasonally-forced twin is the follow-on, not a repair of this one.
+
+`Chl1`'s relative sd of 4 to 8 means its mean is far below its spread, so the term becomes
+close to a binary mask over the surviving cells and will be disproportionately weighted in the
+z-scored pattern loss. `diatomgraz` was already excluded from the `long` cells by P4; this is
+the reason it stays excluded, and the reason `Chl1`-driven behaviour in those cells is not
+evidence about anything.
+
+## 8. What is deliberately NOT in this submission
 
 - The two remaining mismatched cells (`end`×time-mean, `mean`×endpoint). They quantify the cost
   of a mismatch but are not decisive, and the submission is already 75 tasks.

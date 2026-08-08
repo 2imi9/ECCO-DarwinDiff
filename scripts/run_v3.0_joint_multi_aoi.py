@@ -1983,6 +1983,11 @@ def _integrate(state0, params, dt, n_steps, T, S, wind, pco2_atm, want_mean: boo
 
 # ============================== Self-twin targets ==========================
 
+# Per-AOI, per-field relative spatial sd of the twin targets, filled by `_twin_z` and copied
+# into the run artifact. See the comment in `_twin_z` for why this is worth keeping.
+_TWIN_RELSD: dict = {}
+
+
 def _twin_z(field_hw: torch.Tensor, mask_dev: torch.Tensor, name: str, key: str) -> torch.Tensor:
     """z-score a twin field over the AOI ocean mask, mirroring ``to_z_target`` exactly.
 
@@ -2001,6 +2006,11 @@ def _twin_z(field_hw: torch.Tensor, mask_dev: torch.Tensor, name: str, key: str)
     if degenerate:
         print(f"  [twin/{key}] DEGENERATE target {name}: relative spatial sd {rel:.3g} "
               f"-- no pattern to fit; term neutralised")
+    # The relative spatial sd is the CONTRAST the pattern term actually has to work with, and it
+    # is not visible anywhere else: a field can be far from degenerate and still have lost most
+    # of the structure the fit needs. Recorded for every field so the long-vs-end comparison is
+    # a measurement rather than an inference from the means.
+    _TWIN_RELSD.setdefault(key, {})[name] = rel
     return (field_hw - m) / s.clamp(min=1e-6), degenerate
 
 
@@ -2114,8 +2124,13 @@ def apply_twin_targets(bundles: list[dict]) -> dict:
                 bsi_twin, _ = diagnostic_bsi_steady(st[I_DIATOM][None], g_truth)
                 b["posi_target_t"] = (bsi_twin[0] * b["posi_mask_f"]).detach()
 
+        # DFe_2 is the field `scav_rat` is anchored on, so its contrast is reported by name.
+        _rel = _TWIN_RELSD.get(key, {})
+        dfe2_rel = float(st[I_DFE_2][mask_dev].std() / st[I_DFE_2][mask_dev].mean().abs().clamp(min=1e-30))
         report["per_aoi"][key] = {
             "degenerate_targets": degen,
+            "target_rel_spatial_sd": _rel,
+            "dfe2_rel_spatial_sd": dfe2_rel,
             "dfe1_mean": float(st[I_DFE_1][mask_dev].mean()),
             "dfe2_mean": float(st[I_DFE_2][mask_dev].mean()),
             "poc1_mean": float(st[I_POC_1][mask_dev].mean()),
@@ -2127,6 +2142,9 @@ def apply_twin_targets(bundles: list[dict]) -> dict:
               f"POC={report['per_aoi'][key]['poc1_mean']:.4g} "
               f"PIC={report['per_aoi'][key]['pic1_mean']:.4g}"
               + (f"  degenerate={degen}" if degen else ""))
+        print(f"  [twin/{key}] relative spatial sd: "
+              + "  ".join(f"{k}={v:.4f}" for k, v in _rel.items())
+              + f"  |  DFe2={dfe2_rel:.4f}")
 
     return report
 
