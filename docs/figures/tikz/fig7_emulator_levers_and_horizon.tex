@@ -1,0 +1,158 @@
+% fig7_emulator_levers_and_horizon.tex -- where the emulator bottleneck is NOT, and why speed
+% is irrelevant.
+%
+% COMPILE
+%   pdflatex -interaction=nonstopmode fig7_emulator_levers_and_horizon.tex
+%   dvisvgm --pdf --no-fonts --exact fig7_emulator_levers_and_horizon.pdf
+%
+% WHY PANEL a IS A TABLE AND NOT A BAR CHART
+% The six levers are measured against DIFFERENT baselines, on different cadences and different
+% tracer sets: +3.75 is a gap closure in log space on daily eqpac, +0.14 is a linear-skill delta
+% on the same domain, +0.007 is a capacity sweep on monthly 3-D. Putting them on one axis would
+% imply they are commensurable and would make log space look ~500x the lever that ensembling is,
+% which is an artifact of the units rather than a finding. A table with a verdict stripe states
+% each effect in its own units and lets the VERDICT carry the comparison.
+%
+% SEMANTICS OF THE COLOUR LADDER HERE (restated, as in fig6 -- this is not a parameter figure)
+%   ddBlue  load-bearing: removing it measurably degrades the result
+%   ddGold  not a lever: measured, and the effect is at or near zero
+%   ddRed   STROKE ONLY -- the retracted curve in panel b, i.e. a number that was withdrawn
+%
+% SOURCES
+%   docs/findings/2026-07-19_emulator_honest_bounds.md   both panels (lever table; k8 rollout)
+%   docs/findings/2026-07-30_daily_logspace_training.md  the +3.75 gap closure in panel a
+\documentclass[border=5pt]{standalone}
+\usepackage{darwindiff-tikz-v2}
+
+\begin{document}
+\begin{tikzpicture}[
+  ddval/.style  = {ddnum,  anchor=west},
+  ddcap/.style  = {ddnote, anchor=west, text width=76mm, align=left},
+]
+
+%% =====================================================================================
+%% PANEL a -- the lever ladder
+%% =====================================================================================
+\begin{scope}[shift={(0,0)}]
+  \node[ddpanel, anchor=west] at (-0.15, 1.30) {a};
+  \node[ddbody, anchor=west, font=\sffamily\fHead] at (0.30, 1.30)
+       {Three levers are real; three are measured and dead};
+
+  \node[ddhead, anchor=west] at (0.30, 0.86) {Lever};
+  \node[ddhead, anchor=west] at (4.05, 0.86) {Measured effect};
+  \draw[ddhair] (0.00, 0.64) -- (8.20, 0.64);
+
+  \node[ddhead, anchor=west, text=ddBlue] at (0.30, 0.34) {LOAD-BEARING};
+  \foreach \i/\nm/\eff in {
+    0/{log-space transform}/{closes 91.6\% of the gap; 0\% negatives by construction},
+    1/{deep ensembling, 8 seeds}/{$+0.14$ daily, $+0.05$ 3-D; 3$\times$ fewer negatives},
+    2/{rollout-aware training (k8)}/{STABILITY ONLY: mass 1.000 vs k1 diverging to 3.05e8}}{
+      \pgfmathsetmacro{\yy}{-0.02 - \i*0.36}
+      \draw[ddBlue, line width=2.2pt] (0.00, \yy) -- (0.18, \yy);
+      \node[ddbody, anchor=west] at (0.30, \yy) {\nm};
+      \node[ddnote, anchor=west] at (4.05, \yy) {\eff};
+  }
+
+  \node[ddhead, anchor=west, text=ddGold] at (0.30, -1.20) {NOT A LEVER};
+  \foreach \i/\nm/\eff in {
+    0/{capacity, up to ${\sim}4\times$ params}/{$+0.007$ \textemdash{} saturated},
+    1/{EDM diffusion corrector}/{zero skill, $-0.03$ on 3-D, at 2048 passes vs 8},
+    2/{architectural diversity}/{calibration 0.240, unchanged}}{
+      \pgfmathsetmacro{\yy}{-1.56 - \i*0.36}
+      \draw[ddGold, line width=2.2pt] (0.00, \yy) -- (0.18, \yy);
+      \node[ddbody, anchor=west] at (0.30, \yy) {\nm};
+      \node[ddnote, anchor=west] at (4.05, \yy) {\eff};
+  }
+
+  \node[ddcap, anchor=north west] at (0.00, -2.85)
+    {Effects are quoted in their own units because they are measured against different
+     baselines; the stripe, not a shared axis, carries the comparison. The pattern is the
+     finding: \emph{capacity and architecture are not the bottleneck}. Roughly $4\times$ the
+     parameters bought $+0.007$, and a diffusion corrector running 2048 forward passes per
+     field bought nothing a plain 8-member ensemble did not already give.};
+\end{scope}
+
+%% =====================================================================================
+%% PANEL b -- the horizon is one step, and the longer one was a calendar artifact
+%% =====================================================================================
+\begin{scope}[shift={(9.80,0)}]
+  \node[ddpanel, anchor=west] at (-0.15, 1.30) {b};
+  \node[ddbody, anchor=west, font=\sffamily\fHead] at (0.30, 1.30)
+       {The horizon is one step, not nine months};
+
+  \node[ddhead, anchor=west] at (0.30, 0.86) {Skill vs a correctly-binned seasonal climatology};
+  \draw[ddhair] (0.00, 0.64) -- (8.20, 0.64);
+
+  % axes: x = rollout step 1..12 over 5.6cm from x=0.80 ; y = -0.80..+0.70 mapped into the band
+  % y in [-1.30, +0.40], i.e. BELOW the header rule at 0.64. Getting this wrong once put the
+  % whole plot on top of the panel title.
+  \pgfmathsetmacro{\ox}{0.80}
+  \pgfmathsetmacro{\sx}{5.60/11.0}
+  \pgfmathsetmacro{\oy}{-1.30}
+  \pgfmathsetmacro{\sy}{1.70/1.50}
+
+  % y gridlines
+  \foreach \v in {-0.75,-0.50,-0.25,0,0.25,0.50}{
+    \pgfmathsetmacro{\yy}{\oy + (\v+0.80)*\sy}
+    \draw[ddRule, line width=0.5pt] (\ox-0.15, \yy) -- (\ox+5.75, \yy);
+    \node[ddnote, anchor=east] at (\ox-0.22, \yy) {\v};
+  }
+  % zero line -- the climatology itself
+  \pgfmathsetmacro{\yzero}{\oy + 0.80*\sy}
+  \draw[ddInk, line width=0.9pt] (\ox-0.15, \yzero) -- (\ox+5.75, \yzero);
+  % NOT labelled: the panel subtitle already names the baseline, and any label on this line
+  % lands on either the retracted curve or the -0.25 gridline.
+
+  % x ticks
+  \foreach \s in {1,2,3,6,9,12}{
+    \pgfmathsetmacro{\xx}{\ox + (\s-1)*\sx}
+    \node[ddnote, anchor=north] at (\xx, \oy-0.08) {\s};
+  }
+  \node[ddnote, anchor=north] at ({\ox+2.80}, \oy-0.40) {rollout step \ (1 step ${\approx}$ 2 months)};
+
+  % OLD, buggy bins -- RETRACTED. Red, stroke only, dashed: a withdrawn number.
+  \draw[ddRed, line width=0.9pt, dash pattern=on 3pt off 2pt]
+    plot coordinates {
+      ({\ox+0*\sx},{\oy+(0.614+0.80)*\sy})
+      ({\ox+1*\sx},{\oy+(0.469+0.80)*\sy})
+      ({\ox+2*\sx},{\oy+(0.432+0.80)*\sy})
+      ({\ox+5*\sx},{\oy+(0.259+0.80)*\sy})
+      ({\ox+8*\sx},{\oy+(0.253+0.80)*\sy})
+      ({\ox+11*\sx},{\oy+(0.028+0.80)*\sy})};
+
+  % NEW, correct bins -- the honest curve
+  \draw[ddBlue, line width=1.3pt]
+    plot coordinates {
+      ({\ox+0*\sx},{\oy+(0.240+0.80)*\sy})
+      ({\ox+1*\sx},{\oy+(-0.018+0.80)*\sy})
+      ({\ox+2*\sx},{\oy+(-0.012+0.80)*\sy})
+      ({\ox+5*\sx},{\oy+(-0.420+0.80)*\sy})
+      ({\ox+8*\sx},{\oy+(-0.292+0.80)*\sy})
+      ({\ox+11*\sx},{\oy+(-0.748+0.80)*\sy})};
+  \foreach \i/\v in {0/0.240, 1/-0.018, 2/-0.012, 5/-0.420, 8/-0.292, 11/-0.748}{
+    \filldraw[ddBlue] ({\ox+\i*\sx},{\oy+(\v+0.80)*\sy}) circle (1.6pt);
+  }
+
+  % the crossing
+  \pgfmathsetmacro{\xcross}{\ox + 1*\sx}
+  \draw[ddMute, line width=0.6pt, dash pattern=on 2pt off 1.5pt]
+    (\xcross, \yzero) -- (\xcross, 0.44);
+  \node[ddnote, anchor=south west] at (\xcross+0.06, 0.26) {below climatology};
+  \node[ddnote, anchor=south west] at (\xcross+0.06, 0.08) {from step 2 onward};
+
+  % legend, below the x-axis label
+  \draw[ddRed, line width=0.9pt, dash pattern=on 3pt off 2pt] (0.30, -2.26) -- (0.62, -2.26);
+  \node[ddnote, anchor=west] at (0.70, -2.26) {RETRACTED (buggy month bins)};
+  \draw[ddBlue, line width=1.3pt] (4.30, -2.26) -- (4.62, -2.26);
+  \node[ddnote, anchor=west] at (4.70, -2.26) {corrected};
+
+  \node[ddcap, anchor=north west] at (0.00, -2.54)
+    {The stored cube's time axis was 0.75$\times$ truth, so 94\% of climatology month-bins were
+     wrong and the baseline was weakened at exactly the lags being claimed. Re-binned, k8 beats
+     climatology at \emph{one step} and is at or below it thereafter. Mass is conserved to 1.000
+     at every lag, so this is not blow-up \textemdash{} it is a correct-looking trajectory with
+     no skill, which is why speed (7.45\,ms per step, a century in 9\,s) buys nothing.};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}
