@@ -8957,6 +8957,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/findings/2026-08-09_presentation_planning_weekly_log_aug4_11_as_of_aug9_talk_track.md",
+     "name": "2026-08-09_presentation_planning_weekly_log_aug4_11_as_of_aug9_talk_track.md",
+     "date": "2026-08-09",
+     "retracted": 0,
+     "words": 1381,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/2026-08-09_rare_diatom_cannot_invade_five_of_six_seasonal_cells.md",
      "name": "2026-08-09_rare_diatom_cannot_invade_five_of_six_seasonal_cells.md",
      "date": "2026-08-09",
@@ -9066,6 +9074,46 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 445,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-11_eccodarwindiff_summer_research_closeout.md",
+     "name": "2026-08-11_eccodarwindiff_summer_research_closeout.md",
+     "date": "2026-08-11",
+     "retracted": 0,
+     "words": 1815,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-11_eccodarwindiff_summer_research_closeout_speaker_notes.md",
+     "name": "2026-08-11_eccodarwindiff_summer_research_closeout_speaker_notes.md",
+     "date": "2026-08-11",
+     "retracted": 0,
+     "words": 1588,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-11_weekly_talk_track_refined.md",
+     "name": "2026-08-11_weekly_talk_track_refined.md",
+     "date": "2026-08-11",
+     "retracted": 0,
+     "words": 1846,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_notes/2026-08-12_jon_reply_round2_DRAFT.md",
+     "name": "2026-08-12_jon_reply_round2_DRAFT.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 356,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
+     "name": "2026-08-12_lauderdale_answers_round2.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 915,
      "local_only": 0
     }
    ]
@@ -38749,7 +38797,7 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 234,
+  "document": 240,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
