@@ -1,0 +1,17 @@
+{
+  "aois": [
+    "eqpac",
+    "natlsubpolar",
+    "southernoceanpac"
+  ],
+  "bundle": "runs\\seasonal_twin\\target_bundle_spm122_eppley_v2.pt",
+  "bundle_sha256": "ce1d1061431db3b2ff901d69a1fbf7874bf311ec72c09e8cb6936a3adad4c046",
+  "gate_pass": false,
+  "production_contract": true,
+  "report": "docs\\findings\\2026-08-09_seasonal_twin_target_gate.json",
+  "report_sha256": "527699dbedd15bfb88224c8c79f80bd77cc2c23acf10fde825ee6dc1d1bbe132",
+  "science_status": "FAIL",
+  "verified": true,
+  "verified_cycles": 24,
+  "verified_utc": "2026-08-09T17:35:10.993658+00:00"
+}

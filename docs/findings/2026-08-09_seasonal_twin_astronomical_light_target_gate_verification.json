@@ -1,0 +1,17 @@
+{
+  "aois": [
+    "eqpac",
+    "natlsubpolar",
+    "southernoceanpac"
+  ],
+  "bundle": "runs\\seasonal_twin\\astronomical_light_target_bundle_tau365.pt",
+  "bundle_sha256": "3caba6220bcd0199bf91bc1184ddd0562179ade7c0d216445f0a90408c5771e6",
+  "gate_pass": false,
+  "production_contract": true,
+  "report": "docs\\findings\\2026-08-09_seasonal_twin_astronomical_light_target_gate.json",
+  "report_sha256": "5da669a108f00d4f6238e0532eba238847a0861ae656b8983fca26e621ba29c4",
+  "science_status": "FAIL",
+  "verified": true,
+  "verified_cycles": 24,
+  "verified_utc": "2026-08-09T17:35:11.046451+00:00"
+}

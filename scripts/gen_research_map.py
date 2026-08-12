@@ -97,9 +97,11 @@ for r in M["claims"]:
     if not stmt:
         continue
     by_mode[r.get("mode", "inductive")].append({
+        "cl_id": cell(r.get("cl_id"), 64),
         "s": stmt,
         "detail": cell(r.get("why_this_mode") or r.get("numbers"), 190),
         "num": cell(r.get("numbers"), 150),
+        "evidence": cell(r.get("evidence"), 180),
         "status": cell(r.get("status") or "live", 22),
         "doc": docref(r.get("doc")),
     })
@@ -126,7 +128,19 @@ for r in M["hypotheses"]:
     if not s or norm(s)[:60] in seen:
         continue
     seen.add(norm(s)[:60])
-    hyps.append((s, cell(r.get("predicts"), 160), cell(r.get("falsifier"), 160), docref(r.get("doc"))))
+    # Preserve the historical open-row numbering for legacy rows. New work can
+    # pin a semantic id explicitly so closing an earlier row cannot rename it.
+    hy_id = str(r.get("hy_id") or f"hy{len(hyps):03d}")
+    hyps.append(
+        (
+            hy_id,
+            s,
+            cell(r.get("predicts"), 160),
+            cell(r.get("falsifier"), 160),
+            cell(r.get("status"), 80),
+            docref(r.get("doc")),
+        )
+    )
 
 traps, seen = [], set()
 for r in M["traps"]:
@@ -203,17 +217,17 @@ TITLES = {
     "deductive": ("2. CLAIM — deductive",
                   "Follows from structure. Checkable without new data. **These are the strongest things "
                   "the project has** and should carry the manuscript's load-bearing arguments.",
-                  "| statement | derivation | status | doc |"),
+                  "| cl_id | statement | derivation | status | doc | evidence |"),
     "inductive": ("3. CLAIM — inductive",
                   "Measured. **Every row needs its untrained baseline quoted with it.** Standing weakness "
                   "for the whole section: there is still **no config-selection null**, so each row measures "
                   "chance for a *fixed* pipeline while the flagship was chosen from a sweep.",
-                  "| statement | n / null | status | doc |"),
+                  "| cl_id | statement | n / null | status | doc | evidence |"),
     "abductive": ("4. CLAIM — abductive",
                   "Inference to the best explanation. **Not a result until it predicts something it was not "
                   "built to explain and that prediction is tested.** Displaced and weakened rows are kept "
                   "visible on purpose: they are the record of how the project reasons.",
-                  "| statement | tested / prompted by | status | doc |"),
+                  "| cl_id | statement | tested / prompted by | status | doc | evidence |"),
 }
 for mode in ("deductive", "inductive", "abductive"):
     rows = by_mode.get(mode, [])
@@ -223,20 +237,23 @@ for mode in ("deductive", "inductive", "abductive"):
     w(blurb)
     w("")
     w(header)
-    w("|---|---|---|---|")
+    w("|---|---|---|---|---|---|")
     for c in rows:
         mid = c["num"] if mode == "inductive" else c["detail"]
-        w(f"| {c['s']} | {mid} | {c['status']} | {c['doc']} |")
+        w(
+            f"| {c['cl_id']} | {c['s']} | {mid} | {c['status']} | "
+            f"{c['doc']} | {c['evidence']} |"
+        )
     w("")
     w("---")
     w("")
 
 w(f"## 5. HYPOTHESIS — open, with falsifiers ({len(hyps)})")
 w("")
-w("| statement | predicts | falsifier | doc |")
-w("|---|---|---|---|")
-for s, p, f, d in hyps:
-    w(f"| {s} | {p} | {f} | {d} |")
+w("| hy_id | statement | predicts | falsifier | status | doc |")
+w("|---|---|---|---|---|---|")
+for hy_id, s, p, f, status, d in hyps:
+    w(f"| {hy_id} | {s} | {p} | {f} | {status} | {d} |")
 w("")
 w("---")
 w("")

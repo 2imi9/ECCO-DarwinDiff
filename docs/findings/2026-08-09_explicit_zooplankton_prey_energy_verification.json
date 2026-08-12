@@ -1,0 +1,24 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "raw_tensor_cells": 564011,
+  "decision": {
+    "branch": "prey-field-energy-deficit",
+    "integrity_pass": true,
+    "large_predator_classification_by_aoi": {
+      "eqpac": "continuous-energetic-deficit",
+      "natlsubpolar": "continuous-energetic-deficit",
+      "southernoceanpac": "continuous-energetic-deficit"
+    },
+    "b200_authorized": false,
+    "target_rehabilitated": false
+  },
+  "report": "docs/findings/2026-08-09_explicit_zooplankton_prey_energy_audit.json",
+  "report_sha256": "6def574425aabe4a65ecd86a9acb416dd8da40f66946e27e6773c925ae81a6ee",
+  "bundle": "docs/findings/2026-08-09_explicit_zooplankton_prey_energy_audit.pt.gz",
+  "bundle_sha256": "2c90f7503a4b72e6dc193d14b962051c6f56ddff3e4508bca5f63e4a4b79ab08",
+  "source_target_report_sha256": "2f5f4119c871e476c5e32deeb2280a5ead7c7932e8802cdbd26b306183b8151b",
+  "source_target_bundle_sha256": "133c1f9001d5350e1dec7ac5a292c23aca83a76a30f094674103c2fbcfc39721",
+  "source_exclusion_report_sha256": "6f591174249d9c7758eefe5295d7933b6440edcf75878267aa0ec4c5bbc0c16c",
+  "source_exclusion_bundle_sha256": "3d6a693a897870790df8db66c2433f33fd6d4f08601c44b1e80ae653f538b999"
+}

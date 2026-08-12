@@ -1,0 +1,25 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "raw_support_tensor_cells": 16765728,
+  "decision": {
+    "branch": "frozen-path-relocation-ruled-out-in-one-or-more-aois",
+    "integrity_pass": true,
+    "primary_hypothesis": "falsified",
+    "stepwise_oracle_clears_mortality_by_aoi": {
+      "eqpac": false,
+      "natlsubpolar": true,
+      "southernoceanpac": false
+    },
+    "actual_transport_tested": false,
+    "modified_dynamics_integrated": false,
+    "target_rehabilitated": false,
+    "b200_authorized": false
+  },
+  "report": "docs/findings/2026-08-10_explicit_zooplankton_transport_oracle_audit.json",
+  "report_sha256": "1263a03ae4fd27cfdde3778cf696ff71bb370577b356c05d592b65a53ddb9ec6",
+  "support_report_sha256": "0dcfaf635ac7348c451b687d0ea180bc622b0b111eb2d3d2f4524a3b5dde27c3",
+  "support_bundle_sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1",
+  "energy_report_sha256": "a167a039027f82b3e7251a5611344a88beb366fc098787fcdcadaee62bbbdfe8",
+  "energy_bundle_sha256": "14781929085d2f632d67c56ad7b507796e0470b2f0642ddc49e996ec355ee2b5"
+}

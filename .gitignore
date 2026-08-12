@@ -149,3 +149,22 @@ docs/figures/refs/
 
 # Paper/abstract drafts are LOCAL-ONLY by user directive (2026-07-28).
 /docs/research_notes/*workshop_paper*.md
+
+# session-bridge runtime channel, if ever pointed inside the repo with --dir.
+# The default channel lives at ~/.agent_bridge/<project>, outside the repo.
+/.agent_bridge/
+
+# Raw tensor bundles behind the findings verification JSONs. The JSONs pin each
+# bundle's sha256 and the verifier tests skip when a bundle is absent, so these
+# ~MB-to-56MB artifacts never enter history (main's largest tracked blob is 2.3 MB).
+docs/findings/*.pt.gz
+
+# Machine-local agent scaffolding. AGENTS.md and .claude/skills/ are the tracked
+# working agreement + skills; these are per-machine mirrors/config, not sources:
+# .codex/ carries a full-access sandbox config that must not ship to clones, and
+# .agents/skills/ is a hand-synced Codex-side copy of .claude/skills/ (drift-prone).
+/.codex/
+/.agents/
+
+# ng-loops session scaffolding, untracked on purpose per its own header.
+/spec.md

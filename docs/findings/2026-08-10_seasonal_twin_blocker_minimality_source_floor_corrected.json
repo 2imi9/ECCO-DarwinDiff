@@ -1,0 +1,267 @@
+{
+  "created_utc": "2026-08-10T05:28:32.865021+00:00",
+  "criteria": {
+    "aois": {
+      "eqpac": {
+        "always_required": {
+          "chemical_closure": true,
+          "dfe_structure": true,
+          "diatom_retention": true,
+          "light": true,
+          "monthly_diatom_positive": true,
+          "non_large_community_dominance": true,
+          "non_large_community_retention": true,
+          "numerical": true
+        },
+        "community_viability": {
+          "dominance_threshold": 0.95,
+          "original_pass": false,
+          "without_z_large_maximum_dominance": 0.6442463670284471,
+          "without_z_large_pass": true
+        },
+        "initial_condition_robustness": {
+          "original_pass": false,
+          "threshold": 0.05,
+          "without_z_large_maximum_relative_l2": 4.713870922259003e-08,
+          "without_z_large_pass": true
+        },
+        "seasonality": {
+          "monthly_diatom_cv": 0.03420400108097844,
+          "pass": false,
+          "threshold": 0.05
+        },
+        "stability": {
+          "original_pass": false,
+          "threshold": 0.01,
+          "without_z_large_maximum_relative_l2": 7.269081912138659e-07,
+          "without_z_large_pass": true
+        }
+      },
+      "natlsubpolar": {
+        "always_required": {
+          "chemical_closure": true,
+          "dfe_structure": true,
+          "diatom_retention": true,
+          "light": true,
+          "monthly_diatom_positive": true,
+          "non_large_community_dominance": true,
+          "non_large_community_retention": true,
+          "numerical": true
+        },
+        "community_viability": {
+          "dominance_threshold": 0.95,
+          "original_pass": false,
+          "without_z_large_maximum_dominance": 0.5177250362193354,
+          "without_z_large_pass": true
+        },
+        "initial_condition_robustness": {
+          "original_pass": false,
+          "threshold": 0.05,
+          "without_z_large_maximum_relative_l2": 0.0007127763737457785,
+          "without_z_large_pass": true
+        },
+        "seasonality": {
+          "monthly_diatom_cv": 0.5558415409280525,
+          "pass": true,
+          "threshold": 0.05
+        },
+        "stability": {
+          "original_pass": false,
+          "threshold": 0.01,
+          "without_z_large_maximum_relative_l2": 0.00011525014813476897,
+          "without_z_large_pass": true
+        }
+      },
+      "southernoceanpac": {
+        "always_required": {
+          "chemical_closure": true,
+          "dfe_structure": true,
+          "diatom_retention": true,
+          "light": true,
+          "monthly_diatom_positive": true,
+          "non_large_community_dominance": true,
+          "non_large_community_retention": true,
+          "numerical": true
+        },
+        "community_viability": {
+          "dominance_threshold": 0.95,
+          "original_pass": false,
+          "without_z_large_maximum_dominance": 0.515204843793832,
+          "without_z_large_pass": true
+        },
+        "initial_condition_robustness": {
+          "original_pass": false,
+          "threshold": 0.05,
+          "without_z_large_maximum_relative_l2": 0.0015033891507811401,
+          "without_z_large_pass": true
+        },
+        "seasonality": {
+          "monthly_diatom_cv": 0.5497456062301863,
+          "pass": true,
+          "threshold": 0.05
+        },
+        "stability": {
+          "original_pass": false,
+          "threshold": 0.01,
+          "without_z_large_maximum_relative_l2": 6.697806678999254e-05,
+          "without_z_large_pass": true
+        }
+      }
+    },
+    "parameter_handle": {
+      "absolute_log_response_by_aoi": {
+        "eqpac": 0.030117392121680978,
+        "natlsubpolar": 0.020573768610131587,
+        "southernoceanpac": 0.02034413019125344
+      },
+      "minimum_qualifying_aois": 2,
+      "pass": false,
+      "qualifying_aois": [],
+      "sign_agreement": true,
+      "threshold": 0.04879016416943204
+    }
+  },
+  "decision": {
+    "all_three_posthoc_waivers_pass": true,
+    "b200_authorized": false,
+    "branch": "three-logically-separable-blocker-groups",
+    "minimal_passing_sets": [
+      [
+        "drop_large_predator_obligations",
+        "waive_eqpac_seasonality",
+        "waive_parameter_handle"
+      ]
+    ],
+    "minimum_waiver_count": 3,
+    "target_rehabilitated": false
+  },
+  "lattice": [
+    {
+      "pass": false,
+      "remaining_failures": [
+        "eqpac.stability",
+        "eqpac.community_viability",
+        "eqpac.initial_condition_robustness",
+        "eqpac.seasonality",
+        "natlsubpolar.stability",
+        "natlsubpolar.community_viability",
+        "natlsubpolar.initial_condition_robustness",
+        "southernoceanpac.stability",
+        "southernoceanpac.community_viability",
+        "southernoceanpac.initial_condition_robustness",
+        "global.parameter_handle"
+      ],
+      "waiver_count": 0,
+      "waivers": []
+    },
+    {
+      "pass": false,
+      "remaining_failures": [
+        "eqpac.seasonality",
+        "global.parameter_handle"
+      ],
+      "waiver_count": 1,
+      "waivers": [
+        "drop_large_predator_obligations"
+      ]
+    },
+    {
+      "pass": false,
+      "remaining_failures": [
+        "eqpac.stability",
+        "eqpac.community_viability",
+        "eqpac.initial_condition_robustness",
+        "natlsubpolar.stability",
+        "natlsubpolar.community_viability",
+        "natlsubpolar.initial_condition_robustness",
+        "southernoceanpac.stability",
+        "southernoceanpac.community_viability",
+        "southernoceanpac.initial_condition_robustness",
+        "global.parameter_handle"
+      ],
+      "waiver_count": 1,
+      "waivers": [
+        "waive_eqpac_seasonality"
+      ]
+    },
+    {
+      "pass": false,
+      "remaining_failures": [
+        "eqpac.stability",
+        "eqpac.community_viability",
+        "eqpac.initial_condition_robustness",
+        "eqpac.seasonality",
+        "natlsubpolar.stability",
+        "natlsubpolar.community_viability",
+        "natlsubpolar.initial_condition_robustness",
+        "southernoceanpac.stability",
+        "southernoceanpac.community_viability",
+        "southernoceanpac.initial_condition_robustness"
+      ],
+      "waiver_count": 1,
+      "waivers": [
+        "waive_parameter_handle"
+      ]
+    },
+    {
+      "pass": false,
+      "remaining_failures": [
+        "global.parameter_handle"
+      ],
+      "waiver_count": 2,
+      "waivers": [
+        "drop_large_predator_obligations",
+        "waive_eqpac_seasonality"
+      ]
+    },
+    {
+      "pass": false,
+      "remaining_failures": [
+        "eqpac.seasonality"
+      ],
+      "waiver_count": 2,
+      "waivers": [
+        "drop_large_predator_obligations",
+        "waive_parameter_handle"
+      ]
+    },
+    {
+      "pass": false,
+      "remaining_failures": [
+        "eqpac.stability",
+        "eqpac.community_viability",
+        "eqpac.initial_condition_robustness",
+        "natlsubpolar.stability",
+        "natlsubpolar.community_viability",
+        "natlsubpolar.initial_condition_robustness",
+        "southernoceanpac.stability",
+        "southernoceanpac.community_viability",
+        "southernoceanpac.initial_condition_robustness"
+      ],
+      "waiver_count": 2,
+      "waivers": [
+        "waive_eqpac_seasonality",
+        "waive_parameter_handle"
+      ]
+    },
+    {
+      "pass": true,
+      "remaining_failures": [],
+      "waiver_count": 3,
+      "waivers": [
+        "drop_large_predator_obligations",
+        "waive_eqpac_seasonality",
+        "waive_parameter_handle"
+      ]
+    }
+  ],
+  "preregistration": "docs/findings/2026-08-09_prereg_seasonal_twin_blocker_minimality_audit.md",
+  "schema_version": 1,
+  "source": {
+    "target_report": "docs/findings/2026-08-10_seasonal_twin_explicit_zooplankton_source_floor_corrected.json",
+    "target_report_sha256": "60772e7f4767e8bdb5c2f0a23b106a80a5f1a7e77dfaa13fe06c33312bfb1926",
+    "verification_receipt": "docs/findings/2026-08-10_seasonal_twin_explicit_zooplankton_source_floor_corrected_verification.json",
+    "verification_receipt_sha256": "ccb2ad7c16fc9aab74708b4050dc1c549aba2dd671d7d71604592ab52ffb3045"
+  },
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

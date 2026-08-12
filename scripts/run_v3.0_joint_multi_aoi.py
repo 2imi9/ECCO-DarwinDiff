@@ -301,6 +301,41 @@ PINN_TYPE = os.environ.get("NB23_PINN_TYPE", "drift").lower()
 # control in the same submission, never a silent change to the flagship.
 TIME_MEAN_LOSS = os.environ.get("TIME_MEAN_LOSS", "0") == "1"
 
+# TWIN_TARGET: replace the Darwin-derived targets with fields the BOX ITSELF generates under a
+# known parameter set (Carroll), so "recovered" means "recovered the truth" instead of "matched
+# Darwin". This exists to answer ONE question, the one `TIME_MEAN_LOSS` opened and could not
+# close: which comparison is correct, endpoint-vs-target or time-mean-vs-target?
+#
+# A twin has no forward-model misspecification, so it isolates the comparison completely. The
+# grading machinery needs no change either -- it already grades against Carroll, and in a twin
+# Carroll IS the truth.
+#
+#     off    (default)   real Darwin targets, the published behaviour
+#     end                target = twin state at N_STEPS
+#     mean               target = twin mean over steps 1..N_STEPS
+#     long               target = twin state at TWIN_LONG_STEPS, i.e. the quasi-steady fixed
+#                        point. This is the honest analogue of the REAL target, which is a
+#                        climatological mean of a quasi-steady system, not a mean over a
+#                        50-day spin-up from a Darwin initial condition.
+#
+# Crossed with TIME_MEAN_LOSS this gives a 3x2 whose diagonal is a HARNESS FALSIFIER: (end,
+# endpoint) and (mean, time-mean) compare identical objects, so they MUST recover the truth. If
+# they do not, the twin is broken and no other cell in the table means anything.
+TWIN_TARGET = os.environ.get("TWIN_TARGET", "off").lower()
+if TWIN_TARGET not in ("off", "end", "mean", "long"):
+    raise SystemExit(f"TWIN_TARGET must be one of off|end|mean|long, got {TWIN_TARGET!r}")
+TWIN_ON = TWIN_TARGET != "off"
+# Steps to quasi-steady for TWIN_TARGET=long. 4000 * DT = 1000 days. Section 7 of the
+# 2026-08-06 loss finding measured the box's tracers against a fixed point at this scale.
+TWIN_LONG_STEPS = int(os.environ.get("TWIN_LONG_STEPS", "4000"))
+# TWIN_ANCHORS: also regenerate the real-observation anchors (GEOTRACES surface/subsurface Fe,
+# Daniels CP:PP, GEOTRACES bSi) by sampling the twin trajectory at those SAME cells, keeping the
+# flagship's loss structure intact with truth known. With this off, any such term left active
+# would compare a Carroll-generated box against the REAL ocean -- reintroducing exactly the
+# misspecification the twin exists to remove -- so the twin FAILS LOUDLY instead (see the
+# assertion in `apply_twin_targets`), never silently mixing twin and real targets.
+TWIN_ANCHORS = os.environ.get("TWIN_ANCHORS", "0") == "1"
+
 # BLACK_ALPFE_W: weight on the Black et al. (2020) upper-ocean Fe EXPORT province anchor.
 #
 # It constrains `alpfe`, not `scav_rat`. The dataset was carried in this repo as the designated
@@ -933,6 +968,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + AOI weights/identity/MLD."""
     _unsupported = {
         "GEOTRACES_POC_SUB_W": GEOTRACES_POC_SUB_W, "POSI_W": POSI_W,
+        "DANIELS_RPICPOC_W": DANIELS_RPICPOC_W,
         "PIC_ABS_W": PIC_ABS_W, "POC_ABS_W": POC_ABS_W, "ALK_ABS_W": ALK_ABS_W,
         "RATIO_W": RATIO_W, "F_CO2_ABS_W": F_CO2_ABS_W,
     }
@@ -940,7 +976,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     if _on:
         raise NotImplementedError(
             f"NATIVE_RES=1 does not yet support these loss terms: {_on}. Set them to 0 "
-            f"(GEOTRACES-bSi/POC + GLODAP-grid + abs anchors need more native binning). "
+            f"(Daniels/GEOTRACES-bSi/POC + GLODAP-grid + abs anchors need more native binning). "
             f"Supported: core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + POC_SUB_W "
             f"+ Darwin IC + GEOTRACES iron (surf/sub) + POSI_DARWIN_W + AOI levers.")
 
@@ -1347,9 +1383,12 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                 daniels_target_np = np.where(daniels_mask_np, d_vals, 0.0).astype(np.float32)
                 n_daniels_pts = int(d_counts[daniels_mask_np].sum())
             else:
-                print(f"  [warn] Daniels bin shape {d_vals.shape} != AOI {sst.shape}; skipping")
+                raise ValueError(f"Daniels bin shape {d_vals.shape} != AOI {sst.shape}")
         except Exception as e:
-            print(f"  [warn] DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} but Daniels load failed ({e}); loss term will be skipped")
+            raise RuntimeError(
+                f"DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} requires a loaded, valid "
+                f"Daniels source at {DANIELS_PATH}; refusing an anchor-off run"
+            ) from e
     daniels_target_t = torch.tensor(daniels_target_np).to(device)
     daniels_mask_t = torch.tensor(daniels_mask_np, dtype=torch.bool).to(device)
     daniels_mask_f = daniels_mask_t.to(torch.float32)
@@ -1520,7 +1559,10 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         bsi_lpt = geo_aoi.bSi_LPT_CONC.values.flatten() if "bSi_LPT_CONC" in geo_aoi else None
         bsi_spt = geo_aoi.bSi_SPT_CONC.values.flatten() if "bSi_SPT_CONC" in geo_aoi else None
         if bsi_lpt is None and bsi_spt is None:
-            print("  [warn] POSI_W>0 but neither bSi_LPT_CONC nor bSi_SPT_CONC present in GEOTRACES; skipping")
+            raise RuntimeError(
+                "POSI_W>0 requires bSi_LPT_CONC or bSi_SPT_CONC in the loaded "
+                "GEOTRACES source; refusing a POSi-off run"
+            )
         else:
             qc_good_arr = np.array(QC_GOOD)
             def _bsi_keep(vals, qc_name):
@@ -1944,6 +1986,187 @@ def _integrate(state0, params, dt, n_steps, T, S, wind, pco2_atm, want_mean: boo
         if want_mean:
             acc = state if acc is None else acc + state
     return state, (acc / float(n_steps) if want_mean else None)
+
+
+# ============================== Self-twin targets ==========================
+
+# Per-AOI, per-field relative spatial sd of the twin targets, filled by `_twin_z` and copied
+# into the run artifact. See the comment in `_twin_z` for why this is worth keeping.
+_TWIN_RELSD: dict = {}
+
+
+def _twin_z(
+    field_hw: torch.Tensor,
+    mask_dev: torch.Tensor,
+    name: str,
+    key: str,
+) -> tuple[torch.Tensor, bool]:
+    """z-score a twin field over the AOI ocean mask, mirroring ``to_z_target`` exactly.
+
+    Returns ``(z_field, degenerate)``. A field with no spatial contrast cannot carry a pattern
+    target: ``to_z_target`` clamps the std at 1e-6, so a constant field divides by that clamp
+    and produces enormous z values that would dominate the loss. This is not hypothetical --
+    A sufficiently uniform long-run field would trigger this path. The preregistered Chl1
+    prediction did not: its mean collapsed faster than its spatial spread, so relative SD grew
+    instead. The caller still reports every genuinely degenerate field rather than letting one
+    silently drive the fit.
+    """
+    o = field_hw[mask_dev]
+    m = o.mean()
+    s = o.std()
+    rel = float(s / m.abs().clamp(min=1e-30)) if torch.isfinite(m) else float("nan")
+    degenerate = (not torch.isfinite(s)) or rel < 1e-6
+    if degenerate:
+        print(f"  [twin/{key}] DEGENERATE target {name}: relative spatial sd {rel:.3g} "
+              f"-- no pattern to fit; term neutralised")
+    # The relative spatial sd is the CONTRAST the pattern term actually has to work with, and it
+    # is not visible anywhere else: a field can be far from degenerate and still have lost most
+    # of the structure the fit needs. Recorded for every field so the long-vs-end comparison is
+    # a measurement rather than an inference from the means.
+    _TWIN_RELSD.setdefault(key, {})[name] = rel
+    return (field_hw - m) / s.clamp(min=1e-6), degenerate
+
+
+def apply_twin_targets(bundles: list[dict]) -> dict:
+    """Overwrite the Darwin-derived targets with box-generated ones at Carroll truth.
+
+    Every field is produced by ONE integration per AOI from the same Darwin initial condition,
+    the same forcing (T, S, wind, pCO2_atm) and the same masks the fit will use. Only the
+    TARGET changes; the model, the optimiser and the grading are untouched.
+    """
+    if not TWIN_ON:
+        return {}
+
+    # Every target that is not overwritten by the core pattern replacement below. A twin either
+    # regenerates it from its own trajectory (TWIN_ANCHORS=1) or requires it to be off. This
+    # includes Darwin-derived absolute targets as well as real observations: either would mix a
+    # non-twin target into an artifact labelled as a self-twin.
+    non_twin_target_terms = {
+        "GEOTRACES_W": GEOTRACES_W, "GEOTRACES_SUB_W": GEOTRACES_SUB_W,
+        "DANIELS_RPICPOC_W": DANIELS_RPICPOC_W, "POSI_W": POSI_W,
+        "GEOTRACES_POC_SUB_W": GEOTRACES_POC_SUB_W, "BLACK_ALPFE_W": BLACK_ALPFE_W,
+        "ALK_ABS_W": ALK_ABS_W, "DUST_ANCHOR_W": DUST_ANCHOR_W,
+        "PIC_ABS_W": PIC_ABS_W, "POC_ABS_W": POC_ABS_W, "RATIO_W": RATIO_W,
+        "POSI_DARWIN_W": POSI_DARWIN_W, "PRIMPROD_W": PRIMPROD_W,
+        "F_CO2_ABS_W": F_CO2_ABS_W,
+    }
+    regenerated = {"GEOTRACES_W", "GEOTRACES_SUB_W", "DANIELS_RPICPOC_W", "POSI_W"}
+    for nm, w in non_twin_target_terms.items():
+        if w <= 0:
+            continue
+        if not (TWIN_ANCHORS and nm in regenerated):
+            raise SystemExit(
+                f"TWIN_TARGET={TWIN_TARGET} with {nm}={w} but TWIN_ANCHORS="
+                f"{int(TWIN_ANCHORS)}. That term uses an external or Darwin-derived target, "
+                f"which contaminates a self-twin with the misspecification it exists to "
+                f"remove. Set {nm}=0, or set TWIN_ANCHORS=1 if this term is regenerable "
+                f"({sorted(regenerated)})."
+            )
+
+    truth = CARROLL_VALUES.to(device)
+    report: dict = {"twin_target": TWIN_TARGET, "twin_anchors": TWIN_ANCHORS,
+                    "twin_long_steps": TWIN_LONG_STEPS,
+                    "truth": {PARAM_NAMES[i]: float(truth[i]) for i in range(len(PARAM_NAMES))},
+                    "per_aoi": {}}
+    n_steps_twin = TWIN_LONG_STEPS if TWIN_TARGET == "long" else N_STEPS
+    want_mean = TWIN_TARGET == "mean"
+
+    print(f"\n=== SELF-TWIN TARGETS: mode={TWIN_TARGET} steps={n_steps_twin} "
+          f"anchors={int(TWIN_ANCHORS)} ===")
+    print("  truth = Carroll: " + ", ".join(
+        f"{PARAM_NAMES[i]}={float(truth[i]):.4g}" for i in range(len(PARAM_NAMES))))
+
+    for b in bundles:
+        key = b["key"]
+        mask_dev = b["mask_dev"]
+        H, W = b["H"], b["W"]
+        # One realization, not per-seed: the target is a single field, and the seeds differ
+        # only in network init. Slice seed 0's IC -- they are all the same IC by construction
+        # (state0_hw is expanded, not sampled).
+        state0 = b["state0_per_seed"][:, :1].contiguous()
+        params = truth.view(-1, 1, 1, 1).expand(len(PARAM_NAMES), 1, H, W).contiguous()
+
+        with torch.no_grad():
+            s_final, s_mean = _integrate(
+                state0, params, DT, n_steps_twin,
+                T=b["T_dev"], S=b["S_dev"], wind=b["wind_dev"],
+                pco2_atm=b["pco2_atm_dev"], want_mean=want_mean,
+            )
+            st = (s_mean if want_mean else s_final)[:, 0]      # [n_tracers, H, W]
+
+            dic, alk = st[I_DIC_1], st[I_ALK_1]
+            carb = solve_carbonate(dic[None], alk[None], b["T_dev"][None], b["S_dev"][None])
+            co2_twin = co2_flux(carb["pCO2"], b["pco2_atm_dev"][None], b["wind_dev"][None],
+                                b["T_dev"][None], b["S_dev"][None])[0]
+
+        degen = []
+        def put(bkey: str, field: torch.Tensor, name: str):
+            z, bad = _twin_z(field, mask_dev, name, key)
+            if bad:
+                degen.append(name)
+                z = torch.zeros_like(z)
+            b[bkey] = z
+
+        put("fet_z", st[I_DFE_1], "FeT")
+        put("poc_z", st[I_POC_1], "POC")
+        put("pic_z", st[I_PIC_1], "PIC")
+        put("dic_z", st[I_DIC_1], "DIC")
+        put("alk_z", st[I_ALK_1], "ALK")
+        put("co2_flux_z", co2_twin, "co2_flux")
+        chl_src = {"Chl1": I_DIATOM, "Chl2": I_LGE, "Chl3": I_SYN,
+                   "Chl4": I_PROLL, "Chl5": I_PROHL}
+        new_chl = {}
+        for cname, idx in chl_src.items():
+            z, bad = _twin_z(st[idx], mask_dev, cname, key)
+            if bad:
+                degen.append(cname)
+                z = torch.zeros_like(z)
+            new_chl[cname] = z
+        b["chl_z"] = new_chl
+        if POC_SUB_W > 0 and b.get("poc_l2_z") is not None:
+            put("poc_l2_z", st[I_POC_2], "POC_L2")
+
+        if TWIN_ANCHORS:
+            # Sample the twin at the anchors' OWN cells, so coverage, masks and normalisers
+            # are the real ones and only the values become twin values.
+            if GEOTRACES_W > 0 and b["n_geo_surf"] > 0:
+                b["geo_surf_target_t"] = (st[I_DFE_1] * b["geo_surf_mask_f"]).detach()
+            if GEOTRACES_SUB_W > 0 and b["n_geo_sub"] > 0:
+                b["geo_sub_target_t"] = (st[I_DFE_2] * b["geo_sub_mask_f"]).detach()
+            twin_ratio = st[I_PIC_1] / st[I_POC_1].clamp(min=1e-9)
+            if DANIELS_RPICPOC_W > 0 and b["n_daniels"] > 0:
+                b["daniels_target_t"] = (twin_ratio * b["daniels_mask_f"]).detach()
+            if POSI_W > 0 and b["n_posi"] > 0:
+                g_truth = truth[P.diatomgraz].view(1, 1, 1).expand(1, H, W)
+                bsi_twin, _ = diagnostic_bsi_steady(st[I_DIATOM][None], g_truth)
+                b["posi_target_t"] = (bsi_twin[0] * b["posi_mask_f"]).detach()
+
+        # DFe_2 is the field `scav_rat` is anchored on, so its contrast is reported by name.
+        _rel = _TWIN_RELSD.get(key, {})
+        dfe2_rel = float(st[I_DFE_2][mask_dev].std() / st[I_DFE_2][mask_dev].mean().abs().clamp(min=1e-30))
+        report["per_aoi"][key] = {
+            "degenerate_targets": degen,
+            "target_rel_spatial_sd": _rel,
+            "dfe2_rel_spatial_sd": dfe2_rel,
+            "dfe1_mean": float(st[I_DFE_1][mask_dev].mean()),
+            "dfe2_mean": float(st[I_DFE_2][mask_dev].mean()),
+            "poc1_mean": float(st[I_POC_1][mask_dev].mean()),
+            "pic1_mean": float(st[I_PIC_1][mask_dev].mean()),
+            "diatom_mean": float(st[I_DIATOM][mask_dev].mean()),
+        }
+        print(f"  [twin/{key}] DFe1={report['per_aoi'][key]['dfe1_mean']:.4g} "
+              f"DFe2={report['per_aoi'][key]['dfe2_mean']:.4g} "
+              f"POC={report['per_aoi'][key]['poc1_mean']:.4g} "
+              f"PIC={report['per_aoi'][key]['pic1_mean']:.4g}"
+              + (f"  degenerate={degen}" if degen else ""))
+        print(f"  [twin/{key}] relative spatial sd: "
+              + "  ".join(f"{k}={v:.4f}" for k, v in _rel.items())
+              + f"  |  DFe2={dfe2_rel:.4f}")
+
+    return report
+
+
+TWIN_REPORT = apply_twin_targets(bundles)
 
 
 # ============================== Batched losses (per AOI) ===================
@@ -2576,6 +2799,12 @@ if __name__ == "__main__":
             # mistaken for the flagship by an artifact that simply omits the key -- absent
             # is unknown, and that has cost this project a sweep before.
             "time_mean_loss": TIME_MEAN_LOSS,
+            # Same rule for the twin: recorded unconditionally, so a twin artifact can never be
+            # read as a real-target run. `twin_report` carries the truth vector and the
+            # per-AOI degenerate-target list, which is what makes a twin cell interpretable.
+            "twin_target": TWIN_TARGET,
+            "twin_anchors": TWIN_ANCHORS,
+            "twin_report": TWIN_REPORT,
             "pinn_dfe2_w": PINN_DFE2_W,
             "black_alpfe_w": BLACK_ALPFE_W,
             "n_black_programs_per_aoi": {b["key"]: b["n_black"] for b in bundles},
@@ -2630,6 +2859,29 @@ if __name__ == "__main__":
             "dust_anchor_sigma": DUST_ANCHOR_SIGMA if DUST_ANCHOR_W > 0 else None,
             "posi_w": POSI_W,
             "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
+            # A zero count used to collapse staging failure and genuine geographic
+            # absence into the same artifact shape. Active external sources now fail
+            # before training if loading fails; this block certifies that surviving
+            # zeroes are coverage zeroes, while verify_run still rejects a declared-on
+            # no-op configuration.
+            "loss_term_provenance": {
+                "daniels_rpicpoc_w": {
+                    "source": str(DANIELS_PATH),
+                    "source_status": "loaded" if DANIELS_RPICPOC_W > 0 else "off",
+                    "coverage_status_per_aoi": {
+                        b["key"]: ("covered" if b["n_daniels"] > 0 else "zero_coverage")
+                        for b in bundles
+                    },
+                },
+                "posi_w": {
+                    "source": str(GEOTRACES_NC),
+                    "source_status": "loaded" if POSI_W > 0 else "off",
+                    "coverage_status_per_aoi": {
+                        b["key"]: ("covered" if b["n_posi"] > 0 else "zero_coverage")
+                        for b in bundles
+                    },
+                },
+            },
             "posi_darwin_w": POSI_DARWIN_W,
             "primprod_w": PRIMPROD_W,
             "n_posi_dw_cells_per_aoi": {b["key"]: b["n_posi_dw"] for b in bundles},

@@ -64,6 +64,46 @@ class TestInertTermDetection:
             {"daniels_rpicpoc_w": 1.0, "n_daniels_cells_per_aoi": _covered()}
         ) == []
 
+    def test_expected_so_zero_is_diagnosed_but_still_rejected(self, vr) -> None:
+        """Loaded source provenance resolves the cause; it does not excuse a no-op term."""
+        out = vr.inert_terms({
+            "daniels_rpicpoc_w": 1.0,
+            "n_daniels_cells_per_aoi": {"southernoceanpac": 0},
+            "loss_term_provenance": {
+                "daniels_rpicpoc_w": {
+                    "source_status": "loaded",
+                    "coverage_status_per_aoi": {"southernoceanpac": "zero_coverage"},
+                }
+            },
+        })
+        assert len(out) == 1
+        assert "EXPECTED ZERO COVERAGE" in out[0]
+        assert "NOT the config it declares" in out[0]
+
+    def test_so_name_alone_cannot_bypass_the_gate(self, vr) -> None:
+        """The old artifact shape cannot distinguish a missing source from no coverage."""
+        out = vr.inert_terms({
+            "daniels_rpicpoc_w": 1.0,
+            "n_daniels_cells_per_aoi": {"southernoceanpac": 0},
+        })
+        assert len(out) == 1
+        assert "does not distinguish" in out[0]
+
+    def test_source_failure_is_not_mislabeled_as_expected_coverage(self, vr) -> None:
+        out = vr.inert_terms({
+            "daniels_rpicpoc_w": 1.0,
+            "n_daniels_cells_per_aoi": {"southernoceanpac": 0},
+            "loss_term_provenance": {
+                "daniels_rpicpoc_w": {
+                    "source_status": "load_failed",
+                    "coverage_status_per_aoi": {"southernoceanpac": "zero_coverage"},
+                }
+            },
+        })
+        assert len(out) == 1
+        assert "source loading was not certified" in out[0]
+        assert "EXPECTED ZERO COVERAGE" not in out[0]
+
     def test_zero_weight_with_zero_cells_is_normal(self, vr) -> None:
         """The term is simply off. Not a discrepancy."""
         assert vr.inert_terms(

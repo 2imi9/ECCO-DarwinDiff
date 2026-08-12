@@ -1,0 +1,237 @@
+% fig6_emulator_honest_bounds.tex -- what the daily emulator actually measures, after the
+% +0.408 headline was withdrawn.
+%
+% COMPILE
+%   pdflatex -interaction=nonstopmode fig6_emulator_honest_bounds.tex
+%   dvisvgm --pdf --no-fonts --exact fig6_emulator_honest_bounds.pdf
+%
+% WHY THIS FIGURE EXISTS
+% Two emulator visuals in this repo are retracted and must not be shown: the global Chl1 globe
+% (about 30% negative values under a headline that no longer holds) and the "beats persistence at
+% every scale tested" bar chart, which is the +0.408 run with surfChl4 at -606.93 simply left out.
+% This replaces both. Every number here is measured, sourced, and survives the correction.
+%
+% SEMANTICS OF THE THREE-COLOUR LADDER IN THIS FIGURE
+% darwindiff-tikz-v2.sty fixes the palette to a luminance ladder with exactly three rungs and
+% assigns them meanings for the PARAMETER figures. This is not a parameter figure, so the mapping
+% is restated rather than assumed, and it is used consistently in all four panels:
+%
+%   ddBlue  the honest measurement -- log space, the space the quantity is defined in
+%   ddGold  the superseded measurement -- linear space, which is what produced +0.408
+%   ddRed   STROKE ONLY, and it never means "bad": it marks output that is NON-PHYSICAL,
+%           a property no skill score can see
+%
+% SOURCES, all in docs/findings/
+%   2026-07-30_daily_emulator_rescored_vs_ar1.md   panels a, b, c   jobs 236516 / 236529
+%   2026-07-30_daily_logspace_training.md          panel d          jobs 237761/237762/237763
+%
+% surfChl4 IS SHOWN. It is the channel the retracted chart omitted, and omitting it is what made
+% the average look positive. Its linear skill of -606.11 is a division by noise: 100% of its truth
+% values are non-positive, so log space is undefined for it and it should never be a target again.
+\documentclass[border=5pt]{standalone}
+\usepackage{darwindiff-tikz-v2}
+
+\begin{document}
+\begin{tikzpicture}[
+  vlabel/.style = {ddbody, anchor=west},
+  ddval/.style    = {ddnum, anchor=east},
+  ddvalw/.style   = {ddnum, anchor=west},
+  ddcap/.style    = {ddnote, anchor=west, text width=74mm, align=left},
+]
+
+%% =====================================================================================
+%% PANEL a -- the +0.408 is a linear-space number
+%% =====================================================================================
+\begin{scope}[shift={(0,0)}]
+  \node[ddpanel, anchor=west] at (-0.15, 1.30) {a};
+  \node[ddbody, anchor=west, font=\sffamily\fHead] at (0.30, 1.30)
+       {The \texttt{+0.408} is a linear-space number};
+
+  \node[ddhead, anchor=west] at (0.30, 0.80) {Channel};
+  \node[ddhead, anchor=east] at (3.55, 0.80) {linear};
+  \node[ddhead, anchor=east] at (5.30, 0.80) {log, strictly +};
+  \node[ddhead, anchor=west] at (5.60, 0.80) {};
+  \draw[ddhair] (0.00, 0.58) -- (7.30, 0.58);
+
+  % rows: name, linear, log, stripe colour, note
+  \foreach \i/\nm/\lin/\lg/\col in {
+    0/surfChl1/{+0.522}/{-1.71}/ddGold,
+    1/surfChl2/{+0.461}/{-2.49}/ddGold,
+    2/surfChl3/{+0.407}/{-12.43}/ddGold,
+    3/surfChl4/{-606.11}/{undefined}/ddGold,
+    4/surfChl5/{+0.207}/{+0.145}/ddBlue}{
+      \pgfmathsetmacro{\yy}{0.30 - \i*0.40}
+      \draw[\col, line width=2.2pt] (0.00, \yy) -- (0.18, \yy);
+      \node[ddparam, anchor=west] at (0.30, \yy) {\nm};
+      \node[ddval] at (3.55, \yy) {\lin};
+      \node[ddval] at (5.30, \yy) {\lg};
+  }
+  % surfChl4 is the omitted channel -- called out on its own row, not hidden
+  \draw[ddRed, line width=0.75pt, dash pattern=on 2pt off 1.5pt]
+        (5.45, -0.90) -- (5.72, -0.90);
+  \node[ddnote, anchor=west] at (5.80, -0.90) {100\% of truth non-positive;};
+  \node[ddnote, anchor=west] at (5.80, -1.12) {the channel the retracted};
+  \node[ddnote, anchor=west] at (5.80, -1.30) {chart left out};
+
+  \node[ddcap, anchor=north west] at (0.00, -1.72)
+    {Same model, same held-out set, re-scored without retraining; the reload reproduces
+     \texttt{+0.4077} to eight digits. Restricting to strictly-positive cells \emph{removes the
+     cells the model got most wrong}, so the log column is a favourable subset. Three of four
+     scoreable channels still lose to plain persistence.};
+\end{scope}
+
+%% =====================================================================================
+%% PANEL b -- skill is blind to physics
+%% =====================================================================================
+\begin{scope}[shift={(8.60,0)}]
+  \node[ddpanel, anchor=west] at (-0.15, 1.30) {b};
+  \node[ddbody, anchor=west, font=\sffamily\fHead] at (0.30, 1.30)
+       {Skill is blind to physics};
+
+  \node[ddhead, anchor=west] at (0.30, 0.80) {Non-positive chlorophyll emitted};
+  \draw[ddhair] (0.00, 0.58) -- (7.30, 0.58);
+
+  % axis 0 .. 6 %, 4.6cm wide starting at x=1.55
+  \pgfmathsetmacro{\sx}{4.60/6.0}
+  \foreach \t in {0,2,4,6}{
+    \pgfmathsetmacro{\xx}{1.55 + \t*\sx}
+    \draw[ddRule, line width=0.5pt] (\xx, 0.42) -- (\xx, -1.80);
+    \node[ddnote, anchor=north] at (\xx, -1.86) {\t\%};
+  }
+
+  \foreach \i/\nm/\pred/\tru in {
+    0/surfChl1/2.211/0.085,
+    1/surfChl2/1.010/0.085,
+    2/surfChl3/5.853/0.040,
+    3/surfChl5/0.000/0.000}{
+      \pgfmathsetmacro{\yy}{0.20 - \i*0.42}
+      \node[ddparam, anchor=west] at (0.30, \yy) {\nm};
+      % v05 truth -- the reference, drawn as a thin blue rule
+      \pgfmathsetmacro{\xt}{1.55 + \tru*\sx}
+      \draw[ddBlue, line width=2.0pt] (1.55, \yy+0.10) -- (\xt, \yy+0.10);
+      % emulator -- gold fill, red stroke marks it as non-physical output
+      \pgfmathsetmacro{\xp}{1.55 + \pred*\sx}
+      \draw[ddGold, line width=2.0pt] (1.55, \yy-0.10) -- (\xp, \yy-0.10);
+      \ifnum\i<3
+        \draw[ddRed, line width=0.6pt] (\xp, \yy-0.17) -- (\xp, \yy-0.03);
+      \fi
+  }
+  % legend sits ABOVE the plotting rules, keyed by the same two colours used in the bars
+  \draw[ddBlue, line width=2.0pt] (1.55, 0.46) -- (1.85, 0.46);
+  \node[ddnote, anchor=west] at (1.92, 0.46) {v05 truth};
+  \draw[ddGold, line width=2.0pt] (3.40, 0.46) -- (3.70, 0.46);
+  \node[ddnote, anchor=west] at (3.77, 0.46) {emulator};
+  % the worst channel, labelled on its OWN row and clear of the bar end
+  \node[ddvalw] at (6.28, -0.64) {146$\times$};
+
+  \node[ddcap, anchor=north west] at (0.00, -2.20)
+    {The emulator emits non-physical chlorophyll 26 to 146 times more often than v05 does, on
+     26.2M scored cell-pairs per channel. The same failure appears on iron, where the model
+     invented 4.5\% negative values \emph{while scoring} \texttt{+0.43}. A skill score cannot
+     see this; log space can, and \texttt{surfChl5} \textemdash{} the one channel that is never
+     non-positive \textemdash{} is the one that survives.};
+\end{scope}
+
+%% =====================================================================================
+%% PANEL c -- AR(1) was never the threat
+%% =====================================================================================
+\begin{scope}[shift={(0,-6.40)}]
+  \node[ddpanel, anchor=west] at (-0.15, 1.30) {c};
+  \node[ddbody, anchor=west, font=\sffamily\fHead] at (0.30, 1.30)
+       {AR(1) was never the threat};
+
+  \node[ddhead, anchor=west] at (0.30, 0.80) {Tendency-normalized error \ \ (persistence $=$ 1.000)};
+  \draw[ddhair] (0.00, 0.58) -- (7.30, 0.58);
+
+  % axis 0.95 .. 1.15 over 4.2cm from x=1.90
+  \pgfmathsetmacro{\ox}{1.90}
+  \pgfmathsetmacro{\sc}{4.20/0.20}
+  \foreach \t/\lbl in {0.95/0.95, 1.00/1.00, 1.05/1.05, 1.10/1.10, 1.15/1.15}{
+    \pgfmathsetmacro{\xx}{\ox + (\t-0.95)*\sc}
+    \draw[ddRule, line width=0.5pt] (\xx, 0.42) -- (\xx, -1.55);
+    \node[ddnote, anchor=north] at (\xx, -1.61) {\lbl};
+  }
+  % Persistence reference at 1.000. NOT labelled in the plot area: the panel header already
+  % states "persistence = 1.000", and a second label there collides with the header rule.
+  \pgfmathsetmacro{\xref}{\ox + 0.05*\sc}
+  \draw[ddInk, line width=0.9pt] (\xref, 0.42) -- (\xref, -1.55);
+  % legend above the plotting rules, matching panel b
+  \filldraw[ddBlue] (0.34, 0.46) circle (1.7pt);
+  \node[ddnote, anchor=west] at (0.46, 0.46) {AR(1) per-cell};
+  \filldraw[ddGold] (2.60, 0.46) circle (1.7pt);
+  \node[ddnote, anchor=west] at (2.72, 0.46) {AR(1) seasonal};
+
+  \foreach \i/\nm/\ar/\ars in {
+    0/surfChl1/0.974/0.996,
+    1/surfChl2/0.982/1.015,
+    2/surfChl3/1.002/1.110,
+    3/surfChl5/0.995/1.057}{
+      \pgfmathsetmacro{\yy}{0.20 - \i*0.40}
+      \node[ddparam, anchor=west] at (0.30, \yy) {\nm};
+      \pgfmathsetmacro{\xa}{\ox + (\ar-0.95)*\sc}
+      \pgfmathsetmacro{\xb}{\ox + (\ars-0.95)*\sc}
+      \draw[ddRule, line width=0.6pt] (\xa, \yy) -- (\xb, \yy);
+      \filldraw[ddBlue] (\xa, \yy) circle (1.7pt);
+      \filldraw[ddGold] (\xb, \yy) circle (1.7pt);
+  }
+  \node[ddcap, anchor=north west] at (0.00, -1.98)
+    {Daily lag-1 $r$ is 0.994 to 0.996, so persistence and AR(1) nearly coincide: the strongest
+     free baseline is at most 2.6\% better than the trivial one. Upgrading the baseline costs the
+     model only \texttt{0.09} of its \texttt{-4.00}. Seasonal climatology is far worse than both
+     (2.93 to 14.55, off scale) \textemdash{} it is not a competitive baseline at daily cadence.};
+\end{scope}
+
+%% =====================================================================================
+%% PANEL d -- where it actually lands
+%% =====================================================================================
+\begin{scope}[shift={(8.60,-6.40)}]
+  \node[ddpanel, anchor=west] at (-0.15, 1.30) {d};
+  \node[ddbody, anchor=west, font=\sffamily\fHead] at (0.30, 1.30)
+       {Log-space training closes 91.6\% and still loses};
+
+  \node[ddhead, anchor=west] at (0.30, 0.80) {Skill vs the strongest free baseline (per-cell AR(1))};
+  \draw[ddhair] (0.00, 0.58) -- (7.30, 0.58);
+
+  % axis -4.4 .. +0.4 over 5.6cm from x=1.00
+  \pgfmathsetmacro{\ox}{1.00}
+  \pgfmathsetmacro{\sc}{5.60/4.80}
+  \foreach \t/\lbl in {-4/-4, -3/-3, -2/-2, -1/-1, 0/0}{
+    \pgfmathsetmacro{\xx}{\ox + (\t+4.4)*\sc}
+    \draw[ddRule, line width=0.5pt] (\xx, 0.34) -- (\xx, -1.30);
+    \node[ddnote, anchor=north] at (\xx, -1.36) {\lbl};
+  }
+  % the baseline itself: zero. Label placed BELOW the rule so it cannot clip the panel edge.
+  \pgfmathsetmacro{\xzero}{\ox + 4.4*\sc}
+  \draw[ddInk, line width=0.9pt] (\xzero, 0.34) -- (\xzero, -1.30);
+  \node[ddnote, anchor=south east] at (\xzero-0.06, 0.36) {AR(1) baseline};
+
+  % Value labels sit ABOVE their bars, not at the bar end: at -4.094 the bar end is hard against
+  % the row name, and an anchor=east label there overprints it.
+  % linear-trained
+  \pgfmathsetmacro{\xlin}{\ox + (-4.094+4.4)*\sc}
+  \node[ddparam, anchor=west] at (0.30, 0.06) {linear};
+  \draw[ddGold, line width=2.4pt] (\xzero, 0.06) -- (\xlin, 0.06);
+  \node[ddvalw, anchor=south west] at (\xlin+0.06, 0.13) {-4.094};
+
+  % log-trained
+  \pgfmathsetmacro{\xlog}{\ox + (-0.3445+4.4)*\sc}
+  \node[ddparam, anchor=west] at (0.30, -0.46) {log};
+  \draw[ddBlue, line width=2.4pt] (\xzero, -0.46) -- (\xlog, -0.46);
+  \node[ddval, anchor=south east] at (\xlog-0.08, -0.40) {-0.3445};
+
+  % the closed gap
+  \draw[ddMute, line width=0.6pt, dash pattern=on 2pt off 1.5pt] (\xlin, 0.06) -- (\xlin, -0.84);
+  \draw[ddMute, line width=0.6pt, dash pattern=on 2pt off 1.5pt] (\xlog, -0.46) -- (\xlog, -0.84);
+  \draw[ddMute, {Latex[length=3pt]}-{Latex[length=3pt]}, line width=0.6pt] (\xlin, -0.84) -- (\xlog, -0.84);
+  \node[ddnote, anchor=north] at ({(\xlin+\xlog)/2}, -0.90) {91.6\% of the gap closed};
+
+  \node[ddcap, anchor=north west] at (0.00, -1.78)
+    {Seed spread is \texttt{0.0015} over three seeds, so the residual gap is not noise, and the
+     CI is clear of zero. Two honest caveats point opposite ways: logging makes the model
+     physically valid \emph{by construction} \textemdash{} it cannot emit a non-positive value at
+     all \textemdash{} while the scorer's superseded \texttt{1e-12} floor biases \emph{toward}
+     persistence, so \texttt{-0.345} is pessimistic on three of four channels (issue \#215).};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}

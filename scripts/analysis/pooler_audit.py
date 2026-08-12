@@ -73,7 +73,8 @@ def grade(run_dir, band=None, params_filter=None):
 
     for f in sorted(glob.glob(os.path.join(run_dir, "*.json"))):
         try:
-            d = json.load(open(f, encoding="utf-8"))
+            with open(f, encoding="utf-8") as stream:
+                d = json.load(stream)
         except (OSError, json.JSONDecodeError):
             continue
         if "params" not in d:
@@ -166,8 +167,10 @@ def main():
         print("  The table below reports what IS recorded; the exit code carries the refusal.")
 
     nullmaj = nulln = None
+    null_missing = set()
     if a.null:
         _, nullmaj, _, _, nulln, _, nmiss, _ = grade(a.null, a.band, pf)
+        null_missing = nmiss
         print(f"NULL : {a.null}  n={nulln}" + (f"  (missing {sorted(nmiss)})" if nmiss else ""))
 
     names = sorted(seen)
@@ -249,12 +252,14 @@ def main():
 
     if a.out:
         os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
-        json.dump({"run": a.run_dir, "null": a.null, "n": n, "aois": aois,
-                   "band": a.band, "params": summary}, open(a.out, "w"), indent=2)
+        with open(a.out, "w", encoding="utf-8") as stream:
+            json.dump({"run": a.run_dir, "null": a.null, "n": n, "aois": aois,
+                       "band": a.band, "params": summary}, stream, indent=2)
         print(f"\nwrote {a.out}")
-    # Exit 2 when any collapse key was unrecorded: the run is NOT pooler-checkable, and a
-    # caller scripting this must not read a printed arithmetic count as an audited one.
-    return 2 if missing else 0
+    # Both sides of the comparison must carry the same audited collapses. Treating an absent
+    # null key as zero would manufacture significance just as surely as falling back to the
+    # fitted arm's arithmetic key.
+    return 2 if missing or null_missing else 0
 
 
 if __name__ == "__main__":

@@ -1,0 +1,27 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "raw_tensor_cells": 4681005,
+  "maximum_source_partition_residual": 1.0408340855860843e-17,
+  "decision": {
+    "branch": "stage0-failed-stop",
+    "gate_pass": false,
+    "failure_reasons": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac",
+      "diatomgraz_sensitivity"
+    ],
+    "per_aoi_pass_before_sensitivity": {
+      "eqpac": false,
+      "natlsubpolar": false,
+      "southernoceanpac": false
+    },
+    "b200_authorized": false,
+    "next_action": "no-optimizer-no-b200"
+  },
+  "report": "docs/findings/2026-08-10_seasonal_twin_explicit_zooplankton_source_floor_corrected.json",
+  "report_sha256": "60772e7f4767e8bdb5c2f0a23b106a80a5f1a7e77dfaa13fe06c33312bfb1926",
+  "bundle": "docs/findings/2026-08-10_seasonal_twin_explicit_zooplankton_source_floor_corrected.pt.gz",
+  "bundle_sha256": "56850560a45596366593ddab67cf96d9d067888adc10c5efbf241df4192b4fb8"
+}

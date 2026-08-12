@@ -480,7 +480,7 @@ _REHYDRATE = (
       ("null_baseline", ("numbers",)))),
     ("hypothesis", "statement", "hypotheses",
      (("statement", ("statement",)), ("predicts", ("predicts",)),
-      ("falsifier", ("falsifier",)))),
+      ("falsifier", ("falsifier",)), ("status", ("status",)))),
 )
 
 _MISSING = object()
@@ -583,6 +583,9 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
     _load_citations(con)
 
     text = map_path.read_text(encoding="utf-8")
+    # Legacy claim ids are positional. Explicit semantic ids do not consume
+    # this counter, so adding a new semantic claim cannot renumber old rows.
+    legacy_claim_index = 0
     for header, rows in _tables(text):
         kind = _kind(header)
         if kind is None:
@@ -594,18 +597,27 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
                              _get(r, header, "where", "doc"), _get(r, header, "do not", "dont")))
             elif kind.startswith("claim_"):
                 mode = kind.split("_", 1)[1]
-                cl_id = _get(r, header, "cl_id", "claim id", "id") or f"{mode[:3]}{con.execute('SELECT count(*) FROM claim').fetchone()[0]}"
+                explicit_cl_id = _get(r, header, "cl_id", "claim id", "id")
+                if explicit_cl_id:
+                    cl_id = explicit_cl_id
+                else:
+                    cl_id = f"{mode[:3]}{legacy_claim_index}"
+                    legacy_claim_index += 1
                 stmt = _get(r, header, "statement")
                 detail = _get(r, header, "derivation", "prompted", "evidence")
                 con.execute(
-                    "INSERT OR REPLACE INTO claim VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO claim VALUES (?,?,?,?,?,?,?,?,?,?)",
                     (cl_id, stmt, mode, _get(r, header, "status"), detail,
                      _get(r, header, "n"), _get(r, header, "null"), _get(r, header, "doc"),
                      _infer_parameter(stmt + " " + detail), _infer_track(stmt + " " + detail)),
                 )
                 # every claim that names an artifact gets an evidence row and a supports edge,
                 # so the join in v_claim_evidence is populated without a second hand-maintained table
-                ev = _get(r, header, "evidence", "n", "derivation", "prompted")
+                # A blank explicit-evidence column must not mask the legacy
+                # derivation/prompted evidence carried by older claim tables.
+                ev = _get(r, header, "evidence")
+                if not ev:
+                    ev = _get(r, header, "n", "derivation", "prompted")
                 if ev:
                     ev_id = f"ev_{cl_id}"
                     gate = "exit0" if "exit 0" in ev.lower() else ("ungated" if mode != "deductive" else "n/a")
@@ -662,8 +674,12 @@ CONSTRAINTS = [
         WHERE mode='inductive' AND trim(coalesce(null_baseline,''))=''"""),
     ("every settled answer says where it lives",
      """SELECT question, answer FROM settled WHERE trim(coalesce(doc,''))=''"""),
-    ("no claim has an empty status",
-     """SELECT cl_id, statement FROM claim WHERE trim(coalesce(status,''))=''"""),
+    ("no claim or rendered hypothesis has an empty status",
+     """SELECT cl_id AS id, statement FROM claim
+        WHERE trim(coalesce(status,''))=''
+        UNION ALL
+        SELECT hy_id AS id, statement FROM hypothesis
+        WHERE trim(coalesce(status,''))=''"""),
     # The seven LOCAL_ONLY_DOCS are inside `document`, so claims citing them are not orphans here.
     # That exemption is deliberate and is COUNTED by the advisory below rather than hidden: the
     # files are gitignored by the author, so gating on them would fail forever and teach readers to
@@ -917,6 +933,7 @@ def cmd_open(con) -> int:
             "SELECT hy_id,statement,predicts,falsifier,status FROM hypothesis "
             "WHERE lower(coalesce(status,'')) LIKE '%open%'"):
         print(f"  {hy_id}: {s}")
+        print(f"      status:    {st}")
         if p:
             print(f"      predicts:  {p}")
         if f:

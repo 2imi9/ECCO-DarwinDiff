@@ -1,0 +1,23 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "constructions": 2,
+  "aois": 3,
+  "cycles_per_cell": 4,
+  "raw_tensor_cells": 1786512,
+  "max_process_identity_normalized_residual": 6.457501033200165e-06,
+  "max_inventory_identity_normalized_residual": 3.7017023372787378e-06,
+  "max_target_state_absolute_difference": 0.0,
+  "decision": {
+    "branch": "mixed-or-other",
+    "qualifying_aois": [],
+    "numerical_floor_aois": [],
+    "light_driver_aois": [],
+    "intrinsic_sink_aois": [],
+    "b200_authorized": false
+  },
+  "report": "docs/findings/2026-08-09_seasonal_twin_phytoplankton_process_budget.json",
+  "report_sha256": "1c14f115ff8c64aa5e0c89e7d1aa21f137d1f8a302ac132ba9b4db8db42d5d4f",
+  "bundle": "docs/findings/2026-08-09_seasonal_twin_phytoplankton_process_budget.pt.gz",
+  "bundle_sha256": "e730b45295b29a36c73ae6d582b11b0f37d0d49915ea078b8650ce147868cc3d"
+}

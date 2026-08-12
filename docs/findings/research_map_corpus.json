@@ -2664,6 +2664,81 @@
    "question": "Is the time-mean comparison dimensionally more correct than the endpoint comparison against a Darwin climatological target?",
    "answer": "ONLY FOR UNCONVERGED TRACERS - the blanket dimensional argument is wrong. The Darwin target is a climatological mean of a QUASI-STEADY system, so the test is which 50-day statistic better approximates the long-run state, not which one is nominally a mean. Measured 2026-08-06 by integrating the box to its fixed point: relative distance from the long-run state is eqpac endpoint 6.783 vs time-mean 10.475, natlsubpolar 9.517 vs 15.178, southernoceanpac 6.050 vs 9.580 - the ENDPOINT is closer in all three basins with NO basin-dependent flip, so this does not explain the loss swap either. The per-tracer breakdown is the finding: DFe_1, POC_1 and PIC_1 all sit at relative distance 0.00 at 200 steps (fully converged, so the endpoint IS the long-run value) while their 50-day MEAN carries 0.18-0.43 of spin-up error from the Darwin initial condition - error a Darwin climatology does not contain. For converged tracers the endpoint is the BETTER match. The single exception is DFe_2 at 27-38x from its fixed point under both statistics, and it is the observable anchoring scav_rat, which is the only parameter whose identifiability swaps between losses. SHARPER HYPOTHESIS, untested: the comparison question is TRACER-DEPENDENT - endpoint correct for converged tracers (hence alpfe and R_PICPOC being largely indifferent to the switch), neither correct for DFe_2, and the two losses simply fail differently there. CAVEAT applying to this and the two other mechanism tests: all use a 0-D box at median cells under idealised constant forcing whose long-run state is a degenerate fixed point (the diatom goes extinct), which is not a Darwin climatology; such tests refute a mechanism cheaply but cannot establish one. THREE mechanisms are now tested and none survives - vertical iron structure, endpoint-vs-mean distance per basin, and long-run-proxy quality - so the loss/basin swap is a solid measurement with no mechanism behind it and must be reported that way.",
    "doc": "docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md"
+  },
+  {
+   "question": "Can the existing T/S/wind-only seasonally forced self-twin furnish a stable climatological target for deciding endpoint versus time-mean loss?",
+   "answer": "NO for this target construction, and recovery must not be launched against it. The preregistered Stage-0 gate ran Carroll truth from each Darwin IC under monthly SST/SSS/wind, flagship Eppley temperature growth, dt=0.25 d, 122 steps/month and up to 8 repeated cycles. Cycle 1 retained DFe2 contrast and sane Chl1 in all three AOIs, but it had no preceding cycle with which to establish periodic stability. By cycle 2 Chl1 rel-SD was pathological in every AOI (1.605 eqpac, 4.146 natlsubpolar, 4.652 southernoceanpac against the frozen [0.1,1.0] interval); DFe2 rel-SD fell from 0.0834 to 0.0101 in eqpac and 0.2599 to 0.0636 in the Southern Ocean, both below their frozen minima, and natl fell below its minimum by cycle 3 (0.00714). DIC1 became non-finite in cycle 4 SO and cycle 5 eqpac/natl. The separate verifier recomputed 24 saved cycle tensors and exited 0 while the science gate correctly exited 2. NO optimizer, recovery submission or B200 job ran. This does NOT choose endpoint versus time mean for Darwin; it blocks this decider until a stable periodic transport/replenishment closure exists. One deterministic construction, no out-of-sample replication.",
+   "doc": "docs/findings/2026-08-09_seasonal_forcing_alone_cannot_make_the_self_twin_climatology.md"
+  },
+  {
+   "question": "Does a one-year chemical-only restoring closure rescue the seasonally forced self-twin target?",
+   "answer": "NO as a complete target construction, although it cleanly separates the failure modes. A frozen tau=365.25 d relaxation on the ten cached chemical/particle fields, with exactly zero phytoplankton restoring, keeps cycle-8 DFe2 rel-SD above every frozen minimum (eqpac 0.0691 >= 0.0423, natlsubpolar 0.1835 >= 0.0662, southernoceanpac 0.1760 >= 0.1195) and keeps DIC1 finite through 8 cycles (1573.5 / 1738.9 / 1742.4), fixing the no-closure iron/carbon collapse. But cycle-8 Chl1 rel-SD is 0.0038 / 13.8227 / 6.1533 against the frozen [0.1,1.0] interval, with EqPac Chl1 mean 3.74e-34 and North Atlantic 3.35e-9. No AOI passes the combined gate. DFe2 closure gross share also crosses the registered 0.50 boundary by floating-point margins in some cycles, while inventory turnover stays below 0.0043. Verifier exit 0 over 24 cycle tensors; science gate exit 2. NO optimizer or B200 job. This does not choose endpoint versus time mean.",
+   "doc": "docs/findings/2026-08-09_chemical_restoring_preserves_iron_but_not_seasonal_biomass.md"
+  },
+  {
+   "question": "Does parameter-free astronomical monthly light rescue the one-year chemical-restoring seasonal self-twin target?",
+   "answer": "NO for this preregistered construction. Latitude-only daily-mean top-of-atmosphere light, normalized to per-cell annual mean 1 and added without fitting to the frozen tau=365.25 d chemical closure, passes every light-integrity gate and preserves cycle-8 DFe2 rel-SD above all three minima (eqpac 0.0699 >= 0.0423, natlsubpolar 0.1757 >= 0.0662, southernoceanpac 0.1812 >= 0.1195), with finite DIC1 1574.0 / 1756.4 / 1759.7. But cycle-8 Chl1 rel-SD is 0.0022 / 0.0110 / 20.6627 against [0.1,1.0], and Chl1 means are 2.12e-34 / 7.87e-34 / 2.69e-22. No AOI passes. The verifier reconstructs light from saved latitude and recomputes all gates from 24 cycle tensors, exit 0; science gate exit 2. NO optimizer, recovery, or B200 job. This does not choose endpoint versus time mean or show that seasonal light is irrelevant in Darwin.",
+   "doc": "docs/findings/2026-08-09_astronomical_light_does_not_rescue_seasonal_biomass.md"
+  },
+  {
+   "question": "For loss-twin job 320993, were the Southern Ocean Daniels and POSi zero-active-cell states caused by source staging failure?",
+   "answer": "NO. A reproducible audit re-read all 75 immutable Slurm logs and both staged sources. All 25 Southern Ocean logs completed rc=0, all 25 explicitly reported no Daniels coverage and zero GEOTRACES bSi cells, and none contained a Daniels/GEOTRACES failure marker. The staged Daniels and GEOTRACES files were nonempty (473,302 and 64,566,461 bytes), while all 25 EqPac sibling logs reported 34 Daniels cells / 123 samples and 7 bSi cells and all 25 North Atlantic logs reported 26 / 116 and 4. This distinguishes expected geographic zero coverage from a staging failure for this job only. It does NOT waive verify_run=2: the declared-on terms were inactive, legacy fit artifacts lack source provenance, and every Southern Ocean fitted count remains excluded.",
+   "doc": "docs/findings/2026-08-09_constant_forcing_self_twin_double_null.md"
+  },
+  {
+   "question": "Why do the chemical-restoring seasonal self-twin constructions fail the Chl1 biomass gate?",
+   "answer": "Because the reduced box drives the DIATOM pool toward zero; it does not collapse phytoplankton generally. A preregistered process-budget rerun of fixed and astronomical light across all three AOIs retained 1,786,512 raw tensor cells and exactly reproduced both prior target reports. Cycle 1 retains only 1.13e-6 / 2.81e-4 / 1.20e-3 of diatom inventory under fixed light and 1.23e-6 / 5.04e-8 / 1.44e-7 under astronomical light (EqPac / North Atlantic / Southern Ocean). The non-negativity floor is not the cause: zero clamp correction and zero raw-negative events in every recorded cell. Linear diatom grazing is the dominant loss in all six AOI-by-light cells, carrying 57.1%-68.5% of cycle-1 loss. The four ungrazed PFTs remain nonzero. This is bounded to the reduced box and does not establish a Darwin grazing budget.",
+   "doc": "docs/findings/2026-08-09_seasonal_twin_biomass_failure_is_diatom_specific.md"
+  },
+  {
+   "question": "Is the diatom-free late-cycle trajectory a locally attracting state in the chemical-restoring seasonal twin?",
+   "answer": "NOT UNIVERSALLY. A preregistered rare-invasion test set P_diatom=0, integrated the other 14 tracers for eight cycles, and reconstructed the exact forward-Euler annual log multiplier from monthly tensors. EqPac and North Atlantic are uniformly non-invadable under fixed and astronomical light, and astronomical-light Southern Ocean is uniformly non-invadable. Fixed-light Southern Ocean is the exception: 50/1,296 cells (3.858%) have positive annual multipliers, reaching 16.34, while the median is 6.02e-7. All six resident trajectories pass the per-tracer cycle7-to-cycle8 stability gate (maximum relative L2 8.99e-5 <= 0.01), and cycle 7 and 8 classifications agree. Frozen cross-AOI decision: spatial-or-mixed viability, NOT a universal structural attractor and NOT a cross-AOI light-driver result. No B200 or recovery run is authorized.",
+   "doc": "docs/findings/2026-08-09_rare_diatom_cannot_invade_five_of_six_seasonal_cells.md"
+  },
+  {
+   "question": "Does a source-mirrored two-zooplankton grazing closure produce a valid seasonally forced self-twin target in the reduced box?",
+   "answer": "NO for the preregistered 17-state projection. Replacing the constant diatom-specific mortality rescues diatom persistence in all three AOIs (cycle-12/initial inventory 1.026 / 0.869 / 0.866 in EqPac / North Atlantic / Southern Ocean), with zero clamp events and all chemical/DFe gates passing. But the large predator is competitively excluded (retention 3.62e-7 / 2.27e-7 / 1.25e-5), so cycle stability and three-scale initialization robustness fail in every AOI. The frozen diatomgraz 0.9x-to-1.1x perturbation changes diatom inventory only 2.97% / 2.04% / 2.01%, below the 5% handle gate. Independent verification checked 4,681,005 tensor cells and source carbon partition to 1.04e-17. Decision: stage0-failed-stop; no optimizer and no B200. This rejects the box projection, not explicit zooplankton in transported Darwin.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "question": "Is the large-zooplankton decay in the failed explicit-grazer seasonal-twin target an endogenous exclusion mode or a tiny-state relative-error artifact?",
+   "answer": "ENDOGENOUS EXCLUSION in this reduced projection. A preregistered cycle-13 audit integrated the exact discrete predator-specific rate from the independently verified central cycle-12 endpoint. The maximum cellwise annual log multiplier for Z_large is negative in every AOI: -1.141 EqPac, -1.045 North Atlantic and -0.631 Southern Ocean, well beyond the frozen <-0.10 exclusion threshold. The integrated multiplier matches log[Z13/Z12] to 4.70e-6 / 4.95e-6 / 6.00e-6, all Euler factors and endpoints are positive, and Z_small remains near-neutral with total inventory retention 0.99997-1.00000. The independent verifier checked 220,451 tensor cells and both upstream hashes. This diagnoses the failed mode only: it does not permit dropping source-required Z_large, rehabilitate the target, or authorize B200.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "question": "Does the large zooplankton prey gain budget in the seasonal projection show an additive energy deficit, or only a seasonal/discrete penalty?",
+   "answer": "ADDITIVE PREY-ENERGY DEFICIT in the failed 17-state projection. Against the fixed annual mortality integral 12.2, the maximum gross specific-gain integral for Z_large is only 11.060 EqPac, 11.160 North Atlantic and 11.574 Southern Ocean, so the best continuous replacement margins are already -1.140 / -1.040 / -0.626 before log(1+dt*lambda) is applied. The exact log maxima are -1.141 / -1.045 / -0.631. Diets are differentiated: Z_large receives 62.89-68.48% of median gain from diatom+large eukaryote, while Z_small receives 95.36-96.31% from the three small PFTs and remains near-neutral. Independent verification reconstructed 564,011 tensor cells, all four upstream hashes and the frozen branch. This identifies insufficiency of the included prey field, not which omitted Darwin mechanism would close it; the target remains stage0-failed-stop with no optimizer/B200.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "question": "Does the corrected seasonal target implement the literal source prey floor, and is the explicit-zooplankton projection source-conformant?",
+   "answer": "YES, as a bounded projection over the visited support. Six official ECCO-Darwin files at frozen commit 75b8e43 and three same-era corroborating files at 488cb79 pass Git-blob identity. Direct source parsing recovers Gmax=0.625 d-1, K=10.2 C, phygrazmin=1.2e-8 C, mortality=1/30 d-1, palatability, assimilation and grazing algebra. Same-era TEMP_VERSION=2 code corroborates unit grazing/mortality temperature functions and zero quadratic mortality. After the literal floor correction, maximum absolute rate difference, relative difference and tolerance ratio versus the source oracle are all exactly zero in all three AOIs. An independent verifier reparsed nine source files, checked upstream hashes and reconstructed 323,519 tensors. Decision: source-conformant-bounded-projection. This does not make the target valid or the projection full Darwin; five declared model reductions remain and B200 stays false.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "question": "What is the minimal blocker waiver lattice for the source-floor-corrected seasonal target, and can one post-hoc simplification rescue it?",
+   "answer": "NO. A preregistered Boolean-lattice audit reconstructed the frozen acceptance criteria and enumerated all 8 subsets of three waiver groups: source-required Z_large obligations, EqPac seasonality, and the global diatomgraz handle. Dropping Z_large alone makes the remaining stability, community, and IC checks pass, but leaves EqPac monthly diatom CV 0.0342 <0.05 and all parameter responses 0.0203-0.0301 <log(1.05). Every two-waiver subset still leaves one blocker. Only waiving all three passes mechanically, which is a forbidden post-hoc target rather than rehabilitation. Independent verification checked all 8 nodes and the source receipt hash. Decision remains stage0-failed-stop; no optimizer and no B200.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "question": "How much frozen prey support is required to bring the excluded large zooplankton to continuous replacement?",
+   "answer": "On the independently verified source-floor-corrected cycle-13 path, the minimum all-prey multiplier is 1.114 / 1.104 / 1.061 in EqPac / North Atlantic / Southern Ocean, supporting the preregistered <=1.25 local-refuge hypothesis in every AOI. The basin medians are 1.158 / 1.321 / 1.322, and only 96.45% / 32.31% / 37.58% of cells are <=1.25; all 2,856 ocean-cell roots are bracketed and below 2. Scaling only large prey costs more (median 1.234 / 1.518 / 1.520). Equivalent median subsidies are 0.00417 / 0.00730 / 0.00731 d^-1, or 12.50% / 21.89% / 21.94% of mortality. An independent verifier recomputed both root fields and the source hash chain from 16,780,043 raw tensor cells. This is a one-trajectory frozen-path counterfactual, not modified dynamics, stable coexistence, a selected missing mechanism, target rehabilitation, replication, or B200 authorization. Stage remains stage0-failed-stop.",
+   "doc": "docs/findings/2026-08-10_large_zooplankton_is_near_a_local_refuge_but_not_basinwide.md"
+  },
+  {
+   "question": "Can spatial relocation through the frozen corrected prey field rescue large zooplankton energetics?",
+   "answer": "NO in EqPac and the Southern Ocean, even under an unrestricted quarter-day teleportation upper bound. Best fixed-cell / monthly-teleport / stepwise-teleport gain integrals are 11.060 / 11.455 / 11.463 in EqPac, 11.160 / 12.161 / 12.210 in the North Atlantic, and 11.574 / 11.890 / 11.904 in the Southern Ocean against mortality 12.2. The stepwise ratios are 0.9396 / 1.0008 / 0.9757; North Atlantic clears by only 0.08% and its monthly envelope still fails. EqPac has an instantaneous refuge in 0/1,464 steps. Independent verification reproduced the oracle from 16,765,728 support-tensor cells. This rules out only relocation through the unchanged frozen prey path in two AOIs, not real transport that changes prey, imports material or couples depth. No transport was run; Stage remains stage0-failed-stop and B200 remains unauthorized.",
+   "doc": "docs/findings/2026-08-10_even_teleportation_cannot_close_two_large_z_deficits.md"
+  },
+  {
+   "question": "Does the exact discrete Euler survival criterion close the North Atlantic large-zooplankton teleportation knife edge?",
+   "answer": "NO. The preregistered all-AOI non-positive hypothesis is falsified: exact stepwise-teleport log multipliers are -0.73768 / +0.002078 / -0.30152 in EqPac / North Atlantic / Southern Ocean, with annual retentions 0.47822 / 1.002081 / 0.73969. The Euler concavity penalty reduces North Atlantic's continuous margin +0.009699 by a Jensen gap 0.007621 but does not change its sign. Its monthly-teleport log multiplier remains -0.04693 (retention 0.95416). Upstream annual-log field errors are <=3.87e-6 and an independent verifier reproduced 16,765,728 support-tensor cells. North Atlantic therefore remains open only under unphysical quarter-day teleportation; no actual transport, target rehabilitation, replication or B200 follows. EqPac and Southern Ocean remain frozen-path negatives; Stage stays stage0-failed-stop.",
+   "doc": "docs/findings/2026-08-10_discrete_update_preserves_natl_teleport_knife_edge.md"
+  },
+  {
+   "question": "Does North Atlantic's positive large-zooplankton frozen-path teleportation knife edge survive a continuity-constrained relocation path?",
+   "answer": "NO under every preregistered radius. Exact annual log multipliers for fixed / radius-1 / radius-2 / radius-4 / unrestricted paths are -1.140538 / -0.760164 / -0.750847 / -0.745529 / -0.737681 in EqPac, -1.044882 / -0.025718 / -0.012428 / -0.004977 / +0.002078 in the North Atlantic, and -0.630778 / -0.323360 / -0.312656 / -0.306980 / -0.301525 in the Southern Ocean. Radius 1 already permits one 1-degree grid-cell move every quarter day; radius 4 is also negative. The only positive North Atlantic envelope uses unrestricted jumps up to 28 cells. An independent verifier reconstructed 16,765,728 support-tensor cells. This rules out a continuous frozen-prey relocation path at the tested bounds, not real transport that changes prey, imports material or couples depth. No transport, target rehabilitation, replication or B200 follows; Stage remains stage0-failed-stop.",
+   "doc": "docs/findings/2026-08-10_continuity_eliminates_the_natl_teleport_knife_edge.md"
   }
  ],
  "claims": [
@@ -7217,6 +7292,203 @@
    "status": "superseded",
    "numbers": "0/857 seeds at 6/6 across 86 single-lever configs; w2e_peraoi_lam0.1 n=20 -> 1/20 at 5/6; c_chl40_posi15 n=20 -> 1/20 at 5/6; Wave 6 composition 0/10 at 5/6. Basin C iron pair 38/40 Cal-grade at n=40 with the F2 config.",
    "doc": "docs/research_notes/2026-05-21_jon_meeting_brief.md"
+  },
+  {
+   "statement": "Monthly SST, SSS and wind forcing alone do not turn the existing two-layer Carroll box into a stable climatological self-twin: the repeated-cycle target loses DFe2 contrast, makes Chl1 pathological and drives surface DIC non-finite before any AOI clears the frozen cycle-stability gate.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic measurement of the preregistered target construction across all three canonical AOIs; bounded to this box, forcing set and cycle gate, with no parameter recovery inference.",
+   "status": "live-bounded",
+   "numbers": "3 AOIs x 8 cycles, 122 steps/month. Cycle-1 -> cycle-2 DFe2 rel-SD: eqpac 0.0834 -> 0.0101, natlsubpolar 0.1818 -> 0.1593, southernoceanpac 0.2599 -> 0.0636. Cycle-2 Chl1 rel-SD: 1.605 / 4.146 / 4.652 against [0.1,1.0]. DIC1 first non-finite cycle: 5 / 5 / 4. No optimizer; no recovery artifacts.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_target_gate.py exit 0 after recomputing all summaries and decisions from 24 saved cycle tensors; preregistered science target gate exit 2 as expected.",
+   "doc": "docs/findings/2026-08-09_seasonal_forcing_alone_cannot_make_the_self_twin_climatology.md"
+  },
+  {
+   "statement": "A one-year chemical-only restoring closure preserves seasonal self-twin DFe2 contrast and finite DIC across all three AOIs, but it does not sustain an admissible phytoplankton climatology and therefore cannot rescue the loss-decider target.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic measurement under a preregistered closure and unchanged target gates; bounded to the tau=365.25 d chemical-only approximation, with no recovery inference.",
+   "status": "live-bounded",
+   "numbers": "3 AOIs x 8 cycles. Cycle-8 DFe2 rel-SD 0.0691 / 0.1835 / 0.1760, all above 0.0423 / 0.0662 / 0.1195. DIC1 finite at 1573.5 / 1738.9 / 1742.4. Chl1 rel-SD 0.0038 / 13.8227 / 6.1533 against [0.1,1.0]. Max closure turnover <0.0043; no AOI passes combined gate. No optimizer.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_target_gate.py exit 0 after recomputing target summaries, closure budgets and combined decisions from 24 saved cycle tensors; science gate exit 2.",
+   "doc": "docs/findings/2026-08-09_chemical_restoring_preserves_iron_but_not_seasonal_biomass.md"
+  },
+  {
+   "statement": "Parameter-free astronomical monthly light changes but does not repair the biomass failure of the one-year chemical-restoring seasonal self-twin: light integrity and DFe2/DIC gates survive, while all three AOIs fail the unchanged Chl1 interval and no AOI clears the combined target gate.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic measurement under the preregistered latitude-only light formula, frozen chemical closure and unchanged target gates; bounded to this target construction, with no optimizer or recovery inference.",
+   "status": "live-bounded",
+   "numbers": "3 AOIs x 8 cycles, 122 steps/month. Cycle-8 DFe2 rel-SD 0.0699 / 0.1757 / 0.1812, above 0.0423 / 0.0662 / 0.1195. DIC1 1574.0 / 1756.4 / 1759.7. Chl1 mean 2.12e-34 / 7.87e-34 / 2.69e-22 and rel-SD 0.0022 / 0.0110 / 20.6627 against [0.1,1.0]. All light integrity gates pass; no AOI passes combined gate.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_target_gate.py exit 0 after reconstructing monthly light from saved latitude and recomputing light integrity, target summaries, closure budgets and decisions from 24 saved cycle tensors; science gate exit 2.",
+   "doc": "docs/findings/2026-08-09_astronomical_light_does_not_rescue_seasonal_biomass.md"
+  },
+  {
+   "cl_id": "ind_loss_twin_320993",
+   "statement": "In job 320993's verified EqPac and North Atlantic matched cells, scav_rat recovered 50/50/50 at <=0.20 against 0/0/0 architecture-matched nulls, while the constant-forcing quasi-steady long target returned 0/0/0 under both losses at every tested band and pooler.",
+   "mode": "inductive",
+   "why_this_mode": "Direct measurement from a preregistered constant-forcing self-twin factorial, bounded to the two verify_run=0 basins and this target construction. It validates the harness and rejects this decider, but does not choose a Darwin loss.",
+   "status": "pending-replication",
+   "numbers": "ONE submission, NO replication: job 320993 / grader 320994, 15 arms x 50 artifacts. Complete relation: 1,080 cells = 360 reported + 360 excluded + 360 gated. Matched scav_rat at <=0.20: 50/50/50 under arithmetic/geometric/median versus null 0/0/0 in four EqPac/North Atlantic cells. Long target: 0/0/0 under both losses at bands 0.10/0.20/0.30/0.40 in both verified basins.",
+   "evidence": "scripts/analysis/verify_loss_twin_dimensional_matrix.py exit 0 after checking the 15-arm x 6-parameter x 3-pooler x 4-band Cartesian relation, seed completeness, reporting gates, matched controls, long-target nulls and exact JSON/CSV agreement; SHA-256 receipt committed.",
+   "doc": "docs/findings/2026-08-09_constant_forcing_self_twin_double_null.md"
+  },
+  {
+   "cl_id": "ind_so_coverage_320993",
+   "statement": "For job 320993, the Southern Ocean zero Daniels/POSi active-cell state is expected geographic absence rather than source staging failure; the fitted Southern Ocean results remain excluded because the declared-on terms were inactive.",
+   "mode": "inductive",
+   "why_this_mode": "Job-scoped provenance measurement over the complete immutable log set and staged sources. It distinguishes the cause of zero coverage without converting a gated recovery artifact into evidence.",
+   "status": "live-bounded",
+   "numbers": "75/75 logs complete rc=0. Southern Ocean: 25/25 no-Daniels expected-zero warnings, 25/25 zero bSi cells, 0/25 source-failure markers. EqPac siblings: 25/25 at 34 Daniels cells / 123 samples and 7 bSi cells. North Atlantic: 25/25 at 26 / 116 and 4. Staged source sizes 473,302 and 64,566,461 bytes. SO verify_run remains 2 and all 360 SO matrix cells remain gated.",
+   "evidence": "scripts/analysis/audit_loss_twin_so_coverage.py exit 0 after fetching and hashing all 75 Slurm logs, checking every start/completion/coverage marker and stat-ing both staged sources; deterministic receipt committed. scripts/analysis/verify_loss_twin_dimensional_matrix.py exit 0 independently confirms all Southern Ocean numeric cells remain blank and gated.",
+   "doc": "docs/findings/2026-08-09_constant_forcing_self_twin_double_null.md"
+  },
+  {
+   "cl_id": "ind_szn_diatom_budget_20260809",
+   "statement": "The chemical-restoring seasonal twin's Chl1 failure is a diatom-specific grazing-sink failure, not a general phytoplankton collapse or a non-negativity-floor artifact: the diatom loses nearly all inventory in cycle 1 while four ungrazed PFTs remain nonzero.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic process-budget measurement across two preregistered target constructions and all three canonical AOIs, bounded to the reduced box. The raw per-cell tensors reproduce the prior target states exactly and are independently reaggregated.",
+   "status": "live-bounded",
+   "numbers": "2 constructions x 3 AOIs x cycles 1/2/7/8; 1,786,512 raw tensor cells. Cycle-1 diatom retention fixed light 1.13e-6 / 2.81e-4 / 1.20e-3 and astronomical 1.23e-6 / 5.04e-8 / 1.44e-7 (EqPac/North Atlantic/Southern Ocean). Clamp correction and raw-negative events exactly zero. Grazing share 57.1%-68.5%, dominant in all 6 AOI-by-light cells. Verifier max target-state difference 0.0; max normalized process residual 6.46e-6.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_process_budget.py exit 0 after checking raw tensor completeness, process/inventory identities, exact zero phytoplankton closure, event bounds, all summary fields, the frozen decision tree, and exact reproduction of the two prior target reports; SHA-256 receipt committed.",
+   "doc": "docs/findings/2026-08-09_seasonal_twin_biomass_failure_is_diatom_specific.md"
+  },
+  {
+   "cl_id": "ind_szn_diatom_invasion_20260809",
+   "statement": "The reduced seasonal twin's diatom-free resident trajectory is uniformly non-invadable in five of six AOI-by-light cells, but fixed-light Southern Ocean contains a 50-cell invasion refuge; the correct cross-AOI verdict is spatial/mixed viability rather than a universal attractor.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic low-density stability measurement on two preregistered resident trajectories across all three AOIs. It is bounded to the reduced box and uses the exact discrete forward-Euler multiplier rather than a continuous approximation or favorable-month count.",
+   "status": "live-bounded",
+   "numbers": "Cycle-8 annual log multiplier min/median/max: fixed EqPac -24.245/-13.456/-9.487, North Atlantic -40.670/-13.288/-1.193, Southern Ocean -30.661/-14.323/+2.794; astronomical EqPac -24.268/-13.568/-9.563, North Atlantic -52.961/-26.348/-9.341, Southern Ocean -45.052/-26.493/-5.417. Fixed SO positive cells 50/1,296 (3.858%), max multiplier 16.34. 549,696 raw tensor cells verified; max resident cycle7-to-cycle8 tracer drift 8.99e-5; B200 false.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_diatom_invasion.py exit 0 after reconstructing annual invasion statistics from 12 monthly tensors, checking exact zero resident diatom, positive Euler factors, log1p inequality, event bounds, per-tracer stability, report summaries and the frozen decision tree; SHA-256 receipt committed.",
+   "doc": "docs/findings/2026-08-09_rare_diatom_cannot_invade_five_of_six_seasonal_cells.md"
+  },
+  {
+   "cl_id": "ind_szn_explicit_zoo_20260809",
+   "statement": "A source-mirrored two-zooplankton closure removes the reduced seasonal twin's diatom extinction in all three AOIs, but the 17-state projection is not a valid target because its large-predator mode decays toward zero, remains initialization-dependent, and leaves only a 2-3% diatom response across the frozen diatomgraz perturbation span.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic Stage-0 measurement of a preregistered source-based model projection across three AOIs, three predator initializations and two parameter perturbations. It is bounded to the reduced no-transport/no-DOC box and does not infer full-Darwin grazer dynamics.",
+   "status": "superseded",
+   "numbers": "Diatom cycle-12/initial 1.026/0.869/0.866; large-Z retention 3.62e-7/2.27e-7/1.25e-5; maximum cycle11-to-12 rel-L2 0.706/0.664/0.494; maximum IC-flank rel-L2 0.844/0.799/0.741; high-vs-low diatomgraz inventory response -2.97%/-2.04%/-2.01% (EqPac/North Atlantic/Southern Ocean). All numerical, chemical closure and DFe gates pass. 4,681,005 tensor cells independently verified; source carbon-partition residual 1.04e-17; B200 false.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_explicit_zooplankton_gate.py exit 0 after independently reconstructing all target, stability, closure, initialization and sensitivity gates, validating every scenario tensor and hash, and recomputing source prey allocation and carbon partition; tampered B200 authorization is rejected by test.",
+   "doc": "docs/findings/2026-08-09_explicit_zooplankton_rescues_diatoms_but_fails_target_gate.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_exclusion_20260809",
+   "statement": "The large-predator collapse in the failed source-mirrored seasonal box is an endogenous exclusion mode rather than a tiny-state relative-error artifact: its exact annual discrete multiplier is uniformly negative in every retained cell of all three AOIs, while the small predator is near-neutral.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic measurement of the exact discrete population multiplier during a preregistered thirteenth cycle, bounded to the reduced no-transport/no-DOC projection. It diagnoses that projection and does not infer full-Darwin zooplankton viability.",
+   "status": "superseded",
+   "numbers": "Z_large annual log multiplier min/median/max: EqPac -2.504/-1.525/-1.141, North Atlantic -5.288/-2.681/-1.045, Southern Ocean -4.213/-2.691/-0.631. Endpoint-identity max discrepancy 4.70e-6/4.95e-6/6.00e-6 <=5e-4. Z_small total inventory retention 1.000000/0.999974/0.999997. 220,451 raw tensor cells independently reaggregated; B200 false.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_exclusion_audit.py exit 0 after binding both upstream hashes, checking tensor completeness and event bounds, reconstructing every annual multiplier and endpoint identity, and reproducing the frozen decision; tampered target rehabilitation and predator classification are rejected by tests.",
+   "doc": "docs/findings/2026-08-09_large_zooplankton_is_endogenously_excluded.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_energy_20260809",
+   "statement": "The excluded large-predator mode in the failed source-mirrored seasonal box is below replacement in the additive prey-energy budget itself, not only after seasonal variation and the discrete log multiplier: every retained cell in all three AOIs has a continuous annual margin below -0.10.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic decomposition of the exact source-defined predator specific gain by five prey channels during a preregistered rerun of the already verified cycle-13 trajectory. It is bounded to the reduced no-transport/no-DOC projection and does not infer the missing full-Darwin mechanism.",
+   "status": "superseded",
+   "numbers": "Annual Z_large gross-gain integral min/median/max: EqPac 9.698/10.675/11.060, North Atlantic 6.933/9.529/11.160, Southern Ocean 8.007/9.522/11.574 against mortality integral 12.2. Continuous margin max -1.140/-1.040/-0.626; exact log max -1.141/-1.045/-0.631. Median large-prey gain share 68.48%/62.90%/62.89%; Z_small small-prey share 95.36%/96.31%/96.30%. 564,011 raw tensor cells independently verified; maximum partition error 5.94e-8; B200 false.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_prey_energy_audit.py exit 0 after binding four upstream hashes, reconstructing every prey share, continuous margin, exact endpoint identity and frozen decision; changed prey partition, source hash and B200 authorization are rejected by tests.",
+   "doc": "docs/findings/2026-08-09_large_zooplankton_exclusion_is_an_energy_deficit.md"
+  },
+  {
+   "cl_id": "ded_szn_explicit_zoo_source_conformance_20260810",
+   "statement": "At the frozen source identities, the literal-floor-corrected explicit-zooplankton implementation matches the audited Darwin-1 grazing closure over every visited cycle-13 cell and step, while remaining a bounded five-difference projection rather than full Darwin.",
+   "mode": "deductive",
+   "why_this_mode": "The conclusion follows from exact Git-blob identities, direct parsing of active Fortran assignments and algebra anchors, deterministic matrix reconstruction, and independently recomputed tensor identities. Same-era hidden defaults are explicitly labeled corroboration rather than upgraded to direct provenance.",
+   "status": "live-bounded",
+   "numbers": "6 official files at 75b8e43 plus 3 same-era files at 488cb79; Gmax 0.625 d-1, K 10.2 C, phygrazmin 1.2e-8 C, mortality 1/30 d-1; maximum absolute ingestion difference 0, maximum relative difference 0 and maximum tolerance ratio 0 in all 3 AOIs; 323,519 trajectory tensors independently checked; B200 false.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_source_conformance.py exit 0 after reparsing all bundled source bytes, recomputing normalized Git blobs and SHA-256s, reconstructing constants, matrices, algebra anchors, trajectory summaries, upstream hashes and the decision. Tests reject altered source bytes, tolerance tensors, B200 authorization and source hashes.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "cl_id": "ind_szn_explicit_zoo_source_corrected_20260810",
+   "statement": "With Darwin-1's literal phygrazmin response applied, the corrected two-zooplankton seasonal projection still rescues diatoms in all three AOIs but fails as a target because large-Z remains excluded, initialization-dependent and paired with only a 2-3% diatomgraz response.",
+   "mode": "inductive",
+   "why_this_mode": "One preregistered deterministic corrected Stage-0 construction across three AOIs, three predator initializations and two parameter perturbations. The result is source-conformant over audited support but remains one model submission without out-of-sample replication.",
+   "status": "live-bounded",
+   "numbers": "Diatom cycle-12/initial 1.026412/0.868715/0.865890; large-Z retention 3.621e-7/2.270e-7/1.250e-5; maximum cycle drift 0.7061/0.6636/0.4940; maximum IC-flank drift 0.8441/0.7992/0.6941; diatomgraz log response -0.03012/-0.02057/-0.02034. Correction changes diatom retention by at most 2.99e-9 and no gate bit. 4,681,005 tensors verified; B200 false.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_explicit_zooplankton_gate.py exit 0 on the source-floor-corrected report and bundle after reconstructing all gates and validating preregistration/floor coupling; core tests verify literal-floor propagation and reject invalid floors.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_exclusion_source_corrected_20260810",
+   "statement": "In the literal-floor-corrected failed seasonal projection, large-Z remains an endogenous exclusion mode: its exact annual discrete multiplier is uniformly negative in every retained cell of all three AOIs, while small-Z remains near-neutral.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic cycle-13 measurement from the corrected target endpoint, bounded to the reduced no-transport/no-DOC projection. This is a corrected rerun of one model chain, not independent replication or evidence about transported Darwin.",
+   "status": "live-bounded",
+   "numbers": "Large-Z annual log multiplier min/median/max: EqPac -2.504/-1.525/-1.141, North Atlantic -5.288/-2.681/-1.045, Southern Ocean -4.213/-2.691/-0.631. Endpoint identity discrepancy <=6.00e-6; source-floor correction changes any reported log maximum by <=2.38e-7 and no classification. 220,451 tensors verified; B200 false.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_exclusion_audit.py exit 0 after binding the corrected target hashes, checking floor lineage, tensor completeness, event bounds, annual multipliers, endpoint identities and the frozen decision.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_energy_source_corrected_20260810",
+   "statement": "In the literal-floor-corrected failed seasonal projection, the excluded large-Z mode remains below replacement in the additive prey-energy budget itself, with every retained cell in all three AOIs carrying a continuous annual margin below -0.10.",
+   "mode": "inductive",
+   "why_this_mode": "Direct deterministic decomposition of corrected source-defined predator gain by five prey channels during cycle 13. It diagnoses the bounded projection only and cannot select which omitted Darwin mechanism would close the deficit.",
+   "status": "live-bounded",
+   "numbers": "Large-Z gross-gain max 11.059933/11.160408/11.573926 against mortality 12.2; continuous margin max -1.140067/-1.039592/-0.626074; exact log max -1.140537/-1.044882/-0.630779 (EqPac/North Atlantic/Southern Ocean). Correction changes any margin by <=3.96e-8 and no classification. 564,011 tensors verified; B200 false.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_prey_energy_audit.py exit 0 after binding four corrected upstream hashes, checking floor lineage, and independently reconstructing prey partition, continuous margins, exact endpoint identities and the decision.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "cl_id": "ded_szn_blocker_lattice_20260809",
+   "statement": "Under the explicit-grazer target's frozen acceptance logic, no single post-hoc simplification and no pair of waivers can make the artifact pass: the minimum is all three logically separable groups, which is scientifically forbidden and does not rehabilitate the target.",
+   "mode": "deductive",
+   "why_this_mode": "Exhaustive Boolean enumeration over three fixed waiver groups and atomic predicates reconstructed from an already independently verified report. The conclusion is conditional on those gate definitions; no new biological measurement or causal-independence inference is made.",
+   "status": "superseded",
+   "numbers": "8/8 waiver subsets enumerated. 0/3 singletons pass; 0/3 pairs pass; 1/1 triple passes mechanically. Without Z_large, maximum stability drift is 7.27e-7/1.15e-4/6.70e-5 and maximum IC drift 4.55e-8/7.13e-4/1.50e-3, but EqPac CV remains 0.0342 <0.05 and sensitivity remains 0.0203-0.0301 <0.04879. B200 false.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_blocker_minimality.py exit 0 after independently reconstructing the atomic criteria, checking all eight lattice nodes, binding the source report to its prior verification receipt, and reproducing the frozen decision; tampered pair-pass and minimum-cardinality decisions are rejected by tests.",
+   "doc": "docs/findings/2026-08-09_no_single_posthoc_waiver_rescues_seasonal_target.md"
+  },
+  {
+   "cl_id": "ded_szn_blocker_lattice_source_corrected_20260810",
+   "statement": "Under the source-floor-corrected explicit-grazer target's frozen acceptance logic, no single post-hoc simplification and no pair of waivers can make the artifact pass; only the scientifically forbidden triple waiver passes mechanically.",
+   "mode": "deductive",
+   "why_this_mode": "Exhaustive Boolean enumeration over all eight subsets of three fixed waiver groups using atomic predicates reconstructed from the independently verified corrected target. The complete Boolean lattice is exactly identical to the pre-correction lattice.",
+   "status": "live-bounded",
+   "numbers": "8/8 subsets checked; 0/3 singletons and 0/3 pairs pass; 1/1 triple passes mechanically. Without Z_large, maximum stability drift is 7.27e-7/1.15e-4/6.70e-5 and maximum IC drift 4.71e-8/7.13e-4/1.50e-3, but EqPac CV is 0.034204 <0.05 and sensitivity is 0.02034-0.03012 <0.04879. Corrected lattice exactly equals the old lattice; B200 false.",
+   "evidence": "scripts/analysis/verify_seasonal_twin_blocker_minimality.py exit 0 after independently reconstructing all atomic predicates and eight lattice nodes, binding the source-floor-corrected target report and verification receipt, and reproducing minimum waiver count 3.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_support_threshold_20260810",
+   "statement": "On the source-floor-corrected frozen cycle-13 trajectory, large zooplankton is near a local continuous-replacement refuge in every AOI, but the support gap is not basin-wide outside EqPac.",
+   "mode": "inductive",
+   "why_this_mode": "A preregistered counterfactual was evaluated across every wet cell in three AOIs, but it replays one deterministic trajectory without integrating the modified dynamics or providing an out-of-sample replication.",
+   "status": "live-bounded",
+   "numbers": "Minimum all-prey roots 1.114 / 1.104 / 1.061; medians 1.158 / 1.321 / 1.322; fractions <=1.25 are 96.45% / 32.31% / 37.58% for EqPac / North Atlantic / Southern Ocean. All 2,856 roots are bracketed below 2. Large-prey-only medians are 1.234 / 1.518 / 1.520. Median equivalent subsidies are 0.00417 / 0.00730 / 0.00731 d^-1. Stage0-failed-stop; B200 false.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_support_threshold_audit.py exit 0 after independently replaying the exact source grazing algebra, binding monthly large- and small-prey gain components to the upstream energy artifact, recomputing both 48-iteration root fields, validating 16,780,043 raw tensor cells and the SHA-256 chain, and reproducing the no-modified-dynamics/no-target-rehabilitation/no-B200 decision.",
+   "doc": "docs/findings/2026-08-10_large_zooplankton_is_near_a_local_refuge_but_not_basinwide.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_transport_oracle_20260810",
+   "statement": "Relocation through the unchanged source-floor-corrected frozen prey field cannot close the large-zooplankton annual energy deficit in EqPac or the Southern Ocean, even under unrestricted quarter-day teleportation; North Atlantic is a 0.08% oracle-only knife edge.",
+   "mode": "inductive",
+   "why_this_mode": "A mathematically permissive upper bound was evaluated over every saved step and wet cell, but it is conditional on one deterministic frozen trajectory and does not integrate transport or modified prey dynamics.",
+   "status": "live-bounded",
+   "numbers": "Fixed/monthly/stepwise gain integrals: EqPac 11.060/11.455/11.463, North Atlantic 11.160/12.161/12.210, Southern Ocean 11.574/11.890/11.904 vs mortality 12.2. Stepwise ratios 0.9396/1.0008/0.9757; EqPac instantaneous-refuge fraction 0/1,464, North Atlantic 51.43%, Southern Ocean 54.03%. No transport, target rehabilitation or B200.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_transport_oracle_audit.py exit 0 after independently reconstructing fixed, monthly-teleport and stepwise-teleport gains from 16,765,728 support-tensor cells, reproducing the upstream energy field and SHA-256 chain, and rejecting tampered gain, support, source hash and compute decisions.",
+   "doc": "docs/findings/2026-08-10_even_teleportation_cannot_close_two_large_z_deficits.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_discrete_oracle_20260810",
+   "statement": "The exact Euler survival update preserves the unrestricted North Atlantic frozen-path relocation knife edge while keeping EqPac and Southern Ocean negative; the North Atlantic signal is oracle-only and not a transport result.",
+   "mode": "inductive",
+   "why_this_mode": "The exact discrete algebra was evaluated over all saved steps and cells and anchored to the corrected exclusion artifact, but remains conditional on one frozen deterministic trajectory with no physical transport or replication.",
+   "status": "live-bounded",
+   "numbers": "Stepwise log multipliers -0.73768 / +0.002078 / -0.30152 and retentions 0.47822 / 1.002081 / 0.73969 for EqPac / North Atlantic / Southern Ocean. North Atlantic continuous margin +0.009699, Jensen gap 0.007621, monthly log -0.04693. Annual replay errors <=3.87e-6; no transport or B200.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_discrete_transport_oracle_audit.py exit 0 after independently recomputing fixed, monthly and stepwise Euler-log envelopes from 16,765,728 support-tensor cells, binding the corrected exclusion hash lineage, and rejecting tampered logs, support, hashes and transport decisions.",
+   "doc": "docs/findings/2026-08-10_discrete_update_preserves_natl_teleport_knife_edge.md"
+  },
+  {
+   "cl_id": "ind_szn_large_z_path_oracle_20260810",
+   "statement": "North Atlantic's barely positive unrestricted frozen-prey relocation envelope depends on discontinuous teleportation: every preregistered continuity radius from one to four grid cells per quarter-day step makes its exact annual log multiplier negative, while EqPac and Southern Ocean remain negative throughout.",
+   "mode": "inductive",
+   "why_this_mode": "A preregistered dynamic-programming bound was evaluated over every saved step and wet cell and independently verified, but it remains conditional on one deterministic frozen prey trajectory without physical transport or replication.",
+   "status": "live-bounded",
+   "numbers": "Fixed/r1/r2/r4/unrestricted log multipliers: EqPac -1.140538/-0.760164/-0.750847/-0.745529/-0.737681; North Atlantic -1.044882/-0.025718/-0.012428/-0.004977/+0.002078; Southern Ocean -0.630778/-0.323360/-0.312656/-0.306980/-0.301525. Unrestricted North Atlantic max jump 28 cells; no transport, target rehabilitation or B200.",
+   "evidence": "scripts/analysis/verify_explicit_zooplankton_path_oracle_audit.py exit 0 after independently reconstructing all radius-constrained dynamic programs from 16,765,728 support-tensor cells, checking path feasibility, score monotonicity, fixed/unrestricted replays and SHA-256 lineage, and rejecting tampered paths, scores, hashes and compute decisions.",
+   "doc": "docs/findings/2026-08-10_continuity_eliminates_the_natl_teleport_knife_edge.md"
   }
  ],
  "supersedes": [
@@ -9001,6 +9273,30 @@
    "new": "The POINT counts are right (92, 48, 140) but the STATION counts are wrong by a factor of three. Counted from both staged CSVs keyed on Station_ID against AOI_BY_KEY: npac holds 2 distinct stations (8, 14) and npsg holds 2 (18, 18.3) - FOUR combined, not 11. The 6/5 figures are unique (lat, lon) pairs, and one station contributes several coordinates across casts and phases. This changes the recommendation rather than just the number: hy061's own falsifier says three eqpac stations is too thin a spatial sample to move the block condition number, so the single-AOI npac proposal is thinner than a sample this project has already called too thin.",
    "reason": "Direct count from data/cochran_gp15_po_pb/*.csv, 2026-08-05.",
    "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md"
+  },
+  {
+   "old": "A source-mirrored two-zooplankton closure removes the reduced seasonal twin's diatom extinction in all three AOIs, but the 17-state projection is not a valid target because its large-predator mode decays toward zero, remains initialization-dependent, and leaves only a 2-3% diatom response across the frozen diatomgraz perturbation span.",
+   "new": "With Darwin-1's literal phygrazmin response applied, the corrected two-zooplankton seasonal projection still rescues diatoms in all three AOIs but fails as a target because large-Z remains excluded, initialization-dependent and paired with only a 2-3% diatomgraz response.",
+   "reason": "The pre-correction projection omitted Darwin-1's literal 1.2e-8 C prey floor and exceeded the preregistered 1e-6 rate tolerance in two AOIs. A fresh corrected run and independent verifier preserved every gate bit; use the corrected model specification and artifact hashes.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "old": "The large-predator collapse in the failed source-mirrored seasonal box is an endogenous exclusion mode rather than a tiny-state relative-error artifact: its exact annual discrete multiplier is uniformly negative in every retained cell of all three AOIs, while the small predator is near-neutral.",
+   "new": "In the literal-floor-corrected failed seasonal projection, large-Z remains an endogenous exclusion mode: its exact annual discrete multiplier is uniformly negative in every retained cell of all three AOIs, while small-Z remains near-neutral.",
+   "reason": "The original exclusion audit inherited the omitted source floor. The corrected target and cycle-13 audit change any reported large-Z log maximum by at most 2.38e-7 and preserve all classifications, but the corrected hash chain is canonical.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "old": "The excluded large-predator mode in the failed source-mirrored seasonal box is below replacement in the additive prey-energy budget itself, not only after seasonal variation and the discrete log multiplier: every retained cell in all three AOIs has a continuous annual margin below -0.10.",
+   "new": "In the literal-floor-corrected failed seasonal projection, the excluded large-Z mode remains below replacement in the additive prey-energy budget itself, with every retained cell in all three AOIs carrying a continuous annual margin below -0.10.",
+   "reason": "The original energy audit inherited the omitted source floor. The corrected target, exclusion and energy chain changes any continuous margin by at most 3.96e-8 and preserves the prey-field-energy-deficit branch; quote the corrected lineage.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "old": "Under the explicit-grazer target's frozen acceptance logic, no single post-hoc simplification and no pair of waivers can make the artifact pass: the minimum is all three logically separable groups, which is scientifically forbidden and does not rehabilitate the target.",
+   "new": "Under the source-floor-corrected explicit-grazer target's frozen acceptance logic, no single post-hoc simplification and no pair of waivers can make the artifact pass; only the scientifically forbidden triple waiver passes mechanically.",
+   "reason": "The original lattice was bound to the superseded target hash. Recomputing all atomic predicates from the corrected verified target produces an exactly identical eight-node Boolean lattice and a new canonical hash chain.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
   }
  ],
  "hypotheses": [
@@ -10032,6 +10328,102 @@
    "falsifier": "Explicit ligand chemistry (beta_stab, L_T) is deferred because the ~14-cell GEOTRACES support cannot identify the extra globals. Offline Fisher gate (cond(G), lambda_min) on the synthetic twin decides whether any Explorer scavenging fit is worth queueing.",
    "status": "open",
    "doc": "docs/research_notes/2026-07-07_track2_reshaped_plan.md"
+  },
+  {
+   "hy_id": "hy_szn_loss",
+   "statement": "Under a stable seasonally forced Carroll self-twin, scav_rat recovery follows temporal-statistic matching: an all-step whole-cycle-mean target is recoverable with the same whole-cycle-mean loss but not with an endpoint loss, while a cycle-end target is recoverable with an endpoint loss.",
+   "predicts": "Before fitting, the seasonal all-step target passes frozen cycle-stability, DFe2-contrast and Chl1-sanity gates. At n=50 per basin, mean_mean and end_end each recover scav_rat in at least 40/50 seeds at relative error <=0.20 under all three poolers; mean_end is at least 20/50 lower than mean_mean with paired McNemar p<0.05, and the architecture-matched null does not recover.",
+   "falsifier": "If the target gate fails, this construction cannot decide the loss question. If either matched arm fails its null, the twin is non-diagnostic. If mean_end is not worse than mean_mean, temporal-statistic matching is falsified as the explanation of the replicated basin-by-loss swap. One submission has no replication and cannot settle the Darwin loss choice.",
+   "status": "open-blocked-by-target-gate",
+   "doc": "docs/findings/2026-08-09_prereg_seasonal_loss_self_twin.md"
+  },
+  {
+   "hy_id": "hy_szn_chem",
+   "statement": "The seasonal self-twin target fails because the two-layer box lacks a parameter-independent periodic transport/replenishment closure; a frozen closure that balances the annual tracer residual should preserve DFe2 contrast and biomass where monthly local forcing alone cannot.",
+   "predicts": "A frozen one-year relaxation of the ten cached chemical/particle tracers, with exactly zero phytoplankton nudging, reaches <=1% last-cycle change in every fitted field, retains the existing DFe2 contrast minima and keeps Chl1 rel-SD in [0.1,1.0] in all three AOIs. For every restored tracer the closure contributes <=50% of gross absolute increments and <=1 mean inventory turnover per cycle. The verified no-closure collapse is the negative control.",
+   "falsifier": "Any AOI missing an unchanged target gate, any restored tracer with closure share >0.50 or turnover >1.0, or any nonzero phytoplankton closure refutes this one-year chemical closure. It does not refute transport generally. Monthly light remains a separate untested rival and cannot be folded into this arm after inspection.",
+   "status": "tested-refuted-as-complete-target; chemical closure preserves DFe2 and DIC but not biomass",
+   "doc": "docs/findings/2026-08-09_prereg_seasonal_twin_chemical_restoring_closure.md ; docs/findings/2026-08-09_chemical_restoring_preserves_iron_but_not_seasonal_biomass.md"
+  },
+  {
+   "hy_id": "hy_szn_light",
+   "statement": "Adding parameter-free astronomical monthly light to the one-year chemical closure will sustain a stable, contrast-preserving seasonal self-twin without any direct phytoplankton restoring.",
+   "predicts": "With per-cell monthly daily-mean insolation normalized to annual mean 1, all three AOIs clear the unchanged cycle-stability, DFe2-contrast, Chl1-sanity and chemical-closure-dominance gates within 8 cycles. The light field is finite, non-negative, mean-one to 1e-6, parameter-independent, and the default-off integrator remains bitwise identical.",
+   "falsifier": "Any AOI missing any unchanged gate, any light-integrity failure, or any legacy default-path change refutes this astronomical-light construction. No amplitude, phase, dust or restoring-timescale sweep may be added after inspection.",
+   "status": "tested-refuted-as-complete-target; light integrity and DFe2/DIC survive but Chl1 fails in all three AOIs",
+   "doc": "docs/findings/2026-08-09_prereg_seasonal_twin_astronomical_light.md ; docs/findings/2026-08-09_astronomical_light_does_not_rescue_seasonal_biomass.md"
+  },
+  {
+   "hy_id": "hy_szn_explicit_zoo",
+   "statement": "Replacing the box's biomass-independent linear diatom grazing with the source-mirrored Carroll/Darwin-1 two-zooplankton prey-pool closure will produce a stable, initialization-robust astronomical seasonal target while preserving a measurable diatomgraz handle.",
+   "predicts": "After 12 cycles, all three AOIs pass numerical, cycle-stability, chemical-closure, DFe, plankton-viability and seasonality gates; cycle-12 plankton means agree within 5% across predator initial fractions 0.01/0.10/0.50; and the diatom inventory response between 0.9x and 1.1x diatomgraz exceeds 5% in at least two AOIs with a common sign.",
+   "falsifier": "Any failed AOI, either predator below 1% initial inventory, any plankton state above 95% dominance, any IC-flank difference above 5%, or an inadequate/inconsistent diatomgraz response rejects this 17-state projection. A failure does not reject explicit zooplankton in full transported Darwin, and no failed state may be removed post hoc.",
+   "status": "tested-refuted-as-complete-target after literal source-floor correction; diatoms persist but large-Z is excluded and diatomgraz sensitivity is 2-3%",
+   "doc": "docs/findings/2026-08-09_prereg_seasonal_twin_explicit_zooplankton_gate.md ; docs/findings/2026-08-10_prereg_source_floor_corrected_explicit_zooplankton_chain.md ; docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "hy_id": "hy_szn_large_z_exclusion",
+   "statement": "The explicit target's large-zooplankton decay is the endogenous population-dynamic response to its projected prey field, not a relative-change artifact caused by measuring a tiny state.",
+   "predicts": "Starting at the central cycle-12 endpoint, the exact cycle-13 annual discrete log multiplier for Z_large is below -0.10 in every retained cell of all three AOIs and agrees with log[Z13/Z12] to <=5e-4, with positive Euler factors and no zooplankton restoring.",
+   "falsifier": "Any mixed or nonnegative large-predator multiplier, a failed endpoint identity, a nonpositive Euler factor, or hidden zooplankton restoring leaves the collapse numerical or unresolved. Support diagnoses the failed projection only and cannot rehabilitate it, delete Z_large post hoc, or authorize B200.",
+   "status": "tested-supported-in-source-floor-corrected bounded projection; Z_large uniformly excluded in all three AOIs",
+   "doc": "docs/findings/2026-08-09_prereg_explicit_zooplankton_exclusion_audit.md ; docs/findings/2026-08-10_prereg_source_floor_corrected_explicit_zooplankton_chain.md ; docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "hy_id": "hy_szn_large_z_energy",
+   "statement": "The explicit target's large-predator exclusion is already an additive prey-energy deficit under the projected prey field, rather than a population that is above continuous replacement but pushed below replacement only by seasonal variation and the discrete Euler multiplier.",
+   "predicts": "In every retained cell of all three AOIs, the annual sum of source-defined prey-specific gross gain minus the fixed 12.2 mortality integral is below -0.10, prey contributions sum to total gain, and the exact multiplier reproduces the prior exclusion artifact.",
+   "falsifier": "Any cell with continuous margin >=-0.10 while the exact multiplier remains uniformly excluded takes the discrete-or-variance branch; a failed partition, endpoint identity or upstream reproduction leaves the mechanism unresolved. Support cannot identify an omitted Darwin process or rehabilitate the target.",
+   "status": "tested-supported-in-source-floor-corrected bounded projection; continuous margin uniformly below replacement in all three AOIs",
+   "doc": "docs/findings/2026-08-09_prereg_explicit_zooplankton_prey_energy_audit.md ; docs/findings/2026-08-10_prereg_source_floor_corrected_explicit_zooplankton_chain.md ; docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "hy_id": "hy_szn_explicit_zoo_source_conformance",
+   "statement": "The reduced explicit-zooplankton implementation conforms to the audited Carroll/Darwin-1 grazing closure over its visited seasonal support once source identities, generated traits, temperature semantics and the literal prey floor are checked together.",
+   "predicts": "All frozen official Git blobs pass; direct constants, matrices and grazing anchors match within 1e-12; same-era TEMP_VERSION=2 code corroborates unit grazer temperature functions and zero quadratic mortality; and current versus literal-source rates agree within 1e-12 absolute plus 1e-6 relative without changing the exclusion classification.",
+   "falsifier": "Any source-identity or direct algebra mismatch, uncorroborated hidden temperature default, rate tolerance failure, or changed exclusion class prevents the strongest branch. Even support cannot erase the five declared projection differences, rehabilitate the target or authorize B200.",
+   "status": "tested-supported-after-required correction; initial numerical guard failed rate tolerance in two AOIs, literal phygrazmin rerun passes exactly",
+   "doc": "docs/findings/2026-08-10_prereg_explicit_zooplankton_source_conformance.md ; docs/findings/2026-08-10_prereg_source_floor_corrected_explicit_zooplankton_chain.md ; docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "hy_id": "hy_szn_blocker_minimality",
+   "statement": "A single post-hoc simplification, especially dropping the excluded large predator, is logically sufficient to make the failed explicit-grazer artifact satisfy its frozen Stage-0 acceptance gate.",
+   "predicts": "At least one singleton node in the frozen three-waiver Boolean lattice passes the complete acceptance conjunction; if the large-predator waiver is that node, all non-large checks, EqPac seasonality, and the parameter handle pass unchanged.",
+   "falsifier": "No singleton passes. A remaining EqPac seasonality or parameter-handle failure after removing Z_large refutes sufficiency even if every reduced stability, community and initialization check passes.",
+   "status": "tested-refuted on the source-floor-corrected target; no singleton or pair passes and only the forbidden all-three node passes mechanically",
+   "doc": "docs/findings/2026-08-09_prereg_seasonal_twin_blocker_minimality_audit.md ; docs/findings/2026-08-10_prereg_source_floor_corrected_explicit_zooplankton_chain.md ; docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "hy_id": "hy_szn_large_z_near_refuge",
+   "statement": "The excluded large zooplankton is close to a local continuous-replacement refuge under the source grazing algebra, even though the frozen trajectory cannot sustain it basin-wide.",
+   "predicts": "In each AOI, at least one wet cell reaches annual gain equal to source mortality when all five frozen prey fields are multiplied by no more than 1.25.",
+   "falsifier": "Any AOI has a minimum all-prey root above 1.25, an unbracketed root, a source-algebra replay mismatch, or an independently unreproducible decision.",
+   "status": "tested-supported on one frozen trajectory; minima are 1.114 / 1.104 / 1.061, but only 96.45% / 32.31% / 37.58% of cells are <=1.25 and no modified dynamics were integrated",
+   "doc": "docs/findings/2026-08-10_prereg_large_zooplankton_support_threshold_audit.md ; docs/findings/2026-08-10_large_zooplankton_is_near_a_local_refuge_but_not_basinwide.md"
+  },
+  {
+   "hy_id": "hy_szn_large_z_transport_oracle",
+   "statement": "The corrected frozen prey support is energetically open to spatial relocation of large zooplankton in every AOI under the most permissive stepwise oracle.",
+   "predicts": "The sum of quarter-day wet-cell maximum gains reaches the source mortality integral 12.2 in each of EqPac, North Atlantic and Southern Ocean.",
+   "falsifier": "Any AOI's stepwise teleportation envelope remains below 12.2, or the fixed-cell source replay, hash chain or independent verifier fails.",
+   "status": "tested-refuted; stepwise gain is 11.463 / 12.210 / 11.904, so EqPac and Southern Ocean remain below 12.2 while North Atlantic clears by only 0.08% under teleportation",
+   "doc": "docs/findings/2026-08-10_prereg_large_zooplankton_transport_oracle.md ; docs/findings/2026-08-10_even_teleportation_cannot_close_two_large_z_deficits.md"
+  },
+  {
+   "hy_id": "hy_szn_large_z_discrete_transport_oracle",
+   "statement": "The exact discrete Euler criterion eliminates the continuous North Atlantic teleportation knife edge, making the unrestricted frozen-path stepwise log multiplier non-positive in all three AOIs.",
+   "predicts": "The maximum-path sum of log(1 + dt*(gain-mortality)) is <=0 in EqPac, North Atlantic and Southern Ocean.",
+   "falsifier": "Any AOI has a positive stepwise log multiplier, or the support-to-exclusion replay, hash lineage or independent verifier fails.",
+   "status": "tested-refuted; North Atlantic remains +0.002078 (retention 1.002081) under quarter-day teleportation, while EqPac and Southern Ocean are -0.73768 and -0.30152",
+   "doc": "docs/findings/2026-08-10_prereg_discrete_large_z_transport_oracle.md ; docs/findings/2026-08-10_discrete_update_preserves_natl_teleport_knife_edge.md"
+  },
+  {
+   "hy_id": "hy_szn_large_z_continuity_path_oracle",
+   "statement": "North Atlantic's positive exact-discrete frozen-path teleportation knife edge survives the weakest preregistered spatial-continuity constraint.",
+   "predicts": "The maximum annual Euler-log path score remains >0 when successive wet cells may differ by at most one Manhattan grid cell per quarter-day step.",
+   "falsifier": "The North Atlantic radius-1 score is <=0, or a source replay, path-feasibility, score-ladder, hash-lineage or independent-verifier check fails.",
+   "status": "tested-refuted; North Atlantic radius 1 is -0.025718, radius 2 is -0.012428 and radius 4 is -0.004977, while only unrestricted jumps up to 28 cells produce +0.002078",
+   "doc": "docs/findings/2026-08-10_prereg_continuity_constrained_large_z_path_oracle.md ; docs/findings/2026-08-10_continuity_eliminates_the_natl_teleport_knife_edge.md"
   }
  ],
  "traps": [
@@ -10984,8 +11376,16 @@
    "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
   },
   {
-   "trap": "Claim ids (ind342, abd555, ...) are NOT stable. gen_research_map.py sorts claims by (status, statement) and research_map_db.py numbers them positionally, so adding one claim -- or changing one claim's status -- renumbers every claim after it alphabetically. A trial insertion of 7 claims changed the meaning of 328 of 563 existing ids. Before adding CLAIM rows, check whether the id stability defect is fixed; SUPERSEDES / SETTLED / TRAPS rows are prose-keyed and safe to add.",
+   "trap": "Legacy claim ids (ind342, abd555, ...) remain positional and must not be treated as stable names for new work. Every new CLAIM row must carry an explicit semantic cl_id. gen_research_map.py renders that id, research_map_db.py does not let semantic ids consume the legacy counter, and duplicate ids fail loudly. Preserve the regression pins for existing relations before regenerating the map.",
    "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md"
+  },
+  {
+   "trap": "An all-PFT budget can hide extinction of the one PFT the target gate actually uses. In the failed seasonal twins, four ungrazed pools settle to nonzero states, so the all-PFT cycle-8 balance looks neutral while the diatom lost 99.88%-99.999995% of its inventory in cycle 1. Always inspect per-PFT inventory retention and the collapse-onset cycle before calling a biomass budget balanced.",
+   "doc": "docs/findings/2026-08-09_seasonal_twin_biomass_failure_is_diatom_specific.md"
+  },
+  {
+   "trap": "Counting favorable seasons is not a persistence test. Under astronomical light, rare-diatom growth is instantaneously positive for 37.07% of North Atlantic steps and 36.53% of Southern Ocean steps, yet every cell has a negative annual multiplier. Population persistence is multiplicative: sum log(1 + dt*lambda) over the full cycle, never count positive months or average their signs.",
+   "doc": "docs/findings/2026-08-09_rare_diatom_cannot_invade_five_of_six_seasonal_cells.md"
   },
   {
    "trap": "E3 (wire the 210Po/210Pb + Fe-export sink anchors into the loss) is recorded as 'the highest-value item in the document' and predicted to be the only intervention able to move eqpac - but the iron-side data has ZERO eqpac coverage, so that specific prediction is untestable. Do NOT conclude the experiment is dead: GP15 sits inside npac (92 points, 6 stations) and npsg (48, 5), both already defined in AOI_BY_KEY, so re-scope it to a single-AOI run where the data lives. CHECK OBSERVATIONAL COVERAGE AGAINST THE TARGET AOI BEFORE IMPLEMENTING, and check it against EVERY defined AOI before declaring an anchor unusable - a loader existing is not evidence the data reaches the basin, and missing your intended basin is not evidence it reaches none.",
@@ -11006,6 +11406,42 @@
   {
    "trap": "Do NOT read the scav_rat row of the bounding-map A/B on its own. The geometric map raises scav_rat's UNTRAINED rate from 0/50 to 8/50 (measured twice, jobs 263466 and 264591, and pooler-invariant at 8/8/8), so part of any marginal gain is prior rather than learning. Read the TRIO, whose untrained baseline is 0/50 in BOTH arms under ALL THREE collapses and is therefore immune to the prior shift.",
    "doc": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md"
+  },
+  {
+   "trap": "Do not call the explicit-zooplankton target successful merely because diatoms persist, and do not silently drop the decaying large predator after inspection. The preregistered source projection required both predators to retain at least 1%, cycle stability <=1%, IC robustness <=5% and a >=5% diatomgraz handle. Large-Z retention is 2.27e-7 to 1.25e-5, stability is 0.494-0.706, IC drift is 0.741-0.844 and the handle is only 2.0-3.0%; the correct decision is no optimizer/no B200.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "trap": "Diagnosing Z_large as uniformly excluded does NOT authorize a one-predator rescue. The two-predator state was required by the source-mirroring preregistration, so deleting the failed mode after inspection changes the target post hoc. It would also leave two independent blockers untouched: EqPac diatom seasonality is below 5% CV and the cross-AOI diatomgraz response is only 2.0-3.0%. Keep the branch at stage0-failed-stop with no optimizer and no B200.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "trap": "A prey-energy deficit under the five included PFTs does NOT identify which omitted Darwin mechanism would close it. The audit distinguishes additive insufficiency from a discrete/seasonal-variance penalty and shows the diets are size-partitioned; it does not select DOC, transport, vertical niche, another prey state, changed assimilation or zooplankton restoring. Any such repair is a new preregistered model-reduction question, not an inference from this budget.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "trap": "Do not shorten source-conformant-bounded-projection to source-exact, full Darwin, or valid target. The receipt establishes the audited grazing closure over visited support and uses same-era corroboration for hidden TEMP_VERSION=2 defaults. The box still omits DOC and transport/vertical grazer structure, approximates phytoplankton temperature, restores chemical states, and uses Euler/clamp numerics; the corrected target still fails and B200 remains unauthorized.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "trap": "A Boolean pass after waiving Z_large, EqPac seasonality and the parameter handle is NOT a rescued target. That node passes only because all three observed blocker groups were discarded after inspection, including the sensitivity needed for recovery. The lattice measures post-hoc distance from acceptance; it cannot authorize a one-grazer optimizer or B200.",
+   "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+  },
+  {
+   "trap": "Do not turn a <=1.25 best-cell support threshold into transport rescue or basin-wide viability. The audit holds the cycle-13 path fixed, and only 32.31% / 37.58% of North Atlantic / Southern Ocean cells clear 1.25; it neither integrates added prey nor selects transport, restoring, mortality, assimilation, DOC, stoichiometry, or another mechanism. EqPac seasonality and the global parameter-handle blockers also remain, so Stage 0 stays failed and B200 stays unauthorized.",
+   "doc": "docs/findings/2026-08-10_large_zooplankton_is_near_a_local_refuge_but_not_basinwide.md"
+  },
+  {
+   "trap": "Do not shorten 'frozen-path relocation cannot close two deficits' to 'transport cannot help.' The teleportation oracle holds prey fixed and only relocates the predator; real transport can alter prey, import material across the AOI boundary and couple depths. Conversely, North Atlantic's 1.0008 oracle ratio is not evidence transport works: it requires unrestricted quarter-day relocation, while the monthly envelope remains below mortality.",
+   "doc": "docs/findings/2026-08-10_even_teleportation_cannot_close_two_large_z_deficits.md"
+  },
+  {
+   "trap": "Do not round North Atlantic's discrete stepwise log multiplier +0.002078 to zero, and do not call it viable. It refutes the preregistered all-AOI non-positive bound, but implies only 0.208% growth under quarter-day teleportation with 36 switches and jumps up to 28 grid cells; the monthly envelope loses 4.58%, and no physical transport was run.",
+   "doc": "docs/findings/2026-08-10_discrete_update_preserves_natl_teleport_knife_edge.md"
+  },
+  {
+   "trap": "Do not present North Atlantic's unrestricted +0.002078 frozen-path oracle as a transport rescue. It is positive only when jumps up to 28 grid cells per quarter day are free; every preregistered continuity radius is negative, including radius 1 at -0.025718 and radius 4 at -0.004977. The converse overclaim is also invalid: this bound holds prey fixed and cannot rule out transport that changes prey, imports material or couples depth.",
+   "doc": "docs/findings/2026-08-10_continuity_eliminates_the_natl_teleport_knife_edge.md"
   }
  ]
 }

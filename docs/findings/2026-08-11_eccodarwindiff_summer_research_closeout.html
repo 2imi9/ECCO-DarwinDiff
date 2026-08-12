@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>ECCO-DarwinDiff | Summer Research Closeout</title>
+  <style>
+    :root {
+      --paper: #fff;
+      --ink: #080808;
+      --mid: #606060;
+      --rule: #a9a9a9;
+      --wash: #f0f0ee;
+      --outside: #d4d4d1;
+      --serif: "Latin Modern Roman", "STIX Two Text", "Times New Roman", serif;
+      --sans: "Latin Modern Sans", "Avenir Next", "Gill Sans", sans-serif;
+      --mono: "Latin Modern Mono", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, transparent 0 49.8%, rgba(0,0,0,.025) 50% 50.2%, transparent 50.4%) 0 0 / 19px 19px,
+        var(--outside);
+      font-family: var(--serif);
+    }
+
+    button { font: inherit; }
+    code { font-family: var(--mono); font-size: .9em; overflow-wrap: anywhere; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+    .deck-shell {
+      position: relative;
+      container-type: inline-size;
+      width: min(97vw, calc(95vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      box-shadow: 0 1.5vh 4.5vh rgba(0,0,0,.23);
+    }
+
+    .deck, .slide { width: 100%; height: 100%; }
+    .slide {
+      display: none;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      background:
+        linear-gradient(to right, transparent 0 3.1cqw, rgba(0,0,0,.04) 3.1cqw 3.16cqw, transparent 3.16cqw),
+        var(--paper);
+    }
+    .slide.active { display: grid; animation: reveal 170ms ease-out both; }
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(.2cqw); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-header {
+      min-height: 4.7cqw;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2cqw;
+      align-items: center;
+      padding: 1.18cqw 3.05cqw .92cqw;
+      border-bottom: .14cqw solid var(--ink);
+    }
+    .running, .cut, .kicker, .section-label, .source, .folio, .figure-label,
+    .metric-label, .note-label, .counter {
+      font-family: var(--mono);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+    .running { margin: 0; font-size: clamp(8px,.66cqw,12px); font-weight: 700; }
+    .cut { font-size: clamp(7px,.54cqw,10px); color: var(--mid); }
+
+    .slide-body { min-height: 0; padding: 1.55cqw 3.08cqw 1.05cqw; }
+    .section-label { margin: 0 0 .46cqw; color: var(--mid); font-size: clamp(8px,.59cqw,11px); font-weight: 700; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 0; font-size: clamp(42px,6.15cqw,112px); line-height: .9; letter-spacing: -.055em; }
+    h2 { margin-bottom: 1.1cqw; max-width: 90%; font-size: clamp(27px,3.05cqw,58px); line-height: .98; letter-spacing: -.035em; }
+    h3 { margin-bottom: .32cqw; font-family: var(--sans); font-size: clamp(12px,1.03cqw,19px); line-height: 1.1; }
+    p { font-size: clamp(10px,.83cqw,15px); line-height: 1.3; }
+
+    .segments { display: grid; gap: 1.15cqw 2.2cqw; }
+    .segments.two { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .segments.three { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .segment { padding-top: .55cqw; border-top: 1px solid var(--ink); }
+    .segment.emphasis { border-top-width: .28cqw; }
+    .segment p:last-child { margin-bottom: 0; }
+    .segment .number {
+      display: block;
+      margin-bottom: .22cqw;
+      font-family: var(--mono);
+      font-size: clamp(20px,2cqw,38px);
+      font-weight: 700;
+      line-height: 1;
+    }
+    .quiet { color: var(--mid); }
+    .small { font-size: .82em; }
+
+    .slide-footer {
+      min-height: 2.75cqw;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1.5cqw;
+      align-items: center;
+      padding: .54cqw 13.2cqw .54cqw 3.08cqw;
+      border-top: 1px solid var(--ink);
+      color: var(--mid);
+      font-size: clamp(7px,.55cqw,10px);
+      line-height: 1.15;
+    }
+    .folio { color: var(--ink); font-weight: 700; white-space: nowrap; }
+
+    /* title */
+    .title-slide { grid-template-rows: 1fr auto; }
+    .title-slide .slide-body {
+      display: grid;
+      grid-template-columns: minmax(0,1.45fr) minmax(13cqw,.55fr);
+      gap: 4.8cqw;
+      align-items: center;
+      padding-top: 3.4cqw;
+    }
+    .kicker { margin-bottom: 1.05cqw; font-size: clamp(9px,.69cqw,13px); font-weight: 700; }
+    .title-dek { max-width: 70%; margin: 1.25cqw 0 0; font-size: clamp(13px,1.18cqw,22px); line-height: 1.28; }
+    .title-aside { align-self: stretch; display: grid; align-content: center; border-left: .14cqw solid var(--ink); padding-left: 1.3cqw; }
+    .title-aside strong { font-family: var(--mono); font-size: clamp(24px,3.35cqw,64px); line-height: .92; }
+    .title-aside span { margin-top: .65cqw; font-family: var(--mono); font-size: clamp(8px,.62cqw,12px); line-height: 1.3; text-transform: uppercase; }
+
+    /* diagrams */
+    .split-visual { display: grid; grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr); gap: 2.3cqw; align-items: start; }
+    .diagram { margin: 0; padding-top: .5cqw; border-top: .14cqw solid var(--ink); }
+    .figure-label { margin-bottom: .65cqw; font-size: clamp(7px,.51cqw,10px); }
+    .diagram-note { margin: .55cqw 0 0; color: var(--mid); font-size: clamp(8px,.62cqw,12px); }
+
+    .pipeline { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1.25cqw; align-items: start; }
+    .pipeline-step { position: relative; padding-top: .55cqw; border-top: 1px solid var(--ink); }
+    .pipeline-step:not(:last-child)::after { content: ">"; position: absolute; top: .42cqw; right: -.87cqw; font-family: var(--mono); font-weight: 700; }
+    .pipeline-step b { display: block; margin-bottom: .25cqw; font-family: var(--mono); font-size: clamp(8px,.62cqw,12px); text-transform: uppercase; }
+    .pipeline-step p { margin-bottom: 0; }
+
+    .parameter-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: clamp(8px,.65cqw,12px); }
+    .parameter-table th, .parameter-table td { padding: .44cqw .4cqw; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+    .parameter-table thead th { border-top: .14cqw solid var(--ink); border-bottom-color: var(--ink); font-family: var(--mono); font-size: .86em; text-transform: uppercase; }
+    .parameter-table td:first-child { font-family: var(--mono); font-weight: 700; }
+
+    .quote {
+      margin: .8cqw 0 0;
+      padding: .7cqw 0 0 1.05cqw;
+      border-top: .28cqw solid var(--ink);
+      border-left: .28cqw solid var(--ink);
+      font-size: clamp(14px,1.35cqw,26px);
+      line-height: 1.22;
+    }
+
+    .benchmark-line { position: relative; height: 7.5cqw; margin-top: .8cqw; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+    .benchmark-line::before { content: ""; position: absolute; top: 0; bottom: 0; left: 58%; border-left: .15cqw solid var(--ink); }
+    .benchmark-zero { position: absolute; left: 58%; top: -.95cqw; transform: translateX(-50%); font-family: var(--mono); font-size: clamp(7px,.5cqw,10px); }
+    .benchmark-row { position: relative; height: 3.72cqw; }
+    .benchmark-label { position: absolute; left: 0; top: 1.15cqw; width: 17cqw; font-family: var(--mono); font-size: clamp(7px,.54cqw,10px); font-weight: 700; }
+    .benchmark-whisker { position: absolute; top: 1.55cqw; left: var(--x1); width: calc(var(--x2) - var(--x1)); border-top: .14cqw solid var(--ink); }
+    .benchmark-point { position: absolute; top: 1.22cqw; left: var(--x); width: .78cqw; height: .78cqw; transform: translateX(-50%); border-radius: 50%; background: var(--ink); }
+    .benchmark-value { position: absolute; top: 1.05cqw; left: calc(var(--x) + 1cqw); font-family: var(--mono); font-size: clamp(8px,.6cqw,11px); }
+
+    .product-search { margin-top: .7cqw; padding: .55cqw 0; border-top: .14cqw solid var(--ink); border-bottom: 1px solid var(--ink); font-family: var(--mono); font-size: clamp(9px,.72cqw,13px); }
+    .product-result { display: grid; grid-template-columns: 8.5cqw 1fr; gap: 1.1cqw; padding: .65cqw 0; border-bottom: 1px solid var(--rule); }
+    .product-result b { font-family: var(--mono); font-size: clamp(7px,.52cqw,10px); text-transform: uppercase; }
+    .product-result p { margin-bottom: 0; }
+
+    /* navigation */
+    .deck-ui { position: absolute; right: 1cqw; bottom: .47cqw; z-index: 10; display: flex; align-items: center; gap: .3cqw; }
+    .deck-ui button { min-width: 25px; width: 2.05cqw; min-height: 21px; height: 1.62cqw; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; }
+    .deck-ui button:disabled { color: var(--rule); cursor: default; }
+    .counter { min-width: 4cqw; font-size: clamp(7px,.53cqw,10px); font-weight: 700; text-align: center; }
+    .progress { position: absolute; inset: auto 0 0; z-index: 11; height: .16cqw; background: var(--wash); }
+    .progress span { display: block; width: 6.25%; height: 100%; background: var(--ink); transition: width 150ms ease-out; }
+
+    @media (max-aspect-ratio: 4/3) {
+      body { place-items: stretch; }
+      .deck-shell { width: 100vw; height: 100dvh; aspect-ratio: auto; border-left: 0; border-right: 0; box-shadow: none; }
+      .source { overflow-wrap: anywhere; }
+    }
+
+    @page { size: 13.333in 7.5in; margin: 0; }
+    @media print {
+      html, body { width: auto; min-height: auto; overflow: visible; background: var(--paper); }
+      body { display: block; }
+      .deck-shell, .deck { width: 13.333in; height: auto; aspect-ratio: auto; border: 0; box-shadow: none; }
+      .slide, .slide.active { width: 13.333in; height: 7.5in; display: grid; break-after: page; animation: none; }
+      .slide:last-child { break-after: auto; }
+      .deck-ui, .progress { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-shell">
+    <main class="deck" id="deck">
+      <section class="slide title-slide active" id="slide-1" data-title="Summer thesis">
+        <div class="slide-body">
+          <div>
+            <p class="kicker">ECCO-DarwinDiff / summer 2026 research closeout</p>
+            <h1>What the observations let us identify.</h1>
+            <p class="title-dek">A summer of differentiable ocean biogeochemistry, regional parameter patterns, corrected emulator claims, and knowing when not to spend the B200.</p>
+          </div>
+          <aside class="title-aside">
+            <strong>2 + 2 + 2</strong>
+            <span>two global<br />two regional<br />two excluded</span>
+          </aside>
+        </div>
+        <footer class="slide-footer">
+          <span class="source">Prepared Aug 11, 2026 / next-week research presentation</span>
+          <span class="folio">01 / 16</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-2" data-title="Research question">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / the inverse question</p><span class="cut">Framing</span></header>
+        <div class="slide-body">
+          <p class="section-label">01 / The question changed</p>
+          <h2>Not &ldquo;can a neural network fit six numbers?&rdquo;</h2>
+          <div class="split-visual">
+            <div class="segments two">
+              <section class="segment emphasis"><h3>The original ambition</h3><p>Recover uncertain ECCO-Darwin biogeochemical parameters with a differentiable surrogate and real ocean observations.</p></section>
+              <section class="segment"><h3>The scientific question</h3><p>Which observations constrain which processes, in which regions, and with what irreducible ambiguity?</p></section>
+              <section class="segment"><h3>The unit of evidence</h3><p>A parameter-by-basin result against its own architecture-matched null, sensitivity band, and pooling rule.</p></section>
+              <section class="segment"><h3>The stopping rule</h3><p>When the target carries no information, more optimization and more GPU time are not progress.</p></section>
+            </div>
+            <figure class="diagram">
+              <figcaption class="figure-label">Fig. 1 / observation-to-parameter inverse map</figcaption>
+              <svg viewBox="0 0 600 340" role="img" aria-label="Observations project onto parameter directions">
+                <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#080808" /></marker></defs>
+                <text x="18" y="30" font-family="Courier New" font-size="16" font-weight="700">OBSERVATIONS</text>
+                <line x1="30" y1="60" x2="570" y2="60" stroke="#080808" stroke-width="2" />
+                <text x="34" y="102" font-family="Times New Roman" font-size="18">surface dFe</text>
+                <text x="34" y="162" font-family="Times New Roman" font-size="18">depth dFe</text>
+                <text x="34" y="222" font-family="Times New Roman" font-size="18">calcite CP:PP</text>
+                <text x="34" y="282" font-family="Times New Roman" font-size="18">seasonal community</text>
+                <line x1="205" y1="96" x2="392" y2="118" stroke="#777" stroke-width="2" marker-end="url(#a2)" />
+                <line x1="205" y1="156" x2="392" y2="162" stroke="#080808" stroke-width="4" marker-end="url(#a2)" />
+                <line x1="205" y1="216" x2="392" y2="206" stroke="#080808" stroke-width="4" marker-end="url(#a2)" />
+                <line x1="205" y1="276" x2="392" y2="250" stroke="#080808" stroke-width="3" marker-end="url(#a2)" />
+                <text x="412" y="124" font-family="Courier New" font-size="17">alpfe ridge</text>
+                <text x="412" y="168" font-family="Courier New" font-size="17">scav_rat</text>
+                <text x="412" y="212" font-family="Courier New" font-size="17">R_PICPOC</text>
+                <text x="412" y="256" font-family="Courier New" font-size="17">growth / grazing</text>
+                <text x="32" y="324" font-family="Courier New" font-size="13">thicker arrow = observation projects more directly onto the parameter direction</text>
+              </svg>
+            </figure>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">Core framing / surrogate-to-model identifiability study</span><span class="folio">02 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-3" data-title="Research instrument">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / what was built</p><span class="cut">Engineering contribution</span></header>
+        <div class="slide-body">
+          <p class="section-label">02 / A research instrument</p>
+          <h2>The summer produced an auditable inverse-modeling system.</h2>
+          <div class="pipeline" aria-label="DarwinDiff research pipeline">
+            <section class="pipeline-step"><b>01 / Model</b><p>Differentiable Carroll-6 box, seasonal integrator, explicit-grazer projection, and per-cell parameter field.</p></section>
+            <section class="pipeline-step"><b>02 / Data</b><p>GEOTRACES iron, Daniels calcite, POSi silica, dust, Darwin fields, and source-bound provenance.</p></section>
+            <section class="pipeline-step"><b>03 / Inference</b><p>Multi-AOI DINN, synthetic twins, matched nulls, Fisher geometry, profiles, EKI, and ablations.</p></section>
+            <section class="pipeline-step"><b>04 / Trust</b><p>Verifier exits, pooler audits, coverage gates, independent receipts, supersession chains, and SQL constraints.</p></section>
+          </div>
+          <div class="segments three" style="margin-top:1.35cqw">
+            <section class="segment"><span class="number">548</span><h3>settled answers</h3><p>Full untruncated text remains queryable even when the Markdown reading view is shortened.</p></section>
+            <section class="segment"><span class="number">100</span><h3>active hypotheses</h3><p>Each keeps a prediction and falsifier rather than an informal &ldquo;next idea.&rdquo;</p></section>
+            <section class="segment emphasis"><span class="number">8 / 8</span><h3>integrity constraints</h3><p>Passing at the presentation cut, with four known advisories still exposed.</p></section>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">Repository + relational map / generated from tracked sources</span><span class="folio">03 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-4" data-title="Relational research map">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / relational-algebra R&amp;D map</p><span class="cut">Method contribution</span></header>
+        <div class="slide-body">
+          <p class="section-label">03 / Research memory became executable</p>
+          <h2>A claim is a relation, not a sentence in a slide.</h2>
+          <figure class="diagram">
+            <figcaption class="figure-label">Fig. 2 / evidence graph and decision query</figcaption>
+            <svg viewBox="0 0 1100 350" role="img" aria-label="Relational research map joins evidence, support, claim, settled result and traps">
+              <defs><marker id="a4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#080808" /></marker></defs>
+              <text x="25" y="45" font-family="Courier New" font-size="18" font-weight="700">EVIDENCE</text>
+              <text x="285" y="45" font-family="Courier New" font-size="18" font-weight="700">SUPPORTS</text>
+              <text x="525" y="45" font-family="Courier New" font-size="18" font-weight="700">CLAIM</text>
+              <text x="780" y="45" font-family="Courier New" font-size="18" font-weight="700">SETTLED</text>
+              <line x1="27" y1="62" x2="987" y2="62" stroke="#080808" stroke-width="2" />
+              <text x="25" y="112" font-family="Times New Roman" font-size="20">artifact / job / gate</text>
+              <text x="285" y="112" font-family="Times New Roman" font-size="20">establishes / qualifies</text>
+              <text x="525" y="112" font-family="Times New Roman" font-size="20">mode / status / scope</text>
+              <text x="780" y="112" font-family="Times New Roman" font-size="20">question / answer / doc</text>
+              <line x1="205" y1="105" x2="272" y2="105" stroke="#080808" stroke-width="3" marker-end="url(#a4)" />
+              <line x1="468" y1="105" x2="512" y2="105" stroke="#080808" stroke-width="3" marker-end="url(#a4)" />
+              <line x1="708" y1="105" x2="767" y2="105" stroke="#080808" stroke-width="3" marker-end="url(#a4)" />
+              <text x="25" y="188" font-family="Courier New" font-size="17">pi(question,answer,doc)(sigma(verified=true)(EVIDENCE) JOIN SUPPORTS JOIN CLAIM JOIN SETTLED)</text>
+              <line x1="25" y1="212" x2="1000" y2="212" stroke="#a9a9a9" stroke-width="1" />
+              <text x="25" y="258" font-family="Courier New" font-size="17" font-weight="700">HYPOTHESIS</text>
+              <text x="210" y="258" font-family="Times New Roman" font-size="19">prediction + falsifier + active status</text>
+              <text x="625" y="258" font-family="Courier New" font-size="17" font-weight="700">TRAP</text>
+              <text x="735" y="258" font-family="Times New Roman" font-size="19">the overclaim the evidence does not permit</text>
+              <text x="25" y="324" font-family="Courier New" font-size="14">settled before work / check before commit / supersedes before quotation</text>
+            </svg>
+          </figure>
+        </div>
+        <footer class="slide-footer"><span class="source">docs/research_map.json / SQL harness / Markdown remains the reading view</span><span class="folio">04 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-5" data-title="Parameter atlas">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / corrected parameter atlas</p><span class="cut">Main scientific result</span></header>
+        <div class="slide-body">
+          <p class="section-label">04 / The 2 + 2 + 2 pattern</p>
+          <h2>Two globally recovered, two regionally identifiable, two excluded.</h2>
+          <div class="split-visual">
+            <figure class="diagram">
+              <figcaption class="figure-label">Fig. 3 / scope versus observational grounding</figcaption>
+              <svg viewBox="0 0 570 380" role="img" aria-label="Parameter identifiability atlas">
+                <line x1="86" y1="320" x2="535" y2="320" stroke="#080808" stroke-width="2" />
+                <line x1="86" y1="320" x2="86" y2="40" stroke="#080808" stroke-width="2" />
+                <text x="260" y="360" font-family="Courier New" font-size="14">REGIONAL  ->  GLOBAL SCOPE</text>
+                <text x="18" y="250" font-family="Courier New" font-size="14" transform="rotate(-90 18 250)">PATTERN-ASSISTED  ->  ABSOLUTE ANCHOR</text>
+                <circle cx="438" cy="92" r="13" fill="#080808" /><text x="458" y="98" font-family="Courier New" font-size="16">alpfe</text>
+                <circle cx="405" cy="138" r="13" fill="#080808" /><text x="425" y="144" font-family="Courier New" font-size="16">R_PICPOC</text>
+                <circle cx="185" cy="227" r="12" fill="#fff" stroke="#080808" stroke-width="3" /><text x="205" y="233" font-family="Courier New" font-size="16">scav_rat / SO</text>
+                <circle cx="160" cy="275" r="12" fill="#fff" stroke="#080808" stroke-width="3" /><text x="180" y="281" font-family="Courier New" font-size="16">diatomgraz / EqPac</text>
+                <text x="352" y="275" font-family="Courier New" font-size="15" fill="#606060">growth pair</text>
+                <line x1="350" y1="284" x2="490" y2="284" stroke="#606060" stroke-width="2" stroke-dasharray="8 6" />
+                <text x="352" y="306" font-family="Times New Roman" font-size="16" fill="#606060">excluded under time mean</text>
+              </svg>
+            </figure>
+            <div>
+              <table class="parameter-table" aria-label="Parameter disposition table">
+                <thead><tr><th>parameter</th><th>honest class</th><th>load-bearing information</th></tr></thead>
+                <tbody>
+                  <tr><td>alpfe</td><td>global control</td><td>absolute iron source/inventory</td></tr>
+                  <tr><td>R_PICPOC</td><td>global recovery</td><td>real Daniels calcite anchor</td></tr>
+                  <tr><td>scav_rat</td><td>regional / SO</td><td>vertical dissolved-iron structure</td></tr>
+                  <tr><td>diatomgraz</td><td>regional / EqPac</td><td>regional community + environment</td></tr>
+                  <tr><td>growth pair</td><td>excluded</td><td>time mean lacks group production signal</td></tr>
+                </tbody>
+              </table>
+              <p class="quote">The result is a map from observation design to parameter directions, not one recovery percentage.</p>
+            </div>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">STATUS.md + map-checked parameter findings / no &ldquo;3-of-4 frontier&rdquo;</span><span class="folio">05 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-6" data-title="Global anchors">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / global parameters</p><span class="cut">Anchored results</span></header>
+        <div class="slide-body">
+          <p class="section-label">05 / What absolute anchors buy</p>
+          <h2>Two global recoveries, for two different physical reasons.</h2>
+          <div class="segments two">
+            <section class="segment emphasis">
+              <span class="number">alpfe</span>
+              <h3>A source-magnitude control</h3>
+              <p>Real dissolved iron and the dust prior directly constrain a global input scale. Recovery is near-saturated across basins and methods.</p>
+              <p class="quiet"><strong>Boundary:</strong> Carroll lies near the supplied upper bound. Bound geometry is not accuracy or a confidence interval.</p>
+            </section>
+            <section class="segment emphasis">
+              <span class="number">50 -> 6</span>
+              <h3>`R_PICPOC` with and without Daniels</h3>
+              <p>At 2,000 epochs, the real CP:PP anchor gives 50/50; the matched anchor-off control gives 6/50. The causal lever is the observation.</p>
+              <p class="quiet"><strong>Boundary:</strong> Daniels covers two AOIs and the ocean rain ratio is regional. This is not validation of a universal `0.04245`.</p>
+            </section>
+          </div>
+          <figure class="diagram" style="margin-top:1.2cqw">
+            <figcaption class="figure-label">Fig. 4 / absolute anchors remove scale symmetries</figcaption>
+            <svg viewBox="0 0 1080 170" role="img" aria-label="Z-scored patterns leave scale symmetry and absolute anchors break it">
+              <defs><marker id="a6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#080808" /></marker></defs>
+              <text x="28" y="50" font-family="Courier New" font-size="17">z-scored spatial pattern</text>
+              <path d="M40 100 C160 40, 280 160, 400 100" fill="none" stroke="#606060" stroke-width="4" />
+              <text x="135" y="145" font-family="Times New Roman" font-size="18">many amplitudes, same shape</text>
+              <line x1="430" y1="96" x2="610" y2="96" stroke="#080808" stroke-width="3" marker-end="url(#a6)" />
+              <text x="450" y="75" font-family="Courier New" font-size="14">real absolute anchor</text>
+              <path d="M650 100 C770 40, 890 160, 1010 100" fill="none" stroke="#080808" stroke-width="4" />
+              <circle cx="827" cy="113" r="8" fill="#080808" />
+              <text x="765" y="145" font-family="Times New Roman" font-size="18">scale selected</text>
+            </svg>
+          </figure>
+        </div>
+        <footer class="slide-footer"><span class="source">2026-07-21_joint_number_reconciliation.md / epoch-matched anchor-off control</span><span class="folio">06 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-7" data-title="Iron source-sink geometry">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / `scav_rat`</p><span class="cut">Regional + depth-structured</span></header>
+        <div class="slide-body">
+          <p class="section-label">06 / Surface concentration is a ridge</p>
+          <h2>Depth can rotate source-sink geometry; coverage count cannot predict recovery.</h2>
+          <div class="split-visual">
+            <figure class="diagram">
+              <figcaption class="figure-label">Fig. 5 / iron-pair conditional geometry</figcaption>
+              <svg viewBox="0 0 600 380" role="img" aria-label="Surface iron gives a long ridge and Southern Ocean depth iron gives a compact ellipse">
+                <line x1="65" y1="320" x2="565" y2="320" stroke="#080808" stroke-width="2" />
+                <line x1="65" y1="320" x2="65" y2="35" stroke="#080808" stroke-width="2" />
+                <text x="282" y="360" font-family="Courier New" font-size="15">alpfe</text>
+                <text x="20" y="210" font-family="Courier New" font-size="15" transform="rotate(-90 20 210)">scav_rat</text>
+                <ellipse cx="285" cy="190" rx="225" ry="32" transform="rotate(43 285 190)" fill="none" stroke="#606060" stroke-width="4" />
+                <text x="330" y="86" font-family="Courier New" font-size="15" fill="#606060">surface dFe: corr +0.999</text>
+                <ellipse cx="360" cy="175" rx="64" ry="45" transform="rotate(-12 360 175)" fill="none" stroke="#080808" stroke-width="5" />
+                <text x="375" y="245" font-family="Courier New" font-size="15">S. Ocean surface + depth: corr -0.155</text>
+                <circle cx="360" cy="175" r="6" fill="#080808" />
+              </svg>
+            </figure>
+            <div class="segments two">
+              <section class="segment emphasis"><span class="number">49 / 50</span><h3>Southern Ocean, geometric pooler</h3><p>The one basin where `scav_rat` is established. It remains one unreplicated result; the apparent duplicate was bitwise identical.</p></section>
+              <section class="segment"><span class="number">2 / 50</span><h3>Kerguelen transfer test</h3><p>More iron coverage in a second transfer basin does not reproduce the result. Kerguelen is naturally iron-fertilised, not a matched regime replicate.</p></section>
+              <section class="segment"><span class="number">2.2</span><h3>Southern Ocean Fisher condition</h3><p>Surface + subsurface iron rotates the local two-parameter geometry. Conditioning alone did not guarantee recovery elsewhere.</p></section>
+              <section class="segment"><h3>Observing-system implication</h3><p>Test depth profiles or a direct sink/export-flux anchor. Do not spend epochs on a surface-only null direction.</p></section>
+            </div>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">2026-08-04_pooler_audit... / 2026-08-06_scav_rat_does_not_transfer...</span><span class="folio">07 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-8" data-title="Regional grazing signal">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / `diatomgraz`</p><span class="cut">Out-of-sample replicated</span></header>
+        <div class="slide-body">
+          <p class="section-label">07 / One parameter, opposite regional outcomes</p>
+          <h2>The equatorial-Pacific signal survives the strict band and a fresh job.</h2>
+          <div class="split-visual">
+            <figure class="diagram">
+              <figcaption class="figure-label">Fig. 6 / strict `<=0.10` regional grading</figcaption>
+              <svg viewBox="0 0 600 370" role="img" aria-label="Diatom grazing recovers in EqPac and is anti-recovered in other basins">
+                <line x1="85" y1="310" x2="550" y2="310" stroke="#080808" stroke-width="2" />
+                <line x1="115" y1="310" x2="115" y2="68" stroke="#080808" stroke-width="12" />
+                <line x1="295" y1="310" x2="295" y2="250" stroke="#a9a9a9" stroke-width="12" />
+                <line x1="475" y1="310" x2="475" y2="268" stroke="#a9a9a9" stroke-width="12" />
+                <text x="83" y="342" font-family="Courier New" font-size="16">EqPac</text>
+                <text x="252" y="342" font-family="Courier New" font-size="16">N Atlantic</text>
+                <text x="432" y="342" font-family="Courier New" font-size="16">S Ocean</text>
+                <text x="83" y="50" font-family="Courier New" font-size="19" font-weight="700">18 / 50</text>
+                <text x="237" y="225" font-family="Times New Roman" font-size="17">training moves away</text>
+                <text x="405" y="244" font-family="Times New Roman" font-size="17">training moves away</text>
+                <line x1="70" y1="310" x2="165" y2="310" stroke="#080808" stroke-width="3" />
+                <text x="67" y="292" font-family="Courier New" font-size="14">null 0 / 50</text>
+              </svg>
+            </figure>
+            <div class="segments two">
+              <section class="segment emphasis"><h3>Fresh submission</h3><p>Job 270032 is disjoint from the width arms: 18/50 arithmetic, geometric, and median at the 200-step window.</p></section>
+              <section class="segment"><h3>Strict falsifier</h3><p>The architecture-matched null is 0/50 under all three poolers at `<=0.10`.</p></section>
+              <section class="segment"><h3>Regional, not global</h3><p>The other basins are anti-recovery. A 0.40 aggregate hid both the positive and negative structure.</p></section>
+              <section class="segment"><h3>Why it matters</h3><p>This is the better-supported regional parameter result because it clears genuine out-of-sample replication.</p></section>
+            </div>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">2026-08-05_the_integration_window_is_a_contested_resource.md</span><span class="folio">08 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-9" data-title="Growth pair">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / growth pair</p><span class="cut">Excluded, not failed</span></header>
+        <div class="slide-body">
+          <p class="section-label">08 / Time averaging removes a direction</p>
+          <h2>`Smallgrow` and `Biggrow` do not belong in a six-parameter score.</h2>
+          <div class="segments three">
+            <section class="segment emphasis"><h3>Current design</h3><p>A 23-year climatological mean has no group-resolved production observable. Multiple growth pairs map to the same aggregate state.</p></section>
+            <section class="segment"><span class="number">9 / 10</span><h3>`Smallgrow` seasonal clue</h3><p>A North Atlantic seasonal prototype recovers it, but the result is unconfirmed and uses a simplified construction.</p></section>
+            <section class="segment"><span class="number">0 / N</span><h3>`Biggrow`</h3><p>Still unobservable in synthetic, real, and seasonal tests. It remains excluded by construction.</p></section>
+          </div>
+          <figure class="diagram" style="margin-top:1.35cqw">
+            <figcaption class="figure-label">Fig. 7 / averaging erases phase-specific growth information</figcaption>
+            <svg viewBox="0 0 1080 205" role="img" aria-label="Two seasonal curves with different growth rates have the same time mean">
+              <path d="M30 105 C90 20,150 20,210 105 S330 190,390 105 S510 20,570 105" fill="none" stroke="#080808" stroke-width="4" />
+              <path d="M30 105 C70 55,110 155,150 105 S230 55,270 105 S350 155,390 105 S470 55,510 105 S550 155,590 105" fill="none" stroke="#777" stroke-width="4" stroke-dasharray="10 7" />
+              <line x1="30" y1="105" x2="590" y2="105" stroke="#080808" stroke-width="1" />
+              <text x="160" y="190" font-family="Courier New" font-size="15">different seasonal dynamics / same mean</text>
+              <line x1="640" y1="105" x2="1015" y2="105" stroke="#080808" stroke-width="5" />
+              <text x="690" y="82" font-family="Times New Roman" font-size="22">time-mean target</text>
+              <text x="690" y="140" font-family="Courier New" font-size="15">phase information removed</text>
+            </svg>
+          </figure>
+        </div>
+        <footer class="slide-footer"><span class="source">Precise label: practical non-identifiability under the current design</span><span class="folio">09 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-10" data-title="Seasonal self-twin">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / seasonal self-twin</p><span class="cut">A correct negative</span></header>
+        <div class="slide-body">
+          <p class="section-label">09 / Validate, diagnose, stop</p>
+          <h2>The twin machinery works. The reduced seasonal target does not.</h2>
+          <div class="pipeline">
+            <section class="pipeline-step"><b>Matched constant twin</b><p>`scav_rat` 50/50/50 at `<=0.20` versus 0/0/0 nulls in verified EqPac and North Atlantic.</p></section>
+            <section class="pipeline-step"><b>Long constant target</b><p>0/0/0 at every tested band under both losses. Quasi-steady DFe contrast was erased.</p></section>
+            <section class="pipeline-step"><b>Seasonal Stage 0</b><p>T/S/wind, chemical restoring, astronomical light, and explicit grazers each fail a frozen target gate.</p></section>
+            <section class="pipeline-step"><b>Decision</b><p>`stage0-failed-stop`: no optimizer, no recovery array, no B200.</p></section>
+          </div>
+          <div class="segments two" style="margin-top:1.35cqw">
+            <section class="segment emphasis"><h3>What is settled</h3><p>The tested reduced-box target constructions are invalid deciders. Continuity removes North Atlantic's tiny frozen-path teleport knife edge.</p></section>
+            <section class="segment"><h3>What remains open</h3><p>The constant twin does not choose endpoint versus time mean for Darwin. Real transport may alter prey, import material, and couple depth.</p></section>
+          </div>
+          <p class="quote">A failed target gate is a result when it prevents an uninterpretable factorial.</p>
+        </div>
+        <footer class="slide-footer"><span class="source">2026-08-09_constant_forcing... + 2026-08-10_literal_source_floor...</span><span class="folio">10 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-11" data-title="B200 contribution">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / B200</p><span class="cut">Compute is a means</span></header>
+        <div class="slide-body">
+          <p class="section-label">10 / What the B200 actually contributed</p>
+          <h2>Throughput made decisive controls cheap. It did not create information.</h2>
+          <div class="segments three">
+            <section class="segment emphasis"><span class="number">0 / 10 = 0 / 10</span><h3>Dust-anchor A/B</h3><p>On B200, adding a source-side dust anchor did not move sink-rate `scav_rat`; medians were effectively identical.</p></section>
+            <section class="segment"><span class="number">~19 min</span><h3>Global emulator</h3><p>A 680x1441 monthly neural-operator run demonstrated real-scale throughput. Stronger baselines later deflated its scientific headline.</p></section>
+            <section class="segment"><span class="number">0 new jobs</span><h3>Aug. 9-11 closeout</h3><p>The newest target failed before fitting. Not using B200 was the correct scientific and computational choice.</p></section>
+          </div>
+          <figure class="diagram" style="margin-top:1.4cqw">
+            <figcaption class="figure-label">Fig. 8 / compute changes sample size, not observational rank</figcaption>
+            <svg viewBox="0 0 1080 180" role="img" aria-label="More GPU throughput increases samples along the same null ridge">
+              <path d="M35 140 C230 20,420 20,615 140" fill="none" stroke="#606060" stroke-width="5" />
+              <circle cx="105" cy="103" r="7" fill="#080808" /><circle cx="165" cy="70" r="7" fill="#080808" /><circle cx="235" cy="47" r="7" fill="#080808" /><circle cx="310" cy="39" r="7" fill="#080808" /><circle cx="390" cy="50" r="7" fill="#080808" /><circle cx="470" cy="79" r="7" fill="#080808" /><circle cx="545" cy="116" r="7" fill="#080808" />
+              <text x="80" y="165" font-family="Courier New" font-size="15">more seeds along the same ridge</text>
+              <line x1="650" y1="90" x2="1030" y2="90" stroke="#080808" stroke-width="4" />
+              <text x="705" y="65" font-family="Times New Roman" font-size="21">new observable rotates the ridge</text>
+              <text x="705" y="125" font-family="Courier New" font-size="15">rank changes only when information changes</text>
+            </svg>
+          </figure>
+        </div>
+        <footer class="slide-footer"><span class="source">B200 job 177483 / verified n=10 dust-anchor null</span><span class="folio">11 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-12" data-title="Emulator result">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / Track 2 emulator</p><span class="cut">Corrected benchmark</span></header>
+        <div class="slide-body">
+          <p class="section-label">11 / Engineering win, scientific negative</p>
+          <h2>Physical validity improved. Incremental forecast information did not.</h2>
+          <div class="split-visual">
+            <div>
+              <div class="benchmark-line" aria-label="Emulator skill point estimates and seed spread">
+                <span class="benchmark-zero">0 / no incremental skill</span>
+                <div class="benchmark-row">
+                  <span class="benchmark-label">vs seasonal AR(1)</span>
+                  <span class="benchmark-whisker" style="--x1:19%;--x2:27%"></span>
+                  <span class="benchmark-point" style="--x:23%"></span>
+                  <span class="benchmark-value" style="--x:23%">-0.161 +/- 0.015</span>
+                </div>
+                <div class="benchmark-row">
+                  <span class="benchmark-label">vs persistence</span>
+                  <span class="benchmark-whisker" style="--x1:69%;--x2:76%"></span>
+                  <span class="benchmark-point" style="--x:72.5%"></span>
+                  <span class="benchmark-value" style="--x:72.5%">+0.055 +/- 0.013</span>
+                </div>
+              </div>
+              <p class="diagram-note">Whiskers show cross-seed spread, not inferential CIs. Every AR(1) block-bootstrap CI is below zero; every persistence CI crosses zero.</p>
+            </div>
+            <div class="segments two">
+              <section class="segment emphasis"><span class="number">0%</span><h3>negative concentrations</h3><p>Log-space training restored physical state validity and oligotrophic dynamic range.</p></section>
+              <section class="segment"><span class="number">7.45 ms</span><h3>global inference step</h3><p>The implementation is fast enough for research iteration.</p></section>
+              <section class="segment"><span class="number">1 step</span><h3>useful horizon</h3><p>Physical output and speed do not imply durable forecasts.</p></section>
+              <section class="segment"><h3>Product decision</h3><p>Do not ship the emulator as a forecast tool. Ship the evidence navigator.</p></section>
+            </div>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">2026-07-23_emulator_multiseed.md / four training seeds</span><span class="folio">12 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-13" data-title="Corrections">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / corrections</p><span class="cut">Trust contribution</span></header>
+        <div class="slide-body">
+          <p class="section-label">12 / The claims became narrower and stronger</p>
+          <h2>Retraction and correction were part of the research, not cleanup after it.</h2>
+          <div class="segments three">
+            <section class="segment emphasis"><h3>Pooling</h3><p>Arithmetic collapse manufactured or destroyed `scav_rat` passes. Geometric is now required.</p></section>
+            <section class="segment"><h3>Thresholds</h3><p>The 0.40 aggregate hid strict-band `diatomgraz` signal and anti-recovery.</p></section>
+            <section class="segment"><h3>Replication</h3><p>Splitting one array was shown not to be out-of-sample evidence.</p></section>
+            <section class="segment"><h3>Emulator baseline</h3><p>Weak persistence/climatology wins were retired against seasonal AR(1).</p></section>
+            <section class="segment"><h3>Coverage</h3><p>Expected zero Daniels/POSi coverage is now distinguished from staging failure.</p></section>
+            <section class="segment"><h3>Source conformance</h3><p>The omitted prey floor was corrected before optimization; the Stage-0 stop survived.</p></section>
+          </div>
+          <p class="quote">The final contribution is credible because attractive stories were allowed to fail.</p>
+        </div>
+        <footer class="slide-footer"><span class="source">SUPERSEDES relation + verifier tests + independent receipts</span><span class="folio">13 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-14" data-title="Evidence Navigator">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / useful prototype</p><span class="cut">Accurate enough to use</span></header>
+        <div class="slide-body">
+          <p class="section-label">13 / Productize the trustworthy layer</p>
+          <h2>The Evidence Navigator answers &ldquo;what can I cite?&rdquo;</h2>
+          <div class="split-visual">
+            <div>
+              <div class="product-search">search: scav_rat vertical iron <span style="float:right">relation: all / safe source: yes</span></div>
+              <div class="product-result"><b>settled</b><p>Subsurface dissolved iron rotates the iron-pair geometry and is the leading information source for `scav_rat`.</p></div>
+              <div class="product-result"><b>live-bounded</b><p>The Southern Ocean signal is regional, geometric-pooler dependent, and not independently replicated.</p></div>
+              <div class="product-result"><b>trap</b><p>Do not turn one basin's result into global identifiability or treat absent pooling keys as invariance.</p></div>
+            </div>
+            <div class="segments two">
+              <section class="segment emphasis"><span class="number">1.04 MB</span><h3>self-contained</h3><p>Runs locally with no external service, package, or network dependency.</p></section>
+              <section class="segment"><span class="number">SHA-256</span><h3>source bound</h3><p>Generated from the relational JSON mirror and records its exact source digest.</p></section>
+              <section class="segment"><h3>Scientist-facing</h3><p>Search settled answers, live claims, active falsifiers, and interpretation traps by parameter.</p></section>
+              <section class="segment"><h3>Honest boundary</h3><p>Decision support for evidence and experiment design, not ocean prediction.</p></section>
+            </div>
+          </div>
+          <p class="diagram-note"><code>docs/tools/darwindiff_evidence_navigator.html</code></p>
+        </div>
+        <footer class="slide-footer"><span class="source">Generated from docs/research_map.json / 8 constraints passing</span><span class="folio">14 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-15" data-title="Scientific contribution">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / contribution hierarchy</p><span class="cut">What matters</span></header>
+        <div class="slide-body">
+          <p class="section-label">14 / The summer's durable contribution</p>
+          <h2>An observing-system design result, expressed through differentiable modeling.</h2>
+          <div class="segments two">
+            <section class="segment emphasis"><h3>1 / Absolute anchors remove scale ambiguity</h3><p>`R_PICPOC` succeeds because an external calcite anchor reaches it; a dust source anchor cannot identify an iron sink rate.</p></section>
+            <section class="segment"><h3>2 / Vertical structure can separate source from sink</h3><p>Depth-resolved iron changes local Fisher rank; conditioning is not itself recovery.</p></section>
+            <section class="segment"><h3>3 / Regions expose different process parameters</h3><p>`scav_rat` and `diatomgraz` are identifiable in different basins and fail to globalize.</p></section>
+            <section class="segment"><h3>4 / Current time-mean targets lack growth information</h3><p>Seasonality may recover one growth direction that this climatological design cannot see.</p></section>
+            <section class="segment"><h3>5 / Compute moves practical boundaries</h3><p>Epochs and throughput can improve optimization, but cannot repair absent observations or a failed target.</p></section>
+            <section class="segment"><h3>6 / Evidence control is part of the method</h3><p>Poolers, matched nulls, supersessions, and falsifiers determine what a recovery count means.</p></section>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">Paper frame: surrogate-to-model identifiability + observing-system recommendations</span><span class="folio">15 / 16</span></footer>
+      </section>
+
+      <section class="slide" id="slide-16" data-title="Close">
+        <header class="slide-header"><p class="running">ECCO-DarwinDiff / close</p><span class="cut">Summer 2026</span></header>
+        <div class="slide-body" style="display:grid;align-content:center">
+          <p class="section-label">15 / The sentence to leave with</p>
+          <h2 style="max-width:88%;font-size:clamp(32px,4.2cqw,80px);line-height:1.03">ECCO-DarwinDiff did not produce one universal parameter score.</h2>
+          <p class="quote" style="max-width:88%">It produced a tested map of which observations identify which biogeochemical processes, where that identification holds, and where the honest answer is to stop.</p>
+          <div class="segments three" style="margin-top:1.45cqw">
+            <section class="segment"><h3>Next observation</h3><p>Depth-resolved dissolved iron or a true scavenging/export-flux anchor.</p></section>
+            <section class="segment"><h3>Next model</h3><p>Transported seasonal target only after the horizontal-diffusivity configuration is repaired.</p></section>
+            <section class="segment emphasis"><h3>Next product</h3><p>Use and refine the Evidence Navigator; do not market the current emulator as forecast skill.</p></section>
+          </div>
+        </div>
+        <footer class="slide-footer"><span class="source">End / questions</span><span class="folio">16 / 16</span></footer>
+      </section>
+    </main>
+
+    <nav class="deck-ui" aria-label="Slide navigation">
+      <button type="button" id="prev" aria-label="Previous slide">&larr;</button>
+      <span class="counter" id="counter" aria-live="off">1 / 16</span>
+      <button type="button" id="next" aria-label="Next slide">&rarr;</button>
+      <button type="button" id="fullscreen" aria-label="Toggle full screen">[]</button>
+    </nav>
+    <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+  </div>
+
+  <script>
+    (() => {
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const prev = document.getElementById("prev");
+      const next = document.getElementById("next");
+      const fullscreen = document.getElementById("fullscreen");
+      const counter = document.getElementById("counter");
+      const progress = document.getElementById("progress");
+      const shell = document.querySelector(".deck-shell");
+      let current = 0;
+
+      const fromHash = () => {
+        const match = window.location.hash.match(/^#slide-(\d+)$/);
+        if (!match) return 0;
+        return Math.max(0, Math.min(slides.length - 1, Number(match[1]) - 1));
+      };
+
+      const show = (index, updateHash = true) => {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+        prev.disabled = current === 0;
+        next.disabled = current === slides.length - 1;
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        document.title = `${slides[current].dataset.title} | ECCO-DarwinDiff Summer Closeout`;
+        if (updateHash) history.replaceState(null, "", `#slide-${current + 1}`);
+      };
+
+      prev.addEventListener("click", () => show(current - 1));
+      next.addEventListener("click", () => show(current + 1));
+      fullscreen.addEventListener("click", async () => {
+        if (!document.fullscreenElement) await shell.requestFullscreen?.();
+        else await document.exitFullscreen?.();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); show(current + 1); }
+        if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); show(current - 1); }
+        if (event.key === "Home") show(0);
+        if (event.key === "End") show(slides.length - 1);
+        if (event.key.toLowerCase() === "f") fullscreen.click();
+      });
+      window.addEventListener("hashchange", () => show(fromHash(), false));
+      show(fromHash(), false);
+    })();
+  </script>
+</body>
+</html>

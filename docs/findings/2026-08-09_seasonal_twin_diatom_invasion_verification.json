@@ -1,0 +1,22 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "raw_tensor_cells": 549696,
+  "maximum_log1p_inequality_violation": 7.80448317527771e-07,
+  "decision": {
+    "branch": "spatial-or-mixed-viability",
+    "qualifying_aois": [],
+    "structural_cells": [
+      "eqpac",
+      "natlsubpolar"
+    ],
+    "light_specific_aois": [
+      "southernoceanpac"
+    ],
+    "b200_authorized": false
+  },
+  "report": "docs/findings/2026-08-09_seasonal_twin_diatom_invasion.json",
+  "report_sha256": "118f68d81d5eb13d1bb560e43f240c3e3b64cad5143b687bd121562afd8be56f",
+  "bundle": "docs/findings/2026-08-09_seasonal_twin_diatom_invasion.pt.gz",
+  "bundle_sha256": "0773b5c6041444ec37a501dfea8b3d65ac5aa41a2ebc34cbf5f3f001ed75f224"
+}

@@ -1,0 +1,187 @@
+{
+  "aois": {
+    "eqpac": {
+      "elapsed_seconds": 9.0276431000093,
+      "summary": {
+        "finite": true,
+        "log_ratio_discrepancy_atol": 0.0005,
+        "maximum_log_ratio_discrepancy": 4.701941089289792e-06,
+        "pass": true,
+        "predators": {
+          "z_large": {
+            "annual_log_multiplier_max": -1.1405375003814697,
+            "annual_log_multiplier_median": -1.5253623723983765,
+            "annual_log_multiplier_min": -2.5039896965026855,
+            "annual_multiplier_max": 0.3196471651607229,
+            "annual_multiplier_median": 0.21754221128751275,
+            "annual_multiplier_min": 0.08175815682530324,
+            "classification": "uniformly-excluded",
+            "end_inventory": 7.2109567062292905e-06,
+            "inventory_retention": 0.2822323802620026,
+            "maximum_log_ratio_discrepancy": 4.5545182669748385e-06,
+            "minimum_euler_factor": 0.9975503087043762,
+            "positive_rate_step_fraction": 0.0,
+            "start_inventory": 2.554971438619197e-05
+          },
+          "z_small": {
+            "annual_log_multiplier_max": 3.907829523086548e-06,
+            "annual_log_multiplier_median": -1.4901161193847656e-07,
+            "annual_log_multiplier_min": -4.6193599700927734e-06,
+            "annual_multiplier_max": 1.0000039078371588,
+            "annual_multiplier_median": 0.9999998509883992,
+            "annual_multiplier_min": 0.9999953806506992,
+            "classification": "mixed-or-near-neutral",
+            "end_inventory": 3456.0136659145355,
+            "inventory_retention": 1.0000000026904767,
+            "maximum_log_ratio_discrepancy": 4.701941089289792e-06,
+            "minimum_euler_factor": 0.9982191920280457,
+            "positive_rate_step_fraction": 0.529865224778436,
+            "start_inventory": 3456.013656616211
+          }
+        },
+        "strictly_positive_endpoint_biomass": true,
+        "strictly_positive_euler_factors": true
+      }
+    },
+    "natlsubpolar": {
+      "elapsed_seconds": 7.290176199996495,
+      "summary": {
+        "finite": true,
+        "log_ratio_discrepancy_atol": 0.0005,
+        "maximum_log_ratio_discrepancy": 4.948117086289727e-06,
+        "pass": true,
+        "predators": {
+          "z_large": {
+            "annual_log_multiplier_max": -1.0448814630508423,
+            "annual_log_multiplier_median": -2.6809563636779785,
+            "annual_log_multiplier_min": -5.287564277648926,
+            "annual_multiplier_max": 0.3517335103242896,
+            "annual_multiplier_median": 0.06849761418901365,
+            "annual_multiplier_min": 0.005054055555729217,
+            "classification": "uniformly-excluded",
+            "end_inventory": 1.656153334979974e-06,
+            "inventory_retention": 0.3217728053204086,
+            "maximum_log_ratio_discrepancy": 4.948117086289727e-06,
+            "minimum_euler_factor": 0.9916930794715881,
+            "positive_rate_step_fraction": 0.43824242627420745,
+            "start_inventory": 5.146964900687745e-06
+          },
+          "z_small": {
+            "annual_log_multiplier_max": 4.291534423828125e-06,
+            "annual_log_multiplier_median": -3.5762786865234375e-07,
+            "annual_log_multiplier_min": -1.3595914840698242,
+            "annual_multiplier_max": 1.0000042915436325,
+            "annual_multiplier_median": 0.9999996423721953,
+            "annual_multiplier_min": 0.2567656483889602,
+            "classification": "mixed-or-near-neutral",
+            "end_inventory": 239.04377220469752,
+            "inventory_retention": 0.9999736693002165,
+            "maximum_log_ratio_discrepancy": 4.351139068603516e-06,
+            "minimum_euler_factor": 0.9916916489601135,
+            "positive_rate_step_fraction": 0.5113829383038877,
+            "start_inventory": 239.05006656023335
+          }
+        },
+        "strictly_positive_endpoint_biomass": true,
+        "strictly_positive_euler_factors": true
+      }
+    },
+    "southernoceanpac": {
+      "elapsed_seconds": 7.47892709998996,
+      "summary": {
+        "finite": true,
+        "log_ratio_discrepancy_atol": 0.0005,
+        "maximum_log_ratio_discrepancy": 5.99749278626949e-06,
+        "pass": true,
+        "predators": {
+          "z_large": {
+            "annual_log_multiplier_max": -0.6307791471481323,
+            "annual_log_multiplier_median": -2.690897226333618,
+            "annual_log_multiplier_min": -4.212645530700684,
+            "annual_multiplier_max": 0.5321769952423729,
+            "annual_multiplier_median": 0.06782006211982705,
+            "annual_multiplier_min": 0.014807143722694096,
+            "classification": "uniformly-excluded",
+            "end_inventory": 0.0008078632511170369,
+            "inventory_retention": 0.4885719757371704,
+            "maximum_log_ratio_discrepancy": 4.8646457568857215e-06,
+            "minimum_euler_factor": 0.9917022585868835,
+            "positive_rate_step_fraction": 0.44787081309451526,
+            "start_inventory": 0.0016535194223903475
+          },
+          "z_small": {
+            "annual_log_multiplier_max": 8.130073547363281e-05,
+            "annual_log_multiplier_median": 5.960464477539063e-08,
+            "annual_log_multiplier_min": -0.012053310871124268,
+            "annual_multiplier_max": 1.000081304040468,
+            "annual_multiplier_median": 1.0000000596046466,
+            "annual_multiplier_min": 0.9880190393022338,
+            "classification": "mixed-or-near-neutral",
+            "end_inventory": 4705.1538099087775,
+            "inventory_retention": 0.9999969215808836,
+            "maximum_log_ratio_discrepancy": 5.99749278626949e-06,
+            "minimum_euler_factor": 0.9917101860046387,
+            "positive_rate_step_fraction": 0.518341955913108,
+            "start_inventory": 4705.168294388801
+          }
+        },
+        "strictly_positive_endpoint_biomass": true,
+        "strictly_positive_euler_factors": true
+      }
+    }
+  },
+  "bundle_artifact": {
+    "bytes": 456263,
+    "path": "docs/findings/2026-08-09_explicit_zooplankton_exclusion_audit.pt.gz",
+    "sha256": "3d6a693a897870790df8db66c2433f33fd6d4f08601c44b1e80ae653f538b999"
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "audit_cycle": 13,
+    "chemical_restoring_tau_days": 365.25,
+    "dt_days": 0.25,
+    "log_ratio_discrepancy_atol": 0.0005,
+    "restoring_indices": [
+      0,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "scenario": "ic_0p10",
+    "source_bundle_sha256": "133c1f9001d5350e1dec7ac5a292c23aca83a76a30f094674103c2fbcfc39721",
+    "source_report_sha256": "2f5f4119c871e476c5e32deeb2280a5ead7c7932e8802cdbd26b306183b8151b",
+    "steps_per_month": 122,
+    "zooplankton_restoring": false
+  },
+  "created_utc": "2026-08-10T02:27:08.945472+00:00",
+  "decision": {
+    "b200_authorized": false,
+    "branch": "endogenous-large-predator-exclusion",
+    "integrity_pass": true,
+    "large_predator_classification_by_aoi": {
+      "eqpac": "uniformly-excluded",
+      "natlsubpolar": "uniformly-excluded",
+      "southernoceanpac": "uniformly-excluded"
+    },
+    "target_rehabilitated": false
+  },
+  "elapsed_seconds": 24.5619003999891,
+  "preregistration": "docs/findings/2026-08-09_prereg_explicit_zooplankton_exclusion_audit.md",
+  "runtime": {
+    "compiled_step": true,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+  },
+  "schema_version": 1,
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

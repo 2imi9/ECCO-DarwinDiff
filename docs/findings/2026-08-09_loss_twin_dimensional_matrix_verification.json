@@ -1,0 +1,18 @@
+{
+  "arms": 15,
+  "grader_job": 320994,
+  "matrix_csv": "docs\\findings\\2026-08-09_loss_twin_dimensional_matrix.csv",
+  "matrix_csv_sha256": "d143c3a3ab9ce374984647abeb925147d443f66bfb7dcf40ed2b1c1711b2d450",
+  "matrix_json": "docs\\findings\\2026-08-09_loss_twin_dimensional_matrix.json",
+  "matrix_json_sha256": "7bd87c20f8e2d698e48e2574d784da79258709663b538bbb3581404a2630a06f",
+  "records": 1080,
+  "replication": "one submission; no replication",
+  "status_counts": {
+    "excluded": 360,
+    "gated": 360,
+    "reported": 360
+  },
+  "submission_job": 320993,
+  "verified": true,
+  "verified_utc": "2026-08-10T00:26:58.833682+00:00"
+}
