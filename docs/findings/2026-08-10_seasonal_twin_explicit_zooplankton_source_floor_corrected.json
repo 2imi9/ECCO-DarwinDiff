@@ -1,0 +1,1237 @@
+{
+  "aois": {
+    "eqpac": {
+      "elapsed_seconds": 253.5308289000095,
+      "gates": {
+        "closure": {
+          "comparison_atol": 1e-06,
+          "failure_states": [],
+          "pass": true,
+          "per_state": {
+            "ALK1": {
+              "closure_abs": 25055.154541015625,
+              "closure_share": 0.49999498669657333,
+              "closure_turnover": 6.939269413773825e-06,
+              "inventory_abs": 3610632913.5,
+              "model_abs": 25055.656982421875,
+              "pass": true,
+              "restored": true
+            },
+            "ALK2": {
+              "closure_abs": 382.798828125,
+              "closure_share": 0.5,
+              "closure_turnover": 1.0230159718514813e-07,
+              "inventory_abs": 3741865607.75,
+              "model_abs": 382.798828125,
+              "pass": true,
+              "restored": true
+            },
+            "Chl1_diatom": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 643742.4689941406,
+              "model_abs": 253.2796975672245,
+              "pass": true,
+              "restored": false
+            },
+            "Chl2_lge": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 635167.209777832,
+              "model_abs": 253.00033152103424,
+              "pass": true,
+              "restored": false
+            },
+            "Chl3_syn": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 612588.8579101562,
+              "model_abs": 483.39517921209335,
+              "pass": true,
+              "restored": false
+            },
+            "Chl4_proll": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 612588.8579101562,
+              "model_abs": 483.39517921209335,
+              "pass": true,
+              "restored": false
+            },
+            "Chl5_prohl": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 612588.8579101562,
+              "model_abs": 483.39517921209335,
+              "pass": true,
+              "restored": false
+            },
+            "DFe1": {
+              "closure_abs": 0.09990292153815972,
+              "closure_share": 0.4320554249922416,
+              "closure_turnover": 0.0006225027786323322,
+              "inventory_abs": 160.4859045892954,
+              "model_abs": 0.13132417517044814,
+              "pass": true,
+              "restored": true
+            },
+            "DFe2": {
+              "closure_abs": 0.46378756858757697,
+              "closure_share": 0.5000000912264668,
+              "closure_turnover": 0.0030419243946831227,
+              "inventory_abs": 152.46518598496914,
+              "model_abs": 0.46378739934880286,
+              "pass": true,
+              "restored": true
+            },
+            "DIC1": {
+              "closure_abs": 361615.98681640625,
+              "closure_share": 0.4999996625157156,
+              "closure_turnover": 0.0001409814633869596,
+              "inventory_abs": 2564989596.0,
+              "model_abs": 361616.47497558594,
+              "pass": true,
+              "restored": true
+            },
+            "DIC2": {
+              "closure_abs": 5315.758544921875,
+              "closure_share": 0.49995140172332037,
+              "closure_turnover": 1.4581429980130468e-06,
+              "inventory_abs": 3645567377.25,
+              "model_abs": 5316.7919921875,
+              "pass": true,
+              "restored": true
+            },
+            "PIC1": {
+              "closure_abs": 325.0190203934908,
+              "closure_share": 0.440259262716745,
+              "closure_turnover": 0.0006658481957290668,
+              "inventory_abs": 488127.80822753906,
+              "model_abs": 413.2255730032921,
+              "pass": true,
+              "restored": true
+            },
+            "PIC2": {
+              "closure_abs": 9.182399027049541,
+              "closure_share": 0.4298022285596433,
+              "closure_turnover": 0.0005341470965588166,
+              "inventory_abs": 17190.768397331238,
+              "model_abs": 12.181843447498977,
+              "pass": true,
+              "restored": true
+            },
+            "POC1": {
+              "closure_abs": 7560.425620555878,
+              "closure_share": 0.44898125200397787,
+              "closure_turnover": 0.000657272178083628,
+              "inventory_abs": 11502731.85546875,
+              "model_abs": 9278.641905784607,
+              "pass": true,
+              "restored": true
+            },
+            "POC2": {
+              "closure_abs": 211.74539731442928,
+              "closure_share": 0.4309561146848462,
+              "closure_turnover": 0.0005188484035595941,
+              "inventory_abs": 408106.4832458496,
+              "model_abs": 279.59325666725636,
+              "pass": true,
+              "restored": true
+            },
+            "Z_large": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 0.07790309577286084,
+              "model_abs": 6.560992716268322e-05,
+              "pass": true,
+              "restored": false
+            },
+            "Z_small": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 5644095.113525391,
+              "model_abs": 1887.315370798111,
+              "pass": true,
+              "restored": false
+            }
+          },
+          "share_threshold": 0.5,
+          "turnover_threshold": 1.0
+        },
+        "dfe": {
+          "pass": true,
+          "previous_relative_spatial_sd": 0.06294026187320434,
+          "relative_spatial_sd": 0.06294026588874783,
+          "relative_spatial_sd_change": 6.379928165899709e-08,
+          "relative_spatial_sd_change_threshold": 0.05,
+          "relative_spatial_sd_minimum": 0.0423
+        },
+        "initial_condition_robustness": {
+          "failure_flanks": [
+            "ic_0p01",
+            "ic_0p50"
+          ],
+          "pass": false,
+          "per_flank": {
+            "ic_0p01": {
+              "maximum_relative_l2": 0.7380105871999405,
+              "pass": false,
+              "per_plankton_relative_l2": {
+                "diatom": 3.863165869634515e-08,
+                "lge": 4.1529707958399355e-08,
+                "proHL": 4.182577223149917e-08,
+                "proLL": 4.182577223149917e-08,
+                "syn": 4.182577223149917e-08,
+                "z_large": 0.7380105871999405,
+                "z_small": 3.88292135302255e-08
+              }
+            },
+            "ic_0p50": {
+              "maximum_relative_l2": 0.8440614694269131,
+              "pass": false,
+              "per_plankton_relative_l2": {
+                "diatom": 3.824852534059699e-08,
+                "lge": 3.863595749532464e-08,
+                "proHL": 4.713870922259003e-08,
+                "proLL": 4.713870922259003e-08,
+                "syn": 4.713870922259003e-08,
+                "z_large": 0.8440614694269131,
+                "z_small": 4.359870056892887e-08
+              }
+            }
+          },
+          "threshold": 0.05
+        },
+        "light": {
+          "failure_reasons": [],
+          "finite": true,
+          "max_abs_per_cell_mean_error": 1.1920928955078125e-07,
+          "maximum": 1.134128212928772,
+          "minimum": 0.7868834137916565,
+          "nonnegative": true,
+          "pass": true,
+          "per_cell_mean_one": true,
+          "per_cell_mean_tolerance": 1e-06
+        },
+        "numerical": {
+          "clamp_burden": 0.0,
+          "clamp_burden_threshold": 0.01,
+          "clamp_correction": 0.0,
+          "finite": true,
+          "gross_biology": 684325.7394110283,
+          "pass": true,
+          "raw_negative_event_fraction": 0.0,
+          "raw_negative_event_fraction_threshold": 0.001,
+          "raw_negative_events": 0,
+          "state_update_count": 10975608
+        },
+        "stability": {
+          "maximum_relative_l2": 0.706114195182661,
+          "pass": false,
+          "per_field_relative_l2": {
+            "ALK1": 7.269081912138659e-07,
+            "Chl1_diatom": 7.083241073560605e-08,
+            "Chl2_lge": 7.582252845182656e-08,
+            "Chl3_syn": 5.391292844531657e-08,
+            "Chl4_proll": 5.391292844531657e-08,
+            "Chl5_prohl": 5.391292844531657e-08,
+            "DFe1": 4.853922138886503e-08,
+            "DFe2": 4.157828879912973e-08,
+            "DIC1": 5.839697795305816e-07,
+            "PIC1": 5.625393143469475e-08,
+            "POC1": 4.8288471250440686e-08,
+            "Z_large": 0.706114195182661,
+            "Z_small": 5.245924230242545e-08
+          },
+          "threshold": 0.01
+        },
+        "viability": {
+          "dominance": {
+            "diatom": 0.07348011238595457,
+            "lge": 0.07250128732121253,
+            "proHL": 0.06992407670119825,
+            "proLL": 0.06992407670119825,
+            "syn": 0.06992407670119825,
+            "z_large": 8.884775355520559e-09,
+            "z_small": 0.6442463613044628
+          },
+          "dominance_pass": true,
+          "dominance_threshold": 0.95,
+          "dominant_plankton": "z_small",
+          "failure_reasons": [
+            "z_large:retention",
+            "diatom:seasonality"
+          ],
+          "maximum_dominance": 0.6442463613044628,
+          "minimum_monthly_diatom_aoi_mean": 0.38254553686225673,
+          "monthly_diatom_cv": 0.03420400108097844,
+          "monthly_diatom_cv_threshold": 0.05,
+          "monthly_diatom_positive": true,
+          "pass": false,
+          "per_plankton": {
+            "diatom": {
+              "cycle12_inventory": 439.71479001641273,
+              "initial_inventory": 428.40000638365746,
+              "pass": true,
+              "retention": 1.026411726106797,
+              "retention_threshold": 0.01
+            },
+            "lge": {
+              "cycle12_inventory": 433.85737031698227,
+              "initial_inventory": 321.3000127673149,
+              "pass": true,
+              "retention": 1.350318559218923,
+              "retention_threshold": 0.01
+            },
+            "proHL": {
+              "cycle12_inventory": 418.43499833345413,
+              "initial_inventory": 696.1499744653702,
+              "pass": true,
+              "retention": 0.6010701913115837,
+              "retention_threshold": 0.01
+            },
+            "proLL": {
+              "cycle12_inventory": 418.43499833345413,
+              "initial_inventory": 1.0710000508697703,
+              "pass": true,
+              "retention": 390.69559146485443,
+              "retention_threshold": 0.01
+            },
+            "syn": {
+              "cycle12_inventory": 418.43499833345413,
+              "initial_inventory": 21.41999952122569,
+              "pass": true,
+              "retention": 19.534780937731345,
+              "retention_threshold": 0.01
+            },
+            "z_large": {
+              "cycle12_inventory": 5.316768038235178e-05,
+              "initial_inventory": 146.83409593999386,
+              "pass": false,
+              "retention": 3.620935590060746e-07,
+              "retention_threshold": 0.01
+            },
+            "z_small": {
+              "cycle12_inventory": 3855.2561268806458,
+              "initial_inventory": 146.83409593999386,
+              "pass": true,
+              "retention": 26.255864499320097,
+              "retention_threshold": 0.01
+            }
+          },
+          "seasonality_pass": false
+        }
+      },
+      "metadata": {
+        "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache.npz",
+        "lat_bounds": [
+          -5.0,
+          15.0
+        ],
+        "lon_bounds": [
+          -160.0,
+          -110.0
+        ],
+        "n_ocean_cells": 1071,
+        "shape": [
+          21,
+          51
+        ]
+      },
+      "pass_before_sensitivity": false,
+      "scenario_elapsed_seconds": {
+        "dg_0p90": 49.75352250000287,
+        "dg_1p10": 53.87589909999224,
+        "ic_0p01": 58.110602899992955,
+        "ic_0p10": 46.238689200006775,
+        "ic_0p50": 45.203099399994244
+      }
+    },
+    "natlsubpolar": {
+      "elapsed_seconds": 234.59362970000075,
+      "gates": {
+        "closure": {
+          "comparison_atol": 1e-06,
+          "failure_states": [],
+          "pass": true,
+          "per_state": {
+            "ALK1": {
+              "closure_abs": 12100.8642578125,
+              "closure_share": 0.49999668620099896,
+              "closure_turnover": 7.1562963172104314e-06,
+              "inventory_abs": 1690939519.75,
+              "model_abs": 12101.024658203125,
+              "pass": true,
+              "restored": true
+            },
+            "ALK2": {
+              "closure_abs": 204.68896484375,
+              "closure_share": 0.4991655825888671,
+              "closure_turnover": 1.195713480049821e-07,
+              "inventory_abs": 1711856295.5,
+              "model_abs": 205.373291015625,
+              "pass": true,
+              "restored": true
+            },
+            "Chl1_diatom": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 248763.9594116211,
+              "model_abs": 803.2079120874405,
+              "pass": true,
+              "restored": false
+            },
+            "Chl2_lge": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 246496.3435974121,
+              "model_abs": 799.682110786438,
+              "pass": true,
+              "restored": false
+            },
+            "Chl3_syn": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 298331.1032104492,
+              "model_abs": 1484.6680133342743,
+              "pass": true,
+              "restored": false
+            },
+            "Chl4_proll": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 298331.1032104492,
+              "model_abs": 1484.6680133342743,
+              "pass": true,
+              "restored": false
+            },
+            "Chl5_prohl": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 298331.1032104492,
+              "model_abs": 1484.6680133342743,
+              "pass": true,
+              "restored": false
+            },
+            "DFe1": {
+              "closure_abs": 0.28521275069215335,
+              "closure_share": 0.12495067993224764,
+              "closure_turnover": 0.0008920721474257184,
+              "inventory_abs": 319.71937641501427,
+              "model_abs": 1.997389879776165,
+              "pass": true,
+              "restored": true
+            },
+            "DFe2": {
+              "closure_abs": 0.3022221385326702,
+              "closure_share": 0.49999986164178095,
+              "closure_turnover": 0.0026511991376179643,
+              "inventory_abs": 113.99450695514679,
+              "model_abs": 0.30222230579238385,
+              "pass": true,
+              "restored": true
+            },
+            "DIC1": {
+              "closure_abs": 188803.7586669922,
+              "closure_share": 0.4999992626153893,
+              "closure_turnover": 0.0001479118729203404,
+              "inventory_abs": 1276461145.0,
+              "model_abs": 188804.3155517578,
+              "pass": true,
+              "restored": true
+            },
+            "DIC2": {
+              "closure_abs": 2529.1787109375,
+              "closure_share": 0.4999958733933926,
+              "closure_turnover": 1.5805458098428005e-06,
+              "inventory_abs": 1600193234.0,
+              "model_abs": 2529.220458984375,
+              "pass": true,
+              "restored": true
+            },
+            "PIC1": {
+              "closure_abs": 158.27556404471397,
+              "closure_share": 0.17387481129703114,
+              "closure_turnover": 0.0006712972347317337,
+              "inventory_abs": 235775.6830444336,
+              "model_abs": 752.0090416669846,
+              "pass": true,
+              "restored": true
+            },
+            "PIC2": {
+              "closure_abs": 10.554934560321271,
+              "closure_share": 0.2679454548403432,
+              "closure_turnover": 0.0012384463069174008,
+              "inventory_abs": 8522.722786903381,
+              "model_abs": 28.837166965007782,
+              "pass": true,
+              "restored": true
+            },
+            "POC1": {
+              "closure_abs": 3766.3002099990845,
+              "closure_share": 0.18337823700174807,
+              "closure_turnover": 0.0006784156588099664,
+              "inventory_abs": 5551611.554199219,
+              "model_abs": 16772.125022888184,
+              "pass": true,
+              "restored": true
+            },
+            "POC2": {
+              "closure_abs": 106.205083578825,
+              "closure_share": 0.16328899975555403,
+              "closure_turnover": 0.0005478474191059781,
+              "inventory_abs": 193858.8736114502,
+              "model_abs": 544.2066633105278,
+              "pass": true,
+              "restored": true
+            },
+            "Z_large": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 0.022288605319326547,
+              "model_abs": 4.503336137707896e-05,
+              "pass": true,
+              "restored": false
+            },
+            "Z_small": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 1492445.512919819,
+              "model_abs": 4992.587909061442,
+              "pass": true,
+              "restored": false
+            }
+          },
+          "share_threshold": 0.5,
+          "turnover_threshold": 1.0
+        },
+        "dfe": {
+          "pass": true,
+          "previous_relative_spatial_sd": 0.13195361001770048,
+          "relative_spatial_sd": 0.1319515839909138,
+          "relative_spatial_sd_change": 1.5354083805668692e-05,
+          "relative_spatial_sd_change_threshold": 0.05,
+          "relative_spatial_sd_minimum": 0.0662
+        },
+        "initial_condition_robustness": {
+          "failure_flanks": [
+            "ic_0p01",
+            "ic_0p50"
+          ],
+          "pass": false,
+          "per_flank": {
+            "ic_0p01": {
+              "maximum_relative_l2": 0.7406615268471584,
+              "pass": false,
+              "per_plankton_relative_l2": {
+                "diatom": 3.672163759364086e-05,
+                "lge": 4.478532141529259e-05,
+                "proHL": 0.0003848346328834577,
+                "proLL": 0.0003848346328834577,
+                "syn": 0.0003848346328834577,
+                "z_large": 0.7406615268471584,
+                "z_small": 0.0007127763737457785
+              }
+            },
+            "ic_0p50": {
+              "maximum_relative_l2": 0.7992112660419709,
+              "pass": false,
+              "per_plankton_relative_l2": {
+                "diatom": 4.3399310925905195e-06,
+                "lge": 5.2348259386963705e-06,
+                "proHL": 4.417336223677279e-05,
+                "proLL": 4.417336223677279e-05,
+                "syn": 4.417336223677279e-05,
+                "z_large": 0.7992112660419709,
+                "z_small": 8.13860966996531e-05
+              }
+            }
+          },
+          "threshold": 0.05
+        },
+        "light": {
+          "failure_reasons": [],
+          "finite": true,
+          "max_abs_per_cell_mean_error": 2.384185791015625e-07,
+          "maximum": 2.310404062271118,
+          "minimum": 0.014659225940704346,
+          "nonnegative": true,
+          "pass": true,
+          "per_cell_mean_one": true,
+          "per_cell_mean_tolerance": 1e-06
+        },
+        "numerical": {
+          "clamp_burden": 0.0,
+          "clamp_burden_threshold": 0.01,
+          "clamp_correction": 0.0,
+          "finite": true,
+          "gross_biology": 309977.34183909814,
+          "pass": true,
+          "raw_negative_event_fraction": 0.0,
+          "raw_negative_event_fraction_threshold": 0.001,
+          "raw_negative_events": 0,
+          "state_update_count": 5011272
+        },
+        "stability": {
+          "maximum_relative_l2": 0.6635888196298434,
+          "pass": false,
+          "per_field_relative_l2": {
+            "ALK1": 4.56066707351568e-07,
+            "Chl1_diatom": 6.114206165893885e-06,
+            "Chl2_lge": 7.382815332854062e-06,
+            "Chl3_syn": 6.261606108353649e-05,
+            "Chl4_proll": 6.261606108353649e-05,
+            "Chl5_prohl": 6.261606108353649e-05,
+            "DFe1": 4.330980661514001e-05,
+            "DFe2": 1.7081539576260738e-05,
+            "DIC1": 3.405180260172359e-06,
+            "PIC1": 1.7294965697649553e-05,
+            "POC1": 1.720570827452358e-05,
+            "Z_large": 0.6635888196298434,
+            "Z_small": 0.00011525014813476897
+          },
+          "threshold": 0.01
+        },
+        "viability": {
+          "dominance": {
+            "diatom": 0.08629549864298995,
+            "lge": 0.08550886913012237,
+            "proHL": 0.10349019742683783,
+            "proLL": 0.10349019742683783,
+            "syn": 0.10349019742683783,
+            "z_large": 7.72803700569784e-09,
+            "z_small": 0.5177250322183371
+          },
+          "dominance_pass": true,
+          "dominance_threshold": 0.95,
+          "dominant_plankton": "z_small",
+          "failure_reasons": [
+            "z_large:retention"
+          ],
+          "maximum_dominance": 0.5177250322183371,
+          "minimum_monthly_diatom_aoi_mean": 0.05784487195412013,
+          "monthly_diatom_cv": 0.5558415409280525,
+          "monthly_diatom_cv_threshold": 0.05,
+          "monthly_diatom_positive": true,
+          "pass": false,
+          "per_plankton": {
+            "diatom": {
+              "cycle12_inventory": 169.9207330942154,
+              "initial_inventory": 195.60000291466713,
+              "pass": true,
+              "retention": 0.8687153914222863,
+              "retention_threshold": 0.01
+            },
+            "lge": {
+              "cycle12_inventory": 168.37181495130062,
+              "initial_inventory": 146.70000582933426,
+              "pass": true,
+              "retention": 1.1477287543340564,
+              "retention_threshold": 0.01
+            },
+            "proHL": {
+              "cycle12_inventory": 203.7780705988407,
+              "initial_inventory": 317.8499883413315,
+              "pass": true,
+              "retention": 0.6411139785224983,
+              "retention_threshold": 0.01
+            },
+            "proLL": {
+              "cycle12_inventory": 203.7780705988407,
+              "initial_inventory": 0.4890000232262537,
+              "pass": true,
+              "retention": 416.7240509609452,
+              "retention_threshold": 0.01
+            },
+            "syn": {
+              "cycle12_inventory": 203.7780705988407,
+              "initial_inventory": 9.779999781399965,
+              "pass": true,
+              "retention": 20.836204003439224,
+              "retention_threshold": 0.01
+            },
+            "z_large": {
+              "cycle12_inventory": 1.5216943340463261e-05,
+              "initial_inventory": 67.0418981462717,
+              "pass": false,
+              "retention": 2.2697661852089874e-07,
+              "retention_threshold": 0.01
+            },
+            "z_small": {
+              "cycle12_inventory": 1019.429963313763,
+              "initial_inventory": 67.0418981462717,
+              "pass": true,
+              "retention": 15.205863668859365,
+              "retention_threshold": 0.01
+            }
+          },
+          "seasonality_pass": true
+        }
+      },
+      "metadata": {
+        "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache_natlsubpolar.npz",
+        "lat_bounds": [
+          50.0,
+          65.0
+        ],
+        "lon_bounds": [
+          -40.0,
+          -10.0
+        ],
+        "n_ocean_cells": 489,
+        "shape": [
+          16,
+          31
+        ]
+      },
+      "pass_before_sensitivity": false,
+      "scenario_elapsed_seconds": {
+        "dg_0p90": 42.87120999999752,
+        "dg_1p10": 42.65883410000242,
+        "ic_0p01": 60.98049290000927,
+        "ic_0p10": 44.26295750000281,
+        "ic_0p50": 43.62433510000119
+      }
+    },
+    "southernoceanpac": {
+      "elapsed_seconds": 226.2894820000074,
+      "gates": {
+        "closure": {
+          "comparison_atol": 1e-06,
+          "failure_states": [],
+          "pass": true,
+          "per_state": {
+            "ALK1": {
+              "closure_abs": 31775.884033203125,
+              "closure_share": 0.4999975087332537,
+              "closure_turnover": 7.2536348375554405e-06,
+              "inventory_abs": 4380684270.0,
+              "model_abs": 31776.20068359375,
+              "pass": true,
+              "restored": true
+            },
+            "ALK2": {
+              "closure_abs": 517.88623046875,
+              "closure_share": 0.4991239938164269,
+              "closure_turnover": 1.1454008615064167e-07,
+              "inventory_abs": 4521440902.25,
+              "model_abs": 519.7041015625,
+              "pass": true,
+              "restored": true
+            },
+            "Chl1_diatom": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 657156.2501220703,
+              "model_abs": 2079.4615964889526,
+              "pass": true,
+              "restored": false
+            },
+            "Chl2_lge": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 651213.9644470215,
+              "model_abs": 2070.961501479149,
+              "pass": true,
+              "restored": false
+            },
+            "Chl3_syn": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 791020.561706543,
+              "model_abs": 3866.209706068039,
+              "pass": true,
+              "restored": false
+            },
+            "Chl4_proll": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 791020.561706543,
+              "model_abs": 3866.209706068039,
+              "pass": true,
+              "restored": false
+            },
+            "Chl5_prohl": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 791020.561706543,
+              "model_abs": 3866.209706068039,
+              "pass": true,
+              "restored": false
+            },
+            "DFe1": {
+              "closure_abs": 0.5386794827354606,
+              "closure_share": 0.09467925774850548,
+              "closure_turnover": 0.0006434101855562714,
+              "inventory_abs": 837.2256063520908,
+              "model_abs": 5.150840012298431,
+              "pass": true,
+              "restored": true
+            },
+            "DFe2": {
+              "closure_abs": 0.5562062823155429,
+              "closure_share": 0.49999948676482614,
+              "closure_turnover": 0.0026406250015154737,
+              "inventory_abs": 210.6343316435814,
+              "model_abs": 0.5562074241752271,
+              "pass": true,
+              "restored": true
+            },
+            "DIC1": {
+              "closure_abs": 515333.15283203125,
+              "closure_share": 0.4999996694982847,
+              "closure_turnover": 0.00015219548119102706,
+              "inventory_abs": 3385995095.25,
+              "model_abs": 515333.8341064453,
+              "pass": true,
+              "restored": true
+            },
+            "DIC2": {
+              "closure_abs": 6819.18896484375,
+              "closure_share": 0.49999607076102914,
+              "closure_turnover": 1.579547987447737e-06,
+              "inventory_abs": 4317177457.75,
+              "model_abs": 6819.296142578125,
+              "pass": true,
+              "restored": true
+            },
+            "PIC1": {
+              "closure_abs": 408.8963598012924,
+              "closure_share": 0.17399761520374665,
+              "closure_turnover": 0.0006601729659673788,
+              "inventory_abs": 619377.6190185547,
+              "model_abs": 1941.1149281263351,
+              "pass": true,
+              "restored": true
+            },
+            "PIC2": {
+              "closure_abs": 21.67051809001714,
+              "closure_share": 0.24131501793997653,
+              "closure_turnover": 0.0009761661998859404,
+              "inventory_abs": 22199.619380950928,
+              "model_abs": 68.13126165419817,
+              "pass": true,
+              "restored": true
+            },
+            "POC1": {
+              "closure_abs": 9275.80586051941,
+              "closure_share": 0.17628410186301535,
+              "closure_turnover": 0.0006349787635779879,
+              "inventory_abs": 14608056.82421875,
+              "model_abs": 43342.69894218445,
+              "pass": true,
+              "restored": true
+            },
+            "POC2": {
+              "closure_abs": 531.9569425880909,
+              "closure_share": 0.2545194229158477,
+              "closure_turnover": 0.0010162419445443628,
+              "inventory_abs": 523455.01525878906,
+              "model_abs": 1558.0876461267471,
+              "pass": true,
+              "restored": true
+            },
+            "Z_large": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 3.252871850911255,
+              "model_abs": 0.006384475028763938,
+              "pass": true,
+              "restored": false
+            },
+            "Z_small": {
+              "closure_abs": 0.0,
+              "closure_share": 0.0,
+              "closure_turnover": 0.0,
+              "inventory_abs": 3912356.6581573486,
+              "model_abs": 12273.61032050848,
+              "pass": true,
+              "restored": false
+            }
+          },
+          "share_threshold": 0.5,
+          "turnover_threshold": 1.0
+        },
+        "dfe": {
+          "pass": true,
+          "previous_relative_spatial_sd": 0.13179368905180563,
+          "relative_spatial_sd": 0.13179090515912326,
+          "relative_spatial_sd_change": 2.1123110692230244e-05,
+          "relative_spatial_sd_change_threshold": 0.05,
+          "relative_spatial_sd_minimum": 0.1195
+        },
+        "initial_condition_robustness": {
+          "failure_flanks": [
+            "ic_0p01",
+            "ic_0p50"
+          ],
+          "pass": false,
+          "per_flank": {
+            "ic_0p01": {
+              "maximum_relative_l2": 0.694057717834571,
+              "pass": false,
+              "per_plankton_relative_l2": {
+                "diatom": 7.413571288087619e-05,
+                "lge": 9.124026139977726e-05,
+                "proHL": 0.0008247857678697436,
+                "proLL": 0.0008247857678697436,
+                "syn": 0.0008247857678697436,
+                "z_large": 0.694057717834571,
+                "z_small": 0.0015033891507811401
+              }
+            },
+            "ic_0p50": {
+              "maximum_relative_l2": 0.5560004357218992,
+              "pass": false,
+              "per_plankton_relative_l2": {
+                "diatom": 7.562991170788595e-06,
+                "lge": 9.255514334523805e-06,
+                "proHL": 8.274803469880918e-05,
+                "proLL": 8.274803469880918e-05,
+                "syn": 8.274803469880918e-05,
+                "z_large": 0.5560004357218992,
+                "z_small": 0.00015084485347915459
+              }
+            }
+          },
+          "threshold": 0.05
+        },
+        "light": {
+          "failure_reasons": [],
+          "finite": true,
+          "max_abs_per_cell_mean_error": 2.384185791015625e-07,
+          "maximum": 2.3019680976867676,
+          "minimum": 0.014972671866416931,
+          "nonnegative": true,
+          "pass": true,
+          "per_cell_mean_one": true,
+          "per_cell_mean_tolerance": 1e-06
+        },
+        "numerical": {
+          "clamp_burden": 0.0,
+          "clamp_burden_threshold": 0.01,
+          "clamp_correction": 0.0,
+          "finite": true,
+          "gross_biology": 813846.7273128652,
+          "pass": true,
+          "raw_negative_event_fraction": 0.0,
+          "raw_negative_event_fraction_threshold": 0.001,
+          "raw_negative_events": 0,
+          "state_update_count": 13281408
+        },
+        "stability": {
+          "maximum_relative_l2": 0.4940342581856919,
+          "pass": false,
+          "per_field_relative_l2": {
+            "ALK1": 2.948779808473462e-07,
+            "Chl1_diatom": 4.241931385226208e-06,
+            "Chl2_lge": 5.006695807023079e-06,
+            "Chl3_syn": 3.6839540280142515e-05,
+            "Chl4_proll": 3.6839540280142515e-05,
+            "Chl5_prohl": 3.6839540280142515e-05,
+            "DFe1": 1.9591375560306947e-05,
+            "DFe2": 1.1745471874476661e-05,
+            "DIC1": 1.5850669243424895e-06,
+            "PIC1": 1.0977346236879184e-05,
+            "POC1": 1.0885024896754387e-05,
+            "Z_large": 0.4940342581856919,
+            "Z_small": 6.697806678999254e-05
+          },
+          "threshold": 0.01
+        },
+        "viability": {
+          "dominance": {
+            "diatom": 0.08653861809882787,
+            "lge": 0.08575609976415709,
+            "proHL": 0.10416674359643172,
+            "proLL": 0.10416674359643172,
+            "syn": 0.10416674359643172,
+            "z_large": 4.2812698357431134e-07,
+            "z_small": 0.5152046232207363
+          },
+          "dominance_pass": true,
+          "dominance_threshold": 0.95,
+          "dominant_plankton": "z_small",
+          "failure_reasons": [
+            "z_large:retention"
+          ],
+          "maximum_dominance": 0.5152046232207363,
+          "minimum_monthly_diatom_aoi_mean": 0.06137329844698988,
+          "monthly_diatom_cv": 0.5497456062301863,
+          "monthly_diatom_cv_threshold": 0.05,
+          "monthly_diatom_positive": true,
+          "pass": false,
+          "per_plankton": {
+            "diatom": {
+              "cycle12_inventory": 448.877206414938,
+              "initial_inventory": 518.400007724762,
+              "pass": true,
+              "retention": 0.8658896599655603,
+              "retention_threshold": 0.01
+            },
+            "lge": {
+              "cycle12_inventory": 444.8182712048292,
+              "initial_inventory": 388.8000154495239,
+              "pass": true,
+              "retention": 1.1440798701886314,
+              "retention_threshold": 0.01
+            },
+            "proHL": {
+              "cycle12_inventory": 540.3145774006844,
+              "initial_inventory": 842.3999691009521,
+              "pass": true,
+              "retention": 0.6413990945148453,
+              "retention_threshold": 0.01
+            },
+            "proLL": {
+              "cycle12_inventory": 540.3145774006844,
+              "initial_inventory": 1.296000061556697,
+              "pass": true,
+              "retention": 416.90937634037056,
+              "retention_threshold": 0.01
+            },
+            "syn": {
+              "cycle12_inventory": 540.3145774006844,
+              "initial_inventory": 25.919999420642853,
+              "pass": true,
+              "retention": 20.84547027305774,
+              "retention_threshold": 0.01
+            },
+            "z_large": {
+              "cycle12_inventory": 0.00222070156191105,
+              "initial_inventory": 177.6815950870514,
+              "pass": false,
+              "retention": 1.2498208161757349e-05,
+              "retention_threshold": 0.01
+            },
+            "z_small": {
+              "cycle12_inventory": 2672.374681778252,
+              "initial_inventory": 177.6815950870514,
+              "pass": true,
+              "retention": 15.040244773067114,
+              "retention_threshold": 0.01
+            }
+          },
+          "seasonality_pass": true
+        }
+      },
+      "metadata": {
+        "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache_southernoceanpac.npz",
+        "lat_bounds": [
+          -65.0,
+          -50.0
+        ],
+        "lon_bounds": [
+          -180.0,
+          -100.0
+        ],
+        "n_ocean_cells": 1296,
+        "shape": [
+          16,
+          81
+        ]
+      },
+      "pass_before_sensitivity": false,
+      "scenario_elapsed_seconds": {
+        "dg_0p90": 42.24207980000938,
+        "dg_1p10": 43.188457399999606,
+        "ic_0p01": 53.72056130001147,
+        "ic_0p10": 43.445399599993834,
+        "ic_0p50": 43.4731860000029
+      }
+    }
+  },
+  "bundle_artifact": {
+    "bytes": 14097198,
+    "path": "docs/findings/2026-08-10_seasonal_twin_explicit_zooplankton_source_floor_corrected.pt.gz",
+    "sha256": "56850560a45596366593ddab67cf96d9d067888adc10c5efbf241df4192b4fb8"
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "central_scenario": "ic_0p10",
+    "chemical_restoring_tau_days": 365.25,
+    "cycles": 12,
+    "diatomgraz_factors": [
+      0.9,
+      1.1
+    ],
+    "dt_days": 0.25,
+    "light": "parameter-free-astronomical-monthly",
+    "phytoplankton_restoring": false,
+    "recorded_cycles": [
+      11,
+      12
+    ],
+    "restoring_indices": [
+      0,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "scenarios": {
+      "dg_0p90": {
+        "diatomgraz_factor": 0.9,
+        "zoo_initial_fraction": 0.1
+      },
+      "dg_1p10": {
+        "diatomgraz_factor": 1.1,
+        "zoo_initial_fraction": 0.1
+      },
+      "ic_0p01": {
+        "diatomgraz_factor": 1.0,
+        "zoo_initial_fraction": 0.01
+      },
+      "ic_0p10": {
+        "diatomgraz_factor": 1.0,
+        "zoo_initial_fraction": 0.1
+      },
+      "ic_0p50": {
+        "diatomgraz_factor": 1.0,
+        "zoo_initial_fraction": 0.5
+      }
+    },
+    "source_commit": "75b8e4337c2fa0c0baa9fa9376590503229121af",
+    "source_constants": {
+      "assimilation": [
+        [
+          0.2,
+          0.5
+        ],
+        [
+          0.2,
+          0.5
+        ],
+        [
+          0.5,
+          0.7
+        ],
+        [
+          0.5,
+          0.7
+        ],
+        [
+          0.5,
+          0.7
+        ]
+      ],
+      "graze_max_per_day": 0.625,
+      "half_saturation_c": 10.2,
+      "phygrazmin_c": 1.2e-08,
+      "zoo_mortality_per_day": 0.03333333333333333
+    },
+    "source_prey_floor_c": 1.2e-08,
+    "state_count": 17,
+    "steps_per_month": 122,
+    "truth": [
+      0.928309977054596,
+      6.025023253641848e-07,
+      0.6609799861907959,
+      0.4314799904823303,
+      0.8300300240516663,
+      0.04244999960064888
+    ],
+    "zoo_initial_fractions_per_predator": [
+      0.01,
+      0.1,
+      0.5
+    ],
+    "zooplankton_restoring": false
+  },
+  "created_utc": "2026-08-10T04:47:35.627873+00:00",
+  "decision": {
+    "b200_authorized": false,
+    "branch": "stage0-failed-stop",
+    "failure_reasons": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac",
+      "diatomgraz_sensitivity"
+    ],
+    "gate_pass": false,
+    "next_action": "no-optimizer-no-b200",
+    "per_aoi_pass_before_sensitivity": {
+      "eqpac": false,
+      "natlsubpolar": false,
+      "southernoceanpac": false
+    }
+  },
+  "elapsed_seconds": 715.1069238000055,
+  "preregistration": "docs/findings/2026-08-10_prereg_source_floor_corrected_explicit_zooplankton_chain.md",
+  "runtime": {
+    "compiled_step": true,
+    "cuda_version": "12.8",
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "torch_version": "2.11.0+cu128"
+  },
+  "schema_version": 1,
+  "sensitivity_gate": {
+    "minimum_qualifying_aois": 2,
+    "pass": false,
+    "per_aoi": {
+      "eqpac": {
+        "absolute_log_response": 0.030117392121680978,
+        "finite_positive": true,
+        "high_inventory": 433.0688034892082,
+        "log_high_over_low": -0.030117392121680978,
+        "low_inventory": 446.3101022839546,
+        "magnitude_pass": false,
+        "sign": -1,
+        "threshold": 0.04879016416943204
+      },
+      "natlsubpolar": {
+        "absolute_log_response": 0.020573768610131587,
+        "finite_positive": true,
+        "high_inventory": 168.165278211236,
+        "log_high_over_low": -0.020573768610131587,
+        "low_inventory": 171.6609075665474,
+        "magnitude_pass": false,
+        "sign": -1,
+        "threshold": 0.04879016416943204
+      },
+      "southernoceanpac": {
+        "absolute_log_response": 0.02034413019125344,
+        "finite_positive": true,
+        "high_inventory": 444.2889148890972,
+        "log_high_over_low": -0.02034413019125344,
+        "low_inventory": 453.42015504837036,
+        "magnitude_pass": false,
+        "sign": -1,
+        "threshold": 0.04879016416943204
+      }
+    },
+    "qualifying_aois": [],
+    "sign_agreement": true
+  },
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

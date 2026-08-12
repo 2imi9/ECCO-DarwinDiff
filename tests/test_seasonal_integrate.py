@@ -17,8 +17,10 @@ from darwindiff.carroll6_5pft_2layer import (
     N_TRACERS_2LAYER,
     carroll6_5pft_2layer_integrate,
     carroll6_5pft_2layer_integrate_seasonal,
+    carroll6_5pft_2layer_integrate_seasonal_summary,
 )
 from darwindiff.seasonal import constant_state0
+from darwindiff.seasonal_twin import astronomical_monthly_light
 
 DT = 0.25
 
@@ -101,6 +103,112 @@ def test_spinup_changes_the_recorded_year():
     assert not torch.allclose(no_spin, one_spin)
 
 
+def test_summary_preserves_existing_month_ends_exactly():
+    state0, params = constant_state0(), _params()
+    t_m = torch.linspace(5.0, 25.0, 12)
+    s_m, w_m = torch.full((12,), 35.0), torch.full((12,), 7.0)
+    existing = carroll6_5pft_2layer_integrate_seasonal(
+        state0, params, DT, t_m, s_m, w_m, steps_per_month=3, n_spinup_cycles=1
+    )
+    month_ends, _ = carroll6_5pft_2layer_integrate_seasonal_summary(
+        state0, params, DT, t_m, s_m, w_m, steps_per_month=3, n_spinup_cycles=1
+    )
+    assert torch.equal(month_ends, existing)
+
+
+def test_explicit_unity_light_preserves_default_path_bitwise():
+    state0, params = constant_state0(), _params()
+    t_m, s_m, w_m = _const_forcing()
+    default_ends, default_mean = carroll6_5pft_2layer_integrate_seasonal_summary(
+        state0, params, DT, t_m, s_m, w_m, steps_per_month=3
+    )
+    light_ends, light_mean = carroll6_5pft_2layer_integrate_seasonal_summary(
+        state0,
+        params,
+        DT,
+        t_m,
+        s_m,
+        w_m,
+        steps_per_month=3,
+        light_monthly=torch.ones(12),
+    )
+    assert torch.equal(light_ends, default_ends)
+    assert torch.equal(light_mean, default_mean)
+
+
+def test_gradient_flows_to_params_with_astronomical_light():
+    spatial = (1, 3)
+    params = _params(spatial).clone().requires_grad_(True)
+    forcing = torch.ones(12, *spatial)
+    light = astronomical_monthly_light(torch.tensor([[-45.0, 0.0, 45.0]]))
+    month_ends = carroll6_5pft_2layer_integrate_seasonal(
+        constant_state0(spatial),
+        params,
+        DT,
+        forcing * 18.0,
+        forcing * 35.0,
+        forcing * 7.0,
+        steps_per_month=2,
+        light_monthly=light,
+    )
+    month_ends.pow(2).mean().backward()
+    assert params.grad is not None
+    assert torch.isfinite(params.grad).all()
+    assert params.grad.abs().sum() > 0
+
+
+def test_summary_with_one_step_per_month_equals_month_end_mean():
+    t_m, s_m, w_m = _const_forcing()
+    month_ends, all_step_mean = carroll6_5pft_2layer_integrate_seasonal_summary(
+        constant_state0(), _params(), DT, t_m, s_m, w_m, steps_per_month=1
+    )
+    assert torch.allclose(all_step_mean, month_ends.mean(dim=0), rtol=5e-7, atol=1e-7)
+
+
+def test_summary_mean_contains_every_post_step_state():
+    state0, params = constant_state0(), _params()
+    spm = 3
+    t_m, s_m, w_m = _const_forcing()
+    _, all_step_mean = carroll6_5pft_2layer_integrate_seasonal_summary(
+        state0, params, DT, t_m, s_m, w_m, steps_per_month=spm
+    )
+    every_step = carroll6_5pft_2layer_integrate(
+        state0,
+        params,
+        DT,
+        12 * spm,
+        snapshot_indices=list(range(1, 12 * spm + 1)),
+        T=t_m[0],
+        S=s_m[0],
+        wind=w_m[0],
+    )
+    assert torch.allclose(all_step_mean, every_step.mean(dim=0), rtol=5e-7, atol=1e-7)
+
+
+def test_summary_mean_excludes_initial_state_and_spinup_cycles():
+    state0, params = constant_state0(), _params()
+    spm = 2
+    steps_per_cycle = 12 * spm
+    t_m, s_m, w_m = _const_forcing()
+    _, all_step_mean = carroll6_5pft_2layer_integrate_seasonal_summary(
+        state0, params, DT, t_m, s_m, w_m,
+        steps_per_month=spm, n_spinup_cycles=1,
+    )
+    every_step = carroll6_5pft_2layer_integrate(
+        state0,
+        params,
+        DT,
+        2 * steps_per_cycle,
+        snapshot_indices=list(range(1, 2 * steps_per_cycle + 1)),
+        T=t_m[0],
+        S=s_m[0],
+        wind=w_m[0],
+    )
+    expected = every_step[steps_per_cycle:].mean(dim=0)
+    assert torch.allclose(all_step_mean, expected, rtol=5e-7, atol=1e-7)
+    assert not torch.equal(all_step_mean, every_step.mean(dim=0))
+
+
 def test_param_bound_extremes_stay_nonnegative_under_spinup():
     # Regression (pre-scale-up audit 2026-06-18): at the upper PARAM_BOUNDS the
     # surface carbonate budget (dDIC_1 / dALK_1 have no analytic floor) used to run
@@ -147,4 +255,18 @@ def test_steps_per_month_must_be_positive():
     with pytest.raises(ValueError, match="steps_per_month"):
         carroll6_5pft_2layer_integrate_seasonal(
             constant_state0(), _params(), DT, t_m, s_m, w_m, steps_per_month=0
+        )
+
+
+def test_light_must_have_length_12_month_axis():
+    t_m, s_m, w_m = _const_forcing()
+    with pytest.raises(ValueError, match="light_monthly.*length-12"):
+        carroll6_5pft_2layer_integrate_seasonal(
+            constant_state0(),
+            _params(),
+            DT,
+            t_m,
+            s_m,
+            w_m,
+            light_monthly=torch.ones(11),
         )

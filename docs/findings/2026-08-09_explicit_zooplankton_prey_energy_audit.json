@@ -1,0 +1,284 @@
+{
+  "aois": {
+    "eqpac": {
+      "elapsed_seconds": 21.5430148000014,
+      "summary": {
+        "finite": true,
+        "large_predator_classification": "continuous-energetic-deficit",
+        "log_ratio_atol": 0.0005,
+        "maximum_log_ratio_discrepancy": 4.652061104541686e-06,
+        "maximum_partition_error": 4.5140041038393974e-08,
+        "maximum_prior_monthly_log_difference": 3.5127221184594326e-07,
+        "mortality_integral": 12.2,
+        "nonnegative_gain_contributions": true,
+        "partition_atol": 5e-05,
+        "pass": true,
+        "predators": {
+          "z_large": {
+            "annual_specific_gain_integral_max": 11.059933284763247,
+            "annual_specific_gain_integral_median": 10.675488847773522,
+            "annual_specific_gain_integral_min": 9.698309269268066,
+            "continuous_margin_max": -1.1400667152367525,
+            "continuous_margin_median": -1.5245111522264772,
+            "continuous_margin_min": -2.5016907307319336,
+            "exact_log_multiplier_max": -1.1405374423353467,
+            "exact_log_multiplier_median": -1.525362318942515,
+            "exact_log_multiplier_min": -2.5039896861343194,
+            "large_prey_gain_share_median": 0.6847714207887512,
+            "median_gain_share_by_prey": {
+              "diatom": 0.33085954495952397,
+              "lge": 0.35391187582922723,
+              "proHL": 0.10507619337938892,
+              "proLL": 0.10507619337938892,
+              "syn": 0.10507619337938892
+            },
+            "small_prey_gain_share_median": 0.3152285801381668
+          },
+          "z_small": {
+            "annual_specific_gain_integral_max": 12.200374545063823,
+            "annual_specific_gain_integral_median": 12.200108382850885,
+            "annual_specific_gain_integral_min": 12.200030920095742,
+            "continuous_margin_max": 0.0003745450638241721,
+            "continuous_margin_median": 0.00010838285088610178,
+            "continuous_margin_min": 3.092009574245935e-05,
+            "exact_log_multiplier_max": 3.917342316743511e-06,
+            "exact_log_multiplier_median": -1.537745398308421e-07,
+            "exact_log_multiplier_min": -4.58432624333982e-06,
+            "large_prey_gain_share_median": 0.04640554102990807,
+            "median_gain_share_by_prey": {
+              "diatom": 0.022421686429856348,
+              "lge": 0.023983854600051726,
+              "proHL": 0.31786481963323937,
+              "proLL": 0.31786481963323937,
+              "syn": 0.31786481963323937
+            },
+            "small_prey_gain_share_median": 0.9535944588997181
+          }
+        },
+        "prior_endpoint_relative_l2": 0.0,
+        "prior_endpoint_relative_l2_atol": 2e-05,
+        "prior_monthly_log_atol": 0.0005,
+        "strictly_positive_endpoint_biomass": true,
+        "strictly_positive_euler_factors": true
+      }
+    },
+    "natlsubpolar": {
+      "elapsed_seconds": 3.238495300000068,
+      "summary": {
+        "finite": true,
+        "large_predator_classification": "continuous-energetic-deficit",
+        "log_ratio_atol": 0.0005,
+        "maximum_log_ratio_discrepancy": 4.668387026063314e-06,
+        "maximum_partition_error": 5.344190867617726e-08,
+        "maximum_prior_monthly_log_difference": 1.552752159739157e-06,
+        "mortality_integral": 12.2,
+        "nonnegative_gain_contributions": true,
+        "partition_atol": 5e-05,
+        "pass": true,
+        "predators": {
+          "z_large": {
+            "annual_specific_gain_integral_max": 11.16040815715678,
+            "annual_specific_gain_integral_median": 9.529190868430305,
+            "annual_specific_gain_integral_min": 6.93300528232794,
+            "continuous_margin_max": -1.039591842843219,
+            "continuous_margin_median": -2.670809131569694,
+            "continuous_margin_min": -5.266994717672059,
+            "exact_log_multiplier_max": -1.044881797092875,
+            "exact_log_multiplier_median": -2.68095611454102,
+            "exact_log_multiplier_min": -5.287564706567551,
+            "large_prey_gain_share_median": 0.6290399464513962,
+            "median_gain_share_by_prey": {
+              "diatom": 0.30322631013629603,
+              "lge": 0.32581363631510013,
+              "proHL": 0.12365335134791211,
+              "proLL": 0.12365335134791211,
+              "syn": 0.12365335134791211
+            },
+            "small_prey_gain_share_median": 0.37096005404373633
+          },
+          "z_small": {
+            "annual_specific_gain_integral_max": 12.236873015646779,
+            "annual_specific_gain_integral_median": 12.22022796026431,
+            "annual_specific_gain_integral_min": 10.86559252943698,
+            "continuous_margin_max": 0.036873015646779805,
+            "continuous_margin_median": 0.02022796026431095,
+            "continuous_margin_min": -1.3344074705630184,
+            "exact_log_multiplier_max": 3.868202913759333e-06,
+            "exact_log_multiplier_median": -3.4848094043749e-07,
+            "exact_log_multiplier_min": -1.3595908763292086,
+            "large_prey_gain_share_median": 0.03691374652353988,
+            "median_gain_share_by_prey": {
+              "diatom": 0.017796117112318592,
+              "lge": 0.01911762941122129,
+              "proHL": 0.32102875090250893,
+              "proLL": 0.32102875090250893,
+              "syn": 0.32102875090250893
+            },
+            "small_prey_gain_share_median": 0.9630862527075268
+          }
+        },
+        "prior_endpoint_relative_l2": 0.0,
+        "prior_endpoint_relative_l2_atol": 2e-05,
+        "prior_monthly_log_atol": 0.0005,
+        "strictly_positive_endpoint_biomass": true,
+        "strictly_positive_euler_factors": true
+      }
+    },
+    "southernoceanpac": {
+      "elapsed_seconds": 3.4508902999950806,
+      "summary": {
+        "finite": true,
+        "large_predator_classification": "continuous-energetic-deficit",
+        "log_ratio_atol": 0.0005,
+        "maximum_log_ratio_discrepancy": 5.6613796166394865e-06,
+        "maximum_partition_error": 5.935180524829775e-08,
+        "maximum_prior_monthly_log_difference": 1.5756777795861154e-06,
+        "mortality_integral": 12.2,
+        "nonnegative_gain_contributions": true,
+        "partition_atol": 5e-05,
+        "pass": true,
+        "predators": {
+          "z_large": {
+            "annual_specific_gain_integral_max": 11.573926529614255,
+            "annual_specific_gain_integral_median": 9.5224633475882,
+            "annual_specific_gain_integral_min": 8.007058140250592,
+            "continuous_margin_max": -0.6260734703857445,
+            "continuous_margin_median": -2.677536652411799,
+            "continuous_margin_min": -4.192941859749407,
+            "exact_log_multiplier_max": -0.6307792444981241,
+            "exact_log_multiplier_median": -2.6908973138624885,
+            "exact_log_multiplier_min": -4.212645818749215,
+            "large_prey_gain_share_median": 0.6289180355978906,
+            "median_gain_share_by_prey": {
+              "diatom": 0.30315994115899714,
+              "lge": 0.3257580944388935,
+              "proHL": 0.12369104133964649,
+              "proLL": 0.12369104133964649,
+              "syn": 0.12369104133964649
+            },
+            "small_prey_gain_share_median": 0.3710731240189395
+          },
+          "z_small": {
+            "annual_specific_gain_integral_max": 12.231086519655946,
+            "annual_specific_gain_integral_median": 12.220859478460625,
+            "annual_specific_gain_integral_min": 12.207872747676447,
+            "continuous_margin_max": 0.031086519655946887,
+            "continuous_margin_median": 0.020859478460625525,
+            "continuous_margin_min": 0.007872747676447744,
+            "exact_log_multiplier_max": 8.233532322721171e-05,
+            "exact_log_multiplier_median": 3.928399527897142e-08,
+            "exact_log_multiplier_min": -0.012052954185365006,
+            "large_prey_gain_share_median": 0.03698122240051192,
+            "median_gain_share_by_prey": {
+              "diatom": 0.017828864925306945,
+              "lge": 0.019152357475204974,
+              "proHL": 0.3210041767948856,
+              "proLL": 0.3210041767948856,
+              "syn": 0.3210041767948856
+            },
+            "small_prey_gain_share_median": 0.9630125303846567
+          }
+        },
+        "prior_endpoint_relative_l2": 0.0,
+        "prior_endpoint_relative_l2_atol": 2e-05,
+        "prior_monthly_log_atol": 0.0005,
+        "strictly_positive_endpoint_biomass": true,
+        "strictly_positive_euler_factors": true
+      }
+    }
+  },
+  "bundle_artifact": {
+    "bytes": 2001262,
+    "path": "docs/findings/2026-08-09_explicit_zooplankton_prey_energy_audit.pt.gz",
+    "sha256": "2c90f7503a4b72e6dc193d14b962051c6f56ddff3e4508bca5f63e4a4b79ab08"
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "assimilation": [
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.5,
+        0.7
+      ],
+      [
+        0.5,
+        0.7
+      ],
+      [
+        0.5,
+        0.7
+      ]
+    ],
+    "audit_cycle": 13,
+    "chemical_restoring_tau_days": 365.25,
+    "continuous_exclusion_threshold": -0.1,
+    "dt_days": 0.25,
+    "log_ratio_atol": 0.0005,
+    "mortality_per_day": 0.03333333333333333,
+    "partition_atol": 5e-05,
+    "predator_names": [
+      "z_small",
+      "z_large"
+    ],
+    "prey_names": [
+      "diatom",
+      "lge",
+      "syn",
+      "proLL",
+      "proHL"
+    ],
+    "prior_endpoint_relative_l2_atol": 2e-05,
+    "prior_monthly_log_atol": 0.0005,
+    "restoring_indices": [
+      0,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "scenario": "ic_0p10",
+    "source_exclusion_bundle_sha256": "3d6a693a897870790df8db66c2433f33fd6d4f08601c44b1e80ae653f538b999",
+    "source_exclusion_report_sha256": "6f591174249d9c7758eefe5295d7933b6440edcf75878267aa0ec4c5bbc0c16c",
+    "source_target_bundle_sha256": "133c1f9001d5350e1dec7ac5a292c23aca83a76a30f094674103c2fbcfc39721",
+    "source_target_report_sha256": "2f5f4119c871e476c5e32deeb2280a5ead7c7932e8802cdbd26b306183b8151b",
+    "steps_per_month": 122,
+    "zooplankton_restoring": false
+  },
+  "created_utc": "2026-08-10T03:33:19.124631+00:00",
+  "decision": {
+    "b200_authorized": false,
+    "branch": "prey-field-energy-deficit",
+    "integrity_pass": true,
+    "large_predator_classification_by_aoi": {
+      "eqpac": "continuous-energetic-deficit",
+      "natlsubpolar": "continuous-energetic-deficit",
+      "southernoceanpac": "continuous-energetic-deficit"
+    },
+    "target_rehabilitated": false
+  },
+  "elapsed_seconds": 31.297263500004192,
+  "preregistration": "docs/findings/2026-08-09_prereg_explicit_zooplankton_prey_energy_audit.md",
+  "runtime": {
+    "compiled_step": true,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+  },
+  "schema_version": 1,
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

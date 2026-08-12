@@ -1,0 +1,439 @@
+{
+  "aois": {
+    "eqpac": {
+      "elapsed_seconds": 31.301493199993274,
+      "summary": {
+        "current_endpoint_relative_l2_vs_energy_audit": 9.91896943287471e-08,
+        "finite": true,
+        "large_predator_classification": "continuous-energetic-deficit",
+        "maximum_abs_specific_ingestion_difference": 0.0,
+        "maximum_current_log_endpoint_error": 4.618522739621366e-06,
+        "maximum_prior_monthly_log_difference": 8.339831789327956e-07,
+        "maximum_relative_specific_ingestion_difference": 0.0,
+        "maximum_source_floor_log_endpoint_error": 4.618522739621366e-06,
+        "maximum_source_floor_tolerance_ratio": 0.0,
+        "minimum_prey_pool_by_predator": [
+          1.0152428150177002,
+          0.7514058947563171
+        ],
+        "mortality_integral": 12.2,
+        "pass": true,
+        "source_floor_allclose": true,
+        "source_floor_atol": 1e-12,
+        "source_floor_endpoint_relative_l2_vs_projection": 0.0,
+        "source_floor_large_predator_annual_gain_max": 11.059933437500149,
+        "source_floor_large_predator_continuous_margin_max": -1.1400665624998503,
+        "source_floor_large_predator_exact_log_max": -1.140537800223306,
+        "source_floor_rtol": 1e-06
+      }
+    },
+    "natlsubpolar": {
+      "elapsed_seconds": 27.08484560000943,
+      "summary": {
+        "current_endpoint_relative_l2_vs_energy_audit": 1.4293115017482912e-07,
+        "finite": true,
+        "large_predator_classification": "continuous-energetic-deficit",
+        "maximum_abs_specific_ingestion_difference": 1.862645149230957e-09,
+        "maximum_current_log_endpoint_error": 4.088319948938427e-06,
+        "maximum_prior_monthly_log_difference": 8.981282189068907e-07,
+        "maximum_relative_specific_ingestion_difference": 3.855830982502084e-06,
+        "maximum_source_floor_log_endpoint_error": 4.325409023533503e-06,
+        "maximum_source_floor_tolerance_ratio": 3.836282730102539,
+        "minimum_prey_pool_by_predator": [
+          0.003574637696146965,
+          0.003203775268048048
+        ],
+        "mortality_integral": 12.2,
+        "pass": false,
+        "source_floor_allclose": false,
+        "source_floor_atol": 1e-12,
+        "source_floor_endpoint_relative_l2_vs_projection": 2.214481857360194e-08,
+        "source_floor_large_predator_annual_gain_max": 11.160408255876973,
+        "source_floor_large_predator_continuous_margin_max": -1.039591744123026,
+        "source_floor_large_predator_exact_log_max": -1.0448820946470805,
+        "source_floor_rtol": 1e-06
+      }
+    },
+    "southernoceanpac": {
+      "elapsed_seconds": 23.377894899997045,
+      "summary": {
+        "current_endpoint_relative_l2_vs_energy_audit": 1.5748155732412032e-07,
+        "finite": true,
+        "large_predator_classification": "continuous-energetic-deficit",
+        "maximum_abs_specific_ingestion_difference": 1.862645149230957e-09,
+        "maximum_current_log_endpoint_error": 4.810723955719787e-06,
+        "maximum_prior_monthly_log_difference": 1.066812147065832e-06,
+        "maximum_relative_specific_ingestion_difference": 2.932287088697194e-06,
+        "maximum_source_floor_log_endpoint_error": 4.934244056897796e-06,
+        "maximum_source_floor_tolerance_ratio": 2.9209678173065186,
+        "minimum_prey_pool_by_predator": [
+          0.006062299013137817,
+          0.0042129140347242355
+        ],
+        "mortality_integral": 12.2,
+        "pass": false,
+        "source_floor_allclose": false,
+        "source_floor_atol": 1e-12,
+        "source_floor_endpoint_relative_l2_vs_projection": 3.242524592200258e-08,
+        "source_floor_large_predator_annual_gain_max": 11.573926440440118,
+        "source_floor_large_predator_continuous_margin_max": -0.626073559559881,
+        "source_floor_large_predator_exact_log_max": -0.6307789474507095,
+        "source_floor_rtol": 1e-06
+      }
+    }
+  },
+  "bundle_artifact": {
+    "bytes": 1806818,
+    "path": "docs/findings/2026-08-10_explicit_zooplankton_source_conformance.pt.gz",
+    "sha256": "50aa75b8d16a84c71951a714fba3ebd4cb54ebee74ff3d727c701afc075ad13a"
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "audit_cycle": 13,
+    "chemical_restoring_tau_days": 365.25,
+    "continuous_exclusion_threshold": -0.1,
+    "corroboration_commit": "488cb795d7b933ea5a79b3bad84a182d7dbbe1ef",
+    "dt_days": 0.25,
+    "prior_endpoint_relative_l2_atol": 2e-05,
+    "prior_monthly_log_atol": 0.0005,
+    "restoring_indices": [
+      0,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "scenario": "ic_0p10",
+    "source_commit": "75b8e4337c2fa0c0baa9fa9376590503229121af",
+    "source_energy_bundle_sha256": "2c90f7503a4b72e6dc193d14b962051c6f56ddff3e4508bca5f63e4a4b79ab08",
+    "source_energy_report_sha256": "6def574425aabe4a65ecd86a9acb416dd8da40f66946e27e6773c925ae81a6ee",
+    "source_floor_atol": 1e-12,
+    "source_floor_rtol": 1e-06,
+    "source_prey_floor_c": 1.2e-08,
+    "source_target_bundle_sha256": "133c1f9001d5350e1dec7ac5a292c23aca83a76a30f094674103c2fbcfc39721",
+    "source_target_report_sha256": "2f5f4119c871e476c5e32deeb2280a5ead7c7932e8802cdbd26b306183b8151b",
+    "steps_per_month": 122
+  },
+  "created_utc": "2026-08-10T04:20:55.443637+00:00",
+  "decision": {
+    "b200_authorized": false,
+    "branch": "source-mismatch-rerun-required",
+    "corroboration_pass": true,
+    "declared_projection_differences": [
+      "no DOC state; dissolved grazing remainder is routed to POC",
+      "surface-only zooplankton in a two-layer box",
+      "mean-neutralized approximate phytoplankton temperature multiplier",
+      "chemical-state restoring toward frozen references",
+      "Euler integration with nonnegative state clamp"
+    ],
+    "direct_evidence_pass": true,
+    "source_identity_pass": true,
+    "target_rehabilitated": false,
+    "trajectory_pass": false
+  },
+  "elapsed_seconds": 82.57589429999643,
+  "preregistration": "docs/findings/2026-08-10_prereg_explicit_zooplankton_source_conformance.md",
+  "runtime": {
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+  },
+  "schema_version": 1,
+  "source_evidence": {
+    "assignment_lines": {
+      "GrazeEffhi": 265,
+      "GrazeEfflow": 263,
+      "GrazeEffmod": 264,
+      "GrazeFast": 258,
+      "ZoomortBig": 285,
+      "ZoomortSmall": 284,
+      "coccograz": 274,
+      "diatomgraz": 272,
+      "kgrazesat": 252,
+      "olargegraz": 276,
+      "palathi": 267,
+      "palatlo": 268,
+      "phygrazmin": 254,
+      "val_R_PC": 233
+    },
+    "carbon_half_saturation": 10.200000000000001,
+    "carbon_prey_floor": 1.2e-08,
+    "compile_flags": {
+      "nine_species_setup": true,
+      "notemp_undefined": true,
+      "old_graze_undefined": true,
+      "temp_version_2": true
+    },
+    "corroboration_evidence_class": "same-era-corroboration",
+    "corroboration_pass": true,
+    "direct_evidence_class": "official-config-at-frozen-git-blobs",
+    "direct_pass": true,
+    "expected_assimilation": [
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.5,
+        0.7
+      ],
+      [
+        0.5,
+        0.7
+      ],
+      [
+        0.5,
+        0.7
+      ]
+    ],
+    "expected_palatability_at_truth": [
+      [
+        0.16600600000000001,
+        0.83003
+      ],
+      [
+        0.18000000000000002,
+        0.9
+      ],
+      [
+        1.0,
+        0.2
+      ],
+      [
+        1.0,
+        0.2
+      ],
+      [
+        1.0,
+        0.2
+      ]
+    ],
+    "lineage": {
+      "base_package_checkout_2018_03_22": true,
+      "base_package_path_declared": true
+    },
+    "matrix_errors": {
+      "assimilation_max_abs": 0.0,
+      "palatability_max_abs": 2.7755575615628914e-17
+    },
+    "parsed_constants": {
+      "GrazeEffhi": 0.7,
+      "GrazeEfflow": 0.2,
+      "GrazeEffmod": 0.5,
+      "GrazeFast": 0.625,
+      "ZoomortBig": 0.03333333333333333,
+      "ZoomortSmall": 0.03333333333333333,
+      "coccograz": 0.85,
+      "diatomgraz": 0.83003,
+      "kgrazesat": 0.085,
+      "olargegraz": 0.9,
+      "palathi": 1.0,
+      "palatlo": 0.2,
+      "phygrazmin": 1e-10,
+      "val_R_PC": 120.0
+    },
+    "phyto_identity_anchors": {
+      "diatom_first": true,
+      "large_first_two": true,
+      "shared_carbon_ratio": true
+    },
+    "plankton_algebra_anchors": {
+      "assimilation": true,
+      "holling_response": true,
+      "predator_biomass": true,
+      "prey_allocation": true,
+      "shared_prey_pool": true,
+      "source_prey_floor": true
+    },
+    "quadratic_mortality": {
+      "ZoomortBig2": 0.0,
+      "ZoomortSmall2": 0.0,
+      "assignment_lines": {
+        "ZoomortBig2": 287,
+        "ZoomortSmall2": 286
+      }
+    },
+    "runtime_assimilation": [
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.5,
+        0.7
+      ],
+      [
+        0.5,
+        0.7
+      ],
+      [
+        0.5,
+        0.7
+      ]
+    ],
+    "runtime_palatability_at_truth": [
+      [
+        0.16600600000000001,
+        0.83003
+      ],
+      [
+        0.18,
+        0.9
+      ],
+      [
+        1.0,
+        0.2
+      ],
+      [
+        1.0,
+        0.2
+      ],
+      [
+        1.0,
+        0.2
+      ]
+    ],
+    "runtime_scalar_errors": {
+      "graze_max_per_day": 0.0,
+      "half_saturation_c": 1.7763568394002505e-15,
+      "source_prey_floor_c": 0.0,
+      "zoo_mortality_per_day": 0.0
+    },
+    "scalar_errors": {
+      "GrazeEffhi": 0.0,
+      "GrazeEfflow": 0.0,
+      "GrazeEffmod": 0.0,
+      "GrazeFast": 0.0,
+      "ZoomortBig": 0.0,
+      "ZoomortSmall": 0.0,
+      "coccograz": 0.0,
+      "diatomgraz": 0.0,
+      "kgrazesat": 0.0,
+      "olargegraz": 0.0,
+      "palathi": 0.0,
+      "palatlo": 0.0,
+      "phygrazmin": 0.0,
+      "val_R_PC": 0.0
+    },
+    "temperature_identity": {
+      "arrhenius_grazing_is_commented": true,
+      "zoo_grazing_identity": true,
+      "zoo_linear_mortality_identity": true,
+      "zoo_quadratic_mortality_identity": true
+    },
+    "zooplankton_generation_anchors": {
+      "cross_size_palatability": true,
+      "diatom_scaling": true,
+      "large_prey_cross_assimilation": true,
+      "other_large_scaling": true,
+      "same_size_assimilation": true,
+      "same_size_palatability": true,
+      "small_prey_cross_assimilation": true
+    }
+  },
+  "source_files": {
+    "corroboration": {
+      "generate_zoo": {
+        "actual_git_blob": "1bd7f20d8dc3397450c1a6ab7e1ddbad7bb40d1e",
+        "bytes": 5398,
+        "expected_git_blob": "1bd7f20d8dc3397450c1a6ab7e1ddbad7bb40d1e",
+        "pass": true,
+        "path": "monod/monod_generate_zoo.F",
+        "sha256": "b1c7e8c5cf7616a52b8c609f161b7117668c1db7fa9609a813c37713ab975988",
+        "working_tree_crlf": false
+      },
+      "init_fixed": {
+        "actual_git_blob": "9711fd46b91c00a7b1ab29d08a61d203b59a8729",
+        "bytes": 13485,
+        "expected_git_blob": "9711fd46b91c00a7b1ab29d08a61d203b59a8729",
+        "pass": true,
+        "path": "monod/monod_init_fixed.F",
+        "sha256": "b3a962546644eeb2cd1cfd3966d13acde52bac8e934203289e85d1b579dbfb88",
+        "working_tree_crlf": false
+      },
+      "tempfunc": {
+        "actual_git_blob": "df89435be92cfa5544d0ba437f6abc44d0d12c18",
+        "bytes": 6226,
+        "expected_git_blob": "df89435be92cfa5544d0ba437f6abc44d0d12c18",
+        "pass": true,
+        "path": "monod/monod_tempfunc.F",
+        "sha256": "46926da75d9d2d828675d1d600b1f72282ea82c703120598fd4e8fd6100c4440",
+        "working_tree_crlf": false
+      }
+    },
+    "direct": {
+      "generate_phyto": {
+        "actual_git_blob": "2a112873650922030237df5430a7cae0341dcb87",
+        "bytes": 25817,
+        "expected_git_blob": "2a112873650922030237df5430a7cae0341dcb87",
+        "pass": true,
+        "path": "v04/llc270_JAMES_paper/code_darwin/darwin_generate_phyto.F",
+        "sha256": "e71b5088a0c08d0bb7d93f23f570f6ccea5271cf1bc4dd2a96b5e4d67cec4125",
+        "working_tree_crlf": true
+      },
+      "init_fixed": {
+        "actual_git_blob": "20aa2864b97ddfafbde8245c43cfc34ee84607bf",
+        "bytes": 13690,
+        "expected_git_blob": "20aa2864b97ddfafbde8245c43cfc34ee84607bf",
+        "pass": true,
+        "path": "v04/llc270_JAMES_paper/code_darwin/darwin_init_fixed.F",
+        "sha256": "7a04e537d2ac9c754ab05ee82e1666e871602d88208a6e36c8d3c8bb1b04c78c",
+        "working_tree_crlf": true
+      },
+      "legacy_generate_zoo": {
+        "actual_git_blob": "a3c811fa06544331b9b291ae54ae0b5b68eec0e0",
+        "bytes": 5429,
+        "expected_git_blob": "a3c811fa06544331b9b291ae54ae0b5b68eec0e0",
+        "pass": true,
+        "path": "v02/cs510_Manizza_AO/darwin/darwin_generate_zoo.F",
+        "sha256": "f74c1d29fc04016e3394743204858586bedee267c250daa30fd8acc069baaf99",
+        "working_tree_crlf": true
+      },
+      "options": {
+        "actual_git_blob": "75705a67eaff7d77309f88da21d6f6abef07bb31",
+        "bytes": 2490,
+        "expected_git_blob": "75705a67eaff7d77309f88da21d6f6abef07bb31",
+        "pass": true,
+        "path": "v04/llc270_JAMES_paper/code_darwin/DARWIN_OPTIONS.h",
+        "sha256": "2ade0ac2be6e2257b49b6cd8f81fe624f03c4f5c2f5a270537f496dc97fa1ac0",
+        "working_tree_crlf": true
+      },
+      "plankton": {
+        "actual_git_blob": "6af2b5fff7746bcd904a51af9390d92e2e764d30",
+        "bytes": 62662,
+        "expected_git_blob": "6af2b5fff7746bcd904a51af9390d92e2e764d30",
+        "pass": true,
+        "path": "v04/llc270_JAMES_paper/code_darwin/darwin_plankton.F",
+        "sha256": "8241b27ede7176d6f5990517335374274331f22e43301a5ab83ec0826693ea04",
+        "working_tree_crlf": true
+      },
+      "readme": {
+        "actual_git_blob": "84e3a53af19444d81308ffc24c840af56df97fc3",
+        "bytes": 2401,
+        "expected_git_blob": "84e3a53af19444d81308ffc24c840af56df97fc3",
+        "pass": true,
+        "path": "v04/llc270_JAMES_paper/readme/readme_ecco_darwin.txt",
+        "sha256": "9a5237e32899179054c32ea13390577f7dba31e881ea0fce41407d4ddb78d902",
+        "working_tree_crlf": true
+      }
+    },
+    "identity_pass": true
+  },
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

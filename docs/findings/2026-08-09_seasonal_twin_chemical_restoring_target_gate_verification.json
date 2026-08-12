@@ -1,0 +1,17 @@
+{
+  "aois": [
+    "eqpac",
+    "natlsubpolar",
+    "southernoceanpac"
+  ],
+  "bundle": "runs\\seasonal_twin\\chemical_restoring_target_bundle_tau365.pt",
+  "bundle_sha256": "a772adca0c25a8a93922ad38102d01773c6808abda5d8ab76492005eefdc2774",
+  "gate_pass": false,
+  "production_contract": true,
+  "report": "docs\\findings\\2026-08-09_seasonal_twin_chemical_restoring_target_gate.json",
+  "report_sha256": "13a74ed5532c86d30d30e2b73b677b0ecad2776b6da1f48507f4a175729ad35d",
+  "science_status": "FAIL",
+  "verified": true,
+  "verified_cycles": 24,
+  "verified_utc": "2026-08-09T17:35:11.059084+00:00"
+}

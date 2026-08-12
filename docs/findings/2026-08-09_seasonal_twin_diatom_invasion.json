@@ -1,0 +1,508 @@
+{
+  "schema_version": 1,
+  "status": "measured-not-yet-independently-verified",
+  "preregistration": "docs/findings/2026-08-09_prereg_seasonal_twin_diatom_invasion_test.md",
+  "config": {
+    "dt_days": 0.25,
+    "steps_per_month": 122,
+    "cycles": 8,
+    "recorded_cycles": [
+      7,
+      8
+    ],
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "constructions": [
+      "chemical-fixed-light",
+      "chemical-astronomical-light"
+    ],
+    "chemical_restoring_tau_days": 365.25,
+    "initial_diatom": 0.0,
+    "phytoplankton_restoring": false,
+    "truth": [
+      0.928309977054596,
+      6.025023253641848e-07,
+      0.6609799861907959,
+      0.4314799904823303,
+      0.8300300240516663,
+      0.04244999960064888
+    ],
+    "compiled_step": true,
+    "device": "cuda"
+  },
+  "constructions": {
+    "chemical-fixed-light": {
+      "aois": {
+        "eqpac": {
+          "shape": [
+            21,
+            51
+          ],
+          "n_ocean_cells": 1071,
+          "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache.npz",
+          "lat_bounds": [
+            -5.0,
+            15.0
+          ],
+          "lon_bounds": [
+            -160.0,
+            -110.0
+          ],
+          "cycles": {
+            "7": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -24.24515724182129,
+              "log_multiplier_median": -13.455904960632324,
+              "log_multiplier_max": -9.486825942993164,
+              "annual_multiplier_min": 2.9543503563250855e-11,
+              "annual_multiplier_median": 1.4327642170800666e-06,
+              "annual_multiplier_max": 7.584445626364334e-05,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -24.037715911865234,
+              "continuous_exponent_median": -13.393573760986328,
+              "continuous_exponent_max": -9.45509147644043,
+              "positive_rate_step_fraction": 0.0,
+              "minimum_euler_factor": 0.9785613417625427,
+              "resident_diatom_max_abs": 0.0
+            },
+            "8": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -24.24515724182129,
+              "log_multiplier_median": -13.455904960632324,
+              "log_multiplier_max": -9.486825942993164,
+              "annual_multiplier_min": 2.9543503563250855e-11,
+              "annual_multiplier_median": 1.4327642170800666e-06,
+              "annual_multiplier_max": 7.584445626364334e-05,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -24.037715911865234,
+              "continuous_exponent_median": -13.393573760986328,
+              "continuous_exponent_max": -9.45509147644043,
+              "positive_rate_step_fraction": 0.0,
+              "minimum_euler_factor": 0.9785613417625427,
+              "resident_diatom_max_abs": 0.0
+            }
+          },
+          "stability": {
+            "stable": true,
+            "threshold": 0.01,
+            "maximum_per_tracer_relative_l2": 8.985026596601674e-05,
+            "per_tracer_relative_l2": {
+              "DFe1": 0.0,
+              "Chl2_lge": 0.0,
+              "Chl3_syn": 0.0,
+              "Chl4_proll": 0.0,
+              "Chl5_prohl": 0.0,
+              "POC1": 0.0,
+              "PIC1": 0.0,
+              "DIC1": 8.985026596601674e-05,
+              "ALK1": 1.5116675222688298e-05,
+              "DFe2": 0.0,
+              "POC2": 0.0,
+              "PIC2": 0.0,
+              "DIC2": 9.238203081309456e-06,
+              "ALK2": 5.469929208241512e-06
+            }
+          },
+          "elapsed_seconds": 20.415409799999907
+        },
+        "natlsubpolar": {
+          "shape": [
+            16,
+            31
+          ],
+          "n_ocean_cells": 489,
+          "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache_natlsubpolar.npz",
+          "lat_bounds": [
+            50.0,
+            65.0
+          ],
+          "lon_bounds": [
+            -40.0,
+            -10.0
+          ],
+          "cycles": {
+            "7": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -40.66993713378906,
+              "log_multiplier_median": -13.288167953491211,
+              "log_multiplier_max": -1.1927086114883423,
+              "annual_multiplier_min": 2.1740559842747433e-18,
+              "annual_multiplier_median": 1.694423566909385e-06,
+              "annual_multiplier_max": 0.3033983618202013,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -40.107120513916016,
+              "continuous_exponent_median": -13.227546691894531,
+              "continuous_exponent_max": -1.1921452283859253,
+              "positive_rate_step_fraction": 0.000576899437907182,
+              "minimum_euler_factor": 0.968564510345459,
+              "resident_diatom_max_abs": 0.0
+            },
+            "8": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -40.66993713378906,
+              "log_multiplier_median": -13.288167953491211,
+              "log_multiplier_max": -1.1927086114883423,
+              "annual_multiplier_min": 2.1740559842747433e-18,
+              "annual_multiplier_median": 1.694423566909385e-06,
+              "annual_multiplier_max": 0.3033983618202013,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -40.107120513916016,
+              "continuous_exponent_median": -13.227546691894531,
+              "continuous_exponent_max": -1.1921452283859253,
+              "positive_rate_step_fraction": 0.000576899437907182,
+              "minimum_euler_factor": 0.968564510345459,
+              "resident_diatom_max_abs": 0.0
+            }
+          },
+          "stability": {
+            "stable": true,
+            "threshold": 0.01,
+            "maximum_per_tracer_relative_l2": 4.887497936662161e-05,
+            "per_tracer_relative_l2": {
+              "DFe1": 0.0,
+              "Chl2_lge": 0.0,
+              "Chl3_syn": 0.0,
+              "Chl4_proll": 0.0,
+              "Chl5_prohl": 0.0,
+              "POC1": 0.0,
+              "PIC1": 0.0,
+              "DIC1": 4.887497936662161e-05,
+              "ALK1": 1.533418826386346e-05,
+              "DFe2": 0.0,
+              "POC2": 0.0,
+              "PIC2": 0.0,
+              "DIC2": 1.081292068763959e-05,
+              "ALK2": 2.346431917595977e-06
+            }
+          },
+          "elapsed_seconds": 15.891738999998779
+        },
+        "southernoceanpac": {
+          "shape": [
+            16,
+            81
+          ],
+          "n_ocean_cells": 1296,
+          "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache_southernoceanpac.npz",
+          "lat_bounds": [
+            -65.0,
+            -50.0
+          ],
+          "lon_bounds": [
+            -180.0,
+            -100.0
+          ],
+          "cycles": {
+            "7": {
+              "classification": "mixed",
+              "log_multiplier_min": -30.660987854003906,
+              "log_multiplier_median": -14.323480606079102,
+              "log_multiplier_max": 2.793588876724243,
+              "annual_multiplier_min": 4.831724522390959e-14,
+              "annual_multiplier_median": 6.017157940145766e-07,
+              "annual_multiplier_max": 16.33955535040768,
+              "fraction_log_multiplier_negative": 0.9614197530864198,
+              "fraction_log_multiplier_positive": 0.038580246913580245,
+              "continuous_exponent_min": -30.341903686523438,
+              "continuous_exponent_median": -14.253389358520508,
+              "continuous_exponent_max": 2.796658992767334,
+              "positive_rate_step_fraction": 0.03520605646630237,
+              "minimum_euler_factor": 0.9775415658950806,
+              "resident_diatom_max_abs": 0.0
+            },
+            "8": {
+              "classification": "mixed",
+              "log_multiplier_min": -30.660987854003906,
+              "log_multiplier_median": -14.323480606079102,
+              "log_multiplier_max": 2.793588876724243,
+              "annual_multiplier_min": 4.831724522390959e-14,
+              "annual_multiplier_median": 6.017157940145766e-07,
+              "annual_multiplier_max": 16.33955535040768,
+              "fraction_log_multiplier_negative": 0.9614197530864198,
+              "fraction_log_multiplier_positive": 0.038580246913580245,
+              "continuous_exponent_min": -30.341903686523438,
+              "continuous_exponent_median": -14.253389358520508,
+              "continuous_exponent_max": 2.796658992767334,
+              "positive_rate_step_fraction": 0.03520605646630237,
+              "minimum_euler_factor": 0.9775415658950806,
+              "resident_diatom_max_abs": 0.0
+            }
+          },
+          "stability": {
+            "stable": true,
+            "threshold": 0.01,
+            "maximum_per_tracer_relative_l2": 3.74378031875285e-05,
+            "per_tracer_relative_l2": {
+              "DFe1": 0.0,
+              "Chl2_lge": 0.0,
+              "Chl3_syn": 0.0,
+              "Chl4_proll": 0.0,
+              "Chl5_prohl": 0.0,
+              "POC1": 0.0,
+              "PIC1": 0.0,
+              "DIC1": 3.74378031875285e-05,
+              "ALK1": 1.6518581869683434e-05,
+              "DFe2": 0.0,
+              "POC2": 0.0,
+              "PIC2": 0.0,
+              "DIC2": 8.86505652365832e-06,
+              "ALK2": 6.383990317959125e-07
+            }
+          },
+          "elapsed_seconds": 14.328107399996952
+        }
+      }
+    },
+    "chemical-astronomical-light": {
+      "aois": {
+        "eqpac": {
+          "shape": [
+            21,
+            51
+          ],
+          "n_ocean_cells": 1071,
+          "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache.npz",
+          "lat_bounds": [
+            -5.0,
+            15.0
+          ],
+          "lon_bounds": [
+            -160.0,
+            -110.0
+          ],
+          "cycles": {
+            "7": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -24.268396377563477,
+              "log_multiplier_median": -13.568490982055664,
+              "log_multiplier_max": -9.56341552734375,
+              "annual_multiplier_min": 2.8864854227851108e-11,
+              "annual_multiplier_median": 1.2802041736928804e-06,
+              "annual_multiplier_max": 7.025243929141728e-05,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -24.059846878051758,
+              "continuous_exponent_median": -13.501752853393555,
+              "continuous_exponent_max": -9.530923843383789,
+              "positive_rate_step_fraction": 0.0,
+              "minimum_euler_factor": 0.9792461395263672,
+              "resident_diatom_max_abs": 0.0
+            },
+            "8": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -24.268396377563477,
+              "log_multiplier_median": -13.568490982055664,
+              "log_multiplier_max": -9.56341552734375,
+              "annual_multiplier_min": 2.8864854227851108e-11,
+              "annual_multiplier_median": 1.2802041736928804e-06,
+              "annual_multiplier_max": 7.025243929141728e-05,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -24.059846878051758,
+              "continuous_exponent_median": -13.501752853393555,
+              "continuous_exponent_max": -9.530923843383789,
+              "positive_rate_step_fraction": 0.0,
+              "minimum_euler_factor": 0.9792461395263672,
+              "resident_diatom_max_abs": 0.0
+            }
+          },
+          "stability": {
+            "stable": true,
+            "threshold": 0.01,
+            "maximum_per_tracer_relative_l2": 8.913490937048032e-05,
+            "per_tracer_relative_l2": {
+              "DFe1": 0.0,
+              "Chl2_lge": 0.0,
+              "Chl3_syn": 0.0,
+              "Chl4_proll": 0.0,
+              "Chl5_prohl": 0.0,
+              "POC1": 0.0,
+              "PIC1": 0.0,
+              "DIC1": 8.913490937048032e-05,
+              "ALK1": 1.3274472172606456e-05,
+              "DFe2": 0.0,
+              "POC2": 0.0,
+              "PIC2": 0.0,
+              "DIC2": 7.672694651606677e-06,
+              "ALK2": 4.7318625614346384e-06
+            }
+          },
+          "elapsed_seconds": 15.572174999993877
+        },
+        "natlsubpolar": {
+          "shape": [
+            16,
+            31
+          ],
+          "n_ocean_cells": 489,
+          "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache_natlsubpolar.npz",
+          "lat_bounds": [
+            50.0,
+            65.0
+          ],
+          "lon_bounds": [
+            -40.0,
+            -10.0
+          ],
+          "cycles": {
+            "7": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -52.960906982421875,
+              "log_multiplier_median": -26.347705841064453,
+              "log_multiplier_max": -9.341033935546875,
+              "annual_multiplier_min": 9.985512069565926e-24,
+              "annual_multiplier_median": 3.608583362126278e-12,
+              "annual_multiplier_max": 8.774866270645761e-05,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -51.46324157714844,
+              "continuous_exponent_median": -25.574989318847656,
+              "continuous_exponent_max": -9.0242919921875,
+              "positive_rate_step_fraction": 0.3707186518712215,
+              "minimum_euler_factor": 0.9260838031768799,
+              "resident_diatom_max_abs": 0.0
+            },
+            "8": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -52.960906982421875,
+              "log_multiplier_median": -26.347705841064453,
+              "log_multiplier_max": -9.341033935546875,
+              "annual_multiplier_min": 9.985512069565926e-24,
+              "annual_multiplier_median": 3.608583362126278e-12,
+              "annual_multiplier_max": 8.774866270645761e-05,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -51.46324157714844,
+              "continuous_exponent_median": -25.574989318847656,
+              "continuous_exponent_max": -9.0242919921875,
+              "positive_rate_step_fraction": 0.3707186518712215,
+              "minimum_euler_factor": 0.9260838031768799,
+              "resident_diatom_max_abs": 0.0
+            }
+          },
+          "stability": {
+            "stable": true,
+            "threshold": 0.01,
+            "maximum_per_tracer_relative_l2": 3.83227308678919e-05,
+            "per_tracer_relative_l2": {
+              "DFe1": 0.0,
+              "Chl2_lge": 0.0,
+              "Chl3_syn": 0.0,
+              "Chl4_proll": 0.0,
+              "Chl5_prohl": 0.0,
+              "POC1": 0.0,
+              "PIC1": 0.0,
+              "DIC1": 3.83227308678919e-05,
+              "ALK1": 1.0813598318646165e-05,
+              "DFe2": 0.0,
+              "POC2": 0.0,
+              "PIC2": 0.0,
+              "DIC2": 2.8817958072332214e-06,
+              "ALK2": 5.394123676067876e-06
+            }
+          },
+          "elapsed_seconds": 13.382108800011338
+        },
+        "southernoceanpac": {
+          "shape": [
+            16,
+            81
+          ],
+          "n_ocean_cells": 1296,
+          "ic_cache": "C:\\Users\\Frank\\OneDrive\\Desktop\\Github\\ecco-darwindiff\\scripts\\darwin_ic_cache_southernoceanpac.npz",
+          "lat_bounds": [
+            -65.0,
+            -50.0
+          ],
+          "lon_bounds": [
+            -180.0,
+            -100.0
+          ],
+          "cycles": {
+            "7": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -45.0516471862793,
+              "log_multiplier_median": -26.493179321289062,
+              "log_multiplier_max": -5.417412757873535,
+              "annual_multiplier_min": 2.718430450779638e-20,
+              "annual_multiplier_median": 3.120027433713065e-12,
+              "annual_multiplier_max": 0.004438615578191124,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -43.68712615966797,
+              "continuous_exponent_median": -25.77457618713379,
+              "continuous_exponent_max": -5.134963035583496,
+              "positive_rate_step_fraction": 0.3653317479592525,
+              "minimum_euler_factor": 0.9262993931770325,
+              "resident_diatom_max_abs": 0.0
+            },
+            "8": {
+              "classification": "uniformly-non-invadable",
+              "log_multiplier_min": -45.0516471862793,
+              "log_multiplier_median": -26.493179321289062,
+              "log_multiplier_max": -5.417412757873535,
+              "annual_multiplier_min": 2.718430450779638e-20,
+              "annual_multiplier_median": 3.120027433713065e-12,
+              "annual_multiplier_max": 0.004438615578191124,
+              "fraction_log_multiplier_negative": 1.0,
+              "fraction_log_multiplier_positive": 0.0,
+              "continuous_exponent_min": -43.68712615966797,
+              "continuous_exponent_median": -25.77457618713379,
+              "continuous_exponent_max": -5.134963035583496,
+              "positive_rate_step_fraction": 0.3653317479592525,
+              "minimum_euler_factor": 0.9262993931770325,
+              "resident_diatom_max_abs": 0.0
+            }
+          },
+          "stability": {
+            "stable": true,
+            "threshold": 0.01,
+            "maximum_per_tracer_relative_l2": 3.267510402565306e-05,
+            "per_tracer_relative_l2": {
+              "DFe1": 0.0,
+              "Chl2_lge": 0.0,
+              "Chl3_syn": 0.0,
+              "Chl4_proll": 0.0,
+              "Chl5_prohl": 0.0,
+              "POC1": 0.0,
+              "PIC1": 0.0,
+              "DIC1": 3.267510402565306e-05,
+              "ALK1": 1.22535116227184e-05,
+              "DFe2": 0.0,
+              "POC2": 0.0,
+              "PIC2": 0.0,
+              "DIC2": 2.988067197720098e-06,
+              "ALK2": 4.650525236988714e-06
+            }
+          },
+          "elapsed_seconds": 13.243926999988616
+        }
+      }
+    }
+  },
+  "decision": {
+    "branch": "spatial-or-mixed-viability",
+    "qualifying_aois": [],
+    "structural_cells": [
+      "eqpac",
+      "natlsubpolar"
+    ],
+    "light_specific_aois": [
+      "southernoceanpac"
+    ],
+    "b200_authorized": false
+  },
+  "elapsed_seconds": 93.52704309999535,
+  "bundle_artifact": {
+    "path": "docs/findings/2026-08-09_seasonal_twin_diatom_invasion.pt.gz",
+    "bytes": 1876846,
+    "sha256": "0773b5c6041444ec37a501dfea8b3d65ac5aa41a2ebc34cbf5f3f001ed75f224"
+  }
+}

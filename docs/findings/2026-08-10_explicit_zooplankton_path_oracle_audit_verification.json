@@ -1,0 +1,20 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "raw_support_tensor_cells": 16765728,
+  "decision": {
+    "branch": "natl-knife-edge-requires-discontinuous-relocation",
+    "integrity_pass": true,
+    "primary_hypothesis": "falsified",
+    "natl_radius1_positive": false,
+    "actual_transport_tested": false,
+    "modified_dynamics_integrated": false,
+    "target_rehabilitated": false,
+    "b200_authorized": false
+  },
+  "report": "docs/findings/2026-08-10_explicit_zooplankton_path_oracle_audit.json",
+  "report_sha256": "5d38f75e98da0ce46da959b4779f24b52e67d8def17d63e4026721a7a4fafc98",
+  "discrete_report_sha256": "ac32d6b31e7ad9cdc46bd5741714c72bebcee4736fae93fc2c0572092e8b3c94",
+  "support_report_sha256": "0dcfaf635ac7348c451b687d0ea180bc622b0b111eb2d3d2f4524a3b5dde27c3",
+  "support_bundle_sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1"
+}

@@ -166,10 +166,47 @@ _TERM_CELL_KEYS = {
     "geotraces_poc_sub_w": "n_geo_poc_subsurface_cells_per_aoi",
 }
 
+_EXPECTED_ZERO_COVERAGE_AOIS = {
+    "daniels_rpicpoc_w": {"southernoceanpac"},
+    "posi_w": {"southernoceanpac"},
+}
+
+
+def _inert_term_detail(d: dict, w_key: str, counts: dict) -> str:
+    """Explain whether zero cells came from a loaded source or an unknown source state."""
+    provenance = d.get("loss_term_provenance")
+    term_provenance = provenance.get(w_key) if isinstance(provenance, dict) else None
+    if not isinstance(term_provenance, dict):
+        return "data unstaged or no coverage; the artifact does not distinguish them"
+
+    source_status = term_provenance.get("source_status")
+    coverage = term_provenance.get("coverage_status_per_aoi")
+    if source_status != "loaded" or not isinstance(coverage, dict):
+        return f"source_status={source_status!r}; source loading was not certified"
+
+    aois = set(counts)
+    if aois and all(coverage.get(aoi) == "zero_coverage" for aoi in aois):
+        expected = _EXPECTED_ZERO_COVERAGE_AOIS.get(w_key, set())
+        if aois <= expected:
+            return (
+                "EXPECTED ZERO COVERAGE with the source certified loaded; the term still "
+                "did not participate and must be declared off for a reportable run"
+            )
+        return (
+            "source certified loaded but zero coverage is not registered as expected for "
+            f"AOI(s) {sorted(aois)}"
+        )
+    return "coverage provenance is inconsistent with the zero cell counts"
+
 
 def inert_terms(d: dict) -> list[str]:
-    """Declared-on loss terms that contributed zero cells in every AOI."""
-    out = []
+    """Declared-on loss terms that contributed zero cells in every AOI.
+
+    Expected geographic absence and a staging failure are different diagnoses,
+    but neither makes a declared-on no-op configuration reportable. Provenance
+    sharpens the discrepancy message; it never turns the discrepancy into a pass.
+    """
+    out: list[str] = []
     for w_key, n_key in _TERM_CELL_KEYS.items():
         w = d.get(w_key)
         counts = d.get(n_key)
@@ -178,10 +215,11 @@ def inert_terms(d: dict) -> list[str]:
         if not isinstance(counts, dict) or not counts:
             continue
         if all((c or 0) == 0 for c in counts.values()):
+            detail = _inert_term_detail(d, w_key, counts)
             out.append(
                 f"{w_key}={w:g} but {n_key} is zero in every AOI -- the loss term was "
-                f"SKIPPED (data unstaged or no coverage). This run is NOT the config it "
-                f"declares; treat it as that term switched off."
+                f"SKIPPED ({detail}). This run is NOT the config it declares; treat it as "
+                "that term switched off."
             )
     return out
 

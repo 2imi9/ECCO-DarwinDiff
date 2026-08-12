@@ -1,0 +1,296 @@
+{
+  "aois": {
+    "eqpac": {
+      "elapsed_seconds": 3.966682400001446,
+      "summary": {
+        "all_prey_multiplier": {
+          "bracketed_count": 1071,
+          "bracketed_fraction": 1.0,
+          "censoring_bound": 64.0,
+          "fraction_at_or_below": {
+            "1.1": 0.0,
+            "1.25": 0.9645191409897292,
+            "1.5": 1.0,
+            "2": 1.0,
+            "4": 1.0
+          },
+          "maximum": 1.285463787773974,
+          "median": 1.158187108832312,
+          "minimum": 1.1142182683811086,
+          "ocean_cell_count": 1071,
+          "p95": 1.2405746108557025,
+          "unbracketed_count": 0
+        },
+        "canonical_annual_gain_integral": {
+          "maximum": 11.059932957420134,
+          "median": 10.675488483758896,
+          "minimum": 9.698309013148066,
+          "p95": 10.963736979352209
+        },
+        "canonical_gain_atol": 5e-05,
+        "endpoint_relative_l2_atol": 2e-05,
+        "endpoint_relative_l2_vs_energy": 0.0,
+        "finite_support_tensors": true,
+        "large_prey_only_multiplier": {
+          "bracketed_count": 1071,
+          "bracketed_fraction": 1.0,
+          "censoring_bound": 64.0,
+          "fraction_at_or_below": {
+            "1.1": 0.0,
+            "1.25": 0.5854341736694678,
+            "1.5": 1.0,
+            "2": 1.0,
+            "4": 1.0
+          },
+          "maximum": 1.4461763876246465,
+          "median": 1.23350525523254,
+          "minimum": 1.1654185867829732,
+          "ocean_cell_count": 1071,
+          "p95": 1.368329763937993,
+          "unbracketed_count": 0
+        },
+        "maximum_canonical_gain_difference": 3.8131119772799593e-07,
+        "maximum_canonical_monthly_gain_difference": 4.560090338667777e-08,
+        "minimum_large_only_to_all_prey_ratio": 1.045951785080903,
+        "near_local_refuge": true,
+        "pass": true,
+        "required_subsidy_fraction_of_mortality": {
+          "maximum": 0.20505663826655193,
+          "median": 0.12495996034763145,
+          "minimum": 0.09344811824425124,
+          "p95": 0.1780993740166722
+        },
+        "required_subsidy_per_day": {
+          "maximum": 0.006835221275551731,
+          "median": 0.004165332011587715,
+          "minimum": 0.0031149372748083748,
+          "p95": 0.0059366458005557406
+        }
+      }
+    },
+    "natlsubpolar": {
+      "elapsed_seconds": 1.772708500007866,
+      "summary": {
+        "all_prey_multiplier": {
+          "bracketed_count": 489,
+          "bracketed_fraction": 1.0,
+          "censoring_bound": 64.0,
+          "fraction_at_or_below": {
+            "1.1": 0.0,
+            "1.25": 0.3231083844580777,
+            "1.5": 0.9100204498977505,
+            "2": 1.0,
+            "4": 1.0
+          },
+          "maximum": 1.8978571534365258,
+          "median": 1.3210006813366597,
+          "minimum": 1.104487864077882,
+          "ocean_cell_count": 489,
+          "p95": 1.6017169984161157,
+          "unbracketed_count": 0
+        },
+        "canonical_annual_gain_integral": {
+          "maximum": 11.16040777478619,
+          "median": 9.529190598899058,
+          "minimum": 6.93300498779231,
+          "p95": 10.944024790071362
+        },
+        "canonical_gain_atol": 5e-05,
+        "endpoint_relative_l2_atol": 2e-05,
+        "endpoint_relative_l2_vs_energy": 0.0,
+        "finite_support_tensors": true,
+        "large_prey_only_multiplier": {
+          "bracketed_count": 489,
+          "bracketed_fraction": 1.0,
+          "censoring_bound": 64.0,
+          "fraction_at_or_below": {
+            "1.1": 0.0,
+            "1.25": 0.13496932515337423,
+            "1.5": 0.4703476482617587,
+            "2": 0.9304703476482618,
+            "4": 1.0
+          },
+          "maximum": 2.735948018550957,
+          "median": 1.517573319156675,
+          "minimum": 1.1516991688761848,
+          "ocean_cell_count": 489,
+          "p95": 2.1314930533959746,
+          "unbracketed_count": 0
+        },
+        "maximum_canonical_gain_difference": 3.6579634432598596e-07,
+        "maximum_canonical_monthly_gain_difference": 6.196420265780489e-08,
+        "minimum_large_only_to_all_prey_ratio": 1.042744973787212,
+        "near_local_refuge": true,
+        "pass": true,
+        "required_subsidy_fraction_of_mortality": {
+          "maximum": 0.4317209026399746,
+          "median": 0.2189188033689296,
+          "minimum": 0.08521247747654175,
+          "p95": 0.3374749167423716
+        },
+        "required_subsidy_per_day": {
+          "maximum": 0.014390696754665819,
+          "median": 0.007297293445630987,
+          "minimum": 0.0028404159158847246,
+          "p95": 0.011249163891412386
+        }
+      }
+    },
+    "southernoceanpac": {
+      "elapsed_seconds": 1.9114221000054386,
+      "summary": {
+        "all_prey_multiplier": {
+          "bracketed_count": 1296,
+          "bracketed_fraction": 1.0,
+          "censoring_bound": 64.0,
+          "fraction_at_or_below": {
+            "1.1": 0.044753086419753084,
+            "1.25": 0.3757716049382716,
+            "1.5": 0.7584876543209876,
+            "2": 1.0,
+            "4": 1.0
+          },
+          "maximum": 1.6160732504799604,
+          "median": 1.3220728368298147,
+          "minimum": 1.0606085719533844,
+          "ocean_cell_count": 1296,
+          "p95": 1.5920948382242273,
+          "unbracketed_count": 0
+        },
+        "canonical_annual_gain_integral": {
+          "maximum": 11.573926189905071,
+          "median": 9.522463071585793,
+          "minimum": 8.007057863772754,
+          "p95": 11.15350018191064
+        },
+        "canonical_gain_atol": 5e-05,
+        "endpoint_relative_l2_atol": 2e-05,
+        "endpoint_relative_l2_vs_energy": 0.0,
+        "finite_support_tensors": true,
+        "large_prey_only_multiplier": {
+          "bracketed_count": 1296,
+          "bracketed_fraction": 1.0,
+          "censoring_bound": 64.0,
+          "fraction_at_or_below": {
+            "1.1": 0.011574074074074073,
+            "1.25": 0.20679012345679013,
+            "1.5": 0.47530864197530864,
+            "2": 0.8587962962962963,
+            "4": 1.0
+          },
+          "maximum": 2.1664272595076746,
+          "median": 1.5202400111205954,
+          "minimum": 1.0863159186347602,
+          "ocean_cell_count": 1296,
+          "p95": 2.1060529944000876,
+          "unbracketed_count": 0
+        },
+        "maximum_canonical_gain_difference": 3.6855227669718715e-07,
+        "maximum_canonical_monthly_gain_difference": 6.073554392749259e-08,
+        "minimum_large_only_to_all_prey_ratio": 1.0242382980499856,
+        "near_local_refuge": true,
+        "pass": true,
+        "required_subsidy_fraction_of_mortality": {
+          "maximum": 0.3436837816579709,
+          "median": 0.21937511945839014,
+          "minimum": 0.05131752541761704,
+          "p95": 0.33524314229934105
+        },
+        "required_subsidy_per_day": {
+          "maximum": 0.011456126055265697,
+          "median": 0.007312503981946338,
+          "minimum": 0.0017105841805872346,
+          "p95": 0.011174771409978034
+        }
+      }
+    }
+  },
+  "bundle_artifact": {
+    "bytes": 56182091,
+    "path": "docs/findings/2026-08-10_explicit_zooplankton_support_threshold_audit.pt.gz",
+    "sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1"
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "audit_cycle": 13,
+    "bisection_iterations": 48,
+    "canonical_gain_atol": 5e-05,
+    "chemical_restoring_tau_days": 365.25,
+    "counterfactuals": [
+      "all_prey",
+      "large_prey_only"
+    ],
+    "dt_days": 0.25,
+    "endpoint_relative_l2_atol": 2e-05,
+    "large_prey_indices": [
+      0,
+      1
+    ],
+    "mortality_integral": 12.2,
+    "mortality_per_day": 0.03333333333333333,
+    "multiplier_bracket": [
+      1.0,
+      64.0
+    ],
+    "near_refuge_threshold": 1.25,
+    "report_thresholds": [
+      1.1,
+      1.25,
+      1.5,
+      2.0,
+      4.0
+    ],
+    "restoring_indices": [
+      0,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "scenario": "ic_0p10",
+    "small_prey_indices": [
+      2,
+      3,
+      4
+    ],
+    "source_energy_bundle_sha256": "14781929085d2f632d67c56ad7b507796e0470b2f0642ddc49e996ec355ee2b5",
+    "source_energy_report_sha256": "a167a039027f82b3e7251a5611344a88beb366fc098787fcdcadaee62bbbdfe8",
+    "source_prey_floor_c": 1.2e-08,
+    "source_target_bundle_sha256": "56850560a45596366593ddab67cf96d9d067888adc10c5efbf241df4192b4fb8",
+    "source_target_report_sha256": "60772e7f4767e8bdb5c2f0a23b106a80a5f1a7e77dfaa13fe06c33312bfb1926",
+    "steps_per_month": 122,
+    "zooplankton_restoring": false
+  },
+  "created_utc": "2026-08-10T05:56:10.293425+00:00",
+  "decision": {
+    "b200_authorized": false,
+    "branch": "near-local-refuge-all-aois",
+    "integrity_pass": true,
+    "modified_dynamics_integrated": false,
+    "near_local_refuge_by_aoi": {
+      "eqpac": true,
+      "natlsubpolar": true,
+      "southernoceanpac": true
+    },
+    "primary_hypothesis": "supported",
+    "target_rehabilitated": false
+  },
+  "elapsed_seconds": 8.401958200003719,
+  "preregistration": "docs/findings/2026-08-10_prereg_large_zooplankton_support_threshold_audit.md",
+  "runtime": {
+    "compiled_step": true,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+  },
+  "schema_version": 1,
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

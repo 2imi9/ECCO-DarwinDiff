@@ -123,6 +123,20 @@ I_ALK_2 = 14
 
 N_TRACERS_2LAYER = 15
 N_PHYTO = 5  # only L1 has biology
+PHYTOPLANKTON_STATE_INDICES: tuple[int, ...] = (
+    I_DIATOM,
+    I_LGE,
+    I_SYN,
+    I_PROLL,
+    I_PROHL,
+)
+PHYTOPLANKTON_NAMES: tuple[str, ...] = (
+    "diatom",
+    "lge",
+    "syn",
+    "proLL",
+    "proHL",
+)
 
 # --- Layer geometry -----------------------------------------------------------
 
@@ -272,6 +286,7 @@ def npp_from_state(
     state: torch.Tensor,
     params: torch.Tensor,
     T: torch.Tensor | float = 15.0,
+    light: torch.Tensor | float = LIGHT,
 ) -> torch.Tensor:
     """Diagnose gross primary production (NPP proxy) from a (converged) box state.
 
@@ -299,8 +314,68 @@ def npp_from_state(
         + MU_DEFAULT_SYN * P_syn
         + MU_DEFAULT_PROLL * P_proLL
         + mu_proHL * P_proHL
-    ) * f_fe * LIGHT * gamma_T
+    ) * f_fe * light * gamma_T
     return growth_total
+
+
+def phytoplankton_process_rates(
+    state: torch.Tensor,
+    params: torch.Tensor,
+    T: torch.Tensor | float = 15.0,
+    light: torch.Tensor | float = LIGHT,
+) -> dict[str, torch.Tensor]:
+    """Return the exact pre-clamp PFT rates used by the production step.
+
+    The leading dimension of each process tensor follows
+    :data:`PHYTOPLANKTON_NAMES`. This diagnostic deliberately mirrors the
+    production algebra rather than inferring nonlinear rates from saved means.
+    """
+    DFe_1 = state[I_DFE_1]
+    phyto = state[list(PHYTOPLANKTON_STATE_INDICES)]
+    f_fe = DFe_1 / (DFe_1 + K_FE)
+
+    if USE_EPPLEY_T:
+        temperature = torch.as_tensor(T, dtype=state.dtype, device=state.device)
+        gamma_t = torch.exp(A_E_EPPLEY * (temperature - T_REF_EPPLEY))
+        gamma_t = gamma_t / gamma_t.mean()
+    else:
+        gamma_t = torch.ones_like(DFe_1)
+    light_field = torch.as_tensor(light, dtype=state.dtype, device=state.device)
+    light_field = torch.broadcast_to(light_field, DFe_1.shape)
+
+    growth = torch.stack(
+        (
+            MU_DEFAULT_DIATOM * f_fe * light_field * gamma_t * phyto[0],
+            params[I_BIGGROW] * f_fe * light_field * gamma_t * phyto[1],
+            MU_DEFAULT_SYN * f_fe * light_field * gamma_t * phyto[2],
+            MU_DEFAULT_PROLL * f_fe * light_field * gamma_t * phyto[3],
+            params[I_SMALLGROW] * f_fe * light_field * gamma_t * phyto[4],
+        )
+    )
+    linear_mortality = M_LIN * phyto
+    quadratic_mortality = M_QUAD * phyto * phyto
+    grazing = torch.zeros_like(phyto)
+    grazing[0] = params[I_DIATOMGRAZ] * G0_GRAZE * phyto[0]
+    mortality = linear_mortality + quadratic_mortality
+    loss = mortality + grazing
+    diatom_low_density_rate = (
+        MU_DEFAULT_DIATOM * f_fe * light_field * gamma_t
+        - M_LIN
+        - params[I_DIATOMGRAZ] * G0_GRAZE
+    )
+
+    return {
+        "growth": growth,
+        "linear_mortality": linear_mortality,
+        "quadratic_mortality": quadratic_mortality,
+        "grazing": grazing,
+        "loss": loss,
+        "net": growth - mortality - grazing,
+        "f_fe": f_fe,
+        "gamma_t": torch.broadcast_to(gamma_t, DFe_1.shape),
+        "light": light_field,
+        "diatom_low_density_rate": diatom_low_density_rate,
+    }
 
 
 def carroll6_5pft_2layer_step(
@@ -315,6 +390,7 @@ def carroll6_5pft_2layer_step(
     h2: float = H2,
     kz_m2_per_day: float = KZ_M2_PER_DAY,
     r_remin: float = R_REMIN,
+    light: torch.Tensor | float = LIGHT,
 ) -> torch.Tensor:
     """One forward-Euler step of the 15-tracer 2-layer Carroll-6 box model.
 
@@ -325,7 +401,7 @@ def carroll6_5pft_2layer_step(
             ``carroll6_5pft.carroll6_5pft_step``
             (``[alpfe, scav_rat, Smallgrow, Biggrow, diatomgraz, R_PICPOC]``).
         dt: time step in days.
-        T, S, wind, pco2_atm: forcing fields (broadcast to spatial shape).
+        T, S, wind, pco2_atm, light: forcing fields (broadcast to spatial shape).
             v2.7 applies the SAME T/S/wind/pco2_atm to both layers — this
             is a deliberate simplification (subsurface T/S/light differ from
             surface but the L2 carbonate solve is decoupled from biology, so
@@ -386,11 +462,11 @@ def carroll6_5pft_2layer_step(
         gamma_T = 1.0
 
     # Per-PFT growth (default: specific mapping per Carroll-6 → PFT spec).
-    growth_diatom = MU_DEFAULT_DIATOM * f_fe * LIGHT * gamma_T * P_diatom
-    growth_lge    = mu_lge            * f_fe * LIGHT * gamma_T * P_lge
-    growth_syn    = MU_DEFAULT_SYN    * f_fe * LIGHT * gamma_T * P_syn
-    growth_proLL  = MU_DEFAULT_PROLL  * f_fe * LIGHT * gamma_T * P_proLL
-    growth_proHL  = mu_proHL          * f_fe * LIGHT * gamma_T * P_proHL
+    growth_diatom = MU_DEFAULT_DIATOM * f_fe * light * gamma_T * P_diatom
+    growth_lge    = mu_lge            * f_fe * light * gamma_T * P_lge
+    growth_syn    = MU_DEFAULT_SYN    * f_fe * light * gamma_T * P_syn
+    growth_proLL  = MU_DEFAULT_PROLL  * f_fe * light * gamma_T * P_proLL
+    growth_proHL  = mu_proHL          * f_fe * light * gamma_T * P_proHL
     growth_total = (
         growth_diatom + growth_lge + growth_syn + growth_proLL + growth_proHL
     )
@@ -622,6 +698,80 @@ def carroll6_5pft_2layer_integrate(
 DAYS_PER_MONTH: float = 365.25 / 12.0
 
 
+def _integrate_seasonal_impl(
+    state0: torch.Tensor,
+    params: torch.Tensor,
+    dt: float,
+    T_monthly: torch.Tensor,
+    S_monthly: torch.Tensor,
+    wind_monthly: torch.Tensor,
+    *,
+    steps_per_month: int | None,
+    n_spinup_cycles: int,
+    pco2_atm: torch.Tensor | float,
+    h1: float,
+    h2: float,
+    kz_m2_per_day: float,
+    r_remin: float,
+    step_fn: Callable[..., torch.Tensor] | None,
+    light_monthly: torch.Tensor | None,
+    want_all_step_mean: bool,
+) -> tuple[torch.Tensor, torch.Tensor | None]:
+    forcing_fields = [
+        ("T_monthly", T_monthly),
+        ("S_monthly", S_monthly),
+        ("wind_monthly", wind_monthly),
+    ]
+    if light_monthly is not None:
+        forcing_fields.append(("light_monthly", light_monthly))
+    for name, field in forcing_fields:
+        if field.shape[0] != 12:
+            raise ValueError(
+                f"{name} must have a leading length-12 month axis, "
+                f"got shape {tuple(field.shape)}"
+            )
+    spm = steps_per_month if steps_per_month is not None else round(DAYS_PER_MONTH / dt)
+    if spm < 1:
+        raise ValueError(f"steps_per_month must be >= 1, got {spm}")
+
+    _step = step_fn if step_fn is not None else carroll6_5pft_2layer_step
+    state = state0
+    recorded: list[torch.Tensor] = []
+    recorded_sum: torch.Tensor | None = None
+    for cycle in range(n_spinup_cycles + 1):
+        is_recorded_cycle = cycle == n_spinup_cycles
+        month_ends: list[torch.Tensor] = []
+        for month in range(12):
+            t_m = T_monthly[month]
+            s_m = S_monthly[month]
+            w_m = wind_monthly[month]
+            for _ in range(spm):
+                if light_monthly is None:
+                    # Preserve the pre-light call exactly on the default path.
+                    state = _step(
+                        state, params, dt, t_m, s_m, w_m, pco2_atm, h1, h2,
+                        kz_m2_per_day, r_remin,
+                    )
+                else:
+                    state = _step(
+                        state, params, dt, t_m, s_m, w_m, pco2_atm, h1, h2,
+                        kz_m2_per_day, r_remin, light_monthly[month],
+                    )
+                if is_recorded_cycle and want_all_step_mean:
+                    recorded_sum = state if recorded_sum is None else recorded_sum + state
+            if is_recorded_cycle:
+                month_ends.append(state)
+        if is_recorded_cycle:
+            recorded = month_ends
+
+    stacked = torch.stack(recorded)
+    if not want_all_step_mean:
+        return stacked, None
+    if recorded_sum is None:  # pragma: no cover - spm validation makes this unreachable
+        raise RuntimeError("recorded seasonal cycle contained no integration steps")
+    return stacked, recorded_sum / float(12 * spm)
+
+
 def carroll6_5pft_2layer_integrate_seasonal(
     state0: torch.Tensor,
     params: torch.Tensor,
@@ -638,6 +788,7 @@ def carroll6_5pft_2layer_integrate_seasonal(
     kz_m2_per_day: float = KZ_M2_PER_DAY,
     r_remin: float = R_REMIN,
     step_fn: Callable[..., torch.Tensor] | None = None,
+    light_monthly: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """Integrate a transient annual cycle with month-varying forcing.
 
@@ -662,6 +813,8 @@ def carroll6_5pft_2layer_integrate_seasonal(
         T_monthly, S_monthly, wind_monthly: monthly forcing fields, each with a
             **leading length-12 month axis** (``[12, ...]``, broadcasting over the
             state's spatial shape). Month ``m`` uses ``T_monthly[m]`` etc.
+        light_monthly: optional length-12 surface-light multiplier. ``None``
+            preserves the legacy constant ``LIGHT`` call path exactly.
         steps_per_month: forward-Euler steps per month. Defaults to
             ``round(DAYS_PER_MONTH / dt)`` (~122 at dt=0.25).
         n_spinup_cycles: full 12-month cycles to run BEFORE the recorded year, to
@@ -679,39 +832,61 @@ def carroll6_5pft_2layer_integrate_seasonal(
         ValueError: if any forcing field's leading axis is not length 12, or
             ``steps_per_month < 1``.
     """
-    for name, field in (
-        ("T_monthly", T_monthly),
-        ("S_monthly", S_monthly),
-        ("wind_monthly", wind_monthly),
-    ):
-        if field.shape[0] != 12:
-            raise ValueError(
-                f"{name} must have a leading length-12 month axis, "
-                f"got shape {tuple(field.shape)}"
-            )
-    spm = steps_per_month if steps_per_month is not None else round(DAYS_PER_MONTH / dt)
-    if spm < 1:
-        raise ValueError(f"steps_per_month must be >= 1, got {spm}")
+    month_ends, _ = _integrate_seasonal_impl(
+        state0, params, dt, T_monthly, S_monthly, wind_monthly,
+        steps_per_month=steps_per_month,
+        n_spinup_cycles=n_spinup_cycles,
+        pco2_atm=pco2_atm,
+        h1=h1,
+        h2=h2,
+        kz_m2_per_day=kz_m2_per_day,
+        r_remin=r_remin,
+        step_fn=step_fn,
+        light_monthly=light_monthly,
+        want_all_step_mean=False,
+    )
+    return month_ends
 
-    # ``step_fn`` lets a caller inject a torch.compile'd per-step (the batched/
-    # compiled seasonal runner, #115/#119); default is the eager module step.
-    _step = step_fn if step_fn is not None else carroll6_5pft_2layer_step
-    state = state0
-    recorded: list[torch.Tensor] = []
-    for cycle in range(n_spinup_cycles + 1):
-        is_recorded_cycle = cycle == n_spinup_cycles
-        month_ends: list[torch.Tensor] = []
-        for month in range(12):
-            t_m = T_monthly[month]
-            s_m = S_monthly[month]
-            w_m = wind_monthly[month]
-            for _ in range(spm):
-                state = _step(
-                    state, params, dt, t_m, s_m, w_m, pco2_atm, h1, h2,
-                    kz_m2_per_day, r_remin,
-                )
-            if is_recorded_cycle:
-                month_ends.append(state)
-        if is_recorded_cycle:
-            recorded = month_ends
-    return torch.stack(recorded)
+
+def carroll6_5pft_2layer_integrate_seasonal_summary(
+    state0: torch.Tensor,
+    params: torch.Tensor,
+    dt: float,
+    T_monthly: torch.Tensor,
+    S_monthly: torch.Tensor,
+    wind_monthly: torch.Tensor,
+    *,
+    steps_per_month: int | None = None,
+    n_spinup_cycles: int = 0,
+    pco2_atm: torch.Tensor | float = PCO2_ATM_DEFAULT,
+    h1: float = H1,
+    h2: float = H2,
+    kz_m2_per_day: float = KZ_M2_PER_DAY,
+    r_remin: float = R_REMIN,
+    step_fn: Callable[..., torch.Tensor] | None = None,
+    light_monthly: torch.Tensor | None = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return month ends and the all-step mean of the recorded seasonal cycle.
+
+    The mean includes every post-step state in the final 12-month cycle and
+    excludes ``state0`` and all spin-up cycles. This is deliberately distinct
+    from averaging the 12 month-end snapshots, which overweights each month's
+    endpoint when ``steps_per_month > 1``. ``light_monthly=None`` preserves the
+    legacy constant-light step invocation.
+    """
+    month_ends, all_step_mean = _integrate_seasonal_impl(
+        state0, params, dt, T_monthly, S_monthly, wind_monthly,
+        steps_per_month=steps_per_month,
+        n_spinup_cycles=n_spinup_cycles,
+        pco2_atm=pco2_atm,
+        h1=h1,
+        h2=h2,
+        kz_m2_per_day=kz_m2_per_day,
+        r_remin=r_remin,
+        step_fn=step_fn,
+        light_monthly=light_monthly,
+        want_all_step_mean=True,
+    )
+    if all_step_mean is None:  # pragma: no cover - fixed by want_all_step_mean=True
+        raise RuntimeError("seasonal integration did not produce an all-step mean")
+    return month_ends, all_step_mean

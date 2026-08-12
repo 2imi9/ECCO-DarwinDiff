@@ -1,0 +1,181 @@
+{
+  "aois": {
+    "eqpac": {
+      "fixed_cell": {
+        "gain_integral": 11.059932957420134,
+        "gain_to_mortality": 0.9065518817557487,
+        "margin_vs_mortality": -1.1400670425798651,
+        "row_col": [
+          11,
+          0
+        ]
+      },
+      "fraction_steps_with_any_instantaneous_refuge": 0.0,
+      "integrity": {
+        "annual_gain_max_abs_error": 3.8131119772799593e-07,
+        "finite_wet_step_gain": true,
+        "gain_reproduction_atol": 5e-05,
+        "monthly_gain_max_abs_error": 4.560090338667777e-08,
+        "pass": true
+      },
+      "monthly_teleport": {
+        "gain_integral": 11.454547296226352,
+        "gain_to_mortality": 0.9388973193628157,
+        "jump_manhattan_grid_cells": {
+          "maximum": 70.0,
+          "median": 0.0,
+          "p95": 65.0,
+          "zero_fraction": 0.5454545454545454
+        },
+        "margin_vs_mortality": -0.7454527037736476,
+        "selected_cell_count": 5,
+        "switch_count": 5
+      },
+      "stepwise_teleport": {
+        "gain_integral": 11.46252265732846,
+        "gain_to_mortality": 0.9395510374859394,
+        "jump_manhattan_grid_cells": {
+          "maximum": 60.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "zero_fraction": 0.9863294600136705
+        },
+        "margin_vs_mortality": -0.7374773426715393,
+        "selected_cell_count": 8,
+        "switch_count": 20
+      }
+    },
+    "natlsubpolar": {
+      "fixed_cell": {
+        "gain_integral": 11.16040777478619,
+        "gain_to_mortality": 0.9147875225234583,
+        "margin_vs_mortality": -1.0395922252138092,
+        "row_col": [
+          0,
+          24
+        ]
+      },
+      "fraction_steps_with_any_instantaneous_refuge": 0.514344262295082,
+      "integrity": {
+        "annual_gain_max_abs_error": 3.6579634432598596e-07,
+        "finite_wet_step_gain": true,
+        "gain_reproduction_atol": 5e-05,
+        "monthly_gain_max_abs_error": 6.196420265780489e-08,
+        "pass": true
+      },
+      "monthly_teleport": {
+        "gain_integral": 12.160611837058582,
+        "gain_to_mortality": 0.9967714620539821,
+        "jump_manhattan_grid_cells": {
+          "maximum": 22.0,
+          "median": 0.0,
+          "p95": 16.5,
+          "zero_fraction": 0.5454545454545454
+        },
+        "margin_vs_mortality": -0.03938816294141745,
+        "selected_cell_count": 6,
+        "switch_count": 5
+      },
+      "stepwise_teleport": {
+        "gain_integral": 12.20969940720201,
+        "gain_to_mortality": 1.000795033377214,
+        "jump_manhattan_grid_cells": {
+          "maximum": 28.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "zero_fraction": 0.9753930280246069
+        },
+        "margin_vs_mortality": 0.009699407202010235,
+        "selected_cell_count": 24,
+        "switch_count": 36
+      }
+    },
+    "southernoceanpac": {
+      "fixed_cell": {
+        "gain_integral": 11.573926189905071,
+        "gain_to_mortality": 0.948682474582383,
+        "margin_vs_mortality": -0.6260738100949279,
+        "row_col": [
+          15,
+          7
+        ]
+      },
+      "fraction_steps_with_any_instantaneous_refuge": 0.5403005464480874,
+      "integrity": {
+        "annual_gain_max_abs_error": 3.6855227669718715e-07,
+        "finite_wet_step_gain": true,
+        "gain_reproduction_atol": 5e-05,
+        "monthly_gain_max_abs_error": 6.073554392749259e-08,
+        "pass": true
+      },
+      "monthly_teleport": {
+        "gain_integral": 11.889968810176425,
+        "gain_to_mortality": 0.9745876073915103,
+        "jump_manhattan_grid_cells": {
+          "maximum": 89.0,
+          "median": 2.0,
+          "p95": 63.5,
+          "zero_fraction": 0.2727272727272727
+        },
+        "margin_vs_mortality": -0.31003118982357414,
+        "selected_cell_count": 9,
+        "switch_count": 8
+      },
+      "stepwise_teleport": {
+        "gain_integral": 11.90393312479401,
+        "gain_to_mortality": 0.9757322233437714,
+        "jump_manhattan_grid_cells": {
+          "maximum": 88.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "zero_fraction": 0.9822282980177717
+        },
+        "margin_vs_mortality": -0.2960668752059892,
+        "selected_cell_count": 24,
+        "switch_count": 26
+      }
+    }
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "dt_days": 0.25,
+    "energy_bundle_sha256": "14781929085d2f632d67c56ad7b507796e0470b2f0642ddc49e996ec355ee2b5",
+    "energy_report_sha256": "a167a039027f82b3e7251a5611344a88beb366fc098787fcdcadaee62bbbdfe8",
+    "gain_reproduction_atol": 5e-05,
+    "months": 12,
+    "mortality_integral": 12.2,
+    "mortality_per_day": 0.03333333333333333,
+    "oracles": [
+      "fixed_cell",
+      "monthly_teleport",
+      "stepwise_teleport"
+    ],
+    "source_prey_floor_c": 1.2e-08,
+    "steps_per_month": 122,
+    "support_bundle_sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1",
+    "support_report_sha256": "0dcfaf635ac7348c451b687d0ea180bc622b0b111eb2d3d2f4524a3b5dde27c3"
+  },
+  "created_utc": "2026-08-10T06:27:44.938794+00:00",
+  "decision": {
+    "actual_transport_tested": false,
+    "b200_authorized": false,
+    "branch": "frozen-path-relocation-ruled-out-in-one-or-more-aois",
+    "integrity_pass": true,
+    "modified_dynamics_integrated": false,
+    "primary_hypothesis": "falsified",
+    "stepwise_oracle_clears_mortality_by_aoi": {
+      "eqpac": false,
+      "natlsubpolar": true,
+      "southernoceanpac": false
+    },
+    "target_rehabilitated": false
+  },
+  "elapsed_seconds": 3.4017103999940446,
+  "preregistration": "docs/findings/2026-08-10_prereg_large_zooplankton_transport_oracle.md",
+  "schema_version": 1,
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

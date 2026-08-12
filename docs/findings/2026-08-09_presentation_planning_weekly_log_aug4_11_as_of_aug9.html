@@ -1,0 +1,3354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>DarwinDiff Weekly Research Log | HTML Slides | Aug 9 Cut + Aug 10 Appendix</title>
+  <style>
+    :root {
+      --paper: #fff;
+      --ink: #090909;
+      --mid: #5c5c5c;
+      --rule: #a8a8a8;
+      --wash: #f0f0f0;
+      --wash-2: #f8f8f8;
+      --outside: #d2d2d2;
+      --serif: "Latin Modern Roman", "STIX Two Text", "Times New Roman", serif;
+      --sans: "Latin Modern Sans", "Avenir Next", "Gill Sans", sans-serif;
+      --mono: "Latin Modern Mono", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      min-height: 100svh;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, transparent 0 49.8%, rgba(0, 0, 0, 0.025) 50% 50.2%, transparent 50.4%) 0 0 / 18px 18px,
+        var(--outside);
+      font-family: var(--serif);
+    }
+
+    button { font: inherit; }
+    strong { font-weight: 700; }
+    code { font-family: var(--mono); font-size: 0.9em; overflow-wrap: anywhere; }
+
+    .deck-shell {
+      position: relative;
+      container-type: inline-size;
+      width: min(96vw, calc(94vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      box-shadow: 0 1.4vh 4vh rgba(0, 0, 0, 0.24);
+    }
+
+    .deck,
+    .slide {
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      display: none;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      background:
+        linear-gradient(to right, transparent 0 3.05cqw, rgba(0, 0, 0, 0.035) 3.05cqw 3.1cqw, transparent 3.1cqw),
+        var(--paper);
+    }
+
+    .slide.active {
+      display: grid;
+      animation: reveal 170ms ease-out both;
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(0.22cqw); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-header {
+      min-height: 5.05cqw;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 2cqw;
+      padding: 1.3cqw 3.05cqw 1.02cqw;
+      border-bottom: 0.14cqw solid var(--ink);
+    }
+
+    .running-head,
+    .status-cut,
+    .kicker,
+    .lane,
+    .figure-label,
+    .source,
+    .folio,
+    .eyebrow,
+    .node-tag,
+    .date,
+    .metric-label,
+    .axis-label,
+    .counter,
+    .legend,
+    .task-number {
+      font-family: var(--mono);
+      letter-spacing: 0.075em;
+      text-transform: uppercase;
+    }
+
+    .running-head {
+      margin: 0;
+      font-size: clamp(9px, 0.68cqw, 13px);
+      font-weight: 700;
+    }
+
+    .status-cut {
+      padding: 0.32cqw 0.58cqw;
+      border: 1px solid var(--ink);
+      font-size: clamp(8px, 0.57cqw, 11px);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .slide-body {
+      min-height: 0;
+      padding: 1.75cqw 3.1cqw 1.25cqw;
+    }
+
+    .slide-footer {
+      min-height: 3.05cqw;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 1.5cqw;
+      padding: 0.62cqw 13.6cqw 0.62cqw 3.1cqw;
+      border-top: 1px solid var(--ink);
+      color: var(--mid);
+      font-size: clamp(8px, 0.61cqw, 12px);
+      line-height: 1.15;
+    }
+
+    .folio {
+      color: var(--ink);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .lane {
+      display: flex;
+      align-items: center;
+      gap: 0.62cqw;
+      margin: 0 0 0.62cqw;
+      color: var(--mid);
+      font-size: clamp(9px, 0.64cqw, 13px);
+      font-weight: 700;
+    }
+
+    .lane::before {
+      content: attr(data-number);
+      width: 1.48cqw;
+      height: 1.48cqw;
+      display: grid;
+      place-items: center;
+      color: var(--paper);
+      background: var(--ink);
+      font-size: 0.82em;
+    }
+
+    h1,
+    h2,
+    h3,
+    p { margin-top: 0; }
+
+    h1 {
+      max-width: 10.8em;
+      margin-bottom: 1.2cqw;
+      font-size: clamp(43px, 4.35cqw, 76px);
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 0.96;
+    }
+
+    h2 {
+      max-width: 20em;
+      margin-bottom: 1.15cqw;
+      font-size: clamp(30px, 2.75cqw, 49px);
+      font-weight: 600;
+      letter-spacing: -0.027em;
+      line-height: 1.02;
+    }
+
+    h3 {
+      margin-bottom: 0.45cqw;
+      font-size: clamp(15px, 1.15cqw, 21px);
+      line-height: 1.08;
+    }
+
+    .figure-label {
+      margin: 0 0 0.55cqw;
+      color: var(--mid);
+      font-size: clamp(8px, 0.58cqw, 11px);
+      font-weight: 700;
+    }
+
+    .caption {
+      margin: 0.65cqw 0 0;
+      padding-top: 0.55cqw;
+      border-top: 1px solid var(--ink);
+      font-size: clamp(12px, 0.93cqw, 17px);
+      line-height: 1.2;
+    }
+
+    .paper-note {
+      border-left: 0.3cqw solid var(--ink);
+      padding-left: 1cqw;
+      font-size: clamp(13px, 1.02cqw, 18px);
+      line-height: 1.22;
+    }
+
+    .paper-note p:last-child { margin-bottom: 0; }
+
+    /* 01: title */
+    .title-slide { grid-template-rows: 1fr auto; }
+
+    .title-slide .title-field {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 23cqw;
+      gap: 3.3cqw;
+      align-items: stretch;
+      padding: 5.05cqw 5.25cqw 3.7cqw;
+    }
+
+    .title-copy { align-self: center; }
+
+    .kicker {
+      margin: 0 0 1.05cqw;
+      font-size: clamp(11px, 0.86cqw, 16px);
+      font-weight: 700;
+    }
+
+    .subtitle {
+      max-width: 43em;
+      margin-bottom: 0;
+      font-size: clamp(16px, 1.3cqw, 23px);
+      line-height: 1.33;
+    }
+
+    .title-rule {
+      width: 7.2cqw;
+      height: 0.38cqw;
+      margin-top: 1.55cqw;
+      background: var(--ink);
+    }
+
+    .date-plate {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      border-left: 0.16cqw solid var(--ink);
+      padding-left: 1.9cqw;
+    }
+
+    .date-plate .small {
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.68cqw, 13px);
+      letter-spacing: 0.075em;
+      text-transform: uppercase;
+    }
+
+    .date-main {
+      align-self: center;
+      font-size: clamp(36px, 3.25cqw, 58px);
+      font-weight: 600;
+      line-height: 0.95;
+    }
+
+    .date-main span {
+      display: block;
+      margin-top: 0.32cqw;
+      font-size: 0.53em;
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .title-slide .slide-footer {
+      min-height: 4.2cqw;
+      padding-left: 5.25cqw;
+      color: var(--ink);
+      border-top-width: 0.14cqw;
+      font-size: clamp(10px, 0.78cqw, 15px);
+    }
+
+    /* 02: relational map */
+    .map-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.72fr) minmax(0, 0.78fr);
+      gap: 2.3cqw;
+      align-items: stretch;
+    }
+
+    .map-figure { margin: 0; }
+
+    .map-stack {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1.15fr) minmax(0, 0.18fr) minmax(0, 1fr)
+        minmax(0, 0.18fr) minmax(0, 1.15fr);
+      gap: 0;
+      align-items: center;
+    }
+
+    .source-stack,
+    .view-stack {
+      display: grid;
+      gap: 0.42cqw;
+    }
+
+    .map-node {
+      min-height: 3.8cqw;
+      display: grid;
+      align-content: center;
+      padding: 0.55cqw 0.7cqw;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      text-align: center;
+    }
+
+    .map-node.primary {
+      min-height: 6.65cqw;
+      border-width: 0.16cqw;
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .map-node strong {
+      display: block;
+      font-family: var(--sans);
+      font-size: clamp(12px, 0.93cqw, 17px);
+      line-height: 1.05;
+    }
+
+    .map-node small {
+      display: block;
+      margin-top: 0.25cqw;
+      font-size: clamp(9px, 0.66cqw, 12px);
+      line-height: 1.08;
+    }
+
+    .node-tag {
+      margin-bottom: 0.27cqw;
+      font-size: clamp(7px, 0.49cqw, 9px);
+      font-weight: 700;
+    }
+
+    .h-arrow {
+      position: relative;
+      height: 1px;
+      margin: 0 0.32cqw;
+      background: var(--ink);
+    }
+
+    .h-arrow::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: 0.42cqw;
+      height: 0.42cqw;
+      border-top: 1px solid var(--ink);
+      border-right: 1px solid var(--ink);
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .relations {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.55cqw;
+      margin-top: 0.72cqw;
+      padding-top: 0.72cqw;
+      border-top: 1px solid var(--ink);
+    }
+
+    .relation {
+      min-height: 3.35cqw;
+      display: grid;
+      place-content: center;
+      border: 1px solid var(--rule);
+      background: var(--wash-2);
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.59cqw, 11px);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .control-loop {
+      display: grid;
+      align-content: center;
+      padding: 0.8cqw 0 0.8cqw 1.5cqw;
+      border-left: 1px solid var(--ink);
+    }
+
+    .loop-chain { display: grid; gap: 0.5cqw; }
+
+    .loop-step {
+      position: relative;
+      padding: 0.62cqw 0.75cqw 0.62cqw 2.55cqw;
+      border: 1px solid var(--ink);
+      font-family: var(--sans);
+      font-size: clamp(12px, 0.89cqw, 16px);
+      font-weight: 700;
+    }
+
+    .loop-step::before {
+      content: attr(data-step);
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 1.9cqw;
+      display: grid;
+      place-items: center;
+      color: var(--paper);
+      background: var(--ink);
+      font-family: var(--mono);
+    }
+
+    .loop-arrow {
+      height: 0.48cqw;
+      border-left: 1px solid var(--ink);
+      margin-left: 0.95cqw;
+    }
+
+    .loop-final {
+      margin-top: 0.65cqw;
+      padding: 0.62cqw;
+      background: var(--wash);
+      font-size: clamp(11px, 0.82cqw, 15px);
+      line-height: 1.18;
+    }
+
+    .constraint-strip {
+      margin-top: 0.85cqw;
+      padding: 0.62cqw 0.8cqw;
+      border: 0.14cqw solid var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.68cqw, 13px);
+      text-align: center;
+    }
+
+    /* 03: chronology */
+    .chronology {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.1cqw;
+      padding-top: 0.2cqw;
+    }
+
+    .chronology::before {
+      content: "";
+      position: absolute;
+      top: 2.72cqw;
+      left: 3cqw;
+      right: 3cqw;
+      height: 1px;
+      background: var(--ink);
+    }
+
+    .day {
+      position: relative;
+      padding-top: 4.2cqw;
+    }
+
+    .day::before {
+      content: "";
+      position: absolute;
+      top: 2.32cqw;
+      left: 50%;
+      width: 0.8cqw;
+      height: 0.8cqw;
+      border: 0.14cqw solid var(--ink);
+      background: var(--paper);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .date {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(9px, 0.69cqw, 13px);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .day-card {
+      min-height: 12.3cqw;
+      padding: 0.82cqw;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+    }
+
+    .day-card .eyebrow {
+      margin-bottom: 0.5cqw;
+      color: var(--mid);
+      font-size: clamp(7px, 0.5cqw, 10px);
+      font-weight: 700;
+    }
+
+    .day-card p {
+      margin-bottom: 0;
+      font-size: clamp(11px, 0.84cqw, 15px);
+      line-height: 1.2;
+    }
+
+    .day:last-child .day-card {
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .chronology-note {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.1cqw;
+      margin-top: 1cqw;
+    }
+
+    .chronology-note div {
+      padding: 0.55cqw 0.75cqw;
+      border-top: 1px solid var(--ink);
+      font-size: clamp(11px, 0.84cqw, 15px);
+      line-height: 1.2;
+    }
+
+    /* 04: validated */
+    .validated-layout {
+      display: grid;
+      grid-template-columns: 0.74fr 1.35fr;
+      gap: 2.7cqw;
+      align-items: stretch;
+    }
+
+    .metric-stage {
+      display: grid;
+      align-content: center;
+      padding-left: 1.4cqw;
+      border-left: 0.4cqw solid var(--ink);
+    }
+
+    .metric-label {
+      margin-bottom: 0.48cqw;
+      font-size: clamp(9px, 0.69cqw, 13px);
+      font-weight: 700;
+    }
+
+    .metric-main {
+      margin: 0;
+      font-size: clamp(45px, 4.55cqw, 81px);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      letter-spacing: -0.045em;
+      line-height: 0.9;
+    }
+
+    .metric-detail {
+      margin: 0.66cqw 0 1.1cqw;
+      font-size: clamp(14px, 1.1cqw, 20px);
+      line-height: 1.2;
+    }
+
+    .null-line {
+      margin-bottom: 0;
+      padding-top: 0.68cqw;
+      border-top: 1px solid var(--ink);
+      font-size: clamp(13px, 1cqw, 18px);
+    }
+
+    .null-line b { font-size: 1.45em; }
+
+    .matrix-wrap { margin: 0; }
+
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: clamp(11px, 0.86cqw, 16px);
+      text-align: center;
+    }
+
+    .matrix th,
+    .matrix td {
+      height: 3.4cqw;
+      border: 1px solid var(--ink);
+      padding: 0.45cqw;
+    }
+
+    .matrix thead th {
+      font-family: var(--sans);
+      font-size: 0.85em;
+    }
+
+    .matrix tbody th {
+      width: 18%;
+      font-family: var(--mono);
+      text-align: left;
+    }
+
+    .matrix td.pass {
+      color: var(--paper);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: 1.12em;
+      font-weight: 700;
+    }
+
+    .matrix td.gate {
+      background: repeating-linear-gradient(135deg, var(--wash) 0 5px, var(--paper) 5px 10px);
+      font-family: var(--mono);
+    }
+
+    .evidence-flow {
+      display: grid;
+      grid-template-columns: 1fr 0.15fr 1fr 0.15fr 1fr;
+      align-items: center;
+      margin-top: 0.75cqw;
+    }
+
+    .flow-node {
+      min-height: 3.85cqw;
+      display: grid;
+      place-content: center;
+      padding: 0.45cqw;
+      border: 1px solid var(--ink);
+      font-family: var(--sans);
+      font-size: clamp(10px, 0.77cqw, 14px);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* 05: unreplicated */
+    .pending-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2.3cqw;
+      align-items: stretch;
+    }
+
+    .contrast-figure { margin: 0; }
+
+    .contrast-bars {
+      display: grid;
+      grid-template-columns: 7.5cqw 1fr 1fr;
+      gap: 0.48cqw 0.7cqw;
+      align-items: center;
+      padding: 0.65cqw 0.8cqw;
+      border: 1px solid var(--ink);
+    }
+
+    .contrast-head {
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.51cqw, 10px);
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .basin-name {
+      font-family: var(--sans);
+      font-size: clamp(10px, 0.75cqw, 14px);
+      font-weight: 700;
+    }
+
+    .bar-cell {
+      position: relative;
+      height: 2.5cqw;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      background: var(--wash-2);
+    }
+
+    .bar-cell span {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--w);
+      background: var(--ink);
+    }
+
+    .bar-cell b {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.65cqw, 12px);
+      mix-blend-mode: difference;
+      filter: invert(1);
+    }
+
+    .double-null {
+      display: grid;
+      grid-template-columns: 1fr 0.15fr 1fr;
+      align-items: stretch;
+      margin-top: 0.72cqw;
+    }
+
+    .loss-box {
+      min-height: 6.2cqw;
+      display: grid;
+      place-content: center;
+      padding: 0.6cqw;
+      border: 0.14cqw solid var(--ink);
+      text-align: center;
+    }
+
+    .loss-box strong {
+      display: block;
+      font-size: clamp(31px, 2.75cqw, 50px);
+      line-height: 0.94;
+    }
+
+    .loss-box small {
+      margin-top: 0.35cqw;
+      font-size: clamp(9px, 0.67cqw, 13px);
+    }
+
+    .equals {
+      display: grid;
+      place-items: center;
+      font-size: clamp(19px, 1.7cqw, 30px);
+    }
+
+    .boundary-card {
+      display: grid;
+      align-content: center;
+      padding: 1.1cqw;
+      border: 0.16cqw solid var(--ink);
+      background: var(--wash-2);
+    }
+
+    .boundary-card .eyebrow {
+      margin-bottom: 0.55cqw;
+      font-size: clamp(8px, 0.58cqw, 11px);
+      font-weight: 700;
+    }
+
+    .boundary-card p {
+      margin-bottom: 0.72cqw;
+      font-size: clamp(13px, 1.03cqw, 19px);
+      line-height: 1.22;
+    }
+
+    .stamp {
+      padding: 0.62cqw;
+      border: 1px dashed var(--ink);
+      background: var(--paper);
+      font-family: var(--mono);
+      font-size: clamp(10px, 0.75cqw, 14px);
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    /* 06: gated */
+    .gate-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.67fr);
+      gap: 2.4cqw;
+      align-items: center;
+    }
+
+    .gate-flow {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1fr) minmax(0, 0.18fr) minmax(0, 0.88fr)
+        minmax(0, 0.18fr) minmax(0, 1.2fr);
+      align-items: center;
+    }
+
+    .gate-node {
+      min-height: 8.1cqw;
+      display: grid;
+      place-content: center;
+      padding: 0.7cqw;
+      border: 1px solid var(--ink);
+      font-family: var(--sans);
+      font-size: clamp(12px, 0.92cqw, 17px);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .gate-node.decision {
+      border-width: 0.16cqw;
+      background: var(--wash);
+    }
+
+    .gate-outcomes { display: grid; gap: 0.55cqw; }
+
+    .gate-outcome {
+      min-height: 4.2cqw;
+      display: grid;
+      align-content: center;
+      padding: 0.55cqw 0.7cqw;
+      border: 1px solid var(--ink);
+      font-size: clamp(10px, 0.78cqw, 14px);
+      line-height: 1.12;
+    }
+
+    .gate-outcome b {
+      margin-bottom: 0.14cqw;
+      font-family: var(--mono);
+      text-transform: uppercase;
+    }
+
+    .gate-outcome:first-child { background: var(--wash); }
+
+    .exclude-list {
+      padding-left: 1.5cqw;
+      border-left: 1px solid var(--ink);
+    }
+
+    .exclude-list .eyebrow {
+      margin-bottom: 0.55cqw;
+      font-size: clamp(8px, 0.6cqw, 11px);
+      font-weight: 700;
+    }
+
+    .exclude-list ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .exclude-list li {
+      position: relative;
+      padding: 0.58cqw 0 0.58cqw 1.55cqw;
+      border-top: 1px solid var(--rule);
+      font-size: clamp(11px, 0.87cqw, 16px);
+      line-height: 1.15;
+    }
+
+    .exclude-list li:last-child { border-bottom: 1px solid var(--rule); }
+
+    .exclude-list li::before {
+      content: "x";
+      position: absolute;
+      left: 0.4cqw;
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    /* 07-09: all-dimensional evidence matrix */
+    .dimension-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.42fr) minmax(0, 0.78fr);
+      gap: 1.7cqw;
+      align-items: stretch;
+    }
+
+    .factor-board,
+    .tensor-card,
+    .arm-status-panel,
+    .parameter-panel {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .factor-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.52cqw;
+    }
+
+    .factor-card {
+      min-height: 5.25cqw;
+      display: grid;
+      align-content: space-between;
+      gap: 0.25cqw;
+      padding: 0.72cqw;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+    }
+
+    .factor-card:nth-child(3n + 1) { background: var(--wash); }
+
+    .factor-card b {
+      display: block;
+      font-family: var(--serif);
+      font-size: clamp(24px, 2.05cqw, 38px);
+      line-height: 0.9;
+    }
+
+    .factor-card span {
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.56cqw, 11px);
+      line-height: 1.22;
+      text-transform: uppercase;
+    }
+
+    .tensor-card {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      padding: 1.1cqw;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .tensor-number {
+      margin: 0.45cqw 0 0.2cqw;
+      font-family: var(--serif);
+      font-size: clamp(42px, 5.1cqw, 88px);
+      line-height: 0.82;
+    }
+
+    .tensor-equation {
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.7cqw, 13px);
+      line-height: 1.35;
+    }
+
+    .tensor-statuses {
+      display: grid;
+      align-self: end;
+      gap: 0.3cqw;
+      margin-top: 0.8cqw;
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.67cqw, 12px);
+    }
+
+    .tensor-statuses span {
+      display: flex;
+      justify-content: space-between;
+      gap: 1cqw;
+      padding-top: 0.32cqw;
+      border-top: 1px solid var(--paper);
+    }
+
+    .sparse-note {
+      margin: 0.8cqw 0 0;
+      padding: 0.72cqw 0.85cqw;
+      border-left: 0.28cqw solid var(--ink);
+      background: var(--wash);
+      font-size: clamp(11px, 0.8cqw, 15px);
+      line-height: 1.34;
+    }
+
+    .dense-matrix-wrap { margin: 0; }
+
+    .dense-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: clamp(8px, 0.62cqw, 12px);
+    }
+
+    .dense-matrix th,
+    .dense-matrix td {
+      border: 1px solid var(--ink);
+      padding: 0.36cqw 0.42cqw;
+      vertical-align: middle;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
+    }
+
+    .dense-matrix thead th {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--mono);
+      font-size: 0.88em;
+      text-transform: uppercase;
+    }
+
+    .dense-matrix tbody th {
+      width: 9%;
+      font-family: var(--mono);
+      text-align: left;
+    }
+
+    .dense-matrix .cell-label { width: 18%; }
+
+    .dense-matrix .count-seq {
+      font-family: var(--mono);
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .dense-matrix .matched-result {
+      color: var(--paper);
+      background: var(--ink);
+      font-family: var(--mono);
+      text-align: center;
+    }
+
+    .dense-matrix tr.decisive-row { background: var(--wash); }
+
+    .matrix-key {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.55cqw;
+      margin-top: 0.75cqw;
+    }
+
+    .matrix-key span {
+      padding: 0.54cqw 0.65cqw;
+      border-top: 1px solid var(--ink);
+      font-size: clamp(9px, 0.68cqw, 13px);
+      line-height: 1.3;
+    }
+
+    .disposition-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: 1.55cqw;
+      align-items: start;
+    }
+
+    .arm-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      text-align: center;
+      font-size: clamp(9px, 0.7cqw, 13px);
+    }
+
+    .arm-matrix th,
+    .arm-matrix td {
+      height: 3.35cqw;
+      border: 1px solid var(--ink);
+      padding: 0.42cqw;
+    }
+
+    .arm-matrix th {
+      font-family: var(--mono);
+      font-size: 0.82em;
+    }
+
+    .arm-matrix .verified-cell {
+      color: var(--paper);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    .arm-matrix .gated-cell {
+      background: repeating-linear-gradient(135deg, var(--wash) 0 5px, var(--paper) 5px 10px);
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    .coverage-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.45cqw;
+      margin-top: 0.58cqw;
+    }
+
+    .coverage-strip span {
+      padding: 0.52cqw;
+      border: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.58cqw, 11px);
+      text-align: center;
+    }
+
+    .parameter-list {
+      display: grid;
+      gap: 0.38cqw;
+    }
+
+    .parameter-row {
+      display: grid;
+      grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+      border: 1px solid var(--ink);
+    }
+
+    .parameter-row b,
+    .parameter-row span {
+      padding: 0.52cqw 0.6cqw;
+      line-height: 1.22;
+    }
+
+    .parameter-row b {
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.67cqw, 12px);
+    }
+
+    .parameter-row span {
+      border-left: 1px solid var(--ink);
+      font-size: clamp(9px, 0.66cqw, 12px);
+    }
+
+    .parameter-row.primary b {
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .matrix-status-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 0.72cqw;
+      border: 1px solid var(--ink);
+    }
+
+    .matrix-status-strip span {
+      padding: 0.52cqw;
+      border-right: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.59cqw, 11px);
+      text-align: center;
+    }
+
+    .matrix-status-strip span:last-child { border-right: 0; }
+
+    /* 10: seasonal target ladder */
+    .target-ladder {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.72cqw;
+      align-items: stretch;
+    }
+
+    .ladder-step {
+      position: relative;
+      min-height: 14.6cqw;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 0.42cqw;
+      padding: 2.45cqw 0.68cqw 0.7cqw;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+    }
+
+    .ladder-step::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -0.58cqw;
+      z-index: 2;
+      width: 0.42cqw;
+      height: 0.42cqw;
+      border-top: 1px solid var(--ink);
+      border-right: 1px solid var(--ink);
+      background: var(--paper);
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .ladder-step:last-child::after { display: none; }
+
+    .ladder-index {
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1.85cqw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0.55cqw;
+      color: var(--paper);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.5cqw, 10px);
+      font-weight: 700;
+      letter-spacing: 0.045em;
+      text-transform: uppercase;
+    }
+
+    .ladder-step h3 {
+      min-height: 2.25cqw;
+      margin-bottom: 0;
+      font-size: clamp(12px, 0.92cqw, 17px);
+    }
+
+    .ladder-step p {
+      margin-bottom: 0;
+      font-size: clamp(9px, 0.68cqw, 13px);
+      line-height: 1.18;
+    }
+
+    .ladder-result {
+      align-self: end;
+      padding-top: 0.42cqw;
+      border-top: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.52cqw, 10px);
+      font-weight: 700;
+      line-height: 1.18;
+      text-transform: uppercase;
+    }
+
+    .ladder-step.diagnosis { background: var(--wash); }
+
+    .ladder-step.stop .ladder-result {
+      color: var(--paper);
+      background: var(--ink);
+      margin: 0 -0.68cqw -0.7cqw;
+      padding: 0.46cqw 0.68cqw;
+    }
+
+    .stage-decision {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 1cqw;
+      align-items: center;
+      margin-top: 0.85cqw;
+      padding: 0.66cqw 0.78cqw;
+      border: 0.16cqw solid var(--ink);
+      font-size: clamp(10px, 0.77cqw, 14px);
+      line-height: 1.18;
+    }
+
+    .stage-decision b,
+    .stage-decision code {
+      font-family: var(--mono);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .stage-decision b {
+      padding: 0.35cqw 0.52cqw;
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    /* 11: process budget and invasion geometry */
+    .mechanism-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+      gap: 2cqw;
+      align-items: stretch;
+    }
+
+    .mechanism-flow { margin: 0; }
+
+    .mechanism-chain {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 0.16fr minmax(0, 1.1fr) 0.16fr minmax(0, 1fr);
+      align-items: center;
+    }
+
+    .mechanism-node {
+      min-height: 8.4cqw;
+      display: grid;
+      align-content: center;
+      padding: 0.72cqw;
+      border: 1px solid var(--ink);
+      text-align: center;
+    }
+
+    .mechanism-node b {
+      display: block;
+      margin-bottom: 0.35cqw;
+      font-family: var(--sans);
+      font-size: clamp(12px, 0.95cqw, 18px);
+      line-height: 1.08;
+    }
+
+    .mechanism-node strong {
+      display: block;
+      font-size: clamp(24px, 2.15cqw, 39px);
+      line-height: 0.96;
+    }
+
+    .mechanism-node small {
+      margin-top: 0.36cqw;
+      font-size: clamp(8px, 0.6cqw, 11px);
+      line-height: 1.2;
+    }
+
+    .mechanism-node.emphasis {
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .equation-strip {
+      margin-top: 0.68cqw;
+      padding: 0.62cqw 0.75cqw;
+      border: 1px solid var(--ink);
+      background: var(--wash);
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.61cqw, 12px);
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .invasion-panel {
+      margin: 0;
+      padding-left: 1.6cqw;
+      border-left: 1px solid var(--ink);
+    }
+
+    .invasion-grid {
+      display: grid;
+      grid-template-columns: 6.3cqw repeat(3, minmax(0, 1fr));
+      gap: 0.42cqw;
+      align-items: stretch;
+    }
+
+    .invasion-grid > div {
+      min-height: 4.5cqw;
+      display: grid;
+      place-content: center;
+      padding: 0.46cqw;
+      border: 1px solid var(--ink);
+      font-size: clamp(8px, 0.59cqw, 11px);
+      line-height: 1.18;
+      text-align: center;
+    }
+
+    .invasion-grid .grid-head,
+    .invasion-grid .row-head {
+      min-height: 2.1cqw;
+      font-family: var(--mono);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .invasion-grid .blocked {
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .invasion-grid .mixed {
+      background: repeating-linear-gradient(135deg, var(--wash) 0 5px, var(--paper) 5px 10px);
+    }
+
+    .invasion-grid b {
+      display: block;
+      margin-bottom: 0.18cqw;
+      font-family: var(--mono);
+      font-size: 1.08em;
+    }
+
+    .invasion-summary {
+      margin: 0.68cqw 0 0;
+      padding-top: 0.58cqw;
+      border-top: 0.14cqw solid var(--ink);
+      font-size: clamp(10px, 0.75cqw, 14px);
+      line-height: 1.24;
+    }
+
+    /* 12: explicit grazers and minimal blocker set */
+    .explicit-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.78fr) minmax(0, 1.2fr);
+      gap: 1.35cqw;
+      align-items: stretch;
+    }
+
+    .grazer-diagram,
+    .exclusion-panel,
+    .waiver-panel {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .grazer-diagram {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .grazer-network {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 0.22fr minmax(0, 1fr);
+      align-items: center;
+    }
+
+    .prey-stack,
+    .predator-stack { display: grid; gap: 0.48cqw; }
+
+    .network-node {
+      min-height: 4.1cqw;
+      display: grid;
+      place-content: center;
+      padding: 0.52cqw;
+      border: 1px solid var(--ink);
+      font-size: clamp(9px, 0.69cqw, 13px);
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    .network-node b {
+      display: block;
+      font-family: var(--sans);
+      font-size: 1.12em;
+    }
+
+    .network-node.retained {
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .network-node.excluded {
+      background: repeating-linear-gradient(135deg, var(--wash) 0 5px, var(--paper) 5px 10px);
+    }
+
+    .network-caption {
+      margin-top: 0.65cqw;
+      padding: 0.62cqw;
+      border: 1px solid var(--ink);
+      font-size: clamp(9px, 0.69cqw, 13px);
+      line-height: 1.2;
+    }
+
+    .exclusion-panel {
+      padding: 0 1.15cqw;
+      border-right: 1px solid var(--ink);
+      border-left: 1px solid var(--ink);
+    }
+
+    .exclusion-list { display: grid; gap: 0.52cqw; }
+
+    .exclusion-row {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      border: 1px solid var(--ink);
+    }
+
+    .exclusion-row b,
+    .exclusion-row span {
+      padding: 0.5cqw 0.58cqw;
+      font-size: clamp(8px, 0.61cqw, 11px);
+      line-height: 1.18;
+    }
+
+    .exclusion-row b {
+      color: var(--paper);
+      background: var(--ink);
+      font-family: var(--mono);
+    }
+
+    .exclusion-row span { font-family: var(--mono); }
+
+    .waiver-lattice {
+      display: grid;
+      gap: 0.45cqw;
+    }
+
+    .waiver-layer {
+      display: grid;
+      gap: 0.4cqw;
+    }
+
+    .waiver-layer.one { grid-template-columns: 1fr; padding: 0 4.2cqw; }
+    .waiver-layer.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .waiver-node {
+      min-height: 2.65cqw;
+      display: grid;
+      place-content: center;
+      padding: 0.4cqw;
+      border: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.5cqw, 10px);
+      font-weight: 700;
+      line-height: 1.15;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .waiver-node.forbidden {
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .lattice-arrow {
+      height: 0.5cqw;
+      border-left: 1px solid var(--ink);
+      margin: 0 auto;
+    }
+
+    .waiver-key {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.35cqw;
+      margin-top: 0.58cqw;
+    }
+
+    .waiver-key span {
+      padding-top: 0.35cqw;
+      border-top: 1px solid var(--ink);
+      font-size: clamp(7px, 0.5cqw, 10px);
+      line-height: 1.15;
+    }
+
+    /* 13: predator energy budget */
+    .energy-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+      gap: 2.1cqw;
+      align-items: stretch;
+    }
+
+    .energy-budget,
+    .diet-panel { margin: 0; }
+
+    .energy-axis {
+      display: grid;
+      grid-template-columns: 8.2cqw minmax(0, 1fr);
+      gap: 0.65cqw;
+      align-items: end;
+      margin-bottom: 0.35cqw;
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.51cqw, 10px);
+      text-transform: uppercase;
+    }
+
+    .energy-scale {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 0.25cqw;
+    }
+
+    .energy-rows { display: grid; gap: 0.62cqw; }
+
+    .energy-row {
+      display: grid;
+      grid-template-columns: 8.2cqw minmax(0, 1fr);
+      gap: 0.65cqw;
+      align-items: center;
+    }
+
+    .energy-row-label {
+      font-family: var(--sans);
+      font-size: clamp(10px, 0.77cqw, 14px);
+      font-weight: 700;
+    }
+
+    .energy-track {
+      position: relative;
+      height: 4.2cqw;
+      border: 1px solid var(--ink);
+      background:
+        linear-gradient(to right, transparent 24.8%, var(--rule) 25%, transparent 25.2%),
+        linear-gradient(to right, transparent 49.8%, var(--rule) 50%, transparent 50.2%),
+        linear-gradient(to right, transparent 74.8%, var(--rule) 75%, transparent 75.2%),
+        var(--wash-2);
+    }
+
+    .energy-track::after {
+      content: "replacement 12.2";
+      position: absolute;
+      top: -1.2cqw;
+      right: 0;
+      font-family: var(--mono);
+      font-size: clamp(6px, 0.45cqw, 9px);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .energy-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--w);
+      display: grid;
+      align-content: center;
+      padding-left: 0.65cqw;
+      color: var(--paper);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.61cqw, 12px);
+      font-weight: 700;
+    }
+
+    .energy-margin {
+      position: absolute;
+      inset: auto 0.35cqw 0 auto;
+      padding: 0.18cqw 0.3cqw;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.49cqw, 9px);
+      font-weight: 700;
+    }
+
+    .energy-note {
+      margin: 0.75cqw 0 0;
+      padding: 0.62cqw 0.75cqw;
+      border: 0.14cqw solid var(--ink);
+      font-size: clamp(10px, 0.75cqw, 14px);
+      line-height: 1.22;
+    }
+
+    .diet-panel {
+      padding-left: 1.6cqw;
+      border-left: 1px solid var(--ink);
+    }
+
+    .diet-stack { display: grid; gap: 1.1cqw; }
+
+    .diet-card {
+      padding: 0.72cqw;
+      border: 1px solid var(--ink);
+    }
+
+    .diet-card h3 {
+      display: flex;
+      justify-content: space-between;
+      gap: 1cqw;
+      margin-bottom: 0.55cqw;
+    }
+
+    .diet-card h3 span {
+      font-family: var(--mono);
+      font-size: 0.64em;
+      text-transform: uppercase;
+    }
+
+    .diet-bar {
+      display: flex;
+      height: 3.3cqw;
+      border: 1px solid var(--ink);
+      overflow: hidden;
+    }
+
+    .diet-large,
+    .diet-small {
+      display: grid;
+      place-content: center;
+      padding: 0.25cqw;
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.51cqw, 10px);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .diet-large {
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .diet-small {
+      background: repeating-linear-gradient(135deg, var(--wash) 0 5px, var(--paper) 5px 10px);
+    }
+
+    .diet-caption {
+      margin: 0.48cqw 0 0;
+      font-size: clamp(9px, 0.67cqw, 12px);
+      line-height: 1.2;
+    }
+
+    /* 14: plan */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 2.3cqw;
+      row-gap: 0.95cqw;
+    }
+
+    .task {
+      min-height: 0;
+      padding: 0.58cqw 0 0;
+      border: 0;
+      border-top: 0.14cqw solid var(--ink);
+    }
+
+    .task-number {
+      position: static;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.32cqw;
+      padding: 0;
+      color: var(--mid);
+      background: transparent;
+      font-size: clamp(8px, 0.59cqw, 11px);
+      font-weight: 700;
+    }
+
+    .task p {
+      margin-bottom: 0;
+      font-size: clamp(11px, 0.85cqw, 15px);
+      line-height: 1.18;
+    }
+
+    .review-strip {
+      display: grid;
+      grid-template-columns: 0.72fr 1fr 1.35fr;
+      gap: 1.4cqw;
+      margin-top: 1cqw;
+    }
+
+    .review-item {
+      padding: 0.48cqw 0 0;
+      border: 0;
+      border-top: 1px solid var(--ink);
+      font-size: clamp(10px, 0.76cqw, 14px);
+      line-height: 1.15;
+    }
+
+    .review-item b {
+      display: block;
+      margin-bottom: 0.12cqw;
+      font-family: var(--mono);
+      font-size: 0.85em;
+      text-transform: uppercase;
+    }
+
+    .review-item.warn {
+      color: var(--ink);
+      background: transparent;
+      font-weight: 700;
+    }
+
+    .guardrail {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.5cqw;
+      margin-top: 0.72cqw;
+      padding-top: 0.55cqw;
+      border-top: 0.14cqw solid var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.68cqw, 13px);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* 15: continuity-constrained path oracle */
+    .continuity-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+      gap: 2cqw;
+      align-items: stretch;
+    }
+
+    .path-panel,
+    .oracle-table-panel,
+    .relation-map,
+    .state-panel { margin: 0; }
+
+    .path-panel {
+      padding-right: 1.7cqw;
+      border-right: 1px solid var(--ink);
+    }
+
+    .path-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.05cqw;
+      align-items: stretch;
+      margin-top: 0.68cqw;
+    }
+
+    .path-step {
+      position: relative;
+      min-height: 9.8cqw;
+      display: grid;
+      align-content: space-between;
+      gap: 0.65cqw;
+      padding: 0.62cqw 0 0;
+      border: 0;
+      border-top: 0.14cqw solid var(--ink);
+      background: var(--paper);
+    }
+
+    .path-step:not(:last-child)::after {
+      content: ">";
+      position: absolute;
+      right: -0.82cqw;
+      top: 43%;
+      z-index: 2;
+      width: 0.58cqw;
+      display: grid;
+      place-items: center;
+      background: var(--paper);
+      font-family: var(--mono);
+      font-size: clamp(10px, 0.8cqw, 15px);
+      font-weight: 700;
+    }
+
+    .path-step.unrestricted {
+      color: var(--ink);
+      border-top-width: 0.3cqw;
+      background: var(--paper);
+    }
+
+    .path-step .step-name {
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.59cqw, 11px);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .path-step .step-score {
+      font-family: var(--mono);
+      font-size: clamp(18px, 1.65cqw, 31px);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .path-step .step-detail {
+      font-size: clamp(9px, 0.65cqw, 12px);
+      line-height: 1.18;
+    }
+
+    .path-verdict {
+      margin: 0.85cqw 0 0;
+      padding: 0.62cqw 0 0;
+      border: 0;
+      border-top: 0.14cqw solid var(--ink);
+      font-size: clamp(10px, 0.77cqw, 14px);
+      line-height: 1.24;
+    }
+
+    .oracle-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.58cqw, 11px);
+    }
+
+    .oracle-table th,
+    .oracle-table td {
+      padding: 0.5cqw 0.42cqw;
+      border-bottom: 1px solid var(--ink);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .oracle-table th:first-child,
+    .oracle-table td:first-child { text-align: left; }
+
+    .oracle-table thead th {
+      border-top: 0.14cqw solid var(--ink);
+      border-bottom-width: 0.14cqw;
+      text-transform: uppercase;
+    }
+
+    .oracle-table .knife-edge {
+      color: var(--paper);
+      background: var(--ink);
+      font-weight: 700;
+    }
+
+    .bound-note {
+      margin-top: 0.82cqw;
+      padding: 0.62cqw 0 0;
+      background: transparent;
+      border: 0;
+      border-top: 0.14cqw solid var(--ink);
+      font-size: clamp(9px, 0.68cqw, 13px);
+      line-height: 1.22;
+    }
+
+    /* 16: relational R&D map closeout */
+    .relation-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+      gap: 1.8cqw;
+      align-items: stretch;
+    }
+
+    .relation-map {
+      padding-right: 1.55cqw;
+      border-right: 1px solid var(--ink);
+    }
+
+    .ra-query {
+      padding: 0.58cqw 0;
+      color: var(--ink);
+      background: transparent;
+      border-top: 0.14cqw solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(9px, 0.7cqw, 13px);
+      line-height: 1.3;
+    }
+
+    .relation-chain {
+      display: grid;
+      grid-template-columns: 1fr auto 0.72fr auto 1fr auto 1fr;
+      gap: 0.48cqw;
+      align-items: center;
+      margin-top: 0.85cqw;
+    }
+
+    .relation-node {
+      min-height: 7.35cqw;
+      display: grid;
+      align-content: space-between;
+      gap: 0.45cqw;
+      padding: 0.55cqw 0 0;
+      border: 0;
+      border-top: 0.14cqw solid var(--ink);
+      background: var(--paper);
+    }
+
+    .relation-node strong {
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.61cqw, 12px);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .relation-node span {
+      font-size: clamp(8px, 0.59cqw, 11px);
+      line-height: 1.16;
+    }
+
+    .relation-node.result {
+      color: var(--ink);
+      border-top-width: 0.3cqw;
+      background: var(--paper);
+    }
+
+    .relation-edge {
+      font-family: var(--mono);
+      font-size: clamp(12px, 1.05cqw, 20px);
+      font-weight: 700;
+    }
+
+    .map-branches {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7cqw;
+      margin-top: 0.72cqw;
+    }
+
+    .map-branch {
+      padding: 0.55cqw 0 0;
+      border: 0;
+      border-top: 1px solid var(--ink);
+      font-size: clamp(9px, 0.65cqw, 12px);
+      line-height: 1.2;
+    }
+
+    .map-branch b {
+      display: block;
+      margin-bottom: 0.22cqw;
+      font-family: var(--mono);
+      font-size: 0.88em;
+      text-transform: uppercase;
+    }
+
+    .map-branch.refuted {
+      background: transparent;
+    }
+
+    .state-stack { display: grid; gap: 0.62cqw; }
+
+    .state-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.7cqw;
+      align-items: center;
+      padding: 0.52cqw 0 0;
+      border: 0;
+      border-top: 1px solid var(--ink);
+    }
+
+    .state-card b {
+      display: block;
+      font-family: var(--mono);
+      font-size: clamp(8px, 0.6cqw, 11px);
+      text-transform: uppercase;
+    }
+
+    .state-card p {
+      margin: 0.16cqw 0 0;
+      font-size: clamp(9px, 0.67cqw, 12px);
+      line-height: 1.17;
+    }
+
+    .state-pill {
+      padding: 0;
+      border: 0;
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.52cqw, 10px);
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .state-pill.dark {
+      color: var(--ink);
+      background: transparent;
+    }
+
+    .closure-note {
+      margin: 0.72cqw 0 0;
+      padding-top: 0.62cqw;
+      border-top: 0.14cqw solid var(--ink);
+      font-size: clamp(10px, 0.73cqw, 14px);
+      line-height: 1.23;
+    }
+
+    /* Navigation */
+    .deck-ui {
+      position: absolute;
+      right: 1cqw;
+      bottom: 0.54cqw;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 0.34cqw;
+    }
+
+    .deck-ui button {
+      width: 2.2cqw;
+      min-width: 26px;
+      height: 1.75cqw;
+      min-height: 22px;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      background: var(--paper);
+      cursor: pointer;
+    }
+
+    .deck-ui button:disabled { color: var(--rule); cursor: default; }
+
+    .counter {
+      min-width: 4cqw;
+      font-size: clamp(8px, 0.58cqw, 11px);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .progress-track {
+      position: absolute;
+      inset: auto 0 0 0;
+      z-index: 11;
+      height: 0.18cqw;
+      background: var(--wash);
+    }
+
+    .progress-bar {
+      display: block;
+      height: 100%;
+      width: 6.25%;
+      background: var(--ink);
+      transition: width 150ms ease-out;
+    }
+
+    @media (max-aspect-ratio: 4/3) {
+      body { place-items: stretch; }
+      .deck-shell {
+        width: 100vw;
+        height: 100svh;
+        height: 100dvh;
+        aspect-ratio: auto;
+        border-left: 0;
+        border-right: 0;
+        box-shadow: none;
+      }
+      .slide > *,
+      .slide-body > *,
+      figure,
+      aside {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .source,
+      .map-node strong,
+      .constraint-strip,
+      .dense-matrix .count-seq {
+        overflow-wrap: anywhere;
+      }
+
+      .dense-matrix .count-seq { white-space: normal; }
+    }
+
+    @page { size: 13.333in 7.5in; margin: 0; }
+
+    @media print {
+      html,
+      body { width: auto; min-height: auto; overflow: visible; background: var(--paper); }
+      body { display: block; }
+      .deck-shell,
+      .deck { width: 13.333in; height: auto; aspect-ratio: auto; border: 0; box-shadow: none; }
+      .slide,
+      .slide.active {
+        width: 13.333in;
+        height: 7.5in;
+        display: grid;
+        break-after: page;
+        page-break-after: always;
+        animation: none;
+      }
+      .slide:last-child { break-after: auto; page-break-after: auto; }
+      .deck-ui,
+      .progress-track { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-shell">
+    <main class="deck" id="deck" aria-live="polite">
+      <section class="slide title-slide active" id="slide-1" data-title="Status boundary">
+        <div class="title-field">
+          <div class="title-copy">
+            <p class="kicker">DarwinDiff / presentation-planning weekly log</p>
+            <h1>The self-twin narrowed the question. Stage 0 stopped the next run.</h1>
+            <p class="subtitle">
+              Evidence controls, measured results, exclusions, and planned closeout for Aug 4-11,
+              2026. The core log is frozen as of Aug 9; slides 15-16 are a separately labelled
+              Aug 10 verified appendix, not backfilled outcomes.
+            </p>
+            <div class="title-rule" aria-hidden="true"></div>
+          </div>
+
+          <aside class="date-plate" aria-label="Status date">
+            <span class="small">Status cut</span>
+            <div class="date-main">Aug 09<span>as of</span></div>
+            <span class="small">Slides 15-16 = Aug 10 appendix</span>
+          </aside>
+        </div>
+
+        <footer class="slide-footer">
+          <span>Constant twin: one submission / seasonal target: Stage 0 only / no B200</span>
+          <span class="folio">01 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-2" data-title="Research control pattern">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / how the R&amp;D memory works</p>
+          <span class="status-cut">As of Aug 9</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="M">Method / relational research map</p>
+          <h2>The map is a queryable evidence system, not a notes page</h2>
+
+          <div class="map-layout">
+            <figure class="map-figure" aria-label="Relational research-map architecture">
+              <figcaption class="figure-label">Fig. 01 / three artifacts, one source</figcaption>
+              <div class="map-stack">
+                <div class="source-stack">
+                  <div class="map-node primary">
+                    <span class="node-tag">Canonical source</span>
+                    <strong>research_map_corpus.json</strong>
+                    <small>full, untruncated rows</small>
+                  </div>
+                  <div class="map-node">
+                    <span class="node-tag">Joined source</span>
+                    <strong>Carroll registry + citation audit + tracked documents</strong>
+                  </div>
+                </div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="map-node primary">
+                  <span class="node-tag">Guidance layer</span>
+                  <strong>in-memory SQLite</strong>
+                  <small>joins, traces, gates, read-only SQL</small>
+                </div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="view-stack">
+                  <div class="map-node">
+                    <span class="node-tag">Reading view</span>
+                    <strong>research_map.md</strong>
+                    <small>generated and truncated</small>
+                  </div>
+                  <div class="map-node">
+                    <span class="node-tag">Bulk mirror</span>
+                    <strong>research_map.json</strong>
+                    <small>generated from the same DB</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="relations" aria-label="Core map relations">
+                <div class="relation">EVIDENCE<br />SUPPORTS<br />CLAIM</div>
+                <div class="relation">CLAIM<br />DERIVES<br />CLAIM</div>
+                <div class="relation">HYPOTHESIS<br />PREDICTS<br />FALSIFIER</div>
+                <div class="relation">SUPERSEDES<br />OLD -&gt; NEW</div>
+              </div>
+
+              <div class="constraint-strip">
+                pi(live CLAIM) intersect pi(SUPERSEDES.old) = empty &nbsp; | &nbsp;
+                claim.doc must resolve &nbsp; | &nbsp; no truncated prose in SQL
+              </div>
+            </figure>
+
+            <aside class="control-loop" aria-label="Inference loop">
+              <p class="figure-label">Fig. 02 / working inference loop</p>
+              <div class="loop-chain">
+                <div class="loop-step" data-step="A">Abduction: explain a surprise</div>
+                <div class="loop-arrow" aria-hidden="true"></div>
+                <div class="loop-step" data-step="D">Deduction: force a prediction</div>
+                <div class="loop-arrow" aria-hidden="true"></div>
+                <div class="loop-step" data-step="P">Pre-register the falsifier</div>
+                <div class="loop-arrow" aria-hidden="true"></div>
+                <div class="loop-step" data-step="I">Induction: test against a null</div>
+              </div>
+              <div class="loop-final">
+                <strong>Current query:</strong> <code>settled "seasonally forced self-twin"</code>
+                returns three settled target-construction answers. Latest decision:
+                <code>stage0-failed-stop</code>; no optimizer and no B200.
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Source / AGENTS.md; scripts/gen_research_map.py; scripts/research_map_db.py</span>
+          <span class="folio">02 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-3" data-title="Weekly evidence chronology">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / Aug 4-9 evidence chronology</p>
+          <span class="status-cut">Measured history</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="W">Weekly log / what the map permits us to say</p>
+          <h2>Corrections came first; Stage 0 prevented an invalid run</h2>
+
+          <div class="chronology" aria-label="Research chronology from August 4 to August 9">
+            <article class="day">
+              <span class="date">Aug 04</span>
+              <div class="day-card">
+                <p class="eyebrow">Provenance</p>
+                <h3>Repair the memory gates</h3>
+                <p>Fix truncated SQL text, inert mirror checks, and local-only document leakage.</p>
+              </div>
+            </article>
+
+            <article class="day">
+              <span class="date">Aug 05</span>
+              <div class="day-card">
+                <p class="eyebrow">Metric audit</p>
+                <h3>Withdraw easy accuracy stories</h3>
+                <p><code>alpfe</code> rails to its bound; collapse choice changes <code>scav_rat</code>.</p>
+              </div>
+            </article>
+
+            <article class="day">
+              <span class="date">Aug 06</span>
+              <div class="day-card">
+                <p class="eyebrow">Replication</p>
+                <h3>Loss selects the basin</h3>
+                <p>The eqpac/SO swap replicates on disjoint seeds; three mechanisms fail.</p>
+              </div>
+            </article>
+
+            <article class="day">
+              <span class="date">Aug 08</span>
+              <div class="day-card">
+                <p class="eyebrow">Pre-registration</p>
+                <h3>Submit the self-twin</h3>
+                <p>Matched cells are the harness falsifier; long cells are the proposed decider.</p>
+              </div>
+            </article>
+
+            <article class="day">
+              <span class="date">Aug 09</span>
+              <div class="day-card">
+                <p class="eyebrow">Harvest + Stage 0</p>
+                <h3>Bound, diagnose, stop</h3>
+                <p>Constant twin is bounded; every seasonal target candidate fails before optimization.</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="chronology-note">
+            <div><strong>Pattern:</strong> controls and retractions narrow what the next run is allowed to claim.</div>
+            <div><strong>Presentation rule:</strong> show the surviving evidence path, not retired headline figures.</div>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Source / git history b4b0760..b814b83; research-map supersession chain</span>
+          <span class="folio">03 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-4" data-title="Validated results">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / evidence lane 1</p>
+          <span class="status-cut">As of Aug 9</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="1">Validated results</p>
+          <h2>The matched cells validate the self-twin machinery</h2>
+
+          <div class="validated-layout">
+            <section class="metric-stage" aria-label="Matched-cell result">
+              <p class="metric-label">Scav_rat / trained</p>
+              <p class="metric-main">50/50/50</p>
+              <p class="metric-detail">
+                at <strong>&lt;= 0.20</strong><br />arithmetic / geometric / median
+              </p>
+              <p class="null-line">Matched nulls: <b>0/0/0</b></p>
+            </section>
+
+            <figure class="matrix-wrap" aria-label="Matched cell matrix">
+              <figcaption class="figure-label">Fig. 03 / target-loss identity checks, n = 50 per arm</figcaption>
+              <table class="matrix">
+                <thead>
+                  <tr>
+                    <th>verified basin</th>
+                    <th>target = end<br />loss = endpoint</th>
+                    <th>target = mean<br />loss = time mean</th>
+                    <th>matched null</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>eqpac</th>
+                    <td class="pass">50/50/50</td>
+                    <td class="pass">50/50/50</td>
+                    <td class="gate">0/0/0</td>
+                  </tr>
+                  <tr>
+                    <th>natl</th>
+                    <td class="pass">50/50/50</td>
+                    <td class="pass">50/50/50</td>
+                    <td class="gate">0/0/0</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="evidence-flow" aria-label="Matched evidence path">
+                <div class="flow-node">Known Carroll truth</div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="flow-node">Target and loss match</div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="flow-node">Truth recovered</div>
+              </div>
+
+              <p class="caption">
+                Job <strong>320993</strong> and grader <strong>320994</strong> completed with exactly
+                <strong>50 artifacts per arm</strong>. This validates recovery under identity-matched
+                comparisons. It does not validate the constant-steady proxy as Darwin-like.
+              </p>
+            </figure>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Evidence / verified eqpac and natl artifacts only; geometric reported with all poolers</span>
+          <span class="folio">04 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-5" data-title="Unreplicated result">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / evidence lane 2</p>
+          <span class="status-cut">Unreplicated</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="2">Unreplicated / pending replication</p>
+          <h2>The constant-steady long target removes the deciding signal</h2>
+
+          <div class="pending-layout">
+            <figure class="contrast-figure" aria-label="DFe2 spatial contrast and long-target result">
+              <figcaption class="figure-label">Fig. 04 / DFe2 relative spatial standard deviation</figcaption>
+              <div class="contrast-bars">
+                <div></div>
+                <div class="contrast-head">200-step end</div>
+                <div class="contrast-head">4000-step long</div>
+
+                <div class="basin-name">eqpac</div>
+                <div class="bar-cell"><span style="--w: 84.5%"></span><b>0.0845</b></div>
+                <div class="bar-cell"><span style="--w: 0.1%"></span><b>0.0001</b></div>
+
+                <div class="basin-name">natl</div>
+                <div class="bar-cell"><span style="--w: 100%"></span><b>0.1323</b></div>
+                <div class="bar-cell"><span style="--w: 2.6%"></span><b>0.0026</b></div>
+              </div>
+
+              <div class="double-null" aria-label="Both long-target losses fail">
+                <div class="loss-box">
+                  <span class="metric-label">Endpoint loss</span>
+                  <strong>0/0/0</strong>
+                  <small><code>scav_rat</code> / every tested band</small>
+                </div>
+                <div class="equals">=</div>
+                <div class="loss-box">
+                  <span class="metric-label">Time-mean loss</span>
+                  <strong>0/0/0</strong>
+                  <small><code>scav_rat</code> / every tested band</small>
+                </div>
+              </div>
+
+              <p class="caption">
+                With nearly uniform subsurface iron, the pattern loss has almost no <code>scav_rat</code>
+                information. Equal failure is non-discriminating: endpoint versus time mean for Darwin
+                remains open.
+              </p>
+            </figure>
+
+            <aside class="boundary-card" aria-label="Inference boundary">
+              <p class="eyebrow">Inference boundary</p>
+              <p>
+                This finding concerns a <strong>constant-forcing quasi-steady proxy</strong>. Darwin is
+                seasonally forced and does not settle to this fixed point.
+              </p>
+              <p>
+                The valid next decider is a target averaged over complete seasonal cycles after spin-up,
+                with retained DFe2 contrast demonstrated before fitting.
+              </p>
+              <div class="stamp">One submission<br />No fresh replication<br />No settled scientific claim</div>
+            </aside>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Boundary / preserves the negative proxy result without promoting it to a Darwin answer</span>
+          <span class="folio">05 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-6" data-title="Excluded and gated">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / evidence lane 3</p>
+          <span class="status-cut">Excluded / gated</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="3">Excluded or gated results</p>
+          <h2>Southern Ocean is outside the verified evidence set</h2>
+
+          <div class="gate-layout">
+            <figure aria-label="Southern Ocean coverage gate">
+              <figcaption class="figure-label">Fig. 05 / distinguish absence from failure before grading</figcaption>
+              <div class="gate-flow">
+                <div class="gate-node">
+                  Southern Ocean artifact<br />Daniels / POSi cells = 0
+                </div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="gate-node decision">
+                  Is zero coverage expected for this AOI and term?
+                </div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="gate-outcomes">
+                  <div class="gate-outcome">
+                    <b>Expected zero</b>
+                    Record the inactive term; verify the remaining declared configuration.
+                  </div>
+                  <div class="gate-outcome">
+                    <b>Unexpected zero</b>
+                    Exit 2; restage inputs; grade nothing.
+                  </div>
+                </div>
+              </div>
+              <p class="caption">
+                The source audit confirms expected geographic absence rather than staging failure, but
+                the historical artifacts still return <code>verify_run = 2</code> because inactive terms
+                were declared on. The old grader printed rows anyway; those rows are not evidence.
+              </p>
+            </figure>
+
+            <aside class="exclude-list" aria-label="Presentation exclusions">
+              <p class="eyebrow">Do not show or claim</p>
+              <ul>
+                <li>Retracted emulator globe rendering</li>
+                <li>Retracted persistence-comparison graphic</li>
+                <li>Boundary-clipped parameter values as accuracy evidence</li>
+                <li>Any Southern Ocean twin result before the gate resolves</li>
+              </ul>
+            </aside>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Gate / declared-on terms with zero active cells require an AOI-specific coverage decision</span>
+          <span class="folio">06 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-7" data-title="Complete evidence tensor">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / all-dimensional matrix</p>
+          <span class="status-cut">As of Aug 9</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="M">Complete evidence matrix</p>
+          <h2>The headline is one slice through a 1,080-cell relation</h2>
+
+          <div class="dimension-layout">
+            <figure class="factor-board" aria-label="Dimensions represented in the loss-twin matrix">
+              <figcaption class="figure-label">Fig. 06 / design axes retained without collapsing status</figcaption>
+              <div class="factor-grid">
+                <div class="factor-card"><b>1</b><span>forcing regime<br />constant</span></div>
+                <div class="factor-card"><b>3</b><span>AOIs<br />EqPac / NATL / SO</span></div>
+                <div class="factor-card"><b>15</b><span>arms<br />4 trained + 1 null / AOI</span></div>
+                <div class="factor-card"><b>6</b><span>Carroll parameters<br />all roles retained</span></div>
+                <div class="factor-card"><b>3</b><span>poolers<br />arith / geom / median</span></div>
+                <div class="factor-card"><b>4</b><span>bands<br />.10 / .20 / .30 / .40</span></div>
+                <div class="factor-card"><b>50</b><span>artifacts per arm<br />seeds 0-49</span></div>
+                <div class="factor-card"><b>1</b><span>submission<br />no replication</span></div>
+              </div>
+              <p class="sparse-note">
+                The design is intentionally sparse: the two mismatched target/loss cells were not
+                submitted, and the seasonal-forcing dimension is still empty. Empty, excluded, and
+                gated cells remain visible as states rather than disappearing from the table.
+              </p>
+            </figure>
+
+            <aside class="tensor-card" aria-label="Fact-cell accounting">
+              <p class="eyebrow">Tidy fact table</p>
+              <div class="tensor-number">1,080</div>
+              <div class="tensor-equation">15 arms x 6 parameters x 3 poolers x 4 bands</div>
+              <div class="tensor-statuses">
+                <span><b>360</b> numeric cells retained</span>
+                <span><b>360</b> parameter-excluded cells</span>
+                <span><b>360</b> verifier-gated cells</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Source / 2026-08-09_loss_twin_dimensional_matrix.{json,csv}; every status is explicit</span>
+          <span class="folio">07 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-8" data-title="All verified scav-rat cells">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / numeric matrix slice</p>
+          <span class="status-cut">Verified AOIs only</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="M">All bands / all poolers</p>
+          <h2>Every reportable <code>scav_rat</code> cell fits in one table</h2>
+
+          <figure class="dense-matrix-wrap" aria-label="All verified scav_rat cells by AOI, target, loss, pooler, and band">
+            <figcaption class="figure-label">Fig. 07 / each sequence is n recovered at bands .10 / .20 / .30 / .40</figcaption>
+            <table class="dense-matrix">
+              <thead>
+                <tr>
+                  <th>AOI</th>
+                  <th class="cell-label">target &rarr; loss</th>
+                  <th>Arithmetic</th>
+                  <th>Geometric</th>
+                  <th>Median</th>
+                  <th>Geom median<br />x truth</th>
+                  <th>Reading</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th rowspan="4">EqPac</th>
+                  <td>end &rarr; endpoint</td>
+                  <td class="count-seq">47&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">47&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">47&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">1.028</td>
+                  <td class="matched-result">matched pass</td>
+                </tr>
+                <tr>
+                  <td>mean &rarr; time-mean</td>
+                  <td class="count-seq">50&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">50&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">50&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">1.024</td>
+                  <td class="matched-result">matched pass</td>
+                </tr>
+                <tr class="decisive-row">
+                  <td>long &rarr; endpoint</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">2.454</td>
+                  <td>decisive null</td>
+                </tr>
+                <tr class="decisive-row">
+                  <td>long &rarr; time-mean</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">2.454</td>
+                  <td>decisive null</td>
+                </tr>
+                <tr>
+                  <th rowspan="4">NATL</th>
+                  <td>end &rarr; endpoint</td>
+                  <td class="count-seq">22&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">22&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">24&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">1.105</td>
+                  <td class="matched-result">matched pass</td>
+                </tr>
+                <tr>
+                  <td>mean &rarr; time-mean</td>
+                  <td class="count-seq">47&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">47&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">48&middot;50&middot;50&middot;50</td>
+                  <td class="count-seq">1.066</td>
+                  <td class="matched-result">matched pass</td>
+                </tr>
+                <tr class="decisive-row">
+                  <td>long &rarr; endpoint</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">3.299</td>
+                  <td>decisive null</td>
+                </tr>
+                <tr class="decisive-row">
+                  <td>long &rarr; time-mean</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">0&middot;0&middot;0&middot;0</td>
+                  <td class="count-seq">4.977</td>
+                  <td>decisive null</td>
+                </tr>
+              </tbody>
+            </table>
+          </figure>
+
+          <div class="matrix-key">
+            <span><b>Null:</b> 0&middot;0&middot;0&middot;0 under every pooler in both verified AOIs.</span>
+            <span><b>Scope:</b> n=50 per arm; job 320993; one submission, no replication.</span>
+            <span><b>SO:</b> absent here by design; all five SO arms remain <code>verify_run=2</code>.</span>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Reading rule / geometric is primary; arithmetic and median remain adjacent; no 0.40-only headline</span>
+          <span class="folio">08 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-9" data-title="Arm gates and parameter disposition">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / matrix semantics</p>
+          <span class="status-cut">No hidden cells</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="M">Gate state / parameter role</p>
+          <h2>Completeness means showing why a number is not a result</h2>
+
+          <div class="disposition-layout">
+            <figure class="arm-status-panel" aria-label="Verifier status of all 15 arms">
+              <figcaption class="figure-label">Fig. 08 / all 15 arms: V0 verified, G2 discrepancy</figcaption>
+              <table class="arm-matrix">
+                <thead>
+                  <tr>
+                    <th>AOI</th>
+                    <th>end / end</th>
+                    <th>mean / mean</th>
+                    <th>long / end</th>
+                    <th>long / mean</th>
+                    <th>null</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>EqPac</th>
+                    <td class="verified-cell">V0</td><td class="verified-cell">V0</td>
+                    <td class="verified-cell">V0</td><td class="verified-cell">V0</td>
+                    <td class="verified-cell">V0</td>
+                  </tr>
+                  <tr>
+                    <th>NATL</th>
+                    <td class="verified-cell">V0</td><td class="verified-cell">V0</td>
+                    <td class="verified-cell">V0</td><td class="verified-cell">V0</td>
+                    <td class="verified-cell">V0</td>
+                  </tr>
+                  <tr>
+                    <th>SO</th>
+                    <td class="gated-cell">G2</td><td class="gated-cell">G2</td>
+                    <td class="gated-cell">G2</td><td class="gated-cell">G2</td>
+                    <td class="gated-cell">G2</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="coverage-strip" aria-label="Daniels and POSi active-cell coverage">
+                <span>EqPac<br /><b>34 Daniels / 7 POSi</b></span>
+                <span>NATL<br /><b>26 Daniels / 4 POSi</b></span>
+                <span>SO<br /><b>0 Daniels / 0 POSi</b></span>
+              </div>
+              <p class="sparse-note">
+                SO source files were staged and loaded; geographic coverage is genuinely zero.
+                The gate remains because those historical artifacts still declared both inactive terms on.
+              </p>
+            </figure>
+
+            <aside class="parameter-panel" aria-label="Disposition of all six Carroll parameters">
+              <p class="figure-label">Table 02 / all six parameters remain in the schema</p>
+              <div class="parameter-list">
+                <div class="parameter-row primary"><b>scav_rat</b><span>Primary inferential target; geometric + adjacent poolers.</span></div>
+                <div class="parameter-row"><b>R_PICPOC</b><span>Synthetic Daniels-anchor machinery check only.</span></div>
+                <div class="parameter-row"><b>alpfe</b><span>Boundary diagnostic only; never presented as accuracy.</span></div>
+                <div class="parameter-row"><b>diatomgraz</b><span>Excluded from this loss decision; long Chl1 is pathological.</span></div>
+                <div class="parameter-row"><b>Smallgrow</b><span>Excluded by the time-mean observable construction.</span></div>
+                <div class="parameter-row"><b>Biggrow</b><span>Excluded as unobservable by construction.</span></div>
+              </div>
+              <div class="matrix-status-strip">
+                <span>360 numeric</span><span>360 excluded</span><span>360 gated</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Matrix invariant / a gated or excluded cell is represented by status, never by a quoted fit count</span>
+          <span class="folio">09 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-10" data-title="Seasonal target ladder">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / seasonal decider scope</p>
+          <span class="status-cut">Stage 0 stopped</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="3">Excluded or gated target constructions</p>
+          <h2>Each seasonal repair exposed the next missing mechanism</h2>
+
+          <div class="target-ladder" aria-label="Seasonal self-twin target-construction ladder">
+            <article class="ladder-step stop">
+              <div class="ladder-index"><span>01</span><span>Forcing</span></div>
+              <h3>T / S / wind only</h3>
+              <p>Cycle 1 looks sane; DFe contrast collapses and DIC becomes non-finite by cycles 4-5.</p>
+              <div class="ladder-result">Target gate failed</div>
+            </article>
+
+            <article class="ladder-step stop">
+              <div class="ladder-index"><span>02</span><span>Closure</span></div>
+              <h3>Chemical restoring</h3>
+              <p>DFe2 and DIC are retained, but diatom Chl1 approaches zero in all three AOIs.</p>
+              <div class="ladder-result">Biomass gate failed</div>
+            </article>
+
+            <article class="ladder-step stop">
+              <div class="ladder-index"><span>03</span><span>Light</span></div>
+              <h3>Astronomical light</h3>
+              <p>Seasonal irradiance does not rescue biomass; amplitude tuning is not licensed.</p>
+              <div class="ladder-result">No rescue</div>
+            </article>
+
+            <article class="ladder-step diagnosis">
+              <div class="ladder-index"><span>04</span><span>Budget</span></div>
+              <h3>Process attribution</h3>
+              <p>Constant diatom grazing supplies 57.1-68.5% of cycle-1 gross loss.</p>
+              <div class="ladder-result">Mechanism localized</div>
+            </article>
+
+            <article class="ladder-step diagnosis">
+              <div class="ladder-index"><span>05</span><span>Invasion</span></div>
+              <h3>Rare-diatom test</h3>
+              <p>Five of six AOI-light cells are uniformly non-invadable; one SO cell is mixed.</p>
+              <div class="ladder-result">Not a universal attractor</div>
+            </article>
+
+            <article class="ladder-step stop">
+              <div class="ladder-index"><span>06</span><span>Grazers</span></div>
+              <h3>Explicit two-Z closure</h3>
+              <p>Diatoms persist, but large Z is excluded and the parameter handle remains weak.</p>
+              <div class="ladder-result">Stage 0 failed</div>
+            </article>
+          </div>
+
+          <div class="stage-decision">
+            <b>Map state</b>
+            <span><code>stage0-failed-stop</code> rejects these reduced-box targets; it does not choose endpoint versus time mean for transported Darwin.</span>
+            <code>No optimizer / no B200</code>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Relational trace / target gate -&gt; process budget -&gt; invasion falsifier -&gt; explicit-grazer gate</span>
+          <span class="folio">10 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-11" data-title="Diatom sink and invasion geometry">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / reduced-box mechanism</p>
+          <span class="status-cut">Verified diagnostic</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="3">Excluded target / causal diagnostic</p>
+          <h2>The failed biomass gate is a diatom-specific sink</h2>
+
+          <div class="mechanism-layout">
+            <figure class="mechanism-flow" aria-label="Diatom grazing mechanism flow">
+              <figcaption class="figure-label">Fig. 09 / why the seasonal reduced box approaches a diatom-free state</figcaption>
+              <div class="mechanism-chain">
+                <div class="mechanism-node">
+                  <b>No prognostic zooplankton</b>
+                  <small>grazing cannot relax with predator biomass</small>
+                </div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="mechanism-node emphasis">
+                  <b>Biomass-independent loss floor</b>
+                  <strong>0.299</strong>
+                  <small>d<sup>-1</sup> at Carroll truth</small>
+                </div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="mechanism-node">
+                  <b>Cycle-1 diatom loss</b>
+                  <strong>57.1-68.5%</strong>
+                  <small>grazing share across six AOI-light cells</small>
+                </div>
+              </div>
+              <div class="equation-strip">
+                dP<sub>diatom</sub>/dt = P [growth - 0.05 - <code>diatomgraz</code> x 0.30 - 0.01P]
+              </div>
+              <p class="caption">
+                The other four PFTs remain nonzero and no clamp event occurs. This diagnosis is
+                bounded to the reduced box; it is not a Darwin grazing budget.
+              </p>
+            </figure>
+
+            <figure class="invasion-panel" aria-label="Rare-diatom invasion classifications">
+              <figcaption class="figure-label">Fig. 10 / cycle-8 rare-invasion gate, positive cells / ocean cells</figcaption>
+              <div class="invasion-grid">
+                <div class="grid-head">Light</div>
+                <div class="grid-head">EqPac</div>
+                <div class="grid-head">NATL</div>
+                <div class="grid-head">SO</div>
+
+                <div class="row-head">Fixed</div>
+                <div class="blocked"><b>0 / 1,071</b>non-invadable</div>
+                <div class="blocked"><b>0 / 489</b>non-invadable</div>
+                <div class="mixed"><b>50 / 1,296</b>mixed refuge</div>
+
+                <div class="row-head">Astronomical</div>
+                <div class="blocked"><b>0 / 1,071</b>non-invadable</div>
+                <div class="blocked"><b>0 / 489</b>non-invadable</div>
+                <div class="blocked"><b>0 / 1,296</b>non-invadable</div>
+              </div>
+              <p class="invasion-summary">
+                <strong>Five of six cells:</strong> every ocean cell has a negative annual invasion
+                multiplier. The fixed-light SO refuge is 3.858% of its mask, so “zero attracts
+                everywhere” is explicitly rejected.
+              </p>
+            </figure>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Verification / 1,786,512 process cells + 549,696 invasion cells; no fitting and no cluster compute</span>
+          <span class="folio">11 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-12" data-title="Explicit grazer exclusion and blocker lattice">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / source-mirrored grazer closure</p>
+          <span class="status-cut">No admissible waiver</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="3">Excluded target / minimal blocker set</p>
+          <h2>Fixing the sink reveals a different reduced-box failure</h2>
+
+          <div class="explicit-layout">
+            <figure class="grazer-diagram" aria-label="Two-zooplankton shared-prey network">
+              <figcaption class="figure-label">Fig. 11 / source-mirrored shared-prey closure</figcaption>
+              <div class="grazer-network">
+                <div class="prey-stack">
+                  <div class="network-node retained"><b>5 PFTs</b>shared prey pool</div>
+                  <div class="network-node"><b>Diatoms persist</b>1.026 / 0.869 / 0.866</div>
+                </div>
+                <span class="h-arrow" aria-hidden="true"></span>
+                <div class="predator-stack">
+                  <div class="network-node retained"><b>Z small</b>near-neutral annual mode</div>
+                  <div class="network-node excluded"><b>Z large</b>endogenously excluded</div>
+                </div>
+              </div>
+              <div class="network-caption">
+                Realized grazing rescues diatoms without direct biomass restoring, but the declared
+                two-predator projection does not survive as a two-predator community.
+              </div>
+            </figure>
+
+            <aside class="exclusion-panel" aria-label="Verified exclusion measurements">
+              <p class="figure-label">Table 03 / independent checks</p>
+              <div class="exclusion-list">
+                <div class="exclusion-row"><b>Z large max log multiplier</b><span>-1.141 / -1.045 / -0.631</span></div>
+                <div class="exclusion-row"><b>Z small annual retention</b><span>0.99997-1.00000</span></div>
+                <div class="exclusion-row"><b>diatomgraz response</b><span>2.0-3.0% &lt; 5% gate</span></div>
+                <div class="exclusion-row"><b>Stage-0 outcome</b><span>stability + IC + handle fail</span></div>
+              </div>
+              <p class="sparse-note">
+                Negative growth is uniform across every Z-large cell. This is not a tiny-state
+                denominator artifact, and it does not authorize dropping the source-required state.
+              </p>
+            </aside>
+
+            <figure class="waiver-panel" aria-label="Boolean lattice of post-hoc waiver sets">
+              <figcaption class="figure-label">Fig. 12 / all eight waiver subsets were enumerated</figcaption>
+              <div class="waiver-lattice">
+                <div class="waiver-layer one">
+                  <div class="waiver-node">No waiver<br />3 blocker groups</div>
+                </div>
+                <div class="lattice-arrow" aria-hidden="true"></div>
+                <div class="waiver-layer three">
+                  <div class="waiver-node">Waive Z<br />Eq + H remain</div>
+                  <div class="waiver-node">Waive Eq<br />Z + H remain</div>
+                  <div class="waiver-node">Waive H<br />Z + Eq remain</div>
+                </div>
+                <div class="lattice-arrow" aria-hidden="true"></div>
+                <div class="waiver-layer three">
+                  <div class="waiver-node">Z + Eq<br />H remains</div>
+                  <div class="waiver-node">Z + H<br />Eq remains</div>
+                  <div class="waiver-node">Eq + H<br />Z remains</div>
+                </div>
+                <div class="lattice-arrow" aria-hidden="true"></div>
+                <div class="waiver-layer one">
+                  <div class="waiver-node forbidden">Z + Eq + H<br />mechanical pass / forbidden</div>
+                </div>
+              </div>
+              <div class="waiver-key">
+                <span><b>Z</b> = source-required Z-large obligations</span>
+                <span><b>Eq</b> = EqPac seasonality gate</span>
+                <span><b>H</b> = global parameter-handle gate</span>
+              </div>
+            </figure>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Logical result / no singleton or pair rehabilitates the frozen target; only the forbidden triple passes</span>
+          <span class="folio">12 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-13" data-title="Large-predator energy deficit">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / prey-channel audit</p>
+          <span class="status-cut">Verified Stage-0 diagnostic</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="3">Excluded target / energetic mechanism</p>
+          <h2>The large predator is below replacement before variance penalties</h2>
+
+          <div class="energy-layout">
+            <figure class="energy-budget" aria-label="Large-predator annual gross gain against replacement">
+              <figcaption class="figure-label">Fig. 13 / maximum annual gross specific gain in any retained cell</figcaption>
+              <div class="energy-axis">
+                <span>AOI</span>
+                <div class="energy-scale"><span>0</span><span>3.05</span><span>6.10</span><span>9.15</span><span>12.20</span></div>
+              </div>
+              <div class="energy-rows">
+                <div class="energy-row">
+                  <span class="energy-row-label">EqPac</span>
+                  <div class="energy-track">
+                    <div class="energy-fill" style="--w: 90.66%">gross gain 11.060</div>
+                    <span class="energy-margin">margin -1.140</span>
+                  </div>
+                </div>
+                <div class="energy-row">
+                  <span class="energy-row-label">N Atlantic</span>
+                  <div class="energy-track">
+                    <div class="energy-fill" style="--w: 91.48%">gross gain 11.160</div>
+                    <span class="energy-margin">margin -1.040</span>
+                  </div>
+                </div>
+                <div class="energy-row">
+                  <span class="energy-row-label">Southern Ocean</span>
+                  <div class="energy-track">
+                    <div class="energy-fill" style="--w: 94.87%">gross gain 11.574</div>
+                    <span class="energy-margin">margin -0.626</span>
+                  </div>
+                </div>
+              </div>
+              <p class="energy-note">
+                Mortality integrates to <strong>12.2</strong> over the 366-day model cycle.
+                Every cell falls short before applying <code>log(1 + dt lambda)</code>;
+                the exact log maxima are -1.141 / -1.045 / -0.631.
+              </p>
+            </figure>
+
+            <figure class="diet-panel" aria-label="Measured predator diet partition">
+              <figcaption class="figure-label">Fig. 14 / median realized gain shares across AOIs</figcaption>
+              <div class="diet-stack">
+                <article class="diet-card">
+                  <h3>Z large <span>preferred channel still insufficient</span></h3>
+                  <div class="diet-bar">
+                    <div class="diet-large" style="width: 65.1%">62.9-68.5%<br />diatom + lge</div>
+                    <div class="diet-small" style="width: 34.9%">31.5-37.1%<br />small PFTs</div>
+                  </div>
+                  <p class="diet-caption">The diets are differentiated; exclusion is not an identical-diet artifact.</p>
+                </article>
+
+                <article class="diet-card">
+                  <h3>Z small <span>dynamic replacement surface</span></h3>
+                  <div class="diet-bar">
+                    <div class="diet-large" style="width: 3.9%"></div>
+                    <div class="diet-small" style="width: 96.1%">95.4-96.3% from syn + proLL + proHL</div>
+                  </div>
+                  <p class="diet-caption">Its exact median annual multiplier remains within 3.5e-7 of zero.</p>
+                </article>
+              </div>
+              <p class="sparse-note">
+                <strong>Boundary:</strong> the audit identifies insufficiency of the included prey field.
+                It does not select DOC, transport, vertical niche, another prey, or changed assimilation.
+              </p>
+            </figure>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Verification / 564,011 tensor cells; four upstream hashes; decision = prey-field-energy-deficit</span>
+          <span class="folio">13 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-14" data-title="Planned closeout">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / evidence lane 4</p>
+          <span class="status-cut">Planned Aug 9-11</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="4">Aug 9-11 plan</p>
+          <h2>The closeout plan freezes the order of operations</h2>
+
+          <div class="plan-grid" aria-label="Planned closeout tasks">
+            <article class="task">
+              <div class="task-number"><span>01</span><span>Aug 09</span></div>
+              <h3>Resolve SO coverage</h3>
+              <p>Teach the verifier the difference between expected zero coverage and missing staged data.</p>
+            </article>
+
+            <article class="task">
+              <div class="task-number"><span>02</span><span>Aug 09-10</span></div>
+              <h3>Write the bounded finding</h3>
+              <p>Lead with matched validation; state the double null, exclusion, and no replication.</p>
+            </article>
+
+            <article class="task">
+              <div class="task-number"><span>03</span><span>Aug 10</span></div>
+              <h3>Scope issue #239</h3>
+              <p>Run a preregistered seasonal Stage 0 first; use B200 only if the target clears every gate.</p>
+            </article>
+
+            <article class="task">
+              <div class="task-number"><span>04</span><span>Aug 10-11</span></div>
+              <h3>Harden review paths</h3>
+              <p>Review PR #238 and the separate <code>grade_basin_x_loss</code> completeness work.</p>
+            </article>
+          </div>
+
+          <div class="review-strip" aria-label="Pull request review state frozen at the planning cut">
+            <div class="review-item"><b>PR #238</b>Open and mergeable</div>
+            <div class="review-item"><b>CI</b>Tests + E2S conformance green</div>
+            <div class="review-item warn"><b>Planning-cut risk</b>Null arms need the same completeness and verifier gates</div>
+          </div>
+
+          <div class="guardrail">
+            <span>No additional constant-steady factorial first</span>
+            <span>B200 only after a Stage-0 pass</span>
+            <span>At the Aug 9 cut: do not close any GitHub issue</span>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Status boundary / every task on this slide is planned closeout, not a completed outcome</span>
+          <span class="folio">14 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-15" data-title="Continuity is load-bearing">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / verified post-cutoff appendix</p>
+          <span class="status-cut">Verified Aug 10 / one frozen trajectory</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="A">Validated result / after the Aug 9 status cut</p>
+          <h2>Continuity is load-bearing: the North Atlantic sign flips</h2>
+
+          <div class="continuity-layout">
+            <figure class="path-panel" aria-label="North Atlantic continuity-constrained path ladder">
+              <figcaption class="figure-label">Fig. 15 / exact annual Euler-log multiplier, North Atlantic</figcaption>
+              <div class="path-flow">
+                <article class="path-step">
+                  <span class="step-name">fixed cell</span>
+                  <strong class="step-score">-1.0449</strong>
+                  <span class="step-detail">No relocation<br />retention 0.3517</span>
+                </article>
+                <article class="path-step">
+                  <span class="step-name">radius 1</span>
+                  <strong class="step-score">-0.0257</strong>
+                  <span class="step-detail">1 cell / 0.25 d<br />retention 0.9746</span>
+                </article>
+                <article class="path-step">
+                  <span class="step-name">radius 4</span>
+                  <strong class="step-score">-0.0050</strong>
+                  <span class="step-detail">4 cells / 0.25 d<br />retention 0.9950</span>
+                </article>
+                <article class="path-step unrestricted">
+                  <span class="step-name">unrestricted</span>
+                  <strong class="step-score">+0.0021</strong>
+                  <span class="step-detail">jumps up to 28 cells<br />retention 1.0021</span>
+                </article>
+              </div>
+              <p class="path-verdict">
+                <strong>Headline:</strong> the only positive North Atlantic envelope requires
+                discontinuous quarter-day teleportation. Every preregistered continuity radius is negative.
+              </p>
+            </figure>
+
+            <figure class="oracle-table-panel" aria-label="All-basin path-oracle score table">
+              <figcaption class="figure-label">Table 15 / fixed prey, exact discrete update</figcaption>
+              <table class="oracle-table">
+                <thead>
+                  <tr><th>AOI</th><th>r=1</th><th>r=4</th><th>free</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>EqPac</td><td>-0.7602</td><td>-0.7455</td><td>-0.7377</td></tr>
+                  <tr><td>N Atlantic</td><td>-0.0257</td><td>-0.0050</td><td class="knife-edge">+0.0021</td></tr>
+                  <tr><td>S Ocean</td><td>-0.3234</td><td>-0.3070</td><td>-0.3015</td></tr>
+                </tbody>
+              </table>
+              <div class="bound-note">
+                <strong>Bound, not transport:</strong> prey is held on one corrected surface trajectory.
+                Real transport may change prey, cross AOI boundaries, or couple depth. No velocity,
+                diffusivity, optimizer, replication, or B200 was used.
+              </div>
+            </figure>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Independent verifier / 16,765,728 support-tensor cells / primary hypothesis falsified</span>
+          <span class="folio">15 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-16" data-title="Relational map closeout">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / relational-algebra R&amp;D control</p>
+          <span class="status-cut">Tracker closeout / science remains bounded</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="B">Decision provenance / after the Aug 9 status cut</p>
+          <h2>The map closes an execution path, not the science question</h2>
+
+          <div class="relation-layout">
+            <figure class="relation-map" aria-label="Relational evidence-to-settled map">
+              <figcaption class="figure-label">Fig. 16 / the query path used before changing tracker state</figcaption>
+              <div class="ra-query">
+                &pi;<sub>question, answer, doc</sub>
+                (&sigma;<sub>verified=true</sub>(EVIDENCE)
+                &bowtie; SUPPORTS &bowtie; CLAIM &bowtie; SETTLED)
+              </div>
+              <div class="relation-chain">
+                <div class="relation-node">
+                  <strong>Evidence</strong>
+                  <span>verifier exit 0<br />16.77M cells</span>
+                </div>
+                <span class="relation-edge">&rarr;</span>
+                <div class="relation-node">
+                  <strong>Supports</strong>
+                  <span>hash-bound edge</span>
+                </div>
+                <span class="relation-edge">&rarr;</span>
+                <div class="relation-node">
+                  <strong>Claim</strong>
+                  <span>live-bounded<br />frozen path only</span>
+                </div>
+                <span class="relation-edge">&rarr;</span>
+                <div class="relation-node result">
+                  <strong>Settled</strong>
+                  <span>continuity removes the NATL knife edge</span>
+                </div>
+              </div>
+              <div class="map-branches">
+                <div class="map-branch refuted">
+                  <b>Hypothesis relation</b>
+                  <code>hy_szn_large_z_continuity_path_oracle</code> = tested-refuted;
+                  excluded from the 100 active hypotheses.
+                </div>
+                <div class="map-branch">
+                  <b>Trap relation</b>
+                  Do not rewrite “frozen-path relocation failed” as “transport cannot help.”
+                </div>
+              </div>
+            </figure>
+
+            <aside class="state-panel" aria-label="Current tracker and scientific state">
+              <p class="figure-label">Current state / Aug 10</p>
+              <div class="state-stack">
+                <article class="state-card">
+                  <div><b>GitHub #239</b><p>Invalid reduced-box execution path retired.</p></div>
+                  <span class="state-pill dark">not planned</span>
+                </article>
+                <article class="state-card">
+                  <div><b>hy_szn_loss</b><p>Endpoint versus time mean for Darwin.</p></div>
+                  <span class="state-pill">open-blocked</span>
+                </article>
+                <article class="state-card">
+                  <div><b>GitHub #192</b><p>Horizontal diffusivity units block direct transport.</p></div>
+                  <span class="state-pill">open</span>
+                </article>
+                <article class="state-card">
+                  <div><b>Compute gate</b><p>No valid target, optimizer, or recovery array.</p></div>
+                  <span class="state-pill">B200 off</span>
+                </article>
+              </div>
+              <p class="closure-note">
+                <strong>Tomorrow's close:</strong> we learned where the reduced model stops.
+                The next admissible experiment must change the target model, not tune the failed one.
+              </p>
+            </aside>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Research map / 548 settled answers / 308 inductive claims / 8 constraints hold</span>
+          <span class="folio">16 / 17</span>
+        </footer>
+      </section>
+
+      <section class="slide" id="slide-17" data-title="Final two weeks">
+        <header class="slide-header">
+          <p class="running-head">DarwinDiff / summer closeout plan</p>
+          <span class="status-cut">Aug 11 addendum / plan, not outcome</span>
+        </header>
+
+        <div class="slide-body">
+          <p class="lane" data-number="P">Aug 11-22 / two working weeks left in the summer</p>
+          <h2>Ship the identifiability write-up; hand off the loss question cleanly</h2>
+
+          <div class="plan-grid" aria-label="Final two weeks of summer">
+            <article class="task">
+              <div class="task-number"><span>01</span><span>Aug 11-12</span></div>
+              <h3>Land this week's evidence</h3>
+              <p>Merge the self-twin and Stage-0 findings branch; regenerate the map mirrors; keep <code>check</code> green.</p>
+            </article>
+
+            <article class="task">
+              <div class="task-number"><span>02</span><span>Aug 12-13</span></div>
+              <h3>Fix the SO coverage gate</h3>
+              <p>Teach the verifier the difference between expected zero coverage and missing staged data, then re-grade the gated cells.</p>
+            </article>
+
+            <article class="task">
+              <div class="task-number"><span>03</span><span>Aug 13-19</span></div>
+              <h3>Write-up to review-ready</h3>
+              <p>Fold the bounded self-twin result into the identifiability write-up; run the reviewer panel; address the statistics and reproducibility items.</p>
+            </article>
+
+            <article class="task">
+              <div class="task-number"><span>04</span><span>Aug 20-22</span></div>
+              <h3>Fall handoff</h3>
+              <p>Tracker groomed and map current. The seasonal loss decider becomes a scoped fall experiment on a changed target model with prognostic zooplankton.</p>
+            </article>
+          </div>
+
+          <div class="guardrail">
+            <span>The write-up is the summer deliverable</span>
+            <span>No new recovery array without a Stage-0 pass</span>
+            <span>Prognostic zooplankton is the scoped fall extension</span>
+          </div>
+        </div>
+
+        <footer class="slide-footer">
+          <span class="source">Plan / all four tasks are forward work, none is a completed outcome</span>
+          <span class="folio">17 / 17</span>
+        </footer>
+      </section>
+    </main>
+
+    <nav class="deck-ui" aria-label="Slide navigation">
+      <button type="button" id="prev" aria-label="Previous slide">&larr;</button>
+      <span class="counter" id="counter" aria-live="off">1 / 17</span>
+      <button type="button" id="next" aria-label="Next slide">&rarr;</button>
+      <button type="button" id="fullscreen" aria-label="Toggle full screen">[]</button>
+    </nav>
+    <div class="progress-track" aria-hidden="true"><span class="progress-bar" id="progress"></span></div>
+  </div>
+
+  <script>
+    (() => {
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const previousButton = document.getElementById("prev");
+      const nextButton = document.getElementById("next");
+      const fullscreenButton = document.getElementById("fullscreen");
+      const counter = document.getElementById("counter");
+      const progress = document.getElementById("progress");
+      const shell = document.querySelector(".deck-shell");
+      let current = 0;
+      let pointerStartX = null;
+
+      const indexFromHash = () => {
+        const match = window.location.hash.match(/^#slide-(\d+)$/);
+        if (!match) return 0;
+        return Math.min(slides.length - 1, Math.max(0, Number(match[1]) - 1));
+      };
+
+      const show = (index, updateHash = true) => {
+        current = Math.min(slides.length - 1, Math.max(0, index));
+        slides.forEach((slide, slideIndex) => {
+          const active = slideIndex === current;
+          slide.classList.toggle("active", active);
+          slide.setAttribute("aria-hidden", active ? "false" : "true");
+        });
+        previousButton.disabled = current === 0;
+        nextButton.disabled = current === slides.length - 1;
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        document.title = `${slides[current].dataset.title} | DarwinDiff | ${current + 1}/${slides.length}`;
+        if (updateHash) history.replaceState(null, "", `#slide-${current + 1}`);
+      };
+
+      previousButton.addEventListener("click", () => show(current - 1));
+      nextButton.addEventListener("click", () => show(current + 1));
+      fullscreenButton.addEventListener("click", async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await shell.requestFullscreen();
+        } catch (_) {
+          // Fullscreen is optional; navigation remains available when blocked.
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(event.key)) {
+          event.preventDefault();
+          show(current + 1);
+        } else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(event.key)) {
+          event.preventDefault();
+          show(current - 1);
+        } else if (event.key === "Home") {
+          event.preventDefault();
+          show(0);
+        } else if (event.key === "End") {
+          event.preventDefault();
+          show(slides.length - 1);
+        } else if (event.key.toLowerCase() === "f") {
+          fullscreenButton.click();
+        }
+      });
+
+      shell.addEventListener("pointerdown", (event) => { pointerStartX = event.clientX; });
+      shell.addEventListener("pointerup", (event) => {
+        if (pointerStartX === null) return;
+        const distance = event.clientX - pointerStartX;
+        pointerStartX = null;
+        if (Math.abs(distance) < 50) return;
+        show(current + (distance < 0 ? 1 : -1));
+      });
+
+      window.addEventListener("hashchange", () => show(indexFromHash(), false));
+      show(indexFromHash(), false);
+    })();
+  </script>
+</body>
+</html>

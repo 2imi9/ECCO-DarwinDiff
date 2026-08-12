@@ -1,0 +1,300 @@
+{
+  "aois": {
+    "eqpac": {
+      "integrity": {
+        "fixed_cell_replay_abs_error": 6.661338147750939e-16,
+        "pass": true,
+        "replay_atol": 2e-09,
+        "score_ladder_nondecreasing": true,
+        "unrestricted_replay_abs_error": 0.0
+      },
+      "radius_ladder": {
+        "0": {
+          "annual_log_multiplier": -1.1405378616147932,
+          "annual_retention": 0.3196470496935359,
+          "end_row_col": [
+            11,
+            0
+          ],
+          "maximum_realized_manhattan_jump": 0,
+          "selected_cell_count": 1,
+          "start_row_col": [
+            11,
+            0
+          ],
+          "switch_count": 0
+        },
+        "1": {
+          "annual_log_multiplier": -0.7601640689205503,
+          "annual_retention": 0.4675897037781731,
+          "end_row_col": [
+            0,
+            0
+          ],
+          "maximum_realized_manhattan_jump": 1,
+          "selected_cell_count": 124,
+          "start_row_col": [
+            0,
+            0
+          ],
+          "switch_count": 148
+        },
+        "2": {
+          "annual_log_multiplier": -0.7508470360320704,
+          "annual_retention": 0.47196661065708834,
+          "end_row_col": [
+            0,
+            0
+          ],
+          "maximum_realized_manhattan_jump": 2,
+          "selected_cell_count": 64,
+          "start_row_col": [
+            0,
+            0
+          ],
+          "switch_count": 85
+        },
+        "4": {
+          "annual_log_multiplier": -0.7455293415830903,
+          "annual_retention": 0.47448306983317245,
+          "end_row_col": [
+            0,
+            0
+          ],
+          "maximum_realized_manhattan_jump": 4,
+          "selected_cell_count": 42,
+          "start_row_col": [
+            0,
+            0
+          ],
+          "switch_count": 48
+        }
+      },
+      "unrestricted": {
+        "annual_log_multiplier": -0.7376811679719136,
+        "annual_retention": 0.47822154625789504,
+        "end_row_col": [
+          0,
+          0
+        ],
+        "maximum_realized_manhattan_jump": 60,
+        "selected_cell_count": 8,
+        "start_row_col": [
+          0,
+          0
+        ],
+        "switch_count": 20
+      }
+    },
+    "natlsubpolar": {
+      "integrity": {
+        "fixed_cell_replay_abs_error": 4.440892098500626e-16,
+        "pass": true,
+        "replay_atol": 2e-09,
+        "score_ladder_nondecreasing": true,
+        "unrestricted_replay_abs_error": 0.0
+      },
+      "radius_ladder": {
+        "0": {
+          "annual_log_multiplier": -1.044881819836553,
+          "annual_retention": 0.35173338483082156,
+          "end_row_col": [
+            0,
+            24
+          ],
+          "maximum_realized_manhattan_jump": 0,
+          "selected_cell_count": 1,
+          "start_row_col": [
+            0,
+            24
+          ],
+          "switch_count": 0
+        },
+        "1": {
+          "annual_log_multiplier": -0.025718255968627687,
+          "annual_retention": 0.9746096413796485,
+          "end_row_col": [
+            0,
+            24
+          ],
+          "maximum_realized_manhattan_jump": 1,
+          "selected_cell_count": 71,
+          "start_row_col": [
+            0,
+            24
+          ],
+          "switch_count": 128
+        },
+        "2": {
+          "annual_log_multiplier": -0.012427636156280909,
+          "annual_retention": 0.9876492680052975,
+          "end_row_col": [
+            0,
+            24
+          ],
+          "maximum_realized_manhattan_jump": 2,
+          "selected_cell_count": 55,
+          "start_row_col": [
+            0,
+            24
+          ],
+          "switch_count": 85
+        },
+        "4": {
+          "annual_log_multiplier": -0.004977078763334924,
+          "annual_retention": 0.9950352863705859,
+          "end_row_col": [
+            0,
+            24
+          ],
+          "maximum_realized_manhattan_jump": 4,
+          "selected_cell_count": 40,
+          "start_row_col": [
+            0,
+            24
+          ],
+          "switch_count": 59
+        }
+      },
+      "unrestricted": {
+        "annual_log_multiplier": 0.002078407668695218,
+        "annual_retention": 1.0020805690550685,
+        "end_row_col": [
+          0,
+          24
+        ],
+        "maximum_realized_manhattan_jump": 28,
+        "selected_cell_count": 24,
+        "start_row_col": [
+          0,
+          24
+        ],
+        "switch_count": 36
+      }
+    },
+    "southernoceanpac": {
+      "integrity": {
+        "fixed_cell_replay_abs_error": 2.220446049250313e-16,
+        "pass": true,
+        "replay_atol": 2e-09,
+        "score_ladder_nondecreasing": true,
+        "unrestricted_replay_abs_error": 0.0
+      },
+      "radius_ladder": {
+        "0": {
+          "annual_log_multiplier": -0.6307779672775748,
+          "annual_retention": 0.5321776231427114,
+          "end_row_col": [
+            15,
+            7
+          ],
+          "maximum_realized_manhattan_jump": 0,
+          "selected_cell_count": 1,
+          "start_row_col": [
+            15,
+            7
+          ],
+          "switch_count": 0
+        },
+        "1": {
+          "annual_log_multiplier": -0.32335961138707475,
+          "annual_retention": 0.7237135519326053,
+          "end_row_col": [
+            4,
+            77
+          ],
+          "maximum_realized_manhattan_jump": 1,
+          "selected_cell_count": 173,
+          "start_row_col": [
+            3,
+            72
+          ],
+          "switch_count": 196
+        },
+        "2": {
+          "annual_log_multiplier": -0.31265596416778213,
+          "annual_retention": 0.731501532021684,
+          "end_row_col": [
+            4,
+            77
+          ],
+          "maximum_realized_manhattan_jump": 2,
+          "selected_cell_count": 103,
+          "start_row_col": [
+            3,
+            72
+          ],
+          "switch_count": 115
+        },
+        "4": {
+          "annual_log_multiplier": -0.3069799094591716,
+          "annual_retention": 0.7356653806741525,
+          "end_row_col": [
+            4,
+            77
+          ],
+          "maximum_realized_manhattan_jump": 4,
+          "selected_cell_count": 66,
+          "start_row_col": [
+            3,
+            72
+          ],
+          "switch_count": 67
+        }
+      },
+      "unrestricted": {
+        "annual_log_multiplier": -0.3015249084496031,
+        "annual_retention": 0.7396894016089927,
+        "end_row_col": [
+          4,
+          77
+        ],
+        "maximum_realized_manhattan_jump": 88,
+        "selected_cell_count": 24,
+        "start_row_col": [
+          4,
+          77
+        ],
+        "switch_count": 26
+      }
+    }
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "discrete_report_sha256": "ac32d6b31e7ad9cdc46bd5741714c72bebcee4736fae93fc2c0572092e8b3c94",
+    "dt_days": 0.25,
+    "longitude_wrap": false,
+    "manhattan_radii": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "mortality_per_day": 0.03333333333333333,
+    "replay_atol": 2e-09,
+    "source_prey_floor_c": 1.2e-08,
+    "steps_per_month": 122,
+    "support_bundle_sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1",
+    "support_report_sha256": "0dcfaf635ac7348c451b687d0ea180bc622b0b111eb2d3d2f4524a3b5dde27c3",
+    "total_steps": 1464
+  },
+  "created_utc": "2026-08-10T06:50:53.315888+00:00",
+  "decision": {
+    "actual_transport_tested": false,
+    "b200_authorized": false,
+    "branch": "natl-knife-edge-requires-discontinuous-relocation",
+    "integrity_pass": true,
+    "modified_dynamics_integrated": false,
+    "natl_radius1_positive": false,
+    "primary_hypothesis": "falsified",
+    "target_rehabilitated": false
+  },
+  "elapsed_seconds": 5.619251299998723,
+  "preregistration": "docs/findings/2026-08-10_prereg_continuity_constrained_large_z_path_oracle.md",
+  "schema_version": 1,
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

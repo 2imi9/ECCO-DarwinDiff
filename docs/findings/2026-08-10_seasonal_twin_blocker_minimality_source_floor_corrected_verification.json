@@ -1,0 +1,23 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "lattice_nodes_checked": 8,
+  "decision": {
+    "branch": "three-logically-separable-blocker-groups",
+    "minimum_waiver_count": 3,
+    "minimal_passing_sets": [
+      [
+        "drop_large_predator_obligations",
+        "waive_eqpac_seasonality",
+        "waive_parameter_handle"
+      ]
+    ],
+    "all_three_posthoc_waivers_pass": true,
+    "target_rehabilitated": false,
+    "b200_authorized": false
+  },
+  "audit": "docs/findings/2026-08-10_seasonal_twin_blocker_minimality_source_floor_corrected.json",
+  "audit_sha256": "44958500579b42fbbe5baae2413e14d02bf0d800f2b32d7c5a610ced1ecbc50f",
+  "source_report_sha256": "60772e7f4767e8bdb5c2f0a23b106a80a5f1a7e77dfaa13fe06c33312bfb1926",
+  "source_verification_sha256": "ccb2ad7c16fc9aab74708b4050dc1c549aba2dd671d7d71604592ab52ffb3045"
+}

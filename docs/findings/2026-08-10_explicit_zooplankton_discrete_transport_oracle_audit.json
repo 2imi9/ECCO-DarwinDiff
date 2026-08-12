@@ -1,0 +1,192 @@
+{
+  "aois": {
+    "eqpac": {
+      "fixed_cell": {
+        "annual_log_multiplier": -1.1405378616147925,
+        "annual_retention": 0.31964704969353613,
+        "continuous_net_margin": -1.1400670425798665,
+        "jensen_gap": 0.00047081903492607324,
+        "row_col": [
+          11,
+          0
+        ]
+      },
+      "integrity": {
+        "annual_log_max_abs_error": 3.0661141101617773e-06,
+        "finite_wet_log_increments": true,
+        "log_reproduction_atol": 0.0005,
+        "minimum_euler_factor": 0.997550300907582,
+        "monthly_log_max_abs_error": 8.135705511780333e-07,
+        "pass": true,
+        "strictly_positive_euler_factors": true
+      },
+      "monthly_teleport": {
+        "annual_log_multiplier": -0.7456607596249397,
+        "annual_retention": 0.4744207182943926,
+        "continuous_net_margin": -0.7454527037736475,
+        "jensen_gap": 0.0002080558512922437,
+        "jump_manhattan_grid_cells": {
+          "maximum": 70.0,
+          "median": 0.0,
+          "p95": 65.0,
+          "zero_fraction": 0.5454545454545454
+        },
+        "selected_cell_count": 5,
+        "switch_count": 5
+      },
+      "stepwise_teleport": {
+        "annual_log_multiplier": -0.7376811679719136,
+        "annual_retention": 0.47822154625789504,
+        "continuous_net_margin": -0.7374773426715406,
+        "jensen_gap": 0.00020382530037299507,
+        "jump_manhattan_grid_cells": {
+          "maximum": 60.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "zero_fraction": 0.9863294600136705
+        },
+        "selected_cell_count": 8,
+        "switch_count": 20
+      }
+    },
+    "natlsubpolar": {
+      "fixed_cell": {
+        "annual_log_multiplier": -1.0448818198365526,
+        "annual_retention": 0.3517333848308217,
+        "continuous_net_margin": -1.039592225213808,
+        "jensen_gap": 0.005289594622744698,
+        "row_col": [
+          0,
+          24
+        ]
+      },
+      "integrity": {
+        "annual_log_max_abs_error": 3.8686748773386626e-06,
+        "finite_wet_log_increments": true,
+        "log_reproduction_atol": 0.0005,
+        "minimum_euler_factor": 0.9916930696303693,
+        "monthly_log_max_abs_error": 1.5637705136350988e-06,
+        "pass": true,
+        "strictly_positive_euler_factors": true
+      },
+      "monthly_teleport": {
+        "annual_log_multiplier": -0.04692680908398941,
+        "annual_retention": 0.9541572306764975,
+        "continuous_net_margin": -0.039388162941417684,
+        "jensen_gap": 0.007538646142571728,
+        "jump_manhattan_grid_cells": {
+          "maximum": 22.0,
+          "median": 0.0,
+          "p95": 16.5,
+          "zero_fraction": 0.5454545454545454
+        },
+        "selected_cell_count": 6,
+        "switch_count": 5
+      },
+      "stepwise_teleport": {
+        "annual_log_multiplier": 0.002078407668695218,
+        "annual_retention": 1.0020805690550685,
+        "continuous_net_margin": 0.009699407202010596,
+        "jensen_gap": 0.007620999533315378,
+        "jump_manhattan_grid_cells": {
+          "maximum": 28.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "zero_fraction": 0.9753930280246069
+        },
+        "selected_cell_count": 24,
+        "switch_count": 36
+      }
+    },
+    "southernoceanpac": {
+      "fixed_cell": {
+        "annual_log_multiplier": -0.6307779672775746,
+        "annual_retention": 0.5321776231427116,
+        "continuous_net_margin": -0.6260738100949284,
+        "jensen_gap": 0.004704157182646274,
+        "row_col": [
+          15,
+          7
+        ]
+      },
+      "integrity": {
+        "annual_log_max_abs_error": 3.5034933389965772e-06,
+        "finite_wet_log_increments": true,
+        "log_reproduction_atol": 0.0005,
+        "minimum_euler_factor": 0.9917022539901272,
+        "monthly_log_max_abs_error": 1.4615415838137302e-06,
+        "pass": true,
+        "strictly_positive_euler_factors": true
+      },
+      "monthly_teleport": {
+        "annual_log_multiplier": -0.3154632911823238,
+        "annual_retention": 0.7294508478270311,
+        "continuous_net_margin": -0.31003118982357525,
+        "jensen_gap": 0.005432101358748553,
+        "jump_manhattan_grid_cells": {
+          "maximum": 89.0,
+          "median": 2.0,
+          "p95": 63.5,
+          "zero_fraction": 0.2727272727272727
+        },
+        "selected_cell_count": 9,
+        "switch_count": 8
+      },
+      "stepwise_teleport": {
+        "annual_log_multiplier": -0.3015249084496031,
+        "annual_retention": 0.7396894016089927,
+        "continuous_net_margin": -0.2960668752059897,
+        "jensen_gap": 0.005458033243613436,
+        "jump_manhattan_grid_cells": {
+          "maximum": 88.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "zero_fraction": 0.9822282980177717
+        },
+        "selected_cell_count": 24,
+        "switch_count": 26
+      }
+    }
+  },
+  "config": {
+    "aois": [
+      "eqpac",
+      "natlsubpolar",
+      "southernoceanpac"
+    ],
+    "dt_days": 0.25,
+    "exclusion_bundle_sha256": "748103377f6fa02e4924cf9fe8bd2c4062c0c79128cb140850e5bcd1dc4d60db",
+    "exclusion_report_sha256": "6d2b207a2637c3effe4a02b3d17e447c11db7c69477e060ea3b319a8db8633a5",
+    "log_reproduction_atol": 0.0005,
+    "months": 12,
+    "mortality_per_day": 0.03333333333333333,
+    "oracles": [
+      "fixed_cell",
+      "monthly_teleport",
+      "stepwise_teleport"
+    ],
+    "source_prey_floor_c": 1.2e-08,
+    "steps_per_month": 122,
+    "support_bundle_sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1",
+    "support_report_sha256": "0dcfaf635ac7348c451b687d0ea180bc622b0b111eb2d3d2f4524a3b5dde27c3"
+  },
+  "created_utc": "2026-08-10T06:39:29.937164+00:00",
+  "decision": {
+    "actual_transport_tested": false,
+    "b200_authorized": false,
+    "branch": "discrete-frozen-path-relocation-remains-open",
+    "integrity_pass": true,
+    "modified_dynamics_integrated": false,
+    "primary_hypothesis": "falsified",
+    "stepwise_log_nonpositive_by_aoi": {
+      "eqpac": true,
+      "natlsubpolar": false,
+      "southernoceanpac": true
+    },
+    "target_rehabilitated": false
+  },
+  "elapsed_seconds": 3.4494539000006625,
+  "preregistration": "docs/findings/2026-08-10_prereg_discrete_large_z_transport_oracle.md",
+  "schema_version": 1,
+  "status": "MEASURED_NOT_INDEPENDENTLY_VERIFIED"
+}

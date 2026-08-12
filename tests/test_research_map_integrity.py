@@ -64,7 +64,7 @@ def test_claude_md_points_at_the_map():
 
 @pytest.mark.parametrize("section", REQUIRED_SECTIONS)
 def test_map_has_the_load_bearing_sections(section):
-    """SETTLED stops re-derivation; SUPERSEDES stops dead numbers; the three modes are the schema."""
+    """SETTLED and SUPERSEDES stop repeated work and dead-number reuse."""
     assert section.lower() in _map_text().lower(), f"research map is missing its {section} section"
 
 
@@ -191,7 +191,8 @@ def test_research_map_json_mirror_is_current():
             f"  first difference at byte {i:,}\n"
             f"  committed   ...{committed[lo:hi].decode('utf-8', 'replace')!r}...\n"
             f"  regenerated ...{regenerated[lo:hi].decode('utf-8', 'replace')!r}...\n"
-            "If the file is merely stale, regenerate and commit it with the change that caused it:\n"
+            "If the file is merely stale, regenerate and commit it with the change "
+            "that caused it:\n"
             "    python scripts/gen_research_map.py\n"
             "    python scripts/research_map_db.py export-json\n"
             "\n"
@@ -316,8 +317,7 @@ def test_rehydration_leaves_no_row_unmatched_or_ambiguous():
 
 
 def test_rehydration_does_not_change_row_counts_or_ids():
-    """#227 makes claim ids positional, so a step that added or dropped a row would renumber
-    hundreds of citations. Rehydration may only ever widen text in place."""
+    """Rehydration may only ever widen text in place, never change relation identity."""
     import pathlib
 
     rmdb = _db()
@@ -342,6 +342,136 @@ def test_rehydration_does_not_change_row_counts_or_ids():
 
     assert with_corpus == without, f"rehydration changed row counts: {with_corpus} vs {without}"
     assert ids == bare_ids, "rehydration changed claim ids; #227 makes those positional"
+
+
+def test_explicit_claim_ids_do_not_renumber_legacy_relations():
+    """Semantic additions must not shift the positional ids retained for legacy citations."""
+    con = _db().build()
+    pinned = dict(
+        con.execute(
+            """SELECT cl_id, statement FROM claim
+                WHERE cl_id IN ('ind515', 'ind516', 'ind517')"""
+        )
+    )
+    assert set(pinned) == {"ind515", "ind516", "ind517"}
+    assert "chemical-only restoring closure preserves" in pinned["ind515"]
+    assert "Monthly SST, SSS and wind" in pinned["ind516"]
+    assert "astronomical monthly light changes" in pinned["ind517"]
+
+    semantic = dict(
+        con.execute(
+            """SELECT cl_id, status FROM claim
+                WHERE cl_id IN ('ind_loss_twin_320993', 'ind_so_coverage_320993')"""
+        )
+    )
+    assert semantic == {
+        "ind_loss_twin_320993": "pending-replication",
+        "ind_so_coverage_320993": "live-bounded",
+    }
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ind_szn_diatom_budget_20260809'"
+    ).fetchone() == ("live-bounded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ind_szn_diatom_invasion_20260809'"
+    ).fetchone() == ("live-bounded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ind_szn_explicit_zoo_20260809'"
+    ).fetchone() == ("superseded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ind_szn_explicit_zoo_source_corrected_20260810'"
+    ).fetchone() == ("live-bounded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ind_szn_large_z_exclusion_20260809'"
+    ).fetchone() == ("superseded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE "
+        "cl_id = 'ind_szn_large_z_exclusion_source_corrected_20260810'"
+    ).fetchone() == ("live-bounded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ind_szn_large_z_energy_20260809'"
+    ).fetchone() == ("superseded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ind_szn_large_z_energy_source_corrected_20260810'"
+    ).fetchone() == ("live-bounded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ded_szn_blocker_lattice_20260809'"
+    ).fetchone() == ("superseded",)
+    assert con.execute(
+        "SELECT status FROM claim WHERE cl_id = 'ded_szn_blocker_lattice_source_corrected_20260810'"
+    ).fetchone() == ("live-bounded",)
+
+
+def test_explicit_evidence_projects_to_supports_without_masking_legacy_evidence():
+    """The corpus-to-markdown projection must preserve both evidence paths.
+
+    Explicit evidence is new and should create a gated edge. Blank cells in that
+    column must not hide the derivation/prompted evidence older rows already use.
+    """
+    con = _db().build()
+    explicit = con.execute(
+        """SELECT e.gate, s.relation
+             FROM claim c
+             JOIN supports s ON s.cl_id = c.cl_id
+             JOIN evidence e ON e.ev_id = s.ev_id
+            WHERE lower(c.statement) LIKE '%monthly sst, sss and wind%'"""
+    ).fetchall()
+    assert explicit == [("exit0", "establishes")]
+
+    legacy = con.execute(
+        """SELECT count(*)
+             FROM claim c
+             JOIN supports s ON s.cl_id = c.cl_id
+            WHERE c.mode IN ('deductive', 'abductive')"""
+    ).fetchone()[0]
+    assert legacy > 250, "blank explicit-evidence cells masked legacy derivation edges"
+
+
+def test_hypothesis_ids_are_explicit_and_stable_across_closed_rows():
+    """Closing one hypothesis must not renumber every later artifact reference."""
+    import json
+
+    corpus = json.loads(
+        (REPO / "docs" / "findings" / "research_map_corpus.json").read_text(encoding="utf-8")
+    )
+    seasonal = {
+        row["hy_id"]: row["status"]
+        for row in corpus["hypotheses"]
+        if row.get("hy_id", "").startswith("hy_szn_")
+    }
+    assert set(seasonal) == {
+        "hy_szn_loss",
+        "hy_szn_chem",
+        "hy_szn_light",
+        "hy_szn_explicit_zoo",
+        "hy_szn_large_z_exclusion",
+        "hy_szn_large_z_energy",
+        "hy_szn_explicit_zoo_source_conformance",
+        "hy_szn_blocker_minimality",
+        "hy_szn_large_z_near_refuge",
+        "hy_szn_large_z_transport_oracle",
+        "hy_szn_large_z_discrete_transport_oracle",
+        "hy_szn_large_z_continuity_path_oracle",
+    }
+
+    con = _db().build()
+    ids = [row[0] for row in con.execute("SELECT hy_id FROM hypothesis ORDER BY hy_id")]
+    assert len(ids) == len(set(ids))
+    assert "hy_szn_loss" in ids
+    assert con.execute(
+        "SELECT status FROM hypothesis WHERE hy_id='hy_szn_loss'"
+    ).fetchone() == ("open-blocked-by-target-gate",)
+    assert con.execute(
+        "SELECT count(*) FROM hypothesis WHERE trim(coalesce(status, ''))=''"
+    ).fetchone() == (0,)
+    assert "hy_szn_chem" not in ids
+    assert "hy_szn_light" not in ids
+    assert "hy_szn_explicit_zoo" not in ids
+    assert "hy_szn_large_z_exclusion" not in ids
+    assert "hy_szn_blocker_minimality" not in ids
+    assert "hy_szn_large_z_near_refuge" not in ids
+    assert "hy_szn_large_z_transport_oracle" not in ids
+    assert "hy_szn_large_z_discrete_transport_oracle" not in ids
+    assert "hy_szn_large_z_continuity_path_oracle" not in ids
 
 
 def test_settled_search_matches_terms_not_only_contiguous_phrases():

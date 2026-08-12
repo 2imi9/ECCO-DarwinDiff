@@ -968,6 +968,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + AOI weights/identity/MLD."""
     _unsupported = {
         "GEOTRACES_POC_SUB_W": GEOTRACES_POC_SUB_W, "POSI_W": POSI_W,
+        "DANIELS_RPICPOC_W": DANIELS_RPICPOC_W,
         "PIC_ABS_W": PIC_ABS_W, "POC_ABS_W": POC_ABS_W, "ALK_ABS_W": ALK_ABS_W,
         "RATIO_W": RATIO_W, "F_CO2_ABS_W": F_CO2_ABS_W,
     }
@@ -975,7 +976,7 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
     if _on:
         raise NotImplementedError(
             f"NATIVE_RES=1 does not yet support these loss terms: {_on}. Set them to 0 "
-            f"(GEOTRACES-bSi/POC + GLODAP-grid + abs anchors need more native binning). "
+            f"(Daniels/GEOTRACES-bSi/POC + GLODAP-grid + abs anchors need more native binning). "
             f"Supported: core z-targets + PINN + USE_EPPLEY_T + CHL1_W_EXTRA + POC_SUB_W "
             f"+ Darwin IC + GEOTRACES iron (surf/sub) + POSI_DARWIN_W + AOI levers.")
 
@@ -1382,9 +1383,12 @@ def load_aoi_bundle(aoi_key: str) -> dict:
                 daniels_target_np = np.where(daniels_mask_np, d_vals, 0.0).astype(np.float32)
                 n_daniels_pts = int(d_counts[daniels_mask_np].sum())
             else:
-                print(f"  [warn] Daniels bin shape {d_vals.shape} != AOI {sst.shape}; skipping")
+                raise ValueError(f"Daniels bin shape {d_vals.shape} != AOI {sst.shape}")
         except Exception as e:
-            print(f"  [warn] DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} but Daniels load failed ({e}); loss term will be skipped")
+            raise RuntimeError(
+                f"DANIELS_RPICPOC_W={DANIELS_RPICPOC_W} requires a loaded, valid "
+                f"Daniels source at {DANIELS_PATH}; refusing an anchor-off run"
+            ) from e
     daniels_target_t = torch.tensor(daniels_target_np).to(device)
     daniels_mask_t = torch.tensor(daniels_mask_np, dtype=torch.bool).to(device)
     daniels_mask_f = daniels_mask_t.to(torch.float32)
@@ -1555,7 +1559,10 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         bsi_lpt = geo_aoi.bSi_LPT_CONC.values.flatten() if "bSi_LPT_CONC" in geo_aoi else None
         bsi_spt = geo_aoi.bSi_SPT_CONC.values.flatten() if "bSi_SPT_CONC" in geo_aoi else None
         if bsi_lpt is None and bsi_spt is None:
-            print("  [warn] POSI_W>0 but neither bSi_LPT_CONC nor bSi_SPT_CONC present in GEOTRACES; skipping")
+            raise RuntimeError(
+                "POSI_W>0 requires bSi_LPT_CONC or bSi_SPT_CONC in the loaded "
+                "GEOTRACES source; refusing a POSi-off run"
+            )
         else:
             qc_good_arr = np.array(QC_GOOD)
             def _bsi_keep(vals, qc_name):
@@ -1988,15 +1995,21 @@ def _integrate(state0, params, dt, n_steps, T, S, wind, pco2_atm, want_mean: boo
 _TWIN_RELSD: dict = {}
 
 
-def _twin_z(field_hw: torch.Tensor, mask_dev: torch.Tensor, name: str, key: str) -> torch.Tensor:
+def _twin_z(
+    field_hw: torch.Tensor,
+    mask_dev: torch.Tensor,
+    name: str,
+    key: str,
+) -> tuple[torch.Tensor, bool]:
     """z-score a twin field over the AOI ocean mask, mirroring ``to_z_target`` exactly.
 
     Returns ``(z_field, degenerate)``. A field with no spatial contrast cannot carry a pattern
     target: ``to_z_target`` clamps the std at 1e-6, so a constant field divides by that clamp
     and produces enormous z values that would dominate the loss. This is not hypothetical --
-    under the box's constant forcing the diatom goes extinct and its long-run value is the
-    clamp floor, so TWIN_TARGET=long is EXPECTED to degenerate the Chl1 target. The caller
-    reports every degenerate field rather than letting one silently drive the fit.
+    A sufficiently uniform long-run field would trigger this path. The preregistered Chl1
+    prediction did not: its mean collapsed faster than its spatial spread, so relative SD grew
+    instead. The caller still reports every genuinely degenerate field rather than letting one
+    silently drive the fit.
     """
     o = field_hw[mask_dev]
     m = o.mean()
@@ -2024,24 +2037,28 @@ def apply_twin_targets(bundles: list[dict]) -> dict:
     if not TWIN_ON:
         return {}
 
-    # Terms that read a REAL observation. The twin either regenerates them from its own
-    # trajectory (TWIN_ANCHORS=1) or they must be off -- a Carroll-generated box scored against
-    # the real ocean is precisely the misspecification the twin removes.
-    real_obs_terms = {
+    # Every target that is not overwritten by the core pattern replacement below. A twin either
+    # regenerates it from its own trajectory (TWIN_ANCHORS=1) or requires it to be off. This
+    # includes Darwin-derived absolute targets as well as real observations: either would mix a
+    # non-twin target into an artifact labelled as a self-twin.
+    non_twin_target_terms = {
         "GEOTRACES_W": GEOTRACES_W, "GEOTRACES_SUB_W": GEOTRACES_SUB_W,
         "DANIELS_RPICPOC_W": DANIELS_RPICPOC_W, "POSI_W": POSI_W,
         "GEOTRACES_POC_SUB_W": GEOTRACES_POC_SUB_W, "BLACK_ALPFE_W": BLACK_ALPFE_W,
         "ALK_ABS_W": ALK_ABS_W, "DUST_ANCHOR_W": DUST_ANCHOR_W,
+        "PIC_ABS_W": PIC_ABS_W, "POC_ABS_W": POC_ABS_W, "RATIO_W": RATIO_W,
+        "POSI_DARWIN_W": POSI_DARWIN_W, "PRIMPROD_W": PRIMPROD_W,
+        "F_CO2_ABS_W": F_CO2_ABS_W,
     }
     regenerated = {"GEOTRACES_W", "GEOTRACES_SUB_W", "DANIELS_RPICPOC_W", "POSI_W"}
-    for nm, w in real_obs_terms.items():
+    for nm, w in non_twin_target_terms.items():
         if w <= 0:
             continue
         if not (TWIN_ANCHORS and nm in regenerated):
             raise SystemExit(
                 f"TWIN_TARGET={TWIN_TARGET} with {nm}={w} but TWIN_ANCHORS="
-                f"{int(TWIN_ANCHORS)}. That term scores the box against a REAL observation, "
-                f"which reintroduces the forward-model misspecification the twin exists to "
+                f"{int(TWIN_ANCHORS)}. That term uses an external or Darwin-derived target, "
+                f"which contaminates a self-twin with the misspecification it exists to "
                 f"remove. Set {nm}=0, or set TWIN_ANCHORS=1 if this term is regenerable "
                 f"({sorted(regenerated)})."
             )
@@ -2842,6 +2859,29 @@ if __name__ == "__main__":
             "dust_anchor_sigma": DUST_ANCHOR_SIGMA if DUST_ANCHOR_W > 0 else None,
             "posi_w": POSI_W,
             "n_posi_cells_per_aoi": {b["key"]: b["n_posi"] for b in bundles},
+            # A zero count used to collapse staging failure and genuine geographic
+            # absence into the same artifact shape. Active external sources now fail
+            # before training if loading fails; this block certifies that surviving
+            # zeroes are coverage zeroes, while verify_run still rejects a declared-on
+            # no-op configuration.
+            "loss_term_provenance": {
+                "daniels_rpicpoc_w": {
+                    "source": str(DANIELS_PATH),
+                    "source_status": "loaded" if DANIELS_RPICPOC_W > 0 else "off",
+                    "coverage_status_per_aoi": {
+                        b["key"]: ("covered" if b["n_daniels"] > 0 else "zero_coverage")
+                        for b in bundles
+                    },
+                },
+                "posi_w": {
+                    "source": str(GEOTRACES_NC),
+                    "source_status": "loaded" if POSI_W > 0 else "off",
+                    "coverage_status_per_aoi": {
+                        b["key"]: ("covered" if b["n_posi"] > 0 else "zero_coverage")
+                        for b in bundles
+                    },
+                },
+            },
             "posi_darwin_w": POSI_DARWIN_W,
             "primprod_w": PRIMPROD_W,
             "n_posi_dw_cells_per_aoi": {b["key"]: b["n_posi_dw"] for b in bundles},

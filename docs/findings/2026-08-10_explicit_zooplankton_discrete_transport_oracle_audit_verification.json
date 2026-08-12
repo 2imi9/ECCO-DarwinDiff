@@ -1,0 +1,25 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "raw_support_tensor_cells": 16765728,
+  "decision": {
+    "branch": "discrete-frozen-path-relocation-remains-open",
+    "integrity_pass": true,
+    "primary_hypothesis": "falsified",
+    "stepwise_log_nonpositive_by_aoi": {
+      "eqpac": true,
+      "natlsubpolar": false,
+      "southernoceanpac": true
+    },
+    "actual_transport_tested": false,
+    "modified_dynamics_integrated": false,
+    "target_rehabilitated": false,
+    "b200_authorized": false
+  },
+  "report": "docs/findings/2026-08-10_explicit_zooplankton_discrete_transport_oracle_audit.json",
+  "report_sha256": "ac32d6b31e7ad9cdc46bd5741714c72bebcee4736fae93fc2c0572092e8b3c94",
+  "support_report_sha256": "0dcfaf635ac7348c451b687d0ea180bc622b0b111eb2d3d2f4524a3b5dde27c3",
+  "support_bundle_sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1",
+  "exclusion_report_sha256": "6d2b207a2637c3effe4a02b3d17e447c11db7c69477e060ea3b319a8db8633a5",
+  "exclusion_bundle_sha256": "748103377f6fa02e4924cf9fe8bd2c4062c0c79128cb140850e5bcd1dc4d60db"
+}

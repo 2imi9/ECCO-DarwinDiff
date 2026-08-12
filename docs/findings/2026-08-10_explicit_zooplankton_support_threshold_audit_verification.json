@@ -1,0 +1,40 @@
+{
+  "verified": true,
+  "schema_version": 1,
+  "raw_tensor_cells": 16780043,
+  "monthly_prey_group_gain_max_abs_error": {
+    "eqpac": {
+      "large": 2.988039704554524e-08,
+      "small": 1.7062938950651585e-08
+    },
+    "natlsubpolar": {
+      "large": 3.422548400244807e-08,
+      "small": 2.6117451978890927e-08
+    },
+    "southernoceanpac": {
+      "large": 3.995153485814029e-08,
+      "small": 2.845768054537956e-08
+    }
+  },
+  "decision": {
+    "branch": "near-local-refuge-all-aois",
+    "integrity_pass": true,
+    "primary_hypothesis": "supported",
+    "near_local_refuge_by_aoi": {
+      "eqpac": true,
+      "natlsubpolar": true,
+      "southernoceanpac": true
+    },
+    "modified_dynamics_integrated": false,
+    "target_rehabilitated": false,
+    "b200_authorized": false
+  },
+  "report": "docs/findings/2026-08-10_explicit_zooplankton_support_threshold_audit.json",
+  "report_sha256": "0dcfaf635ac7348c451b687d0ea180bc622b0b111eb2d3d2f4524a3b5dde27c3",
+  "bundle": "docs/findings/2026-08-10_explicit_zooplankton_support_threshold_audit.pt.gz",
+  "bundle_sha256": "d197a88b80efcb7788f25d2866b9f038e35d1e07ff2b516a7876f49dda38b8c1",
+  "source_target_report_sha256": "60772e7f4767e8bdb5c2f0a23b106a80a5f1a7e77dfaa13fe06c33312bfb1926",
+  "source_target_bundle_sha256": "56850560a45596366593ddab67cf96d9d067888adc10c5efbf241df4192b4fb8",
+  "source_energy_report_sha256": "a167a039027f82b3e7251a5611344a88beb366fc098787fcdcadaee62bbbdfe8",
+  "source_energy_bundle_sha256": "14781929085d2f632d67c56ad7b507796e0470b2f0642ddc49e996ec355ee2b5"
+}
