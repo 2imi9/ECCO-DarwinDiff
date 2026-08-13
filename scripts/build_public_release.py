@@ -45,6 +45,10 @@ ALLOW_FILES = [
     "scripts/analysis/grade_all_params.py",
     "scripts/analysis/per_aoi_leg_audit.py",
     "scripts/analysis/grader_crosscheck.py",
+    "scripts/analysis/grade_joint_percell.py",
+    "scripts/analysis/contract_report.py",     # the identifiability contract report
+    "scripts/aggregate_daniels_recovery.py",
+    "scripts/aggregate_rpicpoc_env.py",
     "scripts/analysis/build_results_manifest.py",
     "scripts/analysis/forward_model_equivalence.py",
     "scripts/analysis/forward_model_equivalence_grad.py",
