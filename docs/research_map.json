@@ -9261,6 +9261,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/findings/2026-08-13_the_flagship_rpicpoc_5050_is_daniels_specific.md",
+     "name": "2026-08-13_the_flagship_rpicpoc_5050_is_daniels_specific.md",
+     "date": "2026-08-13",
+     "retracted": 0,
+     "words": 828,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/2026-08-13_the_median_collapse_is_legitimate_for_a_sparse_anchor.md",
      "name": "2026-08-13_the_median_collapse_is_legitimate_for_a_sparse_anchor.md",
      "date": "2026-08-13",
@@ -39053,7 +39061,7 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 259,
+  "document": 260,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
