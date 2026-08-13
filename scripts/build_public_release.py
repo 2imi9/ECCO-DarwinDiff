@@ -74,6 +74,9 @@ TEST_EXCLUDE_SUBSTRINGS = [
     # for a "make the method work" release
     "agent_bridge", "emulator", "diffusion_dt_scaling", "eki_core",
     "measure_memory_scaling", "symbolic_distill",
+    # assert on internal repo documents (the closeout deck, AGENTS.md working agreements)
+    # that are deliberately not part of the public tree
+    "summer_closeout_deck", "agent_working_agreements",
 ]
 
 # ------------------------------------------------------------------- scrubbing --

@@ -11,6 +11,8 @@ unset changes nothing. These tests pin that.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -18,6 +20,17 @@ from darwindiff import daniels_loader, marsh_loader
 from darwindiff.ecco_darwin_loader import AOI_BY_KEY
 
 DEPTH_MAX = 50.0  # the flagship's DANIELS_DEPTH_MAX
+
+# The Daniels and Marsh compilations are third-party PANGAEA data that this repo does NOT
+# redistribute (data/ is gitignored). Without them these tests cannot run, and they must SKIP
+# rather than FAIL - otherwise a fresh checkout reports a broken suite when nothing is broken.
+_DANIELS = Path(daniels_loader.__file__).resolve().parents[2].parent / "data" / "daniels"
+_MISSING = not (daniels_loader.DEFAULT_DANIELS_PATH.exists()
+                if hasattr(daniels_loader, "DEFAULT_DANIELS_PATH") else _DANIELS.exists())
+pytestmark = pytest.mark.skipif(
+    _MISSING,
+    reason="Daniels/Marsh compilations not staged; see data/README.md for provenance",
+)
 
 
 def _cells(mod, aoi):
