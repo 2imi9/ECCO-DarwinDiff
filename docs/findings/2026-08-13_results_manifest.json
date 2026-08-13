@@ -1,0 +1,946 @@
+[
+ {
+  "run_dir": "C:/ddaud/n50e2k_percell_trio",
+  "n_seeds": 50,
+  "seed_range": [
+   0,
+   49
+  ],
+  "seeds_contiguous": true,
+  "aois": [
+   "eqpac",
+   "natlsubpolar",
+   "southernoceanpac"
+  ],
+  "n_epochs": 2000,
+  "lr": null,
+  "n_steps": null,
+  "dinn_hidden_dim": 16,
+  "global_scalar": null,
+  "per_aoi_dinn": false,
+  "rpicpoc_anchor_source": "<absent: pre-2026-08-12>",
+  "code_provenance": {
+   "git_sha": null,
+   "git_dirty": null,
+   "code_digest": null,
+   "config_digest": null
+  },
+  "pooler_auditable": false,
+  "collapse_keys": {
+   "geom": false,
+   "median": false,
+   "log_sd": false
+  },
+  "declared_terms": {
+   "daniels_rpicpoc_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 34,
+     "natlsubpolar": 26,
+     "southernoceanpac": 0
+    },
+    "INERT": false
+   },
+   "posi_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 7,
+     "natlsubpolar": 4,
+     "southernoceanpac": 0
+    },
+    "INERT": false
+   },
+   "geotraces_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   },
+   "geotraces_sub_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   }
+  },
+  "params": {
+   "alpfe": {
+    "arithmetic": {
+     "eqpac": 0.9921731650829315,
+     "natlsubpolar": 0.9993431866168976,
+     "southernoceanpac": 0.9992368221282959
+    }
+   },
+   "scav_rat": {
+    "arithmetic": {
+     "eqpac": 2.535389711511016e-07,
+     "natlsubpolar": 3.512287207740883e-07,
+     "southernoceanpac": 5.715109239190497e-07
+    }
+   },
+   "R_PICPOC": {
+    "arithmetic": {
+     "eqpac": 0.05290355533361435,
+     "natlsubpolar": 0.05174136348068714,
+     "southernoceanpac": 0.04946002550423145
+    }
+   },
+   "diatomgraz": {
+    "arithmetic": {
+     "eqpac": 0.7207968533039093,
+     "natlsubpolar": 0.1837994009256363,
+     "southernoceanpac": 0.11948603764176369
+    }
+   },
+   "Smallgrow": {
+    "arithmetic": {
+     "eqpac": 0.4131012260913849,
+     "natlsubpolar": 0.34353166818618774,
+     "southernoceanpac": 0.1541326642036438
+    }
+   },
+   "Biggrow": {
+    "arithmetic": {
+     "eqpac": 0.11783232539892197,
+     "natlsubpolar": 0.14044850319623947,
+     "southernoceanpac": 0.12872835248708725
+    }
+   }
+  }
+ },
+ {
+  "run_dir": "C:/ddaud/collapse/collapse_n50",
+  "n_seeds": 50,
+  "seed_range": [
+   0,
+   49
+  ],
+  "seeds_contiguous": true,
+  "aois": [
+   "eqpac",
+   "natlsubpolar",
+   "southernoceanpac"
+  ],
+  "n_epochs": 2000,
+  "lr": 0.005,
+  "n_steps": null,
+  "dinn_hidden_dim": 16,
+  "global_scalar": false,
+  "per_aoi_dinn": false,
+  "rpicpoc_anchor_source": "<absent: pre-2026-08-12>",
+  "code_provenance": {
+   "git_sha": null,
+   "git_dirty": null,
+   "code_digest": null,
+   "config_digest": null
+  },
+  "pooler_auditable": true,
+  "collapse_keys": {
+   "geom": true,
+   "median": true,
+   "log_sd": true
+  },
+  "declared_terms": {
+   "daniels_rpicpoc_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 34,
+     "natlsubpolar": 26,
+     "southernoceanpac": 0
+    },
+    "INERT": false
+   },
+   "posi_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 7,
+     "natlsubpolar": 4,
+     "southernoceanpac": 0
+    },
+    "INERT": false
+   },
+   "geotraces_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   },
+   "geotraces_sub_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   }
+  },
+  "params": {
+   "alpfe": {
+    "arithmetic": {
+     "eqpac": 0.9922618269920349,
+     "natlsubpolar": 0.9993728697299957,
+     "southernoceanpac": 0.999238520860672
+    },
+    "geometric": {
+     "eqpac": 0.9922593235969543,
+     "natlsubpolar": 0.9993728399276733,
+     "southernoceanpac": 0.9992384016513824
+    },
+    "median": {
+     "eqpac": 0.9920721054077148,
+     "natlsubpolar": 0.9994955658912659,
+     "southernoceanpac": 0.9992888271808624
+    }
+   },
+   "scav_rat": {
+    "arithmetic": {
+     "eqpac": 2.6880555026309594e-07,
+     "natlsubpolar": 3.513543731514801e-07,
+     "southernoceanpac": 5.731174326228938e-07
+    },
+    "geometric": {
+     "eqpac": 2.6021707810741646e-07,
+     "natlsubpolar": 2.6168835631779075e-07,
+     "southernoceanpac": 5.347203284600255e-07
+    },
+    "median": {
+     "eqpac": 2.7667107360684895e-07,
+     "natlsubpolar": 3.506508363670946e-07,
+     "southernoceanpac": 5.774136013769748e-07
+    }
+   },
+   "R_PICPOC": {
+    "arithmetic": {
+     "eqpac": 0.05304856225848198,
+     "natlsubpolar": 0.05169568583369255,
+     "southernoceanpac": 0.049709852784872055
+    },
+    "geometric": {
+     "eqpac": 0.05301595479249954,
+     "natlsubpolar": 0.04999846965074539,
+     "southernoceanpac": 0.049431659281253815
+    },
+    "median": {
+     "eqpac": 0.053219638764858246,
+     "natlsubpolar": 0.04896440915763378,
+     "southernoceanpac": 0.04949063993990421
+    }
+   },
+   "diatomgraz": {
+    "arithmetic": {
+     "eqpac": 0.7167507410049438,
+     "natlsubpolar": 0.18977182358503342,
+     "southernoceanpac": 0.11091642081737518
+    },
+    "geometric": {
+     "eqpac": 0.716461569070816,
+     "natlsubpolar": 0.1404634639620781,
+     "southernoceanpac": 0.10753019526600838
+    },
+    "median": {
+     "eqpac": 0.7243887186050415,
+     "natlsubpolar": 0.10771754011511803,
+     "southernoceanpac": 0.10890473797917366
+    }
+   },
+   "Smallgrow": {
+    "arithmetic": {
+     "eqpac": 0.40754856169223785,
+     "natlsubpolar": 0.34047818183898926,
+     "southernoceanpac": 0.14933227002620697
+    },
+    "geometric": {
+     "eqpac": 0.40232840180397034,
+     "natlsubpolar": 0.23765964806079865,
+     "southernoceanpac": 0.1472233384847641
+    },
+    "median": {
+     "eqpac": 0.3873945623636246,
+     "natlsubpolar": 0.1611846461892128,
+     "southernoceanpac": 0.147211492061615
+    }
+   },
+   "Biggrow": {
+    "arithmetic": {
+     "eqpac": 0.12030797079205513,
+     "natlsubpolar": 0.14181141555309296,
+     "southernoceanpac": 0.12940876185894012
+    },
+    "geometric": {
+     "eqpac": 0.12025231122970581,
+     "natlsubpolar": 0.14083320647478104,
+     "southernoceanpac": 0.1285008043050766
+    },
+    "median": {
+     "eqpac": 0.1209496408700943,
+     "natlsubpolar": 0.13652875274419785,
+     "southernoceanpac": 0.12514952197670937
+    }
+   }
+  }
+ },
+ {
+  "run_dir": "C:/ddaud/wxe/w16e2k",
+  "n_seeds": 100,
+  "seed_range": [
+   0,
+   99
+  ],
+  "seeds_contiguous": true,
+  "aois": [
+   "eqpac",
+   "natlsubpolar",
+   "southernoceanpac"
+  ],
+  "n_epochs": 2000,
+  "lr": 0.005,
+  "n_steps": 200,
+  "dinn_hidden_dim": 16,
+  "global_scalar": false,
+  "per_aoi_dinn": false,
+  "rpicpoc_anchor_source": "<absent: pre-2026-08-12>",
+  "code_provenance": {
+   "git_sha": null,
+   "git_dirty": null,
+   "code_digest": "5eddebb60465e8f0",
+   "config_digest": "456f9889df615353"
+  },
+  "pooler_auditable": true,
+  "collapse_keys": {
+   "geom": true,
+   "median": true,
+   "log_sd": true
+  },
+  "declared_terms": {
+   "daniels_rpicpoc_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 34,
+     "natlsubpolar": 26,
+     "southernoceanpac": 0
+    },
+    "INERT": false
+   },
+   "posi_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 7,
+     "natlsubpolar": 4,
+     "southernoceanpac": 0
+    },
+    "INERT": false
+   },
+   "geotraces_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 26,
+     "natlsubpolar": 13,
+     "southernoceanpac": 13
+    },
+    "INERT": false
+   },
+   "geotraces_sub_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "eqpac": 28,
+     "natlsubpolar": 13,
+     "southernoceanpac": 14
+    },
+    "INERT": false
+   }
+  },
+  "params": {
+   "alpfe": {
+    "arithmetic": {
+     "eqpac": 0.9929676651954651,
+     "natlsubpolar": 0.9993187487125397,
+     "southernoceanpac": 0.9993106126785278
+    },
+    "geometric": {
+     "eqpac": 0.9929660856723785,
+     "natlsubpolar": 0.9993187785148621,
+     "southernoceanpac": 0.9993105828762054
+    },
+    "median": {
+     "eqpac": 0.9927255511283875,
+     "natlsubpolar": 0.9994152188301086,
+     "southernoceanpac": 0.9993413984775543
+    }
+   },
+   "scav_rat": {
+    "arithmetic": {
+     "eqpac": 2.60099440652084e-07,
+     "natlsubpolar": 3.53912000150558e-07,
+     "southernoceanpac": 5.73381385038374e-07
+    },
+    "geometric": {
+     "eqpac": 2.529068865442241e-07,
+     "natlsubpolar": 2.641128133973325e-07,
+     "southernoceanpac": 5.333359922587988e-07
+    },
+    "median": {
+     "eqpac": 2.5639690193202114e-07,
+     "natlsubpolar": 3.4737936971396266e-07,
+     "southernoceanpac": 5.73152703964297e-07
+    }
+   },
+   "R_PICPOC": {
+    "arithmetic": {
+     "eqpac": 0.05333912931382656,
+     "natlsubpolar": 0.05185827985405922,
+     "southernoceanpac": 0.049538079649209976
+    },
+    "geometric": {
+     "eqpac": 0.05333714932203293,
+     "natlsubpolar": 0.05058413743972778,
+     "southernoceanpac": 0.049211861565709114
+    },
+    "median": {
+     "eqpac": 0.053537456318736076,
+     "natlsubpolar": 0.04865776561200619,
+     "southernoceanpac": 0.04903513751924038
+    }
+   },
+   "diatomgraz": {
+    "arithmetic": {
+     "eqpac": 0.736956000328064,
+     "natlsubpolar": 0.18048473447561264,
+     "southernoceanpac": 0.10742410644888878
+    },
+    "geometric": {
+     "eqpac": 0.7365202307701111,
+     "natlsubpolar": 0.1349434182047844,
+     "southernoceanpac": 0.10567087307572365
+    },
+    "median": {
+     "eqpac": 0.7445880770683289,
+     "natlsubpolar": 0.10672224313020706,
+     "southernoceanpac": 0.10670512169599533
+    }
+   },
+   "Smallgrow": {
+    "arithmetic": {
+     "eqpac": 0.3930913805961609,
+     "natlsubpolar": 0.3288743942975998,
+     "southernoceanpac": 0.1461958885192871
+    },
+    "geometric": {
+     "eqpac": 0.39024071395397186,
+     "natlsubpolar": 0.22961106896400452,
+     "southernoceanpac": 0.14427443593740463
+    },
+    "median": {
+     "eqpac": 0.3826143443584442,
+     "natlsubpolar": 0.16192062944173813,
+     "southernoceanpac": 0.14525745809078217
+    }
+   },
+   "Biggrow": {
+    "arithmetic": {
+     "eqpac": 0.12438097223639488,
+     "natlsubpolar": 0.14919980615377426,
+     "southernoceanpac": 0.13285227864980698
+    },
+    "geometric": {
+     "eqpac": 0.12428423389792442,
+     "natlsubpolar": 0.14698201417922974,
+     "southernoceanpac": 0.13211312890052795
+    },
+    "median": {
+     "eqpac": 0.1251174360513687,
+     "natlsubpolar": 0.13859594613313675,
+     "southernoceanpac": 0.12818410247564316
+    }
+   }
+  }
+ },
+ {
+  "run_dir": "C:/ddaud/so_only/so_only",
+  "n_seeds": 50,
+  "seed_range": [
+   0,
+   49
+  ],
+  "seeds_contiguous": true,
+  "aois": [
+   "southernoceanpac"
+  ],
+  "n_epochs": 2000,
+  "lr": 0.005,
+  "n_steps": null,
+  "dinn_hidden_dim": 16,
+  "global_scalar": false,
+  "per_aoi_dinn": false,
+  "rpicpoc_anchor_source": "<absent: pre-2026-08-12>",
+  "code_provenance": {
+   "git_sha": null,
+   "git_dirty": null,
+   "code_digest": null,
+   "config_digest": null
+  },
+  "pooler_auditable": true,
+  "collapse_keys": {
+   "geom": true,
+   "median": true,
+   "log_sd": true
+  },
+  "declared_terms": {
+   "daniels_rpicpoc_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 0
+    },
+    "INERT": true
+   },
+   "posi_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 0
+    },
+    "INERT": true
+   },
+   "geotraces_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   },
+   "geotraces_sub_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   }
+  },
+  "params": {
+   "alpfe": {
+    "arithmetic": {
+     "southernoceanpac": 0.9993537068367004
+    },
+    "geometric": {
+     "southernoceanpac": 0.9993528127670288
+    },
+    "median": {
+     "southernoceanpac": 0.9997982084751129
+    }
+   },
+   "scav_rat": {
+    "arithmetic": {
+     "southernoceanpac": 8.386146532757266e-07
+    },
+    "geometric": {
+     "southernoceanpac": 4.3918930714426097e-07
+    },
+    "median": {
+     "southernoceanpac": 8.061705614181847e-07
+    }
+   },
+   "R_PICPOC": {
+    "arithmetic": {
+     "southernoceanpac": 0.7878714799880981
+    },
+    "geometric": {
+     "southernoceanpac": 0.7831617593765259
+    },
+    "median": {
+     "southernoceanpac": 0.7783975601196289
+    }
+   },
+   "diatomgraz": {
+    "arithmetic": {
+     "southernoceanpac": 0.8204938173294067
+    },
+    "geometric": {
+     "southernoceanpac": 0.7930974066257477
+    },
+    "median": {
+     "southernoceanpac": 0.8924306035041809
+    }
+   },
+   "Smallgrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.22759810835123062
+    },
+    "geometric": {
+     "southernoceanpac": 0.1896057054400444
+    },
+    "median": {
+     "southernoceanpac": 0.15733496844768524
+    }
+   },
+   "Biggrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.12578194588422775
+    },
+    "geometric": {
+     "southernoceanpac": 0.11961797997355461
+    },
+    "median": {
+     "southernoceanpac": 0.10856698080897331
+    }
+   }
+  }
+ },
+ {
+  "run_dir": "C:/ddaud/so_only2/so_only",
+  "n_seeds": 50,
+  "seed_range": [
+   0,
+   49
+  ],
+  "seeds_contiguous": true,
+  "aois": [
+   "southernoceanpac"
+  ],
+  "n_epochs": 2000,
+  "lr": 0.005,
+  "n_steps": null,
+  "dinn_hidden_dim": 16,
+  "global_scalar": false,
+  "per_aoi_dinn": false,
+  "rpicpoc_anchor_source": "<absent: pre-2026-08-12>",
+  "code_provenance": {
+   "git_sha": null,
+   "git_dirty": null,
+   "code_digest": null,
+   "config_digest": null
+  },
+  "pooler_auditable": true,
+  "collapse_keys": {
+   "geom": true,
+   "median": true,
+   "log_sd": true
+  },
+  "declared_terms": {
+   "daniels_rpicpoc_w": {
+    "declared_weight": 0.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 0
+    }
+   },
+   "posi_w": {
+    "declared_weight": 0.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 0
+    }
+   },
+   "geotraces_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   },
+   "geotraces_sub_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": null
+   }
+  },
+  "params": {
+   "alpfe": {
+    "arithmetic": {
+     "southernoceanpac": 0.9993537068367004
+    },
+    "geometric": {
+     "southernoceanpac": 0.9993528127670288
+    },
+    "median": {
+     "southernoceanpac": 0.9997982084751129
+    }
+   },
+   "scav_rat": {
+    "arithmetic": {
+     "southernoceanpac": 8.386146532757266e-07
+    },
+    "geometric": {
+     "southernoceanpac": 4.3918930714426097e-07
+    },
+    "median": {
+     "southernoceanpac": 8.061705614181847e-07
+    }
+   },
+   "R_PICPOC": {
+    "arithmetic": {
+     "southernoceanpac": 0.7878714799880981
+    },
+    "geometric": {
+     "southernoceanpac": 0.7831617593765259
+    },
+    "median": {
+     "southernoceanpac": 0.7783975601196289
+    }
+   },
+   "diatomgraz": {
+    "arithmetic": {
+     "southernoceanpac": 0.8204938173294067
+    },
+    "geometric": {
+     "southernoceanpac": 0.7930974066257477
+    },
+    "median": {
+     "southernoceanpac": 0.8924306035041809
+    }
+   },
+   "Smallgrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.22759810835123062
+    },
+    "geometric": {
+     "southernoceanpac": 0.1896057054400444
+    },
+    "median": {
+     "southernoceanpac": 0.15733496844768524
+    }
+   },
+   "Biggrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.12578194588422775
+    },
+    "geometric": {
+     "southernoceanpac": 0.11961797997355461
+    },
+    "median": {
+     "southernoceanpac": 0.10856698080897331
+    }
+   }
+  }
+ },
+ {
+  "run_dir": "C:/ddtmp/sorep/so_rep",
+  "n_seeds": 50,
+  "seed_range": [
+   50,
+   99
+  ],
+  "seeds_contiguous": true,
+  "aois": [
+   "southernoceanpac"
+  ],
+  "n_epochs": 2000,
+  "lr": 0.005,
+  "n_steps": 200,
+  "dinn_hidden_dim": 16,
+  "global_scalar": false,
+  "per_aoi_dinn": false,
+  "rpicpoc_anchor_source": "<absent: pre-2026-08-12>",
+  "code_provenance": {
+   "git_sha": "ca72abff46a6",
+   "git_dirty": true,
+   "code_digest": "dd0332fbc9ac58e0",
+   "config_digest": null
+  },
+  "pooler_auditable": true,
+  "collapse_keys": {
+   "geom": true,
+   "median": true,
+   "log_sd": true
+  },
+  "declared_terms": {
+   "daniels_rpicpoc_w": {
+    "declared_weight": 0.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 0
+    }
+   },
+   "posi_w": {
+    "declared_weight": 0.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 0
+    }
+   },
+   "geotraces_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 13
+    },
+    "INERT": false
+   },
+   "geotraces_sub_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 14
+    },
+    "INERT": false
+   }
+  },
+  "params": {
+   "alpfe": {
+    "arithmetic": {
+     "southernoceanpac": 0.9991124272346497
+    },
+    "geometric": {
+     "southernoceanpac": 0.9991111159324646
+    },
+    "median": {
+     "southernoceanpac": 0.9997426271438599
+    }
+   },
+   "scav_rat": {
+    "arithmetic": {
+     "southernoceanpac": 8.205561243812554e-07
+    },
+    "geometric": {
+     "southernoceanpac": 4.443679415544466e-07
+    },
+    "median": {
+     "southernoceanpac": 8.45846301444908e-07
+    }
+   },
+   "R_PICPOC": {
+    "arithmetic": {
+     "southernoceanpac": 0.7447181940078735
+    },
+    "geometric": {
+     "southernoceanpac": 0.7390713095664978
+    },
+    "median": {
+     "southernoceanpac": 0.743966281414032
+    }
+   },
+   "diatomgraz": {
+    "arithmetic": {
+     "southernoceanpac": 0.8198286890983582
+    },
+    "geometric": {
+     "southernoceanpac": 0.7930340766906738
+    },
+    "median": {
+     "southernoceanpac": 0.8762788772583008
+    }
+   },
+   "Smallgrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.23356132209300995
+    },
+    "geometric": {
+     "southernoceanpac": 0.19159450381994247
+    },
+    "median": {
+     "southernoceanpac": 0.1757701337337494
+    }
+   },
+   "Biggrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.12994899600744247
+    },
+    "geometric": {
+     "southernoceanpac": 0.12183189019560814
+    },
+    "median": {
+     "southernoceanpac": 0.10921807587146759
+    }
+   }
+  }
+ },
+ {
+  "run_dir": "C:/ddtmp/som/som_anchor",
+  "n_seeds": 50,
+  "seed_range": [
+   50,
+   99
+  ],
+  "seeds_contiguous": true,
+  "aois": [
+   "southernoceanpac"
+  ],
+  "n_epochs": 2000,
+  "lr": 0.005,
+  "n_steps": 200,
+  "dinn_hidden_dim": 16,
+  "global_scalar": false,
+  "per_aoi_dinn": false,
+  "rpicpoc_anchor_source": "marsh",
+  "code_provenance": {
+   "git_sha": "15a372562573",
+   "git_dirty": true,
+   "code_digest": "15d7899c00a86452",
+   "config_digest": null
+  },
+  "pooler_auditable": true,
+  "collapse_keys": {
+   "geom": true,
+   "median": true,
+   "log_sd": true
+  },
+  "declared_terms": {
+   "daniels_rpicpoc_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 12
+    },
+    "INERT": false
+   },
+   "posi_w": {
+    "declared_weight": 0.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 0
+    }
+   },
+   "geotraces_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 13
+    },
+    "INERT": false
+   },
+   "geotraces_sub_w": {
+    "declared_weight": 1.0,
+    "cells_per_aoi": {
+     "southernoceanpac": 14
+    },
+    "INERT": false
+   }
+  },
+  "params": {
+   "alpfe": {
+    "arithmetic": {
+     "southernoceanpac": 0.9991225898265839
+    },
+    "geometric": {
+     "southernoceanpac": 0.9991214573383331
+    },
+    "median": {
+     "southernoceanpac": 0.9997550547122955
+    }
+   },
+   "scav_rat": {
+    "arithmetic": {
+     "southernoceanpac": 8.900522061594529e-07
+    },
+    "geometric": {
+     "southernoceanpac": 4.579761139211769e-07
+    },
+    "median": {
+     "southernoceanpac": 4.73175191473274e-07
+    }
+   },
+   "R_PICPOC": {
+    "arithmetic": {
+     "southernoceanpac": 0.07141435891389847
+    },
+    "geometric": {
+     "southernoceanpac": 0.06260107085108757
+    },
+    "median": {
+     "southernoceanpac": 0.0548266377300024
+    }
+   },
+   "diatomgraz": {
+    "arithmetic": {
+     "southernoceanpac": 0.8841297030448914
+    },
+    "geometric": {
+     "southernoceanpac": 0.7151698768138885
+    },
+    "median": {
+     "southernoceanpac": 1.0
+    }
+   },
+   "Smallgrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.34303198754787445
+    },
+    "geometric": {
+     "southernoceanpac": 0.15013687312602997
+    },
+    "median": {
+     "southernoceanpac": 0.10000000149011612
+    }
+   },
+   "Biggrow": {
+    "arithmetic": {
+     "southernoceanpac": 0.10438784956932068
+    },
+    "geometric": {
+     "southernoceanpac": 0.1038486510515213
+    },
+    "median": {
+     "southernoceanpac": 0.10038629174232483
+    }
+   }
+  }
+ }
+]
