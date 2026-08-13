@@ -41,6 +41,27 @@ single AOI `southernoceanpac`, otherwise the `so_only` configuration.
 
 Both nulls are required: the anchor changes the loss, so the two arms do not share a null.
 
+> **⚠ AMENDMENT, 2026-08-12, written BEFORE any trained result was read.** That justification is
+> **wrong**, and it was measured wrong rather than argued wrong: `som_anchor_prior` and
+> `som_noanchor_prior` are **bitwise identical across all 50 seeds and every parameter** (0
+> differing entries, max relative difference 0.0).
+>
+> The reason is elementary and I should have seen it. At `NB23_LR=0` with `NB23_N_EPOCHS=1` the
+> optimizer takes one step of size zero, so the network never leaves initialisation and **the loss
+> is never used to update anything**. The anchor weight cannot influence a network that does not
+> train, so changing `DANIELS_RPICPOC_W` between the two null arms is inert by construction.
+>
+> **This does not invalidate the experiment.** Both trained arms are graded against a correct
+> architecture-matched untrained baseline; there are simply two copies of the same one. The cost is
+> 5 wasted chunks at ~20 s each, which is negligible.
+>
+> Recorded because the error is instructive: an adversarial screen had flagged exactly this failure
+> mode ("two nulls are only distinguishable if the null is 1 epoch at the *real* lr") in a
+> *different* proposal earlier the same day, and I did not apply it to my own running design. The
+> general rule: **a null defined by `lr=0` is independent of every loss-side lever, so one null
+> covers all arms that differ only in loss weights.** A null that must distinguish loss variants has
+> to train for at least one real step.
+
 `POSI_W=0.0` throughout — the Southern Ocean genuinely has zero POSi coverage and declaring it on
 is what made job 237913 fail `verify_run` with exit 2.
 
