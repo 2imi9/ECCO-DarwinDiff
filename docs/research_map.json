@@ -13035,6 +13035,12 @@
      "dont": ""
     },
     {
+     "question": "Does the DINN trunk WIDTH (hidden_dim / degrees of freedom at fixed sharing) change recovery?",
+     "answer": "ALREADY RUN at n=100 per width - do not re-derive. Widths 8/16/24/39/80 (142/406/798/2742/7126-ish trunk weights) across jobs 258439, 258694 and 258713, each with its own ARCHITECTURE-MATCHED untrained null and all three collapses. scav_rat per-AOI >=2-of-3 at band 0.40: arithmetic 13/45/70/77/88, geometric 8/16/20/17/26, median 25/37/37/27/25. The three collapses DISAGREE about whether an inverted U exists at all: arithmetic is monotone up, geometric is nearly flat, median peaks at 16-24 then declines. The apparent arithmetic 'capacity gain' is a DISPERSION ARTIFACT and was formally retracted 2026-08-03 - per-cell log_sd rises monotonically with width (natl 0.879/0.933/0.971/0.976/1.001) and arithmetic = geometric x exp(sigma^2/2). ADR-0003 rejects width 39 outright rather than deferring it. NOTE the width effect is maximal EXACTLY at the 0.40 band (+0 at 0.30, +9 at 0.35, +32 at 0.40, +19 at 0.45, +1 at 0.50, +0 at 0.60), which is threshold geometry, not accuracy.",
+     "doc": "docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
+     "dont": ""
+    },
+    {
      "question": "Is R_PICPOC's Southern Ocean leg inherited through the shared DINN, or merely unmeasured?",
      "answer": "AMBIGUOUS by the pre-registered rule, and pooler-dependent, which the prereg named in advance as itself a finding. Job 354596, single-AOI so inheritance is impossible by construction, verify_run exit 0 on both trained arms. R_PICPOC anchored vs unanchored: arithmetic 0/50 vs 0/50; geometric 6/50 vs 0/50 (P=0.0267); median 43/50 vs 0/50 (P=5.2e-21). Only the median clears the pre-registered 15/50 threshold. R_PICPOC also LOSES its pooler invariance for the first time (per-cell log_sd 0.105 to 0.459) because a 12-of-1296-cell anchor makes the recovered field heterogeneous. COST, pre-registered and fired: scav_rat degrades significantly under arithmetic, 30/50 to 16/50 (P=0.0088), in the one basin where it is established; diatomgraz drops 50 to 41 geometric (P=0.0026).",
      "doc": "LOCAL-ONLY source, not in the repo: 2026-08-13_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md",
@@ -13638,6 +13644,12 @@
      "question": "Does subsurface dissolved-iron coverage predict which basins recover scav_rat (hy072)?",
      "answer": "NO - the falsifier fires, on data already on disk. hy072 predicts the cross-basin ranking should TRACK subsurface bin count; its falsifier is 'a basin with substantial subsurface coverage and no scav_rat recovery'. Measured 2026-08-06 with the repo's own dfe_aoi_1deg_grid over GEOTRACES IDP2025, 1-degree bins with dissolved Fe: eqpac 26 surface / 28 to 1000 m, kerguelen 18/20, southernoceanpac 13/14, natlsubpolar 13/13. Against the recovery record: eqpac has the MOST coverage (28) and the LEAST scav_rat recovery (7/50 at 2000 epochs, 6/50 at 4000), while southernoceanpac has HALF as many bins (14) and is the one basin where scav_rat is established (30/50 single-AOI vs untrained 0/50, P = 3.15e-24). That is the falsifier's exact condition. CAVEAT ON STRENGTH: this is an EXISTENCE result, not a correlation - the rank correlation over the three basins is rho = -0.50 with p = 0.67 at n = 3, which is worthless and must not be quoted as evidence of anti-ordering. What is established is that coverage alone does not explain the pattern, which is consistent with the standing eqpac-misspecification reading (ind278: eqpac FeT sin phi = 1.0000, residual at least as large as signal). Practical consequence: do NOT rank candidate AOIs by iron bin count expecting recovery to follow. Kerguelen-Crozet (20 bins) was chosen for regime similarity to southernoceanpac, not because its count is higher.",
      "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
+     "dont": ""
+    },
+    {
+     "question": "Is there a single width at which parameter recovery peaks?",
+     "answer": "NO - the question has no well-defined answer, and any claim of the form 'recovery peaks at width W' is unreportable. Measured 2026-08-03/04 to be POOLER-dependent (arithmetic monotone up, geometric flat, median peaking at 16-24), BAND-dependent (the effect is maximal exactly at 0.40 and vanishes at 0.30 and 0.60), and PARAMETER- and LEG-dependent: sopac scav_rat median error is best at w16 (0.0665/0.0511/0.0551/0.0831/0.1939 across 8/16/24/39/80), alpfe's eqpac leg is best at w8 (89/84/71/68/72), diatomgraz's eqpac leg at <=0.10 is best at w16 (36/40/24/1/1), while natl scav_rat median error improves monotonically to w80 (0.5155/0.4128/0.3870/0.3845/0.3292). Different parameters and different basins peak at different widths, so there is no single optimum to report.",
+     "doc": "docs/findings/2026-08-03_the_pass_band_is_load_bearing.md",
      "dont": ""
     },
     {
@@ -16146,6 +16158,12 @@
      "question": "How many decades of sloppiness separate the stiff and sloppy iron directions at a converged optimum?",
      "answer": "log10(2.29 / 0.0046) ≈ 2.7 decades (2.69) at the joint 3-AOI optimum — NOT the provisional ~3.96 decades, which was inflated by under-convergence. The ~3.96 figure is a separate per-AOI (Eq. Pac) analysis that was NOT re-run and is still not quotable.",
      "doc": "docs/findings/2026-07-21_saddle_fix_result.md",
+     "dont": ""
+    },
+    {
+     "question": "What n is required for an architectural claim about the parameter learner?",
+     "answer": "n=100 with its own architecture-matched null, per ADR-0003: 'every future architectural claim needs n=100 and its own null - n=50 has now produced one effect (P = 0.0128) that evaporated on replication, so it is not a defensible sample size for this metric.' The existing width work was run at n=100 for exactly this reason. A design proposing n=50 for an architecture or capacity question is a regression and should be rejected at screening. For scale: at n=50 vs n=50 the minimum detectable difference around the measured geometric base rate is roughly 24 percentage points at alpha=0.05 and 30 points at alpha=0.01, while the largest geometric width effect ever measured across the whole 8->80 range is 18 points.",
+     "doc": "LOCAL-ONLY source, not in the repo: 0003-parameter-learner-architecture.md",
      "dont": ""
     },
     {
@@ -20381,6 +20399,11 @@
      "category": ""
     },
     {
+     "trap": "The WIDTH/DOF axis is answered but was NOT INDEXED, and that invisibility caused a re-derivation. `settled \"degrees of freedom\"` returns the SHARING ladder (global scalar / shared DINN / per-AOI DINN / free per-cell field) and NOT the width dose-response; before 2026-08-13 no settled row, no SUPERSEDES row and no line in STATUS.md mentioned jobs 258439 / 258694 / 258713 or the phrase 'width 39'. On 2026-08-13 that gap led to a 5-hour overnight width sweep being designed and nearly submitted, at HALF the n already on disk, whose only detectable effect would have been the formally retracted arithmetic dispersion artifact. When a result is settled, index it under the words a future session will actually search.",
+     "doc": "docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
+     "category": ""
+    },
+    {
      "trap": "Black et al. (2020) Supporting Information Table S1 carries the PER-STATION georeferenced Fe export values (the committed CSV has only per-study/province ranges, n=20). The Wiley host is behind a Cloudflare interstitial and returns a 'Just a moment...' challenge to automated fetches, so it cannot be retrieved programmatically. The paper is open-access CC-BY-4.0 - download S1 by hand if per-station coverage is needed to rescue E3.",
      "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "category": ""
@@ -20487,6 +20510,11 @@
     },
     {
      "trap": "A null defined by NB23_LR=0 is INDEPENDENT of every loss-side lever, so ONE null covers all arms that differ only in loss weights. som_anchor_prior and som_noanchor_prior were pre-registered as two required nulls and came out BITWISE IDENTICAL across all 50 seeds and every parameter (0 differing entries, max relative difference 0.0). At lr=0 with 1 epoch the optimizer takes a zero-size step, the network never leaves initialisation, and the loss is never used, so an anchor weight cannot influence it. A null that must distinguish loss variants has to train for at least one REAL step.",
+     "doc": "docs/findings/2026-08-12_prereg_so_marsh_anchor.md",
+     "category": ""
+    },
+    {
+     "trap": "An untrained null is ARCHITECTURE-matched, so it CANNOT be shared across arms that differ in architecture (width, sharing, channel count). This is the exact opposite of the loss-side rule: a null at NB23_LR=0 IS shared across arms that differ only in loss weights, because the network never trains and the loss never enters. Check which kind of lever an experiment varies before deciding how many nulls it needs.",
      "doc": "docs/findings/2026-08-12_prereg_so_marsh_anchor.md",
      "category": ""
     },
@@ -39065,10 +39093,10 @@
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
-  "settled": 562,
+  "settled": 565,
   "supersedes": 301,
   "supports": 299,
-  "trap": 258,
+  "trap": 260,
   "v_claim_evidence": 590,
   "v_dangerous": 39,
   "v_live": 525,
