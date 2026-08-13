@@ -34,10 +34,15 @@ you were reviewing my description rather than the code, so the mistake was mine 
 I will also check GEOTRACES for a station pairing a dissolved iron profile with a thorium export
 estimate, and keep the North Pacific in the plan.
 
-One ask for you and Cris. The Climate Change AI workshop at NeurIPS is taking four page papers,
-non archival, due August 29. The identifiability work fits their oceans and climate modeling
-areas, and it would not block a longer version later. Would you both be open to it? I would draft
-it and share it with you before anything goes out.
+One ask for you and Cris. The Climate Change AI workshop at NeurIPS has a short non archival
+proposals track, due August 29. I would like to put in a three page proposal built on the idea you
+raised, a UDE for the iron scavenging closure aimed at equation discovery rather than only
+parameter learning. The angle is identifiability first. Our own analysis says the source and sink
+are degenerate under the observations these models use, so a learned closure needs the paired
+dissolved iron and thorium export observation to be well posed, and the proposal is built around
+that. It leans on your endorsement, so I did not want to submit anything with your idea in it
+without checking first. Would you both be open to it? I would draft it and share it with you well
+before anything goes out. The full identifiability write up stays the longer paper, not this.
 
 Hope you are feeling better soon.
 
