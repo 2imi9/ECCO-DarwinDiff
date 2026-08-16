@@ -1,5 +1,25 @@
-"""Loader for the Black et al. (2020) upper-ocean iron EXPORT FLUX compilation — the
-SINK-side anchor for the ``scav_rat`` leg of the two-anchor iron inversion.
+"""Loader for the Black et al. (2020) upper-ocean iron EXPORT FLUX compilation.
+
+.. warning::
+
+   **CORRECTION (2026-08-05, banner added 2026-08-12). This is a SOURCE anchor, not the
+   SINK anchor the rest of this docstring claims, and it CANNOT identify ``scav_rat``.**
+
+   The refutation is structural, not observational, so more coverage does not fix it. In a
+   0-D box at steady state the total iron leaving the surface layer equals the iron
+   entering it, so the total export flux — exactly what Black measures — is
+   ``alpfe * PHI_DUST`` and is *independent of* ``scav_rat`` by mass conservation. A 16x
+   sweep of ``scav_rat`` moves it by 0.00%; at the 200-step operating window a 4x sweep
+   moves it 5.2%, against an observation whose own 1-sigma is 412% of its value. The
+   bulk-flux anchor is short by a factor of ~130.
+
+   A ``234``Th- or sediment-trap-derived export flux measures particulate Fe leaving the
+   layer, which is the SUM of the scavenging and biogenic sinks, not the scavenging term
+   alone. See
+   ``docs/findings/2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md``.
+
+   This loader has never been wired into a fit. The paragraphs below are retained as the
+   record of what was believed; do not act on their "SINK" framing.
 
 Black et al. 2020 (GBC, doi:10.1029/2020GB006592, "Ironing Out Fe Residence Time in the
 Dynamic Upper Ocean") perform an observation-based assessment of iron export from the

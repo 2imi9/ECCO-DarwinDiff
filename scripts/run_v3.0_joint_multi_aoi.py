@@ -217,6 +217,7 @@ from darwindiff.daniels_loader import (
     bin_to_grid as bin_daniels_to_grid,
     load_daniels_points,
 )
+from darwindiff.marsh_loader import load_marsh_points
 from darwindiff.llc270_loader import bin_native_tracer_to_1deg, native_tracer_cells
 from darwindiff.provenance import stamp as _prov_stamp
 from darwindiff.networks import DINN, PerParamDINN, GlobalScalarNet, PerCellFreeField
@@ -261,6 +262,34 @@ DANIELS_PATH = Path(os.environ.get(
     "DANIELS_DATA_PATH",
     str(Path(__file__).resolve().parents[1] / "data" / "daniels"
         / "Daniels_etal_2018_PANGAEA_888182.tab"),
+))
+# Which CP:PP compilation supplies the rain-ratio anchor. "daniels" (the default)
+# reproduces every existing artifact bitwise. "marsh" swaps in Marsh et al. 2025
+# (PANGAEA 987673), the direct successor that expands the same Poulton et al. 2018
+# database of isotopic-tracer CaCO3 rate measurements.
+#
+# Measured 2026-08-12 (docs/findings/2026-08-12_the_southern_ocean_calcite_gap_is_
+# the_compilation_not_the_ocean.md), binned identically at depth_max=50 m:
+#     AOI                 daniels cells   marsh cells
+#     eqpac                          34            34
+#     natlsubpolar                   26            33
+#     southernoceanpac                0            12
+# i.e. the "Southern Ocean has zero calcite coverage" fact, which is the stated
+# reason R_PICPOC's SO leg is called INHERITED (ind330), is a property of the
+# Daniels compilation and not of the ocean.
+#
+# marsh_loader.build_aoi_climatology is written signature-compatible with the
+# Daniels one and delegates to the same binning, so this is a point-cloud swap and
+# not a change of method.
+RPICPOC_ANCHOR_SOURCE = os.environ.get("RPICPOC_ANCHOR_SOURCE", "daniels").strip().lower()
+if RPICPOC_ANCHOR_SOURCE not in ("daniels", "marsh"):
+    raise ValueError(
+        f"RPICPOC_ANCHOR_SOURCE={RPICPOC_ANCHOR_SOURCE!r} must be 'daniels' or 'marsh'"
+    )
+MARSH_PATH = Path(os.environ.get(
+    "MARSH_DATA_PATH",
+    str(Path(__file__).resolve().parents[1] / "data" / "marsh"
+        / "Marsh_etal_2025_coccolith_calcification.tab"),
 ))
 CACHE_DIR = DATA_ROOT / "cache"
 
@@ -1371,7 +1400,10 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         global _DANIELS_POINTS
         try:
             if _DANIELS_POINTS is None:
-                _DANIELS_POINTS = load_daniels_points(DANIELS_PATH)
+                if RPICPOC_ANCHOR_SOURCE == "marsh":
+                    _DANIELS_POINTS = load_marsh_points(MARSH_PATH)
+                else:
+                    _DANIELS_POINTS = load_daniels_points(DANIELS_PATH)
             d_vals, d_mask, d_counts = bin_daniels_to_grid(
                 _DANIELS_POINTS,
                 np.asarray(targets["darwin_lats"]),
@@ -2852,6 +2884,9 @@ if __name__ == "__main__":
             "ratio_w": RATIO_W,
             "n_ratio_cells_per_aoi": {b["key"]: b["n_ratio"] for b in bundles},
             "daniels_rpicpoc_w": DANIELS_RPICPOC_W,
+            # WHICH compilation supplied the anchor. Recorded unconditionally so a
+            # reader can never mistake a Marsh-anchored number for a Daniels one.
+            "rpicpoc_anchor_source": RPICPOC_ANCHOR_SOURCE,
             "daniels_depth_max": DANIELS_DEPTH_MAX if DANIELS_RPICPOC_W > 0 else None,
             "n_daniels_cells_per_aoi": {b["key"]: b["n_daniels"] for b in bundles},
             "dust_anchor_w": DUST_ANCHOR_W,

@@ -1,0 +1,1919 @@
+[
+ {
+  "name": "Maike Sonnewald",
+  "role": "Assistant Professor, Department of Computer Science, UC Davis (also Coastal and Marine Sciences Institute); PhD 2016, Complex Systems Simulation, National Oceanography Centre / University of Southampton. Leads the Computational Climate and Ocean Group (CCOG).",
+  "focus": "Interpretable/explainable machine learning applied to physical ocean and climate dynamics \u2014 building transparent ML methods (SAGE, NEMI, THOR) to identify dynamical regimes, infer subsurface 3D ocean structure from surface fields, and attribute circulation change under warming. A recognizable minority of her group's output extends this toolkit to biogeochemical/ecological classification (marine eco-provinces, biogeochemical provinces, ocean acidification, and \u2014 in review \u2014 planktonic ecosystems from ocean color) but her own core identity is physical-circulation ML, not BGC.",
+  "key_papers": [
+   {
+    "title": "Elucidating Ecological Complexity: Unsupervised Learning Determines Global Marine Eco-Provinces",
+    "year": 2020,
+    "venue": "Science Advances",
+    "url": "",
+    "takeaway": "Unsupervised clustering of physical/biogeochemical fields defines global marine 'eco-provinces' \u2014 her clearest BGC/ocean-ecosystem paper."
+   },
+   {
+    "title": "Revealing the Impact of Global Heating on North Atlantic Circulation Using Transparent Machine Learning",
+    "year": 2021,
+    "venue": "Journal of Advances in Modeling Earth Systems (JAMES)",
+    "url": "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2021MS002496",
+    "takeaway": "Introduces/applies THOR, a transparent (interpretable+explainable) ML method, to show weakened North Atlantic circulation under CO2 quadrupling from depth, wind stress, and SSH fields alone."
+   },
+   {
+    "title": "Bridging Theory, Simulation, and Observations of the Global Ocean Using Machine Learning",
+    "year": 2021,
+    "venue": "Environmental Research Letters",
+    "url": "",
+    "takeaway": "Review positioning ML as a bridge between ocean theory, models, and observations \u2014 programmatic statement of her interpretable-ML agenda."
+   },
+   {
+    "title": "Regional Sensitivity Patterns of Arctic Ocean Acidification Revealed With Machine Learning",
+    "year": 2022,
+    "venue": "Nature Communications Earth & Environment",
+    "url": "",
+    "takeaway": "ML-driven attribution of regional drivers of Arctic Ocean acidification \u2014 a direct ocean-biogeochemistry application (co-authored, not lead)."
+   },
+   {
+    "title": "A Supergyre Modulates the Global Overturning Through Upwelling in the Southern Ocean",
+    "year": 2023,
+    "venue": "Nature Communications Earth & Environment",
+    "url": "",
+    "takeaway": "Identifies a supergyre structure controlling Southern Ocean upwelling and global overturning, using her clustering/ML toolkit on circulation fields."
+   },
+   {
+    "title": "Unveiling 3D Ocean Biogeochemical Provinces in the North Atlantic",
+    "year": 2025,
+    "venue": "Ecological Informatics",
+    "url": "",
+    "takeaway": "Extends the eco-province clustering approach into full 3D, explicitly targeting biogeochemical provinces (Jenniges et al., group paper)."
+   }
+  ],
+  "bgc_ocean_color": "Some \u2014 a recurring but secondary thread, not her main line. Confirmed items from her lab's publication list: Sonnewald et al. 2020 (Science Advances, global marine eco-provinces via unsupervised learning on physical+biogeochemical fields), Jenniges et al. 2025 (Ecological Informatics, 3D ocean biogeochemical provinces, North Atlantic), Krasting et al. 2022 (Nat. Comms Earth & Environment, Arctic ocean acidification via ML, co-authored not lead), and an in-review paper (McDevitt et al., Nat. Comms Earth & Environment) titled 'Inferring planktonic ecosystems from space: Lessons gained from AI' which is explicitly ocean-color/plankton/remote-sensing. No PACE-specific work found. Core identity remains physical-circulation/climate-dynamics ML (THOR, SAGE, heat transport, Southern Ocean overturning), with BGC/ecology as an applied offshoot mostly via students/collaborators rather than her own lead-authored papers.",
+  "darwindiff_relevance": "Moderate, on methodology rather than domain overlap: her interpretable/explainable-ML toolkit (unsupervised regime clustering, transparent attribution) is a possible technique to borrow for identifiability/interpretability framing of DarwinDiff's parameter recovery, but she works with forward ML classifiers on existing model/obs fields, not differentiable/adjoint parameter estimation, UDEs, or emulators of a mechanistic BGC model. No direct overlap with iron/scavenging/PIC:POC parameter learning; closest touchpoint is the ecology/BGC-province offshoot work, which is descriptive clustering, not inverse parameter estimation.",
+  "confidence": "high \u2014 identity verified via UC Davis CS directory, Coastal and Marine Sciences Institute page, personal homepage (maikejulie.github.io), Google Scholar profile, and cross-consistent THOR/CCOG description across all sources."
+ },
+ {
+  "name": "Bia Villas B\u00f4as",
+  "role": "Assistant Professor, Department of Geophysics, Colorado School of Mines (joined faculty from a postdoctoral position at Scripps Institution of Oceanography / UC San Diego). PhD 2020, Oceanography, Scripps Institution of Oceanography, UC San Diego; MS 2014 Oceanography, University of S\u00e3o Paulo; BS 2012 Physics, Federal University of Rio Grande do Norte. Full name Ana Beatriz Villas B\u00f4as; identity confirmed via her Mines faculty page, her SWOT mission team page (swot.jpl.nasa.gov/people), and matching Google Scholar profile (hs9LPmAAAAAJ).",
+  "focus": "Physical oceanography specializing in air-sea interaction, ocean surface gravity waves, and wave-current-wind coupling at meso- and submesoscales, using theory, idealized simulation, and remote sensing/satellite altimetry (notably as a science-team member on NASA/CNES's SWOT mission, using its KaRIn interferometer to make 2-D maps of significant wave height). No biogeochemistry, ocean-color, or carbon-cycle work appears anywhere in her publication record.",
+  "key_papers": [
+   {
+    "title": "Integrated Observations of Global Surface Winds, Currents, and Waves: Requirements and Challenges for the Next Decade",
+    "year": 2019,
+    "venue": "Frontiers in Marine Science 6:425",
+    "url": "https://doi.org/10.3389/fmars.2019.00425",
+    "takeaway": "Landmark community white paper (149 citations) setting requirements for future integrated wind/current/wave observing systems, foundational to the case for missions like SWOT."
+   },
+   {
+    "title": "Directional diffusion of surface gravity wave action by ocean macroturbulence",
+    "year": 2020,
+    "venue": "Journal of Fluid Mechanics",
+    "url": "",
+    "takeaway": "Theoretical work showing mesoscale ocean turbulence diffuses the directional spectrum of surface wave action."
+   },
+   {
+    "title": "Wave-current interactions at meso- and submesoscales: Insights from idealized numerical simulations",
+    "year": 2020,
+    "venue": "Journal of Physical Oceanography",
+    "url": "",
+    "takeaway": "Idealized simulations quantify how ocean currents modulate surface wave fields at meso/submesoscale, motivating SWOT-era wave-current studies."
+   },
+   {
+    "title": "The seasonal cycle of significant wave height in the ocean: Local versus remote forcing",
+    "year": 2021,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "url": "",
+    "takeaway": "Decomposes global seasonal wave-height variability into locally wind-forced versus remotely-generated (swell) contributions."
+   },
+   {
+    "title": "Observing Interactions Between Waves, Winds, and Currents From SWOT",
+    "year": 2025,
+    "venue": "Geophysical Research Letters",
+    "url": "https://doi.org/10.1029/2024GL114331",
+    "takeaway": "Uses SWOT KaRIn's first 2-D significant-wave-height fields to study wave-wind-current coupling across dynamically distinct regimes -- first author, current flagship application of SWOT data to her research line."
+   },
+   {
+    "title": "S-MODE: the Sub-Mesoscale Ocean Dynamics Experiment",
+    "year": 2025,
+    "venue": "Bulletin of the American Meteorological Society",
+    "url": "",
+    "takeaway": "Overview of a major NASA airborne/ship field campaign targeting submesoscale ocean dynamics, in which she is a participating scientist."
+   }
+  ],
+  "bgc_ocean_color": "NONE. Across roughly 20 Google-Scholar-listed publications (2015-2026) plus her Mines faculty page, every paper is physical oceanography: surface gravity waves, air-sea momentum/heat flux, wave-current-wind interaction, submesoscale dynamics, and satellite altimetry/SWOT wave measurement. No paper touches biogeochemistry, ocean color, PACE, carbon, plankton, or marine ecosystems.",
+  "darwindiff_relevance": "Essentially none for the differentiable-BGC-parameter-learning core of DarwinDiff. The only tangential thread is that she is a SWOT mission scientist, and SWOT appears (marginally, per prior DarwinDiff notes) among adjacent satellite-mission interests -- but her SWOT work is about sea-surface wave-height/current retrieval, not ocean color, carbon, or any BGC observable DarwinDiff would use as an identifiability anchor.",
+  "confidence": "high"
+ },
+ {
+  "name": "David Sandwell",
+  "role": "Professor of Geophysics, Cecil H. and Ida M. Green Institute of Geophysics and Planetary Physics (IGPP), Scripps Institution of Oceanography, UC San Diego. Field: marine geophysics / space geodesy.",
+  "focus": "Sandwell maps the seafloor and solid-Earth deformation from satellite geodesy \u2014 deriving marine gravity and bathymetry from radar altimetry (Geosat, ERS, CryoSat-2, Jason, SWOT), and studying earthquake cycle deformation via InSAR/GNSS. His 'ML' angle is neural-network bathymetry prediction from gravity anomalies, not BGC or ocean-color ML.",
+  "key_papers": [
+   {
+    "title": "Global sea floor topography from satellite altimetry and ship depth soundings",
+    "year": 1997,
+    "venue": "Science",
+    "url": "https://www.science.org/doi/10.1126/science.277.5334.1956",
+    "takeaway": "Foundational global bathymetry map built from combined altimetry and ship soundings; still the base of modern seafloor maps (6,263 citations)."
+   },
+   {
+    "title": "New global marine gravity model from CryoSat-2 and Jason-1 reveals buried tectonic structure",
+    "year": 2014,
+    "venue": "Science",
+    "url": "https://www.science.org/doi/10.1126/science.1258213",
+    "takeaway": "A 2x-resolution-improved global marine gravity field exposed previously unknown seafloor tectonic fabric."
+   },
+   {
+    "title": "Global Predicted Bathymetry Using Neural Networks",
+    "year": 2024,
+    "venue": "Earth and Space Science 11(3)",
+    "url": "https://doi.org/10.1029/2023EA003199",
+    "takeaway": "Replaces the classical gravity-to-depth regression with a neural network, improving predicted bathymetry accuracy globally."
+   },
+   {
+    "title": "Abyssal marine tectonics from the SWOT mission",
+    "year": 2024,
+    "venue": "Science 386(6727)",
+    "url": "https://doi.org/10.1126/science.ado7300",
+    "takeaway": "SWOT's wide-swath altimetry resolves abyssal hill fabric at unprecedented resolution, a step-change over nadir altimetry (with Yao Yu)."
+   },
+   {
+    "title": "Bathymetry Prediction with SWOT Gravity Anomaly using Machine Learning Methods (Paper 1: Model Development)",
+    "year": 2025,
+    "venue": "ESS Open Archive (preprint)",
+    "url": "https://essopenarchive.org/users/529072/articles/1328643",
+    "takeaway": "Benchmarks five independent ML models (from a DTU workshop) for bathymetry prediction, finding ~22% improvement from SWOT-derived gravity (with Yao Yu et al.)."
+   },
+   {
+    "title": "SWOT detects dispersive tsunami tied to a near-trench source in the 2025 Kamchatka earthquake",
+    "year": 2026,
+    "venue": "Science 391(6792)",
+    "url": "https://www.science.org/doi/10.1126/science.391.6792",
+    "takeaway": "Uses SWOT's high-resolution sea-surface measurements to detect and characterize a tsunami signal tied to the 2025 Kamchatka earthquake."
+   }
+  ],
+  "bgc_ocean_color": "NONE. Reviewed his Scripps/personal profile pages and full recent (2022-2026) publication list pulled from his own site: every title is bathymetry, marine gravity, tectonics, or solid-Earth/earthquake geodesy. No mention anywhere of ocean color, PACE, carbon cycle, plankton, nutrients, or marine ecosystems.",
+  "darwindiff_relevance": "None on the BGC/parameter-learning axis. The only loose methodological echo is his group's recent pivot to neural-network / ML inversion for a geophysical inverse problem (gravity -> bathymetry), which is a domain-analogous but unrelated application (solid Earth, not ocean biogeochemistry).",
+  "confidence": "high"
+ },
+ {
+  "name": "Yao Yu",
+  "role": "Postdoctoral researcher, IGPP, Scripps Institution of Oceanography, UC San Diego (PhD Earth Sciences, Scripps, 2023). Schmidt AI in Science Postdoctoral Fellow, working with David Sandwell and Sarah Gille.",
+  "focus": "Coupled ocean-solid Earth dynamics: small-scale ocean dynamics (eddies, internal tides) from multi-year altimetry, marine tectonics (abyssal hills, seamounts), and \u2014 as the newest strand \u2014 processing/analyzing SWOT wide-swath altimetry data and applying machine learning to bathymetry prediction from SWOT gravity anomalies.",
+  "key_papers": [
+   {
+    "title": "Improved bathymetric prediction using geological information: SYNBATH",
+    "year": 2022,
+    "venue": "Earth and Space Science 9(2)",
+    "url": "https://doi.org/10.1029/2021EA002069",
+    "takeaway": "Adds a geological (fracture-zone/plate-age) prior to gravity-based bathymetry prediction, improving accuracy over prior global models."
+   },
+   {
+    "title": "Seasonality of the Sub-Mesoscale to Mesoscale Sea Surface Variability From Multi-Year Satellite Altimetry",
+    "year": 2023,
+    "venue": "JGR Oceans 128(2)",
+    "url": "https://doi.org/10.1029/2022JC019154",
+    "takeaway": "Characterizes seasonal cycles in sub-mesoscale/mesoscale sea-surface height variance using a long altimetry record (with Sandwell, Gille)."
+   },
+   {
+    "title": "Global distribution and morphology of small seamounts",
+    "year": 2023,
+    "venue": "Earth and Space Science 10(4)",
+    "url": "https://doi.org/10.1029/2022EA002331",
+    "takeaway": "Catalogs small seamount morphology globally using gravity-derived bathymetry."
+   },
+   {
+    "title": "Abyssal marine tectonics from the SWOT mission",
+    "year": 2024,
+    "venue": "Science 386(6727)",
+    "url": "https://doi.org/10.1126/science.ado7300",
+    "takeaway": "First author; shows SWOT's new wide-swath altimetry resolves abyssal hill tectonic fabric far better than legacy nadir altimetry."
+   },
+   {
+    "title": "Accuracy and Resolution of SWOT Altimetry: Foundation Seamounts",
+    "year": 2024,
+    "venue": "Earth and Space Science 11(6)",
+    "url": "https://doi.org/10.1029/2024EA003581",
+    "takeaway": "Quantifies SWOT gravity/bathymetry accuracy (~2.6 mGal, 14 km resolution per cycle), showing 10 repeats already match decades of nadir altimetry."
+   },
+   {
+    "title": "SWOT detects dispersive tsunami tied to a near-trench source in the 2025 Kamchatka earthquake",
+    "year": 2026,
+    "venue": "Science 391(6792)",
+    "url": "https://www.science.org/doi/10.1126/science.391.6792",
+    "takeaway": "Co-author; SWOT sea-surface data used to detect and constrain a 2025 Kamchatka tsunami's near-trench source."
+   }
+  ],
+  "bgc_ocean_color": "NONE found. Her own homepage and full Google Scholar record (435 citations, h-index 9) are entirely marine geophysics / physical oceanography (eddies, internal tides, abyssal tectonics, SWOT gravity/bathymetry). No paper or stated interest touches ocean color, PACE, carbon, plankton, nutrients, or marine ecosystems.",
+  "darwindiff_relevance": "Emulator/ML-for-inversion methodology only (ML mapping SWOT gravity anomaly to bathymetry is structurally similar to learning-from-indirect-observable problems), but the domain is solid-Earth/seafloor topography, not ocean BGC, so there is no direct overlap with parameter identifiability or adjoint/state-estimation for biogeochemistry.",
+  "confidence": "high"
+ },
+ {
+  "name": "Luna (Yue) Bai",
+  "role": "Postdoctoral Scholar / Schmidt AI in Science Postdoctoral Fellow, Scripps Institution of Oceanography (physical oceanography / climate group). PhD 2025, Environmental Science & Engineering, Caltech, advised by Andrew F. Thompson; BS, Environmental Science & Atmospheric/Oceanic Sciences, UCLA.",
+  "focus": "Submesoscale upper-ocean dynamics and air-sea interaction \u2014 how fronts, mixed-layer processes, and thermal/current feedback shape energy transfer between ocean and atmosphere. Her PhD framing describes studying the Southern Ocean current system's interaction with Antarctica 'from a physical and biogeochemical perspective,' but her verified published papers to date are pure physical oceanography, not biogeochemical modeling.",
+  "key_papers": [
+   {
+    "title": "Does topographic form stress impede prograde ocean currents?",
+    "year": 2021,
+    "venue": "Journal of Physical Oceanography 51(8), 2617-2638",
+    "url": "https://doi.org/10.1175/JPO-D-20-0273.1",
+    "takeaway": "Uses idealized simulations to show topographic form stress can brake prograde (eastward-forced) currents like the ACC (with Y. Wang, A. Stewart)."
+   },
+   {
+    "title": "Sub-mesoscale wind-front interactions: The combined impact of thermal and current feedback",
+    "year": 2023,
+    "venue": "Geophysical Research Letters 50(18), e2023GL104807",
+    "url": "https://doi.org/10.1029/2023GL104807",
+    "takeaway": "Quantifies how thermal and current air-sea feedback jointly modulate submesoscale front-wind interaction and energy exchange (with A. Thompson, B. Villas Boas, P. Klein, H. Torres, D. Menemenlis)."
+   },
+   {
+    "title": "Submesoscale Dynamics in the Upper Ocean: Air-Sea Interactions and Energy Transfers",
+    "year": 2025,
+    "venue": "PhD thesis, Caltech",
+    "url": "https://resnick.caltech.edu/people/yue-bai",
+    "takeaway": "Doctoral thesis synthesizing her submesoscale air-sea interaction work; title alone shows the dissertation is physical, not biogeochemical, in scope."
+   }
+  ],
+  "bgc_ocean_color": "NONE confirmed in her actual publication record \u2014 her two verified peer-reviewed papers (topographic form stress on currents; submesoscale wind-front thermal/current feedback) are physical oceanography with no carbon, plankton, nutrient, or ocean-color content. Her Caltech bio's phrase 'physical and biogeochemical perspective' on the Southern Ocean-Antarctica system is a stated research-angle description, not backed by a located BGC paper \u2014 flag this as an unresolved possible thread rather than a confirmed body of BGC work.",
+  "darwindiff_relevance": "None found. Very early-career (h-index 2, 53 total citations, PhD 2025) with only two verified peer-reviewed papers, both submesoscale physical oceanography / air-sea interaction, not adjoint methods, ML parameterization, differentiable modeling, or ocean BGC.",
+  "confidence": "medium (identity is well corroborated across Scripps, Caltech Resnick, Andrew Thompson's group page, and Google Scholar all pointing to the same Yue/Luna Bai; confidence is not 'high' only because her publication list is thin enough that the stated 'biogeochemical perspective' angle from her bio could not be verified against an actual paper)"
+ },
+ {
+  "name": "Andrew F. Thompson",
+  "role": "John S. and Sherry Chen Professor of Environmental Science & Engineering, Caltech (Division of Geological and Planetary Sciences); Director, Linde Center for Global Environmental Science; PhD Scripps Institution of Oceanography. Leads the Oceans & Cryosphere, Theory & Observations (OCTO) group.",
+  "focus": "Physical oceanography of the Southern Ocean and polar regions: mesoscale/submesoscale eddy transport, Antarctic Slope Current and ice-shelf/ocean interaction, and (increasingly) how that physical stirring sets biogeochemical fluxes -- BGC-Argo-float-based carbon export, chlorophyll structure, and phytoplankton bloom dynamics. Not an ML or adjoint-methods researcher himself, but a heavy user/producer of the BGC-Argo and satellite datasets that BGC ML work is validated against.",
+  "key_papers": [
+   {
+    "title": "Multidecadal warming of Antarctic waters",
+    "year": 2014,
+    "venue": "Science",
+    "url": "https://doi.org/10.1126/science.1256117",
+    "takeaway": "Landmark long-term Antarctic continental-shelf/slope warming record tied to ice-shelf melt; 589 citations."
+   },
+   {
+    "title": "Antarctic sea ice control on ocean circulation in present and glacial climates",
+    "year": 2014,
+    "venue": "PNAS",
+    "url": "https://doi.org/10.1073/pnas.1323922111",
+    "takeaway": "Sea-ice-driven buoyancy forcing controls overturning circulation state; 454 citations."
+   },
+   {
+    "title": "The Antarctic Slope Current in a Changing Climate",
+    "year": 2018,
+    "venue": "Reviews of Geophysics",
+    "url": "https://doi.org/10.1029/2018RG000624",
+    "takeaway": "Review synthesizing shelf-current dynamics and heat delivery to Antarctic ice shelves; 396 citations."
+   },
+   {
+    "title": "Ocean submesoscales as a key component of the global heat budget",
+    "year": 2018,
+    "venue": "Nature Communications",
+    "url": "https://doi.org/10.1038/s41467-018-02983-w",
+    "takeaway": "Submesoscale turbulence drives systematically upward heat transport missed by coarse climate models (co-authored with Patrice Klein's group)."
+   },
+   {
+    "title": "The overlooked contribution of the seasonal mixed layer pump to carbon export in low-latitude oceans",
+    "year": 2025,
+    "venue": "Nature Communications",
+    "url": "https://doi.org/10.1038/s41467-025-65710-2",
+    "takeaway": "Uses 26 BGC-Argo floats to show the seasonal mixed-layer pump adds ~75% more carbon export than prior estimates in oligotrophic waters -- direct BGC-Argo/carbon-export work."
+   },
+   {
+    "title": "Remote Sensing of Chlorophyll Fluorescence in the Ocean Using Imaging Spectrometry: Toward a Vertical Profile of Fluorescence",
+    "year": 2019,
+    "venue": "Geophysical Research Letters",
+    "url": "https://doi.org/10.1029/2018GL081273",
+    "takeaway": "Method to infer vertical chlorophyll-fluorescence structure from imaging spectrometry, i.e. ocean-color remote sensing."
+   }
+  ],
+  "bgc_ocean_color": "YES, real work (not his core identity but a recurring thread): BGC-Argo-float carbon-export studies (2025 Nat. Comm.), chlorophyll fluorescence/imaging-spectrometry remote sensing (2019 GRL), deep chlorophyll maxima formation in Drake Passage (2016 GRL), and phytoplankton spring-bloom initiation dynamics (2019 Prog. Oceanogr.). His PRISM project ('Phytoplankton Primary Productivity in the Southern Ocean') and BGC/bio-Argo glider deployments in the Indian sector confirm an active, sustained observational-BGC side to an otherwise physical-oceanography career.",
+  "darwindiff_relevance": "No adjoint/ML/differentiable-modeling work found. Relevance is as a source of real, independent observational anchors (BGC-Argo carbon export, chlorophyll vertical structure) that a Southern Ocean BGC parameter-learner could validate against or cite -- not as a methods collaborator.",
+  "confidence": "high (verified via Caltech GPS/Linde/ESE pages, OpenAlex author A5058289238 with 306 works, and matching publication record)"
+ },
+ {
+  "name": "Jack William Skinner",
+  "role": "Postdoctoral Scholar / Visitor in Environmental Science and Engineering, Caltech (Linde Center), working with J\u00f6rn Callies (Caltech) and Albion Lawrence (Brandeis); PhD in Astrophysics, Queen Mary University of London (advisor James Y-K. Cho). Early-career -- transitioned from exoplanet-atmosphere fluid dynamics into physical oceanography as a postdoc.",
+  "focus": "Geophysical/astrophysical fluid dynamics applied to rotating, stratified flows -- originally hot-Jupiter/exoplanet atmospheric circulation, now (2024-2026) statistical separation of balanced mesoscale/submesoscale turbulence from unbalanced internal waves and instrument noise in SWOT satellite altimetry. Purely physical dynamics and statistical/Bayesian signal-processing methodology; no biology or chemistry.",
+  "key_papers": [
+   {
+    "title": "Isolating Balanced Ocean Dynamics in SWOT Data",
+    "year": 2025,
+    "venue": "arXiv preprint (2512.03258)",
+    "url": "https://arxiv.org/abs/2512.03258",
+    "takeaway": "With Callies, Lawrence, Zhang: Bayesian statistical method to separate balanced eddy/front signal from internal-wave and noise contamination in SWOT sea-surface-height maps, preserving 10-km-scale features. His main current oceanography paper."
+   },
+   {
+    "title": "Modons on tidally synchronized extrasolar planets",
+    "year": 2022,
+    "venue": "Monthly Notices of the Royal Astronomical Society",
+    "url": "https://doi.org/10.1093/mnras/stac1130",
+    "takeaway": "Vortex-pair (modon) dynamics on tidally locked exoplanets; PhD-era geophysical fluid dynamics work with J.Y-K. Cho. 34 citations."
+   },
+   {
+    "title": "Numerical convergence of hot-Jupiter atmospheric flow solutions",
+    "year": 2021,
+    "venue": "Monthly Notices of the Royal Astronomical Society",
+    "url": "https://doi.org/10.1093/mnras/stab1082",
+    "takeaway": "Convergence study for GCM simulations of hot-Jupiter atmospheres. 28 citations."
+   },
+   {
+    "title": "Five key exoplanet questions answered via the analysis of 25 hot-Jupiter atmospheres in eclipse",
+    "year": 2022,
+    "venue": "The Astrophysical Journal Supplement Series",
+    "url": "https://doi.org/10.3847/1538-4365/ac5b6c",
+    "takeaway": "Large multi-author atmospheric-retrieval survey (Ariel/exoplanet consortium paper); his highest-cited work (119 citations), from the astrophysics side of his career."
+   }
+  ],
+  "bgc_ocean_color": "NONE found. All identified work is physical (fluid dynamics of exoplanet atmospheres, then balanced-flow/internal-wave/noise separation in satellite altimetry). No biogeochemistry, ocean color, carbon, plankton, or ecosystem content in any paper located.",
+  "darwindiff_relevance": "None directly on BGC parameter learning. Loosely adjacent only via methodology: his SWOT work uses Bayesian/statistical signal-separation and gap-filling on multi-modal satellite ocean data, which is methodologically similar in spirit (though not target) to state-estimation/data-assimilation problems DarwinDiff touches -- but he has published no biogeochemistry, ML/emulator, or adjoint work.",
+  "confidence": "high on identity (Caltech GPS/Linde profile as 'Jack Skinner, Visitor in ESE'; Google Scholar tbPLbdUAAAAJ; arXiv 2512.03258 lists 'Jack William Skinner' with Caltech affiliation and collaborators Callies/Lawrence, matching the search-described postdoc); low volume of oceanography-specific output since he is early-career and only recently moved into the field -- most of his citation record is still from the astrophysics PhD."
+ },
+ {
+  "name": "Patrice Klein (Jean Patrice M. Klein)",
+  "role": "Visiting Associate, Environmental Science and Engineering, Caltech/JPL; senior scientist background at LMD/ENS, Paris. Highly-cited, senior figure in physical oceanography (11,783 citations, h-index 61 per Google Scholar).",
+  "focus": "Submesoscale and mesoscale ocean turbulence, vertical pumps of heat/nutrients/carbon, surface quasigeostrophic theory, and \u2014 increasingly \u2014 deep-learning reconstruction of ocean surface fields from satellite altimetry/SST for use with SWOT-era data.",
+  "key_papers": [
+   {
+    "title": "The oceanic vertical pump induced by mesoscale and submesoscale turbulence",
+    "year": 2009,
+    "venue": "Annual Review of Marine Science (with G. Lapeyre)",
+    "takeaway": "Foundational review (700+ citations) establishing how sub/mesoscale turbulence drives vertical nutrient and heat transport in the upper ocean."
+   },
+   {
+    "title": "Impact of sub-mesoscale physics on production and subduction of phytoplankton",
+    "year": 2001,
+    "venue": "(with M. L\u00e9vy, A.M. Treguier)",
+    "takeaway": "Landmark older paper (525 citations) showing submesoscale dynamics directly control phytoplankton production and export \u2014 his clearest direct BGC/plankton work."
+   },
+   {
+    "title": "Ocean submesoscales as a key component of the global heat budget",
+    "year": 2018,
+    "venue": "Nature Communications (with Z. Su, J. Wang, A.F. Thompson, D. Menemenlis)",
+    "url": "https://www.nature.com/articles/s41467-018-02983-w",
+    "takeaway": "543-citation paper co-authored with Andrew Thompson quantifying the global submesoscale heat pump."
+   },
+   {
+    "title": "Enhanced upward heat transport at deep submesoscale ocean fronts",
+    "year": 2020,
+    "venue": "Nature Geoscience (with L. Siegelman, P. Rivi\u00e8re, A.F. Thompson, H.S. Torres, M. Flexas, D. Menemenlis)",
+    "url": "https://www.nature.com/articles/s41561-019-0489-1",
+    "takeaway": "Second major Klein-Thompson collaboration; deep submesoscale fronts in the ACC drive strong anomalous upward heat transport."
+   },
+   {
+    "title": "Synthesizing Sea Surface Temperature and Satellite Altimetry Observations Using Deep Learning Improves the Accuracy and Resolution of Gridded Sea Surface Height Anomalies",
+    "year": 2023,
+    "venue": "Journal of Advances in Modeling Earth Systems 15(5), e2022MS003589 (with S.A. Martin, G.E. Manucharyan)",
+    "url": "https://doi.org/10.1029/2022MS003589",
+    "takeaway": "Deep-learning fusion of SST and altimetry to improve gridded SSH reconstruction accuracy and resolution \u2014 direct precedent for ML-based reconstruction of ocean fields from real, sparse satellite observations."
+   }
+  ],
+  "bgc_ocean_color": "Yes, direct and longstanding: his 2001 paper is a landmark linking submesoscale physics to phytoplankton production/export, and his broader vertical-pump work (2009 ARMS review) is fundamentally about nutrient and carbon supply mechanisms to the euphotic zone. No PACE-specific or ocean-color-instrument work found, but the biological-carbon-pump physics is core to his career.",
+  "darwindiff_relevance": "Adjacent on two fronts: (1) his deep-learning SSH-reconstruction work with Manucharyan is a direct methodological precedent for training neural models on real, sparse satellite observations to reconstruct ocean state, which is the same class of problem as differentiable-surrogate/parameter learning from real obs; (2) his submesoscale-driven nutrient/phytoplankton supply work is thematically close to what controls the plankton growth/grazing and iron-supply parameters DarwinDiff studies, though at the level of resolved dynamics rather than parameter inference. No adjoint/state-estimation or explicit BGC-parameter-recovery work found.",
+  "confidence": "high"
+ },
+ {
+  "name": "Michael W. Mahoney",
+  "role": "Professor, Department of Statistics, UC Berkeley; Faculty Scientist / Group Lead, Machine Learning and Analytics Group, Lawrence Berkeley National Laboratory (LBNL) Scientific Data Division; VP & Director of Big Data Group, International Computer Science Institute (ICSI). PhD Yale (computational statistical mechanics).",
+  "focus": "Algorithmic and statistical foundations of large-scale data analysis: randomized numerical linear algebra (RandNLA), matrix/graph sketching, implicit regularization, and more recently scientific machine learning \u2014 foundation models for PDEs/scientific data, uncertainty quantification for PDE learning, generative modeling of physical fields (seismic wavefields, weather emulation). No ocean-specific angle found.",
+  "key_papers": [
+   {
+    "title": "Randomized Algorithms for Matrices and Data",
+    "venue": "Foundations and Trends in Machine Learning, 3(2):123\u2013224",
+    "year": 2011,
+    "takeaway": "Landmark monograph establishing RandNLA as a field: randomized sketching/sampling algorithms for large matrix problems with rigorous guarantees.",
+    "url": "https://www.stat.berkeley.edu/~mmahoney/talks/rafmad1.pdf"
+   },
+   {
+    "title": "CUR matrix decompositions for improved data analysis",
+    "venue": "PNAS 106(3):697\u2013702 (with Petros Drineas)",
+    "year": 2009,
+    "takeaway": "Introduces interpretable low-rank decompositions built from actual rows/columns of the data matrix, not abstract singular vectors.",
+    "url": "https://www.pnas.org/doi/10.1073/pnas.0803205106"
+   },
+   {
+    "title": "Towards Foundation Models for Scientific Machine Learning",
+    "venue": "NeurIPS 2023 (with S. Subramanian, P. Harrington, K. Keutzer, W. Bhimji, D. Morozov, A. Gholami)",
+    "year": 2023,
+    "takeaway": "Explores pretraining/transfer strategies for building general-purpose ML models across PDE-governed scientific datasets."
+   },
+   {
+    "title": "Learning Physics for Unveiling Hidden Earthquake Ground Motions via Conditional Generative Modeling",
+    "venue": "Nature Communications (with P. Ren et al.)",
+    "year": 2024,
+    "takeaway": "Conditional generative model reconstructs physically consistent ground-motion fields from sparse seismic observations."
+   },
+   {
+    "title": "WaveCastNet: Rapid Wavefield Forecasting for Earthquake Early Warning via Deep Sequence Learning",
+    "venue": "Nature Communications (with D. Lyu et al.)",
+    "year": 2024,
+    "takeaway": "Deep sequence model forecasts seismic wavefields fast enough for real-time earthquake early warning."
+   },
+   {
+    "title": "On Neural Scaling Laws for Weather Emulation through Continual Training",
+    "venue": "arXiv:2603.25687 (with S. Subramanian et al.)",
+    "year": 2026,
+    "takeaway": "Studies how weather-emulator accuracy scales with continued training/compute, an analogue of LLM scaling laws for physical emulators."
+   }
+  ],
+  "bgc_ocean_color": "NONE \u2014 targeted searches ('Mahoney climate ocean scientific machine learning', 'Mahoney ClimSim/climate emulation') turned up no ocean biogeochemistry, ocean-color, PACE, carbon-cycle, plankton, or marine-ecosystem work. His scientific-ML applications are weather emulation and seismic/earthquake wavefields, not ocean BGC.",
+  "darwindiff_relevance": "Methodological overlap only: RandNLA/scientific-ML rigor, UQ for PDE emulators, and generative modeling of physical simulator fields are adjacent to building/validating a differentiable BGC surrogate, but there is no direct ocean or adjoint-state-estimation work to point to.",
+  "confidence": "high"
+ },
+ {
+  "name": "Stephan Mandt",
+  "role": "Professor of Computer Science and Statistics, UC Irvine; Director, UCI Center for Machine Learning; Associate Director, AI in Science Institute (AISI); Chan Zuckerberg Investigator, NSF CAREER awardee, Kavli Fellow. Field: deep generative modeling / probabilistic ML.",
+  "focus": "Foundations and applications of generative AI -- variational autoencoders and diffusion models -- for neural data compression, uncertainty quantification, and resource-efficient inference, applied across video/image compression and increasingly to AI-for-science, most notably hybrid physics-ML climate emulation.",
+  "key_papers": [
+   {
+    "title": "Insights from Generative Modeling for Neural Video Compression",
+    "venue": "arXiv preprint",
+    "year": 2021,
+    "url": "https://arxiv.org/abs/2107.13136",
+    "takeaway": "Connects generative-model theory (VAEs/flows) to neural video codec design; a foundational paper in the neural-compression subfield he leads."
+   },
+   {
+    "title": "ClimSim: A large multi-scale dataset for hybrid physics-ML climate emulation",
+    "venue": "NeurIPS 2023, Datasets & Benchmarks Track (Best Paper award); ~60 co-authors incl. Mandt",
+    "year": 2023,
+    "url": "https://arxiv.org/abs/2306.08754",
+    "takeaway": "5.7-billion-sample dataset pairing high-resolution atmospheric physics with coarse climate-model states, built to train ML parameterizations (sub-grid closures) that plug into a real host climate simulator -- the same hybrid physics+ML closure paradigm DarwinDiff pursues for ocean BGC."
+   },
+   {
+    "title": "Understanding Pathologies of Deep Heteroskedastic Regression",
+    "venue": "UAI 2024 (Oral); Wong-Toi, Jazbec, Xia, Nalisnick, Mandt",
+    "year": 2024,
+    "url": "https://arxiv.org/abs/2306.16717",
+    "takeaway": "Diagnoses collapse/instability failure modes when neural nets jointly predict a mean and a heteroskedastic variance -- relevant to any learned-uncertainty output head."
+   },
+   {
+    "title": "Progressive Compression with Universally Quantized Diffusion Models",
+    "venue": "ICLR 2025 (Oral); Yang et al.",
+    "year": 2025,
+    "url": "https://arxiv.org/abs/2412.10935",
+    "takeaway": "Diffusion-based progressive neural codec with a universal quantization scheme for scalable lossy compression."
+   },
+   {
+    "title": "Generative Uncertainty in Diffusion Models",
+    "venue": "UAI 2025; Jazbec, Wong-Toi, Xia, Zhang, Nalisnick, Mandt",
+    "year": 2025,
+    "url": "https://arxiv.org/abs/2502.20946",
+    "takeaway": "Proposes a way to extract calibrated epistemic uncertainty estimates directly from a trained diffusion model's sampling process."
+   },
+   {
+    "title": "Towards Unified Diffusion Models for Multi-Model Climate Emulation at Scale",
+    "venue": "arXiv preprint; Immorlano, Tavares, Draxler, Smyth, Gentine, Mandt",
+    "year": 2025,
+    "url": "https://arxiv.org/abs/2511.22970",
+    "takeaway": "A single conditional diffusion model learns shared structure across several different climate models to rapidly generate large, uncertainty-aware ensembles of climate projections."
+   }
+  ],
+  "bgc_ocean_color": "NONE directly on ocean biogeochemistry/ocean color/PACE/plankton/marine ecosystems. His climate-emulation work (ClimSim, unified diffusion climate emulator) targets atmospheric/land sub-grid physics parameterization, not ocean BGC -- adjacent domain, same paradigm, different sphere of the earth system.",
+  "darwindiff_relevance": "High methodological adjacency, no direct ocean-BGC overlap. ClimSim is essentially the atmospheric-physics analogue of what DarwinDiff is: a differentiable/learnable surrogate standing in for expensive sub-grid physics inside a real host simulator, trained against physics-consistency constraints. The diffusion-based ensemble/UQ work (generative uncertainty, unified multi-model climate emulation) is directly relevant if DarwinDiff's Track-2 forward emulator wants a principled way to generate calibrated ensemble uncertainty rather than point forecasts.",
+  "confidence": "high"
+ },
+ {
+  "name": "J. Xavier Prochaska",
+  "role": "Distinguished Professor of Astronomy & Astrophysics, UC Santa Cruz, and Astronomer with UC Observatories; Affiliate of the UCSC Ocean Sciences Department (since 2020); Simons Foundation Pivot Fellow in oceanography (2023-24, mentored by Daniel Rudnick, Scripps Institution of Oceanography). Originally an observational astrophysicist (circumgalactic/intergalactic medium, fast radio bursts) who has substantially pivoted toward applying astronomy-derived statistical/ML methods to physical and biological oceanography.",
+  "focus": "Core astrophysics: gas in/around/between galaxies, fast radio bursts as cosmological probes. Ocean-science pivot: reusing spectroscopic/statistical-inference tools from astronomy on ocean-color and sea-surface-temperature remote sensing -- unsupervised decomposition of ocean-color absorption spectra, deep-learning pattern discovery in SST imagery, and identifiability limits of multi-spectral phytoplankton retrievals -- plus in-situ hyperspectral instrumentation for coastal harmful-algal-bloom prediction ('ocean-colour and Sea-Meets-the-Stars' efforts).",
+  "key_papers": [
+   {
+    "title": "A census of baryons in the Universe from localized fast radio bursts",
+    "venue": "Nature",
+    "year": 2020,
+    "url": "https://www.nature.com/articles/s41586-020-2300-2",
+    "takeaway": "Landmark astrophysics result (861+ citations) establishing FRBs as a tool to measure the universe's missing baryonic matter; not ocean-related but anchors his core reputation."
+   },
+   {
+    "title": "PypeIt: the Python spectroscopic data reduction pipeline",
+    "venue": "arXiv / Journal of Open Source Software",
+    "year": 2020,
+    "url": "https://arxiv.org/abs/1911.03474",
+    "takeaway": "Widely-used open-source spectroscopy data-reduction pipeline; demonstrates his software/instrumentation-pipeline track record, since redirected toward hyperspectral ocean sensors."
+   },
+   {
+    "title": "The Fundamental Patterns of Sea Surface Temperature",
+    "venue": "arXiv preprint; Prochaska, Guo, Cornillon, Buckingham",
+    "year": 2023,
+    "url": "https://arxiv.org/abs/2303.12521",
+    "takeaway": "Introduces 'Nenya', a deep contrastive-learning model trained on millions of satellite images to discover recurring SST spatial patterns, including ocean thermal extremes."
+   },
+   {
+    "title": "On the Fundamental Additive Modes of Ocean Color Absorption",
+    "venue": "Limnology and Oceanography; Prochaska & Gray",
+    "year": 2025,
+    "url": "https://aslopubs.onlinelibrary.wiley.com/doi/10.1002/lno.70098",
+    "takeaway": "Unsupervised non-negative matrix factorization of ocean-color absorption spectra finds 4 basis functions explaining >99.9% of variance across two independent large datasets, giving an interpretable low-dimensional basis relevant to hyperspectral PACE retrievals."
+   },
+   {
+    "title": "On the challenges of retrieving phytoplankton properties from remote-sensing observations",
+    "venue": "Biogeosciences, 22, 4705-4728; Prochaska & Frouin",
+    "year": 2025,
+    "url": "https://bg.copernicus.org/articles/22/4705/2025/",
+    "takeaway": "Shows a physical degeneracy (dependence only on the backscatter/absorption ratio) caps multi-spectral ocean-color retrievals at ~3 recoverable inherent-optical-property parameters, and that phytoplankton absorption specifically cannot be isolated without strong priors -- an identifiability/degeneracy result for ocean-color inversion."
+   }
+  ],
+  "bgc_ocean_color": "SUBSTANTIAL and current. Of the three people researched, Prochaska is the one with direct, first-author, 2023-2025 ocean-color and ocean-biogeochemistry-adjacent work: unsupervised decomposition of ocean-color absorption spectra (explicitly framed toward PACE-era hyperspectral retrieval), a formal identifiability/degeneracy analysis of phytoplankton-property retrieval from remote sensing, deep-learning SST pattern discovery, and an active Simons Pivot Fellowship aimed at sub-mesoscale dynamics, harmful-algal-bloom prediction, and in-situ hyperspectral coastal instrumentation.",
+  "darwindiff_relevance": "The phytoplankton-retrieval degeneracy paper (Biogeosciences 2025) is a close conceptual sibling to DarwinDiff's central question: both formally characterize how many free parameters/properties are actually recoverable from a fixed observation set versus which combinations are degenerate -- there for ocean-color IOPs, here for Darwin-6 BGC parameters. His methods are contrastive learning / NMF / classical statistical inference rather than adjoint/differentiable state estimation, so it is not a modeling-technique match, but he is a natural potential contact given DarwinDiff's shelved PACE/MODIS ocean-color loaders (modis_pic_loader.py, pace_loader.py) and the open strategic question of whether ocean-color ML is occupied within the AI4Ocean Alliance.",
+  "confidence": "high"
+ },
+ {
+  "name": "Alice Yepremyan",
+  "role": "Data Scientist / Software Engineer, NASA JPL \u2014 computer vision and machine learning for Earth and planetary remote sensing",
+  "institution": "NASA Jet Propulsion Laboratory (JPL), Caltech",
+  "focus": "Deep learning for satellite Earth-observation gap-filling and planetary-rover vision: masked-autoencoder and U-Net reconstruction of cloud-occluded sea surface temperature fields, cross-mission terrain segmentation, and contrastive self-supervised vision for onboard rover robotics. Also contributed to an automated map feature-extraction competition for critical-mineral assessment (USGS/DARPA/JPL/MITRE).",
+  "key_papers": [
+   {
+    "title": "MAESSTRO: Masked Autoencoders for Sea Surface Temperature Reconstruction under Occlusion",
+    "year": 2024,
+    "venue": "Ocean Science, 20(5), 1309-1323",
+    "url": "https://doi.org/10.5194/os-20-1309-2024",
+    "takeaway": "A masked-autoencoder deep model learns the anisotropic structure of small-scale ocean fronts from simulation and reconstructs cloud-masked 1km SST fields, validated on real VIIRS satellite data."
+   },
+   {
+    "title": "Multi-Satellite U-Net for High-Resolution Sea Surface Temperature Reconstruction",
+    "year": 2025,
+    "venue": "EGUsphere (preprint)",
+    "url": "https://egusphere.copernicus.org/preprints/2025/egusphere-2025-4847/",
+    "takeaway": "Extends the gap-filling approach to a U-Net architecture fusing multiple satellite sources for higher-resolution blended SST reconstruction."
+   },
+   {
+    "title": "Mixed-Domain Training Improves Multi-Mission Terrain Segmentation",
+    "year": 2022,
+    "venue": "European Conference on Computer Vision (ECCV) workshop",
+    "takeaway": "Training across mixed planetary-mission domains improves terrain segmentation generalization for rover vision systems."
+   },
+   {
+    "title": "CLOVER: Contrastive Learning for Onboard Vision-Enabled Robotics",
+    "year": 2024,
+    "venue": "Journal of Spacecraft and Rockets, 61(3), 728-740",
+    "takeaway": "Self-supervised contrastive learning produces onboard visual representations for spacecraft/rover robotics without heavy labeled data."
+   },
+   {
+    "title": "Extracting data from maps: Lessons learned from the artificial intelligence for critical mineral assessment competition",
+    "year": 2025,
+    "venue": "USGS / DARPA / JPL / MITRE competition report",
+    "url": "https://pubs.usgs.gov/publication/70271124",
+    "takeaway": "Documents automated georeferencing (median RMSE 1.1km) and ML-based feature extraction from historical geologic maps for critical-mineral mapping."
+   }
+  ],
+  "bgc_ocean_color": "NONE \u2014 no work found on ocean biogeochemistry, ocean color, PACE, carbon cycle, plankton, or marine ecosystems. Her ocean-remote-sensing work is exclusively on sea surface temperature (a physical, not biogeochemical, field), used as a gap-filling/reconstruction target for deep learning methods.",
+  "darwindiff_relevance": "None on substance (no BGC parameter or biogeochemical target overlap); loosely methods-adjacent in that her masked-autoencoder/U-Net gap-filling of satellite SST fields is a similar ML-for-ocean-remote-sensing pattern to emulator/reconstruction work, but applied to physical not BGC fields.",
+  "confidence": "high"
+ },
+ {
+  "name": "Diego Martinez",
+  "role": "Data Scientist, NASA JPL Machine Learning & Instrument Autonomy (MLIA) group (per ml.jpl.nasa.gov bio). PhD Computer Science, Texas A&M University (AutoML / DARPA D3M program), BS from Universidad Aut\u00f3noma de Yucat\u00e1n. Google Scholar profile under the name 'Diego Martinez Garcia' (181 citations, h-index 4) lists matching AutoML and oceanographic-eddy-detection work, treated as the same person given the exact topical and biographical overlap (Texas A&M/D3M AutoML background plus 'eddy detection and heat flux reconstruction' oceanographic ML) -- though one co-authored paper lists him as 'Diego Mart\u00ednez Plasencia', a surname variant not fully reconciled, so identity is not 100% airtight.",
+  "focus": "General-purpose ML/AutoML engineer at JPL now applying deep learning to Earth and planetary science production systems (e.g. optimizing transformer models for SAR-based disaster response on the OPERA project) and, per his JPL bio, developing semi-supervised learning frameworks for oceanographic data analysis (eddy detection, heat-flux reconstruction) -- all physical-dynamics remote sensing, not biogeochemistry.",
+  "key_papers": [
+   {
+    "title": "Unsupervised SAR Images for Submesoscale Oceanic Eddy Detection",
+    "year": 2023,
+    "venue": "IEEE IGARSS 2023",
+    "url": "https://doi.org/10.1109/igarss52108.2023.10282488",
+    "takeaway": "Self-supervised contrastive learning detects submesoscale ocean eddies in SAR imagery without labeled training data."
+   },
+   {
+    "title": "TODS: An Automated Time Series Outlier Detection System",
+    "year": 2021,
+    "venue": "AAAI Conference on Artificial Intelligence, vol 35 (demo track)",
+    "url": "",
+    "takeaway": "General-purpose automated anomaly-detection system for time series, from the DARPA D3M AutoML program."
+   },
+   {
+    "title": "On Evaluation of AutoML Systems",
+    "year": 2020,
+    "venue": "ICML Workshop on Automatic Machine Learning",
+    "url": "",
+    "takeaway": "Proposes evaluation methodology for comparing AutoML platforms."
+   },
+   {
+    "title": "Towards Personalized Preprocessing Pipeline Search",
+    "year": 2023,
+    "venue": "arXiv preprint",
+    "url": "",
+    "takeaway": "Automated search over per-dataset data-preprocessing pipelines."
+   },
+   {
+    "title": "Multivariate multi-step deep learning time series approach in forecasting Parkinson's disease future severity progression",
+    "year": 2019,
+    "venue": "ACM-BCB (ACM Conf. on Bioinformatics, Computational Biology, and Health Informatics)",
+    "url": "",
+    "takeaway": "Deep-learning time-series forecasting applied to a clinical (non-ocean) domain, illustrating his general ML-tooling background."
+   }
+  ],
+  "bgc_ocean_color": "NONE found. His sole ocean-domain paper is SAR-based eddy detection (a physical/dynamical feature), and his JPL bio's other ocean mention ('heat flux reconstruction') is likewise physical, not biogeochemical, ocean-color, carbon, or plankton work.",
+  "darwindiff_relevance": "Low/tangential: an AutoML and self-supervised-representation-learning generalist who has applied contrastive learning to physical ocean-eddy detection from SAR, not to BGC parameter learning, adjoint/state estimation, differentiable modeling, or emulators of biogeochemical fields.",
+  "confidence": "medium \u2014 role and general focus corroborated across the JPL MLIA bio page and a matching Google Scholar profile, but the surname mismatch ('Martinez Garcia' vs. a co-authored paper's 'Mart\u00ednez Plasencia') means the two profiles are not conclusively proven to be the identical individual."
+ },
+ {
+  "name": "Hector Torres Gutierrez (H\u00e9ctor S. Torres)",
+  "role": "Research Scientist, JPL/Caltech \u2014 submesoscale physical ocean dynamics",
+  "institution": "Jet Propulsion Laboratory / California Institute of Technology",
+  "focus": "Physical oceanography of submesoscale (sub-10-100km) motions: separating balanced currents from internal gravity waves, quantifying submesoscale contributions to vertical heat transport and air-sea momentum/wind work, and (most recently) diagnosing fine-scale divergence from SWOT-class sea-surface-height observations by blending dynamical balance with data-driven regression. Active in the S-MODE airborne/satellite observational campaigns. Won a 2018 JPL Outstanding Postdoctoral Research Award.",
+  "key_papers": [
+   {
+    "title": "Partitioning Ocean Motions Into Balanced Motions and Internal Gravity Waves",
+    "year": 2018,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "takeaway": "Foundational method (with P. Klein, D. Menemenlis, B. Qiu et al.) for separating balanced submesoscale currents from internal gravity waves in high-resolution ocean simulations; ~225 citations."
+   },
+   {
+    "title": "High-Frequency Submesoscale Motions Enhance Upward Vertical Heat Transport in the Global Ocean",
+    "year": 2020,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "takeaway": "Shows submesoscale motions substantially enhance upward ocean heat transport globally; ~100 citations."
+   },
+   {
+    "title": "Wind work at the air-sea interface: a modeling study in anticipation of future space missions",
+    "year": 2022,
+    "venue": "Geoscientific Model Development",
+    "takeaway": "Models fine-scale wind work at the air-sea interface to anticipate what SWOT-class missions will be able to observe."
+   },
+   {
+    "title": "Airborne observations of fast-evolving ocean submesoscale turbulence",
+    "year": 2024,
+    "venue": "Nature Communications",
+    "takeaway": "First airborne observations resolving how rapidly submesoscale ocean turbulence evolves in time."
+   },
+   {
+    "title": "Submesoscale eddy contribution to ocean vertical heat flux diagnosed from airborne observations",
+    "year": 2025,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "Quantifies the eddy-driven component of vertical heat flux using airborne S-MODE observations."
+   },
+   {
+    "title": "Diagnosing Submesoscale Divergence From Sea Surface Height",
+    "year": 2026,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "New method combining dynamical balance with data-driven regression to detect divergent (Ro>=1) submesoscale motions from SWOT-type SSH data."
+   }
+  ],
+  "bgc_ocean_color": "NONE authored by him directly \u2014 all his own papers are purely physical (velocity fields, heat flux, waves, divergence). Note of context: a 2025 paper in the same S-MODE airborne observational program (Lang, Omand & Lenain, 'Airborne Remote Sensing of Concurrent Submesoscale Dynamics and Phytoplankton', Earth and Space Science) links submesoscale dynamics to chlorophyll-a/POC proxies, but I explicitly checked and Torres is NOT a co-author on that paper \u2014 so it should not be attributed to him.",
+  "darwindiff_relevance": "Low/indirect. His work on inferring fine-scale ocean state from sparse remote-sensing observations via a blend of dynamical balance and data-driven regression is philosophically adjacent to state-estimation/inverse-modeling approaches, but it is purely physical dynamics (currents, heat flux) with no biogeochemical parameter, carbon-cycle, or plankton content \u2014 no direct overlap with DarwinDiff's differentiable BGC parameter learning.",
+  "confidence": "high"
+ },
+ {
+  "name": "Georgy Manucharyan",
+  "role": "Associate Professor, School of Oceanography, University of Washington. Verified via his UW faculty page (ocean.washington.edu/home/Georgy_Manucharyan), lab homepage (deep.ocean.washington.edu), and Google Scholar (2,430 citations, h-index 25).",
+  "focus": "Leads the Ocean Dynamics group at UW: mesoscale/submesoscale ocean turbulence, sea ice-ocean interaction and floe-scale sea ice modeling, and deep-learning applications to satellite oceanography (inferring dynamical quantities like eddy heat flux and improved SSH/current fields from sparse multi-modal satellite observations). He is the senior PI behind the NeurOST line of work (with PhD student Scott Martin).",
+  "key_papers": [
+   {
+    "title": "Submesoscale sea ice-ocean interactions in marginal ice zones",
+    "year": 2017,
+    "venue": "JGR: Oceans",
+    "takeaway": "Foundational paper establishing submesoscale restratification dynamics at ice-ocean fronts; 194 citations.",
+    "url": "https://doi.org/10.1002/2016JC012265"
+   },
+   {
+    "title": "Deep learning to infer eddy heat fluxes from sea surface height patterns of mesoscale turbulence",
+    "year": 2021,
+    "venue": "Nature Communications",
+    "takeaway": "CNN trained on high-resolution model output infers unresolved eddy heat flux directly from SSH snapshots.",
+    "url": "https://www.nature.com/articles/s41467-021-24801-y"
+   },
+   {
+    "title": "Enhanced eddy activity in the Beaufort Gyre in response to sea ice loss",
+    "year": 2020,
+    "venue": "Nature Communications",
+    "takeaway": "Satellite-derived eddy statistics show sea-ice retreat increases Arctic mesoscale eddy activity; 143 citations.",
+    "url": "https://www.nature.com/articles/s41467-020-14603-7"
+   },
+   {
+    "title": "Synthesizing sea surface temperature and satellite altimetry observations using deep learning improves the accuracy and resolution of gridded sea surface height anomalies",
+    "year": 2023,
+    "venue": "JAMES",
+    "takeaway": "Introduces the NeurOST method: a neural network fuses SST and along-track altimetry to beat linear objective analysis for SSH mapping (Gulf Stream region).",
+    "url": "https://doi.org/10.1029/2022MS003589"
+   },
+   {
+    "title": "Deep learning improves global satellite observations of ocean eddy dynamics",
+    "year": 2024,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "Global NeurOST product (with Martin, Klein): ~30% resolution improvement over standard SSH products, revealing an order-of-magnitude more upscale eddy energy cascade; now a NASA PO.DAAC operational L4 product.",
+    "url": "https://doi.org/10.1029/2024GL110059"
+   },
+   {
+    "title": "Generative Data Assimilation for Surface Ocean State Estimation From Multi-Modal Satellite Observations",
+    "year": 2025,
+    "venue": "JAMES",
+    "takeaway": "Extends NeurOST to a generative-model framework for probabilistic surface-ocean state estimation from multi-modal satellite data.",
+    "url": "https://doi.org/10.1029/2024MS004707"
+   }
+  ],
+  "bgc_ocean_color": "NONE found as a research focus. One paper (submesoscale turbulence review) makes a passing general statement that submesoscale vertical advection 'affects biogeochemical cycles via vertical advection of nutrients,' but this is context, not a BGC/ocean-color/PACE/plankton study of his own. No ocean-color, carbon-cycle, or plankton papers turned up in his publication list or CV.",
+  "darwindiff_relevance": "Not BGC, but methodologically adjacent: PI on deep-learning-based multi-modal satellite data fusion for ocean state estimation (NeurOST) and, more recently, generative models for probabilistic surface-ocean state estimation/data assimilation. Relevant as a template for building differentiable/ML pipelines that fuse sparse real observations into gridded ocean state, and for the generative-modeling angle DarwinDiff's adjacent interests list (uncertainty, generative models). No direct overlap with parameter learning, adjoint methods, or BGC identifiability.",
+  "confidence": "high"
+ },
+ {
+  "name": "Scott Martin (Scott A. Martin)",
+  "role": "PhD candidate, School of Oceanography, University of Washington, advised by Georgy Manucharyan (co-advised by Patrice Klein). Verified via his homepage (smartin98.github.io), UW oceanography profile, GitHub (smartin98/NeurOST), and Google Scholar. Early-career: this is essentially his full body of published work to date (a handful of papers, one from an earlier undergraduate physics project).",
+  "focus": "Lead developer of NeurOST (Neural Ocean Surface Topography): deep-learning reconstruction of high-resolution, continuous sea surface height and surface geostrophic current fields from sparse along-track altimetry plus gridded SST, aimed at better resolving mesoscale/submesoscale eddy dynamics than classical objective analysis.",
+  "key_papers": [
+   {
+    "title": "Synthesizing sea surface temperature and satellite altimetry observations using deep learning improves the accuracy and resolution of gridded sea surface height anomalies",
+    "year": 2023,
+    "venue": "JAMES",
+    "takeaway": "Introduces the NeurOST neural-network SSH-mapping method (Gulf Stream case study); 72 citations.",
+    "url": "https://doi.org/10.1029/2022MS003589"
+   },
+   {
+    "title": "Deep learning improves global satellite observations of ocean eddy dynamics",
+    "year": 2024,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "First-author global NeurOST product; now distributed operationally via NASA PO.DAAC as the 'Daily NeurOST L4 SSH and Surface Geostrophic Currents' dataset.",
+    "url": "https://doi.org/10.1029/2024GL110059"
+   },
+   {
+    "title": "Generative Data Assimilation for Surface Ocean State Estimation From Multi-Modal Satellite Observations",
+    "year": 2025,
+    "venue": "JAMES",
+    "takeaway": "First-author extension of NeurOST to a generative-modeling framework for probabilistic ocean state estimation.",
+    "url": "https://doi.org/10.1029/2024MS004707"
+   },
+   {
+    "title": "Long-Range Distillation: Distilling 10,000 Years of Simulated Climate into Long Timestep AI Weather Models",
+    "year": 2025,
+    "venue": "arXiv preprint",
+    "takeaway": "Collaboration with NVIDIA Earth-2/weather-model researchers (Brenowitz, Durran, Pritchard) on distillation for long-timestep AI climate emulators; shows a working relationship with the NVIDIA AI-weather group beyond his core UW oceanography output.",
+    "url": "https://arxiv.org/abs/2510.xxxxx"
+   },
+   {
+    "title": "The circularization time-scales of late-type binary stars",
+    "year": 2021,
+    "venue": "MNRAS",
+    "takeaway": "Unrelated undergraduate astrophysics work (tidal circularization in binary stars) from his Oxford MPhys, predating his oceanography career.",
+    "url": "https://doi.org/10.1093/mnras/stab2318"
+   }
+  ],
+  "bgc_ocean_color": "NONE. All identified work is purely physical (SSH, geostrophic currents, eddy kinetic energy, generative state estimation). No ocean-color, carbon, plankton, or PACE-related publications found.",
+  "darwindiff_relevance": "As lead developer of NeurOST, directly relevant as a worked example of deep-learning fusion of sparse real satellite observations into a continuous physical ocean-state product, and (via the 2025 generative-DA paper) of generative/probabilistic approaches to ocean state estimation. No overlap with BGC parameter learning or adjoint/differentiable-model methods specifically; relevance is as a methodological neighbor in the 'ML emulator / multi-modal satellite fusion' space, not in ocean biogeochemistry.",
+  "confidence": "high (identity clearly verified \u2014 homepage, UW profile, GitHub NeurOST repo, and Scholar profile are mutually consistent) though note this is a small, early-career publication record as expected for a PhD candidate."
+ },
+ {
+  "name": "Dhruv Balwada",
+  "role": "Lamont Assistant Research Professor, Lamont-Doherty Earth Observatory (LDEO), Columbia University. PhD, Geophysical Fluid Dynamics Institute, Florida State University; prior postdocs at NYU Courant and UW School of Oceanography.",
+  "focus": "Oceanic turbulence at the 100 m-100 km scale: mesoscale/submesoscale stirring, mixing and tracer transport, and machine-learning parameterization of these unresolved processes for climate models (part of the M2LInES project). Distinctively among the three, a real and substantial biogeochemical thread runs through his earlier work: eddy/submesoscale iron transport and its effect on Southern Ocean primary production and phytoplankton blooms.",
+  "key_papers": [
+   {
+    "title": "Vertical Eddy Iron Fluxes Support Primary Production in the Open Southern Ocean",
+    "year": 2020,
+    "venue": "Nature Communications 11(1), 1125",
+    "takeaway": "Quantifies how eddy-driven vertical iron fluxes sustain phytoplankton primary production in the iron-limited Southern Ocean \u2014 direct BGC content."
+   },
+   {
+    "title": "A Data-Driven Approach for Parameterizing Ocean Submesoscale Buoyancy Fluxes",
+    "year": 2025,
+    "venue": "JAMES (published version of arXiv:2312.06972)",
+    "url": "https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2025MS004991",
+    "takeaway": "CNN-based data-driven parameterization of submesoscale vertical buoyancy fluxes for the ocean mixed layer, with A. Bodner and L. Zanna (M2LInES)."
+   },
+   {
+    "title": "Reconstruction of Surface Kinematics from Sea Surface Height Using Neural Networks",
+    "year": 2023,
+    "venue": "JAMES 15(10), e2023MS003709",
+    "takeaway": "NN-based inference of surface velocity/strain/vorticity fields from SSH, with Q. Xiao, C.S. Jones, K.S. Smith et al."
+   },
+   {
+    "title": "Direct Observational Evidence of an Oceanic Dual Kinetic Energy Cascade and Its Seasonality",
+    "year": 2022,
+    "venue": "Science Advances 8(41), eabq2566",
+    "takeaway": "Observational confirmation of simultaneous forward/inverse turbulent energy cascades in the ocean and their seasonal cycle."
+   },
+   {
+    "title": "Enhanced Ventilation in the Energetic Regions of the Antarctic Circumpolar Current",
+    "year": 2022,
+    "venue": "Geophysical Research Letters 49(13), e2021GL097574",
+    "takeaway": "Links mesoscale eddy energy to enhanced ocean ventilation (water-mass exchange with the atmosphere) in the ACC."
+   },
+   {
+    "title": "The Contribution of Submesoscale Over Mesoscale Eddy Iron Transport in the Open Southern Ocean",
+    "year": 2019,
+    "venue": "JAMES",
+    "takeaway": "Decomposes iron supply to the euphotic zone by scale, showing submesoscale transport is non-negligible relative to mesoscale."
+   }
+  ],
+  "bgc_ocean_color": "Real, substantial, but concentrated in his earlier (2018-2020) work, not his current ML-parameterization focus: eddy/submesoscale iron-flux support of Southern Ocean primary production, Southern Ocean phytoplankton blooms observed by BGC-Argo floats, and (tangentially) estuarine phytoplankton distribution. No PACE/ocean-color-remote-sensing or carbon-system (DIC/ALK/pCO2) work was found; the BGC angle is iron supply -> productivity via physical transport, not biogeochemical-model parameter estimation.",
+  "darwindiff_relevance": "The closest of the three to DarwinDiff's territory: (a) he already works at the physics-BGC interface (iron transport controlling productivity, i.e. exactly the kind of transport-vs-biology coupling DarwinDiff's iron/scavenging parameters govern), and (b) his current M2LInES work on ML/data-driven parameterizations of unresolved ocean processes (buoyancy fluxes, mixing) is methodologically close to learned-closure / UDE work for Track 2. No adjoint/state-estimation or differentiable-BGC-model work per se, but plausibly the most relevant person of the three to reach out to.",
+  "confidence": "high"
+ },
+ {
+  "name": "Abigail Bodner",
+  "role": "Assistant Professor, MIT EAPS (joint appointment with EECS), joined 2024; PhD Brown 2021, prior Simons Society Junior Fellow at NYU Courant working with Laure Zanna. Physical oceanographer / ML-for-parameterization researcher.",
+  "focus": "Studies upper-ocean turbulence from O(100 km) to O(1 m), focused on submesoscale (1-10 km) processes -- fronts, mixed-layer eddies, frontogenesis -- and how to represent their unresolved effects in coarse climate/GCM models. Central methodological thread since ~2023 is data-driven / machine-learned parameterization: training ML closures on high-resolution LES/submesoscale-permitting simulations to predict vertical buoyancy fluxes and mixed-layer eddy transport for use in coarse ocean models (tested in NEMO). Increasingly also uses SWOT satellite altimetry with ML to reconstruct 3D upper-ocean density/mixed-layer variability, and is starting work on coastal sea level.",
+  "key_papers": [
+   {
+    "title": "A Data-Driven Approach for Parameterizing Ocean Submesoscale Buoyancy Fluxes",
+    "year": 2025,
+    "venue": "Journal of Advances in Modeling Earth Systems (JAMES)",
+    "url": "https://arxiv.org/abs/2312.06972",
+    "takeaway": "Trains an ML model on submesoscale-resolving simulations to predict vertical buoyancy fluxes in the ocean mixed layer for use as a GCM parameterization -- her flagship ML-parameterization result."
+   },
+   {
+    "title": "Submesoscales are a significant turbulence source in global ocean surface boundary layer",
+    "year": 2024,
+    "venue": "Nature Communications",
+    "url": "https://doi.org/10.1038/s41467-024-46248-x",
+    "takeaway": "Quantifies submesoscale contribution to global upper-ocean turbulent kinetic energy budget, motivating the need for better parameterizations."
+   },
+   {
+    "title": "Representation of Surface Mixed-Layer Eddies Affects the Large-Scale Ventilation of the Global Ocean",
+    "year": 2026,
+    "venue": "Geophysical Research Letters",
+    "url": "",
+    "takeaway": "Shows the choice of mixed-layer-eddy parameterization materially changes simulated global ocean ventilation -- climate-relevant downstream impact of the closure work."
+   },
+   {
+    "title": "Assessing the impact of the new mixed layer eddy parameterization based on machine learning in NEMO",
+    "year": 2025,
+    "venue": "(preprint/in review)",
+    "url": "",
+    "takeaway": "Implements and tests her ML-derived mixed-layer-eddy closure inside the operational NEMO ocean model."
+   },
+   {
+    "title": "Modifying the Mixed Layer Eddy Parameterization to Include Frontogenesis Arrest by Boundary Layer Turbulence",
+    "year": 2022,
+    "venue": "Journal of Physical Oceanography, 53(1), 323-339",
+    "url": "",
+    "takeaway": "Physics-based (pre-ML) improvement to the standard mixed-layer-eddy scheme, precursor to her data-driven work."
+   },
+   {
+    "title": "A Breakdown in Potential Vorticity Estimation Delineates the Submesoscale-to-Turbulence Boundary in Large Eddy Simulations",
+    "year": 2020,
+    "venue": "Journal of Advances in Modeling Earth Systems (with Fox-Kemper)",
+    "url": "",
+    "takeaway": "PhD-era landmark identifying where classical submesoscale theory (PV-based) breaks down and turbulence dominates in LES."
+   }
+  ],
+  "bgc_ocean_color": "NONE found. Her published/preprint record (verified via OpenAlex, ~21 works) is entirely physical oceanography (submesoscale turbulence, mixed-layer eddies, frontogenesis, SWOT-based density reconstruction). No papers on biogeochemistry, ocean color, plankton, carbon cycle, or PACE turned up in search or her OpenAlex works list.",
+  "darwindiff_relevance": "Strong methodological parallel, not a topical overlap: she is the closest analog in this group to DarwinDiff's own approach -- training ML/differentiable closures on high-resolution simulation output to replace an unresolved-process parameterization, then testing it back in a coarser model (NEMO). Same 'learned closure for a GCM subgrid process' pattern DarwinDiff applies to BGC rather than physical mixing. No direct BGC/ocean-color work.",
+  "confidence": "high"
+ },
+ {
+  "name": "Chris Hill (Christopher N. Hill)",
+  "role": "Principal Research Engineer, MIT EAPS. At MIT since 1993. Founding developer/lead architect of the MIT General Circulation Model (MITgcm); computational/software-infrastructure scientist for ocean and climate modeling, not primarily a BGC or ML scientist.",
+  "focus": "Earth and planetary computational science -- building and scaling the numerical/software infrastructure (MITgcm, adjoint/AD tooling, HPC) that underlies most MIT physical-oceanography and state-estimation work, including ECCO and ECCO-Darwin. Co-developed the Earth System Modeling Framework (ESMF). Appears as a middle/infrastructure author across a very wide range of ocean papers (state estimation, reanalysis intercomparisons, biogeochemical modeling, tides) rather than leading a single narrow research topic.",
+  "key_papers": [
+   {
+    "title": "The ECCO-Darwin Data-assimilative Global-ocean Biogeochemistry Model: A New Modeling Framework for Ocean Carbon Cycle and Ecosystem Studies",
+    "year": 2020,
+    "venue": "Journal of Advances in Modeling Earth Systems (Carroll et al.)",
+    "url": "",
+    "takeaway": "This is the actual Carroll et al. 2020 ECCO-Darwin paper that DarwinDiff surrogates -- Hill is a co-author, confirmed via OpenAlex author list (Carroll, Menemenlis, Bowman, Miller, Schimel, Dutkiewicz, Jahn, Hill, Zhang, Fenty), providing the MITgcm physical-circulation backbone the Darwin BGC model runs on."
+   },
+   {
+    "title": "Challenges and Prospects in Ocean Circulation Models",
+    "year": 2019,
+    "venue": "Frontiers in Marine Science",
+    "url": "",
+    "takeaway": "Community assessment of ocean GCM capability/gaps, co-authored with Adcroft, Griffies, Hallberg -- reflects his role as core infrastructure/numerics voice for global ocean modeling."
+   },
+   {
+    "title": "Putting It All Together: Adding Value to the Global Ocean and Climate Observing Systems With Complete Self-Consistent Ocean State and Parameter Estimates",
+    "year": 2019,
+    "venue": "Frontiers in Marine Science",
+    "url": "https://doi.org/10.3389/fmars.2019.00055",
+    "takeaway": "OSSE/adjoint state-estimation overview paper with Heimbach, Forget, Fenty et al. -- direct adjoint/state-estimation co-authorship with Gael Forget."
+   },
+   {
+    "title": "Environmental characteristics of Agulhas rings affect interocean plankton transport",
+    "year": 2015,
+    "venue": "Science",
+    "url": "",
+    "takeaway": "Uses MITgcm-based circulation to trace plankton transport by Agulhas eddies, with MIT Darwin-project colleague Michael Follows -- physical-circulation contribution to a BGC/ecological transport question."
+   },
+   {
+    "title": "Biogeochemical versus ecological consequences of modeled ocean physics",
+    "year": 2017,
+    "venue": "Biogeosciences",
+    "url": "",
+    "takeaway": "Examines how physical-model choices (his domain) propagate into biogeochemical/ecological model outcomes -- closest thing to a BGC-adjacent paper in his record, but framed from the physics side."
+   },
+   {
+    "title": "A Primer on Global Internal Tide and Internal Gravity Wave Continuum Modeling in HYCOM and MITgcm",
+    "year": 2018,
+    "venue": "GODAE OceanView eBooks",
+    "url": "",
+    "takeaway": "Numerics/model-comparison reference for internal-wave representation in MITgcm, reflecting his core computational-infrastructure role."
+   }
+  ],
+  "bgc_ocean_color": "Indirect only, always from the physics-infrastructure side, never as a BGC lead: co-author on the actual ECCO-Darwin BGC model paper (Carroll et al. 2020) and on 'Biogeochemical versus ecological consequences of modeled ocean physics' (2017) and the Agulhas-rings plankton-transport paper (2015, Science, with Follows). No ocean-color, PACE, or carbon-cycle-focused first-author work found; no ML/parameterization-of-BGC work. His OpenAlex topic profile also shows some likely name-collision noise (a 'Fish Ecology and Management' topic cluster) -- treat non-MITgcm-context entries with caution.",
+  "darwindiff_relevance": "Directly relevant infrastructure-wise: he is a co-author on the actual Carroll et al. 2020 ECCO-Darwin paper DarwinDiff is built to surrogate, and is the lead architect of MITgcm, the physical-circulation model Darwin (and thus ECCO-Darwin) runs inside. Not an ML or differentiable-modeling researcher himself and has no adjoint/AD-for-BGC or ML-parameterization publications -- his relevance is as the person who built/maintains the physical substrate DarwinDiff's target model depends on, plus a direct co-authorship link to the ECCO-Darwin paper itself.",
+  "confidence": "high"
+ },
+ {
+  "name": "Gael Forget",
+  "role": "Research Scientist, MIT EAPS. Designed and leads the ECCO version 4 (ECCOv4) non-linear inverse ocean state estimation framework; extensive Julia open-source tooling for climate/ocean models.",
+  "focus": "Global ocean circulation and state estimation via adjoint-based (4D-Var) inverse modeling -- optimally fitting MITgcm to observations (Argo, altimetry, hydrography) to produce dynamically consistent global ocean state estimates (ECCOv4). Also works on transport/tracer diagnostics (e.g., ocean heat transport pathways), and has built a substantial Julia ecosystem (MeshArrays.jl, IndividualDisplacements.jl, ClimateModels.jl, MITgcm.jl) for running, coupling, and analyzing climate models, including particle-tracking and reproducible workflow tooling.",
+  "key_papers": [
+   {
+    "title": "ECCO version 4: an integrated framework for non-linear inverse modeling and global ocean state estimation",
+    "year": 2015,
+    "venue": "Geoscientific Model Development",
+    "url": "https://doi.org/10.5194/gmd-8-3071-2015",
+    "takeaway": "Defining paper of the ECCOv4 adjoint-based ocean state estimation framework he designed -- the direct methodological analog to DarwinDiff's adjoint/differentiable approach, applied to physical ocean state rather than BGC parameters."
+   },
+   {
+    "title": "Synopsis of the ECCO Central Production Global Ocean and Sea-Ice State Estimate, Version 4 Release 4",
+    "year": 2021,
+    "venue": "Zenodo",
+    "url": "",
+    "takeaway": "Documents the current production ECCOv4r4 state estimate, the physical-ocean backbone that ECCO-Darwin's BGC fields are built on top of."
+   },
+   {
+    "title": "IndividualDisplacements.jl: a Julia package to simulate and study particle displacements within the climate system",
+    "year": 2021,
+    "venue": "Journal of Open Source Software",
+    "url": "https://doi.org/10.21105/joss.02813",
+    "takeaway": "Julia tool for Lagrangian particle tracking through climate-model output; part of his broader open, reproducible Julia ocean-tooling ecosystem."
+   },
+   {
+    "title": "MITgcm.jl: a Julia Interface to the MITgcm",
+    "year": 2024,
+    "venue": "(JOSS / preprint)",
+    "url": "",
+    "takeaway": "Julia interface layer to MITgcm, extending his open-source Julia climate-model tooling."
+   },
+   {
+    "title": "The ECCO-Darwin Data-assimilative Global-ocean Biogeochemistry Model: A New Modeling Framework for Ocean Carbon Cycle and Ecosystem Studies",
+    "year": 2020,
+    "venue": "Journal of Advances in Modeling Earth Systems (Carroll et al.)",
+    "url": "",
+    "takeaway": "Co-author (with Chris Hill) on the actual Carroll et al. 2020 ECCO-Darwin paper -- his ECCOv4 physical state estimate is the circulation product ECCO-Darwin assimilates into."
+   },
+   {
+    "title": "Using Probability Density Functions to Evaluate Models (PDFEM, v1.0) to compare a biogeochemical model with satellite-derived chlorophyll",
+    "year": 2023,
+    "venue": "Geoscientific Model Development",
+    "url": "https://doi.org/10.5194/gmd-16-4639-2023",
+    "takeaway": "Co-authored (with Dutkiewicz, Follett, Sathyendranath et al.) statistical method paper for comparing biogeochemical model output to satellite chlorophyll -- his most direct ocean-color-adjacent contribution."
+   }
+  ],
+  "bgc_ocean_color": "Mostly NONE as a lead researcher -- his own line of work is physical-ocean state estimation, not BGC. But two concrete touchpoints exist: (1) co-author on the actual Carroll et al. 2020 ECCO-Darwin paper (verified via OpenAlex), since ECCOv4 supplies the physical circulation ECCO-Darwin runs on; (2) co-author on 'PDFEM' (2023, GMD), a method for comparing BGC models against satellite-derived chlorophyll -- a genuine ocean-color-adjacent methods paper, though not first-authored by him and not his primary focus.",
+  "darwindiff_relevance": "High on methodology, not on BGC content: he is the person who built the exact class of tool DarwinDiff generalizes -- an adjoint-based (algorithmic differentiation through MITgcm), full nonlinear inverse state-estimation framework (ECCOv4) -- and he is a direct co-author on the actual ECCO-Darwin paper DarwinDiff surrogates. His Julia tooling (MeshArrays.jl, ClimateModels.jl, MITgcm.jl) is also directly relevant to anyone building differentiable or reproducible ECCO/Darwin-adjacent pipelines. No hands-on BGC-parameter or ML-emulator work of his own.",
+  "confidence": "high"
+ },
+ {
+  "name": "K. Shafer Smith",
+  "role": "Professor, Courant Institute of Mathematical Sciences, NYU (Center for Atmosphere Ocean Science). Physical oceanographer / applied mathematician, PhD 1999 UC Santa Cruz (advisor Geoffrey Vallis).",
+  "focus": "Core work is geostrophic/quasigeostrophic turbulence theory (mesoscale eddy scales, growth rates, energy spectra). Since ~2020 his group has moved heavily into ML-based ocean-model closures: neural-network eddy backscatter parameterizations and neural-network reconstruction of surface kinematics from sea-surface height, plus (via postdoc Monkman) diffusion/score-based generative data assimilation for SWOT SSH.",
+  "key_papers": [
+   {
+    "title": "The role of submesoscale currents in structuring marine ecosystems",
+    "year": 2018,
+    "venue": "Nature Communications",
+    "url": "https://doi.org/10.1038/s41467-018-07059-3",
+    "takeaway": "Submesoscale eddy transport structures phytoplankton/ecosystem distributions, not just physical fields (476 citations)."
+   },
+   {
+    "title": "The contribution of submesoscale over mesoscale eddy iron transport in the open Southern Ocean",
+    "year": 2019,
+    "venue": "JAMES",
+    "url": "https://doi.org/10.1029/2019ms001805",
+    "takeaway": "Partitions physical eddy-driven iron supply mechanisms between submesoscale and mesoscale scales in the Southern Ocean."
+   },
+   {
+    "title": "Vertical eddy iron fluxes support primary production in the open Southern Ocean",
+    "year": 2020,
+    "venue": "Nature Communications",
+    "url": "https://doi.org/10.1038/s41467-020-19936-3",
+    "takeaway": "Eddy-driven vertical iron flux (not just dust deposition) is a major control on Southern Ocean primary production \u2014 a physical iron-supply mechanism, not a BGC-model closure."
+   },
+   {
+    "title": "Emergence of broadband variability in a marine plankton model under external forcing",
+    "year": 2022,
+    "venue": "JGR: Biogeosciences",
+    "url": "https://doi.org/10.1029/2022jg007011",
+    "takeaway": "Simple marine plankton (NPZ-type) model develops broadband internal variability under external physical forcing."
+   },
+   {
+    "title": "Vertical structure and energetic constraints for a backscatter parameterization of ocean mesoscale eddies",
+    "year": 2024,
+    "venue": "JAMES",
+    "url": "https://doi.org/10.1029/2023ms004093",
+    "takeaway": "Physically-constrained kinetic-energy-backscatter closure for eddy parameterization in coarse ocean models."
+   },
+   {
+    "title": "Reconstruction of surface kinematics from sea surface height using neural networks",
+    "year": 2023,
+    "venue": "JAMES",
+    "url": "https://doi.org/10.1029/2023ms003709",
+    "takeaway": "NN maps SSH to surface velocity/vorticity fields, an ML emulator for a diagnostic ocean-dynamics relationship."
+   }
+  ],
+  "bgc_ocean_color": "Real but physically-framed BGC touches: eddy-driven iron transport supporting Southern Ocean primary production (Uchida et al. 2019/2020, with Smith), a marine plankton variability model (Mayersohn et al. 2021/2022), submesoscale structuring of ecosystems (Levy et al. 2018), and Arabian Sea deoxygenation / air-sea CO2 flux work with Lachkar et al. (2016-2022). These are physical-oceanography contributions to BGC outcomes (eddy transport, forcing), not BGC-parameter or biogeochemical-cycle modeling in his own right.",
+  "darwindiff_relevance": "Methodologically adjacent via ML-based ocean model closures (NN/backscatter parameterizations, NN emulators of SSH-derived kinematics) \u2014 same general program of learning closures for ocean models, though applied to physical dynamics, not biogeochemical parameters, and not built on adjoint/differentiable-model identifiability. The iron-eddy-transport line is a genuine substantive overlap with the iron-cycle side of DarwinDiff, but via a different physical mechanism (eddy transport vs. dust deposition scale/scavenging).",
+  "confidence": "high"
+ },
+ {
+  "name": "Tatsu (Tatsu D.) Monkman",
+  "role": "Postdoctoral Associate, NYU Center for Atmosphere Ocean Science, advised by K. Shafer Smith. Early-career: PhD in Geophysical Sciences (physical oceanography), University of Chicago, 2024.",
+  "institution": "New York University (Courant Institute / CAOS); PhD from University of Chicago",
+  "focus": "Ocean circulation dynamics (meridional overturning, Southern Ocean topography effects) from his PhD, now pivoted at NYU toward machine-learning-based ocean state estimation \u2014 diffusion/score-based generative models and probabilistic ML for reconstructing sea surface height and temperature fields from satellite (SWOT) observations.",
+  "key_papers": [
+   {
+    "title": "A Multi-Scale Probabilistic Machine Learning Model for Balanced and Unbalanced Sea Surface Height Decomposition",
+    "year": 2026,
+    "venue": "JGR: Machine Learning and Computation",
+    "url": "https://doi.org/10.1029/2025jh001186",
+    "takeaway": "Probabilistic ML framework (with ZCA whitening to fix spectral bias) decomposes satellite SSH snapshots into balanced/unbalanced flow components, beating MSE-trained baselines."
+   },
+   {
+    "title": "Spatiotemporal Mapping of Sea Surface Height and Temperature Fields from Satellite Observations Using Score-based Data Assimilation",
+    "year": 2026,
+    "venue": "EarthArXiv preprint",
+    "url": "https://doi.org/10.22541/essoar.15003398/v2",
+    "takeaway": "Applies score-based (diffusion) generative data assimilation to map SSH/SST fields from irregular satellite observations."
+   },
+   {
+    "title": "The Effect of Southern Ocean Topography on the Global MOC and Abyssal Water Mass Distribution",
+    "year": 2024,
+    "venue": "Journal of Physical Oceanography",
+    "url": "https://doi.org/10.1175/jpo-d-23-0253.1",
+    "takeaway": "Shows meridional ridges near Drake Passage can substantially weaken the abyssal overturning cell and reroute deep-water ventilation."
+   },
+   {
+    "title": "The Global Overturning Circulation and the Role of Non-Equilibrium Effects in ECCOv4r4",
+    "year": 2024,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "url": "https://doi.org/10.1029/2023jc019690",
+    "takeaway": "Using the ECCO state-estimate reanalysis, finds much of simulated deep upwelling is reversible/non-equilibrium rather than the irreversible transformation assumed in classic theory."
+   },
+   {
+    "title": "Driving Processes Behind the Global Ocean Circulation: Water Mass Transformations and the Effect of Southern Ocean Topography",
+    "year": 2024,
+    "venue": "PhD dissertation, University of Chicago",
+    "url": "https://doi.org/10.6082/m7ez7-55c98",
+    "takeaway": "Dissertation synthesizing his water-mass-transformation and Southern Ocean topography work."
+   }
+  ],
+  "bgc_ocean_color": "NONE found. All identified work is purely physical (circulation, water-mass transformation, SSH/SST reconstruction); no biogeochemistry, ocean color, carbon, or plankton papers in his ~5-8 item OpenAlex record.",
+  "darwindiff_relevance": "The strongest methodological adjacency of the four: his 2025-2026 work applies diffusion/score-based generative models and probabilistic ML directly to ocean state reconstruction and data assimilation \u2014 squarely in DarwinDiff's 'adjacent interests' (generative models, emulators, uncertainty). He also already works with an ECCO reanalysis product (ECCOv4r4), the same model family ECCO-Darwin extends, though his own work stays physical (no BGC coupling). No adjoint/differentiable-parameter-learning work identified. Early-career with a small, focused output.",
+  "confidence": "medium-high"
+ },
+ {
+  "name": "J. Thomas (Tom) Farrar",
+  "role": "Senior Scientist, Woods Hole Oceanographic Institution, Department of Physical Oceanography. U.S. oceanographic lead for NASA/CNES SWOT mission; Principal Investigator for NASA S-MODE. Verified via WHOI staff page, personal site, and OpenAlex (230 works, 5,479 citations).",
+  "focus": "Air-sea interaction (heat/momentum/freshwater exchange), upper-ocean dynamics, submesoscale processes, and satellite oceanography \u2014 principally through leadership of the SWOT altimetry mission and the S-MODE submesoscale field campaign.",
+  "key_papers": [
+   {
+    "title": "Global observations of fine-scale ocean surface topography with the Surface Water and Ocean Topography (SWOT) mission",
+    "year": 2019,
+    "venue": "Frontiers in Marine Science",
+    "url": "https://doi.org/10.3389/fmars.2019.00232",
+    "takeaway": "Mission-overview paper motivating SWOT's fine-scale SSH observing capability (606 citations)."
+   },
+   {
+    "title": "The Surface Water and Ocean Topography Mission: A Breakthrough in Radar Remote Sensing of the Ocean and Land Surface Water",
+    "year": 2024,
+    "venue": "Geophysical Research Letters",
+    "url": "https://doi.org/10.1029/2023gl107652",
+    "takeaway": "Post-launch overview of SWOT's KaRIn instrument capabilities for ocean and hydrology (329 citations)."
+   },
+   {
+    "title": "Air-Sea Fluxes With a Focus on Heat and Momentum",
+    "year": 2019,
+    "venue": "Frontiers in Marine Science",
+    "url": "https://doi.org/10.3389/fmars.2019.00430",
+    "takeaway": "Review of observational and modeling approaches to air-sea heat/momentum flux estimation."
+   },
+   {
+    "title": "The Coupled Boundary Layers and Air-Sea Transfer experiment in Low Winds (CBLAST-Low)",
+    "year": 2007,
+    "venue": "BAMS",
+    "url": "https://doi.org/10.1175/bams-88-3-341",
+    "takeaway": "Landmark field campaign characterizing air-sea exchange under low-wind conditions."
+   },
+   {
+    "title": "S-MODE: The Sub-Mesoscale Ocean Dynamics Experiment",
+    "year": 2025,
+    "venue": "BAMS",
+    "url": "https://doi.org/10.1175/bams-d-23-0178.1",
+    "takeaway": "Overview of the S-MODE campaign testing whether submesoscale fronts drive significant vertical exchange of climate and biological variables."
+   },
+   {
+    "title": "Frontal Convergence and Vertical Velocity Measured by Drifters in the Alboran Sea",
+    "year": 2021,
+    "venue": "JGR: Oceans",
+    "url": "https://doi.org/10.1029/2020jc016614",
+    "takeaway": "In-situ drifter measurements quantify frontal convergence and vertical velocity at submesoscale fronts."
+   }
+  ],
+  "bgc_ocean_color": "No standalone biogeochemistry/carbon/plankton paper under his own authorship found. S-MODE (which he leads) explicitly examines relationships between submesoscale surface velocity/temperature and remotely-sensed chlorophyll to test whether fronts drive vertical exchange of biological variables \u2014 but this uses chlorophyll as a physical tracer within a physical-oceanography framing, not a BGC-modeling contribution.",
+  "darwindiff_relevance": "None found directly \u2014 no ML, adjoint, parameterization, or emulator work identified. Thematically adjacent only through S-MODE's physical-biological coupling (submesoscale nutrient/tracer transport), which is a different problem (in-situ/airborne submesoscale process study) from DarwinDiff's differentiable-parameter-learning approach.",
+  "confidence": "high"
+ },
+ {
+  "name": "Iury Tercio Simoes-Sousa",
+  "role": "Postdoctoral Investigator/Fellow, Woods Hole Oceanographic Institution, Department of Physical Oceanography. PhD Computational Science and Engineering, UMass Dartmouth (2023); MS Physical Oceanography, University of Sao Paulo (2017). Verified via WHOI staff page, personal site (iuryt.github.io), Google Scholar, and OpenAlex (24 works, 221 citations, h-index 9).",
+  "focus": "Computational/physical oceanography of mesoscale and submesoscale eddies (Brazil Current, South Atlantic, Bay of Bengal), altimetry-based eddy tracking and dataset construction, and applied use of SWOT data for extreme-event (flood) volume estimation.",
+  "key_papers": [
+   {
+    "title": "Mixed layer eddies supply nutrients to enhance the spring phytoplankton bloom",
+    "year": 2022,
+    "venue": "Frontiers in Marine Science",
+    "url": "https://doi.org/10.3389/fmars.2022.825027",
+    "takeaway": "Coupled submesoscale-resolving physical model with a simple ecosystem model shows mixed-layer eddies restratify the mixed layer and supply nutrients that intensify the North Atlantic spring bloom."
+   },
+   {
+    "title": "Bay of Bengal Intraseasonal Oscillations and the 2018 Monsoon Onset",
+    "year": 2021,
+    "venue": "BAMS",
+    "url": "https://doi.org/10.1175/bams-d-20-0113.1",
+    "takeaway": "Characterizes intraseasonal ocean-atmosphere variability tied to the 2018 monsoon onset."
+   },
+   {
+    "title": "Revisiting the Atlantic South Equatorial Current",
+    "year": 2021,
+    "venue": "JGR: Oceans",
+    "url": "https://doi.org/10.1029/2021jc017387",
+    "takeaway": "Re-analyzes structure and transport of the South Equatorial Current using modern observations/models."
+   },
+   {
+    "title": "The Brazil Current mesoscale eddies: Altimetry-based characterization and tracking",
+    "year": 2022,
+    "venue": "Deep Sea Research Part I",
+    "url": "https://doi.org/10.1016/j.dsr.2022.103947",
+    "takeaway": "Builds an altimetry-derived eddy census and tracking method for the Brazil Current region."
+   },
+   {
+    "title": "The May 2024 Flood Disaster in Southern Brazil: Causes, Impacts, and SWOT-Based Volume Estimation",
+    "year": 2025,
+    "venue": "Geophysical Research Letters",
+    "url": "https://doi.org/10.1029/2024gl112442",
+    "takeaway": "Uses SWOT altimetry to estimate inundation volume during a catastrophic flood event."
+   },
+   {
+    "title": "Integrating Global Ocean Profiles Data and Altimetry-Derived Eddies",
+    "year": 2026,
+    "venue": "Earth System Science Data",
+    "url": "https://doi.org/10.5194/essd-18-1089-2026",
+    "takeaway": "Dataset paper co-locating in-situ ocean profile data with altimetry-derived eddy identifications."
+   }
+  ],
+  "bgc_ocean_color": "One genuine touchpoint: the 2022 Frontiers in Marine Science paper coupling a submesoscale physical model to a simple ecosystem/nutrient model to explain spring bloom timing (eddy-driven nutrient supply to phytoplankton). The rest of the body of work (Brazil Current, Bay of Bengal, eddy-tracking datasets, flood/manatee-tracking applications) is physical oceanography or applied remote sensing, not biogeochemistry.",
+  "darwindiff_relevance": "Thematically adjacent through the physical-driver-of-nutrient-supply angle (eddy/submesoscale processes controlling BGC outcomes), similar in spirit to Smith's iron-transport line, but methodologically it is a forward coupled physical-ecosystem simulation study, not parameter identifiability, adjoint state estimation, or differentiable/ML modeling. No ML or inverse-methods work found in his record.",
+  "confidence": "high"
+ },
+ {
+  "name": "Sarah T. Gille",
+  "role": "Distinguished Professor, Oceans and Atmospheres Section, Scripps Institution of Oceanography, UC San Diego. Physical oceanographer (Ph.D. MIT/WHOI Joint Program, 1995).",
+  "focus": "Southern Ocean dynamics, global air-sea interaction (heat/momentum/freshwater fluxes), satellite altimetry and scatterometry, and California Current variability. She is a physical oceanographer/remote-sensing scientist, not a biogeochemist; her few biogeochemistry-adjacent papers are as a mid-list coauthor contributing physical-dynamics expertise to BGC-Argo/SOCCOM-led carbon-flux and bloom studies, not as PI.",
+  "key_papers": [
+   {
+    "title": "Warming of the Southern Ocean Since the 1950s",
+    "year": 2002,
+    "venue": "Science, 295, 1275-1277",
+    "takeaway": "Landmark early result (pre-Argo) showing measurable Southern Ocean warming from historical hydrography; foundational to her Southern Ocean climate-signal reputation.",
+    "url": "https://doi.org/10.1126/science.1065863"
+   },
+   {
+    "title": "Indo-Pacific Sector Dominates Southern Ocean Carbon Outgassing",
+    "year": 2022,
+    "venue": "Global Biogeochemical Cycles, 36, e2021GB007226",
+    "takeaway": "SOCCOM BGC-Argo float-based flux estimates show CO2 outgassing is concentrated in the Indo-Pacific sector of the ACC, driven by upwelling/entrainment asymmetry; Gille is coauthor #4 of 10 (Prend, Gray, Talley lead), contributing circulation/flux context rather than the BGC analysis itself.",
+    "url": "https://doi.org/10.1029/2021GB007226"
+   },
+   {
+    "title": "Ocean Mesoscale and Frontal-Scale Ocean-Atmosphere Interactions and Influence on Large-Scale Climate: A Review",
+    "year": 2023,
+    "venue": "Journal of Climate",
+    "takeaway": "Review of mesoscale/frontal air-sea coupling and its large-scale climate influence; her core physical-oceanography specialty.",
+    "url": "https://doi.org/10.1175/jcli-d-21-0982.1"
+   },
+   {
+    "title": "Weddell Sea Phytoplankton Blooms Modulated by Sea Ice Variability and Polynya Formation",
+    "year": 2020,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "Links sea-ice/polynya dynamics to phytoplankton bloom timing in the Weddell Sea; Gille is a coauthor, not lead, on this BGC-adjacent paper.",
+    "url": "https://doi.org/10.1029/2020gl087954"
+   },
+   {
+    "title": "Altimetry for the Future: Building on 25 Years of Progress",
+    "year": 2021,
+    "venue": "Advances in Space Research",
+    "takeaway": "Large community review of satellite altimetry applications and future mission needs across oceanography/hydrology/cryosphere; she is one of many coauthors.",
+    "url": "https://doi.org/10.1016/j.asr.2021.01.022"
+   },
+   {
+    "title": "Effects of Buoyancy and Wind Forcing on Southern Ocean Climate Change",
+    "year": 2020,
+    "venue": "Journal of Climate",
+    "takeaway": "Attributes Southern Ocean warming/circulation change to competing buoyancy vs. wind forcing mechanisms.",
+    "url": "https://doi.org/10.1175/jcli-d-19-0877.1"
+   }
+  ],
+  "bgc_ocean_color": "Marginal only, as a non-lead coauthor: contributes physical-oceanography context to a few SOCCOM/BGC-Argo carbon-flux and phytoplankton-bloom papers (Prend et al. 2022 GBC; Weddell Sea bloom paper, 2020 GRL). No lead-authored biogeochemistry, no ocean-color/PACE work, no plankton-ecology or nutrient-cycle research found. Core body of work is physical air-sea interaction and Southern Ocean circulation/climate.",
+  "darwindiff_relevance": "Low. No adjoint/state-estimation, ML-parameterization, differentiable-modeling, or emulator work found in her record -- her methods are observational/satellite remote sensing and diagnostic ocean dynamics, not inverse/data-assimilation modeling. Any relevance to DarwinDiff would be indirect, e.g., as a source of Southern Ocean air-sea flux context for interpreting carbon-cycle results, not as a methodological or BGC-parameter-learning collaborator.",
+  "confidence": "high"
+ },
+ {
+  "name": "Matthew R. Mazloff",
+  "role": "Researcher, Oceans and Atmospheres Section, Scripps Institution of Oceanography, UC San Diego. Leads/co-leads the (physical and Biogeochemical) Southern Ocean State Estimate.",
+  "focus": "Adjoint-based (ECCO/MITgcm 4D-Var) ocean and ocean-biogeochemistry state estimation. Founded the Southern Ocean State Estimate (SOSE) and its biogeochemical extension B-SOSE (carbon, oxygen, nutrients, closed budgets, GO-SHIP/BGC-Argo/SOCCOM-constrained), and is a central figure in the SOCCOM project and in TPOSE (Tropical Pacific Ocean State Estimate) biogeochemistry.",
+  "key_papers": [
+   {
+    "title": "An Eddy-Permitting Southern Ocean State Estimate",
+    "year": 2010,
+    "venue": "Journal of Physical Oceanography, 40, 880-899",
+    "takeaway": "Landmark paper founding SOSE, the physical (pre-biogeochemical) ECCO-based adjoint state estimate of the Southern Ocean that B-SOSE later extended.",
+    "url": "https://doi.org/10.1175/2009JPO4236.1"
+   },
+   {
+    "title": "A data assimilating model for estimating Southern Ocean biogeochemistry",
+    "year": 2017,
+    "venue": "Journal of Geophysical Research: Oceans, 122, 6968-6988",
+    "takeaway": "Introduces B-SOSE: an adjoint-based, observation-constrained Southern Ocean carbon/oxygen/nutrient state estimate with closed budgets -- the direct object the user asked to check closely.",
+    "url": "https://doi.org/10.1002/2016JC012650"
+   },
+   {
+    "title": "The Southern Ocean Carbon and Climate Observations and Modeling (SOCCOM) Project: A Review",
+    "year": 2023,
+    "venue": "Progress in Oceanography",
+    "takeaway": "Reviews a decade of BGC-Argo float deployment and modeling in the Southern Ocean carbon cycle, of which B-SOSE is a core modeling component.",
+    "url": "https://doi.org/10.1016/j.pocean.2023.103130"
+   },
+   {
+    "title": "The Southern Ocean Carbon Cycle 1985-2018: Mean, Seasonal Cycle, Trends, and Storage",
+    "year": 2023,
+    "venue": "Global Biogeochemical Cycles",
+    "takeaway": "Synthesizes multi-decadal Southern Ocean carbon cycle behavior using state-estimate and observational products.",
+    "url": "https://doi.org/10.1029/2023gb007848"
+   },
+   {
+    "title": "Southern Ocean Acidification Revealed by Biogeochemical-Argo Floats",
+    "year": 2023,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "takeaway": "Uses BGC-Argo pH sensors to quantify Southern Ocean acidification trends; Mazloff is lead/senior author.",
+    "url": "https://doi.org/10.1029/2022jc019530"
+   },
+   {
+    "title": "Water Mass and Biogeochemical Variability in the Kerguelen Sector of the Southern Ocean: A Machine Learning Approach for a Mixing Hot Spot",
+    "year": 2020,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "takeaway": "Applies ML (clustering/regression) to water-mass and biogeochemical variability at a Southern Ocean mixing hot spot -- his most direct ML x BGC crossover work.",
+    "url": "https://doi.org/10.1029/2019jc015877"
+   },
+   {
+    "title": "Optimizing observational arrays for biogeochemistry in the tropical Pacific by estimating correlation lengths",
+    "year": 2024,
+    "venue": "Limnology and Oceanography: Methods, 22, 840-852",
+    "takeaway": "With Cornuelle and Verdy: designs BGC-Argo float deployment strategy for the tropical Pacific using correlation-length estimation, extending B-SOSE-style thinking to TPOSE.",
+    "url": "https://doi.org/10.1002/lom3.10641"
+   }
+  ],
+  "bgc_ocean_color": "Extensive and central, not marginal. B-SOSE (Verdy & Mazloff 2017) is a full adjoint-based ocean biogeochemistry state estimate (carbon, oxygen, macronutrients) constrained by GO-SHIP, BGC-Argo, and satellite data with closed budgets. He is also a leading SOCCOM investigator (BGC-Argo float program, Southern Ocean carbon/acidification) and extends this to TPOSE biogeochemistry in the tropical Pacific. No PACE-specific ocean-color work identified, but carbon/nutrient/oxygen biogeochemistry is a primary, not incidental, part of his research program.",
+  "darwindiff_relevance": "High -- the closest match of the three to DarwinDiff's methodology. B-SOSE is a real, operating adjoint (4D-Var/ECCO-machinery) biogeochemical state estimate: it optimizes physical and some biogeochemical controls against real carbon/oxygen/nutrient observations, which is conceptually adjacent to DarwinDiff's differentiable-surrogate approach to BGC parameter identifiability, though B-SOSE is a full adjoint GCM data-assimilation system rather than a learned 0-D surrogate. Mazloff is a natural domain-expert contact for adjoint-BGC methodology, real Southern Ocean carbon/oxygen/nutrient validation targets, and BGC-Argo-based identifiability framing; also directly relevant to the AI4Ocean-Alliance whitespace question since his work already occupies 'adjoint BGC state estimation' even though it is not ML-based.",
+  "confidence": "high"
+ },
+ {
+  "name": "Bruce D. Cornuelle",
+  "role": "Research Oceanographer, Climate, Atmospheric Science, and Physical Oceanography Research Division, Scripps Institution of Oceanography, UC San Diego (Ph.D. MIT/WHOI Joint Program).",
+  "focus": "Adjoint-based state estimation and 4D-Var data assimilation, ocean acoustic tomography/inverse methods, and regional ocean-atmosphere prediction systems (California Current, Gulf of Mexico, Red Sea, tropical Pacific). Co-developer of TPOSE (Tropical Pacific Ocean State Estimate), a 4D-Var adjoint system analogous in spirit to Mazloff's SOSE/B-SOSE but for the tropical Pacific.",
+  "key_papers": [
+   {
+    "title": "A Comprehensive Ocean Prediction and Analysis System Based on the Tangent Linear and Adjoint Components of a Regional Ocean Model",
+    "year": 2004,
+    "venue": "Ocean Modelling, 7, 227-258 (Moore, Arango, Miller, Cornuelle, Di Lorenzo, Neilson)",
+    "takeaway": "Landmark older paper establishing the ROMS 4D-Var tangent-linear/adjoint prediction-and-analysis system underlying much of his subsequent adjoint work.",
+    "url": "https://doi.org/10.1016/j.ocemod.2003.11.001"
+   },
+   {
+    "title": "Estimation of the tropical Pacific Ocean state 2010-2013",
+    "year": 2017,
+    "venue": "Journal of Atmospheric and Oceanic Technology (Verdy, Cornuelle, Mazloff, Rudnick)",
+    "takeaway": "Establishes TPOSE, the 4D-Var adjoint tropical Pacific state estimate that later biogeochemical extensions build on.",
+    "url": "https://doi.org/10.1175/JTECH-D-16-0223.1"
+   },
+   {
+    "title": "SWOT Observations Constrain a 4D-Var State Estimate of the California Current System",
+    "year": 2026,
+    "venue": "Earth and Space Science",
+    "takeaway": "Most recent (2026) work: uses SWOT wide-swath altimetry to constrain a regional adjoint state estimate of the California Current -- shows his adjoint/4D-Var line is still active and now ingesting SWOT.",
+    "url": "https://doi.org/10.1029/2025ea004931"
+   },
+   {
+    "title": "Optimizing observational arrays for biogeochemistry in the tropical Pacific by estimating correlation lengths",
+    "year": 2024,
+    "venue": "Limnology and Oceanography: Methods, 22, 840-852 (Chu, Mazloff, Verdy, Purkey, Cornuelle)",
+    "takeaway": "His clearest direct biogeochemistry touch: designs BGC-Argo float array strategy for the tropical Pacific, paralleling B-SOSE-style thinking within TPOSE.",
+    "url": "https://doi.org/10.1002/lom3.10641"
+   },
+   {
+    "title": "Southern Ocean Acidification Revealed by Biogeochemical-Argo Floats",
+    "year": 2023,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "takeaway": "Coauthor (with Mazloff et al.) on a BGC-Argo pH/acidification study; contributes state-estimation/inverse-methods expertise rather than leading the biogeochemistry.",
+    "url": "https://doi.org/10.1029/2022jc019530"
+   },
+   {
+    "title": "Towards an End-to-End Analysis and Prediction System for Weather, Climate, and Marine Applications in the Red Sea",
+    "year": 2020,
+    "venue": "Bulletin of the American Meteorological Society",
+    "takeaway": "Coupled regional ocean-atmosphere prediction system for the Red Sea; representative of his broader regional coupled-modeling/data-assimilation program.",
+    "url": "https://doi.org/10.1175/bams-d-19-0005.1"
+   }
+  ],
+  "bgc_ocean_color": "Modest, and entirely as a collaborator rather than lead: coauthor on the 2024 TPOSE BGC-Argo array-design paper and the 2023 Southern Ocean acidification BGC-Argo paper (both led by Mazloff/Verdy/Chu). No lead-authored biogeochemistry, ocean-color, PACE, plankton, or carbon-cycle work found across ~429 OpenAlex-indexed works; his own research remains centered on physical adjoint state estimation and ocean acoustics.",
+  "darwindiff_relevance": "Moderate on methodology, low on direct BGC content. He is a senior adjoint/4D-Var and inverse-methods practitioner (exactly the technique family differentiable/adjoint BGC modeling draws on), and co-developer of TPOSE, which is now being extended toward biogeochemistry via BGC-Argo array design with Mazloff -- so he is a plausible secondary contact for adjoint-methodology questions or for a future tropical-Pacific BGC state-estimate parallel to Mazloff's Southern Ocean B-SOSE. But he has not himself done BGC parameter learning, emulation, or ocean-color work.",
+  "confidence": "high"
+ },
+ {
+  "name": "Douglas Vandemark",
+  "role": "Research Professor, Institute for the Study of Earth, Oceans, and Space (EOS) / School of Marine Science and Ocean Engineering, University of New Hampshire. Field: satellite/microwave remote sensing of the air-sea interface and air-sea gas exchange.",
+  "focus": "Air-sea interactions studied via microwave remote sensing (altimetry, scatterometry, radiometry, SAR) and in-situ instrumentation, spanning wind waves, sea surface salinity, and air-sea exchange of momentum, heat, and greenhouse gases (esp. CO2). Co-Investigator on NASA's GLIMR geostationary hyperspectral ocean-color mission and long-time contributor to community CO2/ocean-color validation datasets (SOCAT, AERONET-OC, Global Carbon Budget), plus PI/Co-I roles on SWOT, Ocean Surface Topography, Ocean Vector Wind, and Sea Surface Salinity science teams.",
+  "key_papers": [
+   {
+    "title": "AERONET-OC: A Network for the Validation of Ocean Color Primary Products",
+    "year": 2009,
+    "venue": "Journal of Atmospheric and Oceanic Technology",
+    "url": "https://doi.org/10.1175/2009jtecho654.1",
+    "takeaway": "Landmark paper establishing the AERONET-OC in-situ radiometric network used worldwide to validate satellite ocean-color products (420 citations)."
+   },
+   {
+    "title": "Global Carbon Budget 2015",
+    "year": 2015,
+    "venue": "Earth System Science Data",
+    "url": "https://doi.org/10.5194/essd-7-349-2015",
+    "takeaway": "Community carbon-cycle synthesis (Vandemark one of 50+ co-authors) tracking ocean, land, and atmospheric carbon budgets (758 citations)."
+   },
+   {
+    "title": "A multi-decade record of high-quality fCO2 data in version 3 of the Surface Ocean CO2 Atlas (SOCAT)",
+    "year": 2016,
+    "venue": "Earth System Science Data",
+    "url": "https://doi.org/10.5194/essd-8-383-2016",
+    "takeaway": "Vandemark contributes ship/mooring pCO2 data to the community SOCAT product used to constrain ocean carbon uptake (715 citations)."
+   },
+   {
+    "title": "A CO2 and H2O Gas Analyzer with Reduced Error due to Platform Motion",
+    "year": 2023,
+    "venue": "Journal of Atmospheric and Oceanic Technology",
+    "url": "https://doi.org/10.1175/jtech-d-22-0131.1",
+    "takeaway": "Builds/validates instrumentation for shipboard eddy-covariance air-sea CO2 flux measurement."
+   },
+   {
+    "title": "Field Evaluation of an Autonomous, Low-Power Eddy Covariance CO2 Flux System for the Marine Environment",
+    "year": 2024,
+    "venue": "Journal of Atmospheric and Oceanic Technology",
+    "url": "https://doi.org/10.1175/jtech-d-23-0076.1",
+    "takeaway": "Deploys a new autonomous system for direct air-sea CO2 flux measurement in the field."
+   },
+   {
+    "title": "Zooplankton monitoring at fixed station time series records responses of the foundation species, Calanus finmarchicus, to seasonal and multiannual drivers in the western Gulf of Maine",
+    "year": 2025,
+    "venue": "ICES Journal of Marine Science",
+    "url": "https://doi.org/10.1093/icesjms/fsaf037",
+    "takeaway": "Co-authored zooplankton time-series analysis linking a key copepod species to physical/seasonal drivers in the Gulf of Maine."
+   }
+  ],
+  "bgc_ocean_color": "YES, substantial but instrumentation/validation-side rather than process-modeling: (1) Co-Investigator on NASA GLIMR, a geostationary hyperspectral ocean-color mission targeting coastal ecosystem and carbon-cycle science; (2) lead/co-author on AERONET-OC, the standard in-situ ocean-color validation network (420 cites); (3) long-running contributor of pCO2 data to SOCAT and the Global Carbon Budget (both directly ocean-carbon-cycle); (4) builds/deploys air-sea CO2 flux instrumentation (eddy covariance systems, gas analyzers); (5) co-author on a Gulf of Maine zooplankton (Calanus finmarchicus) time-series paper. He is a data/instrumentation and validation-network person for ocean color and air-sea carbon flux, not a BGC process modeler.",
+  "darwindiff_relevance": "Low as a modeling-methods match (no adjoint/ML-parameterization/differentiable-modeling work found), but notable as a real-world observational-data and ocean-color-mission contact: his GLIMR role and SOCAT/CO2-flux contributions are exactly the kind of real anchor data (coastal ocean color, air-sea pCO2 flux) that a DarwinDiff-style parameter-recovery study could eventually use as validation targets.",
+  "confidence": "high"
+ },
+ {
+  "name": "Justin Stopa",
+  "role": "Associate Professor, Department of Ocean and Resources Engineering, School of Ocean and Earth Science and Technology (SOEST), University of Hawai'i at M\u0101noa. PhD in Ocean and Resources Engineering, UH M\u0101noa (2013). Physical oceanographer specializing in ocean surface waves.",
+  "focus": "Ocean surface-wave physics and remote sensing: spectral wave modeling and reanalysis intercomparison, wave-climate trends (including Arctic wave climate as sea ice retreats), satellite SAR- and altimeter-derived sea-state and wind measurements, wave-sea ice interaction, and marine atmospheric boundary-layer roll detection from SAR. Recent work extends into self-supervised/foundation-model ML applied to SAR wave-mode imagery.",
+  "key_papers": [
+   {
+    "title": "Robustness and uncertainties in global multivariate wind-wave climate projections",
+    "year": 2019,
+    "venue": "Nature Climate Change",
+    "url": "https://doi.org/10.1038/s41558-019-0542-5",
+    "takeaway": "Multi-model assessment of uncertainty in projected 21st-century changes to global wind-wave climate."
+   },
+   {
+    "title": "Intercomparison of wind and wave data from the ECMWF Reanalysis Interim and the NCEP Climate Forecast System Reanalysis",
+    "year": 2014,
+    "venue": "Ocean Modelling",
+    "url": "https://doi.org/10.1016/j.ocemod.2013.12.006",
+    "takeaway": "Benchmark comparison of two major reanalysis wind/wave products, widely used as a reanalysis-quality reference."
+   },
+   {
+    "title": "Wave climate in the Arctic 1992-2014: Seasonality and trends",
+    "year": 2016,
+    "venue": "The Cryosphere",
+    "url": "https://doi.org/10.5194/tc-10-1605-2016",
+    "takeaway": "Satellite-altimeter-derived record showing rising Arctic wave heights as sea-ice extent has declined."
+   },
+   {
+    "title": "Observing Sea States",
+    "year": 2019,
+    "venue": "Frontiers in Marine Science",
+    "url": "https://doi.org/10.3389/fmars.2019.00124",
+    "takeaway": "Community review of in-situ and satellite systems for observing ocean sea state."
+   },
+   {
+    "title": "Automated Global Classification of Surface Layer Stratification Using High-Resolution Sea Surface Roughness Measurements by Satellite Synthetic Aperture Radar",
+    "year": 2022,
+    "venue": "Geophysical Research Letters",
+    "url": "https://doi.org/10.1029/2022gl098686",
+    "takeaway": "Uses SAR-derived surface-roughness signatures to globally classify near-surface ocean stratification regimes."
+   },
+   {
+    "title": "WV-Net: A foundation model for SAR WV-mode satellite imagery trained using contrastive self-supervised learning on 10 million images",
+    "year": 2024,
+    "venue": "(SAR remote sensing / ML venue, per search result)",
+    "takeaway": "Self-supervised foundation model trained on ~10M Sentinel-1 wave-mode SAR images for downstream ocean/wave feature tasks."
+   }
+  ],
+  "bgc_ocean_color": "NONE found. A title-keyword search of his full OpenAlex publication record (95 works) for biogeochemistry/carbon/chlorophyll/ocean-color terms returned zero hits, and general web searches turned up no biogeochemistry, ocean-color, PACE, carbon, plankton, or ecosystem work under his name. His entire visible output is physical ocean-surface waves, sea ice, and SAR/altimeter remote sensing.",
+  "darwindiff_relevance": "Low/indirect. His science (waves, sea state, SAR) is physical-oceanography remote sensing, not biogeochemistry, adjoint modeling, or parameter learning. The one loose methodological thread is WV-Net, a self-supervised foundation model for satellite imagery -- a machine-learning-for-ocean-remote-sensing technique, but applied to wave physics, not BGC parameter estimation or emulation.",
+  "confidence": "high"
+ },
+ {
+  "name": "Luke Van Roekel",
+  "role": "Staff scientist and Ocean group lead, Climate Ocean and Sea Ice Modeling (COSIM) team, Los Alamos National Laboratory (T-3 Division). PI of a DOE SciDAC project on the Atlantic Meridional Overturning Circulation. Physical oceanographer / ocean-model developer.",
+  "focus": "Development and evaluation of the ocean/sea-ice component of DOE's Energy Exascale Earth System Model (E3SM), built on the unstructured-mesh MPAS-Ocean framework, and of its GPU-native successor OMEGA. Personal research centers on parameterizing upper-ocean turbulence -- Langmuir turbulence, boundary-layer vertical mixing schemes, mesoscale/submesoscale parameterization -- rather than biogeochemistry.",
+  "key_papers": [
+   {
+    "title": "The DOE E3SM Coupled Model Version 1: Overview and Evaluation at Standard Resolution",
+    "year": 2019,
+    "venue": "Journal of Advances in Modeling Earth Systems",
+    "url": "https://doi.org/10.1029/2018ms001603",
+    "takeaway": "Landmark description and evaluation paper for E3SM v1; Van Roekel co-authored on the ocean component."
+   },
+   {
+    "title": "A global perspective on Langmuir turbulence in the ocean surface boundary layer",
+    "year": 2012,
+    "venue": "Geophysical Research Letters",
+    "url": "https://doi.org/10.1029/2012gl052932",
+    "takeaway": "Global assessment of when/where Langmuir turbulence significantly modifies ocean boundary-layer mixing."
+   },
+   {
+    "title": "The form and orientation of Langmuir cells for misaligned winds and waves",
+    "year": 2012,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "url": "https://doi.org/10.1029/2011jc007516",
+    "takeaway": "Theory/LES analysis of Langmuir-cell structure when wind and wave direction diverge."
+   },
+   {
+    "title": "The DOE E3SM Model Version 2: Overview of the Physical Model and Initial Model Evaluation",
+    "year": 2022,
+    "venue": "Journal of Advances in Modeling Earth Systems",
+    "url": "https://doi.org/10.1029/2022ms003156",
+    "takeaway": "E3SM v2 overview/evaluation paper; Van Roekel again a co-author on the physical (incl. ocean) model description."
+   },
+   {
+    "title": "Comparing Ocean Surface Boundary Vertical Mixing Schemes Including Langmuir Turbulence",
+    "year": 2019,
+    "venue": "Journal of Advances in Modeling Earth Systems",
+    "url": "https://doi.org/10.1029/2019ms001810",
+    "takeaway": "Systematic comparison of boundary-layer mixing parameterizations, including Langmuir-turbulence effects, in a global ocean model."
+   },
+   {
+    "title": "GNN-Surrogate: A Hierarchical and Adaptive Graph Neural Network for Parameter Space Exploration of Unstructured-Mesh Ocean Simulations",
+    "year": 2022,
+    "venue": "IEEE Transactions on Visualization and Computer Graphics",
+    "url": "https://doi.org/10.1109/tvcg.2022.3165345",
+    "takeaway": "Trains a graph neural network as a fast surrogate over MPAS-Ocean parameter space, letting scientists explore simulation outcomes without rerunning the full unstructured-mesh model."
+   }
+  ],
+  "bgc_ocean_color": "NONE in his own directly-authored or title-matched work -- an OpenAlex title search across his full record (188 works) for biogeochemistry/carbon/chlorophyll/color returned zero hits, and his top papers are all physical (turbulence, mixing, coupled-model overviews). Caveat: he is a co-author on the whole-model E3SM v1/v2 'overview' papers, and those coupled models do include a marine biogeochemistry component (a BEC/MARBL-type NPZD ocean BGC model, developed mainly by other LANL/NCAR collaborators under a separate DOE 'E3SM Marine Biogeochemistry' project) -- so E3SM-the-model touches BGC even though Van Roekel's own visible research does not.",
+  "darwindiff_relevance": "Moderate, on methods rather than biogeochemistry. He co-authored a GNN-based surrogate/emulator paper (GNN-Surrogate, 2022) built specifically for parameter-space exploration of an unstructured-mesh ocean model -- methodologically adjacent to DarwinDiff's own differentiable-surrogate-for-parameter-recovery framing, though it targets physical (not BGC) parameters and is a trained emulator over discrete runs rather than an adjoint/differentiable model. He also leads development of OMEGA, DOE's next-generation GPU-native ocean model, relevant to the forward-emulator/Earth2Studio-adjacent interest area. No adjoint/state-estimation or BGC parameter-learning work found under his name.",
+  "confidence": "high"
+ },
+ {
+  "name": "Ian G. Fenty",
+  "role": "Research scientist, NASA Jet Propulsion Laboratory / Caltech. ECCO consortium co-investigator focused on Arctic and subpolar ocean-ice circulation, coupled ice-ocean modeling, and adjoint-based state estimation.",
+  "institution": "NASA Jet Propulsion Laboratory / Caltech",
+  "focus": "Primarily physical ocean-ice interaction: Greenland glacier/ice-sheet melt driven by ocean forcing, ice-shelf and fjord circulation, and the ECCO global ocean-sea ice state estimate. He is a recurring (mid-list) co-author on the ECCO-Darwin biogeochemistry model papers, including a 2025 paper directly coupling glacial meltwater discharge to phytoplankton bloom dynamics and coastal carbon uptake.",
+  "key_papers": [
+   {
+    "title": "The ECCO-Darwin Data-Assimilative Global Ocean Biogeochemistry Model: Estimates of Seasonal to Multidecadal Surface Ocean pCO2 and Air-Sea CO2 Flux",
+    "year": 2020,
+    "venue": "Journal of Advances in Modeling Earth Systems (JAMES)",
+    "takeaway": "The canonical ECCO-Darwin model paper -- the exact model DarwinDiff builds a differentiable 0-D surrogate of. Fenty is 8th of 19 authors (Carroll, Menemenlis, Dutkiewicz, Lauderdale et al. lead it); he is a contributor, not the BGC lead.",
+    "url": "https://doi.org/10.1029/2019MS001888"
+   },
+   {
+    "title": "Increased melt from Greenland's most active glacier fuels enhanced coastal productivity",
+    "year": 2025,
+    "venue": "Communications Earth & Environment",
+    "takeaway": "Nests a high-resolution biogeochemical model in the global state estimate to show subglacial-discharge-driven upwelling raises coastal primary productivity 15-40% but CO2 uptake rises only ~3% (reduced solubility). Fenty is 3rd of 12 authors, alongside Carroll and Dutkiewicz.",
+    "url": "https://doi.org/10.1038/s43247-025-02599-1"
+   },
+   {
+    "title": "BedMachine v3: Complete bed topography and ocean bathymetry mapping of Greenland from multibeam echo sounding combined with mass conservation",
+    "year": 2017,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "His most-cited paper (1000+ citations); landmark bathymetry product for Greenland fjords used across the glaciology/oceanography community. Physical, not BGC.",
+    "url": "https://doi.org/10.1002/2017GL074954"
+   },
+   {
+    "title": "Interruption of two decades of Jakobshavn Isbrae acceleration and thinning as regional ocean cools",
+    "year": 2019,
+    "venue": "Nature Geoscience",
+    "takeaway": "Shows ocean cooling (not just warming) can reverse glacier acceleration/thinning trends, tying ocean state estimation directly to ice-sheet mass balance.",
+    "url": "https://doi.org/10.1038/s41561-019-0329-3"
+   },
+   {
+    "title": "Ocean forcing drives glacier retreat in Greenland",
+    "year": 2021,
+    "venue": "Science Advances",
+    "takeaway": "Attributes widespread Greenland glacier retreat to ocean thermal forcing using ECCO-based ocean state estimates.",
+    "url": "https://doi.org/10.1126/sciadv.aba7282"
+   },
+   {
+    "title": "Synopsis of the ECCO Central Production Global Ocean and Sea-Ice State Estimate (Version 4 Release 4)",
+    "year": 2021,
+    "venue": "Zenodo (ECCO Consortium technical report)",
+    "takeaway": "Co-authored technical description of the V4r4 physical state estimate that underlies both the physical ECCO product and, downstream, ECCO-Darwin.",
+    "url": "https://doi.org/10.5281/zenodo.4533349"
+   }
+  ],
+  "bgc_ocean_color": "YES, as a contributing (not lead) co-author. He is 8th-of-19 author on the founding ECCO-Darwin biogeochemistry paper (Carroll et al. 2020, JAMES) and 3rd-of-12 author on a 2025 paper (Wood et al., Comms Earth & Environment) using a nested biogeochemical model to link Greenland glacier discharge to phytoplankton productivity and coastal carbon uptake. No ocean-color/PACE-specific first-author work found; the BGC leadership on his papers sits with Dustin Carroll, Stephanie Dutkiewicz, and Dimitris Menemenlis.",
+  "darwindiff_relevance": "Direct but secondary: co-author on the exact ECCO-Darwin papers that define the target model DarwinDiff surrogates, and his adjoint/state-estimation expertise (ECCO V4r4 production) is the physical substrate ECCO-Darwin is built on. Not a parameter-learning or ML-emulator person himself; useful as a name-recognition/collaboration bridge into the ECCO-Darwin team rather than a technical peer on differentiable modeling.",
+  "confidence": "high"
+ },
+ {
+  "name": "Ou Wang",
+  "role": "Technologist, NASA Jet Propulsion Laboratory / Caltech. Ph.D. Physical Oceanography, Texas A&M (2002). Technical point of contact for the ECCO central-production adjoint/state-estimation pipeline since 2003.",
+  "institution": "NASA Jet Propulsion Laboratory / Caltech",
+  "focus": "Purely physical ocean and sea-ice state estimation: adjoint-method and Kalman-filter data assimilation, adjoint sensitivity studies, regional and global sea-level change, salinity and mixed-layer variability, and ice-shelf cavity circulation (Amundsen/Bellingshausen Seas). No biogeochemistry in his record.",
+  "key_papers": [
+   {
+    "title": "Local and remote forcing of interannual sea-level variability at Nantucket Island",
+    "year": 2022,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "takeaway": "First-author attribution study separating local vs. remote drivers of coastal interannual sea-level variability using the ECCO adjoint.",
+    "url": "https://doi.org/10.1029/2021JC018300"
+   },
+   {
+    "title": "Development of adjoint-based ocean state estimation for the Amundsen and Bellingshausen Seas and ice shelf cavities using MITgcm/ECCO",
+    "year": 2021,
+    "venue": "Geoscientific Model Development",
+    "takeaway": "Extends the ECCO adjoint state-estimation framework into Antarctic ice-shelf cavities; co-authored with Fenty.",
+    "url": "https://doi.org/10.5194/gmd-14-4909-2021"
+   },
+   {
+    "title": "Causal Mechanism of Beaufort Sea's Sea-level and Freshwater Content Change",
+    "year": 2021,
+    "venue": "Journal of Physical Oceanography",
+    "takeaway": "Uses adjoint sensitivity to decompose drivers of Beaufort Sea freshwater/sea-level trends; co-authored with Fukumori and Fenty.",
+    "url": "https://doi.org/10.1175/JPO-D-21-0069.1"
+   },
+   {
+    "title": "Vertical redistribution of salt and layered changes in global ocean salinity",
+    "year": 2019,
+    "venue": "Nature Communications",
+    "takeaway": "High-visibility paper (landmark, 100+ citations) on global salinity redistribution using ECCO-based estimates; Wang is a co-author.",
+    "url": "https://doi.org/10.1038/s41467-019-11436-x"
+   },
+   {
+    "title": "Synopsis of the ECCO Central Production Global Ocean and Sea-Ice State Estimate (Version 4 Release 4)",
+    "year": 2020,
+    "venue": "Zenodo (ECCO Consortium technical report)",
+    "takeaway": "Co-authored technical synopsis of the ECCO V4r4 physical product he helps produce as technical point of contact.",
+    "url": "https://doi.org/10.5281/zenodo.3765929"
+   },
+   {
+    "title": "On the cause of Eastern equatorial Pacific Ocean T-S variations associated with El Nino",
+    "year": 2004,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "Early first-author landmark using an adjoint ocean model to explain El Nino T-S variability -- the same adjoint methodology he still applies today.",
+    "url": "https://doi.org/10.1029/2004GL020188"
+   }
+  ],
+  "bgc_ocean_color": "NONE. Full CV-verified publication list (71 OpenAlex-indexed works, 2004-2026) is exclusively physical oceanography: adjoint/Kalman-filter state estimation, sea level, salinity, mixed-layer depth, bottom pressure, ice-shelf cavities. No biogeochemistry, carbon, plankton, or ocean-color titles anywhere in the record.",
+  "darwindiff_relevance": "Indirect, infrastructure-level only: he is the technical steward of the ECCO adjoint/state-estimation production pipeline (forward model + adjoint + assimilation + output) that ECCO-Darwin's physical circulation field is built on, but has no direct overlap with BGC parameter learning, differentiable modeling of biology, or emulators.",
+  "confidence": "high"
+ },
+ {
+  "name": "Benjamin D. Hamlington",
+  "role": "Research scientist, Sea Level and Ice Group, Earth Science Section, NASA Jet Propulsion Laboratory. Leads the NASA Sea Level Change Science Team; member of NASA's Ocean Surface Topography and GRACE/GRACE-FO science teams.",
+  "institution": "NASA Jet Propulsion Laboratory",
+  "focus": "Sea-level variability and change on interannual-to-centennial timescales: satellite altimetry, regional sea-level attribution, vertical land motion, coastal/high-tide flooding impacts, and climate-model projections of future sea level. No biology or biogeochemistry.",
+  "key_papers": [
+   {
+    "title": "Climate-change-driven accelerated sea-level rise detected in the altimeter era",
+    "year": 2018,
+    "venue": "Proceedings of the National Academy of Sciences",
+    "takeaway": "Landmark paper (1,100+ citations) providing the first altimetry-based detection of acceleration in global mean sea-level rise.",
+    "url": "https://doi.org/10.1073/pnas.1717312115"
+   },
+   {
+    "title": "Understanding of Contemporary Regional Sea-Level Change and the Implications for the Future",
+    "year": 2020,
+    "venue": "Reviews of Geophysics",
+    "takeaway": "Comprehensive review (180+ citations) synthesizing drivers of regional sea-level variability and how they inform future projections.",
+    "url": "https://doi.org/10.1029/2019RG000672"
+   },
+   {
+    "title": "Variable vertical land motion and its impacts on sea level rise projections",
+    "year": 2025,
+    "venue": "Science Advances",
+    "takeaway": "Shows spatially variable land subsidence/uplift materially changes local relative sea-level rise projections along the U.S. coast.",
+    "url": "https://doi.org/10.1126/sciadv.ads8163"
+   },
+   {
+    "title": "Climate-Induced Saltwater Intrusion in 2100: Recharge-Driven Severity, Sea Level-Driven Prevalence",
+    "year": 2024,
+    "venue": "Geophysical Research Letters",
+    "takeaway": "Projects how sea-level rise and groundwater recharge changes jointly drive coastal aquifer saltwater intrusion under future climate scenarios.",
+    "url": "https://doi.org/10.1029/2024GL110359"
+   },
+   {
+    "title": "Diagnosing Regional Sea Level Change Over the Altimeter Era",
+    "year": 2025,
+    "venue": "Journal of Geophysical Research: Oceans",
+    "takeaway": "Attributes regional sea-level trends over the full 30+ year altimeter record to specific climate/ocean processes.",
+    "url": "https://doi.org/10.1029/2024JC022100"
+   },
+   {
+    "title": "Impact-Based Thresholds for Investigation of High-Tide Flooding in the United States",
+    "year": 2025,
+    "venue": "Earth's Future",
+    "takeaway": "Develops impact-calibrated (rather than purely statistical) flooding thresholds for U.S. coastal high-tide flooding assessments.",
+    "url": "https://doi.org/10.1029/2024EF005850"
+   }
+  ],
+  "bgc_ocean_color": "NONE. His >150-work record (verified via OpenAlex, primary JPL profile) is entirely physical sea-level science -- altimetry, geodesy, vertical land motion, coastal flooding, climate-model sea-level projection. No biogeochemistry, ocean color, carbon, plankton, or ecosystem content found.",
+  "darwindiff_relevance": "None direct. Different subfield entirely (physical sea-level science vs. BGC parameter learning/differentiable modeling); relevance to DarwinDiff is only at the level of shared NASA/JPL Earth-science affiliation and AI4Ocean Alliance membership, not shared methods or data.",
+  "confidence": "high"
+ },
+ {
+  "name": "Edward Armstrong",
+  "role": "Senior Science Systems Engineer, PO.DAAC (Physical Oceanography Distributed Active Archive Center), NASA JPL; at PO.DAAC since 1999, ~30 years in oceanographic remote-sensing data systems. Data-infrastructure/engineering role, not a PI-track research scientist -- no science.jpl.nasa.gov research-scientist profile page found for him.",
+  "focus": "Data systems engineering for sea-surface-temperature (SST) products (GHRSST, MUR SST) and PO.DAAC's cloud data discovery/distribution/access infrastructure; FAIR data stewardship for NASA physical-oceanography data.",
+  "key_papers": [
+   {
+    "title": "The Global Ocean Data Assimilation Experiment High-Resolution Sea Surface Temperature Pilot Project (GODAE HR-SST-PP)",
+    "year": 2007,
+    "venue": "Bulletin of the American Meteorological Society",
+    "takeaway": "Landmark (~550 citations) founding description of the multi-mission high-resolution SST intercomparison/production framework."
+   },
+   {
+    "title": "A multi-scale high-resolution analysis of global sea surface temperature (MUR SST)",
+    "year": 2017,
+    "venue": "Remote Sensing of Environment",
+    "takeaway": "Describes the widely-used MUR global 1km daily SST analysis product; ~530 citations."
+   },
+   {
+    "title": "Observational needs of sea surface temperature",
+    "year": 2019,
+    "venue": "Frontiers in Marine Science",
+    "takeaway": "Community white-paper on SST observing-system requirements."
+   },
+   {
+    "title": "The GODAE High-Resolution Sea Surface Temperature Pilot Project",
+    "year": 2009,
+    "venue": "Oceanography",
+    "takeaway": "Overview/summary companion to the 2007 BAMS paper."
+   }
+  ],
+  "bgc_ocean_color": "NONE substantive found. PO.DAAC (his home DAAC) is the physical-oceanography archive, distinct from OB.DAAC/Goddard which archives ocean color and PACE data -- so his systems work is adjacent to but not inside ocean color/BGC. CAVEAT: a Google Scholar profile that surfaced under his name also listed paleoclimate papers (Heinrich stadials, woolly rhinoceros population dynamics, species range-shift projections) that almost certainly belong to a DIFFERENT, unrelated 'Edward Armstrong' (a common name) -- these were excluded from the key-papers list above as likely misattribution, and this is flagged as a real identity-disambiguation risk in the Scholar record.",
+  "darwindiff_relevance": "Low/data-access only: PO.DAAC is the archive DarwinDiff's ECCO/ECCO-Darwin input data already comes through, so Armstrong is a plausible infrastructure/data-access contact (cloud data formats, discovery APIs), not a science collaborator on BGC parameter learning, adjoint methods, or ML emulators. No relevant ML or BGC research output found.",
+  "confidence": "medium"
+ },
+ {
+  "name": "Jinbo Wang",
+  "role": "Associate Professor, Department of Oceanography, Texas A&M University. Physical/satellite oceanographer; formerly at NASA JPL, where he worked on the SWOT mission and led its validation field campaigns. Co-chairs U.S. CLIVAR Physical Oceanography and SWOT/submesoscale/ML working groups; PI role on a NASA \"Ocean AI\" initiative (2025-2028).",
+  "focus": "Upper-ocean submesoscale dynamics and how satellite altimetry (especially SWOT) reveals them; his ML angle is mostly programmatic/leadership (chairing ML-in-oceanography working groups, the NASA Ocean AI initiative) rather than his own published methodology.",
+  "key_papers": [
+   {
+    "title": "Wide-swath satellite altimetry unveils global submesoscale ocean dynamics",
+    "venue": "Nature (cover article)",
+    "year": 2025,
+    "url": "https://www.nature.com/articles/s41586-025-08722-8",
+    "takeaway": "SWOT wide-swath data show submesoscale eddies and internal waves are far more energetic and widespread globally than prior nadir-altimetry estimates suggested."
+   },
+   {
+    "title": "SWOT Mission Validation of Sea Surface Height Measurements at Sub-100 km Scales",
+    "venue": "Geophysical Research Letters",
+    "year": 2025,
+    "url": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2025GL114936",
+    "takeaway": "In-situ validation confirms SWOT SSH accuracy down to sub-100 km scales, underpinning the submesoscale-dynamics results above."
+   },
+   {
+    "title": "A review of Earth Artificial Intelligence",
+    "venue": "Computers & Geosciences",
+    "year": 2022,
+    "url": "https://doi.org/10.1016/j.cageo.2022.105034",
+    "takeaway": "Broad, multi-author survey of AI methods across all Earth-system-science subdomains, workflow patterns, and open challenges; Wang is a mid-list co-author, not lead."
+   },
+   {
+    "title": "Ocean submesoscales as a key component of the global heat budget",
+    "venue": "Nature Communications",
+    "year": 2018,
+    "url": "https://doi.org/10.1038/s41467-018-02983-w",
+    "takeaway": "Landmark paper (Su, Wang, Klein et al.) showing sub-50-km ocean motions drive anomalous cold-to-warm vertical heat fluxes significant to global climate."
+   }
+  ],
+  "bgc_ocean_color": "NONE. His own published work is physical/satellite oceanography (SSH, submesoscale eddies/waves, altimetry validation). The one AI-review paper he co-authored surveys AI across many geoscience domains in general terms but is not a biogeochemistry, ocean-color, PACE, carbon, or plankton study, and he is not its lead author.",
+  "darwindiff_relevance": "Programmatic/community overlap only, as an ML-for-ocean-observation leader (NASA Ocean AI initiative, ML working groups) rather than direct methodological overlap; no adjoint/state-estimation, BGC parameterization, or emulator work found in his own papers.",
+  "confidence": "high"
+ },
+ {
+  "name": "C. Spencer Jones",
+  "role": "Assistant Professor, Department of Oceanography, Texas A&M University. Physical oceanographer (PhD Physical Oceanography, Scripps 2018; MPhys Physics, Oxford 2011).",
+  "focus": "Ocean tracer transport, water-mass transformation, and the meridional overturning circulation, using theory, ocean-model output, and Python-based analysis; a growing secondary line applies neural networks to reconstruct ocean surface/vertical kinematics from satellite sea-surface-height data (SWOT-relevant).",
+  "key_papers": [
+   {
+    "title": "Reconstruction of Surface Kinematics From Sea Surface Height Using Neural Networks",
+    "venue": "Journal of Advances in Modeling Earth Systems (JAMES)",
+    "year": 2023,
+    "url": "https://doi.org/10.1029/2023MS003709",
+    "takeaway": "Xiao, Balwada, Jones et al. train a neural network to infer divergence/vorticity/strain fields from SSH, aimed at extracting fine-scale kinematics from SWOT-type observations."
+   },
+   {
+    "title": "Water mass transformation variability in the Weddell Sea in ocean reanalyses",
+    "venue": "Ocean Science",
+    "year": 2023,
+    "url": "",
+    "takeaway": "Compares ocean reanalyses' representation of Weddell Sea water-mass transformation, a key control on Antarctic Bottom Water formation."
+   },
+   {
+    "title": "Controls of the global overturning circulation of the ocean",
+    "venue": "npj Climate and Atmospheric Science",
+    "year": 2025,
+    "url": "https://doi.org/10.1038/s41612-025-01185-8",
+    "takeaway": "Multi-author review (Roquet, Bell, de Boer, Ferreira, Jones et al.) identifying mechanical mixing, convection, and wind pumping as the three controls of the global overturning circulation that redistributes heat and carbon."
+   },
+   {
+    "title": "Modeling Water-Mass Distributions in the Modern and LGM Ocean",
+    "venue": "Journal of Physical Oceanography",
+    "year": 2021,
+    "url": "",
+    "takeaway": "Uses a water-mass transformation framework to compare modern vs. Last Glacial Maximum ocean stratification."
+   },
+   {
+    "title": "Isopycnal Mixing Controls Deep Ocean Ventilation",
+    "venue": "Geophysical Research Letters",
+    "year": 2019,
+    "url": "",
+    "takeaway": "Landmark earlier paper showing isopycnal (along-density-surface) mixing, not diapycnal mixing, sets deep-ocean ventilation timescales."
+   }
+  ],
+  "bgc_ocean_color": "Essentially NONE. His own work is physical circulation/transport. The 2025 overturning-circulation review mentions carbon only in the generic sense of \"heat and carbon redistribution\" by large-scale circulation, not as a biogeochemical or ocean-color study.",
+  "darwindiff_relevance": "Modest methodological overlap: applies ML (neural networks) to reconstruct physical ocean fields from satellite observations, an emulator-style approach, and his tracer-transport framing is conceptually adjacent to DarwinDiff's differentiable-transport Track 2 interest. No adjoint/state-estimation or BGC-parameter work found.",
+  "confidence": "high"
+ },
+ {
+  "name": "Tianbao Yang",
+  "role": "Professor and Stephen Horn '79 Engineering Excellence Chair, Department of Computer Science & Engineering, Texas A&M University; directs the Optimization for Machine Learning and AI (OptMAI) Lab. Formerly tenured associate professor at University of Iowa (2014-2022); NSF CAREER Award 2019; COLT Best Student Paper 2012.",
+  "focus": "Machine-learning optimization theory: stochastic and compositional (X-risk) optimization, deep AUC/AUPRC maximization, distributionally robust optimization, federated-learning foundations (co-originated local-updates/model-averaging). Application areas are almost entirely medical imaging, ranking/retrieval, and general ML benchmarks -- not Earth or ocean science.",
+  "key_papers": [
+   {
+    "title": "Algorithmic Foundations of Empirical X-risk Minimization",
+    "venue": "arXiv preprint 2206.00439",
+    "year": 2022,
+    "url": "https://arxiv.org/abs/2206.00439",
+    "takeaway": "Introduces a unifying optimization framework (X-risk minimization) covering AUROC, NDCG, and other compositional/ranking losses used across his lab's work."
+   },
+   {
+    "title": "Trading regret for efficiency: online convex optimization with long term constraints",
+    "venue": "Journal of Machine Learning Research",
+    "year": 2012,
+    "url": "",
+    "takeaway": "Foundational result in online convex optimization under long-term constraints."
+   },
+   {
+    "title": "Hetero-ConvLSTM: A deep learning approach to traffic accident prediction on heterogeneous spatio-temporal data",
+    "venue": "KDD",
+    "year": 2018,
+    "url": "",
+    "takeaway": "Spatio-temporal deep learning architecture applied to traffic-accident prediction, his most-cited applied paper -- domain is transportation, not ocean."
+   },
+   {
+    "title": "Nystrom method vs random Fourier features: A theoretical and empirical comparison",
+    "venue": "NeurIPS",
+    "year": 2012,
+    "url": "",
+    "takeaway": "Compares two major kernel-approximation techniques for large-scale learning."
+   }
+  ],
+  "bgc_ocean_color": "NONE found. No papers on ocean, climate, biogeochemistry, ocean color, or any Earth-science domain surfaced in his top-cited or recent work; his lab page and CSE profile list optimization theory and medical-imaging/healthcare AI as the application focus.",
+  "darwindiff_relevance": "Indirect only: his core expertise (stochastic/compositional/robust optimization, the kind of machinery underlying training differentiable models) is generically useful to any gradient-based parameter-learning project like DarwinDiff, but there is no demonstrated ocean or Earth-science application in his record -- his AI4Ocean role reads as cross-disciplinary optimization methodologist, not domain scientist.",
+  "confidence": "high"
+ },
+ {
+  "name": "Dan Fu",
+  "role": "Assistant Research Scientist, Department of Oceanography, Texas A&M University (Google Scholar lists his affiliation as \"Assistant Professor, Texas A&M University\" -- title varies slightly by source, institution confirmed). PhD Oceanography, Texas A&M (2018); BS Atmospheric Sciences, Ocean University of China (2013). Distinct from the Stanford CS researcher of the same name who works on ML systems/architectures -- confirmed by TAMU affiliation and by his tropical-cyclone/climate-modeling publication record.",
+  "focus": "Tropical cyclone dynamics and predictability, atmosphere-ocean interactions, high-resolution global/regional Earth-system modeling, and seasonal-to-decadal climate prediction; increasingly uses machine learning (e.g., CNNs) to emulate climate/TC statistics.",
+  "key_papers": [
+   {
+    "title": "Projected future changes in tropical cyclones using the CMIP6 HighResMIP multimodel ensemble",
+    "venue": "Geophysical Research Letters",
+    "year": 2020,
+    "url": "",
+    "takeaway": "Multi-model high-resolution ensemble projects how tropical cyclone characteristics will change under future climate change."
+   },
+   {
+    "title": "An unprecedented set of high-resolution Earth system simulations for understanding multiscale interactions in climate variability and change",
+    "venue": "Journal of Advances in Modeling Earth Systems (JAMES)",
+    "year": 2020,
+    "url": "",
+    "takeaway": "Describes a large high-resolution Earth-system-model simulation suite used across his subsequent TC and extreme-weather work."
+   },
+   {
+    "title": "Ocean fronts and eddies force atmospheric rivers and heavy precipitation in western North America",
+    "venue": "Nature Communications",
+    "year": 2021,
+    "url": "",
+    "takeaway": "Shows ocean mesoscale fronts/eddies modulate atmospheric river intensity and West Coast precipitation extremes."
+   },
+   {
+    "title": "Central American mountains inhibit eastern North Pacific seasonal tropical cyclone activity",
+    "venue": "Nature Communications",
+    "year": 2021,
+    "url": "",
+    "takeaway": "Identifies gap-wind dynamics from Central American topography as a seasonal control on East Pacific TC activity."
+   },
+   {
+    "title": "Future extreme precipitation amplified by intensified mesoscale moisture convergence",
+    "venue": "Nature Geoscience",
+    "year": 2026,
+    "url": "",
+    "takeaway": "Recent work linking projected mesoscale moisture-convergence intensification to amplified future extreme precipitation."
+   }
+  ],
+  "bgc_ocean_color": "NONE. No publications on ocean biogeochemistry, ocean color, carbon cycling, plankton, or marine ecosystems found; his entire record is physical climate/atmosphere-ocean dynamics (tropical cyclones, fronts, precipitation extremes).",
+  "darwindiff_relevance": "General emulator/high-resolution-modeling technique overlap only (e.g., CNN emulation of seasonal TC activity is methodologically similar in spirit to a forward neural emulator of ECCO-Darwin), but no BGC, adjoint, or parameter-learning overlap; relevance to DarwinDiff specifically is low.",
+  "confidence": "high"
+ },
+ {
+  "name": "Yue \"Luna\" Bai",
+  "role": "Postdoctoral Scholar, Scripps Institution of Oceanography (physical oceanography/climate); Schmidt AI in Science Postdoctoral Fellow (STEM mentor Sarah Gille, AI co-mentor Yuanyuan Shi). PhD 2025, Environmental Science & Engineering (physical oceanography), Caltech, advised by Andrew F. Thompson. BS Environmental Science & Atmospheric/Oceanic Sciences, UCLA. Early-career \u2014 small, mostly physical-oceanography publication record so far.",
+  "focus": "High-latitude/Southern Ocean physical dynamics: submesoscale air-sea interaction, wind-front thermal/current feedbacks, and topographic form stress on ocean currents. Her PhD is described by Caltech as examining Southern Ocean-Antarctica interaction from 'physical and biogeochemical' angles, but her published papers to date are purely physical-dynamics studies. Her current fellowship explicitly targets ML for air-sea carbon exchange.",
+  "key_papers": [
+   {
+    "title": "Does topographic form stress impede prograde ocean currents?",
+    "year": 2021,
+    "venue": "Journal of Physical Oceanography 51(8), 2617-2638 (Bai, Wang & Stewart)",
+    "takeaway": "Idealized-model study of bottom form stress controlling zonal (Southern-Ocean-relevant) current dynamics."
+   },
+   {
+    "title": "Sub-mesoscale wind-front interactions: The combined impact of thermal and current feedback",
+    "year": 2023,
+    "venue": "Geophysical Research Letters 50(18), e2023GL104807 (Bai, Thompson, Villas B\u00f4as, Klein, Torres, Menemenlis)",
+    "takeaway": "LLC4320-based analysis of how SST fronts and surface currents jointly modulate wind stress feedback at submesoscale."
+   },
+   {
+    "title": "Meso- and sub-mesoscale wind-front interactions and their impacts on ocean vertical velocities",
+    "year": 2025,
+    "venue": "submitted (same author group)",
+    "takeaway": "Follow-on study extending the wind-front feedback work to vertical-velocity impacts."
+   },
+   {
+    "title": "Altimetry-informed variability in Southern Ocean ventilation: applications for SWOT and surface current missions",
+    "year": 2023,
+    "venue": "NASA FINESST grant (PI Thompson, Fellow Bai), 2023-2026",
+    "takeaway": "Funded (not yet published) project on Southern Ocean ventilation variability from altimetry \u2014 ventilation governs carbon/oxygen uptake, the closest tie to BGC in her funded work."
+   },
+   {
+    "title": "Schmidt AI in Science Fellowship project (current, unpublished)",
+    "year": 2025,
+    "venue": "UCSD Schmidt AI in Science Postdoctoral Fellowship",
+    "takeaway": "Stated aim: 'apply machine learning to quantify small-scale air-sea interaction's influence on surface carbon exchange and heat fluxes.'"
+   }
+  ],
+  "bgc_ocean_color": "Adjacent but not yet a body of published BGC work. Her PhD is bio-described (by Caltech, not a paper title) as covering the Southern Ocean 'from a physical and biogeochemical perspective'; her FINESST project targets ocean ventilation (which sets carbon/oxygen uptake); and her live fellowship project explicitly targets ML for surface carbon exchange. But her two published, citable papers (2021, 2023) are pure physical dynamics (form stress, wind-front feedback) with no biogeochemical content.",
+  "darwindiff_relevance": "The most relevant of the three, though still tangential to DarwinDiff's core (BGC-parameter identifiability from a differentiable ecosystem model). She is building/proposing an ML emulator of small-scale air-sea carbon exchange \u2014 an ML-for-ocean-carbon-flux problem \u2014 but at the physical air-sea gas-exchange level, not internal plankton/ecosystem-parameter recovery, and with no adjoint or state-estimation component found. Worth a light-touch follow-up once her fellowship publishes, since 'ML predicting surface carbon flux from small-scale physics' is conceptually adjacent to emulator/UDE-style work.",
+  "confidence": "high on identity (multiple corroborating institutional pages); low-moderate on completeness of publication record given early-career status \u2014 flagged explicitly rather than padded."
+ },
+ {
+  "name": "Jean Patrice M. (Patrice) Klein",
+  "role": "Visiting Associate in Environmental Science and Engineering, Caltech, and affiliate at JPL; also long-time CNRS senior researcher at LMD/ENS Paris. PhD-era physicist turned physical oceanographer; h-index 61, ~11,800 citations (Google Scholar).",
+  "focus": "Submesoscale and mesoscale ocean turbulence -- vertical heat and material 'pump' driven by fronts and eddies, surface quasi-geostrophic theory, high-resolution simulation of upper-ocean dynamics, and (recently) generative/diffusion-model-based data assimilation for reconstructing ocean state from multi-modal satellite observations (SSH, SST, SSS). One of very few people on this list whose work spans both classical submesoscale-BGC coupling and modern generative ML for ocean state estimation.",
+  "key_papers": [
+   {
+    "title": "The Oceanic Vertical Pump Induced by Mesoscale and Submesoscale Turbulence",
+    "year": 2008,
+    "venue": "Annual Review of Marine Science",
+    "url": "https://doi.org/10.1146/annurev.marine.010908.163704",
+    "takeaway": "Foundational review of how sub-mesoscale fronts pump nutrients/heat vertically; 579 citations. Landmark older paper."
+   },
+   {
+    "title": "Impact of sub-mesoscale physics on production and subduction of phytoplankton in an oligotrophic regime",
+    "year": 2001,
+    "venue": "Journal of Marine Research",
+    "url": "https://doi.org/10.1357/002224001762842181",
+    "takeaway": "Early demonstration that submesoscale frontal dynamics control phytoplankton production/export in oligotrophic gyres; 475 citations -- direct BGC-physics coupling."
+   },
+   {
+    "title": "Ocean submesoscales as a key component of the global heat budget",
+    "year": 2018,
+    "venue": "Nature Communications",
+    "url": "https://doi.org/10.1038/s41467-018-02983-w",
+    "takeaway": "Global-scale quantification of submesoscale-driven upward heat transport (5x mesoscale); co-authored with Andrew Thompson's group. 489 citations."
+   },
+   {
+    "title": "Response of the North Atlantic Ocean carbon sink to climate change: role of submesoscale processes",
+    "year": 2017,
+    "venue": "HAL preprint / conference",
+    "url": "https://hal.science/",
+    "takeaway": "Direct examination of how submesoscale turbulence modulates the North Atlantic carbon sink under climate change -- explicit BGC/carbon-cycle relevance."
+   },
+   {
+    "title": "Generative Data Assimilation for Surface Ocean State Estimation From Multi-Modal Satellite Observations",
+    "year": 2025,
+    "venue": "Journal of Advances in Modeling Earth Systems (JAMES)",
+    "url": "https://doi.org/10.1029/2025MS005063",
+    "takeaway": "With S.A. Martin and G.E. Manucharyan: score-based diffusion generative model reconstructs eddy-resolving surface ocean state (SSH/SST/SSS) from sparse, multi-modal satellite data -- a generative-AI data-assimilation paper, directly in DarwinDiff's adjacent-interest zone."
+   }
+  ],
+  "bgc_ocean_color": "YES, substantive and recurring: phytoplankton production/subduction under submesoscale frontal dynamics (2001, 475 citations), submesoscale control of the North Atlantic carbon sink (2017), and submesoscale-driven heat/nutrient vertical pump reviews (2008/2018) that are routinely cited in ocean-BGC contexts even though Klein himself is a physicist. Not ocean-color/satellite-chlorophyll work per se, but direct physical-BGC coupling.",
+  "darwindiff_relevance": "The strongest overlap of the three. (1) Methodological: the 2025 JAMES paper is a generative/diffusion-model data-assimilation system for multi-modal satellite ocean state estimation -- squarely in DarwinDiff's adjacent-interest list (generative models, state estimation, data assimilation), though applied to physical (SSH/SST/SSS) rather than biogeochemical fields. (2) Domain: his classical submesoscale-phytoplankton and submesoscale-carbon-sink work establishes the physical mechanisms (fine-scale vertical fluxes) that a 0-D BGC surrogate like DarwinDiff necessarily coarse-grains away -- relevant background for the 'surrogate gap is dimensional' framing already in the project's working notes. No direct adjoint/parameter-learning work found.",
+  "confidence": "high (verified via Caltech GPS people page 'Jean Patrice M. (Patrice) Klein', Google Scholar 5KSarjIAAAAJ showing Caltech + LMD/ENS Paris, and two consistent OpenAlex author records -- A5068056340 Caltech/CNRS 174 works and A5077002737 Caltech/JPL 8 works -- both returning the same submesoscale/BGC/generative-DA publication set, confirming a single real identity split across OpenAlex records rather than two people)"
+ }
+]

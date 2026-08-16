@@ -9101,11 +9101,67 @@
      "local_only": 0
     },
     {
+     "path": "docs/findings/2026-08-12_ai4ocean_alliance_publication_scan.md",
+     "name": "2026-08-12_ai4ocean_alliance_publication_scan.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 17401,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_ai4ocean_alliance_scan_report.md",
+     "name": "2026-08-12_ai4ocean_alliance_scan_report.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 987,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_coupling_a_physical_model_dilutes_the_iron_signal.md",
+     "name": "2026-08-12_coupling_a_physical_model_dilutes_the_iron_signal.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 1053,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_darwin_traits_echo_file_located.md",
+     "name": "2026-08-12_darwin_traits_echo_file_located.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 455,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_external_evidence_sweep_nothing_moves_a_number.md",
+     "name": "2026-08-12_external_evidence_sweep_nothing_moves_a_number.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 1015,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_how_often_our_primary_test_fires_on_nothing.md",
+     "name": "2026-08-12_how_often_our_primary_test_fires_on_nothing.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 804,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_notes/2026-08-12_jon_reply_pavia_DRAFT.md",
+     "name": "2026-08-12_jon_reply_pavia_DRAFT.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 321,
+     "local_only": 0
+    },
+    {
      "path": "docs/research_notes/2026-08-12_jon_reply_round2_DRAFT.md",
      "name": "2026-08-12_jon_reply_round2_DRAFT.md",
      "date": "2026-08-12",
      "retracted": 0,
-     "words": 356,
+     "words": 528,
      "local_only": 0
     },
     {
@@ -9113,7 +9169,135 @@
      "name": "2026-08-12_lauderdale_answers_round2.md",
      "date": "2026-08-12",
      "retracted": 0,
-     "words": 915,
+     "words": 1259,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_notes/2026-08-12_pavia_thorium_lead.md",
+     "name": "2026-08-12_pavia_thorium_lead.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 636,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_prereg_so_marsh_anchor.md",
+     "name": "2026-08-12_prereg_so_marsh_anchor.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 1021,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_prereg_so_only_replication.md",
+     "name": "2026-08-12_prereg_so_only_replication.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 858,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_reading_bing_code_finds_a_method_we_do_not_have.md",
+     "name": "2026-08-12_reading_bing_code_finds_a_method_we_do_not_have.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 789,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_the_box_refactor_is_bitwise_neutral.md",
+     "name": "2026-08-12_the_box_refactor_is_bitwise_neutral.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 919,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_the_fresh_seed_half_replicates_the_flagship.md",
+     "name": "2026-08-12_the_fresh_seed_half_replicates_the_flagship.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 790,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_the_southern_ocean_calcite_gap_is_the_compilation_not_the_ocean.md",
+     "name": "2026-08-12_the_southern_ocean_calcite_gap_is_the_compilation_not_the_ocean.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 1023,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md",
+     "name": "2026-08-12_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 1022,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-12_the_southern_ocean_scavrat_result_replicates.md",
+     "name": "2026-08-12_the_southern_ocean_scavrat_result_replicates.md",
+     "date": "2026-08-12",
+     "retracted": 0,
+     "words": 828,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_notes/2026-08-13_jon_reply_pavia_DRAFT.md",
+     "name": "2026-08-13_jon_reply_pavia_DRAFT.md",
+     "date": "2026-08-13",
+     "retracted": 0,
+     "words": 552,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-13_laplace_assessment_and_a_refuted_hypothesis.md",
+     "name": "2026-08-13_laplace_assessment_and_a_refuted_hypothesis.md",
+     "date": "2026-08-13",
+     "retracted": 0,
+     "words": 1130,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-13_rno_the_architecture_is_dead_the_conformal_wrapper_is_not.md",
+     "name": "2026-08-13_rno_the_architecture_is_dead_the_conformal_wrapper_is_not.md",
+     "date": "2026-08-13",
+     "retracted": 0,
+     "words": 724,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-13_the_flagship_rpicpoc_5050_is_daniels_specific.md",
+     "name": "2026-08-13_the_flagship_rpicpoc_5050_is_daniels_specific.md",
+     "date": "2026-08-13",
+     "retracted": 0,
+     "words": 828,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-13_the_median_collapse_is_legitimate_for_a_sparse_anchor.md",
+     "name": "2026-08-13_the_median_collapse_is_legitimate_for_a_sparse_anchor.md",
+     "date": "2026-08-13",
+     "retracted": 0,
+     "words": 783,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_notes/2026-08-14_session_handoff.md",
+     "name": "2026-08-14_session_handoff.md",
+     "date": "2026-08-14",
+     "retracted": 0,
+     "words": 695,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md",
+     "name": "2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md",
+     "date": "2026-08-14",
+     "retracted": 0,
+     "words": 631,
      "local_only": 0
     }
    ]
@@ -12875,6 +13059,18 @@
      "dont": ""
     },
     {
+     "question": "Does the DINN trunk WIDTH (hidden_dim / degrees of freedom at fixed sharing) change recovery?",
+     "answer": "ALREADY RUN at n=100 per width - do not re-derive. Widths 8/16/24/39/80 (142/406/798/2742/7126-ish trunk weights) across jobs 258439, 258694 and 258713, each with its own ARCHITECTURE-MATCHED untrained null and all three collapses. scav_rat per-AOI >=2-of-3 at band 0.40: arithmetic 13/45/70/77/88, geometric 8/16/20/17/26, median 25/37/37/27/25. The three collapses DISAGREE about whether an inverted U exists at all: arithmetic is monotone up, geometric is nearly flat, median peaks at 16-24 then declines. The apparent arithmetic 'capacity gain' is a DISPERSION ARTIFACT and was formally retracted 2026-08-03 - per-cell log_sd rises monotonically with width (natl 0.879/0.933/0.971/0.976/1.001) and arithmetic = geometric x exp(sigma^2/2). ADR-0003 rejects width 39 outright rather than deferring it. NOTE the width effect is maximal EXACTLY at the 0.40 band (+0 at 0.30, +9 at 0.35, +32 at 0.40, +19 at 0.45, +1 at 0.50, +0 at 0.60), which is threshold geometry, not accuracy.",
+     "doc": "docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
+     "dont": ""
+    },
+    {
+     "question": "Is R_PICPOC's Southern Ocean leg inherited through the shared DINN, or merely unmeasured?",
+     "answer": "AMBIGUOUS by the pre-registered rule, and pooler-dependent, which the prereg named in advance as itself a finding. Job 354596, single-AOI so inheritance is impossible by construction, verify_run exit 0 on both trained arms. R_PICPOC anchored vs unanchored: arithmetic 0/50 vs 0/50; geometric 6/50 vs 0/50 (P=0.0267); median 43/50 vs 0/50 (P=5.2e-21). Only the median clears the pre-registered 15/50 threshold. R_PICPOC also LOSES its pooler invariance for the first time (per-cell log_sd 0.105 to 0.459) because a 12-of-1296-cell anchor makes the recovered field heterogeneous. COST, pre-registered and fired: scav_rat degrades significantly under arithmetic, 30/50 to 16/50 (P=0.0088), in the one basin where it is established; diatomgraz drops 50 to 41 geometric (P=0.0026).",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-13_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md",
+     "dont": ""
+    },
+    {
      "question": "What fraction of the steady-state surface iron sink does scavenging carry at Carroll values?",
      "answer": "About 79.7%. Biological uptake and the L1-L2 exchange carry the other 20.3% and are NOT homogeneous of degree one in the rate — which is why the alpfe/scav_rat gauge orbit is nearly flat rather than exactly flat. Co-scaling the pair by 16× moves steady-state surface DFe monotonically by 0.187 dex.",
      "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
@@ -12902,6 +13098,12 @@
      "question": "What happens if you drop ECCO-Darwin output and fit observations only (Jon's directive)?",
      "answer": "Already run at n=50 (coord_anchors_pinnOFF, verify_run exit 0): alpfe 50/50 DECISIVE, R_PICPOC 28/50 decisive but halved, scav_rat 0/50 GONE (was 26/50), diatomgraz 11/50 below chance, joint trio 25/50 -> 0/50. scav_rat scores 40/50 cell-weighted but 0/50 per-AOI (always southernoceanpac only) - a textbook straddle trap.",
      "doc": "docs/findings/2026-07-28_session_evidence_log.md",
+     "dont": ""
+    },
+    {
+     "question": "Is alpfe's 1.0 upper bound a hard PHYSICAL ceiling, or an unstated prior?",
+     "answer": "An UNSTATED PRIOR, on domain-expert authority. J. Lauderdale (MIT, ECCO-Darwin co-author), 2026-08-12: 'No, it's not a hard ceiling. I think there is enough uncertainty in the soluble iron flux that I wouldn't be surprised if values of >1 (ie the ocean wants more soluble iron input to satisfy surface iron concentrations).' This selects the second branch of the open physics question left in section 5 of 2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md. Consequences are ZERO-COMPUTE and interpretive only: (1) report alpfe as a DIRECTION ('the observations say it is high, decisively against an untrained control'), never as a value or an accuracy; (2) the 49/50 is substantially measuring where the bound was put, since rel(upper)=0.077 places the ceiling inside the 0.40 band; (3) the measured 1.594 at the widened bound is physically unremarkable, not a divergence. NO NEW ARRAY IS LICENSED: the widened-bound experiment ALREADY RAN (job 276927 + grader 276928, 4 arms x 50 seeds, DD_ALPFE_HI lever, PR #234). A 2026-08-12 session re-proposed it as new and filed issue #240; #240 was closed as already-answered.",
+     "doc": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
      "dont": ""
     },
     {
@@ -13307,6 +13509,12 @@
      "dont": ""
     },
     {
+     "question": "Does the Southern Ocean really have zero calcite observations, or is that a property of the Daniels compilation?",
+     "answer": "It is the COMPILATION, not the ocean. Binned identically (1-deg grid, depth_max=50 m): Daniels 2018 gives eqpac 34 / natl 26 / southernoceanpac 0 cells; Marsh 2025, the direct successor expanding the same Poulton 2018 isotopic-tracer database, gives 34 / 33 / TWELVE. The Daniels column reproduces the repo published figures exactly, which is the positive control. The SO anchor is 12 cells carrying 42 observations, median rain ratio 0.04520 against Carroll 0.04245 and the v05 live 0.0418860. The data and a working loader were on disk the whole time; nothing was downloaded. Reword ind330, ded177 and ind329 from 'the ocean has none' to 'Daniels has none'.",
+     "doc": "docs/findings/2026-08-12_the_southern_ocean_calcite_gap_is_the_compilation_not_the_ocean.md",
+     "dont": ""
+    },
+    {
      "question": "Where specifically does v05 chlorophyll go wrong seasonally?",
      "answer": "It matches the bloom peak inside the satellite noise floor in May (-0.079) and Jun (+0.032) and is 2x-47x low elsewhere: Feb -1.669, Mar -1.628 (98.5% coverage), Apr -1.012 (99.5%), Jul -0.487, Aug -0.751, Sep -0.568, Oct -0.260. v05 peaks in June; MODIS peaks in August.",
      "doc": "docs/findings/2026-07-19_v05_chlorophyll_vs_modis.md",
@@ -13328,6 +13536,12 @@
      "question": "What is the measured untrained (chance) hit rate for each parameter, and what null must every count be graded against?",
      "answer": "Job 227777, n=50, verify_run exit 0, real pipeline at NB23_LR=0 / NB23_N_EPOCHS=1 through the identical grading path. Per-AOI untrained rates: alpfe 0.200, scav_rat 0.000, Smallgrow 0.120, Biggrow 0.000, diatomgraz 0.640, R_PICPOC 0.000. Untrained joint trio 0/50. The baseline is ARCHITECTURE-MATCHED: adding the MLD input channel alone moves untrained alpfe 10/50 to 16/50 and untrained diatomgraz to 34/50 (job 227876).",
      "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "dont": ""
+    },
+    {
+     "question": "Is the median collapse legitimate for a sparsely-anchored parameter, or is the 43/50 a collapse artifact?",
+     "answer": "LEGITIMATE, it is a measurement. The untrained null IS the unanchored population, so the test needs no new run. Median over 50 seeds of per-AOI recovered R_PICPOC: anchored 0.07141 / 0.06260 / 0.05483 (arith/geom/median) against an untrained null at about 0.730 in all three. The anchor moves the estimate about 13x under EVERY collapse (abs d-ln 2.32 / 2.46 / 2.59), always toward Carroll; the prior sits at 17.2x Carroll and the anchored median at 1.29x. The median is also the RIGHT collapse, validated against an external target: the observed Marsh SO geomean is 0.0489, and distance from it is median +12 percent, geometric +28 percent, arithmetic +46 percent. Mechanism is ordinary right-skew (log_sd 0.469), which the sparse anchor itself creates. LABELLED POST-HOC: the som prereg named no primary pooler for R_PICPOC, so this resolves an ambiguity after seeing counts. Evidence about the metric, not a pre-registered result.",
+     "doc": "docs/findings/2026-08-13_the_median_collapse_is_legitimate_for_a_sparse_anchor.md",
      "dont": ""
     },
     {
@@ -13376,6 +13590,12 @@
      "question": "Which anchor-off control number do I quote against the flagship?",
      "answer": "Match the epoch budget. n50_anchor_off (1500 ep) gives R_PICPOC per-AOI 4/50 (cell-weighted 9); the epoch-matched 2000-epoch control n50e2k_anchor_off gives 6/50. Quote 6/50 against the 2000-epoch flagship.",
      "doc": "docs/findings/2026-07-21_joint_number_reconciliation.md",
+     "dont": ""
+    },
+    {
+     "question": "How often does our primary arm-vs-arm test fire on nothing, given we scan parameters x poolers x bands?",
+     "answer": "Measured at zero compute by resampling disjoint 50/50 sham splits of n=100 arms already on disk (2000 splits each; 6 params x 3 bands = 18 cells). ANALYTIC: exact type-I of two-sided Fisher at 50v50 NEVER exceeds 0.0352 at nominal 0.05, by full enumeration, maximised at p=0.5, so the test is conservative by construction. MEASURED per-cell FPR 0.0173 (w16e2k) and 0.0114 (w39e2k), consistent with that ceiling. THE FINDING: P(at least 1 of 18 cells significant) = 0.2425 and 0.1705, so on arms differing by NOTHING a scan turns up a significant cell 17-24 percent of the time. A single PRE-REGISTERED comparison is trustworthy; a lone significant cell found by scanning is a 1-in-5 coin flip. scav_rat is the noisiest parameter under the null (0.0263 / 0.0325, 2-8x alpfe). Poolers were NOT varied, so 0.17-0.24 is a LOWER bound on the real scan rate.",
+     "doc": "docs/findings/2026-08-12_how_often_our_primary_test_fires_on_nothing.md",
      "dont": ""
     },
     {
@@ -13451,6 +13671,12 @@
      "dont": ""
     },
     {
+     "question": "Is there a single width at which parameter recovery peaks?",
+     "answer": "NO - the question has no well-defined answer, and any claim of the form 'recovery peaks at width W' is unreportable. Measured 2026-08-03/04 to be POOLER-dependent (arithmetic monotone up, geometric flat, median peaking at 16-24), BAND-dependent (the effect is maximal exactly at 0.40 and vanishes at 0.30 and 0.60), and PARAMETER- and LEG-dependent: sopac scav_rat median error is best at w16 (0.0665/0.0511/0.0551/0.0831/0.1939 across 8/16/24/39/80), alpfe's eqpac leg is best at w8 (89/84/71/68/72), diatomgraz's eqpac leg at <=0.10 is best at w16 (36/40/24/1/1), while natl scav_rat median error improves monotonically to w80 (0.5155/0.4128/0.3870/0.3845/0.3292). Different parameters and different basins peak at different widths, so there is no single optimum to report.",
+     "doc": "docs/findings/2026-08-03_the_pass_band_is_load_bearing.md",
+     "dont": ""
+    },
+    {
      "question": "abd555 asked why the ARITHMETIC collapse biases scav_rat's summary HIGH while EKI independently reports the recovered value biased LOW. Is that a real conflict?",
      "answer": "NO - there is no conflict, and the arithmetic collapse is the outlier. TWO INDEPENDENT ESTIMATORS AGREE scav_rat is recovered LOW. (1) EKI (eki_fullbox_trio.py, Iglesias-Law-Stuart, J=256, 30 iters, derivative-free, NO DINN and NO autograd, three global scalars in log space, loss = real GEOTRACES surf/sub dFe + real Daniels CP:PP only) returns scav_rat 2.1e-7 against Carroll 6.025e-7 = 0.349x, rel offset 0.65, Loose. (2) The geometric collapse of the DINN per-cell fit, measured 2026-08-04, returns 0.43x in eqpac and natlsubpolar, 0.89x in southernoceanpac (3-AOI) and 0.73x single-AOI. The ARITHMETIC collapse of the SAME fits reads 0.45x / 0.58x / 0.95x and 1.39x, i.e. it lifts the estimate toward Carroll and, in the single-AOI Southern Ocean, past it. So the low bias is the estimate and the high bias is the REPORTING STATISTIC. Note what this does NOT establish: Carroll's value is itself a Green's-functions point estimate with no published uncertainty, so 'biased low' means low relative to Carroll, not relative to truth.",
      "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
@@ -13475,6 +13701,12 @@
      "dont": ""
     },
     {
+     "question": "Do Laplace methods (Laplace-Net arXiv:2503.13158, or a nested Laplace) help DarwinDiff?",
+     "answer": "NO for the transform, and a pre-stated hypothesis was REFUTED. Three different things share the name: the Laplace TRANSFORM (that paper), the Laplace APPROXIMATION (we already use it, since inverse-Fisher CRLB IS a Laplace-approximation covariance), and INLA (Rue, Martino and Chopin 2009, 10.1111/j.1467-9868.2008.00700.x, the likely referent of nested Laplace, untried and the most promising of the three, but it assumes a latent Gaussian field with sparse precision, which our per-cell nonlinear field is not). The transform provably cannot break the gauge symmetry: it is linear and injective, so if y(t) is invariant then Y(s) is invariant. TESTED hypothesis: scav_rat's sensitivity PEAKS near the 50-day window set by the slow pole. Poles are real (13 decay constants, median 4.66 d, slowest 41.98 d, two at 40.9 and 42.0 d against a 50 d window) but H IS REFUTED - scav_rat sensitivity rises MONOTONICALLY, 0.44 at 5 d to 1.22 at 50 d to 4.57 at 400 d. Since recovery gets WORSE at longer windows while sensitivity gets BETTER, the window result is NOT an observability phenomenon; the reconciliation is collapsing DFe2 spatial CONTRAST. Side confirmation: R_PICPOC sensitivity converges to exactly 1.000000, recovering ded87 numerically from an independent direction.",
+     "doc": "docs/findings/2026-08-13_laplace_assessment_and_a_refuted_hypothesis.md",
+     "dont": ""
+    },
+    {
      "question": "Does parameter-free astronomical monthly light rescue the one-year chemical-restoring seasonal self-twin target?",
      "answer": "NO for this preregistered construction. Latitude-only daily-mean top-of-atmosphere light, normalized to per-cell annual mean 1 and added without fitting to the frozen tau=365.25 d chemical closure, passes every light-integrity gate and preserves cycle-8 DFe2 rel-SD above all three minima (eqpac 0.0699 >= 0.0423, natlsubpolar 0.1757 >= 0.0662, southernoceanpac 0.1812 >= 0.1195), with finite DIC1 1574.0 / 1756.4 / 1759.7. But cycle-8 Chl1 rel-SD is 0.0022 / 0.0110 / 20.6627 against [0.1,1.0], and Chl1 means are 2.12e-34 / 7.87e-34 / 2.69e-22. No AOI passes. The verifier reconstructs light from saved latitude and recomputes all gates from 24 cycle tensors, exit 0; science gate exit 2. NO optimizer, recovery, or B200 job. This does not choose endpoint versus time mean or show that seasonal light is irrelevant in Darwin.",
      "doc": "docs/findings/2026-08-09_astronomical_light_does_not_rescue_seasonal_biomass.md",
@@ -13490,6 +13722,12 @@
      "question": "Can spatial relocation through the frozen corrected prey field rescue large zooplankton energetics?",
      "answer": "NO in EqPac and the Southern Ocean, even under an unrestricted quarter-day teleportation upper bound. Best fixed-cell / monthly-teleport / stepwise-teleport gain integrals are 11.060 / 11.455 / 11.463 in EqPac, 11.160 / 12.161 / 12.210 in the North Atlantic, and 11.574 / 11.890 / 11.904 in the Southern Ocean against mortality 12.2. The stepwise ratios are 0.9396 / 1.0008 / 0.9757; North Atlantic clears by only 0.08% and its monthly envelope still fails. EqPac has an instantaneous refuge in 0/1,464 steps. Independent verification reproduced the oracle from 16,765,728 support-tensor cells. This rules out only relocation through the unchanged frozen prey path in two AOIs, not real transport that changes prey, imports material or couples depth. No transport was run; Stage remains stage0-failed-stop and B200 remains unauthorized.",
      "doc": "docs/findings/2026-08-10_even_teleportation_cannot_close_two_large_z_deficits.md",
+     "dont": ""
+    },
+    {
+     "question": "Would coupling an external physical ML model (AI4Ocean-style) to DarwinDiff improve parameter recovery?",
+     "answer": "NO in both readings, and one is measured. (1) As DINN INPUT CHANNELS: settled no, covariate channels leave scav_rat 0/10 across five arms, and ded111 gives the structural reason - the degeneracy is a gauge symmetry holding for ANY g and any weights inside it, so inputs to g cannot break it. (2) As a PRESCRIBED SOURCE TERM such as an eddy vertical iron supply: NOT covered by the gauge argument, since a prescribed source does not co-scale, but measured to make alpfe HARDER to identify - abs rho climbs 0.09 to 0.92 and CRLB(log alpfe) degrades 26x as the prescribed source goes from 0 to 63 percent of total input. Mechanism: alpfe enters only via alpfe*D_sol in the numerator, so a larger prescribed source DILUTES the dust share (d ln FeT / d ln alpfe falls 1.476 to 0.417 while the scav sensitivity is pinned at -0.167 in the denominator). Also the alliance products are all SURFACE while abd529 puts scav_rat's signal in the VERTICAL structure of DFe.",
+     "doc": "docs/findings/2026-08-12_coupling_a_physical_model_dilutes_the_iron_signal.md",
      "dont": ""
     },
     {
@@ -13535,6 +13773,12 @@
      "dont": ""
     },
     {
+     "question": "Did the 2026-08 box-model refactor change the flagship forward model?",
+     "answer": "NO, bitwise identical, values AND gradients, in both precisions. carroll6_5pft_2layer.py changed 259 lines between the AICR checkout (dd83710, reachable from origin/main) and the post-refactor tree (82abbd5; the box file last touched by 487d451), rewriting the core growth computation into a new phytoplankton_process_rates helper; the flagship numbers predate that refactor while the manuscript is written from HEAD, so the attribution had never been checked. Measured over 200 steps x 37 cells at Carroll truth in the model's documented tracer order (re-measured 2026-08-16 after Codex found the original harness built its state in a scrambled order with DFe_2 ~2000x plausible; verdict unchanged): float64 traj 99751160 / grad 8e392f0e, float32 traj 0c25270a / grad e6c0cee9, all identical across checkouts. A positive control is included (the new helper is absent pre-refactor) so the match is not an import artifact, and a doctored-baseline negative control confirms the harness exits 1 on mismatch. Gradients are checked because recovery is driven by d(loss)/d(params), and float32 because that is what training uses. Harness: scripts/analysis/forward_model_equivalence.py (--baseline gate).",
+     "doc": "docs/findings/2026-08-12_the_box_refactor_is_bitwise_neutral.md",
+     "dont": ""
+    },
+    {
      "question": "Does the flagship's joint trio survive the geometric collapse?",
      "answer": "NO, it halves: 25/50 arithmetic -> 12/50 geometric (23/50 median). scav_rat is the sole binding leg and falls 26/50 -> 13/50 on the reproduction; the entire effect is the North Atlantic leg, 19 -> 5, the only leg with per-cell log_sd (0.940) above the decisive 0.820. alpfe (49/50) and R_PICPOC (50/50) are EXACTLY invariant. Measured on collapse/collapse_n50, bitwise identical to logscale/ctrl_n50 on 50/50 seeds; replicated out-of-sample by wxe/w16e2k (job 258713, n=100): 48 -> 19 with natl 37 -> 7. Paired McNemar 13 arithmetic-only vs 0 geometric-only, P = 2.4e-04.",
      "doc": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
@@ -13550,6 +13794,12 @@
      "question": "For loss-twin job 320993, were the Southern Ocean Daniels and POSi zero-active-cell states caused by source staging failure?",
      "answer": "NO. A reproducible audit re-read all 75 immutable Slurm logs and both staged sources. All 25 Southern Ocean logs completed rc=0, all 25 explicitly reported no Daniels coverage and zero GEOTRACES bSi cells, and none contained a Daniels/GEOTRACES failure marker. The staged Daniels and GEOTRACES files were nonempty (473,302 and 64,566,461 bytes), while all 25 EqPac sibling logs reported 34 Daniels cells / 123 samples and 7 bSi cells and all 25 North Atlantic logs reported 26 / 116 and 4. This distinguishes expected geographic zero coverage from a staging failure for this job only. It does NOT waive verify_run=2: the declared-on terms were inactive, legacy fit artifacts lack source provenance, and every Southern Ocean fitted count remains excluded.",
      "doc": "docs/findings/2026-08-09_constant_forcing_self_twin_double_null.md",
+     "dont": ""
+    },
+    {
+     "question": "Does any external published work change a reported DarwinDiff number?",
+     "answer": "NO. A six-axis adversarial sweep (iron degeneracy, calcite/R_PICPOC, identifiability methodology, AI4Ocean datasets, upstream ECCO-Darwin, competing approaches) raised 42 candidates, sent all 13 HIGH-severity ones to adversarial verification with verifiers told to default to REFUTED, and returned ZERO confirmed threats (5 ALREADY_KNOWN, 4 ADJACENT_ONLY, 4 REFUTED, 34 dead ends recorded). Every DOI resolved, so the failures were of inference, not of existence. The yield is 11 verified citations, and one narrows our novelty: the gauge-symmetry argument in ded110/ded111 IS Castro and de Boer's published Scaling Invariance Method (10.1371/journal.pcbi.1008248), so it must be cited rather than presented as a contribution. Hunters ran at sonnet and the 24 MEDIUM rows were NOT verified, so they are leads not findings.",
+     "doc": "docs/findings/2026-08-12_external_evidence_sweep_nothing_moves_a_number.md",
      "dont": ""
     },
     {
@@ -15413,6 +15663,12 @@
      "dont": ""
     },
     {
+     "question": "Does a Recurrent Neural Operator (RNO) help DarwinDiff?",
+     "answer": "The ARCHITECTURE is dead-end-by-evidence; the CONFORMAL WRAPPER is a real Track-2 lead. RNO (Liu-Schiaffini et al., arXiv:2308.08794) was NOT in the 2026-07-21 Caltech scan so it is a genuine addition, but it lands in the same class as the six that failed there: our 1-step ceiling is information-limited CONFIRMED (geometry test job 8524645, error spatially flat, corr with coastal proximity about 0 in all four regions), we have about 110 monthly pairs of ONE trajectory where RNO needs long pre-tipping sequences, there is no tipping point in our problem, and Track 1 is architecture-independent (ded77). SEPARATELY their conformal-prediction-on-physics-residuals framework is genuinely absent here (0 hits in settled, grep empty) and lands on a measured problem - the emulator scores +0.43 while inventing 4.5 percent negative iron where v05 emits 0.0 percent, i.e. skill is blind to physics. It is a POST-HOC wrapper needing no retraining. Gated on exchangeability: our rollouts are autocorrelated and drifting, exactly where naive conformal loses its guarantee.",
+     "doc": "docs/findings/2026-08-13_rno_the_architecture_is_dead_the_conformal_wrapper_is_not.md",
+     "dont": ""
+    },
+    {
      "question": "What drives the 169x FeMIP iron residence-time spread?",
      "answer": "The INPUT FLUX, not the inventory. Tagliabue 2016 Table 2 across 13 models: input 1.4-195.4 Gmol/yr (~140x), inventory 4.8-12.5e11 mol (2.6x), concentration 0.35-0.81 nM (2.3x), residence time 3.7-626.3 yr (169x). The extreme decomposition is 169x = 1.29x (inventory) x 130x (INPUT), dominated by the sedimentary source spanning 0-194 Gmol/yr. No second (deep-inventory) sloppy direction is needed.",
      "doc": "docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md",
@@ -15563,6 +15819,12 @@
      "dont": ""
     },
     {
+     "question": "Is there a darwin_traits echo file that could confirm the rain-ratio precedence (ded215)?",
+     "answer": "YES it exists and is well instrumented, but it is NOT in our datastore so ded215 stays OPEN. darwin3 pkg/darwin/darwin_init_fixed.F opens darwin_traits.txt and passes the unit INTO DARWIN_READ_TRAITS, closing it on return, so the file is that routine's own record of the values it loaded - exactly the instrument ded215 needs, since the open question is whether DARWIN_READ_TRAITS overwrites what DARWIN_GENERATE_RANDOM produced. Searched ~/dd_data on AICR: no darwin_traits.txt and no STDOUT files, because we hold model OUTPUTS rather than run directories. Moves ded215 from no-known-route to known-route-exact-filename-need-one-artifact, i.e. a one-line ls request to Lauderdale.",
+     "doc": "docs/findings/2026-08-12_darwin_traits_echo_file_located.md",
+     "dont": ""
+    },
+    {
      "question": "Does diatomgraz's equatorial-Pacific regional identifiability replicate out-of-sample, and does it survive the strict <=0.10 band?",
      "answer": "YES to both, and this is the project's first genuine out-of-sample replication of a regional identifiability result. Graded per-leg on job 270032 (dd-flagwin3), a SEPARATE submission from the width arms the published number came from: at band <=0.10 the eqpac leg is 18/50 arithmetic / 18 geometric / 18 median at w200 and 15/15/16 at w400, against an architecture-matched untrained null whose eqpac leg is 0/50 at that band under ALL THREE collapses (P = 5.9e-07 and 8.9e-06 geometric, Fisher one-sided). At <=0.05 it is 8/5/12 at w200 (P = 0.028 geometric) and 7/6/11 at w400 (P = 0.013), where the collapse choice DOES matter and the geometric reading is the one to quote. The published width-arm figures were 40/100 at <=0.10 and 20/100 at <=0.05 against untrained 0/50; flagwin3's w200 gives 36/100 on the same scale, reproducing to within 4 counts per 100. This matters because the three-check rule's first clause is the one the project most often fails - the per-parameter width effect died exactly here, 45/50 vs 34/50 becoming 38/50 vs 38/50 in a later job. diatomgraz-eqpac does not die. Consequence for framing: of the two REGIONALLY identifiable parameters, diatomgraz in the equatorial Pacific is now the BETTER supported one, because scav_rat in the Southern Ocean still has no replication - the two runs that looked like one were shown on 2026-08-04 to be bitwise identical on all 50 seeds. Also note the 0.40-band climb across windows (eqpac 0 -> 36 -> 45/50) is largely the NULL moving, not the fit improving: at <=0.10 the leg goes 0 -> 18 -> 15, so it does not keep climbing with window length.",
      "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
@@ -15575,6 +15837,12 @@
      "dont": ""
     },
     {
+     "question": "Is the flagship trio replicated out-of-sample on seeds that never appear in its lineage?",
+     "answer": "YES, and the repo was under-reporting it. wxe/w16e2k (job 258713) ran seeds 0-99 while the flagship, ctrl_n50 and collapse_n50 all ran seeds 0-49, so seeds 50-99 are disjoint from the entire flagship lineage, but only the pooled n=100 figure was ever quoted. Graded separately against the same-submission untrained null, trio per-AOI at-least-2-of-3: flagship twin 25/12/23 (arith/geom/median), w16e2k overlapping half 21/7/20, w16e2k FRESH half 24/10/17, untrained null 0/0/0. alpfe 49/50 and R_PICPOC 49-50/50 in every arm under every pooler. The median pooler is the weak match (17 vs 23). Zero compute, a re-grade of artifacts already on disk.",
+     "doc": "docs/findings/2026-08-12_the_fresh_seed_half_replicates_the_flagship.md",
+     "dont": ""
+    },
+    {
      "question": "Does the corrected seasonal target implement the literal source prey floor, and is the explicit-zooplankton projection source-conformant?",
      "answer": "YES, as a bounded projection over the visited support. Six official ECCO-Darwin files at frozen commit 75b8e43 and three same-era corroborating files at 488cb79 pass Git-blob identity. Direct source parsing recovers Gmax=0.625 d-1, K=10.2 C, phygrazmin=1.2e-8 C, mortality=1/30 d-1, palatability, assimilation and grazing algebra. Same-era TEMP_VERSION=2 code corroborates unit grazing/mortality temperature functions and zero quadratic mortality. After the literal floor correction, maximum absolute rate difference, relative difference and tolerance ratio versus the source oracle are all exactly zero in all three AOIs. An independent verifier reparsed nine source files, checked upstream hashes and reconstructed 323,519 tensors. Decision: source-conformant-bounded-projection. This does not make the target valid or the projection full Darwin; five declared model reductions remain and B200 stays false.",
      "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md",
@@ -15584,6 +15852,18 @@
      "question": "Does scav_rat recovery depend on the integration window N_STEPS, and if so by what mechanism?",
      "answer": "YES, decisively, and the mechanism is a monotone drift rather than a window optimum. Job 270032 (dd-flagwin3, 6 arms x 50 seeds, flagship_geo1.sh sourced with only N_STEPS overridden, NB23_LR=5e-3, all arms verify_run VERIFIED, GATE_FAIL=0) gives the trio 0/0/0 at 100 steps, 20/7/19 at 200, and 0/0/0 at 400, counts arithmetic/geometric/median. The values show why: scav_rat's median falls monotonically in EVERY basin as the window lengthens - eqpac 4.913x -> 0.425x -> 0.078x Carroll, natlsubpolar 3.116x -> 0.433x -> 0.238x, southernoceanpac 2.779x -> 0.881x -> 0.491x - so the pass band [0.60x, 1.40x] is crossed on the way past, and 200 steps is where the drift happens to intersect the target, not a basin of stability. At 200 steps under the geometric collapse ONLY the Southern Ocean leg is inside the band (0.881x); eqpac and natlsubpolar are already below its lower edge, which is why geometric reads 7/50 against arithmetic 20/50 - natlsubpolar carries per-AOI log-sd 0.934, above the sigma=0.820 threshold at which the collapse alone can clear the band. Pre-registered mechanism confirmed: subsurface DFe_2, the observable anchoring scav_rat, is only 47.5% converged at 200 steps while the alpfe and R_PICPOC anchors are 100% converged by 100. The DEATH of recovery at both neighbours is invariant across all 3 collapses and all 3 bands tested (0.35/0.40/0.45) - 18 cells, all zero - but the MAGNITUDE at the surviving window is not: 20 vs 7 is a factor of 3, and only the arithmetic reading supports the word 'recovers'. ONE submission, NO replication: this does NOT close #219.",
      "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "dont": ""
+    },
+    {
+     "question": "Does the single-AOI Southern Ocean scav_rat result replicate on fresh seeds?",
+     "answer": "YES, decisively. so_rep (job 352450, seeds 50-99, disjoint from the original 0-49, verify_run exit 0 on 50/50) gives scav_rat geometric 50/50 against the pre-registered reference of 49/50 (exact two-sided Fisher P=1.0000) and untrained null 0/50 (P=8.1e-62); arithmetic is exactly identical at 30/50. The pre-registered CONTINUOUS accuracy read also passes: median scav_rat/Carroll 1.3919 to 1.3619, Mann-Whitney P=0.9149, no detectable shift. Controls behaved: alpfe held 50/50, R_PICPOC collapsed to 0/50 as predicted. Unlike the flagship trio, which needs a 44% collapse to register a difference, the 49/50 reference put the boundary at a 14% drop, so this run was powered to fail. The one established scav_rat claim now rests on two submissions with disjoint seeds.",
+     "doc": "docs/findings/2026-08-12_the_southern_ocean_scavrat_result_replicates.md",
+     "dont": ""
+    },
+    {
+     "question": "Is the data.traits-over-data.darwin rain-ratio precedence confirmed by anyone outside this repo?",
+     "answer": "YES, externally confirmed by the model's own maintainer. J. Lauderdale, 2026-08-12: 'PICPOC ratio from data.traits supersedes value in data.darwin.' This matches the repo's independent 2026-07-30 source-read-order derivation exactly (DARWIN_READ_TRAITS runs after DARWIN_GENERATE_RANDOM in darwin_init_fixed.F), so v05 integrates R_PICPOC = 0.0418860 from data.traits and data.darwin's val_R_PICPOC = 0.04245 is inert. The published value is ~1.4% from the live one, inside the 5% Excellent band, so NO reported number changes. He also names a second confirmation route not previously known: a 'darwin_traits' file the model writes out with the values it actually used. Finding that file in the v05 datastore would close ded215 (the pending namelist-echo check) without needing STDOUT.0000.",
+     "doc": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
      "dont": ""
     },
     {
@@ -15902,6 +16182,12 @@
      "question": "How many decades of sloppiness separate the stiff and sloppy iron directions at a converged optimum?",
      "answer": "log10(2.29 / 0.0046) ≈ 2.7 decades (2.69) at the joint 3-AOI optimum — NOT the provisional ~3.96 decades, which was inflated by under-convergence. The ~3.96 figure is a separate per-AOI (Eq. Pac) analysis that was NOT re-run and is still not quotable.",
      "doc": "docs/findings/2026-07-21_saddle_fix_result.md",
+     "dont": ""
+    },
+    {
+     "question": "What n is required for an architectural claim about the parameter learner?",
+     "answer": "n=100 with its own architecture-matched null, per ADR-0003: 'every future architectural claim needs n=100 and its own null - n=50 has now produced one effect (P = 0.0128) that evaporated on replication, so it is not a defensible sample size for this metric.' The existing width work was run at n=100 for exactly this reason. A design proposing n=50 for an architecture or capacity question is a regression and should be rejected at screening. For scale: at n=50 vs n=50 the minimum detectable difference around the measured geometric base rate is roughly 24 percentage points at alpha=0.05 and 30 points at alpha=0.01, while the largest geometric width effect ever measured across the whole 8->80 range is 18 points.",
+     "doc": "LOCAL-ONLY source, not in the repo: 0003-parameter-learner-architecture.md",
      "dont": ""
     },
     {
@@ -20137,6 +20423,11 @@
      "category": ""
     },
     {
+     "trap": "The WIDTH/DOF axis is answered but was NOT INDEXED, and that invisibility caused a re-derivation. `settled \"degrees of freedom\"` returns the SHARING ladder (global scalar / shared DINN / per-AOI DINN / free per-cell field) and NOT the width dose-response; before 2026-08-13 no settled row, no SUPERSEDES row and no line in STATUS.md mentioned jobs 258439 / 258694 / 258713 or the phrase 'width 39'. On 2026-08-13 that gap led to a 5-hour overnight width sweep being designed and nearly submitted, at HALF the n already on disk, whose only detectable effect would have been the formally retracted arithmetic dispersion artifact. When a result is settled, index it under the words a future session will actually search.",
+     "doc": "docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
+     "category": ""
+    },
+    {
      "trap": "Black et al. (2020) Supporting Information Table S1 carries the PER-STATION georeferenced Fe export values (the committed CSV has only per-study/province ranges, n=20). The Wiley host is behind a Cloudflare interstitial and returns a 'Just a moment...' challenge to automated fetches, so it cannot be retrieved programmatically. The paper is open-access CC-BY-4.0 - download S1 by hand if per-station coverage is needed to rescue E3.",
      "doc": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
      "category": ""
@@ -20229,6 +20520,31 @@
     {
      "trap": "Do not shorten source-conformant-bounded-projection to source-exact, full Darwin, or valid target. The receipt establishes the audited grazing closure over visited support and uses same-era corroboration for hidden TEMP_VERSION=2 defaults. The box still omits DOC and transport/vertical grazer structure, approximates phytoplankton temperature, restores chemical states, and uses Euler/clamp numerics; the corrected target still fails and B200 remains unauthorized.",
      "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md",
+     "category": ""
+    },
+    {
+     "trap": "A single scalar observation gives a rank-1 Fisher matrix BY CONSTRUCTION for any two parameters. That is underdetermination, not a symmetry. An early version of the prescribed-source test read abs rho = 1.000000 at every R and mistook it for the gauge symmetry surviving. Gauge questions only have content over a FIELD of cells, because the symmetry claims the observable is unchanged everywhere at once.",
+     "doc": "docs/findings/2026-08-12_coupling_a_physical_model_dilutes_the_iron_signal.md",
+     "category": ""
+    },
+    {
+     "trap": "An isolated significant cell found while scanning parameters x poolers x bands is about a 1-in-5 coin flip: the measured sham-split rate of at-least-one-of-18-cells-significant on arms differing by NOTHING is 0.17 to 0.24. Biggrow reading 6/50 vs 0/50 at Fisher P=0.0267 in job 354596 is exactly this: verify_run puts it at P=0.0776 against its own null, and Biggrow's measured false-positive rate is 0.0252. Do not believe a scanned cell without pre-registration.",
+     "doc": "docs/findings/2026-08-12_how_often_our_primary_test_fires_on_nothing.md",
+     "category": ""
+    },
+    {
+     "trap": "A null defined by NB23_LR=0 is INDEPENDENT of every loss-side lever, so ONE null covers all arms that differ only in loss weights. som_anchor_prior and som_noanchor_prior were pre-registered as two required nulls and came out BITWISE IDENTICAL across all 50 seeds and every parameter (0 differing entries, max relative difference 0.0). At lr=0 with 1 epoch the optimizer takes a zero-size step, the network never leaves initialisation, and the loss is never used, so an anchor weight cannot influence it. A null that must distinguish loss variants has to train for at least one REAL step.",
+     "doc": "docs/findings/2026-08-12_prereg_so_marsh_anchor.md",
+     "category": ""
+    },
+    {
+     "trap": "An untrained null is ARCHITECTURE-matched, so it CANNOT be shared across arms that differ in architecture (width, sharing, channel count). This is the exact opposite of the loss-side rule: a null at NB23_LR=0 IS shared across arms that differ only in loss weights, because the network never trains and the loss never enters. Check which kind of lever an experiment varies before deciding how many nulls it needs.",
+     "doc": "docs/findings/2026-08-12_prereg_so_marsh_anchor.md",
+     "category": ""
+    },
+    {
+     "trap": "The so_only/ directory is job 237913, the run that FAILED verify_run with exit 2 on inert declared terms. The reportable Southern Ocean arm is so_only2/ (job 238079, DANIELS_RPICPOC_W=0 and POSI_W=0). Both give identical numbers, but quoting the first as a verified run is wrong. Separately, AOI_W_SOUTHERNOCEANPAC must be 2.0 to match the original artifacts, whose filenames carry w-southernoceanpac2.0; with a single AOI this scales the whole loss and is NOT inert. A 32-second smoke test caught both before the real submission.",
+     "doc": "docs/findings/2026-08-12_prereg_so_only_replication.md",
      "category": ""
     },
     {
@@ -38797,14 +39113,14 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 240,
+  "document": 263,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
-  "settled": 548,
+  "settled": 565,
   "supersedes": 301,
   "supports": 299,
-  "trap": 254,
+  "trap": 260,
   "v_claim_evidence": 590,
   "v_dangerous": 39,
   "v_live": 525,

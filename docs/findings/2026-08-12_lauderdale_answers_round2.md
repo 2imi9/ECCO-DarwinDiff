@@ -63,15 +63,49 @@ rails to its bound."
 auto-passes. So the flagship's alpfe 49/50 is partly bound-assisted, and nothing currently
 distinguishes "the fit wants ≈0.93" from "the fit wants 1.4 and is clamped."
 
-Jon removes the physical objection to widening. The decisive experiment is cheap:
-**a same-job control pair** — bounds (0.05, 1.0) vs (0.05, 2.0), otherwise the flagship config
-(n=50, width 16, 2000 epochs), graded per-AOI ≥2-of-3 under all three poolers, `verify_run`
-exit 0. Outcomes: alpfe stays in [0.557, 1.300] unclamped → the guardrail relaxes and alpfe
-becomes reportable; it runs past → the "rails to its bound" caveat becomes a finding about the
-soluble-iron flux uncertainty, which is itself worth reporting (and matches his ">1 would not
-surprise me"). Implementation caveat: override bounds per-run; do not edit the registry default
-(prior runs index the registry, and cross-job comparability rules still apply — the control
-must ride in the same submission).
+**⚠ CORRECTION (same day). My first draft of this section proposed a widened-bound control pair
+as "the decisive experiment". THAT EXPERIMENT HAS ALREADY RUN** — 2026-08-05, job 276927 +
+grader 276928, four arms × 50 seeds via the `DD_ALPFE_HI` lever (PR #234), recorded in
+[2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md](2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md).
+I filed issue #240 for it and have closed that issue. This is the §1 SETTLED failure mode, caught
+before any B200 hours were spent, and it is the second time bound-geometry work has been proposed
+twice.
+
+What was already measured, and it is stronger than the pair I proposed:
+
+| arm | upper bound | alpfe median | % of bound | per-AOI ≥2-of-3 |
+|---|---|---|---|---|
+| `ab_ctrl` | 1.0 | 0.9967 | 99.7% | 49/50 |
+| `ab_wide` | 1.6 | 1.5940 | 99.6% | 0/50 |
+| `ab_null_ctrl` | 1.0 | 0.5014 | 50.1% | 10/50 |
+| `ab_null_wide` | 1.6 | 0.7865 | 49.2% | 50/50 |
+
+The fit rails to whatever ceiling it is given and carries **no upper-side information**.
+
+**So Jon's answer changes an interpretation, not a run — and it is the load-bearing half.** That
+finding's §5 explicitly left the physics open: *"Whether 1.0 is a hard physical ceiling … is a
+physics question, put to J. Lauderdale on 2026-08-05 and open. If 1.0 is physical then railing to
+it is the fit correctly reporting 'at least this high, and the data cannot see further'. If it is
+arbitrary then the bound is an unstated prior."*
+
+He selected the second branch. **The alpfe upper bound is an unstated prior, now on domain-expert
+authority.** Consequences, all zero-compute:
+
+1. The permitted reading narrows further. Already permitted: "the observations say alpfe is high,
+   and say so decisively against an untrained control." Now also required: the ceiling that
+   statement leans on is a modelling choice, not physics, so "at least this high" cannot be
+   attributed to the data reaching a physical limit.
+2. `alpfe`'s place in the 4-observable denominator needs its wording checked in STATUS/README and
+   the write-up. It still clears its untrained null at bound 1.0 (49/50 vs 10/50), so it is not
+   demoted — but "recovered globally" must not imply a recovered *value*.
+3. His ">1 would not surprise me" is independent support for the measured 1.594 at the wide bound
+   being physically unremarkable rather than a divergence. That is worth one sentence in the
+   limitations: the fit's preference for >1 is consistent with published soluble-iron-flux
+   uncertainty.
+4. No new array is licensed. The one *untested* exposure this leaves is `diatomgraz`
+   (rel(upper) = 0.205, inside the 0.40 band, flagged AT RISK in that finding's §4) — and its
+   value is low, because `diatomgraz` already fails the contract on prior contamination and sits
+   below its own null, so a bound test would be a third independent reason rather than a new one.
 
 ## 5. North Pacific — a useful regime on its own
 
@@ -94,9 +128,8 @@ check, not an experiment. Fall scope.
 ## Actions
 
 1. **Hunt the `darwin_traits` echo file** in the v05 datastore → closes ded215 (hours, local).
-2. **alpfe widened-bound control pair** — the one candidate array of the closeout window
-   (tracker issue filed; see below). If the no-new-arrays guardrail is held strictly instead,
-   pre-register it for fall.
+2. ~~alpfe widened-bound control pair~~ — **already run 2026-08-05; issue #240 closed.** Instead:
+   apply the interpretive consequences above to STATUS/README/write-up wording (zero compute).
 3. Fold answers 1–3 into the write-up's provenance and limitations sections.
 4. Fall backlog: NP thorium section as standalone constraint; GEOTRACES IDP paired-station
    availability check.

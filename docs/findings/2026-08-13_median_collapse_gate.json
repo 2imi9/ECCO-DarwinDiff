@@ -1,0 +1,116 @@
+{
+ "anchored": {
+  "arithmetic": {
+   "arm": "anchored",
+   "n": 50,
+   "median": 0.07141435891389847,
+   "median_over_carroll": 1.6823170533309415,
+   "rel_offset": 0.6823170533309415,
+   "in_band": false,
+   "iqr": [
+    0.06887202709913254,
+    0.07692006416618824
+   ]
+  },
+  "geometric": {
+   "arm": "anchored",
+   "n": 50,
+   "median": 0.06260107085108757,
+   "median_over_carroll": 1.4747013156911088,
+   "rel_offset": 0.4747013156911088,
+   "in_band": false,
+   "iqr": [
+    0.06108435243368149,
+    0.0671581830829382
+   ]
+  },
+  "median": {
+   "arm": "anchored",
+   "n": 50,
+   "median": 0.0548266377300024,
+   "median_over_carroll": 1.291558014841046,
+   "rel_offset": 0.291558014841046,
+   "in_band": true,
+   "iqr": [
+    0.051985315047204494,
+    0.057628484442830086
+   ]
+  }
+ },
+ "null(untrained)": {
+  "arithmetic": {
+   "arm": "null(untrained)",
+   "n": 50,
+   "median": 0.7296068966388702,
+   "median_over_carroll": 17.187441616934517,
+   "rel_offset": 16.187441616934517,
+   "in_band": false,
+   "iqr": [
+    0.7049551457166672,
+    0.8115403056144714
+   ]
+  },
+  "geometric": {
+   "arm": "null(untrained)",
+   "n": 50,
+   "median": 0.7291364669799805,
+   "median_over_carroll": 17.176359646171505,
+   "rel_offset": 16.176359646171505,
+   "in_band": false,
+   "iqr": [
+    0.7034324109554291,
+    0.8105250597000122
+   ]
+  },
+  "median": {
+   "arm": "null(untrained)",
+   "n": 50,
+   "median": 0.7317771315574646,
+   "median_over_carroll": 17.238566114427904,
+   "rel_offset": 16.238566114427904,
+   "in_band": false,
+   "iqr": [
+    0.7005724161863327,
+    0.8184055984020233
+   ]
+  }
+ },
+ "unanchored(trained)": {
+  "arithmetic": {
+   "arm": "unanchored(trained)",
+   "n": 50,
+   "median": 0.7447181940078735,
+   "median_over_carroll": 17.543420353542366,
+   "rel_offset": 16.543420353542366,
+   "in_band": false,
+   "iqr": [
+    0.670422688126564,
+    0.8638077676296234
+   ]
+  },
+  "geometric": {
+   "arm": "unanchored(trained)",
+   "n": 50,
+   "median": 0.7390713095664978,
+   "median_over_carroll": 17.41039598507651,
+   "rel_offset": 16.41039598507651,
+   "in_band": false,
+   "iqr": [
+    0.6651836335659027,
+    0.8635747283697128
+   ]
+  },
+  "median": {
+   "arm": "unanchored(trained)",
+   "n": 50,
+   "median": 0.743966281414032,
+   "median_over_carroll": 17.52570745380523,
+   "rel_offset": 16.52570745380523,
+   "in_band": false,
+   "iqr": [
+    0.6545753628015518,
+    0.8667650669813156
+   ]
+  }
+ }
+}
