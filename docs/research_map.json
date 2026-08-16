@@ -9245,6 +9245,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/research_notes/2026-08-13_jon_reply_pavia_DRAFT.md",
+     "name": "2026-08-13_jon_reply_pavia_DRAFT.md",
+     "date": "2026-08-13",
+     "retracted": 0,
+     "words": 552,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/2026-08-13_laplace_assessment_and_a_refuted_hypothesis.md",
      "name": "2026-08-13_laplace_assessment_and_a_refuted_hypothesis.md",
      "date": "2026-08-13",
@@ -39097,7 +39105,7 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 261,
+  "document": 262,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
