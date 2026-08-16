@@ -535,7 +535,9 @@ _(not resolved)_
 
 ## Roll-up
 
-**BGC / ocean-color / carbon / plankton touch: 15 of 38.**
-- Central / lead: **Mazloff** (B-SOSE biogeochemical state estimate), **Vandemark** (SOCAT + Global Carbon Budget ocean-CO2), **Prochaska** (PACE OCI ocean-color retrieval), **Sonnewald** (eco-provinces, plankton), **Klein** (submesoscale control of production & the N. Atlantic carbon sink).
-- Co-author / infrastructure: **Hill**, **Fenty**, **Forget** (all on Carroll et al. 2020, the ECCO-Darwin paper), **Gille** (SOCCOM/BGC-Argo leadership), **Cornuelle** (one coupled-DA paper), **Thompson**, **Balwada**, **Shafer Smith** (eddy iron → Southern Ocean production), **Simoes-Sousa** (one bloom-timing model).
-- The other 25 are physical oceanography / ML-methods only: sea-surface height, altimetry, submesoscale dynamics, gravity/bathymetry, waves, generative SSH mapping, optimization theory.
+**BGC / ocean-color / carbon / plankton touch: 14 of the 37 resolved (38 on the roster; Villas
+Boas not resolved).** *(Corrected 2026-08-16 from "15 of 38" / "other 25", which were arithmetic
+errors — the lists below have always named 5 + 9 = 14 people, and 14 + 23 + 1 = 38.)*
+- Central / lead (5): **Mazloff** (B-SOSE biogeochemical state estimate), **Vandemark** (SOCAT + Global Carbon Budget ocean-CO2), **Prochaska** (PACE OCI ocean-color retrieval), **Sonnewald** (eco-provinces, plankton), **Klein** (submesoscale control of production & the N. Atlantic carbon sink).
+- Co-author / infrastructure (9): **Hill**, **Fenty**, **Forget** (all on Carroll et al. 2020, the ECCO-Darwin paper), **Gille** (SOCCOM/BGC-Argo leadership), **Cornuelle** (one coupled-DA paper), **Thompson**, **Balwada**, **Shafer Smith** (eddy iron → Southern Ocean production), **Simoes-Sousa** (one bloom-timing model).
+- The other 23 resolved are physical oceanography / ML-methods only: sea-surface height, altimetry, submesoscale dynamics, gravity/bathymetry, waves, generative SSH mapping, optimization theory. (Borderline NONEs stay NONE: Spencer Jones's carbon mention is generic circulation framing; Van Roekel's E3SM BGC link is other groups' component in overview papers he co-authors.)

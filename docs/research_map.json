@@ -9105,7 +9105,7 @@
      "name": "2026-08-12_ai4ocean_alliance_publication_scan.md",
      "date": "2026-08-12",
      "retracted": 0,
-     "words": 17328,
+     "words": 17401,
      "local_only": 0
     },
     {
@@ -9209,7 +9209,7 @@
      "name": "2026-08-12_the_box_refactor_is_bitwise_neutral.md",
      "date": "2026-08-12",
      "retracted": 0,
-     "words": 677,
+     "words": 919,
      "local_only": 0
     },
     {
@@ -13774,7 +13774,7 @@
     },
     {
      "question": "Did the 2026-08 box-model refactor change the flagship forward model?",
-     "answer": "NO, bitwise identical, values AND gradients, in both precisions. carroll6_5pft_2layer.py changed 259 lines between the AICR checkout (dd83710) and main, rewriting the core growth computation into a new phytoplankton_process_rates helper; the flagship numbers predate that refactor while the manuscript is written from HEAD, so the attribution had never been checked. Measured over 200 steps x 37 cells at Carroll truth: float64 traj 70e7fa7b / grad 7afeaa44, float32 traj 143a169e / grad 9591e734, all identical across checkouts. A positive control is included (the new helper is absent pre-refactor) so the match is not an import artifact. Gradients are checked because recovery is driven by d(loss)/d(params), and float32 because that is what training uses. Harness: scripts/analysis/forward_model_equivalence.py and _grad.py.",
+     "answer": "NO, bitwise identical, values AND gradients, in both precisions. carroll6_5pft_2layer.py changed 259 lines between the AICR checkout (dd83710, reachable from origin/main) and the post-refactor tree (82abbd5; the box file last touched by 487d451), rewriting the core growth computation into a new phytoplankton_process_rates helper; the flagship numbers predate that refactor while the manuscript is written from HEAD, so the attribution had never been checked. Measured over 200 steps x 37 cells at Carroll truth in the model's documented tracer order (re-measured 2026-08-16 after Codex found the original harness built its state in a scrambled order with DFe_2 ~2000x plausible; verdict unchanged): float64 traj 99751160 / grad 8e392f0e, float32 traj 0c25270a / grad e6c0cee9, all identical across checkouts. A positive control is included (the new helper is absent pre-refactor) so the match is not an import artifact, and a doctored-baseline negative control confirms the harness exits 1 on mismatch. Gradients are checked because recovery is driven by d(loss)/d(params), and float32 because that is what training uses. Harness: scripts/analysis/forward_model_equivalence.py (--baseline gate).",
      "doc": "docs/findings/2026-08-12_the_box_refactor_is_bitwise_neutral.md",
      "dont": ""
     },
