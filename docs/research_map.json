@@ -9285,6 +9285,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/research_notes/2026-08-14_session_handoff.md",
+     "name": "2026-08-14_session_handoff.md",
+     "date": "2026-08-14",
+     "retracted": 0,
+     "words": 695,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md",
      "name": "2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md",
      "date": "2026-08-14",
@@ -39105,7 +39113,7 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 262,
+  "document": 263,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
