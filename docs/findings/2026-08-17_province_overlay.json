@@ -1,0 +1,211 @@
+{
+  "aois": {
+    "natlsubpolar": {
+      "provinces": [
+        {
+          "code": "NADR",
+          "descr": "Westerlies - N. Atlantic Drift Province (WWDR)",
+          "share": 0.4148249066146073
+        },
+        {
+          "code": "ARCT",
+          "descr": "Polar - Atlantic Arctic Province",
+          "share": 0.30525724538082644
+        },
+        {
+          "code": "SARC",
+          "descr": "Polar - Atlantic Subarctic Province",
+          "share": 0.1905028583735119
+        },
+        {
+          "code": "BPLR",
+          "descr": "Polar - Boreal Polar Province (POLR)",
+          "share": 0.030426362568907895
+        },
+        {
+          "code": "NECS",
+          "descr": "Coastal - NE Atlantic Shelves Province",
+          "share": 0.02796942723638835
+        }
+      ],
+      "effective_n": 3.0960906348553463
+    },
+    "eqpac": {
+      "provinces": [
+        {
+          "code": "PEQD",
+          "descr": "Trades - Pacific Equatorial Divergence Province",
+          "share": 0.4665454219647747
+        },
+        {
+          "code": "PNEC",
+          "descr": "Trades - N. Pacific Equatorial Countercurrent Province",
+          "share": 0.34058502717496647
+        },
+        {
+          "code": "NPTG",
+          "descr": "Trades - N. Pacific Tropical Gyre Province",
+          "share": 0.19350446633311988
+        }
+      ],
+      "effective_n": 2.698065125865102
+    },
+    "southernoceanpac": {
+      "provinces": [
+        {
+          "code": "ANTA",
+          "descr": "Polar - Antarctic Province",
+          "share": 0.7790528475375806
+        },
+        {
+          "code": "SANT",
+          "descr": "Westerlies - Subantarctic Province",
+          "share": 0.22488411402056432
+        }
+      ],
+      "effective_n": 1.532920519781308
+    }
+  },
+  "gp16": {
+    "transitions_along_12S": [
+      {
+        "lon": -155.0,
+        "from": "<start>",
+        "to": "SPSG"
+      },
+      {
+        "lon": -90.0,
+        "from": "SPSG",
+        "to": "PEQD"
+      },
+      {
+        "lon": -80.0,
+        "from": "PEQD",
+        "to": "CHIL"
+      },
+      {
+        "lon": -77.0,
+        "from": "CHIL",
+        "to": "<land/none>"
+      }
+    ],
+    "peqd_southern_limit": {
+      "-140.0": -7.25,
+      "-136.0": -7.25,
+      "-132.0": -7.25,
+      "-128.0": -7.25,
+      "-124.0": -7.25,
+      "-120.0": -7.25,
+      "-116.0": -7.25,
+      "-112.0": -7.25,
+      "-108.0": -7.25,
+      "-104.0": -11.25,
+      "-100.0": -11.25,
+      "-96.0": -11.25,
+      "-92.0": -11.25,
+      "-88.0": -15.25,
+      "-84.0": -15.25,
+      "-80.0": -15.25
+    },
+    "by_province": {
+      "corridor": [
+        -155.0,
+        -16.0,
+        -70.0,
+        -9.0
+      ],
+      "total": {
+        "stations": 92,
+        "samples": 1206
+      },
+      "by_province": {
+        "SPSG": {
+          "stations": 39,
+          "samples": 767
+        },
+        "CHIL": {
+          "stations": 35,
+          "samples": 283
+        },
+        "PEQD": {
+          "stations": 18,
+          "samples": 156
+        }
+      }
+    }
+  },
+  "iron": {
+    "natlsubpolar (box)": {
+      "stations": 13,
+      "samples": 237
+    },
+    "BPLR (province)": {
+      "stations": 131,
+      "samples": 2144
+    },
+    "NECS (province)": {
+      "stations": 9,
+      "samples": 139
+    },
+    "NADR (province)": {
+      "stations": 11,
+      "samples": 234
+    },
+    "ARCT (province)": {
+      "stations": 35,
+      "samples": 624
+    },
+    "SARC (province)": {
+      "stations": 8,
+      "samples": 122
+    },
+    "eqpac (box)": {
+      "stations": 29,
+      "samples": 490
+    },
+    "NPTG (province)": {
+      "stations": 23,
+      "samples": 365
+    },
+    "PEQD (province)": {
+      "stations": 43,
+      "samples": 565
+    },
+    "PNEC (province)": {
+      "stations": 8,
+      "samples": 153
+    },
+    "southernoceanpac (box)": {
+      "stations": 16,
+      "samples": 241
+    },
+    "ANTA (province)": {
+      "stations": 125,
+      "samples": 1558
+    },
+    "SANT (province)": {
+      "stations": 114,
+      "samples": 1366
+    },
+    "GP16 corridor": {
+      "stations": 92,
+      "samples": 1206
+    },
+    "CHIL (province)": {
+      "stations": 53,
+      "samples": 367
+    },
+    "GUIA (province)": {
+      "stations": 0,
+      "samples": 0
+    },
+    "SPSG (province)": {
+      "stations": 163,
+      "samples": 2348
+    },
+    "WARM (province)": {
+      "stations": 11,
+      "samples": 160
+    }
+  }
+}

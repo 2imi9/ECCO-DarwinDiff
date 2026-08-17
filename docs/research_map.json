@@ -9299,6 +9299,22 @@
      "retracted": 0,
      "words": 631,
      "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
+     "name": "2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
+     "date": "2026-08-17",
+     "retracted": 0,
+     "words": 1217,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "name": "2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "date": "2026-08-17",
+     "retracted": 0,
+     "words": 1895,
+     "local_only": 0
     }
    ]
   },
@@ -13419,6 +13435,12 @@
      "dont": ""
     },
     {
+     "question": "Which Longhurst province contains GEOTRACES GP16 (~12S, eastern Pacific), and does the equatorial divergence province stop north of 12S?",
+     "answer": "GP16 is a THREE-province transect, dominantly SPSG, and the 'PEQD stops north of 12S' guess is correct in the central Pacific and WRONG in the east. Along exactly 12S: SPSG from 155W to 90W, PEQD from 90W to 80W, CHIL (Chile-Peru Current Coastal) from 80W to 77W. PEQD's southern boundary is not zonal but a staircase dipping along the Peru upwelling tongue -- limit -7.25 deg from 140W to 108W, -11.25 from 104W to 92W, and -15.25 from 88W to 80W. Counting real observations (GEOTRACES IDP2025 Fe_D_CONC, QC 1/2, corridor 9-16S 155-70W): 92 stations / 1,206 samples, of which SPSG 39/767, CHIL 35/283, PEQD 18/156. ZERO of the 92 fall inside the current eqpac box (5S-15N, 160W-110W) -- GP16 misses it in latitude everywhere, and the stretch that IS in PEQD (east of 90W) is outside the box in longitude, so box and transect sample PEQD in disjoint sectors. Redefining eqpac as PEQD would take dissolved-Fe coverage from 29 stations / 490 samples to 43 / 565.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "dont": ""
+    },
+    {
      "question": "Is the R_PICPOC covariate break wind-specific or generic?",
      "answer": "Generic to carbonate/salinity channels. The single-covariate matrix shows SSS, pCO2atm and CO2flux ALL break R_PICPOC too. MLD (mixing) is uniquely safe.",
      "doc": "docs/research_notes/2026-07-22_next_direction_rpicpoc_protection.md",
@@ -13623,6 +13645,12 @@
      "dont": ""
     },
     {
+     "question": "How much GEOTRACES dissolved-iron coverage do the rectangular AOI boxes leave on the table versus their Longhurst provinces?",
+     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 16 stations / 241 samples against ANTA province 125 / 1,558 -- the box captures 13% of ANTA's stations, so a 7.8x increase in stations and 6.5x in samples is available. Membership is boundary-INCLUSIVE (shapely covers), matching the endpoint-inclusive ds.sel(lat=slice(...)) the loader uses; shapely contains would drop six GP16 corridor stations sitting exactly on lat = -16.0 (92 -> 86). eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs untrained 0/50, P = 3.15e-24; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "dont": ""
+    },
+    {
      "question": "Do flagship ocean/atmosphere emulators report a simple statistical null baseline?",
      "answer": "Mostly no, and this is broader than we thought. Samudra (arXiv:2412.03795v1), Samudra 2 (arXiv:2606.02610), SamudrACE (arXiv:2509.12490v2) and ACE2 (arXiv:2411.11268v1) report NONE - 4 of 4. OceanNet (10.5194/os-21-1065-2025) and Bire et al. (10.1029/2023MS004137) do. Among BGC emulators, Skakala et al. 2023 (10.3389/fmars.2023.1058837) compares against neither and Martinez Balbontin et al. 2026 (10.5194/bg-23-2601-2026) compares only against GlobColour and BIO4 PISCES. So the defensible claim is baseline HYGIENE, not baseline INVENTION.",
      "doc": "docs/research_notes/2026-07-25_deep_research_sweep.md",
@@ -13632,6 +13660,12 @@
      "question": "How strong is the alpfe/scav_rat degeneracy in the real Fisher?",
      "answer": "Much weaker than first claimed, and it is a RATIO S/k not a product. The earlier -0.77 was the coupling-inflated full-6 MARGINAL. The pure surf+subsurface 2x2 GN-Fisher is well-conditioned: cond 2.2, conditional correlation -0.155, sloppy direction alpfe-dominated (+0.98, -0.20). The strong +0.999 conditional degeneracy is SURFACE-ONLY. Job 187666.",
      "doc": "docs/research_notes/2026-07-23_1hr_run_summary.md",
+     "dont": ""
+    },
+    {
+     "question": "Is HyperFNO (hypernetwork-generated Fourier Neural Operator) useful for DarwinDiff?",
+     "answer": "NO - DEAD-END, and it was ALREADY SETTLED before being asked. `settled \"parameter-conditioned emulator\"` returns four rows, all 'No, shelved'; HyperFNO is the specific conditioning MECHANISM inside that specific shelved ROUTE, and docs/research_notes/2026-07-07_param_conditioned_emulator_decision.md already names 'FiLM ... or a HYPERNETWORK' as the design default for it. The one-line kill is arithmetic, not an experiment: N_lambda = 1. HyperFNO's entire contribution is the map lambda -> FNO weights, and DarwinDiff has ONE v05 trajectory at ONE parameter setting, so at p(lambda) = delta(lambda_0) the diag(lambda) modulation terms get no gradient signal in lambda and the method degenerates to a plain FNO with extra unidentifiable weights. Confirmation: ded77 (no architecture fixes structural non-identifiability) plus the five-independent-estimator negative on the rank-1 alpfe<->scav_rat null. On Track 1 a learned operator would replace carroll6.py, which is already exact, differentiable and fast, so it can only ADD error - and that error lands on the null direction where it would MANUFACTURE apparent scav_rat recovery. NO S3 carve-out, unlike RNO: HyperFNO has no residual loss, no calibration layer, no UQ and no post-hoc wrapper, so there is no detachable live component. Eighth architecture negative in a row (7 Anandkumar-lab operators, RNO, HyperFNO) because all are moves along the APPROXIMATOR axis while both binding walls - Track 2 information, Track 1 rank-1 structural null - are properties of the (model, observable set) pair.",
+     "doc": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
      "dont": ""
     },
     {
@@ -13686,6 +13720,12 @@
      "question": "Is there a single integration window that serves both scav_rat and diatomgraz?",
      "answer": "NO - they want opposite ends of the lever, and this is a design constraint rather than a tuning nuisance. Over the same 100/200/400-step sweep (job 270032) scav_rat drifts monotonically DOWN out of the band while diatomgraz drifts monotonically UP toward Carroll. diatomgraz per-AOI medians: eqpac 0.064x -> 0.859x -> 0.952x Carroll, natlsubpolar 0.062x -> 0.166x -> 0.356x, southernoceanpac 0.062x -> 0.129x -> 0.351x. Its equatorial-Pacific leg count goes 0/50 -> 36/50 -> 45/50 against a window-independent untrained null of 33/50, Fisher one-sided P = 1.0, 0.333, 0.0035 - only the 400-step arm clears its null, and that is the window at which scav_rat is dead in all three basins (0/50 under every collapse and every band). At 100 steps diatomgraz is anti-recovered everywhere. The published 200 gets scav_rat marginally and diatomgraz barely. CAVEAT: the diatomgraz leg test above is at the 0.40 band where its null is heavily prior-contaminated; the standing rule is to grade diatomgraz per-leg at <=0.10, and that regrade is cheap and not yet done. The extension this opens is to stop sharing one global window - a per-parameter or per-basin window, or grading each parameter at the window where its own anchor has converged, is testable with code that already exists.",
      "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "dont": ""
+    },
+    {
+     "question": "What is the correct citation for HyperFNO, and does it have a DOI?",
+     "answer": "NO DOI AND NO ARXIV ID - any that appear are FABRICATED. HyperFNO is a 4-page NON-ARCHIVAL workshop paper: Alesiani, Takamoto & Niepert, 'HyperFNO: Improving the Generalization Behavior of Fourier Neural Operators', ML4PS workshop at NeurIPS 2022, paper #89, 2022-12-03. The ONLY citable locator is https://ml4physicalsciences.github.io/2022/files/NeurIPS_ML4PS_2022_89.pdf - an arXiv full-text search for 'HyperFNO' returns ZERO results and OpenAlex has no indexed record. It carries no numeric results table (all results are one log-scale bar chart), its own NeurIPS checklist admits only partial error information and no released code, and it self-limits to 'PDE of the hydro dynamic family'. Do NOT confuse it with HyperNOs (arXiv:2503.18087), a hyperparameter-optimisation library and a name near-collision only. Its own authors moved on to CAPE (arXiv:2304.14118), and an ICLR 2026 paper (arXiv:2607.23466) reimplements it as baseline 'HyperFNOc' and beats it by 45-49% nRMSE with lightweight shift modulation.",
+     "doc": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
      "dont": ""
     },
     {
@@ -15579,6 +15619,12 @@
      "dont": ""
     },
     {
+     "question": "What is the cheapest untested lever on scav_rat's low bias, given EKI already showed estimator-independence?",
+     "answer": "Run the EXISTING 1-D column path (transport.py::column_tendency, already merged, ZERO new GCM runs) as a richer forward model and see whether scav_rat's low bias moves. The gap it fills: EKI held the geo1 BOX fixed while varying the estimator, so the repo has evidence that changing the ESTIMATOR leaves recovery unchanged and NO evidence about changing the FORWARD OPERATOR. That distinction matters because forward-model STRUCTURE is one of only two things that have ever moved identifiability here - 0-D box -> 1-D column took the Fisher spectrum from [800, 2.8e-14] (rank-1) to [53272, 40] (genuinely rank-2) - the other being a new out-of-manifold observation. Neither is architectural. Testable on artifacts already on disk.",
+     "doc": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
+     "dont": ""
+    },
+    {
      "question": "Which numbers in the daily emulator artifact survive the calendar bug and which are void?",
      "answer": "SURVIVE: skill_vs_persistence = 0.4077, rollout step MSEs, positivity, mass drift - because persistence needs no time axis and model and persistence use the same adjacent pairs, so mislabeling the interval does not bias the ratio. VOID: anomaly_r2_vs_climatology = 0.9727, persistence_skill_vs_climatology = 0.9539, and anything binned by month-of-year, because 94% of those bins were wrong.",
      "doc": "docs/findings/2026-07-30_daily_emulator_artifact_is_contaminated.md",
@@ -15807,6 +15853,12 @@
      "dont": ""
     },
     {
+     "question": "Which WFS version must be used to fetch Marine Regions Longhurst polygons?",
+     "answer": "WFS 1.0.0, never 1.1.0. Version 1.1.0 flips the EPSG:4326 axis order to lat,lon, so a bbox written lon,lat for the North Atlantic silently returns Indian Ocean and Southern Hemisphere provinces (EAFR, ISSG, MONS, NEWZ, SSTC, SPSG, SANT, WARM) WITHOUT erroring. The trap fired once on 2026-08-17 and the wrong answer looked entirely plausible -- eight features returned for a bbox that should return five. Layer is MarineRegions:longhurst at https://geo.vliz.be/geoserver/MarineRegions/wfs; the bbox filter returns WHOLE features, never clipped geometry, so cached polygons are safe to reuse for point-in-polygon. Also note the gazetteer REST record gives only a province CENTROID, not a bounding box, so it cannot decide membership: PEQD's centroid is 4.17S but the province reaches 15.25S in the east.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "dont": ""
+    },
+    {
      "question": "Which dust-source dataset should anchor the alpfe leg, and how?",
      "answer": "Xu & Weber 2021 (GBC, 10.1029/2021GB007049) Al-inverse soluble-Fe deposition, constrained by in-ocean dissolved Al so it is disciplined by the same class of data the inversion sees. Place the anchor in a dust-DOMINATED AOI (Saharan N. Atlantic) where Al-inverse/GESAMP/GA03 agree best; set Fe:Al regionally from GA03 aerosol solubility (~1-2% Saharan); enter as a DISTRIBUTION.",
      "doc": "docs/findings/2026-07-22_two_anchor_redteam.md",
@@ -15828,6 +15880,12 @@
      "question": "Does diatomgraz's equatorial-Pacific regional identifiability replicate out-of-sample, and does it survive the strict <=0.10 band?",
      "answer": "YES to both, and this is the project's first genuine out-of-sample replication of a regional identifiability result. Graded per-leg on job 270032 (dd-flagwin3), a SEPARATE submission from the width arms the published number came from: at band <=0.10 the eqpac leg is 18/50 arithmetic / 18 geometric / 18 median at w200 and 15/15/16 at w400, against an architecture-matched untrained null whose eqpac leg is 0/50 at that band under ALL THREE collapses (P = 5.9e-07 and 8.9e-06 geometric, Fisher one-sided). At <=0.05 it is 8/5/12 at w200 (P = 0.028 geometric) and 7/6/11 at w400 (P = 0.013), where the collapse choice DOES matter and the geometric reading is the one to quote. The published width-arm figures were 40/100 at <=0.10 and 20/100 at <=0.05 against untrained 0/50; flagwin3's w200 gives 36/100 on the same scale, reproducing to within 4 counts per 100. This matters because the three-check rule's first clause is the one the project most often fails - the per-parameter width effect died exactly here, 45/50 vs 34/50 becoming 38/50 vs 38/50 in a later job. diatomgraz-eqpac does not die. Consequence for framing: of the two REGIONALLY identifiable parameters, diatomgraz in the equatorial Pacific is now the BETTER supported one, because scav_rat in the Southern Ocean still has no replication - the two runs that looked like one were shown on 2026-08-04 to be bitwise identical on all 50 seeds. Also note the 0.40-band climb across windows (eqpac 0 -> 36 -> 45/50) is largely the NULL moving, not the fit improving: at <=0.10 the leg goes 0 -> 18 -> 15, so it does not keep climbing with window length.",
      "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "dont": ""
+    },
+    {
+     "question": "Does the natlsubpolar box straddle Longhurst province boundaries, and does that explain its per-cell dispersion (log_sd = 0.936) that halves the flagship trio?",
+     "answer": "YES to the straddling, NO to the explanation. The box lon[-40,-10] lat[50,65] is a 3.10-effective-province mixture spanning THREE of Longhurst's four top-level biomes: NADR 41.48% (Westerlies), ARCT 30.53% (Polar), SARC 19.05% (Polar), BPLR 3.04%, NECS 2.80% (Coastal), equal-area weighted; the Charlie-Gibbs Fracture Zone triple junction of NADR/ARCT/SARC at 52N sits INSIDE the box. But the dispersion is not a property of that geography. Held exactly fixed, the SAME southernoceanpac box returns log_sd 0.379 as the 3-AOI flagship leg and 1.310 in the single-AOI so_only fit, both per-cell parameterisations -- a quantity taking two very different values on one polygon is substantially a property of the FIT CONFIGURATION, not the polygon. NOT admissible as a third point: the observations-only arms' log_sd = 0.000 is gs_obsonly, i.e. GLOBAL_SCALAR=1, which replaces the per-cell head with ONE scalar per AOI (run_v3.0_joint_multi_aoi.py:538-543), so sigma = 0 is true by construction and says nothing about geography. Second strand: province heterogeneity does not order log_sd across the three AOIs -- eqpac mixes 2.70 effective provinces at log_sd 0.245 while southernoceanpac mixes 1.53 at 0.379, inverted (weak on its own at n=3). So do NOT sell a province re-fit as the fix for the 25/50 -> 12/50 halving; pre-register 'sigma roughly unchanged' and carry a box control in the same job. The DIRECT test is impossible on any artifact held: run_v3.0_joint_multi_aoi.py:2667-2712 writes only the collapses, never the per-cell params_b field, and the runner has no state_dict() save anywhere, so the trained net from job 258713 is gone. Cheap fix: persist the per-cell field or the state_dict for one seed per arm.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "dont": ""
     },
     {
@@ -39113,11 +39171,11 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 263,
+  "document": 265,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
-  "settled": 565,
+  "settled": 572,
   "supersedes": 301,
   "supports": 299,
   "trap": 260,

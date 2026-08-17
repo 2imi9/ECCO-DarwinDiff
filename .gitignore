@@ -168,3 +168,6 @@ docs/findings/*.pt.gz
 
 # ng-loops session scaffolding, untracked on purpose per its own header.
 /spec.md
+
+# Longhurst polygon cache (fetched from the Marine Regions WFS on demand)
+scripts/analysis/.province_cache/
