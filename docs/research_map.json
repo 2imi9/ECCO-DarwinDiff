@@ -9299,6 +9299,14 @@
      "retracted": 0,
      "words": 631,
      "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "name": "2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "date": "2026-08-17",
+     "retracted": 0,
+     "words": 1756,
+     "local_only": 0
     }
    ]
   },
@@ -13419,6 +13427,12 @@
      "dont": ""
     },
     {
+     "question": "Which Longhurst province contains GEOTRACES GP16 (~12S, eastern Pacific), and does the equatorial divergence province stop north of 12S?",
+     "answer": "GP16 is a THREE-province transect, dominantly SPSG, and the 'PEQD stops north of 12S' guess is correct in the central Pacific and WRONG in the east. Along exactly 12S: SPSG from 155W to 90W, PEQD from 90W to 80W, CHIL (Chile-Peru Current Coastal) from 80W to 77W. PEQD's southern boundary is not zonal but a staircase dipping along the Peru upwelling tongue -- limit -7.25 deg from 140W to 108W, -11.25 from 104W to 92W, and -15.25 from 88W to 80W. Counting real observations (GEOTRACES IDP2025 Fe_D_CONC, QC 1/2, corridor 9-16S 155-70W): 92 stations / 1,206 samples, of which SPSG 39/767, CHIL 35/283, PEQD 18/156. ZERO of the 92 fall inside the current eqpac box (5S-15N, 160W-110W) -- GP16 misses it in latitude everywhere, and the stretch that IS in PEQD (east of 90W) is outside the box in longitude, so box and transect sample PEQD in disjoint sectors. Redefining eqpac as PEQD would take dissolved-Fe coverage from 29 stations / 490 samples to 43 / 565.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "dont": ""
+    },
+    {
      "question": "Is the R_PICPOC covariate break wind-specific or generic?",
      "answer": "Generic to carbonate/salinity channels. The single-covariate matrix shows SSS, pCO2atm and CO2flux ALL break R_PICPOC too. MLD (mixing) is uniquely safe.",
      "doc": "docs/research_notes/2026-07-22_next_direction_rpicpoc_protection.md",
@@ -13620,6 +13634,12 @@
      "question": "What does recovering Carroll's published optima actually demonstrate?",
      "answer": "Model-conditional validation, not ground-truth recovery. ECCO-Darwin was tuned by the Menemenlis 2005 Green's-functions method - linearized least squares over biogeochemical ICs plus six parameters - which returns optimized point estimates with no published posterior covariance, and (per Frants) those optima sit inside a degenerate family. Carroll 2020 DOI 10.1029/2019MS001888; Carroll 2022 DOI 10.1029/2021GB007162.",
      "doc": "docs/findings/2026-07-23_critique_literature_grounding.md",
+     "dont": ""
+    },
+    {
+     "question": "How much GEOTRACES dissolved-iron coverage do the rectangular AOI boxes leave on the table versus their Longhurst provinces?",
+     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 15 stations / 204 samples against ANTA province 125 / 1,558 -- the box captures 12% of ANTA's stations, so an 8.3x increase in stations and 7.6x in samples is available. eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs untrained 0/50, P = 3.15e-24; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "dont": ""
     },
     {
@@ -15807,6 +15827,12 @@
      "dont": ""
     },
     {
+     "question": "Which WFS version must be used to fetch Marine Regions Longhurst polygons?",
+     "answer": "WFS 1.0.0, never 1.1.0. Version 1.1.0 flips the EPSG:4326 axis order to lat,lon, so a bbox written lon,lat for the North Atlantic silently returns Indian Ocean and Southern Hemisphere provinces (EAFR, ISSG, MONS, NEWZ, SSTC, SPSG, SANT, WARM) WITHOUT erroring. The trap fired once on 2026-08-17 and the wrong answer looked entirely plausible -- eight features returned for a bbox that should return five. Layer is MarineRegions:longhurst at https://geo.vliz.be/geoserver/MarineRegions/wfs; the bbox filter returns WHOLE features, never clipped geometry, so cached polygons are safe to reuse for point-in-polygon. Also note the gazetteer REST record gives only a province CENTROID, not a bounding box, so it cannot decide membership: PEQD's centroid is 4.17S but the province reaches 15.25S in the east.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
+     "dont": ""
+    },
+    {
      "question": "Which dust-source dataset should anchor the alpfe leg, and how?",
      "answer": "Xu & Weber 2021 (GBC, 10.1029/2021GB007049) Al-inverse soluble-Fe deposition, constrained by in-ocean dissolved Al so it is disciplined by the same class of data the inversion sees. Place the anchor in a dust-DOMINATED AOI (Saharan N. Atlantic) where Al-inverse/GESAMP/GA03 agree best; set Fe:Al regionally from GA03 aerosol solubility (~1-2% Saharan); enter as a DISTRIBUTION.",
      "doc": "docs/findings/2026-07-22_two_anchor_redteam.md",
@@ -15828,6 +15854,12 @@
      "question": "Does diatomgraz's equatorial-Pacific regional identifiability replicate out-of-sample, and does it survive the strict <=0.10 band?",
      "answer": "YES to both, and this is the project's first genuine out-of-sample replication of a regional identifiability result. Graded per-leg on job 270032 (dd-flagwin3), a SEPARATE submission from the width arms the published number came from: at band <=0.10 the eqpac leg is 18/50 arithmetic / 18 geometric / 18 median at w200 and 15/15/16 at w400, against an architecture-matched untrained null whose eqpac leg is 0/50 at that band under ALL THREE collapses (P = 5.9e-07 and 8.9e-06 geometric, Fisher one-sided). At <=0.05 it is 8/5/12 at w200 (P = 0.028 geometric) and 7/6/11 at w400 (P = 0.013), where the collapse choice DOES matter and the geometric reading is the one to quote. The published width-arm figures were 40/100 at <=0.10 and 20/100 at <=0.05 against untrained 0/50; flagwin3's w200 gives 36/100 on the same scale, reproducing to within 4 counts per 100. This matters because the three-check rule's first clause is the one the project most often fails - the per-parameter width effect died exactly here, 45/50 vs 34/50 becoming 38/50 vs 38/50 in a later job. diatomgraz-eqpac does not die. Consequence for framing: of the two REGIONALLY identifiable parameters, diatomgraz in the equatorial Pacific is now the BETTER supported one, because scav_rat in the Southern Ocean still has no replication - the two runs that looked like one were shown on 2026-08-04 to be bitwise identical on all 50 seeds. Also note the 0.40-band climb across windows (eqpac 0 -> 36 -> 45/50) is largely the NULL moving, not the fit improving: at <=0.10 the leg goes 0 -> 18 -> 15, so it does not keep climbing with window length.",
      "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "dont": ""
+    },
+    {
+     "question": "Does the natlsubpolar box straddle Longhurst province boundaries, and does that explain its per-cell dispersion (log_sd = 0.936) that halves the flagship trio?",
+     "answer": "YES to the straddling, NO to the explanation. The box lon[-40,-10] lat[50,65] is a 3.10-effective-province mixture spanning THREE of Longhurst's four top-level biomes: NADR 41.48% (Westerlies), ARCT 30.53% (Polar), SARC 19.05% (Polar), BPLR 3.04%, NECS 2.80% (Coastal), equal-area weighted; the Charlie-Gibbs Fracture Zone triple junction of NADR/ARCT/SARC at 52N sits INSIDE the box. But the dispersion is not a property of that geography. Held exactly fixed, the SAME southernoceanpac box returns log_sd 0.379 as the 3-AOI flagship leg, 1.310 in the single-AOI so_only fit, and 0.000 in the observations-only arms -- a quantity taking three values on one polygon is a property of the FIT CONFIGURATION, not the polygon. Second strand: province heterogeneity does not order log_sd across the three AOIs -- eqpac mixes 2.70 effective provinces at log_sd 0.245 while southernoceanpac mixes 1.53 at 0.379, inverted (weak on its own at n=3). So do NOT sell a province re-fit as the fix for the 25/50 -> 12/50 halving; pre-register 'sigma roughly unchanged' and carry a box control in the same job. The DIRECT test is impossible on any artifact held: run_v3.0_joint_multi_aoi.py:2667-2712 writes only the collapses, never the per-cell params_b field, and the runner has no state_dict() save anywhere, so the trained net from job 258713 is gone. Cheap fix: persist the per-cell field or the state_dict for one seed per arm.",
+     "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "dont": ""
     },
     {
@@ -39113,11 +39145,11 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 263,
+  "document": 264,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
-  "settled": 565,
+  "settled": 569,
   "supersedes": 301,
   "supports": 299,
   "trap": 260,
