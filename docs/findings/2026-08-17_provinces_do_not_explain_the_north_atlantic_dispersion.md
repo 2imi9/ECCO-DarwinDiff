@@ -175,15 +175,15 @@ established.
 
 | AOI | box: stations / samples | dominant province: stations / samples |
 |---|---|---|
-| `southernoceanpac` | **15 / 204** | `ANTA` **125 / 1,558** |
+| `southernoceanpac` | **16 / 241** | `ANTA` **125 / 1,558** |
 | `eqpac` | 29 / 490 | `PEQD` 43 / 565 |
 | `natlsubpolar` | 13 / 237 | `NADR` 11 / 234 |
 
-The `southernoceanpac` box captures **12% of ANTA's dissolved-Fe stations**. `scav_rat` is
+The `southernoceanpac` box captures **13% of ANTA's dissolved-Fe stations**. `scav_rat` is
 locally identifiable there and nowhere else (30/50 vs untrained 0/50, P = 3.15e-24, and 49/50
-under the geometric collapse), and it is the sole binding leg of the trio headline. An **8.3×**
-increase in the iron constraint on that basin is a much more direct lever than anything the
-dispersion argument offered.
+under the geometric collapse), and it is the sole binding leg of the trio headline. A **7.8×**
+increase in stations (6.5× in samples) on that basin is a much more direct lever than anything
+the dispersion argument offered.
 
 **Two honest caveats.** (1) `ANTA` is circumpolar and therefore a far larger domain than the
 box — some of that factor is simply more area, with a proportionate cost in cells and compute,
@@ -214,5 +214,10 @@ membership and data density are independent, and have to be checked per AOI rath
   returns Indian Ocean provinces for a North Atlantic bbox without erroring. That trap fired
   once during this work and the wrong answer looked entirely plausible.
 - Iron: GEOTRACES IDP2025 `Fe_D_CONC`, QC flags 1–2, via `darwindiff.geotraces_loader`.
-  1,914 stations / 23,090 good samples globally.
+  1,914 stations / 23,090 good samples globally. Membership uses shapely `covers`, i.e.
+  **boundary-inclusive**, matching the endpoint-inclusive `ds.sel(lat=slice(...))` the loader
+  itself uses. This is not a rounding detail: six GP16 corridor stations sit exactly on
+  lat = −16.0, and `contains` drops all six (92 → 86). The per-province split is a true
+  partition — each station is assigned to the first province covering it — so the rows sum to
+  the corridor total rather than double-counting stations on a shared province edge.
 - Dispersion and recovery counts: [`2026-08-04_pooler_audit_the_flagship_trio_halves.md`](2026-08-04_pooler_audit_the_flagship_trio_halves.md).

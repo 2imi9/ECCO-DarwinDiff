@@ -129,11 +129,8 @@ def province_at(features: list[dict], lon: float, lat: float) -> str | None:
     return None
 
 
-def iron_counts(features: list[dict], geoms: dict) -> dict:
-    """GEOTRACES IDP2025 dissolved-Fe stations and samples inside each geometry."""
-    from shapely.geometry import Point
-    from shapely.prepared import prep
-
+def _live_stations():
+    """GEOTRACES IDP2025 stations carrying at least one good dissolved-Fe sample."""
     from darwindiff.geotraces_loader import QC_GOOD, open_geotraces_bottle
 
     idp = os.environ.get("GEOTRACES_IDP", r"D:\geotraces\GEOTRACES_IDP2025_Seawater.nc")
@@ -142,19 +139,70 @@ def iron_counts(features: list[dict], geoms: dict) -> dict:
         ds["Fe_D_CONC_qc"].values, list(QC_GOOD)
     )
     n_per_station = good.sum(axis=1)
-    lat, lon = ds["latitude"].values, ds["longitude"].values
     live = np.where(n_per_station > 0)[0]
+    return (
+        ds["latitude"].values[live],
+        ds["longitude"].values[live],
+        n_per_station[live].astype(int),
+    )
 
+
+def iron_counts(geoms: dict) -> dict:
+    """Dissolved-Fe stations and samples inside each geometry.
+
+    Uses ``covers``, not ``contains``: boundary points count. The AOI boxes are
+    half-open rectangles WE define, and the loader's own ``ds.sel(lat=slice(...))``
+    is endpoint-inclusive, so excluding the boundary would disagree with how the
+    model actually subsets. It is not a rounding detail — six GP16 corridor stations
+    sit exactly on lat = -16.0, and ``contains`` silently drops all six (92 -> 86).
+    """
+    from shapely.geometry import Point
+    from shapely.prepared import prep
+
+    lat, lon, n = _live_stations()
     out = {}
     for name, geom in geoms.items():
         p = prep(geom)
-        st = sm = 0
-        for i in live:
-            if p.contains(Point(float(lon[i]), float(lat[i]))):
-                st += 1
-                sm += int(n_per_station[i])
-        out[name] = {"stations": st, "samples": sm}
+        hit = np.array(
+            [p.covers(Point(float(lo), float(la))) for lo, la in zip(lon, lat)]
+        )
+        out[name] = {"stations": int(hit.sum()), "samples": int(n[hit].sum())}
     return out
+
+
+def gp16_by_province(features: list[dict], corridor: tuple) -> dict:
+    """Partition the GP16 corridor's Fe stations across Longhurst provinces.
+
+    A PARTITION, not a set of independent counts: each station is assigned to the
+    first province that covers it, so the per-province numbers sum to the corridor
+    total. Counting each province separately would double-count any station sitting
+    on a shared province edge, and would not be reconcilable with the total.
+    """
+    from shapely.geometry import Point, box
+    from shapely.prepared import prep
+
+    lat, lon, n = _live_stations()
+    rect = prep(box(*corridor))
+    gdf = _gdf(features)
+    prepared = [(f["provcode"], prep(f.geometry)) for _, f in gdf.iterrows()]
+
+    tally: dict[str, dict] = {}
+    total_st = total_sm = 0
+    for la, lo, cnt in zip(lat, lon, n):
+        pt = Point(float(lo), float(la))
+        if not rect.covers(pt):
+            continue
+        total_st += 1
+        total_sm += int(cnt)
+        code = next((c for c, p in prepared if p.covers(pt)), "<unassigned>")
+        row = tally.setdefault(code, {"stations": 0, "samples": 0})
+        row["stations"] += 1
+        row["samples"] += int(cnt)
+    return {
+        "corridor": list(corridor),
+        "total": {"stations": total_st, "samples": total_sm},
+        "by_province": dict(sorted(tally.items(), key=lambda kv: -kv[1]["stations"])),
+    }
 
 
 def main() -> int:
@@ -216,10 +264,19 @@ def main() -> int:
         for _, feat in _gdf(gfeats).iterrows():
             all_geoms.setdefault(f"{feat['provcode']} (province)", feat.geometry)
         print("\n=== GEOTRACES IDP2025 dissolved Fe (QC 1/2): box vs province ===")
-        counts = iron_counts(gfeats, all_geoms)
+        counts = iron_counts(all_geoms)
         result["iron"] = counts
         for name, c in sorted(counts.items(), key=lambda kv: -kv[1]["stations"]):
             print(f"  {name:34s} {c['stations']:5d} stations {c['samples']:6d} samples")
+
+        # The corridor total above is a single number; this splits it by province.
+        split = gp16_by_province(gfeats, GP16_CORRIDOR)
+        result["gp16"]["by_province"] = split
+        print("\n=== GP16 corridor stations, partitioned by province ===")
+        for code, c in split["by_province"].items():
+            print(f"  {code:14s} {c['stations']:4d} stations {c['samples']:6d} samples")
+        print(f"  {'TOTAL':14s} {split['total']['stations']:4d} stations "
+              f"{split['total']['samples']:6d} samples")
 
     if args.json:
         Path(args.json).write_text(json.dumps(result, indent=2), encoding="utf-8")

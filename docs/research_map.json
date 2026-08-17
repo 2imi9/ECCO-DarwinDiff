@@ -9305,7 +9305,7 @@
      "name": "2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "date": "2026-08-17",
      "retracted": 0,
-     "words": 1820,
+     "words": 1895,
      "local_only": 0
     }
    ]
@@ -13638,7 +13638,7 @@
     },
     {
      "question": "How much GEOTRACES dissolved-iron coverage do the rectangular AOI boxes leave on the table versus their Longhurst provinces?",
-     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 15 stations / 204 samples against ANTA province 125 / 1,558 -- the box captures 12% of ANTA's stations, so an 8.3x increase in stations and 7.6x in samples is available. eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs untrained 0/50, P = 3.15e-24; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
+     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 16 stations / 241 samples against ANTA province 125 / 1,558 -- the box captures 13% of ANTA's stations, so a 7.8x increase in stations and 6.5x in samples is available. Membership is boundary-INCLUSIVE (shapely covers), matching the endpoint-inclusive ds.sel(lat=slice(...)) the loader uses; shapely contains would drop six GP16 corridor stations sitting exactly on lat = -16.0 (92 -> 86). eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs untrained 0/50, P = 3.15e-24; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
      "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "dont": ""
     },
