@@ -520,6 +520,21 @@ CHL2_W_EXTRA = float(os.environ.get("CHL2_W_EXTRA", "0.0"))
 # lambda lets each regime fit its preferred parameters while staying in the
 # same neighborhood, breaking the 5/6 shared-MLP architectural ceiling.
 USE_PER_AOI_DINN = os.environ.get("PER_AOI_DINN", "0") == "1"
+# SAVE_PER_CELL_SEEDS: dump the per-cell recovered parameter FIELD (not just its
+# collapses) for the first N seeds, as OUTPUT_DIR/per_cell/percell_<aoi>_seed<s>.npz.
+#
+# Why this exists. Every recovery artifact before 2026-08-17 recorded only the
+# arithmetic/geometric/median collapses and a scalar `per_aoi_log_sd`. So when the
+# North Atlantic turned out to carry log_sd = 0.936 -- above the sigma = 0.820 at
+# which the arithmetic collapse ALONE clears the +/-40% band, and the whole of the
+# flagship trio's 25/50 -> 12/50 halving -- there was no way to ask what that spread
+# looks like in space. Combined with the runner having no state_dict() save, a
+# finished fit could not be re-interrogated at all: the trained net from job 258713
+# is gone. The Longhurst-province question (does within-box dispersion follow
+# biogeochemical boundaries?) was unanswerable for want of a few MB per seed.
+#
+# 0 (default) preserves the historical output set exactly.
+SAVE_PER_CELL_SEEDS = int(os.environ.get("SAVE_PER_CELL_SEEDS", "0"))
 # Ablation control: GLOBAL_SCALAR=1 replaces the per-cell DINN with a single
 # global Carroll-6 vector per seed (shared across AOIs) — the differentiable
 # analogue of one Green's-functions parameter set. Everything else (forcing,
@@ -1189,6 +1204,9 @@ def _load_aoi_bundle_native(aoi_key: str) -> dict:
         # Native-grid path does not wire the Black province anchor; n_black=0 makes the term
         # skip rather than KeyError, matching how every other optional anchor stubs out here.
         "black_value": 0.0, "black_sigma": 0.0, "n_black": 0,
+        # See the 1-degree bundle: carried so a saved per-cell field is georeferenced.
+        "lats": np.asarray(targets["darwin_lats"], dtype=np.float64),
+        "lons": np.asarray(targets["darwin_lons"], dtype=np.float64),
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
     }
@@ -1797,6 +1815,11 @@ def load_aoi_bundle(aoi_key: str) -> dict:
         "f_co2_abs_target_t": f_co2_abs_target_t, "f_co2_abs_mask_t": f_co2_abs_mask_t,
         "f_co2_abs_mask_f": f_co2_abs_mask_f, "n_f_co2_abs_f": n_f_co2_abs_f,
         "n_f_co2_abs": n_f_co2_abs,
+        # Cell coordinates. Carried so SAVE_PER_CELL_SEEDS can write a per-cell field
+        # that is georeferenced -- without these the saved array is an unordered bag of
+        # numbers and cannot be joined to anything spatial (provinces, fronts, bathymetry).
+        "lats": np.asarray(targets["darwin_lats"], dtype=np.float64),
+        "lons": np.asarray(targets["darwin_lons"], dtype=np.float64),
         "black_value": black_value, "black_sigma": black_sigma, "n_black": n_black,
         "state0_per_seed": state0_per_seed,
         "weight": AOI_W[aoi_key],
@@ -2711,6 +2734,45 @@ if __name__ == "__main__":
             # answered question rather than a standing worry.
             per_aoi_log_sd[bundle["key"]] = (
                 _ocean_vals.clamp(min=1e-300).log().std(dim=1, unbiased=True).cpu().numpy())
+            # PERSIST THE PER-CELL FIELD ITSELF, for the first SAVE_PER_CELL_SEEDS seeds.
+            #
+            # Everything above this line is a COLLAPSE. Until 2026-08-17 the collapses were
+            # all that was ever written, which meant `per_aoi_log_sd` = 0.936 was a spread
+            # magnitude with no spatial structure attached and no way to attach any -- the
+            # runner also has no state_dict() save, so a finished fit cannot be re-evaluated
+            # either. That blocked the Longhurst-province question outright: you cannot ask
+            # whether dispersion follows province boundaries without the field.
+            #
+            # A few MB per seed buys every future spatial question (provinces, fronts,
+            # bathymetry, distance-to-observation) without spending another job. Off by
+            # default so no existing arm changes its output set.
+            if SAVE_PER_CELL_SEEDS > 0 and seed_idx < SAVE_PER_CELL_SEEDS:
+                # Same resolution as the results writer below, so the field lands beside
+                # the JSON it belongs to rather than in the script directory.
+                _pc_dir = os.path.join(
+                    os.environ.get("OUTPUT_DIR", str(Path(__file__).resolve().parent)),
+                    "per_cell")
+                os.makedirs(_pc_dir, exist_ok=True)
+                _ocean_sel_np = _ocean_sel.cpu().numpy()
+                np.savez_compressed(
+                    os.path.join(
+                        _pc_dir, f"percell_{bundle['key']}_seed{seed}.npz"),
+                    # [N_PARAMS, n_ocean] in registry order -- index with carroll6.PARAMS,
+                    # never positionally by hand.
+                    values=_ocean_vals.cpu().numpy().astype(np.float32),
+                    param_names=np.array(PARAM_NAMES),
+                    # Flat ocean-cell selector into the H x W grid, plus the grid axes, so
+                    # (lat, lon) per column is recoverable as
+                    # lat = lats[idx // W], lon = lons[idx % W].
+                    ocean_index=np.where(_ocean_sel_np)[0].astype(np.int32),
+                    lats=bundle["lats"], lons=bundle["lons"],
+                    H=np.int32(bundle["H"]), W=np.int32(bundle["W"]),
+                    aoi_bounds=np.array([
+                        bundle["aoi"].lat_min, bundle["aoi"].lat_max,
+                        bundle["aoi"].lon_min, bundle["aoi"].lon_max], dtype=np.float64),
+                    seed=np.int64(seed), aoi=np.array(bundle["key"]),
+                    log_sd=per_aoi_log_sd[bundle["key"]].astype(np.float64),
+                )
         # Two joint-recovery interpretations:
         #   cellweighted: cell-weighted mean across all AOIs combined (AOIs with
         #     more cells dominate; previously the only definition).
