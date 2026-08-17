@@ -17,7 +17,7 @@ Polygons: Longhurst v4 via the Marine Regions WFS layer ``MarineRegions:longhurs
 
     ⚠️ The request MUST be WFS **1.0.0**. Version 1.1.0 flips the EPSG:4326 axis
     order to lat,lon and silently returns Indian Ocean provinces for a North
-    Atlantic bbox — it does not error, it returns confident nonsense.
+    Atlantic bbox -- it does not error, it returns confident nonsense.
 
 Iron coverage: GEOTRACES IDP2025 ``Fe_D_CONC`` at QC 1/2, via
     :mod:`darwindiff.geotraces_loader`.
@@ -43,7 +43,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from darwindiff.ecco_darwin_loader import AOI, AOI_BY_KEY  # noqa: E402
+from darwindiff.ecco_darwin_loader import AOI, AOI_BY_KEY
 
 WFS = (
     "https://geo.vliz.be/geoserver/MarineRegions/wfs"
@@ -54,7 +54,7 @@ CACHE = Path(
     os.environ.get("PROVINCE_CACHE_DIR", Path(__file__).resolve().parent / ".province_cache")
 )
 
-# The GP16 East Pacific Zonal Transect (R/V Thomas G. Thompson, Oct–Dec 2013): Peru
+# The GP16 East Pacific Zonal Transect (R/V Thomas G. Thompson, Oct-Dec 2013): Peru
 # margin westward to Tahiti along a line falling between 10 and 15 S, crossing the
 # East Pacific Rise hydrothermal plume near 12 S.
 GP16_CORRIDOR = (-155.0, -16.0, -70.0, -9.0)  # lon_min, lat_min, lon_max, lat_max
@@ -86,7 +86,7 @@ def compose(features: list[dict], aoi: AOI) -> dict:
     """Area-weighted province composition of one rectangular AOI.
 
     Areas are computed in a Lambert azimuthal equal-area projection centred on the
-    box. At 50–65 N a degree of longitude is roughly half a degree of latitude, so
+    box. At 50-65 N a degree of longitude is roughly half a degree of latitude, so
     doing this in raw degrees would overweight the northern (polar-province) rows.
     """
     import geopandas as gpd
@@ -153,7 +153,7 @@ def iron_counts(geoms: dict) -> dict:
     Uses ``covers``, not ``contains``: boundary points count. The AOI boxes are
     half-open rectangles WE define, and the loader's own ``ds.sel(lat=slice(...))``
     is endpoint-inclusive, so excluding the boundary would disagree with how the
-    model actually subsets. It is not a rounding detail — six GP16 corridor stations
+    model actually subsets. It is not a rounding detail -- six GP16 corridor stations
     sit exactly on lat = -16.0, and ``contains`` silently drops all six (92 -> 86).
     """
     from shapely.geometry import Point
@@ -164,7 +164,7 @@ def iron_counts(geoms: dict) -> dict:
     for name, geom in geoms.items():
         p = prep(geom)
         hit = np.array(
-            [p.covers(Point(float(lo), float(la))) for lo, la in zip(lon, lat)]
+            [p.covers(Point(float(lo), float(la))) for lo, la in zip(lon, lat, strict=False)]
         )
         out[name] = {"stations": int(hit.sum()), "samples": int(n[hit].sum())}
     return out
@@ -188,7 +188,7 @@ def gp16_by_province(features: list[dict], corridor: tuple) -> dict:
 
     tally: dict[str, dict] = {}
     total_st = total_sm = 0
-    for la, lo, cnt in zip(lat, lon, n):
+    for la, lo, cnt in zip(lat, lon, n, strict=False):
         pt = Point(float(lo), float(la))
         if not rect.covers(pt):
             continue
@@ -207,7 +207,8 @@ def gp16_by_province(features: list[dict], corridor: tuple) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--aoi", action="append", help="AOI key; repeatable. Default: the flagship three.")
+    ap.add_argument("--aoi", action="append",
+                    help="AOI key; repeatable. Default: the flagship three.")
     ap.add_argument("--no-iron", action="store_true", help="skip the GEOTRACES coverage count")
     ap.add_argument("--json", help="write the full result to this path")
     args = ap.parse_args()

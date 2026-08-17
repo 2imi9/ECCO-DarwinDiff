@@ -58,7 +58,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from province_overlay import _gdf, fetch  # noqa: E402
+from province_overlay import _gdf, fetch
 
 
 def province_labels(lats: np.ndarray, lons: np.ndarray, features: list[dict]) -> np.ndarray:
@@ -68,7 +68,7 @@ def province_labels(lats: np.ndarray, lons: np.ndarray, features: list[dict]) ->
 
     prepared = [(f["provcode"], prep(f.geometry)) for _, f in _gdf(features).iterrows()]
     out = np.empty(lats.size, dtype=object)
-    for i, (la, lo) in enumerate(zip(lats, lons)):
+    for i, (la, lo) in enumerate(zip(lats, lons, strict=False)):
         pt = Point(float(lo), float(la))
         out[i] = next((c for c, p in prepared if p.covers(pt)), "<none>")
     return out
@@ -94,10 +94,10 @@ def analyse(path: str, param: str, n_perm: int, rng: np.random.Generator) -> dic
         return None
     i = names.index(param)
 
-    W = int(d["W"])
+    n_lon = int(d["W"])          # grid width, as saved by the runner
     idx = d["ocean_index"]
-    lats = d["lats"][idx // W]
-    lons = d["lons"][idx % W]
+    lats = d["lats"][idx // n_lon]
+    lons = d["lons"][idx % n_lon]
     y = np.log(d["values"][i].astype(np.float64))
 
     aoi = str(d["aoi"])
