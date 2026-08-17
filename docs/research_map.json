@@ -9301,6 +9301,14 @@
      "local_only": 0
     },
     {
+     "path": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
+     "name": "2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
+     "date": "2026-08-17",
+     "retracted": 0,
+     "words": 1217,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "name": "2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "date": "2026-08-17",
@@ -13655,6 +13663,12 @@
      "dont": ""
     },
     {
+     "question": "Is HyperFNO (hypernetwork-generated Fourier Neural Operator) useful for DarwinDiff?",
+     "answer": "NO - DEAD-END, and it was ALREADY SETTLED before being asked. `settled \"parameter-conditioned emulator\"` returns four rows, all 'No, shelved'; HyperFNO is the specific conditioning MECHANISM inside that specific shelved ROUTE, and docs/research_notes/2026-07-07_param_conditioned_emulator_decision.md already names 'FiLM ... or a HYPERNETWORK' as the design default for it. The one-line kill is arithmetic, not an experiment: N_lambda = 1. HyperFNO's entire contribution is the map lambda -> FNO weights, and DarwinDiff has ONE v05 trajectory at ONE parameter setting, so at p(lambda) = delta(lambda_0) the diag(lambda) modulation terms get no gradient signal in lambda and the method degenerates to a plain FNO with extra unidentifiable weights. Confirmation: ded77 (no architecture fixes structural non-identifiability) plus the five-independent-estimator negative on the rank-1 alpfe<->scav_rat null. On Track 1 a learned operator would replace carroll6.py, which is already exact, differentiable and fast, so it can only ADD error - and that error lands on the null direction where it would MANUFACTURE apparent scav_rat recovery. NO S3 carve-out, unlike RNO: HyperFNO has no residual loss, no calibration layer, no UQ and no post-hoc wrapper, so there is no detachable live component. Eighth architecture negative in a row (7 Anandkumar-lab operators, RNO, HyperFNO) because all are moves along the APPROXIMATOR axis while both binding walls - Track 2 information, Track 1 rank-1 structural null - are properties of the (model, observable set) pair.",
+     "doc": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
+     "dont": ""
+    },
+    {
      "question": "Was the committed flagship config actually deployed to the cluster that runs the jobs?",
      "answer": "NO - as of 2026-08-02, ~/emulator_poc/scripts/configs/flagship_geo1.sh did not exist on AICR at all, so even a correct sbatch that sourced it would have failed. The fix committed on 2026-07-29 lived only in the repository. The cluster checkout is not a git repository (issue #218); its runner did happen to match branch HEAD exactly, but nothing could have verified that in advance. Synced 2026-08-02.",
      "doc": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
@@ -13706,6 +13720,12 @@
      "question": "Is there a single integration window that serves both scav_rat and diatomgraz?",
      "answer": "NO - they want opposite ends of the lever, and this is a design constraint rather than a tuning nuisance. Over the same 100/200/400-step sweep (job 270032) scav_rat drifts monotonically DOWN out of the band while diatomgraz drifts monotonically UP toward Carroll. diatomgraz per-AOI medians: eqpac 0.064x -> 0.859x -> 0.952x Carroll, natlsubpolar 0.062x -> 0.166x -> 0.356x, southernoceanpac 0.062x -> 0.129x -> 0.351x. Its equatorial-Pacific leg count goes 0/50 -> 36/50 -> 45/50 against a window-independent untrained null of 33/50, Fisher one-sided P = 1.0, 0.333, 0.0035 - only the 400-step arm clears its null, and that is the window at which scav_rat is dead in all three basins (0/50 under every collapse and every band). At 100 steps diatomgraz is anti-recovered everywhere. The published 200 gets scav_rat marginally and diatomgraz barely. CAVEAT: the diatomgraz leg test above is at the 0.40 band where its null is heavily prior-contaminated; the standing rule is to grade diatomgraz per-leg at <=0.10, and that regrade is cheap and not yet done. The extension this opens is to stop sharing one global window - a per-parameter or per-basin window, or grading each parameter at the window where its own anchor has converged, is testable with code that already exists.",
      "doc": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
+     "dont": ""
+    },
+    {
+     "question": "What is the correct citation for HyperFNO, and does it have a DOI?",
+     "answer": "NO DOI AND NO ARXIV ID - any that appear are FABRICATED. HyperFNO is a 4-page NON-ARCHIVAL workshop paper: Alesiani, Takamoto & Niepert, 'HyperFNO: Improving the Generalization Behavior of Fourier Neural Operators', ML4PS workshop at NeurIPS 2022, paper #89, 2022-12-03. The ONLY citable locator is https://ml4physicalsciences.github.io/2022/files/NeurIPS_ML4PS_2022_89.pdf - an arXiv full-text search for 'HyperFNO' returns ZERO results and OpenAlex has no indexed record. It carries no numeric results table (all results are one log-scale bar chart), its own NeurIPS checklist admits only partial error information and no released code, and it self-limits to 'PDE of the hydro dynamic family'. Do NOT confuse it with HyperNOs (arXiv:2503.18087), a hyperparameter-optimisation library and a name near-collision only. Its own authors moved on to CAPE (arXiv:2304.14118), and an ICLR 2026 paper (arXiv:2607.23466) reimplements it as baseline 'HyperFNOc' and beats it by 45-49% nRMSE with lightweight shift modulation.",
+     "doc": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
      "dont": ""
     },
     {
@@ -15596,6 +15616,12 @@
      "question": "How does real dust deposition compare to the 0-D box's tuned PHI_DUST?",
      "answer": "Real local deposition runs ~200x BELOW the box's tuned PHI_DUST=5e-5 (eqpac vol@50m ~2.4e-7). Real areal flux is physically ordered: natl (Saharan) 1.9e-10 > eqpac 1.4e-10 > SO 5.1e-11 mmol/m^2/s, spatial CV 0.13-0.66. This MOTIVATES the Track-2 transport thesis but does NOT confirm it - the E2 gate is unrun and by source/sink equifinality an inflated effective source is consistent with, but does not uniquely establish, transport supply.",
      "doc": "docs/research_notes/2026-07-07_deep_review_e2_readiness.md",
+     "dont": ""
+    },
+    {
+     "question": "What is the cheapest untested lever on scav_rat's low bias, given EKI already showed estimator-independence?",
+     "answer": "Run the EXISTING 1-D column path (transport.py::column_tendency, already merged, ZERO new GCM runs) as a richer forward model and see whether scav_rat's low bias moves. The gap it fills: EKI held the geo1 BOX fixed while varying the estimator, so the repo has evidence that changing the ESTIMATOR leaves recovery unchanged and NO evidence about changing the FORWARD OPERATOR. That distinction matters because forward-model STRUCTURE is one of only two things that have ever moved identifiability here - 0-D box -> 1-D column took the Fisher spectrum from [800, 2.8e-14] (rank-1) to [53272, 40] (genuinely rank-2) - the other being a new out-of-manifold observation. Neither is architectural. Testable on artifacts already on disk.",
+     "doc": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
      "dont": ""
     },
     {
@@ -39145,11 +39171,11 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 264,
+  "document": 265,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
-  "settled": 569,
+  "settled": 572,
   "supersedes": 301,
   "supports": 299,
   "trap": 260,
