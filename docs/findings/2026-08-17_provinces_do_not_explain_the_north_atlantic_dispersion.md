@@ -70,25 +70,30 @@ are **inverted**: `eqpac` mixes nearly twice the effective provinces of `souther
 (2.70 vs 1.53) and carries *less* than two-thirds its dispersion (0.245 vs 0.379). With n = 3
 this is weak on its own — it is reported as one strand, not the argument.
 
-**Check 2 — the same box, with geography held exactly fixed, produces σ from 0.000 to 1.310.**
+**Check 2 — the same box, with geography held exactly fixed, changes σ by 3.5×.**
 
 This is the argument.
 
-| configuration | box | `log_sd` |
-|---|---|---:|
-| observations-only arms | all three, unchanged | **0.000** |
-| 3-AOI flagship twin, `sopac` leg | `southernoceanpac` | **0.379** |
-| single-AOI `so_only` (n=50) | `southernoceanpac`, *identical box* | **1.310** |
+| configuration | box | parameterisation | `log_sd` |
+|---|---|---|---:|
+| 3-AOI flagship twin, `sopac` leg | `southernoceanpac` | per-cell | **0.379** |
+| single-AOI `so_only` (n=50) | `southernoceanpac`, *identical box* | per-cell | **1.310** |
 
-The geography of `southernoceanpac` is a constant across the last two rows. Its province
-composition is a constant. Its per-cell dispersion changes by a factor of **3.5** — and in the
-observations-only arms the per-cell field is spatially uniform, σ = 0.000, in *all three*
-basins at once.
+The geography of `southernoceanpac` is a constant across those two rows. Its province
+composition is a constant. Its per-cell dispersion changes by a factor of **3.5**.
 
-**A quantity that takes three different values on the same polygon is not a property of that
-polygon.** σ is a property of the fit configuration. Redrawing the boundary is therefore not
-predicted to control it, and the 25 → 12 halving cannot be attributed to province straddling
-on the evidence we have.
+**A quantity that takes two very different values on the same polygon is not a property of
+that polygon.** σ is substantially a property of the fit configuration. Redrawing the boundary
+is therefore not predicted to control it, and the 25 → 12 halving cannot be attributed to
+province straddling on the evidence we have.
+
+> **Excluded from this argument on purpose.** The pooler audit also records `log_sd` = 0.000
+> for the observations-only arms in all three basins, which looks like a third point on the
+> same box. It is not admissible here: those runs are `gs_obsonly`, i.e. `GLOBAL_SCALAR=1`,
+> which *replaces the per-cell head with a single scalar per AOI*
+> (`run_v3.0_joint_multi_aoi.py:538-543`). σ = 0 is then true by construction and carries no
+> information about geography. An earlier draft of this note used it as evidence; it should
+> not have.
 
 This does not say provinces are a bad idea. It says the *specific* justification — "provinces
 will collapse the dispersion that halves the trio" — is unsupported, and a re-fit sold on that
