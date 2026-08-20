@@ -9315,6 +9315,14 @@
      "retracted": 0,
      "words": 1895,
      "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md",
+     "name": "2026-08-20_the_dispersion_lives_inside_one_province.md",
+     "date": "2026-08-20",
+     "retracted": 0,
+     "words": 1040,
+     "local_only": 0
     }
    ]
   },
@@ -13795,6 +13803,12 @@
      "dont": ""
     },
     {
+     "question": "Does the natlsubpolar per-cell dispersion (log_sd = 0.940) actually follow Longhurst province boundaries, measured on the recovered field?",
+     "answer": "NO, and the mechanism is the OPPOSITE of the hypothesis - it lives INSIDE the box's biggest province. Measured on job 408789 (n=50, per-cell fields, 300 permutations per seed): one-way ANOVA of per-cell log(scav_rat) with province as factor gives eta^2 = 0.338 against a LATITUDE-BAND CONTROL of 0.357 - i.e. province boundaries explain LESS than arbitrary latitude bands of matched group size, and beat them in only 23 of 50 seeds, a coin flip. 66.2% of the log-variance lives WITHIN provinces. Same pattern in the other two AOIs: eqpac 0.329 vs 0.282 (+0.046), southernoceanpac 0.744 vs 0.761 (-0.016). THE RESULT: within-province log_sd in natlsubpolar is NADR 1.085, ARCT 0.196, SARC 0.214, BPLR 0.279, NECS 0.714. The three polar provinces are QUIET, far under the sigma = 0.820 threshold, in 0 of 50 seeds each. All the dispersion is inside NADR, the largest province at 41.5% of box area and 198 cells, whose within-province log_sd EXCEEDS the whole-box 0.940 in 48 of 50 seeds. So a province-based North Atlantic AOI is CONTRAINDICATED, not merely unsupported: an AOI equal to NADR carries log_sd 1.085 vs the box's 0.940, a BIGGER arithmetic-collapse artifact (inflation x1.80 vs x1.56). The open question is what generates the within-NADR scatter; it is not geography and not the AOI boundary. Use the latitude-band control, never the shuffled null, when grading any spatial factor here - Longhurst provinces are largely latitudinal so a shuffle is beaten trivially by any north-south gradient.",
+     "doc": "docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md",
+     "dont": ""
+    },
+    {
      "question": "Can the Black et al. 2020 upper-ocean Fe export compilation anchor scav_rat, as the SINK partner in the two-anchor iron inversion?",
      "answer": "NO, and the refutation is structural rather than observational, so more coverage does not fix it. Black measures TOTAL upper-ocean particulate Fe export. The box loses dissolved iron by two routes, scavenging (scav_rat*DFe*POC) and biogenic uptake (Q_FE*growth), and gains it by one (alpfe*PHI_DUST). At steady state dDFe=0 forces scavenged + biogenic = alpfe*PHI_DUST, so the TOTAL export - exactly what Black measures - is pinned by the SOURCE and is independent of scav_rat by mass conservation. Measured: a 16x sweep of scav_rat (0.25x to 4x Carroll) moves the steady-state total by 0.00%, and the total equals alpfe*PHI_DUST*H*365.25 = 0.8477 mmol Fe/m2/yr to 6 significant figures. scav_rat sets HOW iron leaves, never HOW MUCH. It is a SOURCE anchor wearing a sink label. At the 200-step operating window the box is still transient so a little leverage survives: a 4x sweep moves the total by 5.15% (natlsubpolar) / 6.55% (southernoceanpac), needing observation precision better than 3.14% to grade scav_rat at the +/-40% Cal band, against Black's actual sigma/value of 412% - short by a factor of 131, and worse at longer windows (0.4% at 3200 steps). Coverage is the SMALLER problem and the only fixable one: 1 program of 20 across all three flagship AOIs (natlsubpolar GA01 GEOVIDE, a transect row the loader's own docstring says badly under-represents the program), 0 in eqpac and southernoceanpac, province scalar 3.056 +/- 12.601. Do NOT wire a BLACK_FE_EXPORT_W term against scav_rat: verify_run.inert_terms() would NOT catch it, because natlsubpolar is nonzero, so it would report live while carrying no information. Screened with scripts/analysis/anchor_leverage_screen.py, no cluster compute. The mass-conservation invariant is pinned as a regression test.",
      "doc": "docs/findings/2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
@@ -15739,6 +15753,12 @@
      "dont": ""
     },
     {
+     "question": "When the same southernoceanpac box goes from log_sd 0.379 (3-AOI leg) to 1.310 (single-AOI so_only), what changes spatially?",
+     "answer": "The added dispersion is ENTIRELY WITHIN-PROVINCE. Measured within ONE job (408789), so this is a within-job comparison rather than the cross-job version argued on 2026-08-17. Identical geography, identical province composition. eta^2 explained by province falls from 0.744 to 0.225 as sigma triples, i.e. variance living WITHIN provinces goes 25.6% -> 77.5%. Within-ANTA log_sd 0.137 -> 0.994 (x7.3); within-SANT 0.224 -> 1.299 (x5.8). Province beats matched latitude bands in 0/50 seeds in the 3-AOI arm and 2/50 in the single-AOI arm. So in the quiet configuration the field is province-organised and small, and in the loud one it is province-BLIND and large - confirming by direct measurement that the dispersion is a property of the FIT CONFIGURATION and not of the polygon.",
+     "doc": "docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md",
+     "dont": ""
+    },
+    {
      "question": "Does the 0-D box include silicate, and is 'dense-silica targets' a nutrient?",
      "answer": "The box has NO dissolved-silicate tracer and no Si-limitation (5-tracer state [DFe, Ps, Pl, POC, PIC]). But 'dense-silica targets' means BIOGENIC silica (POSi/bSi), a diatom output diagnostic used to constrain diatomgraz, not a silicate nutrient. Rename in all comms. Separately: v05 itself DOES carry prognostic dissolved SiO2, applies Si limitation and assimilates silicate (Carroll 2022), so the missing-Si is OUR surrogate, not the model.",
      "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md, docs/research_notes/2026-07-23_expert_review_corrections.md",
@@ -15916,6 +15936,12 @@
      "question": "Does the single-AOI Southern Ocean scav_rat result replicate on fresh seeds?",
      "answer": "YES, decisively. so_rep (job 352450, seeds 50-99, disjoint from the original 0-49, verify_run exit 0 on 50/50) gives scav_rat geometric 50/50 against the pre-registered reference of 49/50 (exact two-sided Fisher P=1.0000) and untrained null 0/50 (P=8.1e-62); arithmetic is exactly identical at 30/50. The pre-registered CONTINUOUS accuracy read also passes: median scav_rat/Carroll 1.3919 to 1.3619, Mann-Whitney P=0.9149, no detectable shift. Controls behaved: alpfe held 50/50, R_PICPOC collapsed to 0/50 as predicted. Unlike the flagship trio, which needs a 44% collapse to register a difference, the 49/50 reference put the boundary at a 14% drop, so this run was powered to fail. The one established scav_rat claim now rests on two submissions with disjoint seeds.",
      "doc": "docs/findings/2026-08-12_the_southern_ocean_scavrat_result_replicates.md",
+     "dont": ""
+    },
+    {
+     "question": "Does the published flagship lineage reproduce on the AICR cluster build, and is the so_only Southern Ocean result reproducible?",
+     "answer": "YES, exactly, on every pre-registered quantity. Job 408789 on AICR (checkout 15a3725, behind HEAD, runner scp'd - so a miss would have been provenance per #218) reproduces: trio 25/12/23 arithmetic/geometric/median; scav_rat 26/13/24; alpfe 49/50; R_PICPOC 50/50; per-AOI scav_rat legs eqpac 8/8/10, natl 19/5/16, SO 49/49/49; log_sd 0.245 / 0.940 / 0.379; McNemar 13 arithmetic-only vs 0 geometric-only, P = 2.44e-04. The single-AOI so_only arm reproduces 30/49/28 with log_sd 1.310, P = 3.2e-24 arithmetic and 6.3e-59 geometric against the matched untrained null, and McNemar 20 geometric-only vs 1 arithmetic-only. verify_run exits 0 on both trained arms. This is an INDEPENDENT replication on a different build and bears on #226 (bitwise reproducibility) and #218 (unversioned cluster checkout). Note the untrained null carries log_sd 0.004-0.012 across all three AOIs, i.e. an essentially uniform field, which is the correct control behaviour.",
+     "doc": "docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md",
      "dont": ""
     },
     {
@@ -39171,11 +39197,11 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 265,
+  "document": 266,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
-  "settled": 572,
+  "settled": 575,
   "supersedes": 301,
   "supports": 299,
   "trap": 260,

@@ -1,0 +1,1465 @@
+{
+  "summary": {
+    "southernoceanpac": {
+      "n_seeds": 50,
+      "median_log_sd": 1.3097948010896758,
+      "median_eta_sq": 0.22473922322500917,
+      "median_shuffle_null_eta_sq": 0.0015492776595697126,
+      "median_lat_band_control_eta_sq": 0.23399428413087991,
+      "median_excess_vs_lat_band": -0.007403227865364528,
+      "median_p_vs_shuffle": 0.0033222591362126247
+    }
+  },
+  "per_seed": [
+    {
+      "aoi": "southernoceanpac",
+      "seed": 0,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.297072861303187,
+      "eta_sq": 0.25268836079933193,
+      "eta_sq_null_mean": 0.001663848737221037,
+      "eta_sq_null_p95": 0.004896586271102478,
+      "eta_sq_lat_band_control": 0.26381678241519135,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.0064877809802047e-06,
+          "log_sd": 0.35622911526729245
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.398198837432897e-06,
+          "log_sd": 1.0374464796952607
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4713599446352193e-07,
+          "log_sd": 1.211909988523111
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 1,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.267563382266423,
+      "eta_sq": 0.17316161757451326,
+      "eta_sq_null_mean": 0.0015556672120519907,
+      "eta_sq_null_p95": 0.004381215370612243,
+      "eta_sq_lat_band_control": 0.17725944013600145,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2629055308192689e-06,
+          "log_sd": 0.39916730997984506
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.0008988766581846e-06,
+          "log_sd": 1.0011207698683822
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4475940341607043e-07,
+          "log_sd": 1.2985956979687814
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 10,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2124974082970195,
+      "eta_sq": 0.2832801650815086,
+      "eta_sq_null_mean": 0.0015695271430632588,
+      "eta_sq_null_p95": 0.0047861521092909705,
+      "eta_sq_lat_band_control": 0.2897612803928249,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 8.880753298156945e-07,
+          "log_sd": 0.4039310727967007
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.1508447593453166e-06,
+          "log_sd": 0.9439035585658464
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4553847277859632e-07,
+          "log_sd": 1.1138310571249501
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 11,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.323324484561526,
+      "eta_sq": 0.2475819713901386,
+      "eta_sq_null_mean": 0.0014609616961846783,
+      "eta_sq_null_p95": 0.004345526269844898,
+      "eta_sq_lat_band_control": 0.25282019786087734,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.5423198179675397e-06,
+          "log_sd": 0.4601155040348386
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.5211258920168448e-06,
+          "log_sd": 0.9314768892286504
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.718034252392354e-07,
+          "log_sd": 1.3407780376526026
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 12,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3166339749752067,
+      "eta_sq": 0.2814116253707056,
+      "eta_sq_null_mean": 0.001610699366335712,
+      "eta_sq_null_p95": 0.004542691248449762,
+      "eta_sq_lat_band_control": 0.279753219153587,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.7148112316794384e-06,
+          "log_sd": 0.4455261992917704
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.58136963715363e-06,
+          "log_sd": 0.8576097145670947
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.9811318416044323e-07,
+          "log_sd": 1.3358025338850232
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 13,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2499293274470504,
+      "eta_sq": 0.24911043617280246,
+      "eta_sq_null_mean": 0.0016379164991499435,
+      "eta_sq_null_p95": 0.004891978210116253,
+      "eta_sq_lat_band_control": 0.25397042602762965,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.1468246736737779e-06,
+          "log_sd": 0.42714826064585726
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.22823548274969e-06,
+          "log_sd": 0.9760885620967588
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4335955332297565e-07,
+          "log_sd": 1.191823297623823
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 14,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.370272696130452,
+      "eta_sq": 0.18886441074687396,
+      "eta_sq_null_mean": 0.0015479676552088298,
+      "eta_sq_null_p95": 0.00451326959535623,
+      "eta_sq_lat_band_control": 0.1975909630468577,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.219113365802507e-06,
+          "log_sd": 0.3737699832358575
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3691472718127101e-06,
+          "log_sd": 1.1590568224944997
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3164652449448874e-07,
+          "log_sd": 1.319044951514125
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 15,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3020010866450349,
+      "eta_sq": 0.287915491872994,
+      "eta_sq_null_mean": 0.001490283785865308,
+      "eta_sq_null_p95": 0.004729328453882975,
+      "eta_sq_lat_band_control": 0.2898580430012363,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.4217102106302678e-06,
+          "log_sd": 0.41258202394664634
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.5997284599980084e-06,
+          "log_sd": 0.8952684513969814
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.9830800017236025e-07,
+          "log_sd": 1.280966103970343
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 16,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2884421440225275,
+      "eta_sq": 0.2646173745676075,
+      "eta_sq_null_mean": 0.001494199720288515,
+      "eta_sq_null_p95": 0.004374835174242347,
+      "eta_sq_lat_band_control": 0.2750516968219219,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.0568116742227794e-06,
+          "log_sd": 0.5659954302732395
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3014434686034532e-06,
+          "log_sd": 1.0456038149340592
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.2489346497642935e-07,
+          "log_sd": 1.171863243693285
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 17,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3696646455202366,
+      "eta_sq": 0.23288310079828994,
+      "eta_sq_null_mean": 0.0014827922443866092,
+      "eta_sq_null_p95": 0.003922070483766128,
+      "eta_sq_lat_band_control": 0.24030445036247525,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.5766578640430912e-06,
+          "log_sd": 0.48462718276143607
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.5414112981823555e-06,
+          "log_sd": 1.0384608375583937
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3835490373797085e-07,
+          "log_sd": 1.3537228371312038
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 18,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.276217344137783,
+      "eta_sq": 0.22038185602747704,
+      "eta_sq_null_mean": 0.0015051123592658665,
+      "eta_sq_null_p95": 0.004380228620233047,
+      "eta_sq_lat_band_control": 0.22705867547354455,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2972767107449683e-06,
+          "log_sd": 0.37974913193700616
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.1017812512475308e-06,
+          "log_sd": 0.9219533947898474
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3802072514106775e-07,
+          "log_sd": 1.311477904431366
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 19,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3728992782031129,
+      "eta_sq": 0.21108247154397833,
+      "eta_sq_null_mean": 0.0016016916556202735,
+      "eta_sq_null_p95": 0.0051124590999216775,
+      "eta_sq_lat_band_control": 0.22215107300797476,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.3643230077822245e-06,
+          "log_sd": 0.38264012252313023
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.4088195928966823e-06,
+          "log_sd": 1.095133848622635
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.439897703467473e-07,
+          "log_sd": 1.3456564284092074
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 2,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2732807279603595,
+      "eta_sq": 0.21522422462971835,
+      "eta_sq_null_mean": 0.0017702687147679978,
+      "eta_sq_null_p95": 0.005633535836415433,
+      "eta_sq_lat_band_control": 0.22133220698586387,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.269145180209671e-06,
+          "log_sd": 0.3772644843051295
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.1815601483446858e-06,
+          "log_sd": 0.9778843030496011
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4201602250891118e-07,
+          "log_sd": 1.2723504565222552
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 20,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3006864105575389,
+      "eta_sq": 0.254518460768765,
+      "eta_sq_null_mean": 0.001583692829856341,
+      "eta_sq_null_p95": 0.0052606818956593355,
+      "eta_sq_lat_band_control": 0.2599891801593422,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.3573465624579437e-06,
+          "log_sd": 0.39647380416157624
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3408742527763077e-06,
+          "log_sd": 0.9095269009317491
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.6013051117795794e-07,
+          "log_sd": 1.3133974881005048
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 21,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.4199386607800935,
+      "eta_sq": 0.16980825618276174,
+      "eta_sq_null_mean": 0.0015454295855749714,
+      "eta_sq_null_p95": 0.005021923710501339,
+      "eta_sq_lat_band_control": 0.18050303741219323,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2653038462819848e-06,
+          "log_sd": 0.4217450158828138
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.4896085030070593e-06,
+          "log_sd": 1.2528655976866732
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4530037068817708e-07,
+          "log_sd": 1.348477594375075
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 22,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2880318338971513,
+      "eta_sq": 0.2871980589222824,
+      "eta_sq_null_mean": 0.0015037938898410615,
+      "eta_sq_null_p95": 0.0038671054644334618,
+      "eta_sq_lat_band_control": 0.29829262422785796,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.0340421986785566e-06,
+          "log_sd": 0.42652407225339684
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2149111459869053e-06,
+          "log_sd": 0.9690493321260074
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.1591005028958794e-07,
+          "log_sd": 1.2055072145089312
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 23,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.27518615224505,
+      "eta_sq": 0.20482371431634971,
+      "eta_sq_null_mean": 0.0017191903161404849,
+      "eta_sq_null_p95": 0.005174374788625764,
+      "eta_sq_lat_band_control": 0.21494753663520622,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.0423768023786492e-06,
+          "log_sd": 0.54174140501594
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2251861139762127e-06,
+          "log_sd": 1.1348515986767425
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4153408157634015e-07,
+          "log_sd": 1.1513880543844033
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 24,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3046135236368046,
+      "eta_sq": 0.24533950452542413,
+      "eta_sq_null_mean": 0.0015745233487749481,
+      "eta_sq_null_p95": 0.005060737972782402,
+      "eta_sq_lat_band_control": 0.25259270236171155,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.3288374617491292e-06,
+          "log_sd": 0.37539934044863993
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.4090755296956047e-06,
+          "log_sd": 0.9661828676553113
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.5288262398796048e-07,
+          "log_sd": 1.2908304212415305
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 25,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3522890107028804,
+      "eta_sq": 0.20978903767782017,
+      "eta_sq_null_mean": 0.0013241696126968733,
+      "eta_sq_null_p95": 0.0036306082438448844,
+      "eta_sq_lat_band_control": 0.216366962303826,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.5629424012997462e-06,
+          "log_sd": 0.37125675782527506
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2778914105575114e-06,
+          "log_sd": 1.018160711920115
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.396325021710965e-07,
+          "log_sd": 1.37428242634517
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 26,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2828420717257283,
+      "eta_sq": 0.1628620207299092,
+      "eta_sq_null_mean": 0.0015228908680041846,
+      "eta_sq_null_p95": 0.004119121039575474,
+      "eta_sq_lat_band_control": 0.1708951983728224,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2583566397927253e-06,
+          "log_sd": 0.5407941498962482
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.334681033580083e-06,
+          "log_sd": 1.0954557614646816
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.6117117547424772e-07,
+          "log_sd": 1.259004259073384
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 27,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.344967062068898,
+      "eta_sq": 0.26479053863931096,
+      "eta_sq_null_mean": 0.001574934645577948,
+      "eta_sq_null_p95": 0.004455338696485819,
+      "eta_sq_lat_band_control": 0.27207719827396126,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.277511599217939e-06,
+          "log_sd": 0.40834131542001223
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.5511896447628703e-06,
+          "log_sd": 0.9956051994379925
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.590642672276525e-07,
+          "log_sd": 1.3038912746037383
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 28,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3986977759488386,
+      "eta_sq": 0.14696526179511588,
+      "eta_sq_null_mean": 0.0015585851476486688,
+      "eta_sq_null_p95": 0.004698202701652377,
+      "eta_sq_lat_band_control": 0.15523425532245036,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.243479717487197e-06,
+          "log_sd": 0.4629950837217547
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3839147606957285e-06,
+          "log_sd": 1.2727858203744464
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4646361781125035e-07,
+          "log_sd": 1.325541582979868
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 29,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2604722104642074,
+      "eta_sq": 0.33305022947704915,
+      "eta_sq_null_mean": 0.0017515519453022935,
+      "eta_sq_null_p95": 0.004929554828530067,
+      "eta_sq_lat_band_control": 0.33913636393275637,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.105765355790364e-06,
+          "log_sd": 0.6040806481123812
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.447194339975626e-06,
+          "log_sd": 0.8784993686363616
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.5410296252825004e-07,
+          "log_sd": 1.169251960960244
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 3,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.4387613505210592,
+      "eta_sq": 0.1555766195643392,
+      "eta_sq_null_mean": 0.0016921107957498472,
+      "eta_sq_null_p95": 0.0049629128126097485,
+      "eta_sq_lat_band_control": 0.16386237393954053,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.3518410219849949e-06,
+          "log_sd": 0.40295350253116974
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3381314358414361e-06,
+          "log_sd": 1.2708780444570515
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3000312011229798e-07,
+          "log_sd": 1.3869144071802861
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 30,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2978683602428858,
+      "eta_sq": 0.26808794282026954,
+      "eta_sq_null_mean": 0.001499182378502345,
+      "eta_sq_null_p95": 0.004420666015829532,
+      "eta_sq_lat_band_control": 0.27428005690743973,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2711932478646266e-06,
+          "log_sd": 0.4436970865593939
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.580062392885887e-06,
+          "log_sd": 0.9329732851865535
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.6736599843898656e-07,
+          "log_sd": 1.2741646830300928
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 31,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3809495047669278,
+      "eta_sq": 0.2141068047805091,
+      "eta_sq_null_mean": 0.0014456584275788955,
+      "eta_sq_null_p95": 0.004348636718175493,
+      "eta_sq_lat_band_control": 0.22215326571749955,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2067940892459844e-06,
+          "log_sd": 0.3990702760937241
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3567940126209719e-06,
+          "log_sd": 1.1339819727877147
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.1462757946486732e-07,
+          "log_sd": 1.3219867148871025
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 32,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3383990448890177,
+      "eta_sq": 0.22329564944168326,
+      "eta_sq_null_mean": 0.0015375042704328223,
+      "eta_sq_null_p95": 0.004655343965587548,
+      "eta_sq_lat_band_control": 0.23333963515738057,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.1348611649145045e-06,
+          "log_sd": 0.396057655507711
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.4629423361391746e-06,
+          "log_sd": 1.084489301622777
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.5051106296676966e-07,
+          "log_sd": 1.2805683022843293
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 33,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3914651156180193,
+      "eta_sq": 0.21440337519293973,
+      "eta_sq_null_mean": 0.0015381049287840167,
+      "eta_sq_null_p95": 0.004425907566598674,
+      "eta_sq_lat_band_control": 0.22507583755951907,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.4299242756926793e-06,
+          "log_sd": 0.37919027427698204
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.5199820105960978e-06,
+          "log_sd": 1.141292749065405
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.6099095256108844e-07,
+          "log_sd": 1.3329092857909868
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 34,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3662967264858221,
+      "eta_sq": 0.20918374536670237,
+      "eta_sq_null_mean": 0.0014746842833085214,
+      "eta_sq_null_p95": 0.004313793512378211,
+      "eta_sq_lat_band_control": 0.2198375418787423,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2272087657495517e-06,
+          "log_sd": 0.40088530592261795
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.397953089505792e-06,
+          "log_sd": 1.1128260502220764
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4173418461745628e-07,
+          "log_sd": 1.3227469203841096
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 35,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2903661956318606,
+      "eta_sq": 0.2186627636251139,
+      "eta_sq_null_mean": 0.0016484519909620765,
+      "eta_sq_null_p95": 0.0045483000487423165,
+      "eta_sq_lat_band_control": 0.2265313699442773,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2526050464953044e-06,
+          "log_sd": 0.3434383934626269
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2001210669123514e-06,
+          "log_sd": 0.9742528715692131
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4353415541697513e-07,
+          "log_sd": 1.2979201158147498
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 36,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.327083531504511,
+      "eta_sq": 0.23243946266385385,
+      "eta_sq_null_mean": 0.0015505876639305956,
+      "eta_sq_null_p95": 0.004210132760383528,
+      "eta_sq_lat_band_control": 0.23861421459841417,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.4814478080294479e-06,
+          "log_sd": 0.4800849193329165
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.4080772163837356e-06,
+          "log_sd": 0.9793636451363802
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4657796996509528e-07,
+          "log_sd": 1.3322834341716672
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 37,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3178898210171752,
+      "eta_sq": 0.1745313715348316,
+      "eta_sq_null_mean": 0.0014302988866925737,
+      "eta_sq_null_p95": 0.0042769201570640085,
+      "eta_sq_lat_band_control": 0.18081581065124147,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.3447711274831916e-06,
+          "log_sd": 0.3882607581876712
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.0300468021457636e-06,
+          "log_sd": 1.0828163141436082
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3134052136127246e-07,
+          "log_sd": 1.3151105449363087
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 38,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.307365350901912,
+      "eta_sq": 0.20549851801181662,
+      "eta_sq_null_mean": 0.0015690574325575996,
+      "eta_sq_null_p95": 0.004398650610875893,
+      "eta_sq_lat_band_control": 0.21389998885239783,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.213229884649187e-06,
+          "log_sd": 0.47273600236653324
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2867153272696567e-06,
+          "log_sd": 1.0312777488297507
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3770026089925164e-07,
+          "log_sd": 1.2974120738328714
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 39,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3366132509148434,
+      "eta_sq": 0.26967395932832666,
+      "eta_sq_null_mean": 0.0015778672248581763,
+      "eta_sq_null_p95": 0.005112411705568169,
+      "eta_sq_lat_band_control": 0.27835360636504797,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.1752330560543141e-06,
+          "log_sd": 0.5592215677131154
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.5823098918424207e-06,
+          "log_sd": 0.9914271803914588
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3474268180853703e-07,
+          "log_sd": 1.2860594368229057
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 4,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2627413420951394,
+      "eta_sq": 0.19794440349203948,
+      "eta_sq_null_mean": 0.0013612372934853503,
+      "eta_sq_null_p95": 0.003710528771730844,
+      "eta_sq_lat_band_control": 0.203714965794724,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2249004986215958e-06,
+          "log_sd": 0.3934825389957551
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2064682225587408e-06,
+          "log_sd": 0.9848065124875296
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.498612008008235e-07,
+          "log_sd": 1.2721343568799082
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 40,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.23170619895405,
+      "eta_sq": 0.30339041022102303,
+      "eta_sq_null_mean": 0.0016449777059977246,
+      "eta_sq_null_p95": 0.005230833204417083,
+      "eta_sq_lat_band_control": 0.3017956116672728,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 9.275067774128735e-07,
+          "log_sd": 0.521989482463283
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 9.913873519903546e-07,
+          "log_sd": 0.8075047898560922
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.5076962870396923e-07,
+          "log_sd": 1.2179116801235486
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 41,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2418081335705575,
+      "eta_sq": 0.27634216635648007,
+      "eta_sq_null_mean": 0.0015578408214379888,
+      "eta_sq_null_p95": 0.004512975933023629,
+      "eta_sq_lat_band_control": 0.2868143517387779,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2348319535580924e-06,
+          "log_sd": 0.6722069751596896
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3405966143945561e-06,
+          "log_sd": 0.9838468496194364
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.3897668478316895e-07,
+          "log_sd": 1.1327021837965658
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 42,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3765004679050663,
+      "eta_sq": 0.09993030318469154,
+      "eta_sq_null_mean": 0.0015770047998416665,
+      "eta_sq_null_p95": 0.004448685209840728,
+      "eta_sq_lat_band_control": 0.10635030944636502,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.1032773294591214e-06,
+          "log_sd": 0.49906797602348585
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.1547017434141762e-06,
+          "log_sd": 1.348847678931304
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4913675216934517e-07,
+          "log_sd": 1.2770883247855134
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 43,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3080129856906273,
+      "eta_sq": 0.20788978853017015,
+      "eta_sq_null_mean": 0.0015397931970977468,
+      "eta_sq_null_p95": 0.0044773122775564325,
+      "eta_sq_lat_band_control": 0.21216167308287937,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.4918322293969507e-06,
+          "log_sd": 0.5110679575509733
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2023284160470223e-06,
+          "log_sd": 0.9565118837924377
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.5176956279843971e-07,
+          "log_sd": 1.3510912815997764
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 44,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2197061291899847,
+      "eta_sq": 0.23224827579821408,
+      "eta_sq_null_mean": 0.0014932312226501267,
+      "eta_sq_null_p95": 0.004982311851375468,
+      "eta_sq_lat_band_control": 0.23539977966618383,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.0691634474088642e-06,
+          "log_sd": 0.4279101128479119
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.101245275077389e-06,
+          "log_sd": 0.9526044290158034
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.323161651360822e-07,
+          "log_sd": 1.1844726067705693
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 45,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2835514589091856,
+      "eta_sq": 0.22661701944811172,
+      "eta_sq_null_mean": 0.0016293216523984744,
+      "eta_sq_null_p95": 0.0046356494036591785,
+      "eta_sq_lat_band_control": 0.23488651171630848,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2886732145871648e-06,
+          "log_sd": 0.45048720734222
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3297377304079328e-06,
+          "log_sd": 0.9598365678474393
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.525733332752032e-07,
+          "log_sd": 1.286915386412418
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 46,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3706381779580201,
+      "eta_sq": 0.17336852246210754,
+      "eta_sq_null_mean": 0.0015231499183477745,
+      "eta_sq_null_p95": 0.004663726353627547,
+      "eta_sq_lat_band_control": 0.18192956367408147,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.3646405769411072e-06,
+          "log_sd": 0.425878056596795
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3445734405418832e-06,
+          "log_sd": 1.1889724195286575
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.390110887341224e-07,
+          "log_sd": 1.3150295227364819
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 47,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3351356568512984,
+      "eta_sq": 0.22618279700833505,
+      "eta_sq_null_mean": 0.0016120434005871282,
+      "eta_sq_null_p95": 0.004531978249604946,
+      "eta_sq_lat_band_control": 0.23464893310437926,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2993291808242562e-06,
+          "log_sd": 0.37556033903380864
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3815744623567897e-06,
+          "log_sd": 1.0336076085091699
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4293109522500083e-07,
+          "log_sd": 1.31294907106758
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 48,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2205740453116123,
+      "eta_sq": 0.2993990207448056,
+      "eta_sq_null_mean": 0.0013809119862506916,
+      "eta_sq_null_p95": 0.00402202767460846,
+      "eta_sq_lat_band_control": 0.30371919565787625,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 9.420794802401286e-07,
+          "log_sd": 0.4177650288511464
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.2372925084098586e-06,
+          "log_sd": 0.8730107408291028
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.5410637906307067e-07,
+          "log_sd": 1.1614799139829795
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 49,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3259097900682648,
+      "eta_sq": 0.21027964510646172,
+      "eta_sq_null_mean": 0.001467281086356819,
+      "eta_sq_null_p95": 0.004086604679475637,
+      "eta_sq_lat_band_control": 0.218031974678526,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.434547164860035e-06,
+          "log_sd": 0.320104297599046
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.338129732967357e-06,
+          "log_sd": 1.0443281883904478
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4945598882060602e-07,
+          "log_sd": 1.3117256246746323
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 5,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.2725663103926539,
+      "eta_sq": 0.2548965554327584,
+      "eta_sq_null_mean": 0.0014696831204159514,
+      "eta_sq_null_p95": 0.004328358467645674,
+      "eta_sq_lat_band_control": 0.26033231647815674,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.1660448385818697e-06,
+          "log_sd": 0.38186017270190514
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3662190153773195e-06,
+          "log_sd": 0.9494998114431941
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.58682331990969e-07,
+          "log_sd": 1.2411313360482201
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 6,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3160694621541216,
+      "eta_sq": 0.237852808657014,
+      "eta_sq_null_mean": 0.0016242572706676628,
+      "eta_sq_null_p95": 0.004791272783819645,
+      "eta_sq_lat_band_control": 0.24460727898549803,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2916400967971226e-06,
+          "log_sd": 0.319900502554797
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.3211047828906436e-06,
+          "log_sd": 0.9687076628209261
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4989023771148347e-07,
+          "log_sd": 1.3169887830562719
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 7,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3115766164887244,
+      "eta_sq": 0.23791968986328849,
+      "eta_sq_null_mean": 0.0015182014468055898,
+      "eta_sq_null_p95": 0.004057282372207938,
+      "eta_sq_lat_band_control": 0.24530479602983224,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.3778337210330576e-06,
+          "log_sd": 0.42155187039172304
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.472501348905345e-06,
+          "log_sd": 0.9810799203717482
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.5337454746656108e-07,
+          "log_sd": 1.300038146029944
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 8,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3778083401412873,
+      "eta_sq": 0.1847138891708828,
+      "eta_sq_null_mean": 0.0015964393590439934,
+      "eta_sq_null_p95": 0.004786960832626037,
+      "eta_sq_lat_band_control": 0.19387856420728758,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.2357699459172967e-06,
+          "log_sd": 0.4300210175564885
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.4017438072649206e-06,
+          "log_sd": 1.1609963939263805
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.4351789432171514e-07,
+          "log_sd": 1.335787424935998
+        }
+      }
+    },
+    {
+      "aoi": "southernoceanpac",
+      "seed": 9,
+      "param": "scav_rat",
+      "n_cells": 1296,
+      "log_sd_total": 1.3546994157638188,
+      "eta_sq": 0.18945814838754177,
+      "eta_sq_null_mean": 0.0014767595253941395,
+      "eta_sq_null_p95": 0.004521904631448171,
+      "eta_sq_lat_band_control": 0.19702498471416366,
+      "p_permutation": 0.0033222591362126247,
+      "by_province": {
+        "<none>": {
+          "n_cells": 16,
+          "median": 1.348957905221204e-06,
+          "log_sd": 0.4494490441688856
+        },
+        "ANTA": {
+          "n_cells": 640,
+          "median": 1.272754141979171e-06,
+          "log_sd": 1.1028706929915926
+        },
+        "SANT": {
+          "n_cells": 640,
+          "median": 1.283335216740914e-07,
+          "log_sd": 1.3392304285014984
+        }
+      }
+    }
+  ]
+}
