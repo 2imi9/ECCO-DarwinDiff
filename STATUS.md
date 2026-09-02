@@ -13,11 +13,18 @@ A snapshot of the **current best**, not a timeline. Per-config detail lives in t
 > limit, not a method limit**. **Paper #2** (Track 2) is complete as a 3-closure
 > **identifiability-limits map**: real observations can't sharply constrain the closures, and the
 > binding constraint is the **observing system, not the method**. Next for both = a domain-expert
-> (Jon) read. **The recoverability gap has two components** (updated 2026-07-24): a large, *closeable
-> optimization* component and a residual *information* component. At 4000 epochs — compute, no new data —
-> `scav_rat` rises **25→41/50 arithmetic-collapse** (North Atlantic 20→40; run `ep4k_n50`, verified but predating the collapse keys, so arithmetic-only and unauditable), leaving the equatorial
-> Pacific (**6/50**, the most degenerate basin) as the information-limited residual. So the box is **not**
-> tuning-exhausted, and epochs was the night's largest single gain. The **emulator** and the **B200** stay
+> (Jon) read. **The recoverability gap was read as two components** (2026-07-24): a large, *closeable
+> optimization* component and a residual *information* component, because at 4000 epochs — compute, no new data —
+> `scav_rat` rose **25→41/50 arithmetic-collapse** (North Atlantic 20→40; run `ep4k_n50`, verified but predating the collapse keys, so arithmetic-only and unauditable), leaving the equatorial
+> Pacific (**6/50**, the most degenerate basin) as the information-limited residual.
+> **Corrected 2026-08-04 — that reading is retired.** A width × epochs 2×2 run as one job (258713, n=100 per
+> cell) grades the epoch lever under all three collapses: it buys a *pooler-dependent* North Atlantic gain and
+> pays a *pooler-invariant* Southern Ocean accuracy loss of **1.4–1.75×** (P = 1.6e-09 geometric; 2.7–5.1× with
+> width added) — in the one basin where `scav_rat` is established. So "closeable optimisation component" is
+> **not established**, the flagship stays at width 16 / 2000 epochs, and whether the box is tuning-exhausted is
+> open, not settled either way ([finding](docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md)). The eqpac "information limit" is contested too: the 2026-07-28
+> residual-angle analysis reads that wall as forward-model misspecification, and under the time-mean loss eqpac
+> becomes the basin that identifies `scav_rat` (job 288619), so the basin-level mechanism is open. The **emulator** and the **B200** stay
 > parked on Jon's direction and new observations, not on a compute wall (see [Cluster path](#cluster-path)).
 
 ## What this is
@@ -81,7 +88,10 @@ prototype-level and **unconfirmed** (constant-IC/forcing approximation; needs a 
 > So the count measures the bounds, not the observations. This is now enforced in code
 > (`tests/test_param_registry_wiring.py`, `KNOWN_PRIOR_CONTAMINATED`).
 > **`diatomgraz` is not refuted** — the `geo1+MLD` **10/10** result is P = 0.021 against the same
-> baseline and remains the headline verdict. Only the 35/50 count is retired.
+> baseline. Only the 35/50 count is retired here; **the 2026-08-03 correction under the accuracy matrix
+> narrows this further**: the 10/10 is graded at the 0.40 aggregate band the prior already passes and the
+> MLD arm has not cleared an uncontaminated band, so the surviving `diatomgraz` evidence is the per-leg
+> equatorial-Pacific 40/100 at ≤10 % against an untrained 0/50.
 > Detail: `docs/findings/2026-07-28_session_evidence_log.md` §G1/§G4.
 
 ## Track 2 — forward emulator: current state (2026-07-19)
@@ -309,7 +319,8 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   real ~0.05 — *consistent with* Carroll within the wide Cal band, **not** a validation of 0.0425
   (Carroll's value is itself under-constrained; see below).
 - **Best operating point `geo1`** (`GEOTRACES_W=1` + real Daniels anchor) **holds {`alpfe`, `scav_rat`,
-  `R_PICPOC`} jointly in 7/10 seeds** at n=10 — a **3-of-4-observable frontier**, statistically tied with
+  `R_PICPOC`} jointly in 7/10 seeds** at n=10 — three of the four observables held jointly (the "3-of-4
+  frontier" label was retired on 2026-08-03, see the correction under the accuracy matrix), statistically tied with
   `base`/`dan2`. (A fresh identical-config re-run confirms 7/10; the original hold-together
   sweep reported 8/10 — they differ by one band-edge seed.)
 - **n=50 ensemble (the manuscript flagship, `n50e2k_percell_trio`, 2000 epochs; `verify_run` exit 0):**
@@ -329,8 +340,8 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   `alpfe` (49/50) and `R_PICPOC` (50/50) are **exactly invariant**. The 4000-epoch `41/50` predates
   the collapse instrumentation and is **arithmetic-only and unauditable**. See
   [docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md).
-- **`diatomgraz` — recovers 10/10 once MLD is a DINN input channel (2026-07-22); input-limited, not
-  structural.** With the DINN on SST only it is not recovered (best 4/10 = chance) — but adding **MLD** as a
+- **`diatomgraz` — scores 10/10 once MLD is a DINN input channel (2026-07-22), at the 0.40 aggregate band
+  the prior already passes (see the 2026-08-03 correction below); input-limited, not structural.** With the DINN on SST only it is not recovered (best 4/10 = chance) — but adding **MLD** as a
   per-cell DINN input channel recovers it **10/10** (median 0.70), by fixing the Southern Ocean AOI where
   SST-only leaves it at ~0.18, against the real POSi (biogenic-silica) target. This reframes the miss as
   **practical / input-limited, not structural** (a profile-likelihood *with* the MLD channel is the pending
@@ -350,8 +361,9 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   result below), and no route uses **independent real data**. In principle it is an **iron-pair
   tradeoff** recoverable via the dense Darwin POSi (`TRAC16`) target, which is **not staged**; that
   is a future data-staging option, not a Track-1 blocker.
-  **NON-CIRCULAR handle found (job 190529, VERIFIED, 2026-07-23):** with the biogenic-silica diagnostic OFF
-  (`POSI_W=0`), diatomgraz still recovers **35/50 per-AOI** (median 0.788 vs Carroll 0.83, within 5%) through
+  **NON-CIRCULAR handle (job 190529, VERIFIED, 2026-07-23) — the count is RETIRED as of 2026-07-29; see the
+  correction in the `diatomgraz` box above (architecture-matched untrained control 34/50, P = 0.447):** with
+  the biogenic-silica diagnostic OFF (`POSI_W=0`), diatomgraz scored **35/50 per-AOI** (median 0.788 vs Carroll 0.83, within 5%) through
   the **chlorophyll pattern + MLD** (diatoms are a Chl-bearing PFT) — so it does NOT require the M11-circular
   bSi biomass tautology. Caveat: the Chl target is Darwin's own Chl1-5 (model-internal consistency, not
   independent real data), so "recoverable from a non-bSi observable," not "recovered from independent data."
@@ -363,8 +375,10 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   R_PICPOC on a clean ladder (DAN=1→5/10, DAN=3→9/10, DAN=8→10/10) with no over-constraint tax (median 0.051,
   alpfe median 0.99 — note that is within 1% of `alpfe`'s upper bound 1.0, i.e. railed against the bound rather than centred on Carroll 0.92831). Separately, **wind / SSS / pCO₂ / CO₂-flux carry a GENUINE calcite confound** — no
   anchor weight rescues R_PICPOC under them (0/10, median pinned ~0.21 at DAN=8), so MLD is *mechanistically*
-  the unique safe covariate (mixing signal, not carbonate). This is the robust **3-of-4-observable** config;
-  `scav_rat` is the sole holdout. See [R_PICPOC-protection result](docs/findings/2026-07-23_rpicpoc_protection_result.md).
+  the unique safe covariate (mixing signal, not carbonate). This was reported as the robust "3-of-4-observable"
+  config with `scav_rat` the sole holdout — **retired as a second operating point on 2026-08-03** (see the
+  correction under the accuracy matrix: its distinguishing `diatomgraz` leg is graded in a band the prior already
+  sits inside). See [R_PICPOC-protection result](docs/findings/2026-07-23_rpicpoc_protection_result.md).
 
 ### Accuracy & quality matrix (per parameter — current best)
 
@@ -442,8 +456,10 @@ always-recovering SO. See `docs/findings/2026-07-23_overnight_geometry_and_seaso
 **scav_rat looked OPTIMIZATION-limited (job 190529, VERIFIED, 2026-07-23) — but the evidence is arithmetic-only and unauditable:** at **4000 epochs**
 (vs the standard 2000) scav_rat per-AOI rises **25/50 → 41/50, arithmetic collapse** (natl 20→40/50; eqpac stays hard at 6/50), so
 the trio {alpfe, scav_rat, R_PICPOC} rises **25/50 → ~41/50 arithmetic, with 2× compute and no new data** — a count that cannot be pooler-audited. The
-recoverability gap is thus a large *closeable optimization* component (natl) plus a residual *information*
-component (eqpac, the most degenerate basin) — the sharpest statement of identifiability ≠ recoverability.
+reading that followed — a large *closeable optimization* component (natl) plus a residual *information*
+component (eqpac) — **was retired on 2026-08-04**: graded under all three collapses in one job (258713, n=100 per
+cell), the epoch lever buys a pooler-dependent natl gain and costs a pooler-invariant 1.4–1.75× Southern Ocean
+accuracy loss, so it is a bad trade, not a closeable gap ([finding](docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md)).
 See `docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md`.
 **FeMIP framing** — external-validated (Tagliabue Table 2, above). Seed-tightness for the iron trio is the
 `geo1` n=50 ensemble (`alpfe` 49/50 and `R_PICPOC` 50/50, both exactly collapse-invariant; `scav_rat` 25/50 and trio 25/50 per-AOI **arithmetic — 13/50 and 12/50 geometric**); the n=10
@@ -619,7 +635,7 @@ differentiable", "learned real biology", or "env-gated calcification proven".
 ## Cross-references
 
 - [Config / Results Matrix](docs/results_matrix.md) — the single source of truth for per-config results
-- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations across 10 lever axes (the earlier "box-tuning exhausted" verdict was called superseded on scav_rat 25→41/50 at 4000ep, job 190529 — an arithmetic-only count from a run with no collapse keys, so unauditable)
+- [Ablation Ledger](docs/archive/ablation_ledger.md) — all 168 ablations across 10 lever axes (the earlier "box-tuning exhausted" verdict was called superseded on scav_rat 25→41/50 at 4000ep, job 190529 — an arithmetic-only count from a run with no collapse keys, so unauditable; the 2026-08-04 2×2, job 258713, then showed the epoch lever costs Southern Ocean accuracy under every collapse, so the question is open, not settled either way)
 - [Emulator coupling plan](docs/emulator_coupling_plan.md) — the Track-2 off-box build plan (physical-backbone survey — Samudra 2 as leading backbone, SamudrACE's named biogeochemistry hole as the carbon-BGC-UDE slot — plus the gated Phase 1→3 plan)
 - [CHANGELOG.md](CHANGELOG.md) — chronological record (version-by-version)
 - [README](README.md) — project overview · [docs/dinn_design.md](docs/dinn_design.md) — architecture

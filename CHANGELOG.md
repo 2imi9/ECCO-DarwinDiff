@@ -33,7 +33,7 @@ Replaces Green's-functions calibration with gradient descent through a different
   real anchor is what drives it (anchor-off control, 1500 epochs `n50_anchor_off` → **4/50**; the epoch-matched 2000-epoch control `n50e2k_anchor_off` → **6/50**). The same config holds
   **{`alpfe`, `scav_rat`, `R_PICPOC`} jointly in 25/50 seeds** under the honest per-AOI ≥2-of-3 metric with the **arithmetic** collapse (**12/50** under the geometric collapse; only the North Atlantic leg moves, 19 → 5)
   (33/50 cell-weighted — that metric straddles and must not be quoted as recovery), versus **0/50** for the
-  global-scalar control — a 3-of-4-observable frontier whose binding leg is `scav_rat` (26/50 arithmetic / 13/50 geometric at 2000 epochs,
+  global-scalar control — three of the four observables held jointly; the binding leg is `scav_rat` (26/50 arithmetic / 13/50 geometric at 2000 epochs,
   41/50 at 4000, arithmetic-only and un-auditable). The earlier n=10 sweep (7/10; 8/10 in the original run) is the precursor, not the headline.
   Recovery lands at real ~0.05, consistent with Carroll within the wide Cal band; the load-bearing finding is
   that Carroll's *global* `R_PICPOC` is itself under-constrained and mis-specified vs a regionally-variable rain ratio.
@@ -42,15 +42,25 @@ Replaces Green's-functions calibration with gradient descent through a different
 
 ### Scope / honest limits
 - Honest target = **4 observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth
-  pair {`Smallgrow`, `Biggrow`} is **unobservable by construction** (no real growth-rate data).
-- `diatomgraz` is **input-limited, not data-blocked**: SST-only DINN sits at chance (~4/10), but adding an
-  MLD input channel takes it to 10/10, and with the biogenic-silica diagnostic off (`POSI_W=0`) it still
-  reaches **35/50 per-AOI** through chlorophyll + MLD — so it is not a bSi tautology. The Chl target is
-  Darwin's own output, so the honest claim is "recoverable from a non-circular model-internal observable",
-  not "recovered from independent real data". Whether the 3-of-4 frontier is **structural or merely practical is still open** (`ded77`): `geo1` holds
-  {`alpfe`, `scav_rat`, `R_PICPOC`} and the MLD-channel + heavy-Daniels config holds
-  {`alpfe`, `diatomgraz`, `R_PICPOC`}; `scav_rat` needs the Darwin-pattern term, `diatomgraz` needs MLD,
-  and they conflict even at 4000 epochs.
+  pair {`Smallgrow`, `Biggrow`} is **excluded, not failed**: `Biggrow` is unobservable by construction (never
+  recovers, seasonal included); `Smallgrow` is non-identifiable from *time-mean* observables only (a seasonal
+  prototype recovers it 9/10 in the North Atlantic, unconfirmed).
+- `diatomgraz` is **regionally identifiable, and input-limited elsewhere**: graded per-leg at ≤10 %, its
+  equatorial-Pacific leg is **40/100 against an untrained 0/50** (P = 5.5e-09) while training pushes the other
+  two legs *below* their own nulls; the 0.40 aggregate band is blind to both because the prior midpoint
+  (rel 0.367) already sits inside it. SST-only DINN sits at chance (~4/10); adding an MLD input channel scores
+  10/10 at n=10 (P = 0.021 against the matched untrained null), but that count is graded at the 0.40
+  aggregate band, which the prior already passes, and the MLD arm has not cleared an uncontaminated band
+  (2026-08-03), so it is contaminated-band evidence, not recovery. The earlier "35/50 per-AOI through
+  chlorophyll + MLD with the bSi diagnostic off" count is **retired** — its architecture-matched untrained
+  control scores 34/50 (P = 0.447). The Chl target is Darwin's own output, so the honest claim is
+  "recoverable from a non-circular model-internal observable", not "recovered from independent real data".
+  Whether `scav_rat`'s ceiling is **structural or merely practical is still open** (`ded77`). The two configs —
+  `geo1` holding {`alpfe`, `scav_rat`, `R_PICPOC`} and the MLD-channel + heavy-Daniels config holding
+  {`alpfe`, `diatomgraz`, `R_PICPOC`} — are **not two established operating points** (2026-08-03): the second's
+  distinguishing leg is the contaminated-band `diatomgraz` count. The loss-landscape conflict survives as a
+  statement about the landscape: `scav_rat` needs the Darwin-pattern term, `diatomgraz` needs MLD, and they
+  conflict even at 4000 epochs.
 - 1° box-model proxy; 23-year climatology, not time-resolved; single-method (no forward-Darwin held-out
   validation yet); single-GPU prototype.
 

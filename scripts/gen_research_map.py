@@ -28,7 +28,8 @@ LOCAL_ONLY_NAMES = {p.rsplit("/", 1)[1] for p in LOCAL_ONLY_DOCS}
 #: fails `check` on any cell carrying it, so the exact text is load-bearing.
 UNRESOLVED = "UNRESOLVED source, not tracked and not a declared local-only note:"
 OUT = REPO / "docs" / "research_map.md"
-M = json.loads((REPO / "docs" / "findings" / "research_map_corpus.json").read_text(encoding="utf-8"))
+CORPUS = REPO / "docs" / "findings" / "research_map_corpus.json"
+M = json.loads(CORPUS.read_text(encoding="utf-8"))
 
 # The doc index is built from what is TRACKED, not from what is on this disk. Seven
 # docs/research_notes files are gitignored by name as deliberately local-only working notes;
@@ -84,7 +85,9 @@ def docref(d):
     if not d:
         return ""
     names = re.findall(r"[A-Za-z0-9_.\-]+\.md", str(d))
-    keep = list(dict.fromkeys(n for n in names if n in DOCS))[:3]
+    # Up to four: a corrected answer cites the retiring finding, the original document and the
+    # sources of any qualification it carries. Three dropped a load-bearing source (Codex, #248).
+    keep = list(dict.fromkeys(n for n in names if n in DOCS))[:4]
     # Untracked AND not a declared local-only note: a typo or a renamed file. Until
     # 2026-09-02 this fell through to the LOCAL-ONLY label, so a settled row citing
     # `2026-08-13_the_southern_ocean_rpicpoc_leg_...md` (the file is dated 08-12) rendered
@@ -138,7 +141,8 @@ for r in M["claims"]:
         "doc": docref(r.get("doc")),
     })
 
-order = {"live": 0, "pending": 1, "unverified": 2, "superseded": 3, "superseded-in-part": 3, "retracted": 4}
+order = {"live": 0, "pending": 1, "unverified": 2, "superseded": 3, "superseded-in-part": 3,
+         "retracted": 4}
 for m in by_mode:
     by_mode[m].sort(key=lambda c: (order.get(c["status"], 5), c["s"].lower()))
 
@@ -192,10 +196,12 @@ w("open hypotheses.")
 w("")
 w("**Why it exists.** On 2026-07-30 one session re-derived work the repo already contained **four")
 w("separate times** (the GHG Center assessment twice, the rain-ratio precedence, the 1-D column")
-w("study), one at a cost of 1.52M tokens. Nothing indexed *questions already answered*. §1 is the fix.")
+w("study), one at a cost of 1.52M tokens. Nothing indexed *questions already answered*. "
+  "§1 is the fix.")
 w("")
 w("**How it was built.** 25 agents over all 169 documents in `docs/findings` and")
-w("`docs/research_notes`: 12 extracted structured rows, 12 adversarially re-read the cited documents")
+w("`docs/research_notes`: 12 extracted structured rows, 12 adversarially re-read the cited "
+  "documents")
 w("to refute bad ones, and the result was merged and deduplicated. **Chunk 5's verifier died on a")
 w("connection error**, so rows sourced only from")
 w("`2026-07-10_iron_partitioning_breaks_the_wall`, `2026-07-19_v05_chlorophyll_vs_modis`,")
@@ -223,9 +229,12 @@ w("```")
 w("")
 w("| mode | answers | strong when | fails when |")
 w("|---|---|---|---|")
-w("| **deductive** | what *must* follow from structure | the derivation is checkable by inspection | a premise is wrong |")
-w("| **inductive** | what *does* happen, repeatedly | it has n **and** a matched untrained null | no null, small n, or selection over configs |")
-w("| **abductive** | what best *explains* a surprise | it predicts something it was not built to explain | it explains only what prompted it |")
+w("| **deductive** | what *must* follow from structure | the derivation is checkable by "
+  "inspection | a premise is wrong |")
+w("| **inductive** | what *does* happen, repeatedly | it has n **and** a matched untrained null "
+  "| no null, small n, or selection over configs |")
+w("| **abductive** | what best *explains* a surprise | it predicts something it was not built "
+  "to explain | it explains only what prompted it |")
 w("")
 w("The working loop is **abduction → deduction → pre-registration → induction**. §8 is a worked")
 w("example that completed on 2026-07-31.")
@@ -247,18 +256,21 @@ w("")
 
 TITLES = {
     "deductive": ("2. CLAIM — deductive",
-                  "Follows from structure. Checkable without new data. **These are the strongest things "
-                  "the project has** and should carry the manuscript's load-bearing arguments.",
+                  "Follows from structure. Checkable without new data. **These are the strongest "
+                  "things the project has** and should carry the manuscript's load-bearing "
+                  "arguments.",
                   "| cl_id | statement | derivation | status | doc | evidence |"),
     "inductive": ("3. CLAIM — inductive",
-                  "Measured. **Every row needs its untrained baseline quoted with it.** Standing weakness "
-                  "for the whole section: there is still **no config-selection null**, so each row measures "
-                  "chance for a *fixed* pipeline while the flagship was chosen from a sweep.",
+                  "Measured. **Every row needs its untrained baseline quoted with it.** Standing "
+                  "weakness for the whole section: there is still **no config-selection null**, so "
+                  "each row measures chance for a *fixed* pipeline while the flagship was chosen "
+                  "from a sweep.",
                   "| cl_id | statement | n / null | status | doc | evidence |"),
     "abductive": ("4. CLAIM — abductive",
-                  "Inference to the best explanation. **Not a result until it predicts something it was not "
-                  "built to explain and that prediction is tested.** Displaced and weakened rows are kept "
-                  "visible on purpose: they are the record of how the project reasons.",
+                  "Inference to the best explanation. **Not a result until it predicts something "
+                  "it was not built to explain and that prediction is tested.** Displaced and "
+                  "weakened rows are kept visible on purpose: they are the record of how the "
+                  "project reasons.",
                   "| cl_id | statement | tested / prompted by | status | doc | evidence |"),
 }
 for mode in ("deductive", "inductive", "abductive"):
@@ -317,7 +329,8 @@ w("   *Best explanation:* the vertical profile carries it, `alpfe` sets the prof
 w("   and `scav_rat` sets its **shape**. Recorded on **synthetic** self-twin data.")
 w("2. **Deduction.** If that holds then surface-only iron must fail for `scav_rat` and succeed for")
 w("   `alpfe`, and subsurface-only must do the reverse. Forced, not guessed.")
-w("3. **Pre-registration** (2026-07-30). Decision rule and falsifier fixed with zero JSONs on disk.")
+w("3. **Pre-registration** (2026-07-30). Decision rule and falsifier fixed with zero JSONs "
+  "on disk.")
 w("4. **Induction** (2026-07-31). `so_surf` 14/50 against `so_sub` 33/50, Fisher exact")
 w("   P = 2.68e-4, `verify_run` exit 0, and the falsifier cleared (`alpfe` 49/50 in `so_surf`).")
 w("")

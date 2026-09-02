@@ -228,7 +228,6 @@ def verify_seed(path: Path) -> dict:
     """Recompute one seed's verdict from raw values; flag any stored/recomputed gap."""
     d = json.loads(path.read_text(encoding="utf-8"))
     discrepancies: list[str] = []
-    rpicpoc_n_aois = 0
     params = d.get("params")
     if not isinstance(params, dict):
         return {"file": path.name, "status": "MALFORMED",
@@ -282,8 +281,6 @@ def verify_seed(path: Path) -> dict:
         per_aoi_calplus[p] = sum(
             1 for v in aoi_map.values() if band_of(_rel(v, CARROLL[p])) in CAL_PLUS
         )
-        if p == "R_PICPOC":
-            rpicpoc_n_aois = len(aoi_map)
 
     discrepancies.extend(inert_terms(d))
 
@@ -308,7 +305,7 @@ def verify_seed(path: Path) -> dict:
     per_aoi_n: dict[str, int] = {}
     straddles: list[str] = []
     for p in PARAMS:
-        n_aois = len((params[p].get("per_aoi_recovered", {}) or {}))
+        n_aois = len(params[p].get("per_aoi_recovered", {}) or {})
         per_aoi_n[p] = n_aois
         # Threshold comes from darwindiff.grading, the single definition. Zero AOIs is
         # never recovered; required_legs() is total but cannot be met against no legs.
@@ -542,7 +539,8 @@ def main() -> int:
         return worst
 
     for r in results:
-        print(f"\n[{r['status']}] {r['config']}  ({r.get('n', 0)}/{r.get('expected_seeds', '?')} seeds)")
+        print(f"\n[{r['status']}] {r['config']}  "
+              f"({r.get('n', 0)}/{r.get('expected_seeds', '?')} seeds)")
         if r["status"] in ("NO_DATA", "CRASHED_NO_JSON"):
             print(f"   {r.get('note', '')}")
             continue

@@ -50,7 +50,7 @@ Six. Source values verified directly in the Carroll 2020 build, with paper Table
 
 | # | Source variable | File:line | Optimized value | Paper Table 1 name |
 |---|---|---|---|---|
-| 1 | `alpfe` | `init_fixed.F:83` | 0.92831 | Iron dust solubility |
+| 1 | `alpfe` | `init_fixed.F:83` | 0.92831 | Scalar on the already-soluble Fe deposition flux (Darwin's legacy label "iron dust solubility"; **not** a solubility) |
 | 2 | `scav_rat` | `init_fixed.F:101` | 10.41124 × 0.005 / 86400 | Iron scavenging rate |
 | 3 | `Smallgrow` | `init_fixed.F:161` | 0.66098 | Small phytoplankton growth rate |
 | 4 | `Biggrow` | `init_fixed.F:162` | 0.43148 | Large phytoplankton growth rate |

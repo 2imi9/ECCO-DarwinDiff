@@ -39,7 +39,8 @@ Use **non-squash merges** (`gh pr merge --merge`). Per-commit history is preserv
 Three gates, all cheap, each exercised by CI (`.github/workflows/tests.yml`):
 
 ```bash
-uv run ruff check src tests mkdocs_hooks.py   # lint gate; scripts/ is out of scope (see the workflow)
+uv run ruff check src tests mkdocs_hooks.py \
+    scripts/research_map_db.py scripts/gen_research_map.py scripts/verify_run.py scripts/check_map_mirror_current.py   # lint gate; the rest of scripts/ is out of scope (see the workflow)
 uv run pytest tests/ -q                        # the suite; data-dependent tests self-skip
 python scripts/research_map_db.py check        # research-map integrity, exit 1 on violation
 ```

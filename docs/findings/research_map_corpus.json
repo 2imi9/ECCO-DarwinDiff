@@ -867,8 +867,8 @@
     },
     {
       "question": "Is 'the box is tuning-exhausted — a positive result needs new observations, not more GPU' still the standing verdict?",
-      "answer": "No, retired, and the retirement is APPLIED (STATUS.md:593 records the earlier box-tuning-exhausted verdict as superseded). Two components: a large CLOSEABLE OPTIMIZATION component (scav_rat 25 -> 41/50 at 4000 epochs, natl 20 -> 40, no new data, job 190529) plus a residual INFORMATION component (eqpac 6/50). Compute is no longer a no-op.",
-      "doc": "docs/research_notes/2026-07-24_next_session_prompts.md"
+      "answer": "No, retired, and the retirement is APPLIED (STATUS.md:593 records the earlier box-tuning-exhausted verdict as superseded). Two components: a large CLOSEABLE OPTIMIZATION component (scav_rat 25 -> 41/50 at 4000 epochs, natl 20 -> 40, no new data, job 190529) plus a residual INFORMATION component (eqpac 6/50). Compute is no longer a no-op. CORRECTED 2026-08-04: the closeable-optimisation component is not established - the epoch lever costs Southern Ocean accuracy under every collapse (job 258713, n=100 per cell) - so the tuning-exhausted question is open, not settled either way.",
+      "doc": "docs/research_notes/2026-07-24_next_session_prompts.md + docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md"
     },
     {
       "question": "Does a derivative-free estimator reproduce the backprop recovery verdict?",
@@ -1707,8 +1707,8 @@
     },
     {
       "question": "Is scav_rat's poor recovery an information wall or an optimization limit?",
-      "answer": "Substantially optimization-limited, with a residual information component. At 4000 epochs (vs 2000) scav_rat per-AOI rises 25/50 -> 41/50 at n=50 (natl 20/50 -> 40/50 [doc says 19; re-graded canonical leg is 20], sopac 48/50), with alpfe 49/50 and R_PICPOC 50/50 unchanged; the trio rises with it. eqpac stays at 6/50 even at 4000 epochs and is the residual information limit. Median scav_rat 4.30e-7 vs Carroll 6.03e-7; the gain is variance-tightening.",
-      "doc": "docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md"
+      "answer": "Not established either way. The earlier answer (substantially optimization-limited: scav_rat per-AOI 25/50 -> 41/50 at 4000 epochs, job 190529, with eqpac stuck at 6/50) rested on an arithmetic-only, un-auditable count. NOT ESTABLISHED (corrected 2026-08-04). The 41/50 is arithmetic-only and un-auditable (ep4k_n50 carries no collapse keys), and a width x epochs 2x2 run as one job (258713, n=100 per cell, graded under all three collapses) shows the epoch lever buys a pooler-dependent North Atlantic gain (w16: 48 -> 85/100 arithmetic, 19 -> 28 geometric, 39 -> 33 median) and pays a pooler-invariant Southern Ocean accuracy loss of 1.4-1.75x (P = 1.6e-09 geometric), rising to 2.7-5.1x with width added. The Southern Ocean is the one basin where scav_rat is established, so the lever is a bad trade, not a closeable gap; the flagship stays at width 16 / 2000 epochs and the structural-vs-practical question (ded77) is open. eqpac stays at 6/50 at both epoch budgets under the endpoint loss, but whether that is an information limit is itself contested: the 2026-07-28 residual-angle analysis reads the eqpac wall as forward-model misspecification rather than missing information, and under the time-mean loss eqpac becomes the basin that DOES identify scav_rat (50/50, job 288619) while the Southern Ocean drops to 0/50, so the basin-level mechanism is open.",
+      "doc": "docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md + docs/findings/2026-07-28_eqpac_observation_design.md + docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md + docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md"
     },
     {
       "question": "Can more optimization (4000 epochs) bridge scav_rat and diatomgraz into a robust 4-of-4?",
@@ -1997,8 +1997,8 @@
     },
     {
       "question": "What are the per-parameter recovery counts and identifiability classes as of the 2026-07-23 sweep?",
-      "answer": "alpfe 49/50 per-AOI (point-identified, method-independent via DINN-free + Nelder-Mead) - DONE. R_PICPOC 50/50 with the real Daniels anchor, anchor-off 6/50 epoch-matched (4/50 at 1500 ep) - DONE. scav_rat 41/50 at 4000 ep (25/50 at 2000 ep); basin-resolved SO 48/50, natl 40/50, eqpac 6/50 (cond 35, flattest profile) - largely OPTIMIZATION-limited. diatomgraz 35/50 with bSi off - but see the supersedes row, this is P=0.447 vs a matched untrained 34/50. Smallgrow real-unobservable under time-mean, seasonal prototype 9/10 natl. Biggrow 0/N everywhere - EXCLUDED. Trio 25/50 at 2000 ep rising to ~41/50 at 4000 ep, set by scav_rat's binding count; global-scalar control 0/50.",
-      "doc": "docs/findings/2026-07-23_parameter_completion_matrix.md"
+      "answer": "alpfe 49/50 per-AOI (point-identified, method-independent via DINN-free + Nelder-Mead) - DONE. R_PICPOC 50/50 with the real Daniels anchor, anchor-off 6/50 epoch-matched (4/50 at 1500 ep) - DONE. scav_rat 41/50 at 4000 ep (25/50 at 2000 ep); basin-resolved SO 48/50, natl 40/50, eqpac 6/50 (cond 35, flattest profile) - largely OPTIMIZATION-limited. diatomgraz 35/50 with bSi off - but see the supersedes row, this is P=0.447 vs a matched untrained 34/50. Smallgrow real-unobservable under time-mean, seasonal prototype 9/10 natl. Biggrow 0/N everywhere - EXCLUDED. Trio 25/50 at 2000 ep rising to ~41/50 at 4000 ep, set by scav_rat's binding count; global-scalar control 0/50. CORRECTED 2026-08-04: the 41/50 is arithmetic-only and un-auditable and the 'largely OPTIMIZATION-limited' class is retired (job 258713: the epoch lever costs Southern Ocean accuracy under every collapse); quote scav_rat 25/50 arithmetic / 13/50 geometric at 2000 epochs.",
+      "doc": "docs/findings/2026-07-23_parameter_completion_matrix.md + docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md"
     },
     {
       "question": "Is there a config that recovers all four observables (4-of-4)?",
@@ -2122,8 +2122,8 @@
     },
     {
       "question": "Is the recoverability gap an optimization problem or an information problem?",
-      "answer": "Both, and it decomposes: a largely closeable optimization component (scav_rat 25/50 -> 41/50 at 4000 epochs, natl 20 -> 40) plus a residual information component (eqpac 6/50, the sole basin more compute cannot fix).",
-      "doc": "docs/findings/2026-07-24_research_refinement.md"
+      "answer": "Not cleanly either. The 'largely closeable optimization component' reading (scav_rat 25/50 -> 41/50 at 4000 epochs, natl 20 -> 40) was retired on 2026-08-04: NOT ESTABLISHED (corrected 2026-08-04). The 41/50 is arithmetic-only and un-auditable (ep4k_n50 carries no collapse keys), and a width x epochs 2x2 run as one job (258713, n=100 per cell, graded under all three collapses) shows the epoch lever buys a pooler-dependent North Atlantic gain (w16: 48 -> 85/100 arithmetic, 19 -> 28 geometric, 39 -> 33 median) and pays a pooler-invariant Southern Ocean accuracy loss of 1.4-1.75x (P = 1.6e-09 geometric), rising to 2.7-5.1x with width added. The Southern Ocean is the one basin where scav_rat is established, so the lever is a bad trade, not a closeable gap; the flagship stays at width 16 / 2000 epochs and the structural-vs-practical question (ded77) is open. eqpac stays at 6/50 at both epoch budgets under the endpoint loss, but whether that is an information limit is itself contested: the 2026-07-28 residual-angle analysis reads the eqpac wall as forward-model misspecification rather than missing information, and under the time-mean loss eqpac becomes the basin that DOES identify scav_rat (50/50, job 288619) while the Southern Ocean drops to 0/50, so the basin-level mechanism is open.",
+      "doc": "docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md + docs/findings/2026-07-28_eqpac_observation_design.md + docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md + docs/findings/2026-07-24_research_refinement.md"
     },
     {
       "question": "Which specific datasets and observation operators would break each unrecovered parameter's degeneracy?",
@@ -3393,9 +3393,9 @@
     {
       "statement": "scav_rat is largely optimization-limited rather than information-limited, with only the equatorial Pacific genuinely information-limited.",
       "mode": "inductive",
-      "status": "live",
+      "status": "superseded",
       "doc": "docs/findings/2026-07-23_rpicpoc_protection_result.md",
-      "numbers": "Flagship geo1: 25/50 per-AOI at 2000 epochs, 41/50 at 4000. eqpac 6/50 at 4000 epochs is the residual, needing a real 234Th/210Po sink anchor (Phase 2).",
+      "numbers": "Flagship geo1: 25/50 per-AOI at 2000 epochs, 41/50 at 4000. eqpac 6/50 at 4000 epochs is the residual, needing a real 234Th/210Po sink anchor (Phase 2). SUPERSEDED 2026-08-04 (optimisation-limited reading retired, job 258713 2x2; see the supersedes row). The eqpac half is contested too: 2026-07-28 reads it as forward-model misspecification and the 2026-08-06 time-mean-loss result makes eqpac the identifying basin.",
       "why_this_mode": "An epoch-budget comparison across n=50 seeds; the optimization-vs-information attribution is read off the epoch response."
     },
     {
@@ -3930,8 +3930,8 @@
       "statement": "scav_rat's recoverability limit is largely an OPTIMIZATION limit, not a subsurface-data lever.",
       "mode": "inductive",
       "why_this_mode": "Established by an epoch-budget sweep (LEAD A of the group-A overnight sweep) rather than by any data-channel change.",
-      "numbers": "4000 epochs raises scav_rat to 41/50 from the 2000-epoch flagship 25/50.",
-      "status": "live",
+      "numbers": "4000 epochs raises scav_rat to 41/50 from the 2000-epoch flagship 25/50. SUPERSEDED 2026-08-04: NOT ESTABLISHED (corrected 2026-08-04). The 41/50 is arithmetic-only and un-auditable (ep4k_n50 carries no collapse keys), and a width x epochs 2x2 run as one job (258713, n=100 per cell, graded under all three collapses) shows the epoch lever buys a pooler-dependent North Atlantic gain (w16: 48 -> 85/100 arithmetic, 19 -> 28 geometric, 39 -> 33 median) and pays a pooler-invariant Southern Ocean accuracy loss of 1.4-1.75x (P = 1.6e-09 geometric), rising to 2.7-5.1x with width added. The Southern Ocean is the one basin where scav_rat is established, so the lever is a bad trade, not a closeable gap; the flagship stays at width 16 / 2000 epochs and the structural-vs-practical question (ded77) is open.",
+      "status": "superseded",
       "doc": "docs/findings/2026-07-23_subiron_scav_rat_result.md"
     },
     {
@@ -5576,9 +5576,9 @@
     {
       "statement": "scav_rat is largely OPTIMIZATION-limited, not information-limited, except in the equatorial Pacific.",
       "mode": "inductive",
-      "status": "live",
+      "status": "superseded",
       "doc": "docs/findings/2026-07-24_overnight_session_summary.md",
-      "numbers": "scav_rat per-AOI 26/50 at 2000 epochs -> 41/50 at 4000 epochs (job 190529) with NO new data; natl 20 -> 40, eqpac stays at 6. Trio 25/50 -> ~41/50. Global-scalar control 0/50. NOTE: the eqpac exception is later re-diagnosed as forward-model misspecification rather than an information limit (docs/findings/2026-07-28_residual_angle_measured.md, 2026-07-28_eqpac_observation_design.md)",
+      "numbers": "scav_rat per-AOI 26/50 at 2000 epochs -> 41/50 at 4000 epochs (job 190529) with NO new data; natl 20 -> 40, eqpac stays at 6. Trio 25/50 -> ~41/50. Global-scalar control 0/50. NOTE: the eqpac exception is later re-diagnosed as forward-model misspecification rather than an information limit (docs/findings/2026-07-28_residual_angle_measured.md, 2026-07-28_eqpac_observation_design.md) SUPERSEDED 2026-08-04: NOT ESTABLISHED (corrected 2026-08-04). The 41/50 is arithmetic-only and un-auditable (ep4k_n50 carries no collapse keys), and a width x epochs 2x2 run as one job (258713, n=100 per cell, graded under all three collapses) shows the epoch lever buys a pooler-dependent North Atlantic gain (w16: 48 -> 85/100 arithmetic, 19 -> 28 geometric, 39 -> 33 median) and pays a pooler-invariant Southern Ocean accuracy loss of 1.4-1.75x (P = 1.6e-09 geometric), rising to 2.7-5.1x with width added. The Southern Ocean is the one basin where scav_rat is established, so the lever is a bad trade, not a closeable gap; the flagship stays at width 16 / 2000 epochs and the structural-vs-practical question (ded77) is open.",
       "why_this_mode": "an epoch sweep measured at n=50 with a matched global-scalar control"
     },
     {
@@ -5936,9 +5936,9 @@
     {
       "statement": "scav_rat's weakness is substantially an under-optimization artifact rather than a pure information wall",
       "mode": "inductive",
-      "status": "live",
+      "status": "superseded",
       "doc": "docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md",
-      "numbers": "n=50, job 190529, verify_run exit 0: scav_rat per-AOI 25/50 -> 41/50 at 4000 epochs (natl 20/50 -> 40/50 [doc prints 19; canonical leg 20], sopac 48/50, eqpac 6/50); alpfe 49/50 and R_PICPOC 50/50 unchanged; median 4.30e-7 vs Carroll 6.03e-7. Re-graded on AICR 2026-07-28, gate exit 0, legs eqpac 6 / natl 40 / sopac 48, pinned by test_ep4k_is_the_optimisation_limited_arm (evidence matrix).",
+      "numbers": "n=50, job 190529, verify_run exit 0: scav_rat per-AOI 25/50 -> 41/50 at 4000 epochs (natl 20/50 -> 40/50 [doc prints 19; canonical leg 20], sopac 48/50, eqpac 6/50); alpfe 49/50 and R_PICPOC 50/50 unchanged; median 4.30e-7 vs Carroll 6.03e-7. Re-graded on AICR 2026-07-28, gate exit 0, legs eqpac 6 / natl 40 / sopac 48, pinned by test_ep4k_is_the_optimisation_limited_arm (evidence matrix). SUPERSEDED 2026-08-04: NOT ESTABLISHED (corrected 2026-08-04). The 41/50 is arithmetic-only and un-auditable (ep4k_n50 carries no collapse keys), and a width x epochs 2x2 run as one job (258713, n=100 per cell, graded under all three collapses) shows the epoch lever buys a pooler-dependent North Atlantic gain (w16: 48 -> 85/100 arithmetic, 19 -> 28 geometric, 39 -> 33 median) and pays a pooler-invariant Southern Ocean accuracy loss of 1.4-1.75x (P = 1.6e-09 geometric), rising to 2.7-5.1x with width added. The Southern Ocean is the one basin where scav_rat is established, so the lever is a bad trade, not a closeable gap; the flagship stays at width 16 / 2000 epochs and the structural-vs-practical question (ded77) is open.",
       "why_this_mode": "n=50 with a gate, confirming an n=10 lead that could have been seed luck."
     },
     {
@@ -6440,9 +6440,9 @@
     {
       "statement": "scav_rat is substantially optimization-limited, not information-limited, except in eqpac.",
       "mode": "inductive",
-      "status": "live",
+      "status": "superseded",
       "doc": "docs/findings/2026-07-23_parameter_completion_matrix.md",
-      "numbers": "25/50 at 2000 epochs -> 41/50 at 4000 epochs on identical data (job 190529, VERIFIED); natl 20/50 -> 40/50, SO 48-49/50, eqpac stays 6/50 (cond 35, flattest profile). The trio rises 25/50 -> ~41/50 with 2x compute and no new data. Profile-likelihoods CURVED in all 3 AOIs.",
+      "numbers": "25/50 at 2000 epochs -> 41/50 at 4000 epochs on identical data (job 190529, VERIFIED); natl 20/50 -> 40/50, SO 48-49/50, eqpac stays 6/50 (cond 35, flattest profile). The trio rises 25/50 -> ~41/50 with 2x compute and no new data. Profile-likelihoods CURVED in all 3 AOIs. SUPERSEDED 2026-08-04: NOT ESTABLISHED (corrected 2026-08-04). The 41/50 is arithmetic-only and un-auditable (ep4k_n50 carries no collapse keys), and a width x epochs 2x2 run as one job (258713, n=100 per cell, graded under all three collapses) shows the epoch lever buys a pooler-dependent North Atlantic gain (w16: 48 -> 85/100 arithmetic, 19 -> 28 geometric, 39 -> 33 median) and pays a pooler-invariant Southern Ocean accuracy loss of 1.4-1.75x (P = 1.6e-09 geometric), rising to 2.7-5.1x with width added. The Southern Ocean is the one basin where scav_rat is established, so the lever is a bad trade, not a closeable gap; the flagship stays at width 16 / 2000 epochs and the structural-vs-practical question (ded77) is open.",
       "why_this_mode": "Measured at n=50 across two epoch levels, corroborated by Fisher, profile likelihood and EKI."
     },
     {
@@ -6792,8 +6792,8 @@
     {
       "statement": "The recoverability gap decomposes into a closeable optimization component and a residual information component.",
       "mode": "inductive",
-      "status": "live",
-      "numbers": "scav_rat 25/50 -> 41/50 at 4000 epochs (natl 20 -> 40); eqpac stays 6/50 - the sole basin more compute cannot fix. Per-cell architecture holds the trio where a global-scalar control holds 0/50. R_PICPOC anchor-off 6/50 epoch-matched (4/50 in the 1500-epoch run).",
+      "status": "superseded",
+      "numbers": "scav_rat 25/50 -> 41/50 at 4000 epochs (natl 20 -> 40); eqpac stays 6/50 - the sole basin more compute cannot fix. Per-cell architecture holds the trio where a global-scalar control holds 0/50. R_PICPOC anchor-off 6/50 epoch-matched (4/50 in the 1500-epoch run). SUPERSEDED 2026-08-04 (optimisation-limited reading retired, job 258713 2x2; see the supersedes row).",
       "why_this_mode": "Repeated n=50 counts across epoch budgets and basins, generalised into a decomposition.",
       "doc": "docs/findings/2026-07-24_research_refinement.md"
     },
@@ -8364,7 +8364,7 @@
     },
     {
       "old": "The box is tuning-exhausted; a positive result needs new observations, not more GPU (STATUS.md 2026-07-10 banner, docs/results_matrix.md 2026-07-05 verdict).",
-      "new": "Two components: a large CLOSEABLE OPTIMIZATION component (scav_rat 25 -> 41/50 at 4000 epochs, natl 20 -> 40, no new data, job 190529) plus a residual INFORMATION component (eqpac 6/50). Compute is no longer a no-op.",
+      "new": "Two components: a large CLOSEABLE OPTIMIZATION component (scav_rat 25 -> 41/50 at 4000 epochs, natl 20 -> 40, no new data, job 190529) plus a residual INFORMATION component (eqpac 6/50). Compute is no longer a no-op. [This replacement is itself superseded 2026-08-04: the closeable-optimisation component is not established - see the row retiring the optimisation-limited reading.]",
       "reason": "The 4000-epoch run raised the binding leg without any new observation. Greenlit as H-batch reframe H1 and APPLIED — STATUS.md:593 now records the box-tuning-exhausted verdict as superseded.",
       "doc": "docs/research_notes/2026-07-24_next_session_prompts.md"
     },
@@ -9417,6 +9417,12 @@
       "new": "Under the source-floor-corrected explicit-grazer target's frozen acceptance logic, no single post-hoc simplification and no pair of waivers can make the artifact pass; only the scientifically forbidden triple waiver passes mechanically.",
       "reason": "The original lattice was bound to the superseded target hash. Recomputing all atomic predicates from the corrected verified target produces an exactly identical eight-node Boolean lattice and a new canonical hash chain.",
       "doc": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md"
+    },
+    {
+      "old": "scav_rat is substantially optimization-limited rather than information-limited: 25/50 -> 41/50 at 4000 epochs on identical data (job 190529), a large closeable optimization component plus a residual eqpac information component.",
+      "new": "NOT ESTABLISHED (corrected 2026-08-04). The 41/50 is arithmetic-only and un-auditable (ep4k_n50 carries no collapse keys), and a width x epochs 2x2 run as one job (258713, n=100 per cell, graded under all three collapses) shows the epoch lever buys a pooler-dependent North Atlantic gain (w16: 48 -> 85/100 arithmetic, 19 -> 28 geometric, 39 -> 33 median) and pays a pooler-invariant Southern Ocean accuracy loss of 1.4-1.75x (P = 1.6e-09 geometric), rising to 2.7-5.1x with width added. The Southern Ocean is the one basin where scav_rat is established, so the lever is a bad trade, not a closeable gap; the flagship stays at width 16 / 2000 epochs and the structural-vs-practical question (ded77) is open.",
+      "reason": "The optimisation-limited reading rested on a single arithmetic count from a run with no collapse keys. Graded under all three poolers in one matched job, the direction of the epoch effect disagrees between collapses (better arithmetic and geometric, worse median) while the accuracy loss in the one established basin is pooler-invariant. Retires every claim stating scav_rat is optimisation-limited, that the gap has a closeable optimisation component, or that natl's failure was an optimisation limit (six claims and one hypothesis, now superseded; claim ids are positional, #227, so none is cited here).",
+      "doc": "docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md"
     }
   ],
   "hypotheses": [
@@ -10152,8 +10158,8 @@
       "statement": "scav_rat's residual eqpac failure is an information limit that optimization cannot close, while natl's was an optimization limit",
       "predicts": "Doubling epochs lifts natl but leaves eqpac flat",
       "falsifier": "eqpac rising with epoch budget",
-      "status": "tested-confirmed",
-      "doc": "docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md"
+      "status": "tested-confirmed on the arithmetic count, then superseded: the natl 'optimization limit' rests on an un-auditable count and the epoch lever costs Southern Ocean accuracy (2026-08-04, job 258713); the eqpac 'information limit' reads as forward-model misspecification (2026-07-28) and flips under the time-mean loss (2026-08-06)",
+      "doc": "docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md + docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md"
     },
     {
       "statement": "The Southern Ocean's R_PICPOC recovery comes from the model-internal PIC/POC pattern block, since it has no Daniels calcite observations",
