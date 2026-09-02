@@ -22,7 +22,9 @@ A snapshot of the **current best**, not a timeline. Per-config detail lives in t
 > pays a *pooler-invariant* Southern Ocean accuracy loss of **1.4–1.75×** (P = 1.6e-09 geometric; 2.7–5.1× with
 > width added) — in the one basin where `scav_rat` is established. So "closeable optimisation component" is
 > **not established**, the flagship stays at width 16 / 2000 epochs, and whether the box is tuning-exhausted is
-> open, not settled either way ([finding](docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md)). The **emulator** and the **B200** stay
+> open, not settled either way ([finding](docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md)). The eqpac "information limit" is contested too: the 2026-07-28
+> residual-angle analysis reads that wall as forward-model misspecification, and under the time-mean loss eqpac
+> becomes the basin that identifies `scav_rat` (job 288619), so the basin-level mechanism is open. The **emulator** and the **B200** stay
 > parked on Jon's direction and new observations, not on a compute wall (see [Cluster path](#cluster-path)).
 
 ## What this is

@@ -222,7 +222,8 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   blind to it: a 5× accuracy loss shows as 9 seeds, because the SO sits far inside a 40% band —
   that "SO 49→48" is one seed hiding a 1.75× degradation. **Keep the flagship at width 16 /
   2000 epochs**; it is the best cell in the 2×2 for the SO under all three poolers. Affects
-  `ind342`, `ind345`, `ind353`, `ind354`. See
+  the claims that stated `scav_rat` is optimisation-limited (all superseded; claim ids are
+  positional, #227, so none is cited here). See
   [docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md](docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md).
 - **Match the control to the epoch budget.** There are two anchor-off runs and both are real:
   `n50e2k_anchor_off` (2000 ep, the epoch-matched control for the flagship) gives `R_PICPOC` **6/50**;

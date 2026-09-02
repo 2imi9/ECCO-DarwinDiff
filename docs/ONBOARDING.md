@@ -98,7 +98,7 @@ A parameter can carry Fisher information yet still not recover, because recovery
 optimization and coverage. `scav_rat` is the worked example: with subsurface GEOTRACES iron it is
 *well-conditioned* (the source/loss ratio degeneracy breaks ~1400×), yet whether its recovery is
 **optimization-limited is NOT established**: the 25→41/50 rise at 4000 epochs (`ep4k_n50`) is arithmetic-only and un-auditable (that run predates the 2026-07-29 collapse keys), and the 2026-08-04 width × epochs 2×2 (job 258713) found the epoch lever costs Southern Ocean accuracy under every collapse, leaving the
-equatorial Pacific (8/50 arithmetic, 8/50 geometric, 10/50 median on the 2000-epoch collapse-instrumented reproduction) the residual *information*-limited basin. When you read a recovery count, ask
+equatorial Pacific (8/50 arithmetic, 8/50 geometric, 10/50 median on the 2000-epoch collapse-instrumented reproduction) as the residual basin — whose wall reads as forward-model misspecification rather than an information limit (2026-07-28), and which becomes the *identifying* basin under the time-mean loss (2026-08-06). When you read a recovery count, ask
 which of four it is: information-limited, optimization-limited, a collapse artifact (arithmetic vs geometric vs median — for `scav_rat` that choice alone moves 26/50 to 13/50, all of it the North Atlantic leg, 19→5), or a metric straddle (per-AOI legs on
 opposite sides of Carroll — the cell-weighted count can lie).
 
