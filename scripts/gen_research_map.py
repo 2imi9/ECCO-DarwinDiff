@@ -85,7 +85,9 @@ def docref(d):
     if not d:
         return ""
     names = re.findall(r"[A-Za-z0-9_.\-]+\.md", str(d))
-    keep = list(dict.fromkeys(n for n in names if n in DOCS))[:3]
+    # Up to four: a corrected answer cites the retiring finding, the original document and the
+    # sources of any qualification it carries. Three dropped a load-bearing source (Codex, #248).
+    keep = list(dict.fromkeys(n for n in names if n in DOCS))[:4]
     # Untracked AND not a declared local-only note: a typo or a renamed file. Until
     # 2026-09-02 this fell through to the LOCAL-ONLY label, so a settled row citing
     # `2026-08-13_the_southern_ocean_rpicpoc_leg_...md` (the file is dated 08-12) rendered

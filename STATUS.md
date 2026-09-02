@@ -88,7 +88,10 @@ prototype-level and **unconfirmed** (constant-IC/forcing approximation; needs a 
 > So the count measures the bounds, not the observations. This is now enforced in code
 > (`tests/test_param_registry_wiring.py`, `KNOWN_PRIOR_CONTAMINATED`).
 > **`diatomgraz` is not refuted** — the `geo1+MLD` **10/10** result is P = 0.021 against the same
-> baseline and remains the headline verdict. Only the 35/50 count is retired.
+> baseline. Only the 35/50 count is retired here; **the 2026-08-03 correction under the accuracy matrix
+> narrows this further**: the 10/10 is graded at the 0.40 aggregate band the prior already passes and the
+> MLD arm has not cleared an uncontaminated band, so the surviving `diatomgraz` evidence is the per-leg
+> equatorial-Pacific 40/100 at ≤10 % against an untrained 0/50.
 > Detail: `docs/findings/2026-07-28_session_evidence_log.md` §G1/§G4.
 
 ## Track 2 — forward emulator: current state (2026-07-19)
@@ -337,8 +340,8 @@ on a single RTX 5090 32 GB, with the NU Explorer H200 cluster for sweeps. All nu
   `alpfe` (49/50) and `R_PICPOC` (50/50) are **exactly invariant**. The 4000-epoch `41/50` predates
   the collapse instrumentation and is **arithmetic-only and unauditable**. See
   [docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md).
-- **`diatomgraz` — recovers 10/10 once MLD is a DINN input channel (2026-07-22); input-limited, not
-  structural.** With the DINN on SST only it is not recovered (best 4/10 = chance) — but adding **MLD** as a
+- **`diatomgraz` — scores 10/10 once MLD is a DINN input channel (2026-07-22), at the 0.40 aggregate band
+  the prior already passes (see the 2026-08-03 correction below); input-limited, not structural.** With the DINN on SST only it is not recovered (best 4/10 = chance) — but adding **MLD** as a
   per-cell DINN input channel recovers it **10/10** (median 0.70), by fixing the Southern Ocean AOI where
   SST-only leaves it at ~0.18, against the real POSi (biogenic-silica) target. This reframes the miss as
   **practical / input-limited, not structural** (a profile-likelihood *with* the MLD channel is the pending

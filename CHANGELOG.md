@@ -48,8 +48,10 @@ Replaces Green's-functions calibration with gradient descent through a different
 - `diatomgraz` is **regionally identifiable, and input-limited elsewhere**: graded per-leg at ≤10 %, its
   equatorial-Pacific leg is **40/100 against an untrained 0/50** (P = 5.5e-09) while training pushes the other
   two legs *below* their own nulls; the 0.40 aggregate band is blind to both because the prior midpoint
-  (rel 0.367) already sits inside it. SST-only DINN sits at chance (~4/10); adding an MLD input channel takes
-  it to 10/10 at n=10 (P = 0.021 against the matched untrained null). The earlier "35/50 per-AOI through
+  (rel 0.367) already sits inside it. SST-only DINN sits at chance (~4/10); adding an MLD input channel scores
+  10/10 at n=10 (P = 0.021 against the matched untrained null), but that count is graded at the 0.40
+  aggregate band, which the prior already passes, and the MLD arm has not cleared an uncontaminated band
+  (2026-08-03), so it is contaminated-band evidence, not recovery. The earlier "35/50 per-AOI through
   chlorophyll + MLD with the bSi diagnostic off" count is **retired** — its architecture-matched untrained
   control scores 34/50 (P = 0.447). The Chl target is Darwin's own output, so the honest claim is
   "recoverable from a non-circular model-internal observable", not "recovered from independent real data".

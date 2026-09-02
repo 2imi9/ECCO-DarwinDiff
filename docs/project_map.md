@@ -103,8 +103,9 @@ z-scored Darwin pattern terms → backprop → DINN weights.
 - Growth pair {Smallgrow, Biggrow} is excluded by construction (`Biggrow` unobservable; `Smallgrow`
   non-identifiable from time-mean observables only); `diatomgraz` is **regionally identifiable** (equatorial
   Pacific 40/100 at ≤10 % vs untrained 0/50) and **input-limited elsewhere** — at chance from SST alone,
-  10/10 once MLD is a DINN input (n=10, P = 0.021). The 35/50 Chl+MLD count is retired (untrained control
-  34/50, P = 0.447). That is model-internal consistency, not independent real-data validation.
+  10/10 once MLD is a DINN input (n=10, P = 0.021) — a 0.40-aggregate-band count the prior already passes,
+  so contaminated-band evidence rather than recovery (2026-08-03). The 35/50 Chl+MLD count is retired
+  (untrained control 34/50, P = 0.447). That is model-internal consistency, not independent real-data validation.
 
 **Key code:** `scripts/run_v3.0_joint_multi_aoi.py` (driver), `src/darwindiff/carroll6_5pft_2layer.py`
 (box), `src/darwindiff/networks.py` (DINN, GlobalScalarNet), `scripts/verify_run.py` (trust gate),
