@@ -42,8 +42,8 @@ python scripts/research_map_db.py sql "SELECT ..."   # arbitrary read-only SQL
 
 It assembles from four sources so nothing is maintained twice: the map's tables, the Carroll-N
 registry in `src/darwindiff/carroll6.py`, `docs/findings/citation_audit.json`, and the presence and
-retraction banners of every file under `docs/findings`, `docs/research_notes` and `docs/adr`, plus
-the root-level pages such as `STATUS.md`.
+retraction banners of every file under `docs/findings`, `docs/research_notes` and `docs/adr`, the
+top-level `docs/*.md` pages, and the root-level pages such as `STATUS.md`.
 
 **ENFORCED** — `check` exits 1 on any of these:
 

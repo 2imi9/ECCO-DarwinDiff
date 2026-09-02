@@ -7234,7 +7234,7 @@
      "name": "AGENTS.md",
      "date": "",
      "retracted": 0,
-     "words": 2612,
+     "words": 2616,
      "local_only": 0
     },
     {
@@ -7250,7 +7250,7 @@
      "name": "CLAUDE.md",
      "date": "",
      "retracted": 0,
-     "words": 2614,
+     "words": 2618,
      "local_only": 0
     },
     {
@@ -7259,6 +7259,22 @@
      "date": "",
      "retracted": 0,
      "words": 1783,
+     "local_only": 0
+    },
+    {
+     "path": "docs/NEXT_SESSION.md",
+     "name": "NEXT_SESSION.md",
+     "date": "",
+     "retracted": 0,
+     "words": 875,
+     "local_only": 0
+    },
+    {
+     "path": "docs/ONBOARDING.md",
+     "name": "ONBOARDING.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1901,
      "local_only": 0
     },
     {
@@ -7278,11 +7294,235 @@
      "local_only": 0
     },
     {
+     "path": "docs/agu26_abstract_draft.md",
+     "name": "agu26_abstract_draft.md",
+     "date": "",
+     "retracted": 1,
+     "words": 1414,
+     "local_only": 0
+    },
+    {
+     "path": "docs/cluster_roadmap.md",
+     "name": "cluster_roadmap.md",
+     "date": "",
+     "retracted": 1,
+     "words": 4385,
+     "local_only": 0
+    },
+    {
+     "path": "docs/cluster_setup.md",
+     "name": "cluster_setup.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1893,
+     "local_only": 0
+    },
+    {
      "path": "docs/findings/compute_time_compiled_h200.md",
      "name": "compute_time_compiled_h200.md",
      "date": "",
      "retracted": 0,
      "words": 323,
+     "local_only": 0
+    },
+    {
+     "path": "docs/contributing.md",
+     "name": "contributing.md",
+     "date": "",
+     "retracted": 0,
+     "words": 22,
+     "local_only": 0
+    },
+    {
+     "path": "docs/data.md",
+     "name": "data.md",
+     "date": "",
+     "retracted": 0,
+     "words": 22,
+     "local_only": 0
+    },
+    {
+     "path": "docs/data_acquisition_roadmap.md",
+     "name": "data_acquisition_roadmap.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1109,
+     "local_only": 0
+    },
+    {
+     "path": "docs/dinn_design.md",
+     "name": "dinn_design.md",
+     "date": "",
+     "retracted": 0,
+     "words": 2157,
+     "local_only": 0
+    },
+    {
+     "path": "docs/ecco_darwin_parameter_inventory.md",
+     "name": "ecco_darwin_parameter_inventory.md",
+     "date": "",
+     "retracted": 0,
+     "words": 2661,
+     "local_only": 0
+    },
+    {
+     "path": "docs/ecco_darwin_relationship.md",
+     "name": "ecco_darwin_relationship.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1567,
+     "local_only": 0
+    },
+    {
+     "path": "docs/emulator_coupling_plan.md",
+     "name": "emulator_coupling_plan.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1827,
+     "local_only": 0
+    },
+    {
+     "path": "docs/emulator_guide.md",
+     "name": "emulator_guide.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1572,
+     "local_only": 0
+    },
+    {
+     "path": "docs/handoff_2026-07-25_session.md",
+     "name": "handoff_2026-07-25_session.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1051,
+     "local_only": 0
+    },
+    {
+     "path": "docs/handoff_2026-07-26_session.md",
+     "name": "handoff_2026-07-26_session.md",
+     "date": "",
+     "retracted": 0,
+     "words": 829,
+     "local_only": 0
+    },
+    {
+     "path": "docs/index.md",
+     "name": "index.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1495,
+     "local_only": 0
+    },
+    {
+     "path": "docs/issues.md",
+     "name": "issues.md",
+     "date": "",
+     "retracted": 1,
+     "words": 745,
+     "local_only": 0
+    },
+    {
+     "path": "docs/model_card_opt3d.md",
+     "name": "model_card_opt3d.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1572,
+     "local_only": 0
+    },
+    {
+     "path": "docs/pr_v2.2_5pft_box.md",
+     "name": "pr_v2.2_5pft_box.md",
+     "date": "",
+     "retracted": 1,
+     "words": 949,
+     "local_only": 0
+    },
+    {
+     "path": "docs/project_checkpoint_2026-07-25.md",
+     "name": "project_checkpoint_2026-07-25.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1608,
+     "local_only": 0
+    },
+    {
+     "path": "docs/project_coupling_and_workflow.md",
+     "name": "project_coupling_and_workflow.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1369,
+     "local_only": 0
+    },
+    {
+     "path": "docs/project_map.md",
+     "name": "project_map.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1231,
+     "local_only": 0
+    },
+    {
+     "path": "docs/references.md",
+     "name": "references.md",
+     "date": "",
+     "retracted": 0,
+     "words": 283,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_log.md",
+     "name": "research_log.md",
+     "date": "",
+     "retracted": 1,
+     "words": 4482,
+     "local_only": 0
+    },
+    {
+     "path": "docs/research_map.md",
+     "name": "research_map.md",
+     "date": "",
+     "retracted": 0,
+     "words": 100376,
+     "local_only": 0
+    },
+    {
+     "path": "docs/results_matrix.md",
+     "name": "results_matrix.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1876,
+     "local_only": 0
+    },
+    {
+     "path": "docs/status.md",
+     "name": "status.md",
+     "date": "",
+     "retracted": 0,
+     "words": 31,
+     "local_only": 0
+    },
+    {
+     "path": "docs/testing_strategy.md",
+     "name": "testing_strategy.md",
+     "date": "",
+     "retracted": 0,
+     "words": 899,
+     "local_only": 0
+    },
+    {
+     "path": "docs/track_gaps_and_coupling_verdict.md",
+     "name": "track_gaps_and_coupling_verdict.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1635,
+     "local_only": 0
+    },
+    {
+     "path": "docs/two_anchor_execution_plan.md",
+     "name": "two_anchor_execution_plan.md",
+     "date": "",
+     "retracted": 0,
+     "words": 744,
      "local_only": 0
     },
     {
@@ -16467,6 +16707,12 @@
      "doc": "STATUS.md, docs/findings/2026-07-28_session_evidence_log.md"
     },
     {
+     "old": "diatomgraz 35/50 from chlorophyll + MLD with bSi OFF is a non-circular observational handle and the direct answer to reviewer M11",
+     "new": "RETRACTED. An architecture-matched UNTRAINED control (MLD_CHANNEL=1, job 227876, verify_run exit 0) scores diatomgraz 34/50 with no training at all, so 35/50 beats untrained by one seed: P = 0.447 (0.500 paired). 'Do not reinstate 35/50 anywhere.' Any pinned-coordinate or prior-loaded architecture now requires three controls: architecture-matched untrained, pin-only with zero free parameters, and a prior sweep.",
+     "reason": "The n=50 count measured the parameter's bounds, not the observations. Evidence in docs/agu26_abstract_draft.md and docs/findings/2026-07-28_session_evidence_log.md §G4, re-tested paired in docs/findings/2026-07-29_math_audit_index.md §7; the three-control generalization is named in the gauge-symmetry doc.",
+     "doc": "docs/agu26_abstract_draft.md, docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md"
+    },
+    {
      "old": "'Dense-silica targets' (implying a silicate nutrient constraint)",
      "new": "'Dense biogenic-silica (POSi/bSi) diagnostic targets for diatomgraz' - a diatom OUTPUT diagnostic, not a nutrient",
      "reason": "The box has no dissolved-silicate tracer and no Si-limitation on growth; conflating the two misstates what the target constrains.",
@@ -17568,12 +17814,6 @@
      "old": "corr(level, readout bias) = 1.000000 is a FAIL against the pre-registered 0.95 aliasing gate",
      "new": "An artifact of our own zero-init readout. Gauge-fixing the same closure on the same data gives 0.3078, and corr(level, p) goes 0.9652 -> 0.0048; both clear the gate.",
      "reason": "With a zero-init readout, dS/db = eps * dS/dlog_r0 exactly, on any dataset. A number that flips FAIL to PASS under a pure reparameterization cannot carry a veto - it is an instruction to gauge-fix by construction.",
-     "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md"
-    },
-    {
-     "old": "diatomgraz 35/50 from chlorophyll + MLD with bSi OFF is a non-circular observational handle and the direct answer to reviewer M11",
-     "new": "RETRACTED. An architecture-matched UNTRAINED control (MLD_CHANNEL=1, job 227876, verify_run exit 0) scores diatomgraz 34/50 with no training at all, so 35/50 beats untrained by one seed: P = 0.447 (0.500 paired). 'Do not reinstate 35/50 anywhere.' Any pinned-coordinate or prior-loaded architecture now requires three controls: architecture-matched untrained, pin-only with zero free parameters, and a prior sweep.",
-     "reason": "The n=50 count measured the parameter's bounds, not the observations. Evidence in docs/agu26_abstract_draft.md and docs/findings/2026-07-28_session_evidence_log.md §G4, re-tested paired in docs/findings/2026-07-29_math_audit_index.md §7; the three-control generalization is named in the gauge-symmetry doc.",
      "doc": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md"
     },
     {
@@ -34144,7 +34384,7 @@
    ]
   },
   "v_orphan_doc": {
-   "ddl": "CREATE VIEW v_orphan_doc AS          -- a claim citing a file that is not in the repo\n    -- A claim cell may name SEVERAL documents (\"a.md, b.md\"), so an equality test on the whole\n    -- cell reports a false orphan. Match if ANY known document name appears inside the cell.\n    SELECT c.cl_id, c.doc FROM claim c\n    WHERE trim(coalesce(c.doc,'')) <> ''\n      AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0)",
+   "ddl": "CREATE VIEW v_orphan_doc AS          -- a claim citing a file that is not in the repo\n    -- A claim cell may name SEVERAL documents (\"a.md, b.md\"), so an equality test on the whole\n    -- cell reports a false orphan. Match if ANY known document name appears inside the cell --\n    -- and ALSO fail on the renderer's UNRESOLVED marker, which gen_research_map.docref() leaves\n    -- next to a valid citation when the same cell names a file that resolves to nothing\n    -- (otherwise a typo beside a good cite would satisfy the any-match and pass).\n    SELECT c.cl_id, c.doc FROM claim c\n    WHERE trim(coalesce(c.doc,'')) <> ''\n      AND (instr(c.doc, 'UNRESOLVED source') > 0\n           OR NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0))",
    "columns": [
     "cl_id",
     "doc"
@@ -37688,7 +37928,7 @@
    "violations": []
   },
   "no settled, supersedes or trap row cites a markdown document that is neither in the repo nor a declared local-only note": {
-   "sql": "SELECT 'settled' AS tbl, substr(question,1,60) AS row_, doc FROM settled\n        WHERE instr(coalesce(doc,''), '.md') > 0\n          AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(settled.doc, d.name) > 0)\n        UNION ALL\n        SELECT 'supersedes', substr(old,1,60), doc FROM supersedes\n        WHERE instr(coalesce(doc,''), '.md') > 0\n          AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(supersedes.doc, d.name) > 0)\n        UNION ALL\n        SELECT 'trap', substr(trap,1,60), doc FROM trap\n        WHERE instr(coalesce(doc,''), '.md') > 0\n          AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(trap.doc, d.name) > 0)",
+   "sql": "SELECT 'settled' AS tbl, substr(question,1,60) AS row_, doc FROM settled\n        WHERE instr(coalesce(doc,''), 'UNRESOLVED source') > 0\n           OR (instr(coalesce(doc,''), '.md') > 0\n               AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(settled.doc, d.name) > 0))\n        UNION ALL\n        SELECT 'supersedes', substr(old,1,60), doc FROM supersedes\n        WHERE instr(coalesce(doc,''), 'UNRESOLVED source') > 0\n           OR (instr(coalesce(doc,''), '.md') > 0\n               AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(supersedes.doc, d.name) > 0))\n        UNION ALL\n        SELECT 'trap', substr(trap,1,60), doc FROM trap\n        WHERE instr(coalesce(doc,''), 'UNRESOLVED source') > 0\n           OR (instr(coalesce(doc,''), '.md') > 0\n               AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(trap.doc, d.name) > 0))",
    "holds": true,
    "violations": []
   },
@@ -39257,7 +39497,7 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 275,
+  "document": 305,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,
