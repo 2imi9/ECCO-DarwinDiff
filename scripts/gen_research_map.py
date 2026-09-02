@@ -14,9 +14,16 @@ import json
 import pathlib
 import re
 import subprocess
+import sys
 from collections import defaultdict
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from research_map_db import LOCAL_ONLY_DOCS  # the declared gitignored notes
+
 REPO = pathlib.Path(__file__).resolve().parents[1]
+#: Basenames of the seven notes that are gitignored ON PURPOSE. Only these may render as
+#: "LOCAL-ONLY"; any other untracked name is a typo or a rename and must say so.
+LOCAL_ONLY_NAMES = {p.rsplit("/", 1)[1] for p in LOCAL_ONLY_DOCS}
 OUT = REPO / "docs" / "research_map.md"
 M = json.loads((REPO / "docs" / "findings" / "research_map_corpus.json").read_text(encoding="utf-8"))
 
@@ -27,7 +34,7 @@ M = json.loads((REPO / "docs" / "findings" / "research_map_corpus.json").read_te
 # `git ls-files` makes the renderer see the repository the way a reader sees it.
 def _tracked_docs() -> set:
     try:
-        out = subprocess.run(["git", "ls-files", "docs"], cwd=REPO,
+        out = subprocess.run(["git", "ls-files", "docs", ":(glob)*.md"], cwd=REPO,
                              capture_output=True, text=True, check=True)
     except (OSError, subprocess.CalledProcessError):
         return set()          # not a git checkout: fall back to the filesystem below
@@ -36,9 +43,15 @@ def _tracked_docs() -> set:
 
 _TRACKED = _tracked_docs()
 DOCS = {}
-for _sub in ("findings", "research_notes"):
-    for _p in (REPO / "docs" / _sub).glob("*.md"):
-        _rel = f"docs/{_sub}/{_p.name}"
+# The two findings folders, the ADRs, and the root-level pages (STATUS.md, README.md ...).
+# Until 2026-09-02 only the first two were indexed, so the corpus's citations of ADR-0003 and
+# STATUS.md rendered as "LOCAL-ONLY source, not in the repo" -- the same label as a typo.
+for _dir, _prefix in ((REPO / "docs" / "findings", "docs/findings/"),
+                      (REPO / "docs" / "research_notes", "docs/research_notes/"),
+                      (REPO / "docs" / "adr", "docs/adr/"),
+                      (REPO, "")):
+    for _p in _dir.glob("*.md"):
+        _rel = _prefix + _p.name
         if _TRACKED and _rel not in _TRACKED:
             continue          # local-only note: real on this disk, invisible to every reader
         DOCS[_p.name] = _rel
@@ -68,7 +81,15 @@ def docref(d):
     if keep:
         return ", ".join(f"`{DOCS[n]}`" for n in keep)
     if names:
-        return f"LOCAL-ONLY source, not in the repo: {names[0]}"
+        declared = [n for n in names if n in LOCAL_ONLY_NAMES]
+        if declared:
+            return f"LOCAL-ONLY source, not in the repo: {declared[0]}"
+        # Untracked AND not a declared local-only note: a typo or a renamed file. Until
+        # 2026-09-02 this fell through to the LOCAL-ONLY label, so a settled row citing
+        # `2026-08-13_the_southern_ocean_rpicpoc_leg_...md` (the file is dated 08-12) rendered
+        # as a deliberately withheld note and passed every gate for three weeks. Name the
+        # defect instead; `research_map_db.py check` fails on this label.
+        return f"UNRESOLVED source, not tracked and not a declared local-only note: {names[0]}"
     return ""
 
 

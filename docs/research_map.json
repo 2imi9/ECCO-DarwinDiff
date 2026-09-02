@@ -36,6 +36,7 @@
   "pi_cl(sigma_{live}(CLAIM)) INTERSECT pi_old(SUPERSEDES)   = {}   on normalised PROSE, not ids",
   "sigma_{mode=inductive AND numbers IS NULL}(CLAIM)         = {}   presence only, see caveat",
   "sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}   DOCUMENT is the REPO, not disk",
+  "sigma_{doc NOT IN DOCUMENT}(SETTLED u SUPERSEDES u TRAP)  = {}   same gate, the other cited tables",
   "sigma_{verdict=RESOLVES_MISMATCH}(CITATION)               = {}",
   "sigma_{verdict IN (DEAD, FABRICATED)}(CITATION)           = {}",
   "sigma_{doc IS NULL}(SETTLED)                              = {}",
@@ -6930,7 +6931,7 @@
      "detail": "a measured count, retired by a later measured null of the same architecture",
      "n": "",
      "null_baseline": "untrained control at NB23_LR=0, NB23_N_EPOCHS=1, MLD_CHANNEL=1, n=50, verify_run exit 0, job 227876: diatomgraz 34/50 UNTRAINED. 35/50 beats its null by one seed, P = 0.447. Cause: bounds (0.05, 1.0) against Carroll 0.83003 put the Cal band at [0.498, 1.0] = 52.8% of the range with the midpoint inside it at rel 0.367. Enforced in tests/test_param_registry_wiring.py (KNOWN_PRIOR_CONTAMINATED)",
-     "doc": "docs/research_notes/2026-07-24_next_session_prompts.md",
+     "doc": "docs/research_notes/2026-07-24_next_session_prompts.md, STATUS.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -7196,6 +7197,86 @@
     "local_only"
    ],
    "rows": [
+    {
+     "path": "docs/adr/0001-differentiable-darwin-calcite-port.md",
+     "name": "0001-differentiable-darwin-calcite-port.md",
+     "date": "",
+     "retracted": 1,
+     "words": 3632,
+     "local_only": 0
+    },
+    {
+     "path": "docs/adr/0002-track2-emulator-scope.md",
+     "name": "0002-track2-emulator-scope.md",
+     "date": "",
+     "retracted": 0,
+     "words": 2239,
+     "local_only": 0
+    },
+    {
+     "path": "docs/adr/0003-parameter-learner-architecture.md",
+     "name": "0003-parameter-learner-architecture.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1493,
+     "local_only": 0
+    },
+    {
+     "path": "docs/adr/0004-version-control-and-pull-requests.md",
+     "name": "0004-version-control-and-pull-requests.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1642,
+     "local_only": 0
+    },
+    {
+     "path": "AGENTS.md",
+     "name": "AGENTS.md",
+     "date": "",
+     "retracted": 0,
+     "words": 2612,
+     "local_only": 0
+    },
+    {
+     "path": "CHANGELOG.md",
+     "name": "CHANGELOG.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1194,
+     "local_only": 0
+    },
+    {
+     "path": "CLAUDE.md",
+     "name": "CLAUDE.md",
+     "date": "",
+     "retracted": 0,
+     "words": 2614,
+     "local_only": 0
+    },
+    {
+     "path": "CONTRIBUTING.md",
+     "name": "CONTRIBUTING.md",
+     "date": "",
+     "retracted": 0,
+     "words": 1783,
+     "local_only": 0
+    },
+    {
+     "path": "README.md",
+     "name": "README.md",
+     "date": "",
+     "retracted": 0,
+     "words": 956,
+     "local_only": 0
+    },
+    {
+     "path": "STATUS.md",
+     "name": "STATUS.md",
+     "date": "",
+     "retracted": 0,
+     "words": 7691,
+     "local_only": 0
+    },
     {
      "path": "docs/findings/compute_time_compiled_h200.md",
      "name": "compute_time_compiled_h200.md",
@@ -13083,7 +13164,7 @@
     {
      "question": "Is R_PICPOC's Southern Ocean leg inherited through the shared DINN, or merely unmeasured?",
      "answer": "AMBIGUOUS by the pre-registered rule, and pooler-dependent, which the prereg named in advance as itself a finding. Job 354596, single-AOI so inheritance is impossible by construction, verify_run exit 0 on both trained arms. R_PICPOC anchored vs unanchored: arithmetic 0/50 vs 0/50; geometric 6/50 vs 0/50 (P=0.0267); median 43/50 vs 0/50 (P=5.2e-21). Only the median clears the pre-registered 15/50 threshold. R_PICPOC also LOSES its pooler invariance for the first time (per-cell log_sd 0.105 to 0.459) because a 12-of-1296-cell anchor makes the recovered field heterogeneous. COST, pre-registered and fired: scav_rat degrades significantly under arithmetic, 30/50 to 16/50 (P=0.0088), in the one basin where it is established; diatomgraz drops 50 to 41 geometric (P=0.0026).",
-     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-13_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md",
+     "doc": "docs/findings/2026-08-12_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md",
      "dont": ""
     },
     {
@@ -16245,7 +16326,7 @@
     {
      "question": "What n is required for an architectural claim about the parameter learner?",
      "answer": "n=100 with its own architecture-matched null, per ADR-0003: 'every future architectural claim needs n=100 and its own null - n=50 has now produced one effect (P = 0.0128) that evaporated on replication, so it is not a defensible sample size for this metric.' The existing width work was run at n=100 for exactly this reason. A design proposing n=50 for an architecture or capacity question is a regression and should be rejected at screening. For scale: at n=50 vs n=50 the minimum detectable difference around the measured geometric base rate is roughly 24 percentage points at alpha=0.05 and 30 points at alpha=0.01, while the largest geometric width effect ever measured across the whole 8->80 range is 18 points.",
-     "doc": "LOCAL-ONLY source, not in the repo: 0003-parameter-learner-architecture.md",
+     "doc": "docs/adr/0003-parameter-learner-architecture.md",
      "dont": ""
     },
     {
@@ -16378,6 +16459,12 @@
      "new": "Incoherent with the codebase and abandoned. v3.1 already uses carroll6_5pft_2layer_step (since v2.7); PFT mapping is hard-coded (Smallgrow -> ProHL only, Biggrow -> lge only, carroll6_5pft_2layer.py:241-246); the single-layer integrator is 10-tracer vs v3.1's 15-tracer and cannot be a drop-in. The real mechanism is MULTI-AOI DEPENDENCE, not PFT lumping.",
      "reason": "The plan's premise did not survive contact with the code; the experiment was autonomously reframed as an AOI ablation.",
      "doc": "LOCAL-ONLY source, not in the repo: 2026-05-23_overnight_executed.md"
+    },
+    {
+     "old": "diatomgraz reaches 35/50 per-AOI non-circularly via the Chl + MLD channel (POSI_W=0).",
+     "new": "The 35/50 count is RETIRED. The architecture-matched untrained control scores 34/50, so 35/50 beats its own null by one seed at P = 0.447 — the count measures the parameter bounds, not the observations. diatomgraz is not refuted: geo1+MLD 10/10 (P = 0.021) remains the headline verdict.",
+     "reason": "Empirical chance baseline run through the real pipeline at NB23_LR=0 / NB23_N_EPOCHS=1 with MLD_CHANNEL=1, n=50, verify_run exit 0, job 227876. Bounds (0.05, 1.0) against Carroll 0.83003 put the Cal band at [0.498, 1.0] = 52.8% of the range with the midpoint inside it. Now enforced in code via KNOWN_PRIOR_CONTAMINATED.",
+     "doc": "STATUS.md, docs/findings/2026-07-28_session_evidence_log.md"
     },
     {
      "old": "'Dense-silica targets' (implying a silicate nutrient constraint)",
@@ -17139,12 +17226,6 @@
      "old": "Biggrow 6/50 is 'decisive, P = 1.6e-17'.",
      "new": "Biggrow 6/50 is P = 0.078, not above chance.",
      "reason": "The grader used a literal p = 0.000 for the measured 0/50 baseline, against which any nonzero count is infinitely significant. Fixed with the rule of three: zero-count baselines now floor at 3/50 = 0.06 and the applied floor is printed in the header. Counts that were genuinely large are unaffected.",
-     "doc": "docs/findings/2026-07-28_session_evidence_log.md"
-    },
-    {
-     "old": "diatomgraz reaches 35/50 per-AOI non-circularly via the Chl + MLD channel (POSI_W=0).",
-     "new": "The 35/50 count is RETIRED. The architecture-matched untrained control scores 34/50, so 35/50 beats its own null by one seed at P = 0.447 — the count measures the parameter bounds, not the observations. diatomgraz is not refuted: geo1+MLD 10/10 (P = 0.021) remains the headline verdict.",
-     "reason": "Empirical chance baseline run through the real pipeline at NB23_LR=0 / NB23_N_EPOCHS=1 with MLD_CHANNEL=1, n=50, verify_run exit 0, job 227876. Bounds (0.05, 1.0) against Carroll 0.83003 put the Cal band at [0.498, 1.0] = 52.8% of the range with the midpoint inside it. Now enforced in code via KNOWN_PRIOR_CONTAMINATED.",
      "doc": "docs/findings/2026-07-28_session_evidence_log.md"
     },
     {
@@ -19687,7 +19768,7 @@
     },
     {
      "trap": "The same failure recurred and was caught: diatomgraz 35/50 was reported and propagated into an AGU abstract rewrite before its architecture-matched untrained control was run. The control scored 34/50. When a parameter's Cal band covers 52.8% of its bounds with the midpoint inside it, the count measures the bounds. Run the untrained arm FIRST for any parameter whose band is a large fraction of its range.",
-     "doc": "LOCAL-ONLY source, not in the repo: STATUS.md",
+     "doc": "STATUS.md",
      "category": ""
     },
     {
@@ -37537,7 +37618,7 @@
      "detail": "a measured count, retired by a later measured null of the same architecture",
      "n": "",
      "null_baseline": "untrained control at NB23_LR=0, NB23_N_EPOCHS=1, MLD_CHANNEL=1, n=50, verify_run exit 0, job 227876: diatomgraz 34/50 UNTRAINED. 35/50 beats its null by one seed, P = 0.447. Cause: bounds (0.05, 1.0) against Carroll 0.83003 put the Cal band at [0.498, 1.0] = 52.8% of the range with the midpoint inside it at rel 0.367. Enforced in tests/test_param_registry_wiring.py (KNOWN_PRIOR_CONTAMINATED)",
-     "doc": "docs/research_notes/2026-07-24_next_session_prompts.md",
+     "doc": "docs/research_notes/2026-07-24_next_session_prompts.md, STATUS.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -37603,6 +37684,11 @@
   },
   "no claim cites a document that is neither in the repo nor a declared local-only note": {
    "sql": "SELECT cl_id, doc FROM v_orphan_doc",
+   "holds": true,
+   "violations": []
+  },
+  "no settled, supersedes or trap row cites a markdown document that is neither in the repo nor a declared local-only note": {
+   "sql": "SELECT 'settled' AS tbl, substr(question,1,60) AS row_, doc FROM settled\n        WHERE instr(coalesce(doc,''), '.md') > 0\n          AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(settled.doc, d.name) > 0)\n        UNION ALL\n        SELECT 'supersedes', substr(old,1,60), doc FROM supersedes\n        WHERE instr(coalesce(doc,''), '.md') > 0\n          AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(supersedes.doc, d.name) > 0)\n        UNION ALL\n        SELECT 'trap', substr(trap,1,60), doc FROM trap\n        WHERE instr(coalesce(doc,''), '.md') > 0\n          AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(trap.doc, d.name) > 0)",
    "holds": true,
    "violations": []
   },
@@ -39171,7 +39257,7 @@
   "citation": 1,
   "claim": 590,
   "derives": 0,
-  "document": 265,
+  "document": 275,
   "evidence": 299,
   "hypothesis": 100,
   "parameter": 6,

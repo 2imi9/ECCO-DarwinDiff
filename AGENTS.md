@@ -42,7 +42,8 @@ python scripts/research_map_db.py sql "SELECT ..."   # arbitrary read-only SQL
 
 It assembles from four sources so nothing is maintained twice: the map's tables, the Carroll-N
 registry in `src/darwindiff/carroll6.py`, `docs/findings/citation_audit.json`, and the presence and
-retraction banners of every file under `docs/findings` and `docs/research_notes`.
+retraction banners of every file under `docs/findings`, `docs/research_notes` and `docs/adr`, plus
+the root-level pages such as `STATUS.md`.
 
 **ENFORCED** — `check` exits 1 on any of these:
 
@@ -50,6 +51,7 @@ retraction banners of every file under `docs/findings` and `docs/research_notes`
 π_cl(σ_live(CLAIM))  ∩  π_old(SUPERSEDES)         = ∅   matched on normalised PROSE, not on ids
 σ_mode=inductive ∧ numbers IS NULL (CLAIM)        = ∅   PRESENCE only — see the caveat below
 σ_doc ∉ DOCUMENT (CLAIM)                          = ∅   cited file is in the REPO, not just on disk
+σ_doc ∉ DOCUMENT (SETTLED ∪ SUPERSEDES ∪ TRAP)    = ∅   same gate for the other cited tables
 σ_verdict=RESOLVES_MISMATCH (CITATION)            = ∅   no DOI points at the wrong paper
 σ_verdict ∈ {DEAD, FABRICATED} (CITATION)         = ∅
 σ_doc IS NULL (SETTLED)                           = ∅   a settled answer must say where it lives
