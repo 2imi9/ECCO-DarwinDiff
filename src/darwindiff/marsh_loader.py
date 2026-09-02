@@ -39,6 +39,8 @@ from darwindiff.daniels_loader import (
     DanielsPoints,
     _data_start_index,
     _to_float,
+)
+from darwindiff.daniels_loader import (
     build_aoi_climatology as _daniels_build,
 )
 from darwindiff.ecco_darwin_loader import AOI

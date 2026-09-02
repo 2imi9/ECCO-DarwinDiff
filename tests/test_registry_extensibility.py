@@ -44,12 +44,12 @@ def _extended():
         units="d^-1",
         description="synthetic entry used only to pin registry extensibility",
     )
-    return carroll6.PARAMS + (extra,)
+    return (*carroll6.PARAMS, extra)
 
 
 def test_registry_derivations_all_follow_the_tuple():
     """Every derived structure must be a function of PARAMS, not a hand-written constant."""
-    assert carroll6.N_PARAMS == len(carroll6.PARAMS)
+    assert len(carroll6.PARAMS) == carroll6.N_PARAMS
     assert len(carroll6.PARAM_NAMES) == len(carroll6.PARAMS)
     assert carroll6.CARROLL_VALUES.shape == (len(carroll6.PARAMS),)
     assert carroll6.PARAM_BOUNDS.shape == (len(carroll6.PARAMS), 2)

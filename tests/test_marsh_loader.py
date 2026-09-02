@@ -35,7 +35,7 @@ class TestMarshParse:
         assert pts.lon.tolist() == [2.0, 4.0]
         assert pts.depth.tolist() == [5.0, 10.0]
         # CP/PP picked from the value columns, NOT the adjacent std-dev columns
-        assert pts.cp.tolist() == [20.0, 400.0][:1] + [10.0]  # [20.0, 10.0]
+        assert pts.cp.tolist() == [20.0, 10.0]
         assert pts.pp.tolist() == [400.0, 500.0]
         # ratio is dimensionless (µmol cancels), matches CP/PP directly
         assert np.allclose(rain_ratio(pts), [20.0 / 400.0, 10.0 / 500.0])

@@ -30,11 +30,11 @@ from .diagnostics import BAND_CAL_GRADE_MAX, band_of
 
 __all__ = [
     "CAL_PLUS",
-    "required_legs",
-    "relative_offset",
-    "is_cal_plus",
     "count_cal_plus_legs",
+    "is_cal_plus",
     "is_recovered_per_aoi",
+    "relative_offset",
+    "required_legs",
     "straddles",
 ]
 

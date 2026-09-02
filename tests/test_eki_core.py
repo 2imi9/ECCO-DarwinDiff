@@ -34,12 +34,12 @@ def test_eki_reproduces_source_scavenging_degeneracy():
     # One observable ln(S/k) = u0 - u1: pins the RATIO, leaves the sum (residence time) free.
     rng = np.random.default_rng(0)
     log_fe = np.log(0.58)
-    G = lambda u: (u[0] - u[1])[None, :]
+    def G(u):
+        return (u[0] - u[1])[None, :]
     u0 = np.vstack([rng.normal(log_fe, 2.0, 400), rng.normal(0.0, 2.0, 400)])
     post = ek.eki(np.array([log_fe]), np.array([[0.24 ** 2]]), G, u0, n_iter=30, rng=rng)
     ratio = post[0] - post[1]      # stiff, observed
     summ = post[0] + post[1]       # along the sloppy ridge
-    cv = lambda x: np.std(x) / max(abs(np.mean(x)), 1e-9)
     # the ratio is pinned an order of magnitude tighter than the sloppy sum
     assert np.std(ratio) < 0.15
     assert np.std(summ) > 5 * np.std(ratio)
@@ -65,7 +65,7 @@ def test_reparam_with_prior_bounds_the_sloppy_direction():
     # gives finite covariance along the sloppy direction from the prior.
     v = np.array([1.0, -1.0]) / np.sqrt(2)
     F = 100.0 * np.outer(v, v)
-    mean_p, cov_p = ek.reparam_with_prior(F, stiff_obs=0.0, stiff_sigma=0.05,
+    _mean_p, cov_p = ek.reparam_with_prior(F, stiff_obs=0.0, stiff_sigma=0.05,
                                           prior_mean=0.0, prior_sigma=0.4)
     assert np.all(np.isfinite(cov_p))
     sloppy_dir = np.array([1.0, 1.0]) / np.sqrt(2)

@@ -186,7 +186,7 @@ def test_bounded_params_axis_mismatch_raises() -> None:
 
 
 def test_bounded_params_dinn_regional_batched_end_to_end() -> None:
-    """``DINNRegional`` produces ``[B, 6]``; ``bounded_params(..., param_axis=-1)`` bounds it correctly."""
+    """``DINNRegional`` produces ``[B, 6]``; ``bounded_params(..., param_axis=-1)`` bounds it."""
     mlp = DINNRegional()
     B = 3
     env = torch.randn(B, 3)

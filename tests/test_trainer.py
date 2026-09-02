@@ -9,9 +9,8 @@ the trainer machinery end-to-end; a real-data E2 number additionally needs stage
 """
 from __future__ import annotations
 
-import torch
-
 import pytest
+import torch
 
 from darwindiff.carroll6 import CARROLL_VALUES
 from darwindiff.closures import EnvCalciteClosure, ScavClosure
@@ -42,9 +41,15 @@ def _truth_closure(env: torch.Tensor) -> EnvCalciteClosure:
     """A calcite closure with KNOWN non-trivial env dependence (g varies ~0.2..6x)."""
     c = EnvCalciteClosure(env, A=1.0)
     with torch.no_grad():
-        c.net[0].weight.zero_(); c.net[0].weight[0, 0] = 2.0; c.net[0].bias.zero_()
-        c.net[2].weight.zero_(); c.net[2].weight[0, 0] = 1.0; c.net[2].bias.zero_()
-        c.net[-1].weight.zero_(); c.net[-1].weight[0, 0] = 1.2; c.net[-1].bias.zero_()
+        c.net[0].weight.zero_()
+        c.net[0].weight[0, 0] = 2.0
+        c.net[0].bias.zero_()
+        c.net[2].weight.zero_()
+        c.net[2].weight[0, 0] = 1.0
+        c.net[2].bias.zero_()
+        c.net[-1].weight.zero_()
+        c.net[-1].weight[0, 0] = 1.2
+        c.net[-1].bias.zero_()
     return c.to(F64)
 
 
@@ -66,7 +71,8 @@ class TestMetrics:
         pred = torch.zeros(3, 3, dtype=F64)
         target = torch.zeros(3, 3, dtype=F64)
         target[0, 0] = 100.0  # huge error, but masked out
-        m = torch.ones(3, 3, dtype=torch.bool); m[0, 0] = False
+        m = torch.ones(3, 3, dtype=torch.bool)
+        m[0, 0] = False
         assert float(masked_mse(pred, target, m)) == 0.0
 
 
@@ -101,7 +107,7 @@ class TestSyntheticTwin:
         )
         first, last = res.history[0], res.history[-1]
         assert last["train_loss"] < 0.2 * first["train_loss"]         # loss fell hard
-        assert last["val_r2"] > 0.9                                    # recovers held-out (E2 signal)
+        assert last["val_r2"] > 0.9                                # recovers held-out (E2 signal)
         assert last["val_r2"] > first["val_r2"]                        # improved from init
 
     def test_beats_null_closure_baseline(self) -> None:
@@ -139,7 +145,7 @@ class TestSyntheticTwin:
         # it through the trainer on a scav twin and assert it moves. The rate log_r0 is no
         # longer trainable (issue #217: it was a free level, exactly redundant with
         # scav_rat), so the twin must differ in SHAPE -- exponent and readout weight.
-        env, params, tc, ic, _, _, _ = self._setup()
+        _env, params, tc, ic, _, _, _ = self._setup()
         truth = ScavClosure(scav_rat_per_day=None, eps=0.2).to(F64)
         with torch.no_grad():
             truth.raw_p.add_(0.5)
@@ -147,10 +153,12 @@ class TestSyntheticTwin:
             # perturbing the bias alone would leave truth identical to the untrained
             # closure and this test would pass while comparing nothing.
             truth.net[-1].weight[0, 1] = 1.1
-        tgt = dfe_observable(rollout_field(ic, params, tc, self.N_STEPS, scav_closure=truth)).detach()
+        tgt = dfe_observable(
+            rollout_field(ic, params, tc, self.N_STEPS, scav_closure=truth)).detach()
 
         clo = ScavClosure(eps=0.2).to(F64)
-        base = dfe_observable(rollout_field(ic, params, tc, self.N_STEPS, scav_closure=clo)).detach()
+        base = dfe_observable(
+            rollout_field(ic, params, tc, self.N_STEPS, scav_closure=clo)).detach()
         assert not torch.allclose(tgt, base), "twin must differ from the untrained closure"
 
         g = torch.Generator().manual_seed(2)
@@ -172,7 +180,7 @@ class TestSyntheticTwin:
         null = EnvCalciteClosure(env, A=1.0).to(F64)
         r2_null = float(masked_r2(
             picpoc_observable(rollout_field(ic, params, tc, self.N_STEPS, calcite_closure=null)),
-            target, val_mask))
+            target, val_mask).detach())
         clo = EnvCalciteClosure(env, A=1.0).to(F64)
         res = train_ude_closure(
             clo, ic, params, tc, self.N_STEPS, observable=picpoc_observable, target=target,
@@ -198,7 +206,8 @@ class TestSyntheticTwin:
             return picpoc_observable(res.final_field)
 
         clean = train_field(target)
-        corrupt = target.clone(); corrupt[val_mask] += 5.0
+        corrupt = target.clone()
+        corrupt[val_mask] += 5.0
         leaked = train_field(corrupt)
         # val-cell corruption must NOT change the trained field on train cells
         assert torch.allclose(clean[train_mask], leaked[train_mask], atol=1e-10)
@@ -218,7 +227,8 @@ class TestSyntheticTwin:
         # intact, not silently NaN-poison every parameter via the clip/step.
         env, params, tc, ic, target, train_mask, val_mask = self._setup()
         clo = EnvCalciteClosure(env, A=1.0).to(F64)
-        bad = target.clone(); bad[train_mask] = float("nan")  # loss -> NaN on epoch 0
+        bad = target.clone()
+        bad[train_mask] = float("nan")  # loss -> NaN on epoch 0
         res = train_ude_closure(
             clo, ic, params, tc, self.N_STEPS, observable=picpoc_observable, target=bad,
             train_mask=train_mask, val_mask=val_mask, epochs=5, lr=5e-2, checkpoint_segment=10,

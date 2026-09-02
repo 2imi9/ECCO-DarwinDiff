@@ -9,10 +9,11 @@ ALK-anchor finding (a cell-weighted joint mean can be Cal+ while no single AOI i
 """
 from __future__ import annotations
 
-import pytest
 import importlib.util
 import json
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -212,11 +213,11 @@ def test_gate_derives_its_parameter_list_from_the_registry():
     sys.path.insert(0, str(ROOT / "src"))
     from darwindiff.carroll6 import PARAMS as REGISTRY
 
-    assert V.PARAMS == [p.name for p in REGISTRY], (
+    assert [p.name for p in REGISTRY] == V.PARAMS, (
         "verify_run.PARAMS has drifted from carroll6.PARAMS. The gate must grade "
         "every registered parameter."
     )
-    assert V.CARROLL == {p.name: p.carroll_value for p in REGISTRY}
+    assert {p.name: p.carroll_value for p in REGISTRY} == V.CARROLL
     assert len(V.PARAMS) == len(REGISTRY)
 
 

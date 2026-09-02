@@ -5,8 +5,8 @@ import torch
 from torch import nn
 
 from darwindiff import carroll6
-from darwindiff.integrators import integrate, relative_mass_drift
 from darwindiff.closures import EnvCalciteClosure
+from darwindiff.integrators import integrate, relative_mass_drift
 from darwindiff.transport import (
     bgc_tendency_field,
     carbon_total,
@@ -397,10 +397,10 @@ def test_surface_dust_field_is_surface_only_and_z_independent():
         assert abs(dust[0].item() - phi) < 1e-10  # float32 round-off vs the fp64 constant
         assert dust[1:].abs().sum().item() == 0.0
     state = torch.full((8, 5), 0.1)
-    d_scalar = bgc_tendency_field(state, params)                       # scalar PHI_DUST @ every layer
+    d_scalar = bgc_tendency_field(state, params)                   # scalar PHI_DUST @ every layer
     d_surface = bgc_tendency_field(state, params, dust=surface_dust_field(8))
-    diff = d_scalar[:, 0] - d_surface[:, 0]                            # dDFe difference per layer
-    assert abs(diff[0].item()) < 1e-9                                  # surface: both sourced, match
+    diff = d_scalar[:, 0] - d_surface[:, 0]                        # dDFe difference per layer
+    assert abs(diff[0].item()) < 1e-9                              # surface: both sourced, match
     torch.testing.assert_close(diff[1:], torch.full((7,), alpfe * phi))  # deep: scalar over-injects
 
 

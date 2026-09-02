@@ -63,7 +63,8 @@ class TestParsing:
         assert n > 0
         # every geometry array is the same length -- a ragged parse is silent corruption
         for name in ("lat", "lon", "depth"):
-            assert len(getattr(points, name)) == n, f"{name} length {len(getattr(points, name))} != {n}"
+            got = len(getattr(points, name))
+            assert got == n, f"{name} length {got} != {n}"
 
     def test_coordinates_are_physical(self, points) -> None:
         assert np.all((points.lat >= -90) & (points.lat <= 90))

@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[1]
 CLAUDE = ROOT / "CLAUDE.md"
 AGENTS = ROOT / "AGENTS.md"

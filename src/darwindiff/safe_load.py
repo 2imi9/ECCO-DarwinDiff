@@ -50,7 +50,7 @@ from typing import Any
 import numpy as np
 import torch
 
-__all__ = ["safe_torch_load", "SafeLoadError"]
+__all__ = ["SafeLoadError", "safe_torch_load"]
 
 
 class SafeLoadError(RuntimeError):

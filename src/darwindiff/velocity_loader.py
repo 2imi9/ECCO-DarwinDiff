@@ -34,7 +34,6 @@ from darwindiff.iron_forcing_loader import (
     LLC270_NFACE,
     LLC270_NX,
     LLC_COMPACT_DTYPE,
-    load_surface_ocean_mask,  # (surface only; per-level mask uses read_hfacc_topz below)
 )
 from darwindiff.llc270_loader import (
     aoi_mask_from_xc_yc,

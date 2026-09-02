@@ -85,6 +85,8 @@ def test_matched_control_is_wider_than_the_default_trunk():
 def test_deterministic_under_manual_seed():
     """Two builds at one seed agree bitwise, so arm-to-arm differences are not init noise."""
     env = torch.randn(3, 4, 4)
-    torch.manual_seed(0); a = PerParamDINN(n_input_channels=3)(env)
-    torch.manual_seed(0); b = PerParamDINN(n_input_channels=3)(env)
+    torch.manual_seed(0)
+    a = PerParamDINN(n_input_channels=3)(env)
+    torch.manual_seed(0)
+    b = PerParamDINN(n_input_channels=3)(env)
     assert torch.equal(a, b)

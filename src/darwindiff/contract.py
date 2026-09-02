@@ -48,20 +48,20 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 __all__ = [
-    "Unknown",
-    "Evidence",
-    "Clause",
-    "ContractReport",
-    "ClauseStatus",
-    "contract",
-    "CAL_GRADE_BAND",
     "ALIASING_GATE",
-    "RESCALE_MARGIN",
-    "rescale_is_admissible",
-    "bound_proximity_risk",
-    "EXIT_OK",
+    "CAL_GRADE_BAND",
     "EXIT_FAIL",
     "EXIT_INCOMPLETE",
+    "EXIT_OK",
+    "RESCALE_MARGIN",
+    "Clause",
+    "ClauseStatus",
+    "ContractReport",
+    "Evidence",
+    "Unknown",
+    "bound_proximity_risk",
+    "contract",
+    "rescale_is_admissible",
 ]
 
 # ---------------------------------------------------------------------------
@@ -148,7 +148,7 @@ def bound_proximity_risk(
         ``(at_risk, reason)``. ``reason`` is populated either way.
     """
     if bounds is None or reference is None:
-        from darwindiff.carroll6 import PARAMS  # noqa: PLC0415
+        from darwindiff.carroll6 import PARAMS  # local import keeps contract.py torch-light
 
         match = [p for p in PARAMS if p.name == param]
         if not match:
@@ -232,7 +232,7 @@ def rescale_is_admissible(
         raise ValueError(f"rescale factor must be positive, got {factor}")
 
     if bounds is None or reference is None:
-        from darwindiff.carroll6 import PARAMS  # noqa: PLC0415  (keeps contract.py torch-light)
+        from darwindiff.carroll6 import PARAMS  # local import keeps contract.py torch-light
 
         match = [p for p in PARAMS if p.name == param]
         if not match:
@@ -452,7 +452,7 @@ class ContractReport:
         return json.dumps(self.to_dict(), **kw)
 
     @staticmethod
-    def from_dict(d: dict[str, Any]) -> "ContractReport":
+    def from_dict(d: dict[str, Any]) -> ContractReport:
         return ContractReport(
             unknown=d["unknown"], kind=d["kind"], scope=d["scope"],
             clauses=tuple(Clause(**c) for c in d["clauses"]),

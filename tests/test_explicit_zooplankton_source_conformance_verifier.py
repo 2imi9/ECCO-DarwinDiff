@@ -135,6 +135,6 @@ def test_tampered_source_artifact_hash_is_rejected(verifier, artifacts) -> None:
 
     with pytest.raises(
         verifier.VerificationError,
-        match="config.source_energy_bundle_sha256",
+        match=r"config\.source_energy_bundle_sha256",
     ):
         _verify(verifier, artifacts, hashes=hashes)

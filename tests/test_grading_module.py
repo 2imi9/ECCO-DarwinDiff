@@ -95,7 +95,7 @@ def test_band_boundary_is_forty_percent_inclusive():
 
 
 def test_cal_plus_is_excellent_or_cal_grade():
-    assert CAL_PLUS == {"Excellent", "Cal-grade"}
+    assert {"Excellent", "Cal-grade"} == CAL_PLUS
     assert count_cal_plus_legs({"a": INSIDE, "b": OUTSIDE, "c": 1.01}, CARROLL) == 2
 
 

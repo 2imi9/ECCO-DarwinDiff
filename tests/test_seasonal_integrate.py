@@ -260,7 +260,7 @@ def test_steps_per_month_must_be_positive():
 
 def test_light_must_have_length_12_month_axis():
     t_m, s_m, w_m = _const_forcing()
-    with pytest.raises(ValueError, match="light_monthly.*length-12"):
+    with pytest.raises(ValueError, match=r"light_monthly.*length-12"):
         carroll6_5pft_2layer_integrate_seasonal(
             constant_state0(),
             _params(),

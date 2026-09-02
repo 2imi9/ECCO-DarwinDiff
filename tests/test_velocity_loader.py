@@ -102,7 +102,8 @@ class TestSignAndUnits:
     were only checked in the opt-in real test, so a u-flip or a x86400 error shipped green."""
 
     def _synth(self, tmp_path: Path, u_ms: float, v_ms: float, nx: int = 4, nz: int = 1):
-        grid = tmp_path / "grid"; grid.mkdir()
+        grid = tmp_path / "grid"
+        grid.mkdir()
         mon = tmp_path / "monthly"
         n = LLC270_NFACE * nx * nx
         # put every native cell at lon=0.3, lat=0.3 -> all land in AOI bin (0,0)

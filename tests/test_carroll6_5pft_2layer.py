@@ -18,7 +18,7 @@ import contextlib
 import torch
 
 import darwindiff.carroll6_5pft_2layer as c2l
-from darwindiff.carroll6 import CARROLL_VALUES, PHI_DUST, Q_FE
+from darwindiff.carroll6 import CARROLL_VALUES, Q_FE
 from darwindiff.carroll6_5pft_2layer import (
     H1,
     H2,
@@ -67,10 +67,10 @@ def test_2layer_state_layout() -> None:
     """State-vector indices and counts match the module's named constants."""
     assert N_TRACERS_2LAYER == 15
     # L1 block 0..9 matches v2.6 layout
-    assert (I_DFE_1, I_DIATOM, I_LGE, I_SYN, I_PROLL, I_PROHL,
-            I_POC_1, I_PIC_1, I_DIC_1, I_ALK_1) == tuple(range(10))
+    assert tuple(range(10)) == (I_DFE_1, I_DIATOM, I_LGE, I_SYN, I_PROLL, I_PROHL,
+            I_POC_1, I_PIC_1, I_DIC_1, I_ALK_1)
     # L2 block 10..14
-    assert (I_DFE_2, I_POC_2, I_PIC_2, I_DIC_2, I_ALK_2) == tuple(range(10, 15))
+    assert tuple(range(10, 15)) == (I_DFE_2, I_POC_2, I_PIC_2, I_DIC_2, I_ALK_2)
 
 
 def test_2layer_step_is_finite_and_nonneg() -> None:
@@ -270,7 +270,8 @@ def test_env_rain_ratio_on_makes_pic_vary_with_temperature() -> None:
                          RPP_G_NORM=0.00373, RPP_OMEGA_P=0.0):
         nxt = carroll6_5pft_2layer_step(s0, CARROLL_VALUES, dt=0.25, T=T, S=35.0)
     pic_opt, pic_cold = float(nxt[I_PIC_1, 0]), float(nxt[I_PIC_1, 1])
-    assert pic_opt > pic_cold, f"PIC at T_opt ({pic_opt:.4f}) should exceed cold-tail ({pic_cold:.4f})"
+    assert pic_opt > pic_cold, (
+        f"PIC at T_opt ({pic_opt:.4f}) should exceed cold-tail ({pic_cold:.4f})")
 
 
 def test_env_rain_ratio_autograd_to_rpicpoc_via_pic() -> None:

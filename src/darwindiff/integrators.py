@@ -23,7 +23,7 @@ State may be any shape; all operations are elementwise, so ``[5]``,
 from __future__ import annotations
 
 import inspect
-from typing import Callable
+from collections.abc import Callable
 
 import torch
 from torch.utils.checkpoint import checkpoint

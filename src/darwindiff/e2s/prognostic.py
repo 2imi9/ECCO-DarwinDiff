@@ -20,16 +20,19 @@ fallback shims below let this class import, instantiate, and run a forward pass.
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Iterator
+from collections.abc import Iterator
 
 import numpy as np
 import torch
 
+#: One emulator step. A module-level singleton rather than a call in the signature (B008).
+DEFAULT_DT = np.timedelta64(30, "D")
+
 # --- import guard: earth2studio is cluster-only ----------------------------------
 try:  # pragma: no cover - exercised on the cluster
-    from earth2studio.utils.type import CoordSystem
-    from earth2studio.utils.coords import handshake_coords, handshake_dim, handshake_size
     from earth2studio.models.batch import batch_coords, batch_func
+    from earth2studio.utils.coords import handshake_coords, handshake_dim, handshake_size
+    from earth2studio.utils.type import CoordSystem
 
     E2S_AVAILABLE = True
 except Exception:  # laptop / CI fallback -- keep the same call surface
@@ -49,7 +52,7 @@ except Exception:  # laptop / CI fallback -- keep the same call surface
     # ------------------------------------------------------------------------------
     CoordSystem = OrderedDict
 
-    def handshake_dim(*_a, **_k):  # noqa: D401
+    def handshake_dim(*_a, **_k):
         return None
 
     def handshake_coords(*_a, **_k):
@@ -115,7 +118,7 @@ class DarwinBGCPrognostic(torch.nn.Module):
         log_vars=(),
         ocean_mask=None,
         residual: bool = True,
-        dt: np.timedelta64 = np.timedelta64(30, "D"),
+        dt: np.timedelta64 = DEFAULT_DT,
         log_floors=None,
     ) -> None:
         super().__init__()
@@ -123,9 +126,11 @@ class DarwinBGCPrognostic(torch.nn.Module):
         self.variables = [str(v) for v in variables]
         self.lat = np.asarray(lat)
         self.lon = np.asarray(lon)
-        V = len(self.variables)
-        self.register_buffer("means", torch.as_tensor(np.asarray(means), dtype=torch.float32).reshape(V))
-        self.register_buffer("stds", torch.as_tensor(np.asarray(stds), dtype=torch.float32).reshape(V))
+        n_var = len(self.variables)
+        self.register_buffer(
+            "means", torch.as_tensor(np.asarray(means), dtype=torch.float32).reshape(n_var))
+        self.register_buffer(
+            "stds", torch.as_tensor(np.asarray(stds), dtype=torch.float32).reshape(n_var))
         if ocean_mask is None:
             ocean_mask = np.ones((len(self.lat), len(self.lon)), dtype=bool)
         self.register_buffer("mask", torch.as_tensor(np.asarray(ocean_mask, dtype=bool)))
@@ -135,15 +140,16 @@ class DarwinBGCPrognostic(torch.nn.Module):
         # was trained with (emulator_poc.py writes it to config.log_floors); a mismatch means
         # training and serving apply different transforms to the same input. Defaults to the
         # historical fixed 1e-12 so pre-existing checkpoints keep serving identically.
-        _floors = np.full(V, 1e-12, dtype=np.float64)
+        _floors = np.full(n_var, 1e-12, dtype=np.float64)
         if log_floors is not None:
             if isinstance(log_floors, dict):
                 for i, v in enumerate(self.variables):
                     if v in log_floors:
                         _floors[i] = float(log_floors[v])
             else:
-                _floors = np.asarray(log_floors, dtype=np.float64).reshape(V)
-        self.register_buffer("log_floors", torch.as_tensor(_floors, dtype=torch.float32).reshape(V))
+                _floors = np.asarray(log_floors, dtype=np.float64).reshape(n_var)
+        self.register_buffer(
+            "log_floors", torch.as_tensor(_floors, dtype=torch.float32).reshape(n_var))
         self.residual = bool(residual)
         self.dt = dt
 
@@ -178,11 +184,11 @@ class DarwinBGCPrognostic(torch.nn.Module):
         if "residual" in cfg and "residual" not in kw:
             kw["residual"] = bool(cfg["residual"])
         if "dt_hours" in cfg and "dt" not in kw:
-            kw["dt"] = np.timedelta64(int(round(float(cfg["dt_hours"]))), "h")
+            kw["dt"] = np.timedelta64(round(float(cfg["dt_hours"])), "h")
         return cls(core_model, variables, lat, lon, means, stds, log_vars=log_vars, **kw)
 
     # ---- coords contract --------------------------------------------------------
-    def input_coords(self) -> "CoordSystem":
+    def input_coords(self) -> CoordSystem:
         return CoordSystem(
             {
                 "batch": np.empty(0),
@@ -195,7 +201,7 @@ class DarwinBGCPrognostic(torch.nn.Module):
         )
 
     @batch_coords()
-    def output_coords(self, input_coords: "CoordSystem") -> "CoordSystem":
+    def output_coords(self, input_coords: CoordSystem) -> CoordSystem:
         oc = self.input_coords()
         oc["lead_time"] = np.array([self.dt])
         if input_coords is None:  # introspection path (matches SFNO): bare output template
@@ -274,12 +280,12 @@ class DarwinBGCPrognostic(torch.nn.Module):
     # (examples/08_extend/01_custom_prognostic.py) and the built-in Persistence model
     # decorate __call__ with it; _default_generator below already had it.
     @batch_func()
-    def __call__(self, x: torch.Tensor, coords: "CoordSystem"):
+    def __call__(self, x: torch.Tensor, coords: CoordSystem):
         out_coords = self.output_coords(coords)
         return self._forward(x), out_coords
 
     @batch_func()
-    def _default_generator(self, x: torch.Tensor, coords: "CoordSystem") -> Iterator:
+    def _default_generator(self, x: torch.Tensor, coords: CoordSystem) -> Iterator:
         coords = coords.copy()
         self.output_coords(coords)  # validate
         yield x, coords.copy()  # step 0 == the initial condition
@@ -288,5 +294,5 @@ class DarwinBGCPrognostic(torch.nn.Module):
             x = self._forward(x)
             yield x, coords.copy()
 
-    def create_iterator(self, x: torch.Tensor, coords: "CoordSystem") -> Iterator:
+    def create_iterator(self, x: torch.Tensor, coords: CoordSystem) -> Iterator:
         yield from self._default_generator(x, coords)

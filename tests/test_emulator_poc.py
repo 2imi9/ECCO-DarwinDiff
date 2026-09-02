@@ -8,7 +8,6 @@ CPU-only, tiny synthetic arrays; no data files, no GPU. The module has a
 
 from __future__ import annotations
 
-import importlib.util
 import sys
 from pathlib import Path
 
@@ -19,6 +18,7 @@ _SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 import emulator_poc as ep  # noqa: E402
+
 from darwindiff.ecco_darwin_loader import AOI  # noqa: E402
 
 
@@ -96,7 +96,7 @@ def test_standardize_uses_train_months_only():
     state[0:2] = 5.0
     state[2:4] = 100.0
     mask = np.ones((H, W), dtype=bool)
-    z, means, stds = ep.standardize(state, np.array([0, 1]), mask)
+    z, means, _stds = ep.standardize(state, np.array([0, 1]), mask)
     assert means[0] == pytest.approx(5.0), "mean leaked val months in"
     # train months z-score to ~0; val months are far positive (unseen shift).
     assert abs(z[0].mean()) < 1e-9
@@ -107,7 +107,7 @@ def test_standardize_land_nan_becomes_zero():
     state = np.ones((3, 1, 2, 2))
     state[:, :, 0, 0] = np.nan  # a land cell
     mask = np.array([[False, True], [True, True]])  # land excluded from mask
-    z, means, stds = ep.standardize(state, np.array([0, 1]), mask)
+    z, _means, _stds = ep.standardize(state, np.array([0, 1]), mask)
     assert np.isfinite(z).all(), "NaN must be scrubbed to 0"
     assert z[0, 0, 0, 0] == 0.0
 
@@ -115,7 +115,7 @@ def test_standardize_land_nan_becomes_zero():
 def test_standardize_zero_variance_channel_no_divzero():
     state = np.full((3, 1, 2, 2), 7.0)  # constant channel -> std 0
     mask = np.ones((2, 2), dtype=bool)
-    z, means, stds = ep.standardize(state, np.array([0, 1]), mask)
+    z, _means, stds = ep.standardize(state, np.array([0, 1]), mask)
     assert stds[0] == 1.0, "zero std must fall back to 1 (no divide-by-zero)"
     assert np.isfinite(z).all()
 
@@ -254,7 +254,8 @@ def test_rollout_mass_conserve_projection():
     post = xc[..., mask].mean().view(1, 1, 1, 1)
     xc = xc * (pre / post.clamp(min=1e-30)).clamp(min=0.0, max=10.0)
     assert (xc >= -1e-6).all(), "positivity violated"
-    assert torch.allclose(xc[..., mask].mean(), pre.squeeze(), atol=1e-6), "domain mean not conserved"
+    assert torch.allclose(xc[..., mask].mean(), pre.squeeze(), atol=1e-6), (
+        "domain mean not conserved")
 
 
 def test_save_checkpoint_safetensors_roundtrip(tmp_path):

@@ -99,7 +99,7 @@ def test_registry_derived_layout_is_self_consistent() -> None:
     assert N_PARAMS == len(PARAMS) == len(PARAM_NAMES)
     assert PARAM_BOUNDS.shape == (N_PARAMS, 2)
     assert CARROLL_VALUES.shape == (N_PARAMS,)
-    assert PARAM_INDEX == {p.name: i for i, p in enumerate(PARAMS)}
+    assert {p.name: i for i, p in enumerate(PARAMS)} == PARAM_INDEX
     for p in PARAMS:
         lo, hi = p.bounds
         assert lo < hi, f"{p.name}: bounds must be increasing"

@@ -67,7 +67,7 @@ class TestParsing:
         np.testing.assert_allclose(points.fe_export_sigma, expect, rtol=1e-12)
 
     def test_unit_conversion_matches_the_documented_constant(self):
-        assert UMOL_PER_DAY_TO_MMOL_PER_YR == pytest.approx(1.0e-3 * 365.25)
+        assert pytest.approx(1.0e-3 * 365.25) == UMOL_PER_DAY_TO_MMOL_PER_YR
 
     def test_coordinates_are_in_the_minus180_convention(self, points):
         assert points.lon.min() >= -180.0 and points.lon.max() <= 180.0
@@ -77,7 +77,8 @@ class TestParsing:
 class TestCoverage:
     """What the staged table actually reaches. These numbers gate every wiring proposal."""
 
-    @pytest.mark.parametrize("key,expected", [("eqpac", 0), ("natlsubpolar", 1), ("southernoceanpac", 0)])
+    @pytest.mark.parametrize(
+        "key,expected", [("eqpac", 0), ("natlsubpolar", 1), ("southernoceanpac", 0)])
     def test_flagship_aoi_counts(self, points, key, expected):
         assert len(subset_aoi(points, AOI_BY_KEY[key]).lat) == expected
 

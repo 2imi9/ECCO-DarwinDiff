@@ -11,15 +11,9 @@ from __future__ import annotations
 
 import torch
 
-from darwindiff.carbonate import PCO2_ATM_DEFAULT
 from darwindiff.carroll6 import (
     CARROLL_VALUES,
-    G0_GRAZE,
-    H_MLD,
-    M_LIN,
-    M_QUAD,
     PARAM_BOUNDS,
-    W_SINK,
     bounded_params,
 )
 from darwindiff.carroll6_5pft import (
@@ -67,8 +61,8 @@ def test_carroll6_5pft_state_layout() -> None:
     """State-vector indices and counts match the module's named constants."""
     assert N_TRACERS == 10
     assert N_PHYTO == 5
-    assert (I_DFE, I_DIATOM, I_LGE, I_SYN, I_PROLL, I_PROHL,
-            I_POC, I_PIC, I_DIC, I_ALK) == tuple(range(10))
+    assert tuple(range(10)) == (I_DFE, I_DIATOM, I_LGE, I_SYN, I_PROLL, I_PROHL,
+            I_POC, I_PIC, I_DIC, I_ALK)
 
 
 def test_carroll6_5pft_step_is_finite_and_nonneg() -> None:

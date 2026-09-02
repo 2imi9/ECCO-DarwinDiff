@@ -138,6 +138,6 @@ def stamp(runner_file: str | os.PathLike | None = None) -> dict:
             status = _git(repo, "status", "--porcelain")
             out["git_dirty"] = bool(status)
             out["git_describe"] = _git(repo, "describe", "--always", "--dirty", "--tags")
-    except Exception:                                   # noqa: BLE001 - never fail a run
+    except Exception:  # never fail a run over provenance
         pass
     return out
