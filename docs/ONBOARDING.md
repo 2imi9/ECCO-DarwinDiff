@@ -55,8 +55,9 @@ A per-cell network `env → 6 Carroll-6 params`, trained by backprop through a d
 ```
 per-cell env (SST[, MLD, wind, lat]) ─▶ DINN ─▶ 6 raw ─▶ sigmoid bounds ─▶ Carroll-6 per cell
                                                                                    │
-                                     differentiable 5-tracer box (carroll6 step)   ▼
-                                     [DFe, P_small, P_large, POC, PIC] (+DIC, ALK carbonate ext.)
+                         differentiable 2-layer box (carroll6_5pft_2layer step)   ▼
+                         [DFe, 5 PFTs, POC, PIC, DIC, ALK] x 2 layers = 15 tracers
+                         (the 5-tracer carroll6 step is the teaching box, not the flagship)
                                                                                    │
                                         predicted fields ── compare ── v05 target / real obs ── loss
                                                                                    │
