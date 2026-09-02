@@ -31,8 +31,8 @@ corpus text after the parse. The markdown keeps its truncation; the database doe
 USAGE
 
     python scripts/research_map_db.py settled daily      # <- RUN THIS BEFORE STARTING WORK
-    python scripts/research_map_db.py check              # integrity constraints, exit 1 on violation
-    python scripts/research_map_db.py trace D1           # what a claim rests on, and what rests on it
+    python scripts/research_map_db.py check              # integrity constraints; exit 1 if violated
+    python scripts/research_map_db.py trace D1           # what a claim rests on, and what rests on
     python scripts/research_map_db.py param scav_rat     # everything known about one parameter
     python scripts/research_map_db.py superseded 0.408   # is this number dead?
     python scripts/research_map_db.py dangerous          # live claims resting on weak ground
@@ -43,7 +43,7 @@ ENFORCED (`check` exits 1). Relational algebra, written in SQL in CONSTRAINTS be
     pi_cl(sigma_{live}(CLAIM)) INTERSECT pi_old(SUPERSEDES)   = {}   on normalised PROSE, not ids
     sigma_{mode=inductive AND numbers IS NULL}(CLAIM)         = {}   presence only, see caveat
     sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}   DOCUMENT is the REPO, not disk
-    sigma_{doc NOT IN DOCUMENT}(SETTLED u SUPERSEDES u TRAP)  = {}   same gate, the other cited tables
+    sigma_{doc NOT IN DOCUMENT}(SETTLED u SUPERSEDES u TRAP)  = {}   same gate, other cited tables
     sigma_{verdict=RESOLVES_MISMATCH}(CITATION)               = {}
     sigma_{verdict IN (DEAD, FABRICATED)}(CITATION)           = {}
     sigma_{doc IS NULL}(SETTLED)                              = {}
@@ -72,6 +72,7 @@ THREE CAVEATS, stated because a passing `check` otherwise reads stronger than it
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import re
 import sqlite3
@@ -82,10 +83,9 @@ from pathlib import Path
 
 # Windows consoles default to cp1252 and the map contains typographic minus signs and arrows.
 for _stream in (sys.stdout, sys.stderr):
-    try:
+    # AttributeError / ValueError: a non-reconfigurable stream (pragma: no cover)
+    with contextlib.suppress(AttributeError, ValueError):
         _stream.reconfigure(encoding="utf-8", errors="replace")
-    except (AttributeError, ValueError):  # pragma: no cover - non-reconfigurable stream
-        pass
 
 REPO = Path(__file__).resolve().parents[1]
 MAP = REPO / "docs" / "research_map.md"
@@ -104,7 +104,7 @@ CREATE TABLE document (
     date       TEXT,
     retracted  INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner
     words      INTEGER,
-    local_only INTEGER DEFAULT 0    -- 1 = deliberately gitignored; on disk here, absent for a reader
+    local_only INTEGER DEFAULT 0    -- 1 = deliberately gitignored: on disk here, absent for readers
 );
 
 CREATE TABLE parameter (
@@ -177,11 +177,11 @@ CREATE TABLE settled (
 
 CREATE TABLE citation (
     doi        TEXT,
-    verdict    TEXT,                 -- RESOLVES_MATCHES | RESOLVES_MISMATCH | DEAD | SUSPECT_FABRICATED
+    verdict    TEXT,                 -- RESOLVES_MATCHES|RESOLVES_MISMATCH|DEAD|SUSPECT_FABRICATED
     claimed    TEXT,
     actual     TEXT,
     doc        TEXT,
-    deliberate INTEGER DEFAULT 0     -- 1 = cites a known-bad DOI on purpose, to record that it is bad
+    deliberate INTEGER DEFAULT 0     -- 1 = cites a known-bad DOI on purpose, to record it is bad
 );
 
 CREATE TABLE trap (
@@ -224,7 +224,7 @@ CREATE VIEW v_orphan_doc AS          -- a claim citing a file that is not in the
       AND (instr(c.doc, 'UNRESOLVED source') > 0
            OR NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0));
 
-CREATE VIEW v_local_only_cite AS     -- a live claim whose only backing is a file the reader cannot open
+CREATE VIEW v_local_only_cite AS     -- a live claim backed only by a file the reader cannot open
     SELECT DISTINCT c.cl_id, d.name, substr(c.statement,1,70) AS statement
     FROM claim c JOIN document d ON instr(c.doc, d.name) > 0
     WHERE d.local_only = 1
@@ -399,8 +399,10 @@ def _load_documents(con: sqlite3.Connection) -> None:
         else:
             # Direct children only, matching the glob("*.md") this replaced -- ls-files also
             # returns nested paths such as research_notes/art/.
-            names = sorted(r[len(prefix):] for r in tracked
-                           if r.startswith(prefix) and r.endswith(".md") and "/" not in r[len(prefix):])
+            names = sorted(
+                r[len(prefix):] for r in tracked
+                if r.startswith(prefix) and r.endswith(".md") and "/" not in r[len(prefix):]
+            )
         for name in names:
             p = d / name
             try:
@@ -435,7 +437,7 @@ def _load_parameters(con: sqlite3.Connection) -> None:
     if str(src) not in sys.path:
         sys.path.insert(0, str(src))
     try:
-        from darwindiff.carroll6 import PARAMS  # noqa: PLC0415
+        from darwindiff.carroll6 import PARAMS  # local import: keep the DB torch-light
     except Exception:  # torch missing, or registry moved. Not fatal for the rest of the map.
         return
     denominator = {"alpfe", "scav_rat", "diatomgraz", "R_PICPOC"}
@@ -460,7 +462,8 @@ def _load_citations(con: sqlite3.Connection) -> None:
             con.execute(
                 "INSERT INTO citation VALUES (?,?,?,?,?,?)",
                 (r.get("doi", ""), r.get("verdict", ""), r.get("claimed_as", ""),
-                 f'{r.get("actual_first_author","")} {r.get("actual_year","")} {r.get("actual_title","")}'.strip(),
+                 (f'{r.get("actual_first_author","")} {r.get("actual_year","")} '
+                  f'{r.get("actual_title","")}').strip(),
                  doc, 1 if r.get("deliberate") else 0),
             )
 
@@ -626,7 +629,8 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
                      _infer_parameter(stmt + " " + detail), _infer_track(stmt + " " + detail)),
                 )
                 # every claim that names an artifact gets an evidence row and a supports edge,
-                # so the join in v_claim_evidence is populated without a second hand-maintained table
+                # so the join in v_claim_evidence is populated without a second hand-maintained
+                # table.
                 # A blank explicit-evidence column must not mask the legacy
                 # derivation/prompted evidence carried by older claim tables.
                 ev = _get(r, header, "evidence")
@@ -634,10 +638,14 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
                     ev = _get(r, header, "n", "derivation", "prompted")
                 if ev:
                     ev_id = f"ev_{cl_id}"
-                    gate = "exit0" if "exit 0" in ev.lower() else ("ungated" if mode != "deductive" else "n/a")
+                    if "exit 0" in ev.lower():
+                        gate = "exit0"
+                    else:
+                        gate = "ungated" if mode != "deductive" else "n/a"
                     con.execute("INSERT OR REPLACE INTO evidence VALUES (?,?,?,?,?,?,?)",
                                 (ev_id, mode, _get(r, header, "doc"), "", gate, None, ""))
-                    con.execute("INSERT INTO supports VALUES (?,?,?)", (cl_id, ev_id, "establishes"))
+                    con.execute("INSERT INTO supports VALUES (?,?,?)",
+                                (cl_id, ev_id, "establishes"))
             elif kind == "evidence":
                 con.execute("INSERT OR REPLACE INTO evidence VALUES (?,?,?,?,?,?,?)",
                             (_get(r, header, "ev_id", "id", "ev"), _get(r, header, "kind"),
@@ -663,7 +671,8 @@ def build(map_path: Path = MAP) -> sqlite3.Connection:
                              _get(r, header, "reason"), _get(r, header, "doc")))
             elif kind == "trap":
                 con.execute("INSERT INTO trap VALUES (?,?,?)",
-                            (_get(r, header, "trap"), _get(r, header, "doc"), _get(r, header, "category")))
+                            (_get(r, header, "trap"), _get(r, header, "doc"),
+                             _get(r, header, "category")))
     # The markdown is a reading view and is truncated by design; the database must not be. #228.
     LAST_REHYDRATION.clear()
     LAST_REHYDRATION.update(_rehydrate(con))
@@ -756,7 +765,8 @@ ADVISORIES = [
     # The price of the local-only exemption above, stated in rows. These live claims rest on a
     # file no reader outside this machine can open, which is a provenance defect even though it is
     # not a build failure. Shrinking this list means publishing the note or re-citing the claim.
-    ("live claims whose ONLY cited document is a declared local-only note -- a reader cannot check them",
+    ("live claims whose ONLY cited document is a declared local-only note -- a reader cannot "
+     "check them",
      """SELECT cl_id, name, statement FROM v_local_only_cite"""),
     # Reported, never gated. A banner supersedes part of a document, not every claim in it, so
     # failing on this would fire on rows that are mostly fine and teach readers to ignore the gate.
@@ -833,7 +843,8 @@ def cmd_check(con) -> int:
             if len(rows) > 8:
                 print(f"     ... and {len(rows) - 8} more")
 
-    print("\nCONSTRAINTS_FAILED" if bad else "\nALL CONSTRAINTS HOLD (advisories above are not failures)")
+    print("\nCONSTRAINTS_FAILED" if bad
+          else "\nALL CONSTRAINTS HOLD (advisories above are not failures)")
     return 1 if bad else 0
 
 
@@ -905,15 +916,16 @@ def cmd_trace(con, cl_id) -> int:
         print(f"  detail: {row[4]}")
     print(f"  doc: {row[5]}")
     for ev_id, kind, gate, job in con.execute(
-            "SELECT e.ev_id, e.kind, e.gate, e.job FROM supports s JOIN evidence e ON e.ev_id=s.ev_id "
-            "WHERE s.cl_id=?", (row[0],)):
+            "SELECT e.ev_id, e.kind, e.gate, e.job FROM supports s "
+            "JOIN evidence e ON e.ev_id=s.ev_id WHERE s.cl_id=?", (row[0],)):
         print(f"  rests on: {ev_id} kind={kind} gate={gate} job={job or '-'}")
     for f, r in con.execute("SELECT from_cl, rule FROM derives WHERE to_cl=?", (row[0],)):
         print(f"  follows from: {f} ({r})")
     for t, r in con.execute("SELECT to_cl, rule FROM derives WHERE from_cl=?", (row[0],)):
         print(f"  implies: {t} ({r})")
     for old, new, reason in con.execute(
-            "SELECT old,new,reason FROM supersedes WHERE lower(old) LIKE ?", (f"%{row[0].lower()}%",)):
+            "SELECT old,new,reason FROM supersedes WHERE lower(old) LIKE ?",
+            (f"%{row[0].lower()}%",)):
         print(f"  SUPERSEDED: {old} -> {new} ({reason})")
     return 0
 
@@ -940,7 +952,7 @@ def cmd_dangerous(con) -> int:
     unsupported = con.execute("SELECT cl_id, statement FROM v_unsupported").fetchall()
     if rows:
         print("LIVE claims resting on ungated evidence:")
-        for cl_id, stmt, ev, gate in rows:
+        for cl_id, stmt, _ev, gate in rows:
             print(f"  {cl_id:<5} gate={gate:<8} {stmt[:90]}")
     if unsupported:
         print("\nClaims with NO evidence edge:")
@@ -1023,14 +1035,15 @@ def export_json(con: sqlite3.Connection) -> dict:
     """
     tables, views = [], []
     for name, kind, sql in con.execute(
-        "SELECT name, type, sql FROM sqlite_master WHERE type IN ('table','view') ORDER BY type, name"
+        "SELECT name, type, sql FROM sqlite_master WHERE type IN ('table','view') "
+        "ORDER BY type, name"
     ).fetchall():
         (views if kind == "view" else tables).append((name, sql))
 
     def rows_of(name):
         cur = con.execute(f"SELECT * FROM {name}")
         cols = [d[0] for d in cur.description]
-        rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+        rows = [dict(zip(cols, r, strict=True)) for r in cur.fetchall()]
         # CANONICAL ORDER, not scan order. `SELECT *` returns rows in rowid order, and
         # `INSERT OR REPLACE` deletes-then-reinserts, so a replaced row moves to the end and the
         # scan order encodes how many replacements happened rather than anything about the data.
