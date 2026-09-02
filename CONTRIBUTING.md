@@ -34,6 +34,19 @@ The scope-prefix lets the merge history read as a project changelog without per-
 
 Use **non-squash merges** (`gh pr merge --merge`). Per-commit history is preserved on `main`, which is useful for debugging multi-commit PRs and for the project's "what shipped when" narrative. Squash merges collapse this signal.
 
+## Checks before you push
+
+Three gates, all cheap, each exercised by CI (`.github/workflows/tests.yml`):
+
+```bash
+uv run ruff check src tests mkdocs_hooks.py   # lint gate; scripts/ is out of scope (see the workflow)
+uv run pytest tests/ -q                        # the suite; data-dependent tests self-skip
+python scripts/research_map_db.py check        # research-map integrity, exit 1 on violation
+```
+
+`uv run mypy src` is configured but advisory: it reports ~70 pre-existing typing complaints
+(mostly `Tensor | float` unions in the box models) and is not a CI gate.
+
 ## Adding or removing a Carroll-N parameter
 
 The learnable-parameter layout lives in **one** place: the `PARAMS` registry in

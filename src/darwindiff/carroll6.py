@@ -31,7 +31,7 @@ Carbonate extension (7-tracer, ``carroll6_carbonate_step`` /
 
     dDIC/dt   = -μ_s f_Fe Ps - μ_l f_Fe Pl                  # phyto C fixation
                 - R_PICPOC * M_tot                            # CaCO3 formation (calcification)
-                - F_CO2 / H_mld                               # air-sea export (positive F = outgassing)
+                - F_CO2 / H_mld                               # air-sea flux (F > 0 = outgassing)
     dALK/dt   = -2 * R_PICPOC * M_tot                         # CaCO3 takes 2 ALK eq per mole
 
 F_CO2 is computed each step from (DIC, ALK, T, S) via the Follows-2006 carbonate solver
@@ -274,10 +274,7 @@ def prior_midpoint_offset(p: Param) -> float:
         ``diagnostics.BAND_CAL_GRADE_MAX``; larger is safer.
     """
     lo, hi = p.bounds
-    if p.scale == "log":
-        mid = math.sqrt(lo * hi)
-    else:
-        mid = lo + (hi - lo) * 0.5
+    mid = math.sqrt(lo * hi) if p.scale == "log" else lo + (hi - lo) * 0.5
     return abs(mid - p.carroll_value) / abs(p.carroll_value)
 
 

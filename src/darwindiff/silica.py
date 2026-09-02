@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Biogenic silica (bSi) diagnostic for the 15-tracer 2-layer Carroll-6 box.
 
 Computes steady-state bSi_1 and bSi_2 fields from the existing diatom state,

@@ -246,10 +246,12 @@ def bin_to_grid(
         )
     geotraces_var = GEOTRACES_VAR_MAP[variable]
     if geotraces_var not in ds:
+        fe_vars = sorted(
+            v for v in ds.data_vars
+            if str(v).startswith("Fe_") and not str(v).endswith(("_qc", "_err")))
         raise ValueError(
             f"variable {geotraces_var!r} (friendly: {variable!r}) not "
-            f"present in dataset; available Fe vars: "
-            f"{sorted(v for v in ds.data_vars if v.startswith('Fe_') and not v.endswith(('_qc','_err')))}"
+            f"present in dataset; available Fe vars: {fe_vars}"
         )
     for needed in ("latitude", "longitude", "DEPTH"):
         if needed not in ds:

@@ -65,8 +65,8 @@ SUBW1_ARM_SCAV_RAT = 26
 
 def test_trio_equals_its_binding_leg():
     """The trio cannot exceed its weakest member, and here it exactly equals it."""
-    assert TRIO_PER_AOI == FLAGSHIP["scav_rat"]
-    assert TRIO_PER_AOI <= min(FLAGSHIP[p] for p in ("alpfe", "scav_rat", "R_PICPOC"))
+    assert FLAGSHIP["scav_rat"] == TRIO_PER_AOI
+    assert min(FLAGSHIP[p] for p in ("alpfe", "scav_rat", "R_PICPOC")) >= TRIO_PER_AOI
 
 
 def test_cell_weighted_overstates_the_honest_metric():
@@ -393,7 +393,8 @@ def test_no_tracked_doc_quotes_the_unmatched_anchor_off_against_the_flagship():
             offenders.append(f"{path.relative_to(REPO).as_posix()}:{n}: {line.strip()[:110]}")
     assert not offenders, (
         "unlabelled anchor-off 4/50 (the 1500-epoch control) in:\n  " + "\n  ".join(offenders)
-        + f"\n\nThe epoch-matched control is {EPOCH_MATCHED_ANCHOR_OFF}/50 (n50e2k_anchor_off, 2000 ep)."
+        + f"\n\nThe epoch-matched control is {EPOCH_MATCHED_ANCHOR_OFF}/50 "
+        "(n50e2k_anchor_off, 2000 ep)."
     )
 
 

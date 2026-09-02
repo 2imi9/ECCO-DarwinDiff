@@ -91,29 +91,45 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "B", "UP", "SIM", "RUF"]
-ignore = []
+ignore = [
+    # Ambiguous-Unicode rules. Docstrings, comments and messages quote the literature's
+    # notation (×, −, µ, σ, ±, →) throughout src/ and tests/; the per-file list below was
+    # growing one loader at a time, so the three rules are off globally instead. They only
+    # ever fire on strings, docstrings and comments, never on identifiers.
+    "RUF001", "RUF002", "RUF003",
+]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests are descriptive; allow scientific Unicode (μ, ρ, –, ×) in docstrings.
-"tests/**" = ["B", "N", "RUF001", "RUF002"]
-# BGC modules use chemistry-equation naming (K0, K1, K2, DIC, ALK, DFe, etc.)
-# and Greek / Unicode notation in docstrings from the published literature
-# (Weiss 1974, Lueker 2000, Dickson 1990, Follows 2006, Carroll 2020/2022).
-# Forcing lowercase or ASCII-only would obscure the connection to those refs.
-"src/darwindiff/carroll6.py" = ["N806", "RUF002"]
-"src/darwindiff/carbonate.py" = ["N802", "N803", "N806", "RUF001", "RUF002"]
-# GP15 210Po/210Pb loader: docstrings carry radiochemistry notation
-# (210Po, 210Pb, λ_Po, ρ_sw, ×, −, σ) from Cochran et al. / BCO-DMO metadata.
-"src/darwindiff/cochran_gp15_po_pb_loader.py" = ["RUF001", "RUF002", "RUF003"]
-# Rufas 2024 POC-flux loader: docstrings/comments carry BCP notation
-# (z_eu, z_meso, mmol C m⁻² d⁻¹, ×, −, σ) from the compilation's papers.
-"src/darwindiff/rufas2024_poc_flux_loader.py" = ["RUF001", "RUF002", "RUF003"]
+# Tests are descriptive; bug-pattern and naming rules are not enforced there.
+"tests/**" = ["B", "N"]
+# The fixture is a verbatim PANGAEA tab-separated header; wrapping it would change the data.
+"tests/test_marsh_loader.py" = ["E501"]
+# BGC modules use chemistry-equation naming (K0, K1, K2, DIC, ALK, DFe, P_diatom, K_num,
+# etc.) from the published literature (Weiss 1974, Lueker 2000, Dickson 1990, Follows 2006,
+# Carroll 2020/2022). Forcing lowercase would obscure the connection to those refs.
+"src/darwindiff/carroll6.py" = ["N803", "N806"]
+"src/darwindiff/carroll6_5pft.py" = ["N803", "N806"]
+"src/darwindiff/carroll6_5pft_2layer.py" = ["N803", "N806"]
+"src/darwindiff/carbonate.py" = ["N802", "N803", "N806"]
+"src/darwindiff/closures.py" = ["N802", "N803", "N812"]
+"src/darwindiff/budget.py" = ["N802", "N806"]
+"src/darwindiff/integrators.py" = ["N803", "N806"]
+"src/darwindiff/transport.py" = ["N806"]
 
 [tool.mypy]
 python_version = "3.11"
 strict = false
 ignore_missing_imports = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# zarr 3.x ships PEP 695 syntax (`class Array[T]`) that mypy refuses to parse when checking
+# as python_version 3.11, and it aborted the whole run inside site-packages before checking
+# a single source file ("errors prevented further checking"). zarr is only reached
+# transitively through xarray, so skip following its imports. mypy is advisory, not a CI
+# gate: ~70 pre-existing complaints remain, mostly `Tensor | float` unions in the box models.
+module = ["zarr", "zarr.*"]
+follow_imports = "skip"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

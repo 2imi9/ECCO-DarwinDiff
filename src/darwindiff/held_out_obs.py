@@ -543,7 +543,8 @@ def held_out_calcite_obs(
     )
     _assert_grid_aligned(aoi, values.shape, env_dict, "Daniels calcite")
     target2d = torch.as_tensor(values, dtype=dtype, device=device)
-    target_finite2d = torch.as_tensor(dmask, dtype=torch.bool, device=device) & torch.isfinite(target2d)
+    dmask_t = torch.as_tensor(dmask, dtype=torch.bool, device=device)
+    target_finite2d = dmask_t & torch.isfinite(target2d)
     return _assemble(
         aoi, target2d, target_finite2d,
         observable=partial(log_picpoc_observable, eps=eps),
@@ -637,7 +638,9 @@ def _assert_grid_aligned(aoi: AOI, target_shape, env_dict: dict, what: str) -> N
         )
     got_lats = np.asarray(lats.detach().cpu() if torch.is_tensor(lats) else lats, dtype=float)
     got_lons = np.asarray(lons.detach().cpu() if torch.is_tensor(lons) else lons, dtype=float)
-    if not (np.allclose(got_lats, exp_lats, atol=1e-6) and np.allclose(got_lons, exp_lons, atol=1e-6)):
+    lats_match = np.allclose(got_lats, exp_lats, atol=1e-6)
+    lons_match = np.allclose(got_lons, exp_lons, atol=1e-6)
+    if not (lats_match and lons_match):
         raise ValueError(
             f"{what}: env grid CENTERS are not the shared integer-degree centers for AOI "
             f"{aoi.name!r} (lat0={got_lats[0]} vs {exp_lats[0]}, lon0={got_lons[0]} vs "

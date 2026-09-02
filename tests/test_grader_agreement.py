@@ -59,7 +59,7 @@ def test_all_graders_agree(tmp_path, aois, label):
     rec = {"alpfe": True, "R_PICPOC": True}     # two recovered, four not
     _write(tmp_path, aois, rec)
 
-    e_counts, e_trio, n = CC.independent_counts(str(tmp_path))
+    e_counts, _e_trio, n = CC.independent_counts(str(tmp_path))
     a_counts, a_status, a_n = CC.verify_run_counts(str(tmp_path))
     c_counts, c_n = CC.grade_all_params_counts(str(tmp_path))
 

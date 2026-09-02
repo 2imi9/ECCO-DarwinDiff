@@ -5,11 +5,11 @@ shims exactly like CI. They check the PrognosticModel contract (coord order,
 lead_time accumulation, unbounded iterator yielding the IC first), the physics
 guards (nonnegativity, land mask), and the log-Chl round-trip.
 """
-import pytest
 import numpy as np
+import pytest
 import torch
 
-from darwindiff.e2s import DarwinBGCPrognostic, EccoDarwinV05, E2S_AVAILABLE
+from darwindiff.e2s import E2S_AVAILABLE, DarwinBGCPrognostic, EccoDarwinV05
 
 
 def _zero_residual_model(v):
@@ -47,7 +47,7 @@ def test_input_coords_canonical_order():
 
 
 def test_forward_shape_and_lead_time_accumulates():
-    model, lat, lon, v, h, w, _ = _make_model()
+    model, _lat, _lon, v, h, w, _ = _make_model()
     ic = model.input_coords()
     coords = ic.copy()
     coords["batch"] = np.array([0])
@@ -57,13 +57,15 @@ def test_forward_shape_and_lead_time_accumulates():
     assert x_next.shape == (1, 1, 1, v, h, w)   # rank preserved through batch_func
     # lead_time advanced by exactly one dt (from 0)
     assert oc["lead_time"][0] == model.dt
-    assert list(oc.keys())[0] == "batch"
+    assert next(iter(oc.keys())) == "batch"
 
 
 def test_zero_residual_is_identity_and_guards():
-    model, lat, lon, v, h, w, mask = _make_model()
+    model, _lat, _lon, v, h, w, _mask = _make_model()
     ic = model.input_coords()
-    coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
+    coords = ic.copy()
+    coords["batch"] = np.array([0])
+    coords["time"] = np.array([np.datetime64("2016-01-01")])
     x = torch.rand(1, 1, 1, v, h, w) + 0.1
     x_next, _ = model(x, coords)
     # non-Chl channels (linear, zero residual) should round-trip to the input
@@ -75,14 +77,18 @@ def test_zero_residual_is_identity_and_guards():
 def test_land_mask_zeroed():
     v_vars = ["DIC_k0", "DIC_k1", "Chl1_k0", "Chl1_k1"]
     h, w = 8, 12
-    lat = np.linspace(-80.0, 80.0, h); lon = np.linspace(0.0, 360.0, w, endpoint=False)
-    mask = np.ones((h, w), dtype=bool); mask[0, 0] = False  # one land cell
+    lat = np.linspace(-80.0, 80.0, h)
+    lon = np.linspace(0.0, 360.0, w, endpoint=False)
+    mask = np.ones((h, w), dtype=bool)
+    mask[0, 0] = False  # one land cell
     model = DarwinBGCPrognostic(
         _zero_residual_model(len(v_vars)), v_vars, lat, lon,
         np.zeros(len(v_vars)), np.ones(len(v_vars)), ocean_mask=mask, residual=True,
     )
     ic = model.input_coords()
-    coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
+    coords = ic.copy()
+    coords["batch"] = np.array([0])
+    coords["time"] = np.array([np.datetime64("2016-01-01")])
     x = torch.rand(1, 1, 1, len(v_vars), h, w) + 0.1
     x_next, _ = model(x, coords)
     assert (x_next[0, 0, 0, :, 0, 0] == 0.0).all()   # land cell zeroed on every channel
@@ -91,27 +97,31 @@ def test_land_mask_zeroed():
 
 def test_log_chl_roundtrip():
     # Chl channels go through log->exp; zero residual must still round-trip positives
-    model, lat, lon, v, h, w, _ = _make_model()
+    model, _lat, _lon, v, h, w, _ = _make_model()
     assert model.log_idx == [2, 3]  # the two Chl1_k* channels
     ic = model.input_coords()
-    coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
+    coords = ic.copy()
+    coords["batch"] = np.array([0])
+    coords["time"] = np.array([np.datetime64("2016-01-01")])
     x = torch.rand(1, 1, 1, v, h, w) + 0.5
     x_next, _ = model(x, coords)
     assert torch.allclose(x_next[..., 2:, :, :], x[..., 2:, :, :], atol=1e-3, rtol=1e-3)
 
 
 def test_iterator_yields_ic_first_and_is_unbounded():
-    model, lat, lon, v, h, w, _ = _make_model()
+    model, _lat, _lon, v, h, w, _ = _make_model()
     ic = model.input_coords()
-    coords = ic.copy(); coords["batch"] = np.array([0]); coords["time"] = np.array([np.datetime64("2016-01-01")])
+    coords = ic.copy()
+    coords["batch"] = np.array([0])
+    coords["time"] = np.array([np.datetime64("2016-01-01")])
     x = torch.rand(1, 1, 1, v, h, w) + 0.1
     it = model.create_iterator(x, coords)
     x0, c0 = next(it)
     assert torch.allclose(x0, x)              # step 0 IS the initial condition
     assert c0["lead_time"][0] == np.timedelta64(0, "h")
-    x1, c1 = next(it)
+    _x1, c1 = next(it)
     assert c1["lead_time"][0] == model.dt     # step 1 advanced one dt
-    x2, c2 = next(it)
+    _x2, c2 = next(it)
     assert c2["lead_time"][0] == 2 * model.dt  # unbounded, keeps accumulating
 
 
@@ -121,7 +131,8 @@ def test_datasource_roundtrip(tmp_path):
     h, w, m = 6, 9, 3
     chan = np.array(["DIC_k0", "DIC_k1", "Chl1_k0"])
     state = np.random.rand(m, len(chan), h, w).astype(np.float32)
-    lats = np.linspace(-80, 80, h); lons = np.linspace(0, 360, w, endpoint=False)
+    lats = np.linspace(-80, 80, h)
+    lons = np.linspace(0, 360, w, endpoint=False)
     p = tmp_path / "cube.npz"
     # times_days is required for positional access: without a calendar the loader can
     # no longer invent a timestamp for an index, since doing so labelled month 0 as
@@ -139,7 +150,8 @@ def test_datasource_roundtrip(tmp_path):
 
 if __name__ == "__main__":
     # allow a plain `python tests/test_e2s.py` smoke run without pytest
-    import tempfile, pathlib
+    import pathlib
+    import tempfile
     test_input_coords_canonical_order()
     test_forward_shape_and_lead_time_accumulates()
     test_zero_residual_is_identity_and_guards()
@@ -249,7 +261,8 @@ def test_prognostic_from_config_round_trips_the_training_transform():
     )
     assert on.log_idx == [0, 1]
     assert float(on.log_floors[0]) == pytest.approx(1e-6)
-    assert float(on.log_floors[2]) == pytest.approx(1e-12)  # untouched channels keep the legacy floor
+    # untouched channels keep the legacy floor
+    assert float(on.log_floors[2]) == pytest.approx(1e-12)
 
 
 def test_from_config_syncs_residual_and_dt(monkeypatch):
@@ -282,7 +295,7 @@ def test_positional_index_never_becomes_a_false_timestamp(tmp_path):
     import numpy as _np
     import pytest as _pytest
 
-    xr = _pytest.importorskip("xarray")
+    _pytest.importorskip("xarray")
     from darwindiff.e2s.datasource import EccoDarwinV05
 
     p = tmp_path / "c.npz"

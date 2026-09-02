@@ -61,7 +61,8 @@ def _save(tmp_path, model, means, stds, name="ck.safetensors"):
 
 def test_roundtrip_restores_every_weight_bitwise(tmp_path):
     src = _tiny_model()
-    means = np.array([1.5, -0.25]); stds = np.array([2.0, 0.5])
+    means = np.array([1.5, -0.25])
+    stds = np.array([2.0, 0.5])
     path = _save(tmp_path, src, means, stds)
 
     dst = _tiny_model()
@@ -94,7 +95,8 @@ def test_complex_spectral_weights_survive_the_real_view_packing(tmp_path):
 
 
 def test_stats_are_restored_alongside_the_weights(tmp_path):
-    means = np.array([3.25, -7.5]); stds = np.array([1.25, 4.0])
+    means = np.array([3.25, -7.5])
+    stds = np.array([1.25, 4.0])
     path = _save(tmp_path, _tiny_model(), means, stds)
     _, ck_means, ck_stds, cfg = ep.read_checkpoint(path)
     assert np.allclose(ck_means, means)
@@ -111,14 +113,16 @@ def test_stats_are_restored_alongside_the_weights(tmp_path):
 )
 def test_a_run_that_does_not_reproduce_the_standardization_aborts(tmp_path, bad_means, bad_stds):
     """The whole point of the guard: wrong z-space must stop the run, not warn."""
-    means = np.array([1.5, -0.25]); stds = np.array([2.0, 0.5])
+    means = np.array([1.5, -0.25])
+    stds = np.array([2.0, 0.5])
     path = _save(tmp_path, _tiny_model(), means, stds)
     with pytest.raises(SystemExit, match="does not reproduce the checkpoint's standardization"):
         ep.load_checkpoint(path, _tiny_model(), bad_means, bad_stds, CHANS)
 
 
 def test_matching_standardization_passes(tmp_path):
-    means = np.array([1.5, -0.25]); stds = np.array([2.0, 0.5])
+    means = np.array([1.5, -0.25])
+    stds = np.array([2.0, 0.5])
     path = _save(tmp_path, _tiny_model(), means, stds)
     # a deviation well inside tolerance must NOT abort (float round-trip is not bitwise)
     ep.load_checkpoint(path, _tiny_model(), means + 1e-9, stds, CHANS)
@@ -143,7 +147,7 @@ def test_architecture_mismatch_aborts(tmp_path):
         ),
         torch.float32,
     )
-    with pytest.raises(SystemExit, match="state_dict does not match|size mismatch"):
+    with pytest.raises(SystemExit, match=r"state_dict does not match|size mismatch"):
         ep.load_checkpoint(path, wide, means, stds, CHANS)
 
 
@@ -155,7 +159,8 @@ def test_missing_checkpoint_aborts(tmp_path):
 def test_torch_pt_fallback_round_trips(tmp_path):
     """The .pt branch must carry the same payload as the safetensors branch."""
     src = _tiny_model()
-    means = np.array([0.5, 2.5]); stds = np.array([1.5, 3.5])
+    means = np.array([0.5, 2.5])
+    stds = np.array([1.5, 3.5])
     path = _save(tmp_path, src, means, stds, name="ck.pt")
     sd, ck_means, ck_stds, cfg = ep.read_checkpoint(path)
     assert np.allclose(ck_means, means) and np.allclose(ck_stds, stds)
@@ -182,7 +187,8 @@ def test_a_torch_payload_under_a_safetensors_name_still_loads(tmp_path, monkeypa
         return real_import(name, *a, **kw)
 
     src = _tiny_model()
-    means = np.array([1.0, 2.0]); stds = np.array([3.0, 4.0])
+    means = np.array([1.0, 2.0])
+    stds = np.array([3.0, 4.0])
     path = tmp_path / "ck.safetensors"
 
     monkeypatch.setattr(builtins, "__import__", no_safetensors)
@@ -209,5 +215,5 @@ def test_format_is_detected_by_content_not_suffix(tmp_path):
     misnamed = tmp_path / "ck.pt"
     misnamed.write_bytes(p.read_bytes())
     assert ep._is_safetensors_file(misnamed), "content, not the suffix, decides"
-    sd, m, s, cfg = ep.read_checkpoint(misnamed)
+    _sd, _m, _s, cfg = ep.read_checkpoint(misnamed)
     assert cfg["channel_names"] == CHANS

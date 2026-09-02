@@ -79,7 +79,6 @@ from darwindiff.carbonate import (
 )
 from darwindiff.carroll6 import (
     G0_GRAZE,
-    H_MLD,
     K_FE,
     LIGHT,
     M_LIN,
@@ -298,8 +297,11 @@ def npp_from_state(
     runner adds a PRIMPROD term.
     """
     DFe_1 = state[I_DFE_1]
-    P_diatom = state[I_DIATOM]; P_lge = state[I_LGE]; P_syn = state[I_SYN]
-    P_proLL = state[I_PROLL]; P_proHL = state[I_PROHL]
+    P_diatom = state[I_DIATOM]
+    P_lge = state[I_LGE]
+    P_syn = state[I_SYN]
+    P_proLL = state[I_PROLL]
+    P_proHL = state[I_PROHL]
     mu_proHL = params[I_SMALLGROW]
     mu_lge = params[I_BIGGROW]
     f_fe = DFe_1 / (DFe_1 + K_FE)
@@ -518,7 +520,7 @@ def carroll6_5pft_2layer_step(
     # (c) Subsurface remineralization releases bound iron + carbon. This is
     #     the SOLE iron path back to dissolved phase in L2.
     poc_remin = r_remin * POC_2                                       # mmol C/m^3/d
-    pic_dissolve = R_PIC_DISSOL * PIC_2                               # separate calcite dissolution rate
+    pic_dissolve = R_PIC_DISSOL * PIC_2                               # calcite dissolution rate
     fe_remin_L2 = Q_FE_REMIN * poc_remin                              # mmol Fe/m^3/d
 
     # =========================================================================
@@ -526,9 +528,9 @@ def carroll6_5pft_2layer_step(
     # =========================================================================
 
     dDFe_1 = (
-        alpfe * PHI_DUST                                  # dust source (per-volume in v2.6 convention)
+        alpfe * PHI_DUST                                  # dust source (per-volume, v2.6)
         - scav_rat_per_day * DFe_1 * POC_1                # surface scavenging
-        - fe_uptake                                       # biology uptake (carries iron implicitly via POC to L2)
+        - fe_uptake                                       # biology uptake (iron rides POC to L2)
         + fe_diff_L1                                      # diffusive exchange with L2
     )
     dP_diatom = growth_diatom - mort_diatom - graze_diatom
@@ -591,7 +593,7 @@ def carroll6_5pft_2layer_step(
     # =========================================================================
 
     dDFe_2 = (
-        + fe_remin_L2                       # iron released by POC remineralization (the SOLE L2 source)
+        + fe_remin_L2                       # iron from POC remineralization (the SOLE L2 source)
         - scav_rat_per_day * DFe_2 * POC_2  # subsurface scavenging — the scav_rat anchor
         + fe_diff_L2                        # diffusive exchange with L1
     )

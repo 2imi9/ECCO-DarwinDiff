@@ -14,9 +14,19 @@ import json
 import pathlib
 import re
 import subprocess
+import sys
 from collections import defaultdict
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from research_map_db import LOCAL_ONLY_DOCS  # the declared gitignored notes
+
 REPO = pathlib.Path(__file__).resolve().parents[1]
+#: Basenames of the seven notes that are gitignored ON PURPOSE. Only these may render as
+#: "LOCAL-ONLY"; any other untracked name is a typo or a rename and must say so.
+LOCAL_ONLY_NAMES = {p.rsplit("/", 1)[1] for p in LOCAL_ONLY_DOCS}
+#: Marker for a cited name that is neither tracked nor declared local-only. research_map_db.py
+#: fails `check` on any cell carrying it, so the exact text is load-bearing.
+UNRESOLVED = "UNRESOLVED source, not tracked and not a declared local-only note:"
 OUT = REPO / "docs" / "research_map.md"
 M = json.loads((REPO / "docs" / "findings" / "research_map_corpus.json").read_text(encoding="utf-8"))
 
@@ -27,7 +37,7 @@ M = json.loads((REPO / "docs" / "findings" / "research_map_corpus.json").read_te
 # `git ls-files` makes the renderer see the repository the way a reader sees it.
 def _tracked_docs() -> set:
     try:
-        out = subprocess.run(["git", "ls-files", "docs"], cwd=REPO,
+        out = subprocess.run(["git", "ls-files", "docs", ":(glob)*.md"], cwd=REPO,
                              capture_output=True, text=True, check=True)
     except (OSError, subprocess.CalledProcessError):
         return set()          # not a git checkout: fall back to the filesystem below
@@ -36,9 +46,19 @@ def _tracked_docs() -> set:
 
 _TRACKED = _tracked_docs()
 DOCS = {}
-for _sub in ("findings", "research_notes"):
-    for _p in (REPO / "docs" / _sub).glob("*.md"):
-        _rel = f"docs/{_sub}/{_p.name}"
+# The two findings folders, the ADRs, the top-level docs/ pages (the AGU abstract, the guides)
+# and the root-level pages (STATUS.md, README.md ...). Until 2026-09-02 only the first two were
+# indexed, so the corpus's citations of ADR-0003, STATUS.md and docs/agu26_abstract_draft.md
+# rendered as "LOCAL-ONLY source, not in the repo" -- the same label as a typo -- or were
+# dropped silently when a findings citation sat beside them. No basename is shared between
+# these five sets (checked 2026-09-02), which the basename-keyed DOCS index relies on.
+for _dir, _prefix in ((REPO / "docs" / "findings", "docs/findings/"),
+                      (REPO / "docs" / "research_notes", "docs/research_notes/"),
+                      (REPO / "docs" / "adr", "docs/adr/"),
+                      (REPO / "docs", "docs/"),
+                      (REPO, "")):
+    for _p in _dir.glob("*.md"):
+        _rel = _prefix + _p.name
         if _TRACKED and _rel not in _TRACKED:
             continue          # local-only note: real on this disk, invisible to every reader
         DOCS[_p.name] = _rel
@@ -65,11 +85,23 @@ def docref(d):
         return ""
     names = re.findall(r"[A-Za-z0-9_.\-]+\.md", str(d))
     keep = list(dict.fromkeys(n for n in names if n in DOCS))[:3]
+    # Untracked AND not a declared local-only note: a typo or a renamed file. Until
+    # 2026-09-02 this fell through to the LOCAL-ONLY label, so a settled row citing
+    # `2026-08-13_the_southern_ocean_rpicpoc_leg_...md` (the file is dated 08-12) rendered
+    # as a deliberately withheld note and passed every gate for three weeks. Name the
+    # defect instead; `research_map_db.py check` fails on this label.
+    stray = [n for n in names if n not in DOCS and n not in LOCAL_ONLY_NAMES]
     if keep:
-        return ", ".join(f"`{DOCS[n]}`" for n in keep)
-    if names:
-        return f"LOCAL-ONLY source, not in the repo: {names[0]}"
-    return ""
+        rendered = ", ".join(f"`{DOCS[n]}`" for n in keep)
+    else:
+        declared = [n for n in names if n in LOCAL_ONLY_NAMES]
+        rendered = f"LOCAL-ONLY source, not in the repo: {declared[0]}" if declared else ""
+    # A cell that names a resolvable file (tracked OR declared local-only) AND a mistyped one
+    # used to drop the typo silently, so it passed every gate (Codex, PR #246, twice). Carry
+    # the marker whenever anything is stray, whatever else the cell resolved to.
+    if stray:
+        return f"{rendered}; {UNRESOLVED} {stray[0]}" if rendered else f"{UNRESOLVED} {stray[0]}"
+    return rendered
 
 
 def norm(s):

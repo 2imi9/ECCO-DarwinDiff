@@ -18,7 +18,7 @@ import pytest
 import torch
 
 import darwindiff.iron_forcing_loader as ifl
-from darwindiff.carroll6 import P, PHI_DUST
+from darwindiff.carroll6 import PHI_DUST, P
 from darwindiff.ecco_darwin_loader import AOI, EQUATORIAL_PACIFIC_AOI
 from darwindiff.iron_forcing_loader import (
     IRON_INSCAL,
@@ -55,7 +55,8 @@ def _synthetic_ironfile(tmp_path: Path, *, nx: int = 4, per_record=None) -> Path
     """A tiny 12-record compact ironfile. Record m (0-based) is filled with
     ``per_record(m)`` (default: constant m) so time-reductions are checkable."""
     if per_record is None:
-        per_record = lambda m: float(m)
+        def per_record(m):
+            return float(m)
     stack = np.stack(
         [np.full((LLC270_NFACE, nx, nx), per_record(m)) for m in range(IRON_N_RECORDS)]
     )
@@ -198,7 +199,8 @@ class TestSurfaceField:
         """A4 invariant: column-integrated dust (sum_z vol*dz) is independent of n_z."""
         grid = np.array([[5.0e-8]])
         dz = 25.0
-        col_int = lambda nz: float((phi_dust_surface_field(grid, dz, nz).sum() * dz).item())
+        def col_int(nz):
+            return float((phi_dust_surface_field(grid, dz, nz).sum() * dz).item())
         assert col_int(2) == pytest.approx(col_int(8))
         # and equals areal * seconds_per_day (the areal input, per day)
         assert col_int(4) == pytest.approx(5.0e-8 * SECONDS_PER_DAY)
@@ -360,8 +362,8 @@ class TestRealGrid:
     def test_grid_lonlat_ranges(self) -> None:
         xc, yc = load_grid_lonlat(_REAL_GRID_DIR)
         assert xc.shape == (LLC270_NFACE, LLC270_NX, LLC270_NX)
-        assert -180.0 <= float(xc.min()) and float(xc.max()) <= 180.0
-        assert -90.0 <= float(yc.min()) and float(yc.max()) <= 90.0
+        assert float(xc.min()) >= -180.0 and float(xc.max()) <= 180.0
+        assert float(yc.min()) >= -90.0 and float(yc.max()) <= 90.0
 
     def test_surface_ocean_mask(self) -> None:
         ocean = load_surface_ocean_mask(_REAL_GRID_DIR)

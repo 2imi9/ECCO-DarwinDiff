@@ -219,7 +219,7 @@ def build_weight_vectors_from_rule(
     ``tests/test_gating_weights.py``.
     """
     n = len(PARAM_NAMES)
-    weights = rule["weights"] if "weights" in rule else rule
+    weights = rule.get("weights", rule)
     total = float(sum(aoi_loss_weights[a] for a in aoi_keys))
     vectors: dict[str, torch.Tensor] = {}
     for a in aoi_keys:

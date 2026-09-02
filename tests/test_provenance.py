@@ -68,7 +68,7 @@ def test_digest_does_not_depend_on_walk_order(tmp_path: Path) -> None:
 
 
 def test_stamp_works_without_git_and_is_json_serialisable(tmp_path: Path) -> None:
-    """The cluster case: no repo, so git fields are None but the digest still identifies the build."""
+    """The cluster case: no repo, git fields None, but the digest still identifies the build."""
     s = stamp(tmp_path / "does_not_exist.py")
     assert s["code_digest"], "a digest must be produced even with no git and no runner file"
     json.dumps(s)  # artifacts are JSON; an unserialisable stamp would abort the write
@@ -79,13 +79,14 @@ def test_stamp_never_raises_on_bad_input() -> None:
     for bad in (None, "", "/nonexistent/\0/path", 12345):
         try:
             out = stamp(bad)  # type: ignore[arg-type]
-        except Exception as exc:  # noqa: BLE001
-            raise AssertionError(f"stamp({bad!r}) raised {exc!r}; it must degrade, not fail") from exc
+        except Exception as exc:
+            raise AssertionError(
+                f"stamp({bad!r}) raised {exc!r}; it must degrade, not fail") from exc
         assert isinstance(out, dict)
 
 
 def test_stamp_reports_this_repo() -> None:
-    """In a real checkout the git fields populate, so the authoritative id is there when available."""
+    """In a real checkout the git fields populate, so the authoritative id is present."""
     s = stamp(Path(__file__).resolve().parents[1] / "scripts" / "run_v3.0_joint_multi_aoi.py")
     assert s["code_digest"]
     assert s["runner_md5"]

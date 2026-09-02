@@ -14,8 +14,6 @@ cube's ``chan_names`` and the ``DarwinBGCPrognostic`` wrapper.
 """
 from __future__ import annotations
 
-from datetime import datetime
-
 import numpy as np
 
 try:  # xarray is a light dep but guard anyway for minimal envs
@@ -71,7 +69,8 @@ class EccoDarwinV05:
             self.times = np.asarray(times, dtype="datetime64[ns]")
         elif "times_days" in d:
             base = np.datetime64("1992-01-01", "ns")
-            self.times = base + (np.asarray(d["times_days"], dtype="float64") * np.timedelta64(1, "D"))
+            days = np.asarray(d["times_days"], dtype="float64")
+            self.times = base + (days * np.timedelta64(1, "D"))
         else:
             self.times = None  # positional addressing
 

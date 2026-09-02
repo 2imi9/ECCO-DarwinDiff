@@ -511,3 +511,46 @@ def test_settled_search_matches_terms_not_only_contiguous_phrases():
     absent = settled("zzzz quixotic nonexistent tokens")
     assert "nothing settled" in absent
     assert "may be genuinely new work" in absent
+
+
+def test_document_gate_fires_on_an_unresolved_marker_beside_a_valid_citation():
+    """Negative control for the settled / supersedes / trap / claim document gate.
+
+    A cell that names a valid file AND a mistyped one used to pass every gate: the any-match
+    predicate was satisfied by the valid name and the renderer dropped the typo silently
+    (Codex, PR #246). gen_research_map.docref() now carries an UNRESOLVED marker next to the
+    good citation, and the gate must fire on that marker even though a known document name is
+    present in the same cell. The gate must also still fire on the plain no-match form.
+    """
+    rmdb = _db()
+    sql = next(sql for name, sql in rmdb.CONSTRAINTS if "settled, supersedes or trap" in name)
+    con = rmdb.build()
+    assert not con.execute(sql).fetchall(), "the gate fires on the committed map; fix the map"
+
+    valid = con.execute("SELECT path FROM document WHERE local_only = 0 LIMIT 1").fetchone()[0]
+    marker = ("UNRESOLVED source, not tracked and not a declared local-only note: "
+              "2099-01-01_no_such_finding.md")
+    mixed = f"`{valid}`; {marker}"
+    con.execute("INSERT INTO settled VALUES (?,?,?,?)", ("synthetic q", "synthetic a", mixed, ""))
+    con.execute("INSERT INTO supersedes VALUES (?,?,?,?)", ("synthetic old", "new", "why", mixed))
+    con.execute("INSERT INTO trap VALUES (?,?,?)", ("synthetic trap", mixed, ""))
+    rows = con.execute(sql).fetchall()
+    assert {r[0] for r in rows} == {"settled", "supersedes", "trap"}, rows
+
+    con.execute("INSERT INTO settled VALUES (?,?,?,?)",
+                ("plain miss", "a", "`docs/findings/2099-01-01_no_such_finding.md`", ""))
+    assert len(con.execute(sql).fetchall()) == 4
+
+    # A declared local-only note IS in DOCUMENT, so a typo beside one satisfied the any-match
+    # too (Codex, second pass). The renderer now keeps the marker beside the LOCAL-ONLY label.
+    local = con.execute("SELECT name FROM document WHERE local_only = 1 LIMIT 1").fetchone()[0]
+    con.execute("INSERT INTO settled VALUES (?,?,?,?)",
+                ("typo beside local-only", "a",
+                 f"LOCAL-ONLY source, not in the repo: {local}; {marker}", ""))
+    assert len(con.execute(sql).fetchall()) == 5
+
+    # The claim gate shares the predicate through v_orphan_doc.
+    before = len(con.execute("SELECT 1 FROM v_orphan_doc").fetchall())
+    con.execute("INSERT INTO claim (cl_id, doc) VALUES (?, ?)", ("syn999", mixed))
+    assert len(con.execute("SELECT 1 FROM v_orphan_doc").fetchall()) == before + 1
+

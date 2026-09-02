@@ -45,7 +45,7 @@ def _strip_parent_prefix(path: str) -> str:
     return path
 
 
-def on_page_markdown(markdown, page, config, files):  # noqa: ARG001 (MkDocs API)
+def on_page_markdown(markdown, page, config, files):  # MkDocs hook signature
     src_dir = posixpath.dirname(page.file.src_uri)  # "" for top-level pages
 
     def repl(match: re.Match) -> str:

@@ -21,8 +21,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 from darwindiff.carroll6 import PARAMS  # noqa: E402
@@ -67,7 +65,7 @@ def test_grade_all_params_grades_a_single_aoi_run(tmp_path):
     """The regression: this returned 0/n for every parameter before 2026-07-30."""
     G = _load("scripts/analysis/grade_all_params.py")
     _write_run(tmp_path, ["eqpac"])
-    counts, n, aois = G.per_aoi_2of3(str(tmp_path))
+    counts, n, _aois = G.per_aoi_2of3(str(tmp_path))
     assert n == 4
     for p in PARAMS:
         assert counts[p.name] == 4, f"{p.name} graded {counts[p.name]}/4 on a single-AOI run"

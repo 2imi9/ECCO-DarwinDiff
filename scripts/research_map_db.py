@@ -43,6 +43,7 @@ ENFORCED (`check` exits 1). Relational algebra, written in SQL in CONSTRAINTS be
     pi_cl(sigma_{live}(CLAIM)) INTERSECT pi_old(SUPERSEDES)   = {}   on normalised PROSE, not ids
     sigma_{mode=inductive AND numbers IS NULL}(CLAIM)         = {}   presence only, see caveat
     sigma_{doc NOT IN DOCUMENT}(CLAIM)                        = {}   DOCUMENT is the REPO, not disk
+    sigma_{doc NOT IN DOCUMENT}(SETTLED u SUPERSEDES u TRAP)  = {}   same gate, the other cited tables
     sigma_{verdict=RESOLVES_MISMATCH}(CITATION)               = {}
     sigma_{verdict IN (DEAD, FABRICATED)}(CITATION)           = {}
     sigma_{doc IS NULL}(SETTLED)                              = {}
@@ -214,10 +215,14 @@ CREATE VIEW v_dangerous AS           -- live claims resting on ungated evidence
 
 CREATE VIEW v_orphan_doc AS          -- a claim citing a file that is not in the repo
     -- A claim cell may name SEVERAL documents ("a.md, b.md"), so an equality test on the whole
-    -- cell reports a false orphan. Match if ANY known document name appears inside the cell.
+    -- cell reports a false orphan. Match if ANY known document name appears inside the cell --
+    -- and ALSO fail on the renderer's UNRESOLVED marker, which gen_research_map.docref() leaves
+    -- next to a valid citation when the same cell names a file that resolves to nothing
+    -- (otherwise a typo beside a good cite would satisfy the any-match and pass).
     SELECT c.cl_id, c.doc FROM claim c
     WHERE trim(coalesce(c.doc,'')) <> ''
-      AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0);
+      AND (instr(c.doc, 'UNRESOLVED source') > 0
+           OR NOT EXISTS (SELECT 1 FROM document d WHERE instr(c.doc, d.name) > 0));
 
 CREATE VIEW v_local_only_cite AS     -- a live claim whose only backing is a file the reader cannot open
     SELECT DISTINCT c.cl_id, d.name, substr(c.statement,1,70) AS statement
@@ -361,7 +366,8 @@ def _tracked_doc_paths() -> list[str] | None:
     """
     try:
         out = subprocess.run(
-            ["git", "-C", str(REPO), "ls-files", "docs/findings", "docs/research_notes"],
+            ["git", "-C", str(REPO), "ls-files",
+             "docs/findings", "docs/research_notes", "docs/adr", ":(glob)docs/*.md", ":(glob)*.md"],
             capture_output=True, text=True, timeout=30, check=False,
         )
     except (OSError, subprocess.SubprocessError):
@@ -375,11 +381,19 @@ def _load_documents(con: sqlite3.Connection) -> None:
         print("WARNING: git could not list files, falling back to disk. Untracked notes may enter "
               "the document table, and this run will not match CI.", file=sys.stderr)
 
-    for sub in ("findings", "research_notes"):
-        d = REPO / "docs" / sub
+    # The two findings folders, the ADRs, the top-level docs/ pages and the root-level pages
+    # (STATUS.md, README.md, CHANGELOG.md ...). STATUS.md is the canonical results page and the
+    # corpus cites it, as it cites ADR-0003 and docs/agu26_abstract_draft.md; until 2026-09-02
+    # only the findings folders were indexed, so those citations rendered as "LOCAL-ONLY source,
+    # not in the repo" and no gate could tell them from a mistyped filename. Direct children
+    # only, in every set; the five sets share no basename (checked 2026-09-02).
+    for d, prefix in ((REPO / "docs" / "findings", "docs/findings/"),
+                      (REPO / "docs" / "research_notes", "docs/research_notes/"),
+                      (REPO / "docs" / "adr", "docs/adr/"),
+                      (REPO / "docs", "docs/"),
+                      (REPO, "")):
         if not d.is_dir():
             continue
-        prefix = f"docs/{sub}/"
         if tracked is None:
             names = sorted(p.name for p in d.glob("*.md"))
         else:
@@ -686,6 +700,28 @@ CONSTRAINTS = [
     # ignore the gate. Any OTHER missing file is still a hard failure.
     ("no claim cites a document that is neither in the repo nor a declared local-only note",
      """SELECT cl_id, doc FROM v_orphan_doc"""),
+    # The claim gate above never covered the other cited tables. A settled row citing a
+    # mistyped filename (2026-08-13 for a finding dated 2026-08-12) rendered as "LOCAL-ONLY
+    # source, not in the repo" for three weeks: the file was in the repo the whole time, and
+    # every gate passed because the label was built to look unresolvable. Same predicate as
+    # v_orphan_doc: fail on the renderer's UNRESOLVED marker (a typo beside a valid cite), or
+    # on a cell that names a markdown file and matches no document at all.
+    ("no settled, supersedes or trap row cites a markdown document that is neither in the repo "
+     "nor a declared local-only note",
+     """SELECT 'settled' AS tbl, substr(question,1,60) AS row_, doc FROM settled
+        WHERE instr(coalesce(doc,''), 'UNRESOLVED source') > 0
+           OR (instr(coalesce(doc,''), '.md') > 0
+               AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(settled.doc, d.name) > 0))
+        UNION ALL
+        SELECT 'supersedes', substr(old,1,60), doc FROM supersedes
+        WHERE instr(coalesce(doc,''), 'UNRESOLVED source') > 0
+           OR (instr(coalesce(doc,''), '.md') > 0
+               AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(supersedes.doc, d.name) > 0))
+        UNION ALL
+        SELECT 'trap', substr(trap,1,60), doc FROM trap
+        WHERE instr(coalesce(doc,''), 'UNRESOLVED source') > 0
+           OR (instr(coalesce(doc,''), '.md') > 0
+               AND NOT EXISTS (SELECT 1 FROM document d WHERE instr(trap.doc, d.name) > 0))"""),
     # `deliberate` marks a site that cites a known-bad DOI ON PURPOSE, to record that it is bad.
     # Without this exemption the constraint would fail forever and readers would learn to ignore it,
     # which is precisely the failure mode the citation audit warned about.

@@ -7,7 +7,7 @@
 
 The Marsh Southern Ocean anchor (12 of 1,296 cells, 0.9%) returned `R_PICPOC` **43/50 under the
 median collapse, 6/50 geometric, 0/50 arithmetic**. The finding
-([…_anchorable_but_only_under_the_median.md](2026-08-13_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md))
+([…_anchorable_but_only_under_the_median.md](2026-08-12_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md))
 recorded the verdict as AMBIGUOUS and stated that the median number **must not be quoted** until we
 knew whether it was a measurement or a collapse artifact. `pooler_audit.py` exists because the
 arithmetic collapse was once caught *manufacturing* `scav_rat` recovery; the same scepticism has to

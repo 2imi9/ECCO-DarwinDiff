@@ -24,10 +24,10 @@ from darwindiff.carroll6 import (
     LIGHT,
     M_LIN,
     M_QUAD,
-    P,
     PHI_DUST,
     Q_FE,
     W_SINK,
+    P,
 )
 
 Tendency = Callable[[torch.Tensor], torch.Tensor]
@@ -53,9 +53,9 @@ def bgc_tendency_field(
     ``[..., DIC, ALK]``; with 7 tracers the single ``pic_prod`` feeds
     ``dPIC(+1)/dDIC(-1)/dALK(-2)`` so the calcite closure's carbon effect is captured
     and carbon conserves through calcification (deep review A3). Optional neural
-    closures replace the iron-limitation and calcification terms (the UDE hook). ``dust`` (iron-dust source, default ``PHI_DUST``) and
-    ``light`` (default ``LIGHT``) may be time-varying scalars/fields for temporal
-    forcing (broadcastable to the field).
+    closures replace the iron-limitation and calcification terms (the UDE hook).
+    ``dust`` (iron-dust source, default ``PHI_DUST``) and ``light`` (default ``LIGHT``)
+    may be time-varying scalars/fields for temporal forcing (broadcastable to the field).
 
     **Precondition on a COLUMN/grid state:** atmospheric dust is a *surface* flux, so
     a scalar ``dust`` (applied at every Z layer) over-injects iron ~Z-fold and
@@ -114,7 +114,7 @@ def bgc_tendency_field(
         cf = 0.0 if co2_flux is None else co2_flux
         dDIC = -(growth_s + growth_l) - pic_prod - cf
         dALK = -2.0 * pic_prod
-        return torch.stack(base + [dDIC, dALK], dim=-1)
+        return torch.stack([*base, dDIC, dALK], dim=-1)
     return torch.stack(base, dim=-1)
 
 

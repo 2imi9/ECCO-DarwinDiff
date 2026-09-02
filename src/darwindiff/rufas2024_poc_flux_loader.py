@@ -313,8 +313,8 @@ def _bin_stations_to_1deg(
     """
     from darwindiff.llc270_loader import bin_to_1deg_grid
 
-    n_lat = int(round(aoi.lat_max - aoi.lat_min)) + 1
-    n_lon = int(round(aoi.lon_max - aoi.lon_min)) + 1
+    n_lat = round(aoi.lat_max - aoi.lat_min) + 1
+    n_lon = round(aoi.lon_max - aoi.lon_min) + 1
 
     if not stations:
         empty = np.full((n_lat, n_lon), np.nan, dtype=np.float64)

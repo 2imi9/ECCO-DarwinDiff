@@ -12,7 +12,6 @@ from __future__ import annotations
 import pytest
 import torch
 
-from darwindiff import transport as T
 from darwindiff.transport import (
     assert_vertical_cfl,
     column_tendency,
@@ -209,7 +208,8 @@ class TestImexRollout:
     def test_pure_diffusion_matches_iterated_implicit(self) -> None:
         # With a zero explicit tendency, imex_rollout == iterated implicit vdiff.
         state = torch.rand(2, 8, 5, dtype=F64)
-        zero_tend = lambda t, x: torch.zeros_like(x)
+        def zero_tend(t, x):
+            return torch.zeros_like(x)
         out = imex_rollout(zero_tend, state, dt=1.0, n_steps=5, kz=0.7, dz=10.0)
         ref = state.clone()
         for _ in range(5):

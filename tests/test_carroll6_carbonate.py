@@ -21,7 +21,6 @@ from darwindiff.carbonate import PCO2_ATM_DEFAULT
 from darwindiff.carroll6 import (
     CARROLL_VALUES,
     G0_GRAZE,
-    H_MLD,
     M_LIN,
     M_QUAD,
     PARAM_BOUNDS,

@@ -31,7 +31,6 @@ from darwindiff.ecco_darwin_loader import AOI
 from darwindiff.geotraces_loader import (
     FILL_VALUE_THRESHOLD,
     GEOTRACES_VAR_MAP,
-    QC_GOOD,
     RHO_SW,
     bin_to_grid,
     open_geotraces_bottle,
@@ -71,13 +70,15 @@ def _make_synthetic_idp_netcdf(
     # SeaDataNet QC flags stored as ASCII char codes:
     #   49='1' good, 50='2' probably_good, 51='3' probably_bad,
     #   52='4' bad, 57='9' missing
-    qc = rng.choice([49, 50, 51, 52, 57], size=fe_d.shape, p=[0.70, 0.15, 0.07, 0.03, 0.05]).astype(np.float32)
+    qc = rng.choice([49, 50, 51, 52, 57], size=fe_d.shape, p=[0.70, 0.15, 0.07, 0.03, 0.05])
+    qc = qc.astype(np.float32)
 
     ds = xr.Dataset(
         data_vars={
             "Fe_D_CONC": (
                 ("N_STATIONS", "N_SAMPLES"), fe_d,
-                {"units": "nmol/kg", "long_name": "Concentration of dissolved Fe", "_FillValue": -1.0e10},
+                {"units": "nmol/kg", "long_name": "Concentration of dissolved Fe",
+                 "_FillValue": -1.0e10},
             ),
             "Fe_D_CONC_qc": (
                 ("N_STATIONS", "N_SAMPLES"), qc,
@@ -201,7 +202,7 @@ def test_bin_to_grid_missing_variable_raises(tmp_path: Path) -> None:
     _make_synthetic_idp_netcdf(path)
     ds = open_geotraces_bottle(path)
     aoi = AOI("Tiny", -90.0, 90.0, -180.0, 180.0)
-    with pytest.raises(ValueError, match="Fe_S_CONC.*not.*present"):
+    with pytest.raises(ValueError, match=r"Fe_S_CONC.*not.*present"):
         bin_to_grid(ds, "Fe_S", aoi)
 
 

@@ -44,7 +44,6 @@ def _make_synthetic_glodap_netcdf(tmp_path: Path, variable: str = "TCO2") -> Pat
     """Write a synthetic NetCDF mirroring the GLODAPv2.2016b schema."""
     lon = np.arange(20.5, 380.5)
     lat = np.arange(-89.5, 90.5)
-    depth_surface = np.arange(33)
     Depth = np.linspace(5.0, 5500.0, 33)
 
     rng = np.random.default_rng(0)

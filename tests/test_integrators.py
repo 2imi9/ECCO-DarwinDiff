@@ -10,7 +10,6 @@ from darwindiff.integrators import (
     euler_step,
     integrate,
     relative_mass_drift,
-    rk4_step,
 )
 
 

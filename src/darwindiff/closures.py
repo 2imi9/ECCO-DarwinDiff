@@ -126,9 +126,9 @@ class ScavClosure(nn.Module):
     readout is zero-initialised (``corr == 1``), and ``r0 = scav_rat_per_day * POC0``,
     so at init this **reproduces the box sink** ``scav_rat_per_day*DFe*POC`` to float
     round-off (~1e-7, from the ``exp(log r0)`` round-trip -- a strict superset in
-    practice; the test asserts ``rtol=1e-6``). The Darwin/Parekh empirical exponent is ``p ~ 0.58``; report
-    ``(p - 1)`` as a diagnostic -- if data pulls ``p`` below 1 the box's linear-POC
-    simplification is being falsified.
+    practice; the test asserts ``rtol=1e-6``). The Darwin/Parekh empirical exponent is
+    ``p ~ 0.58``; report ``(p - 1)`` as a diagnostic -- if data pulls ``p`` below 1 the
+    box's linear-POC simplification is being falsified.
 
     Positivity: ``r0>0`` (exp), ``(POC/POC0)**p>=0``, ``DFe>=0``, ``corr in
     [1-eps, 1+eps]`` -> the sink is non-negative (a proper loss term). ``DFe``,

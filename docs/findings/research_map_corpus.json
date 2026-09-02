@@ -2763,7 +2763,7 @@
     {
       "question": "Is R_PICPOC's Southern Ocean leg inherited through the shared DINN, or merely unmeasured?",
       "answer": "AMBIGUOUS by the pre-registered rule, and pooler-dependent, which the prereg named in advance as itself a finding. Job 354596, single-AOI so inheritance is impossible by construction, verify_run exit 0 on both trained arms. R_PICPOC anchored vs unanchored: arithmetic 0/50 vs 0/50; geometric 6/50 vs 0/50 (P=0.0267); median 43/50 vs 0/50 (P=5.2e-21). Only the median clears the pre-registered 15/50 threshold. R_PICPOC also LOSES its pooler invariance for the first time (per-cell log_sd 0.105 to 0.459) because a 12-of-1296-cell anchor makes the recovered field heterogeneous. COST, pre-registered and fired: scav_rat degrades significantly under arithmetic, 30/50 to 16/50 (P=0.0088), in the one basin where it is established; diatomgraz drops 50 to 41 geometric (P=0.0026).",
-      "doc": "docs/findings/2026-08-13_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md"
+      "doc": "docs/findings/2026-08-12_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md"
     },
     {
       "question": "Is the median collapse legitimate for a sparsely-anchored parameter, or is the 43/50 a collapse artifact?",

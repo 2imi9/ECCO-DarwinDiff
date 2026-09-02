@@ -21,13 +21,13 @@ from darwindiff.contract import (
 
 
 def _span(name: str) -> float:
-    lo, hi = [p.bounds for p in PARAMS if p.name == name][0]
+    lo, hi = next(p.bounds for p in PARAMS if p.name == name)
     return hi / lo
 
 
 def _window(name: str) -> tuple[float, float]:
     """The factors that keep the rescaled range touching the Cal-grade band."""
-    p = [q for q in PARAMS if q.name == name][0]
+    p = next(q for q in PARAMS if q.name == name)
     lo, hi = p.bounds
     ref = p.carroll_value
     return ref * (1.0 - CAL_GRADE_BAND) / hi, ref * (1.0 + CAL_GRADE_BAND) / lo

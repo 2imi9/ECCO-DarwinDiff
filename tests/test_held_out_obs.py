@@ -26,8 +26,8 @@ from darwindiff.held_out_obs import (
     SurfaceGatedClosure,
     _lift_mask_surface,
     _lift_surface,
-    aoi_env_field,
     anomaly_masked_r2,
+    aoi_env_field,
     env_regime_split,
     held_out_calcite_obs,
     held_out_iron_obs,
@@ -69,7 +69,8 @@ def _daniels_points_full() -> DanielsPoints:
     lat, lon, cp, pp = [], [], [], []
     for iy in range(_NY):
         for ix in range(_NX):
-            lat.append(float(iy)); lon.append(float(ix))
+            lat.append(float(iy))
+            lon.append(float(ix))
             cp.append(0.02 + 0.01 * ix)   # >0
             pp.append(1.0)
     n = len(lat)
@@ -128,7 +129,7 @@ class TestEnvRegimeSplit:
     def test_lower_hold_and_coverage_respected(self) -> None:
         field = torch.arange(20, dtype=F64).reshape(4, 5)
         cov = field > 4  # exclude the 5 lowest cells from consideration
-        train, val, edge = env_regime_split(field, cov, q=0.5, hold="lower")
+        train, val, _edge = env_regime_split(field, cov, q=0.5, hold="lower")
         assert not val[~cov].any() and not train[~cov].any()  # never selects uncovered
         assert int((train | val).sum()) == int(cov.sum())
 
@@ -144,7 +145,7 @@ class TestEnvRegimeSplit:
         # (the old `field >= quantile` threshold did -> degenerate empty train).
         field = torch.full((4, 5), 3.14, dtype=F64)
         cov = torch.ones(4, 5, dtype=torch.bool)  # 20 cells
-        train, val, edge = env_regime_split(field, cov, q=0.25, hold="upper")
+        train, val, _edge = env_regime_split(field, cov, q=0.25, hold="upper")
         assert int(val.sum()) == 5  # ceil(0.25*20), not 20
         assert int(train.sum()) == 15
         assert int((train & val).sum()) == 0
@@ -255,7 +256,8 @@ class TestCalciteAssemblyHermetic:
         assert bool(torch.isfinite(obs.target).all())
 
     def test_forcing_coverage_is_anded_in(self) -> None:
-        base = held_out_calcite_obs(_AOI, n_z=4, points=_daniels_points_full(), cache=_synth_cache())
+        base = held_out_calcite_obs(
+            _AOI, n_z=4, points=_daniels_points_full(), cache=_synth_cache())
         fc = torch.ones(_NY, _NX, dtype=torch.bool)
         # zero out one interior cell that was covered
         covered = base.coverage_mask.clone()
@@ -282,7 +284,7 @@ class TestCalciteAssemblyHermetic:
         bad = _synth_cache()
         bad["darwin_lats"] = bad["darwin_lats"] + 0.5
         bad["darwin_lons"] = bad["darwin_lons"] + 0.5
-        with pytest.raises(ValueError, match="CENTERS|grid"):
+        with pytest.raises(ValueError, match=r"CENTERS|grid"):
             held_out_calcite_obs(_AOI, n_z=4, points=_daniels_points_full(), cache=bad)
 
     def test_degenerate_split_raises(self) -> None:
@@ -306,7 +308,7 @@ class TestIronCounterexampleHermetic:
         assert obs.n_train > 0 and obs.n_val > 0
 
     def test_iron_requires_a_source(self) -> None:
-        with pytest.raises(ValueError, match="geotraces_path|dfe_grid"):
+        with pytest.raises(ValueError, match=r"geotraces_path|dfe_grid"):
             held_out_iron_obs(_AOI, n_z=4, cache=_synth_cache())
 
 
@@ -341,7 +343,8 @@ _DANIELS = os.environ.get("DARWINDIFF_TEST_DANIELS") == "1"
 _LLC270 = os.environ.get("DARWINDIFF_TEST_LLC270") == "1"
 
 
-@pytest.mark.skipif(not _DANIELS, reason="set DARWINDIFF_TEST_DANIELS=1 (needs D: caches + Daniels)")
+@pytest.mark.skipif(
+    not _DANIELS, reason="set DARWINDIFF_TEST_DANIELS=1 (needs D: caches + Daniels)")
 class TestRealDaniels:
     def test_daniels_eqpac_raw_numbers(self) -> None:
         from darwindiff.daniels_loader import build_aoi_climatology

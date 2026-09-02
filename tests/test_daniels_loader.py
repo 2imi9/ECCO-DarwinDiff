@@ -140,7 +140,7 @@ class TestBinToGrid:
             [_row(0.0, 0.0, 5.0, 0.02, 1.0), _row(80.0, 170.0, 5.0, 0.5, 1.0)],
         )
         pts = load_daniels_points(path)
-        vals, mask, counts = bin_to_grid(pts, np.array([0.0]), np.array([0.0]))
+        vals, _mask, counts = bin_to_grid(pts, np.array([0.0]), np.array([0.0]))
         assert counts[0, 0] == 1  # only the in-box sample
         np.testing.assert_allclose(vals[0, 0], 0.02)
 
@@ -170,7 +170,7 @@ class TestRealDanielsData:
         not _RUN_REAL, reason="set DARWINDIFF_TEST_DANIELS=1 + Daniels .tab on disk"
     )
     def test_real_eqpac_geomean_plausible(self) -> None:
-        vals, mask, counts = build_aoi_climatology(EQUATORIAL_PACIFIC_AOI)
+        vals, mask, _counts = build_aoi_climatology(EQUATORIAL_PACIFIC_AOI)
         n_cells = int(mask.sum())
         assert n_cells > 10, f"too few eqpac cells ({n_cells}); AOI bin wrong"
         gm = float(np.exp(np.nanmean(np.log(vals[mask]))))

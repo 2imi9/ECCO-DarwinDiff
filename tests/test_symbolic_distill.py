@@ -212,7 +212,8 @@ def test_gather_visited_support_from_trajectory():
     # a [snapshots, cells, tracer] field; tracer 0 = DFe (some non-positive to drop)
     traj = torch.zeros(3, 5, 5)
     traj[..., 0] = torch.tensor([1e-5, 1e-4, 1e-3, 0.0, -1.0]).reshape(1, 5).expand(3, 5)
-    closure = lambda dfe: dfe / (dfe + 8e-5)  # numpy/torch-agnostic
+    def closure(dfe):
+        return dfe / (dfe + 8e-5)  # numpy/torch-agnostic
     driver, y = sd.gather_visited_support(closure, traj, tracer_index=0)
     assert (driver > 0).all()
     assert driver.size == 3 * 3  # 3 positive DFe values x 3 snapshots

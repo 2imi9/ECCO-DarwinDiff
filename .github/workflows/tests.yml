@@ -31,6 +31,23 @@ jobs:
       - name: Run tests
         run: uv run pytest tests/ -q
 
+  # Style gate for the package and its tests. scripts/ is deliberately NOT in scope: it carries
+  # ~2.5k historical violations across one-off experiment drivers, and gating on those would
+  # either fail forever or need a blanket ignore -- both inert gates. New scripts are still
+  # expected to land ruff-clean (see the "style(analysis)" commits); this job only keeps src/
+  # and tests/ from regressing. Pinned to the ruff version in uv.lock so local and CI agree;
+  # it does not need torch, so it runs without `uv sync`.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: ruff check (src, tests)
+        run: uvx ruff@0.15.12 check src tests mkdocs_hooks.py
+
   # The e2s adapter falls back to no-op shims when earth2studio is absent, so the main
   # job validates our adapter against OUR shims -- which cannot detect drift in NVIDIA's
   # actual protocol. This job installs the real package and runs the conformance module.

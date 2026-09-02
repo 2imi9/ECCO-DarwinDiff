@@ -33,7 +33,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-
 # --- Carroll-6 recovery banding ----------------------------------------------
 #
 # The DarwinDiff parameter-recovery experiments classify each recovered
