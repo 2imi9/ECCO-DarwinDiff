@@ -541,6 +541,14 @@ def test_document_gate_fires_on_an_unresolved_marker_beside_a_valid_citation():
                 ("plain miss", "a", "`docs/findings/2099-01-01_no_such_finding.md`", ""))
     assert len(con.execute(sql).fetchall()) == 4
 
+    # A declared local-only note IS in DOCUMENT, so a typo beside one satisfied the any-match
+    # too (Codex, second pass). The renderer now keeps the marker beside the LOCAL-ONLY label.
+    local = con.execute("SELECT name FROM document WHERE local_only = 1 LIMIT 1").fetchone()[0]
+    con.execute("INSERT INTO settled VALUES (?,?,?,?)",
+                ("typo beside local-only", "a",
+                 f"LOCAL-ONLY source, not in the repo: {local}; {marker}", ""))
+    assert len(con.execute(sql).fetchall()) == 5
+
     # The claim gate shares the predicate through v_orphan_doc.
     before = len(con.execute("SELECT 1 FROM v_orphan_doc").fetchall())
     con.execute("INSERT INTO claim (cl_id, doc) VALUES (?, ?)", ("syn999", mixed))

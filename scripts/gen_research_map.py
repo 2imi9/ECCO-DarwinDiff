@@ -93,15 +93,15 @@ def docref(d):
     stray = [n for n in names if n not in DOCS and n not in LOCAL_ONLY_NAMES]
     if keep:
         rendered = ", ".join(f"`{DOCS[n]}`" for n in keep)
-        # A cell that names a valid file AND a mistyped one used to drop the typo silently,
-        # so it passed every gate (Codex, PR #246). Carry the marker next to the good cite.
-        return f"{rendered}; {UNRESOLVED} {stray[0]}" if stray else rendered
-    if names:
+    else:
         declared = [n for n in names if n in LOCAL_ONLY_NAMES]
-        if declared:
-            return f"LOCAL-ONLY source, not in the repo: {declared[0]}"
-        return f"{UNRESOLVED} {names[0]}"
-    return ""
+        rendered = f"LOCAL-ONLY source, not in the repo: {declared[0]}" if declared else ""
+    # A cell that names a resolvable file (tracked OR declared local-only) AND a mistyped one
+    # used to drop the typo silently, so it passed every gate (Codex, PR #246, twice). Carry
+    # the marker whenever anything is stray, whatever else the cell resolved to.
+    if stray:
+        return f"{rendered}; {UNRESOLVED} {stray[0]}" if rendered else f"{UNRESOLVED} {stray[0]}"
+    return rendered
 
 
 def norm(s):
