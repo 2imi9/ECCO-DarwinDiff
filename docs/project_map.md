@@ -100,10 +100,11 @@ z-scored Darwin pattern terms → backprop → DINN weights.
   weight-conditional; `scav_rat` is the weakest leg; `R_PICPOC` is anchored by real Daniels.
 - The iron source↔scavenging degeneracy **is** the published FeMIP problem (Tagliabue 2016) — a rank-1
   sloppy inverse problem. Methods *diagnostic* path (NOT a recovery improvement): EKI/CES + Fisher-eigenbasis (#187, `eki_core.py`) — EKI lands `scav_rat` at 2.1e-7 = 0.349× Carroll, agreeing with the geometric collapse.
-- Growth pair {Smallgrow, Biggrow} is unobservable by construction; `diatomgraz` is **input-limited, not
-  data-blocked** — at chance from SST alone, 10/10 once MLD is a DINN input, and 35/50 per-AOI on a
-  non-circular Chl+MLD target with the bSi diagnostic off. That is model-internal consistency, not
-  independent real-data validation.
+- Growth pair {Smallgrow, Biggrow} is excluded by construction (`Biggrow` unobservable; `Smallgrow`
+  non-identifiable from time-mean observables only); `diatomgraz` is **regionally identifiable** (equatorial
+  Pacific 40/100 at ≤10 % vs untrained 0/50) and **input-limited elsewhere** — at chance from SST alone,
+  10/10 once MLD is a DINN input (n=10, P = 0.021). The 35/50 Chl+MLD count is retired (untrained control
+  34/50, P = 0.447). That is model-internal consistency, not independent real-data validation.
 
 **Key code:** `scripts/run_v3.0_joint_multi_aoi.py` (driver), `src/darwindiff/carroll6_5pft_2layer.py`
 (box), `src/darwindiff/networks.py` (DINN, GlobalScalarNet), `scripts/verify_run.py` (trust gate),

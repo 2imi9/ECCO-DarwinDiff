@@ -13,7 +13,7 @@ A pause before notebook 09 (real-data fit) to capture the decisions that have sh
 
 **Decision.** Track 1's evaluation target is exactly the six parameters Carroll calibrated through Green's functions in the original ECCO-Darwin paper:
 
-- `alpfe` (iron dust solubility)
+- `alpfe` (scalar on the already-soluble iron deposition flux; Darwin's legacy label is "iron dust solubility", but it is not a solubility)
 - `scav_rat` (iron scavenging rate)
 - `Smallgrow` (small phytoplankton growth rate)
 - `Biggrow` (large phytoplankton growth rate)

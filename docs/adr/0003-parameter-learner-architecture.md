@@ -164,3 +164,5 @@ See `docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md` and
 `docs/findings/2026-08-03_the_pass_band_is_load_bearing.md`. Jobs 258694 (width dose-response) and
 258713 (width × epochs 2×2) remain the right follow-ups and must be graded with the band sweep
 alongside the count.
+
+**Addendum 2026-08-04.** Job 258713 (the width × epochs 2×2 named above) was graded with the band sweep and all three collapses: the epoch lever buys a pooler-dependent North Atlantic gain and costs a pooler-invariant 1.4–1.75× Southern Ocean accuracy loss (2.7–5.1× with width added), so the "also an optimisation effect" reading of the 4000-epoch result above is withdrawn and the flagship stays at width 16 / 2000 epochs. See `docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md`.

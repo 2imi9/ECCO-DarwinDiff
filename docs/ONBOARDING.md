@@ -63,8 +63,9 @@ per-cell env (SST[, MLD, wind, lat]) ─▶ DINN ─▶ 6 raw ─▶ sigmoid bou
                                         backprop through the box ─────────────────▶ DINN weights
 ```
 
-- **Box**: 5-tracer 0-D reaction network (`carroll6.py`), optionally 7-tracer with carbonate chemistry
-  (Follows-2006 + Wanninkhof-2014). A 2-layer 5-PFT integrator exists for seasonal fits.
+- **Box**: the flagship fits use the 15-tracer, two-layer, 5-PFT integrator (`carroll6_5pft_2layer.py`,
+  carbonate chemistry from Follows-2006 + Wanninkhof-2014). The original 5-tracer network (`carroll6.py`,
+  7 tracers with carbonate) is the teaching model behind the demo and the structural argument.
 - **Network**: `DINN` (~454 weights, SST-only — the clean baseline for the structural argument);
   `DINNDeep` (~9.4K weights, saturates — not default). Sigmoid bounds map NN outputs into Carroll's
   published physical ranges.
@@ -95,8 +96,8 @@ contrast *is* the paper-#1 result.
 
 A parameter can carry Fisher information yet still not recover, because recovery is downstream of
 optimization and coverage. `scav_rat` is the worked example: with subsurface GEOTRACES iron it is
-*well-conditioned* (the source/loss ratio degeneracy breaks ~1400×), yet its recovery is largely
-**optimization-limited — but that is NOT established**: the 25→41/50 rise at 4000 epochs (`ep4k_n50`) is arithmetic-only and un-auditable (that run predates the 2026-07-29 collapse keys), leaving the
+*well-conditioned* (the source/loss ratio degeneracy breaks ~1400×), yet whether its recovery is
+**optimization-limited is NOT established**: the 25→41/50 rise at 4000 epochs (`ep4k_n50`) is arithmetic-only and un-auditable (that run predates the 2026-07-29 collapse keys), and the 2026-08-04 width × epochs 2×2 (job 258713) found the epoch lever costs Southern Ocean accuracy under every collapse, leaving the
 equatorial Pacific (8/50 arithmetic, 8/50 geometric, 10/50 median on the 2000-epoch collapse-instrumented reproduction) the residual *information*-limited basin. When you read a recovery count, ask
 which of four it is: information-limited, optimization-limited, a collapse artifact (arithmetic vs geometric vs median — for `scav_rat` that choice alone moves 26/50 to 13/50, all of it the North Atlantic leg, 19→5), or a metric straddle (per-AOI legs on
 opposite sides of Carroll — the cell-weighted count can lie).

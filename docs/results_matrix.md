@@ -36,7 +36,7 @@ growth rates) and is excluded from the target, not counted as a miss.
 > observations and *why*, not a 6/6 recovery chase: `alpfe` = method-independent,
 > mass-balance-identified; `R_PICPOC` = recovers via a real calcite anchor (and a single global
 > value is under-constrained — the bulk ratio should vary regionally); `scav_rat` = requires
-> per-cell (weakest leg globally, but locally identifiable — Southern Ocean single-AOI 30/50 arithmetic, P = 3.2e-24, and 49/50 geometric, P = 6.3e-59, vs an architecture-matched untrained null); `diatomgraz` + the growth pair = unobservable from staged data. Honest
+> per-cell (weakest leg globally, but locally identifiable — Southern Ocean single-AOI 30/50 arithmetic, P = 3.2e-24, and 49/50 geometric, P = 6.3e-59, vs an architecture-matched untrained null); `diatomgraz` = regionally identifiable (equatorial Pacific 40/100 at ≤10 % vs untrained 0/50) and anti-recovered elsewhere; the growth pair = excluded by construction. Honest
 > limit: this is a **consistency check against Carroll's own values, not a cross-validated
 > discovery against the GCM** — held-out real-data R² is negative because the 0-D box homogenizes
 > (the surrogate gap), which is a **finding**, not a flaw, and is what forces identifiability to

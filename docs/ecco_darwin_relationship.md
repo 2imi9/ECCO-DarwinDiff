@@ -49,7 +49,7 @@ Six biogeochemical parameters, per `src/darwindiff/carroll6.py:8-13`. These are 
 
 | Name | Role | Units | Source line | Optimized value (Carroll 2020) |
 |---|---|---|---|---|
-| `alpfe` | Iron dust solubility | – | `init_fixed.F:83` | 0.92831 |
+| `alpfe` | Scalar on already-soluble Fe deposition (legacy label "iron dust solubility"; not a solubility) | – | `init_fixed.F:83` | 0.92831 |
 | `scav_rat` | Iron scavenging rate | s⁻¹ | `init_fixed.F:101` | 10.41124 × 0.005 / 86400 |
 | `Smallgrow` | Small phytoplankton growth rate | d⁻¹ | `init_fixed.F:161` | 0.66098 |
 | `Biggrow` | Large phytoplankton growth rate | d⁻¹ | `init_fixed.F:162` | 0.43148 |
