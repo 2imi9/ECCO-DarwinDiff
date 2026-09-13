@@ -3,7 +3,7 @@
 
 # ECCO-DarwinDiff
 
-<img src="docs/dinn_architecture.svg" alt="DINN architecture: three environmental covariates (SST, wind speed, MLD) feed two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights" width="640">
+<img src="docs/dinn_architecture.svg" alt="DINN architecture: the flagship reads sea-surface temperature alone (optional wind-speed and mixed-layer-depth ablation channels are shown faded) through two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights" width="640">
 
 **Differentiable ocean biogeochemistry — every parameter gets a gradient in one backward pass,
 so you can ask which ones the observations actually pin down.**
@@ -62,8 +62,8 @@ cell-weighted (which straddles Carroll and overstates recovery). Counts are unde
 the arithmetic collapse inflates it by `exp(σ²/2)`, so the trio roughly halves under the geometric
 collapse; the flagship's own artifacts predate the instrumentation, so this is measured on a
 bitwise-identical twin. And `alpfe`'s bounds are (0.05, **1.0**) against a Carroll value of
-**0.92831**, so the ceiling sits 7.72% above truth and the fit saturates there — 45–49 of 50 seeds
-land within 1% of the bound, and the band sweep is a step function (0/50 at 0.05 and 0.06, 49/50
+**0.92831**, so the ceiling sits 7.72% above truth and the fit saturates there — 27–49 of 50 seeds
+per basin land within 1% of the bound, and the band sweep is a step function (0/50 at 0.05 and 0.06, 49/50
 from 0.08 up). The *signal* is real and survives its own control (98/100 against an untrained 0/100, at the
 bands the gated sweep measures, ≤0.20 and ≤0.30). The *precision* is bound-determined, and that
 is now measured rather than open: widening the bound to 1.6 moves the **untrained** null into
@@ -147,7 +147,7 @@ Python 3.11+, PyTorch 2.4+. Real fits need `DARWIN_DATA_ROOT` pointing at the LL
 from darwindiff.carroll6 import PARAM_BOUNDS, bounded_params, carroll6_integrate
 from darwindiff.networks import DINN
 
-params = bounded_params(DINN(3, 16, 6)(env), PARAM_BOUNDS)   # env = [SST, wind, MLD]
+params = bounded_params(DINN(1, 16, 6)(env), PARAM_BOUNDS)   # flagship env = [SST]
 final = carroll6_integrate(state0, params, dt=0.25, n_steps=200)
 (final - target).pow(2).mean().backward()                     # gradients through the simulation
 ```
