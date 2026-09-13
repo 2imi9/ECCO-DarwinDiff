@@ -38,8 +38,8 @@ by name via `P.<name>`, never by position; the order is load-bearing):
 | 2 | `scav_rat` | iron scavenging rate (s⁻¹) | 6.025e-7 | ⚠️ regionally observable — established in the Southern Ocean; the North Atlantic leg is collapse-dependent (the binding leg) |
 | 3 | `Smallgrow` | small-phyto growth rate (d⁻¹) | 0.66098 | ❌ unobservable* |
 | 4 | `Biggrow` | large-phyto growth rate (d⁻¹) | 0.43148 | ❌ unobservable |
-| 5 | `diatomgraz` | diatom palatability (–) | 0.83003 | ✅ observable (input-limited) |
-| 6 | `R_PICPOC` | PIC/POC production ratio (–) | 0.04245 | ✅ observable (needs a real calcite anchor) |
+| 5 | `diatomgraz` | diatom palatability (–) | 0.83003 | ⚠️ regionally observable — equatorial Pacific only (40/100 at ≤10% vs untrained 0/50); anti-recovered in the North Atlantic and S. Ocean; the 0.40 band is prior-contaminated |
+| 6 | `R_PICPOC` | PIC/POC production ratio (–) | 0.04245 | ✅ observable — but anchor-conditional: needs the Daniels 2018 anchor specifically (the Marsh 2025 successor halves it, 98/100 → 50/100) |
 
 **The honest denominator is 4, not 6.** The growth pair {`Smallgrow`, `Biggrow`} is **excluded by
 construction** — no time-mean observable constrains phytoplankton growth rates (total NPP gives only the
