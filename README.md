@@ -177,9 +177,6 @@ If your work depends on the underlying model, cite Carroll et al. [2020][c20] an
 Read [CONTRIBUTING.md](CONTRIBUTING.md) — scope-prefixed PR titles and the `verify_run.py` gate
 every number must pass.
 
-Written by **Ziming (Lucas) Qi**. Thanks to **MIT EAPS** for the scientific guidance that shaped
-this design, **Northeastern Research Computing** (Explorer H200), **Massachusetts AI Compute
-Resource** (B200), **JPL ECCO** + **NASA NAS**, and **GLODAP** / **GEOTRACES**.
 MIT licensed — see [LICENSE](LICENSE).
 
 <!-- Reference links -->
