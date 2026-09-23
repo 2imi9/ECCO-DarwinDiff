@@ -58,9 +58,9 @@ cell-weighted (which straddles Carroll and overstates recovery). Counts are unde
 | `diatomgraz` | **40/100** eqpac | Graded per-leg at ≤10% vs untrained **0/50** (P=5.5e-09). Anti-recovered elsewhere |
 | trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** arith · **12/50** geom | vs **0/50** for a global-scalar control, so the per-cell network is load-bearing |
 
-The honest summary: **two parameters recovered in every basin (`alpfe` as a direction,
-`R_PICPOC` conditional on its anchor), two regionally identifiable in different basins
-(`scav_rat`, `diatomgraz`), two excluded by construction.**
+The honest summary: **two parameters recovered globally (`alpfe` as a direction, `R_PICPOC`
+conditional on its anchor), two regionally identifiable in different basins (`scav_rat`,
+`diatomgraz`), two excluded by construction.**
 
 ### Three of these numbers do not mean what they look like
 
