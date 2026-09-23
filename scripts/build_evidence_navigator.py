@@ -38,11 +38,14 @@ def _status_for_docs(value: str, documents: dict[str, dict]) -> dict[str, object
     tracked = bool(paths) and len(rows) == len(paths)
     local_only = any(bool(row.get("local_only")) for row in rows)
     retracted = any(bool(row.get("retracted")) for row in rows)
+    # A partly superseded source stays citable: only the sections its banner names were replaced.
+    partly = any(bool(row.get("partly_superseded")) for row in rows)
     return {
         "paths": paths,
         "citable": tracked and not local_only and not retracted,
         "local_only": local_only,
         "retracted_source": retracted,
+        "partly_superseded_source": partly,
     }
 
 

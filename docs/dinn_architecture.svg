@@ -1,6 +1,6 @@
 <svg viewBox="0 0 940 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t d">
 <title id="t">DINN — Darwin-Informed Neural Network architecture</title>
-<desc id="d">A per-cell network maps three environmental covariates (SST, wind speed, MLD) through two 16-wide 1x1 convolutional layers with Tanh to six Carroll parameters. Those parameters feed bounded_params, then the differentiable carroll6_step box model, then an MSE loss versus ECCO-Darwin v05; gradients flow back through the box model to update the network weights.</desc>
+<desc id="d">A per-cell network maps the local environment through two 16-wide 1x1 convolutional layers with Tanh to six Carroll parameters. The flagship configuration reads sea-surface temperature alone (406 weights); optional wind-speed and mixed-layer-depth channels, shown faded, are used only in ablations. Those parameters feed bounded_params, then the differentiable carroll6_step box model, then an MSE loss versus ECCO-Darwin v05; gradients flow back through the box model to update the network weights.</desc>
 <defs>
 <marker id="af" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path class="mkf" d="M0,0 L7,3 L0,6 Z"/></marker>
 <marker id="ag" markerWidth="10" markerHeight="10" refX="6.5" refY="3" orient="auto"><path class="mkg" d="M0,0 L7,3 L0,6 Z"/></marker>
@@ -46,7 +46,7 @@ text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-se
 <text class="sub" x="470" y="56" text-anchor="middle">Per-cell parameter recovery: the loss flows through the differentiable box model</text>
 
 <text class="hd" x="150" y="100" text-anchor="middle">Inputs</text>
-<text class="hs" x="150" y="116" text-anchor="middle">env. covariates [3]</text>
+<text class="hs" x="150" y="116" text-anchor="middle">env. covariates [1]</text>
 <text class="hd" x="360" y="100" text-anchor="middle">Hidden ×16</text>
 <text class="hs" x="360" y="116" text-anchor="middle">1×1 conv · Tanh</text>
 <text class="hd" x="560" y="100" text-anchor="middle">Hidden ×16</text>
@@ -56,8 +56,7 @@ text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-se
 
 <g class="edge">
 <line x1="164" y1="175" x2="348" y2="150"/><line x1="164" y1="175" x2="348" y2="200"/><line x1="164" y1="175" x2="348" y2="250"/><line x1="164" y1="175" x2="348" y2="300"/>
-<line x1="164" y1="235" x2="348" y2="150"/><line x1="164" y1="235" x2="348" y2="200"/><line x1="164" y1="235" x2="348" y2="250"/><line x1="164" y1="235" x2="348" y2="300"/>
-<line x1="164" y1="295" x2="348" y2="150"/><line x1="164" y1="295" x2="348" y2="200"/><line x1="164" y1="295" x2="348" y2="250"/><line x1="164" y1="295" x2="348" y2="300"/>
+<g opacity="0.3"><line x1="164" y1="235" x2="348" y2="150"/><line x1="164" y1="235" x2="348" y2="200"/><line x1="164" y1="235" x2="348" y2="250"/><line x1="164" y1="235" x2="348" y2="300"/><line x1="164" y1="295" x2="348" y2="150"/><line x1="164" y1="295" x2="348" y2="200"/><line x1="164" y1="295" x2="348" y2="250"/><line x1="164" y1="295" x2="348" y2="300"/></g>
 <line x1="372" y1="150" x2="548" y2="150"/><line x1="372" y1="150" x2="548" y2="200"/><line x1="372" y1="150" x2="548" y2="250"/><line x1="372" y1="150" x2="548" y2="300"/>
 <line x1="372" y1="200" x2="548" y2="150"/><line x1="372" y1="200" x2="548" y2="200"/><line x1="372" y1="200" x2="548" y2="250"/><line x1="372" y1="200" x2="548" y2="300"/>
 <line x1="372" y1="250" x2="548" y2="150"/><line x1="372" y1="250" x2="548" y2="200"/><line x1="372" y1="250" x2="548" y2="250"/><line x1="372" y1="250" x2="548" y2="300"/>
@@ -68,10 +67,14 @@ text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-se
 <line x1="572" y1="300" x2="757" y2="150"/><line x1="572" y1="300" x2="757" y2="185"/><line x1="572" y1="300" x2="757" y2="220"/><line x1="572" y1="300" x2="757" y2="255"/><line x1="572" y1="300" x2="757" y2="290"/><line x1="572" y1="300" x2="757" y2="325"/>
 </g>
 
-<circle class="nin" cx="150" cy="175" r="14"/><circle class="nin" cx="150" cy="235" r="14"/><circle class="nin" cx="150" cy="295" r="14"/>
+<circle class="nin" cx="150" cy="175" r="14"/>
 <text class="io" x="128" y="179" text-anchor="end">SST</text>
+<g opacity="0.3"><circle class="nin" cx="150" cy="235" r="14"/><circle class="nin" cx="150" cy="295" r="14"/></g>
+<g opacity="0.55">
 <text class="io" x="128" y="239" text-anchor="end">wind speed</text>
 <text class="io" x="128" y="299" text-anchor="end">MLD</text>
+</g>
+<text class="hs" x="128" y="322" text-anchor="end">faded = ablation only</text>
 
 <circle class="node" cx="360" cy="150" r="12"/><circle class="node" cx="360" cy="200" r="12"/><circle class="node" cx="360" cy="250" r="12"/><circle class="node" cx="360" cy="300" r="12"/>
 <text class="hs" x="360" y="333" text-anchor="middle">⋮ 16</text>
@@ -86,7 +89,7 @@ text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-se
 <text class="mono" x="790" y="294">diatomgraz</text>
 <text class="mono" x="790" y="329">R_PICPOC</text>
 
-<text class="cap" x="460" y="360" text-anchor="middle">1×1 convolutions = a per-cell MLP (no spatial mixing) · ~438 weights</text>
+<text class="cap" x="460" y="360" text-anchor="middle">1×1 convolutions = a per-cell MLP (no spatial mixing) · 406 weights</text>
 
 <path class="flow" d="M 770 340 L 770 456" marker-end="url(#af)"/>
 <text class="hs" x="756" y="402" text-anchor="end">6 params</text>

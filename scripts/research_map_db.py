@@ -55,7 +55,7 @@ have violations; gating on them would fail every run and train readers to ignore
 
     sigma_{live}(CLAIM) |><| sigma_{local_only}(DOCUMENT), sole cite       -- 2 rows
     CLAIM |><| SUPPORTS |><| sigma_{gate != exit0}(EVIDENCE) where live     -- 39 rows
-    sigma_{live}(CLAIM) |><| sigma_{retracted}(DOCUMENT)                    -- 26 rows
+    sigma_{live}(CLAIM) |><| sigma_{retracted OR partly}(DOCUMENT)         -- 34 rows
     CLAIM - pi_cl(SUPPORTS)                                                 -- 291 rows
 
 THREE CAVEATS, stated because a passing `check` otherwise reads stronger than it is:
@@ -104,7 +104,9 @@ CREATE TABLE document (
     date       TEXT,
     retracted  INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner
     words      INTEGER,
-    local_only INTEGER DEFAULT 0    -- 1 = deliberately gitignored: on disk here, absent for readers
+    local_only INTEGER DEFAULT 0,   -- 1 = deliberately gitignored: on disk here, absent for readers
+    partly_superseded INTEGER DEFAULT 0  -- PARTLY / PARTIALLY SUPERSEDED banner: some sections
+                                         -- replaced, the rest still citable; never sets retracted
 );
 
 CREATE TABLE parameter (
@@ -236,22 +238,40 @@ CREATE VIEW v_local_only_cite AS     -- a live claim backed only by a file the r
 _LINK = re.compile(r"\[([^\]]*)\]\(([^)]*)\)")
 _BACKTICK = re.compile(r"`([^`]*)`")
 _BANNER = re.compile(r"\b(SUPERSEDED|RETRACTED|CORRECTED|PARTLY SUPERSEDED)\b")
+_PARTIAL = re.compile(r"\bPART(?:LY|IALLY)\s+SUPERSEDED\b")
+_FULL_WORDS = re.compile(r"\b(RETRACTED|CORRECTED)\b")
 
 
-def _has_banner(text: str) -> bool:
-    """A retraction banner, not a document that merely discusses retractions.
+def _banner_kind(text: str) -> str | None:
+    """Classify the opening banner as "full", "partial", or None.
 
-    Scanning the first 4000 characters for the word flagged every audit and index doc, whose whole
-    job is to catalogue other documents' corrections. The convention in this repo is a blockquote or
-    bold line in the opening lines, so require that shape and that position.
+    A retraction banner, not a document that merely discusses retractions. Scanning the first 4000
+    characters for the word flagged every audit and index doc, whose whole job is to catalogue other
+    documents' corrections. The convention in this repo is a blockquote, bold or heading line in the
+    opening lines, so require that shape and that position.
+
+    A PARTLY / PARTIALLY SUPERSEDED banner is its own kind. It says some sections were replaced and
+    the rest still stand, so it must not mark the whole document retracted: doing so hid the
+    still-live claims of three such notes from the evidence navigator's citable view (Greptile P1 on
+    #251). Any full banner line in the opening lines wins over a partial one.
     """
+    kind = None
     for line in text.splitlines()[:12]:
         s = line.strip()
         if not _BANNER.search(s):
             continue
-        if s.startswith(">") or s.startswith("**") or s.startswith("#"):
-            return True
-    return False
+        if not (s.startswith(">") or s.startswith("**") or s.startswith("#")):
+            continue
+        if _PARTIAL.search(s) and not _FULL_WORDS.search(s):
+            kind = kind or "partial"
+        else:
+            return "full"
+    return kind
+
+
+def _has_banner(text: str) -> bool:
+    """True for a FULL retraction banner only. See `_banner_kind`."""
+    return _banner_kind(text) == "full"
 _PARAM_WORDS = ("alpfe", "scav_rat", "diatomgraz", "r_picpoc", "smallgrow", "biggrow")
 
 
@@ -410,13 +430,15 @@ def _load_documents(con: sqlite3.Connection) -> None:
             except OSError:
                 continue
             m = re.match(r"(20\d\d-\d\d-\d\d)", name)
+            kind = _banner_kind(text)
             con.execute(
-                "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?,?)",
+                "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?,?,?)",
                 # Repo-relative. This was p.as_posix(), an ABSOLUTE path, so the exported mirror
                 # carried 196 "C:/Users/Frank/..." strings and could not byte-match a rebuild
                 # anywhere else -- the mirror test could never have passed in CI.
                 (prefix + name, name, m.group(1) if m else "",
-                 1 if _has_banner(text) else 0, len(text.split()), 0),
+                 1 if kind == "full" else 0, len(text.split()), 0,
+                 1 if kind == "partial" else 0),
             )
 
     # Declared local-only notes. Written from the constant, never read from disk, so the row is
@@ -426,8 +448,8 @@ def _load_documents(con: sqlite3.Connection) -> None:
         name = rel.rsplit("/", 1)[1]
         m = re.match(r"(20\d\d-\d\d-\d\d)", name)
         con.execute(
-            "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?,?)",
-            (rel, name, m.group(1) if m else "", 0, 0, 1),
+            "INSERT OR REPLACE INTO document VALUES (?,?,?,?,?,?,?)",
+            (rel, name, m.group(1) if m else "", 0, 0, 1, 0),
         )
 
 
@@ -771,10 +793,14 @@ ADVISORIES = [
     # Reported, never gated. A banner supersedes part of a document, not every claim in it, so
     # failing on this would fire on rows that are mostly fine and teach readers to ignore the gate.
     # Same reasoning as the STRADDLE guard in verify_run: keep the failure channel sharp.
-    ("live claims sourced from a document that carries a retraction banner -- review each",
+    # A PARTLY SUPERSEDED document stays citable (it is not retracted), but its live claims are
+    # still listed here: part of the document was replaced, so each claim deserves a look.
+    ("live claims sourced from a document that carries a retraction or partial-supersession "
+     "banner -- review each",
      """SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d
         ON instr(c.doc, d.name) > 0
-        WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'"""),
+        WHERE (d.retracted = 1 OR d.partly_superseded = 1)
+          AND lower(coalesce(c.status,'')) LIKE '%live%'"""),
     ("live claims resting on UNGATED evidence (advertised as a constraint, never enforced; "
      "run `dangerous` for the full list)",
      """SELECT cl_id, gate, substr(statement,1,60) FROM v_dangerous"""),
@@ -1015,7 +1041,9 @@ def cmd_stats(con) -> int:
     for track, n in con.execute("SELECT track, count(*) FROM claim GROUP BY track ORDER BY track"):
         print(f"    track.{track:<11}{n:>4}")
     r = con.execute("SELECT count(*) FROM document WHERE retracted=1").fetchone()[0]
+    pt = con.execute("SELECT count(*) FROM document WHERE partly_superseded=1").fetchone()[0]
     print(f"\n  documents carrying a retraction banner: {r}")
+    print(f"  documents carrying a partial-supersession banner (still citable): {pt}")
     return 0
 
 

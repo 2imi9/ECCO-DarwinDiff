@@ -554,3 +554,74 @@ def test_document_gate_fires_on_an_unresolved_marker_beside_a_valid_citation():
     con.execute("INSERT INTO claim (cl_id, doc) VALUES (?, ?)", ("syn999", mixed))
     assert len(con.execute("SELECT 1 FROM v_orphan_doc").fetchall()) == before + 1
 
+
+
+# A PARTLY SUPERSEDED banner names the sections it replaces; the rest of the note still stands.
+# Until 2026-09-23 it set retracted=1 like a full retraction, which hid the still-live claims of
+# three notes from the evidence navigator's citable view (Greptile P1 on #251).
+_PARTIAL_DOCS = [
+    "2026-07-22_neuralbgc_m2lines_landscape.md",
+    "2026-07-23_depth_emulator_e2s_result.md",
+    "2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
+]
+
+
+@pytest.mark.parametrize("text, kind", [
+    ("# Title\n\n> **PARTLY SUPERSEDED 2026-09-19 by `x.md`.** The rest stands.\n", "partial"),
+    ("# Title\n\n> **PARTIALLY SUPERSEDED (2026-07-23).** Some rows below.\n", "partial"),
+    ("# Title\n\n## PARTLY SUPERSEDED the same day by `y.md`\n", "partial"),
+    ("# Title\n\n> **SUPERSEDED 2026-08-04.** Do not quote.\n", "full"),
+    ("# Title\n\n> **RETRACTED.** Construction artifact.\n", "full"),
+    ("# Title\n\n> **PARTLY SUPERSEDED and later RETRACTED.**\n", "full"),
+    ("# Title\n\n> **PARTLY SUPERSEDED.**\n> **SUPERSEDED in full 2026-09-01.**\n", "full"),
+    ("# Title\n\nThis audit lists what was SUPERSEDED elsewhere.\n", None),
+])
+def test_banner_kind_separates_partial_from_full_supersession(text, kind):
+    rmdb = _db()
+    assert rmdb._banner_kind(text) == kind
+    assert rmdb._has_banner(text) == (kind == "full")
+
+
+def test_partly_superseded_documents_are_not_retracted():
+    rmdb = _db()
+    con = rmdb.build()
+    rows = dict(
+        (name, (retracted, partly))
+        for name, retracted, partly in con.execute(
+            "SELECT name, retracted, partly_superseded FROM document WHERE partly_superseded = 1"
+        )
+    )
+    for name in _PARTIAL_DOCS:
+        assert name in rows, f"{name} lost its partial-supersession flag"
+        assert rows[name] == (0, 1), f"{name} is marked retracted; its unaffected claims are hidden"
+
+
+def test_partly_superseded_claims_stay_in_the_review_advisory():
+    """Citable is not the same as reviewed: part of the note was replaced, so its live claims
+    must still surface in `check`'s review-each advisory."""
+    rmdb = _db()
+    con = rmdb.build()
+    names = {
+        name
+        for (name,) in con.execute(
+            """SELECT d.name FROM claim c JOIN document d ON instr(c.doc, d.name) > 0
+               WHERE (d.retracted = 1 OR d.partly_superseded = 1)
+                 AND lower(coalesce(c.status,'')) LIKE '%live%'"""
+        )
+    }
+    assert "2026-07-22_neuralbgc_m2lines_landscape.md" in names
+
+
+def test_navigator_keeps_partly_superseded_sources_citable():
+    sys.path.insert(0, str(REPO / "scripts"))
+    import build_evidence_navigator as nav
+
+    documents = {
+        "docs/findings/a.md": {"retracted": 0, "local_only": 0, "partly_superseded": 1},
+        "docs/findings/b.md": {"retracted": 1, "local_only": 0, "partly_superseded": 0},
+    }
+    partial = nav._status_for_docs("docs/findings/a.md", documents)
+    assert partial["citable"] and partial["partly_superseded_source"]
+    assert not partial["retracted_source"]
+    full = nav._status_for_docs("docs/findings/b.md", documents)
+    assert not full["citable"] and full["retracted_source"]

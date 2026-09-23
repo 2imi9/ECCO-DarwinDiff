@@ -46,7 +46,7 @@
   "have violations; gating on them would fail every run and train readers to ignore the gate:",
   "sigma_{live}(CLAIM) |><| sigma_{local_only}(DOCUMENT), sole cite       -- 2 rows",
   "CLAIM |><| SUPPORTS |><| sigma_{gate != exit0}(EVIDENCE) where live     -- 39 rows",
-  "sigma_{live}(CLAIM) |><| sigma_{retracted}(DOCUMENT)                    -- 26 rows",
+  "sigma_{live}(CLAIM) |><| sigma_{retracted OR partly}(DOCUMENT)         -- 34 rows",
   "CLAIM - pi_cl(SUPPORTS)                                                 -- 291 rows",
   "THREE CAVEATS, stated because a passing `check` otherwise reads stronger than it is:",
   "* \"carries its untrained null\" is a PRESENCE check on the merged `n / null` column. The corpus",
@@ -3442,6 +3442,30 @@
      "doc": "docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md",
      "parameter": "",
      "track": "track2"
+    },
+    {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Computed from a validated solver with no new data; the conditional (if the error is at the surface) is part of the claim.",
+     "n": "",
+     "null_baseline": "+2 umol/kg -> +3.57 / +3.85 / +4.18 uatm and +4 umol/kg -> +7.17 / +7.75 / +8.43 uatm in subtropical (22 C) / mid (15 C) / subpolar (8 C) regimes; Revelle factor by autograd 9.88 / 11.16 / 12.69; solver's calcite saturation state validated against PyCO2SYS on 2000 GLODAPv3 points, r = 0.9999 (pCO2 itself not compared directly)",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "statement": "SamudraBGC cannot diagnose surface pCO2 or the air-sea CO2 flux: it predicts DIC without alkalinity, and no variable set in its code carries alkalinity, iron or pCO2.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Checkable by inspection of a public repository on a stated date. pCO2 is a function of (DIC, ALK, T, S), so the absence of ALK is sufficient.",
+     "n": "",
+     "null_baseline": "0 GitHub code-search hits for 'alkalin' and 0 for 'pco2' in mkeutgen/SamudraBGC on 2026-09-19 (last push 2026-09-14); variable families in THEIR constants module (ocean_emulators package, not a file in this repo) = dic, o2, no3, pp, chl, poc, temp, salt, uo, vo, psi, phi; champion set helmholtz_log_no_logno3_pca20_all = log_dic, log_o2, no3, log_chl, temp, salt, psi, phi at 20 vertical PCs each, plus SSH",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
     },
     {
      "cl_id": "ded_szn_blocker_lattice_20260809",
@@ -7187,14 +7211,15 @@
    "rows": []
   },
   "document": {
-   "ddl": "CREATE TABLE document (\n    path       TEXT PRIMARY KEY,\n    name       TEXT,\n    date       TEXT,\n    retracted  INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner\n    words      INTEGER,\n    local_only INTEGER DEFAULT 0    -- 1 = deliberately gitignored: on disk here, absent for readers\n)",
+   "ddl": "CREATE TABLE document (\n    path       TEXT PRIMARY KEY,\n    name       TEXT,\n    date       TEXT,\n    retracted  INTEGER DEFAULT 0,   -- carries a SUPERSEDED / RETRACTED / CORRECTED banner\n    words      INTEGER,\n    local_only INTEGER DEFAULT 0,   -- 1 = deliberately gitignored: on disk here, absent for readers\n    partly_superseded INTEGER DEFAULT 0  -- PARTLY / PARTIALLY SUPERSEDED banner: some sections\n                                         -- replaced, the rest still citable; never sets retracted\n)",
    "columns": [
     "path",
     "name",
     "date",
     "retracted",
     "words",
-    "local_only"
+    "local_only",
+    "partly_superseded"
    ],
    "rows": [
     {
@@ -7203,7 +7228,8 @@
      "date": "",
      "retracted": 1,
      "words": 3632,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/adr/0002-track2-emulator-scope.md",
@@ -7211,7 +7237,8 @@
      "date": "",
      "retracted": 0,
      "words": 2239,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/adr/0003-parameter-learner-architecture.md",
@@ -7219,7 +7246,8 @@
      "date": "",
      "retracted": 0,
      "words": 1562,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/adr/0004-version-control-and-pull-requests.md",
@@ -7227,15 +7255,17 @@
      "date": "",
      "retracted": 0,
      "words": 1642,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "AGENTS.md",
      "name": "AGENTS.md",
      "date": "",
      "retracted": 0,
-     "words": 2631,
-     "local_only": 0
+     "words": 2635,
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "CHANGELOG.md",
@@ -7243,15 +7273,17 @@
      "date": "",
      "retracted": 0,
      "words": 1341,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "CLAUDE.md",
      "name": "CLAUDE.md",
      "date": "",
      "retracted": 0,
-     "words": 2633,
-     "local_only": 0
+     "words": 2637,
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "CONTRIBUTING.md",
@@ -7259,7 +7291,8 @@
      "date": "",
      "retracted": 0,
      "words": 1791,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/NEXT_SESSION.md",
@@ -7267,7 +7300,8 @@
      "date": "",
      "retracted": 0,
      "words": 875,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/ONBOARDING.md",
@@ -7275,23 +7309,26 @@
      "date": "",
      "retracted": 0,
      "words": 2008,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "README.md",
      "name": "README.md",
      "date": "",
      "retracted": 0,
-     "words": 1481,
-     "local_only": 0
+     "words": 1490,
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "STATUS.md",
      "name": "STATUS.md",
      "date": "",
      "retracted": 0,
-     "words": 8236,
-     "local_only": 0
+     "words": 8312,
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/agu26_abstract_draft.md",
@@ -7299,7 +7336,8 @@
      "date": "",
      "retracted": 1,
      "words": 1414,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/cluster_roadmap.md",
@@ -7307,7 +7345,8 @@
      "date": "",
      "retracted": 1,
      "words": 4385,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/cluster_setup.md",
@@ -7315,7 +7354,8 @@
      "date": "",
      "retracted": 0,
      "words": 1893,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/compute_time_compiled_h200.md",
@@ -7323,7 +7363,8 @@
      "date": "",
      "retracted": 0,
      "words": 323,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/contributing.md",
@@ -7331,7 +7372,8 @@
      "date": "",
      "retracted": 0,
      "words": 22,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/data.md",
@@ -7339,7 +7381,8 @@
      "date": "",
      "retracted": 0,
      "words": 22,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/data_acquisition_roadmap.md",
@@ -7347,7 +7390,8 @@
      "date": "",
      "retracted": 0,
      "words": 1109,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/dinn_design.md",
@@ -7355,7 +7399,8 @@
      "date": "",
      "retracted": 0,
      "words": 2212,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/ecco_darwin_parameter_inventory.md",
@@ -7363,7 +7408,8 @@
      "date": "",
      "retracted": 0,
      "words": 2674,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/ecco_darwin_relationship.md",
@@ -7371,7 +7417,8 @@
      "date": "",
      "retracted": 0,
      "words": 1577,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/emulator_coupling_plan.md",
@@ -7379,7 +7426,8 @@
      "date": "",
      "retracted": 0,
      "words": 1827,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/emulator_guide.md",
@@ -7387,7 +7435,8 @@
      "date": "",
      "retracted": 0,
      "words": 1572,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/handoff_2026-07-25_session.md",
@@ -7395,7 +7444,8 @@
      "date": "",
      "retracted": 0,
      "words": 1051,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/handoff_2026-07-26_session.md",
@@ -7403,15 +7453,17 @@
      "date": "",
      "retracted": 0,
      "words": 829,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/index.md",
      "name": "index.md",
      "date": "",
      "retracted": 0,
-     "words": 1610,
-     "local_only": 0
+     "words": 1656,
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/issues.md",
@@ -7419,7 +7471,8 @@
      "date": "",
      "retracted": 1,
      "words": 745,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/model_card_opt3d.md",
@@ -7427,7 +7480,8 @@
      "date": "",
      "retracted": 0,
      "words": 1572,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/pr_v2.2_5pft_box.md",
@@ -7435,7 +7489,8 @@
      "date": "",
      "retracted": 1,
      "words": 949,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/project_checkpoint_2026-07-25.md",
@@ -7443,7 +7498,8 @@
      "date": "",
      "retracted": 0,
      "words": 1608,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/project_coupling_and_workflow.md",
@@ -7451,7 +7507,8 @@
      "date": "",
      "retracted": 0,
      "words": 1369,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/project_map.md",
@@ -7459,7 +7516,8 @@
      "date": "",
      "retracted": 0,
      "words": 1268,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/references.md",
@@ -7467,7 +7525,8 @@
      "date": "",
      "retracted": 0,
      "words": 283,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_log.md",
@@ -7475,15 +7534,17 @@
      "date": "",
      "retracted": 1,
      "words": 4499,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_map.md",
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 100728,
-     "local_only": 0
+     "words": 101417,
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/results_matrix.md",
@@ -7491,7 +7552,8 @@
      "date": "",
      "retracted": 0,
      "words": 1889,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/status.md",
@@ -7499,7 +7561,8 @@
      "date": "",
      "retracted": 0,
      "words": 31,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/testing_strategy.md",
@@ -7507,7 +7570,8 @@
      "date": "",
      "retracted": 0,
      "words": 899,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/track_gaps_and_coupling_verdict.md",
@@ -7515,7 +7579,8 @@
      "date": "",
      "retracted": 0,
      "words": 1635,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/two_anchor_execution_plan.md",
@@ -7523,7 +7588,8 @@
      "date": "",
      "retracted": 0,
      "words": 744,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-05-03_overnight.md",
@@ -7531,7 +7597,8 @@
      "date": "2026-05-03",
      "retracted": 0,
      "words": 0,
-     "local_only": 1
+     "local_only": 1,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-05-21_jon_meeting_brief.md",
@@ -7539,7 +7606,8 @@
      "date": "2026-05-21",
      "retracted": 0,
      "words": 0,
-     "local_only": 1
+     "local_only": 1,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-05-23_cleanup_audit.md",
@@ -7547,7 +7615,8 @@
      "date": "2026-05-23",
      "retracted": 0,
      "words": 0,
-     "local_only": 1
+     "local_only": 1,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-05-23_compute_ladder.md",
@@ -7555,7 +7624,8 @@
      "date": "2026-05-23",
      "retracted": 0,
      "words": 0,
-     "local_only": 1
+     "local_only": 1,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-05-23_overnight_diff_full_darwin.md",
@@ -7563,7 +7633,8 @@
      "date": "2026-05-23",
      "retracted": 0,
      "words": 0,
-     "local_only": 1
+     "local_only": 1,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-05-23_overnight_executed.md",
@@ -7571,7 +7642,8 @@
      "date": "2026-05-23",
      "retracted": 0,
      "words": 0,
-     "local_only": 1
+     "local_only": 1,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-06-06_daily_data_defer.md",
@@ -7579,7 +7651,8 @@
      "date": "2026-06-06",
      "retracted": 0,
      "words": 0,
-     "local_only": 1
+     "local_only": 1,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-06_ude_closure_identifiability_recipe.md",
@@ -7587,7 +7660,8 @@
      "date": "2026-07-06",
      "retracted": 0,
      "words": 1489,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-06_ude_phase1_design_brief.md",
@@ -7595,7 +7669,8 @@
      "date": "2026-07-06",
      "retracted": 0,
      "words": 1938,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-06_ude_phase1_implementation_brief.md",
@@ -7603,7 +7678,8 @@
      "date": "2026-07-06",
      "retracted": 0,
      "words": 2304,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-07_deep_review_e2_readiness.md",
@@ -7611,7 +7687,8 @@
      "date": "2026-07-07",
      "retracted": 0,
      "words": 3362,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-07_jon_questions_track2.md",
@@ -7619,7 +7696,8 @@
      "date": "2026-07-07",
      "retracted": 0,
      "words": 932,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
@@ -7627,7 +7705,8 @@
      "date": "2026-07-07",
      "retracted": 0,
      "words": 2477,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-07_overnight_h200_identifiability_profiles.md",
@@ -7635,7 +7714,8 @@
      "date": "2026-07-07",
      "retracted": 0,
      "words": 419,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-07_param_conditioned_emulator_decision.md",
@@ -7643,7 +7723,8 @@
      "date": "2026-07-07",
      "retracted": 0,
      "words": 3472,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-07_track2_reshaped_plan.md",
@@ -7651,7 +7732,8 @@
      "date": "2026-07-07",
      "retracted": 0,
      "words": 2149,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-07_transport_helps_probe.md",
@@ -7659,7 +7741,8 @@
      "date": "2026-07-07",
      "retracted": 0,
      "words": 493,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-08_fno_neural_operator_emulator_decision.md",
@@ -7667,7 +7750,8 @@
      "date": "2026-07-08",
      "retracted": 0,
      "words": 1544,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-08_overnight_summary.md",
@@ -7675,7 +7759,8 @@
      "date": "2026-07-08",
      "retracted": 0,
      "words": 1250,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-09_calcite_identifiability_map.md",
@@ -7683,7 +7768,8 @@
      "date": "2026-07-09",
      "retracted": 0,
      "words": 2954,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-09_e2_calcite_preregistration.md",
@@ -7691,7 +7777,8 @@
      "date": "2026-07-09",
      "retracted": 0,
      "words": 729,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-09_parameter_conditioned_emulator_update.md",
@@ -7699,7 +7786,8 @@
      "date": "2026-07-09",
      "retracted": 0,
      "words": 1600,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-09_symbolic_distillation_identifiability_oracle.md",
@@ -7707,7 +7795,8 @@
      "date": "2026-07-09",
      "retracted": 0,
      "words": 1199,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-09_track2_identifiability_writeup.md",
@@ -7715,7 +7804,8 @@
      "date": "2026-07-09",
      "retracted": 0,
      "words": 2957,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-10_e2_powered_result.md",
@@ -7723,7 +7813,8 @@
      "date": "2026-07-10",
      "retracted": 0,
      "words": 809,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-10_iron_partitioning_breaks_the_wall.md",
@@ -7731,7 +7822,8 @@
      "date": "2026-07-10",
      "retracted": 0,
      "words": 963,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-10_jon_decision_brief.md",
@@ -7739,7 +7831,8 @@
      "date": "2026-07-10",
      "retracted": 0,
      "words": 1288,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-10_reproducibility_appendix.md",
@@ -7747,7 +7840,8 @@
      "date": "2026-07-10",
      "retracted": 0,
      "words": 1219,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-10_track2_summary_for_discussion.md",
@@ -7755,7 +7849,8 @@
      "date": "2026-07-10",
      "retracted": 0,
      "words": 712,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-11_emulator_build_plan.md",
@@ -7763,7 +7858,8 @@
      "date": "2026-07-11",
      "retracted": 1,
      "words": 1874,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-13_daily_surface_emulator.md",
@@ -7771,7 +7867,8 @@
      "date": "2026-07-13",
      "retracted": 1,
      "words": 826,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-13_global_monthly_emulator.md",
@@ -7779,7 +7876,8 @@
      "date": "2026-07-13",
      "retracted": 0,
      "words": 1142,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-14_3d_emulator.md",
@@ -7787,7 +7885,8 @@
      "date": "2026-07-14",
      "retracted": 1,
      "words": 759,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-14_emulator_loop.md",
@@ -7795,7 +7894,8 @@
      "date": "2026-07-14",
      "retracted": 1,
      "words": 1401,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_diatomgraz_claim_audit.md",
@@ -7803,7 +7903,8 @@
      "date": "2026-07-19",
      "retracted": 0,
      "words": 949,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_emulator_honest_bounds.md",
@@ -7811,7 +7912,8 @@
      "date": "2026-07-19",
      "retracted": 1,
      "words": 4341,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_eqpac_chlorophyll_vs_modis.md",
@@ -7819,7 +7921,8 @@
      "date": "2026-07-19",
      "retracted": 0,
      "words": 2254,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_results_matrix.md",
@@ -7827,7 +7930,8 @@
      "date": "2026-07-19",
      "retracted": 0,
      "words": 1885,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_silicate_fim_artifact_audit.md",
@@ -7835,7 +7939,8 @@
      "date": "2026-07-19",
      "retracted": 0,
      "words": 1989,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_silicate_observable_scope.md",
@@ -7843,7 +7948,8 @@
      "date": "2026-07-19",
      "retracted": 0,
      "words": 1681,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_two_negatives.md",
@@ -7851,7 +7957,8 @@
      "date": "2026-07-19",
      "retracted": 0,
      "words": 2051,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-19_v05_chlorophyll_vs_modis.md",
@@ -7859,7 +7966,8 @@
      "date": "2026-07-19",
      "retracted": 0,
      "words": 953,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-20_external_validation_iron_residence_alpfe.md",
@@ -7867,7 +7975,8 @@
      "date": "2026-07-20",
      "retracted": 0,
      "words": 2713,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md",
@@ -7875,7 +7984,8 @@
      "date": "2026-07-20",
      "retracted": 0,
      "words": 1189,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
@@ -7883,7 +7993,8 @@
      "date": "2026-07-20",
      "retracted": 0,
      "words": 930,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-20_rollout_ceiling_mechanism.md",
@@ -7891,7 +8002,8 @@
      "date": "2026-07-20",
      "retracted": 0,
      "words": 1484,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_anchors_only_ablation.md",
@@ -7899,7 +8011,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 486,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_caltech_neural_operator_scan.md",
@@ -7907,7 +8020,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 809,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_chl_binning_recompute.md",
@@ -7915,7 +8029,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 325,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_emulator_geometry_flat.md",
@@ -7923,7 +8038,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 558,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_eqpac_alone_ablation.md",
@@ -7931,7 +8047,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 374,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_joint_number_reconciliation.md",
@@ -7939,7 +8056,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 667,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-21_jon_update.md",
@@ -7947,7 +8065,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 1571,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
@@ -7955,7 +8074,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 1587,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-21_manuscript_redteam.md",
@@ -7963,7 +8083,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 1052,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_saddle_fix_result.md",
@@ -7971,7 +8092,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 469,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-21_ude_stress_result.md",
@@ -7979,7 +8101,8 @@
      "date": "2026-07-21",
      "retracted": 0,
      "words": 443,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_anchors_only_n50_verified.md",
@@ -7987,7 +8110,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 454,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_citation_method_lessons.md",
@@ -7995,7 +8119,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 1409,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_column_osse_result.md",
@@ -8003,7 +8128,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 616,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_covariate_channels_result.md",
@@ -8011,7 +8137,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 1087,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_diatomgraz_realgraze_diagnostic.md",
@@ -8019,7 +8146,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 861,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_dust_anchor_ab_b200.md",
@@ -8027,7 +8155,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 950,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_dust_anchor_phase0.md",
@@ -8035,7 +8164,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 482,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-22_ecco_darwin_v06_research.md",
@@ -8043,7 +8173,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 1179,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_eki_fullbox_result.md",
@@ -8051,7 +8182,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 386,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_gap_closure_and_fable_validation.md",
@@ -8059,7 +8191,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 734,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_iron_bottleneck_solution_map.md",
@@ -8067,15 +8200,17 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 830,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
      "name": "2026-07-22_neuralbgc_m2lines_landscape.md",
      "date": "2026-07-22",
      "retracted": 0,
-     "words": 975,
-     "local_only": 0
+     "words": 1065,
+     "local_only": 0,
+     "partly_superseded": 1
     },
     {
      "path": "docs/research_notes/2026-07-22_next_direction_rpicpoc_protection.md",
@@ -8083,7 +8218,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 1198,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-22_overnight_session_report.md",
@@ -8091,7 +8227,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 1326,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_realbox_geometry_result.md",
@@ -8099,7 +8236,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 587,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-22_session_handoff.md",
@@ -8107,7 +8245,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 836,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_signflip_n50_result.md",
@@ -8115,7 +8254,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 355,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_two_anchor_osse_verified.md",
@@ -8123,7 +8263,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 414,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-22_two_anchor_redteam.md",
@@ -8131,7 +8272,8 @@
      "date": "2026-07-22",
      "retracted": 0,
      "words": 715,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_1hr_run_summary.md",
@@ -8139,7 +8281,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 766,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
@@ -8147,7 +8290,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 723,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_3d_emulator_earth2studio_design.md",
@@ -8155,7 +8299,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 3075,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_box_silica_feasibility.md",
@@ -8163,7 +8308,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 2049,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_closure_theory_questions.md",
@@ -8171,7 +8317,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 990,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_critique_literature_grounding.md",
@@ -8179,7 +8326,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1787,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_data_sources_ghgcenter_earthmover.md",
@@ -8187,15 +8335,17 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1086,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_depth_emulator_e2s_result.md",
      "name": "2026-07-23_depth_emulator_e2s_result.md",
      "date": "2026-07-23",
-     "retracted": 1,
+     "retracted": 0,
      "words": 808,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 1
     },
     {
      "path": "docs/findings/2026-07-23_emulator_baseline_matrix.md",
@@ -8203,7 +8353,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1739,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_emulator_baselines_v2.md",
@@ -8211,7 +8362,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1310,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_emulator_multiseed.md",
@@ -8219,7 +8371,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 854,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_expert_review_corrections.md",
@@ -8227,7 +8380,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1572,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_inverse_method_citations.md",
@@ -8235,7 +8389,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1125,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_joint_profile_multipoint.md",
@@ -8243,7 +8398,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 607,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_learned_closure_lineage.md",
@@ -8251,7 +8407,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 496,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_logchl_step_a_result.md",
@@ -8259,7 +8416,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 615,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_manuscript_critical_path_plan.md",
@@ -8267,7 +8425,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 796,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_novelty_literature_scan.md",
@@ -8275,7 +8434,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 504,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_observable_frontier_config_analysis.md",
@@ -8283,7 +8443,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1096,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_observation_design.md",
@@ -8291,7 +8452,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1653,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_overnight_geometry_and_seasonal.md",
@@ -8299,7 +8461,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1340,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_overnight_recovery_sweep_groupA.md",
@@ -8307,7 +8470,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1233,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_parameter_completion_matrix.md",
@@ -8315,7 +8479,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 831,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_percell_crlb_map.md",
@@ -8323,7 +8488,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 919,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_recovery_table_verified.md",
@@ -8331,7 +8497,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1328,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_rigorous_identifiability_Q1Q2.md",
@@ -8339,7 +8506,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 940,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_rpicpoc_protection_result.md",
@@ -8347,7 +8515,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 757,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-23_session_handoff.md",
@@ -8355,7 +8524,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1217,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_subiron_scav_rat_result.md",
@@ -8363,7 +8533,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 655,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_surrogate_jacobian_validation.md",
@@ -8371,7 +8542,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 1763,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-23_v05_perturbation_recipe.md",
@@ -8379,7 +8551,8 @@
      "date": "2026-07-23",
      "retracted": 0,
      "words": 2002,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-24_bgc_operator_lineage_synthesis.md",
@@ -8387,7 +8560,8 @@
      "date": "2026-07-24",
      "retracted": 0,
      "words": 3376,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-24_ghgcenter_positioning.md",
@@ -8395,7 +8569,8 @@
      "date": "2026-07-24",
      "retracted": 0,
      "words": 2326,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-24_next_session_prompts.md",
@@ -8403,7 +8578,8 @@
      "date": "2026-07-24",
      "retracted": 0,
      "words": 964,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-24_overnight_session_summary.md",
@@ -8411,7 +8587,8 @@
      "date": "2026-07-24",
      "retracted": 0,
      "words": 1048,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-24_parameter_specific_schema.md",
@@ -8419,7 +8596,8 @@
      "date": "2026-07-24",
      "retracted": 0,
      "words": 1288,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-24_reproducibility_methods_appendix.md",
@@ -8427,7 +8605,8 @@
      "date": "2026-07-24",
      "retracted": 0,
      "words": 895,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-24_research_refinement.md",
@@ -8435,7 +8614,8 @@
      "date": "2026-07-24",
      "retracted": 0,
      "words": 1022,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-25_deep_research_sweep.md",
@@ -8443,7 +8623,8 @@
      "date": "2026-07-25",
      "retracted": 0,
      "words": 8271,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-25_e2s_conformance_verified.md",
@@ -8451,7 +8632,8 @@
      "date": "2026-07-25",
      "retracted": 0,
      "words": 537,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
@@ -8459,7 +8641,8 @@
      "date": "2026-07-25",
      "retracted": 0,
      "words": 144,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-25_next_session_start_here.md",
@@ -8467,7 +8650,8 @@
      "date": "2026-07-25",
      "retracted": 0,
      "words": 663,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-25_surrogate_to_gcm_validation.md",
@@ -8475,7 +8659,8 @@
      "date": "2026-07-25",
      "retracted": 0,
      "words": 1701,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-26_emulator_baseline_literature.md",
@@ -8483,7 +8668,8 @@
      "date": "2026-07-26",
      "retracted": 0,
      "words": 541,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-27_conditioning_precision_hypothesis.md",
@@ -8491,7 +8677,8 @@
      "date": "2026-07-27",
      "retracted": 1,
      "words": 1500,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-27_hierarchical_inversion_design.md",
@@ -8499,7 +8686,8 @@
      "date": "2026-07-27",
      "retracted": 0,
      "words": 7529,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-27_independent_validation_scope.md",
@@ -8507,7 +8695,8 @@
      "date": "2026-07-27",
      "retracted": 0,
      "words": 790,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_bling_comparability.md",
@@ -8515,7 +8704,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 499,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_eqpac_observation_design.md",
@@ -8523,7 +8713,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 598,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_gp15_leg2_correction.md",
@@ -8531,7 +8722,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 782,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_project_evidence_matrix.md",
@@ -8539,7 +8731,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 1589,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_regional_product_extents.md",
@@ -8547,7 +8740,8 @@
      "date": "2026-07-28",
      "retracted": 1,
      "words": 1633,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_residual_angle_measured.md",
@@ -8555,7 +8749,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 730,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_session_evidence_log.md",
@@ -8563,7 +8758,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 7793,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_table_s1_decomposition.md",
@@ -8571,7 +8767,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 584,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-28_track2_artifact_audit.md",
@@ -8579,7 +8776,8 @@
      "date": "2026-07-28",
      "retracted": 0,
      "words": 396,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_bsose_extent_and_first_iron_field_comparison.md",
@@ -8587,7 +8785,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 953,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_calcite_pooling_artifact.md",
@@ -8595,7 +8794,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 2602,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_coccolith_only_screen.md",
@@ -8603,7 +8803,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 1552,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_contract_prior_art.md",
@@ -8611,7 +8812,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 1326,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_flagship_recipe_gap.md",
@@ -8619,7 +8821,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 533,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_gnfisher_structural_clause.md",
@@ -8627,7 +8830,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 2370,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_inert_anchor_passes_the_gate.md",
@@ -8635,7 +8839,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 1002,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
@@ -8643,7 +8848,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 5502,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
@@ -8651,7 +8857,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 985,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_lauderdale_answers.md",
@@ -8659,7 +8866,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 2372,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_math_audit_index.md",
@@ -8667,7 +8875,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 1153,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-29_observations_only_scope.md",
@@ -8675,7 +8884,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 3966,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_preregistration_obsonly_and_ladder.md",
@@ -8683,7 +8893,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 5632,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-29_ude_scaling_claim_audit.md",
@@ -8691,7 +8902,8 @@
      "date": "2026-07-29",
      "retracted": 0,
      "words": 4403,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_bsose_trac06_is_total_dissolved_iron.md",
@@ -8699,7 +8911,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 786,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_daily_archive_era_and_completeness.md",
@@ -8707,7 +8920,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 722,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_daily_design_workflow_recovered.md",
@@ -8715,7 +8929,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 847,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_daily_emulator_artifact_is_contaminated.md",
@@ -8723,7 +8938,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 620,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_daily_emulator_rescored_vs_ar1.md",
@@ -8731,7 +8947,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1169,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_daily_logspace_training.md",
@@ -8739,7 +8956,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1714,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
@@ -8747,7 +8965,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1245,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
@@ -8755,7 +8974,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1515,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md",
@@ -8763,7 +8983,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 768,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_monthly_timeinterval_metadata_is_wrong.md",
@@ -8771,7 +8992,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 784,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-30_next_session_start_here.md",
@@ -8779,7 +9001,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 2047,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_param_log_scale_resolved.md",
@@ -8787,7 +9010,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 781,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md",
@@ -8795,7 +9019,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1245,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_prereg_scavrat_mechanism_surface_vs_depth.md",
@@ -8803,7 +9028,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1204,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_prereg_scavrat_southern_ocean.md",
@@ -8811,7 +9037,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 981,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_rain_ratio_which_value_is_live.md",
@@ -8819,15 +9046,17 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 987,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
      "name": "2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
      "date": "2026-07-30",
-     "retracted": 1,
+     "retracted": 0,
      "words": 1059,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 1
     },
     {
      "path": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
@@ -8835,7 +9064,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1073,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-07-30_session_handoff.md",
@@ -8843,7 +9073,8 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 2070,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_below_null_is_bias_compensation_and_partly_an_artifact.md",
@@ -8851,7 +9082,8 @@
      "date": "2026-07-31",
      "retracted": 0,
      "words": 893,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_citation_audit.md",
@@ -8859,7 +9091,8 @@
      "date": "2026-07-31",
      "retracted": 0,
      "words": 644,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_depth_mechanism_does_not_replicate_in_eqpac.md",
@@ -8867,7 +9100,8 @@
      "date": "2026-07-31",
      "retracted": 1,
      "words": 1538,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_ghgc_eccodarwin_stac_statistics_count_the_fill_value.md",
@@ -8875,7 +9109,8 @@
      "date": "2026-07-31",
      "retracted": 0,
      "words": 663,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_no_nasa_account_needed_v05_is_already_built.md",
@@ -8883,7 +9118,8 @@
      "date": "2026-07-31",
      "retracted": 0,
      "words": 921,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_prereg_depth_mechanism_replication_eqpac.md",
@@ -8891,7 +9127,8 @@
      "date": "2026-07-31",
      "retracted": 0,
      "words": 1194,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_prereg_flagship_window_sweep.md",
@@ -8899,7 +9136,8 @@
      "date": "2026-07-31",
      "retracted": 0,
      "words": 839,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_prereg_integration_window_swap.md",
@@ -8907,7 +9145,8 @@
      "date": "2026-07-31",
      "retracted": 0,
      "words": 903,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
@@ -8915,7 +9154,8 @@
      "date": "2026-07-31",
      "retracted": 1,
      "words": 1227,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-07-31_window_swap_retracts_the_depth_result.md",
@@ -8923,7 +9163,8 @@
      "date": "2026-07-31",
      "retracted": 1,
      "words": 861,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-02_flagship_does_not_reproduce_and_the_config_is_not_why.md",
@@ -8931,7 +9172,8 @@
      "date": "2026-08-02",
      "retracted": 0,
      "words": 879,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-02_flagship_window_sweep_relaunch.md",
@@ -8939,7 +9181,8 @@
      "date": "2026-08-02",
      "retracted": 0,
      "words": 660,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-02_reproducibility_controls_rerun.md",
@@ -8947,7 +9190,8 @@
      "date": "2026-08-02",
      "retracted": 0,
      "words": 822,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_adequacy_weighted_routing_is_inert.md",
@@ -8955,7 +9199,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 786,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md",
@@ -8963,7 +9208,8 @@
      "date": "2026-08-03",
      "retracted": 1,
      "words": 1470,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_information_weighted_routing_is_worse.md",
@@ -8971,7 +9217,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 778,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_per_parameter_aoi_weights_from_information.md",
@@ -8979,7 +9226,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 784,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_per_parameter_operating_points.md",
@@ -8987,7 +9235,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 1836,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_per_parameter_trunks_do_not_replicate_at_n100.md",
@@ -8995,7 +9244,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 943,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_per_parameter_trunks_lift_scav_rat_but_not_the_frontier.md",
@@ -9003,7 +9253,8 @@
      "date": "2026-08-03",
      "retracted": 1,
      "words": 892,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_prereg_adequacy_weighted_routing.md",
@@ -9011,7 +9262,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 956,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_prereg_per_parameter_routing.md",
@@ -9019,7 +9271,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 1329,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_the_arithmetic_pooler_manufactures_scav_rat_recovery.md",
@@ -9027,7 +9280,8 @@
      "date": "2026-08-03",
      "retracted": 1,
      "words": 1385,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_the_flagship_is_bound_to_a_code_build.md",
@@ -9035,7 +9289,8 @@
      "date": "2026-08-03",
      "retracted": 1,
      "words": 929,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_the_pass_band_is_load_bearing.md",
@@ -9043,7 +9298,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 1326,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-03_the_regression_was_a_learning_rate.md",
@@ -9051,7 +9307,8 @@
      "date": "2026-08-03",
      "retracted": 0,
      "words": 920,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md",
@@ -9059,7 +9316,8 @@
      "date": "2026-08-04",
      "retracted": 0,
      "words": 1585,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-04_bounding_map_ab_under_all_three_collapses.md",
@@ -9067,7 +9325,8 @@
      "date": "2026-08-04",
      "retracted": 0,
      "words": 914,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md",
@@ -9075,7 +9334,8 @@
      "date": "2026-08-04",
      "retracted": 0,
      "words": 946,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md",
@@ -9083,7 +9343,8 @@
      "date": "2026-08-04",
      "retracted": 0,
      "words": 1706,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md",
@@ -9091,7 +9352,8 @@
      "date": "2026-08-05",
      "retracted": 0,
      "words": 922,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-05_the_black2020_sink_anchor_is_a_source_anchor.md",
@@ -9099,7 +9361,8 @@
      "date": "2026-08-05",
      "retracted": 0,
      "words": 1332,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md",
@@ -9107,7 +9370,8 @@
      "date": "2026-08-05",
      "retracted": 0,
      "words": 2252,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-06_prereg_time_mean_loss.md",
@@ -9115,7 +9379,8 @@
      "date": "2026-08-06",
      "retracted": 0,
      "words": 714,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-06_scav_rat_does_not_transfer_to_kerguelen.md",
@@ -9123,7 +9388,8 @@
      "date": "2026-08-06",
      "retracted": 0,
      "words": 1457,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md",
@@ -9131,7 +9397,8 @@
      "date": "2026-08-06",
      "retracted": 0,
      "words": 2074,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-06_the_time_mean_loss_relocates_recovery_to_the_equatorial_pacific.md",
@@ -9139,7 +9406,8 @@
      "date": "2026-08-06",
      "retracted": 0,
      "words": 2178,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-08_prereg_loss_comparison_self_twin.md",
@@ -9147,7 +9415,8 @@
      "date": "2026-08-08",
      "retracted": 0,
      "words": 1758,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_astronomical_light_does_not_rescue_seasonal_biomass.md",
@@ -9155,7 +9424,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 692,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_chemical_restoring_preserves_iron_but_not_seasonal_biomass.md",
@@ -9163,7 +9433,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 577,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_constant_forcing_self_twin_double_null.md",
@@ -9171,7 +9442,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 1218,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_explicit_zooplankton_rescues_diatoms_but_fails_target_gate.md",
@@ -9179,7 +9451,8 @@
      "date": "2026-08-09",
      "retracted": 1,
      "words": 828,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_large_zooplankton_exclusion_is_an_energy_deficit.md",
@@ -9187,7 +9460,8 @@
      "date": "2026-08-09",
      "retracted": 1,
      "words": 685,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_large_zooplankton_is_endogenously_excluded.md",
@@ -9195,7 +9469,8 @@
      "date": "2026-08-09",
      "retracted": 1,
      "words": 472,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_no_single_posthoc_waiver_rescues_seasonal_target.md",
@@ -9203,7 +9478,8 @@
      "date": "2026-08-09",
      "retracted": 1,
      "words": 558,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_explicit_zooplankton_exclusion_audit.md",
@@ -9211,7 +9487,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 343,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_explicit_zooplankton_prey_energy_audit.md",
@@ -9219,7 +9496,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 626,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_seasonal_loss_self_twin.md",
@@ -9227,7 +9505,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 1096,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_seasonal_twin_astronomical_light.md",
@@ -9235,7 +9514,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 546,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_seasonal_twin_blocker_minimality_audit.md",
@@ -9243,7 +9523,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 339,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_seasonal_twin_chemical_restoring_closure.md",
@@ -9251,7 +9532,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 627,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_seasonal_twin_diatom_invasion_test.md",
@@ -9259,7 +9541,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 575,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_seasonal_twin_explicit_zooplankton_gate.md",
@@ -9267,7 +9550,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 1076,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_prereg_seasonal_twin_phytoplankton_process_budget.md",
@@ -9275,7 +9559,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 817,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_presentation_planning_weekly_log_aug4_11_as_of_aug9_talk_track.md",
@@ -9283,7 +9568,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 1381,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_rare_diatom_cannot_invade_five_of_six_seasonal_cells.md",
@@ -9291,7 +9577,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 728,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_seasonal_forcing_alone_cannot_make_the_self_twin_climatology.md",
@@ -9299,7 +9586,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 894,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-09_seasonal_twin_biomass_failure_is_diatom_specific.md",
@@ -9307,7 +9595,8 @@
      "date": "2026-08-09",
      "retracted": 0,
      "words": 850,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_continuity_eliminates_the_natl_teleport_knife_edge.md",
@@ -9315,7 +9604,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 532,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_discrete_update_preserves_natl_teleport_knife_edge.md",
@@ -9323,7 +9613,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 440,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_even_teleportation_cannot_close_two_large_z_deficits.md",
@@ -9331,7 +9622,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 534,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_large_zooplankton_is_near_a_local_refuge_but_not_basinwide.md",
@@ -9339,7 +9631,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 646,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_literal_source_floor_correction_preserves_the_seasonal_stage0_stop.md",
@@ -9347,7 +9640,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 1120,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_prereg_continuity_constrained_large_z_path_oracle.md",
@@ -9355,7 +9649,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 429,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_prereg_discrete_large_z_transport_oracle.md",
@@ -9363,7 +9658,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 397,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_prereg_explicit_zooplankton_source_conformance.md",
@@ -9371,7 +9667,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 826,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_prereg_large_zooplankton_support_threshold_audit.md",
@@ -9379,7 +9676,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 570,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_prereg_large_zooplankton_transport_oracle.md",
@@ -9387,7 +9685,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 550,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-10_prereg_source_floor_corrected_explicit_zooplankton_chain.md",
@@ -9395,7 +9694,8 @@
      "date": "2026-08-10",
      "retracted": 0,
      "words": 445,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-11_eccodarwindiff_summer_research_closeout.md",
@@ -9403,7 +9703,8 @@
      "date": "2026-08-11",
      "retracted": 0,
      "words": 1815,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-11_eccodarwindiff_summer_research_closeout_speaker_notes.md",
@@ -9411,7 +9712,8 @@
      "date": "2026-08-11",
      "retracted": 0,
      "words": 1588,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-11_weekly_talk_track_refined.md",
@@ -9419,7 +9721,8 @@
      "date": "2026-08-11",
      "retracted": 0,
      "words": 1846,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_ai4ocean_alliance_publication_scan.md",
@@ -9427,7 +9730,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 17401,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_ai4ocean_alliance_scan_report.md",
@@ -9435,7 +9739,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 987,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_coupling_a_physical_model_dilutes_the_iron_signal.md",
@@ -9443,7 +9748,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 1053,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_darwin_traits_echo_file_located.md",
@@ -9451,7 +9757,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 455,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_external_evidence_sweep_nothing_moves_a_number.md",
@@ -9459,7 +9766,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 1015,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_how_often_our_primary_test_fires_on_nothing.md",
@@ -9467,7 +9775,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 804,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-08-12_jon_reply_pavia_DRAFT.md",
@@ -9475,7 +9784,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 321,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-08-12_jon_reply_round2_DRAFT.md",
@@ -9483,7 +9793,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 528,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
@@ -9491,7 +9802,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 1259,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-08-12_pavia_thorium_lead.md",
@@ -9499,7 +9811,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 636,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_prereg_so_marsh_anchor.md",
@@ -9507,7 +9820,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 1021,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_prereg_so_only_replication.md",
@@ -9515,7 +9829,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 858,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_reading_bing_code_finds_a_method_we_do_not_have.md",
@@ -9523,7 +9838,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 789,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_the_box_refactor_is_bitwise_neutral.md",
@@ -9531,7 +9847,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 919,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_the_fresh_seed_half_replicates_the_flagship.md",
@@ -9539,7 +9856,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 790,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_the_southern_ocean_calcite_gap_is_the_compilation_not_the_ocean.md",
@@ -9547,7 +9865,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 1023,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_the_southern_ocean_rpicpoc_leg_is_anchorable_but_only_under_the_median.md",
@@ -9555,7 +9874,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 1022,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-12_the_southern_ocean_scavrat_result_replicates.md",
@@ -9563,7 +9883,8 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 828,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-08-13_jon_reply_pavia_DRAFT.md",
@@ -9571,7 +9892,8 @@
      "date": "2026-08-13",
      "retracted": 0,
      "words": 552,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-13_laplace_assessment_and_a_refuted_hypothesis.md",
@@ -9579,7 +9901,8 @@
      "date": "2026-08-13",
      "retracted": 0,
      "words": 1130,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-13_rno_the_architecture_is_dead_the_conformal_wrapper_is_not.md",
@@ -9587,7 +9910,8 @@
      "date": "2026-08-13",
      "retracted": 0,
      "words": 724,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-13_the_flagship_rpicpoc_5050_is_daniels_specific.md",
@@ -9595,7 +9919,8 @@
      "date": "2026-08-13",
      "retracted": 0,
      "words": 828,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-13_the_median_collapse_is_legitimate_for_a_sparse_anchor.md",
@@ -9603,7 +9928,8 @@
      "date": "2026-08-13",
      "retracted": 0,
      "words": 783,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/research_notes/2026-08-14_session_handoff.md",
@@ -9611,7 +9937,8 @@
      "date": "2026-08-14",
      "retracted": 0,
      "words": 695,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md",
@@ -9619,7 +9946,8 @@
      "date": "2026-08-14",
      "retracted": 0,
      "words": 631,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-17_hyperfno_is_the_eighth_negative_and_was_already_settled.md",
@@ -9627,7 +9955,8 @@
      "date": "2026-08-17",
      "retracted": 0,
      "words": 1217,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
@@ -9635,7 +9964,8 @@
      "date": "2026-08-17",
      "retracted": 0,
      "words": 1895,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
     },
     {
      "path": "docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md",
@@ -9643,7 +9973,17 @@
      "date": "2026-08-20",
      "retracted": 0,
      "words": 1040,
-     "local_only": 0
+     "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "name": "2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "date": "2026-09-19",
+     "retracted": 0,
+     "words": 2462,
+     "local_only": 0,
+     "partly_superseded": 0
     }
    ]
   },
@@ -12171,6 +12511,24 @@
      "date": ""
     },
     {
+     "ev_id": "ev_ded_dic_error_to_pco2_revelle_20260919",
+     "kind": "deductive",
+     "locator": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "job": "",
+     "gate": "n/a",
+     "n": null,
+     "date": ""
+    },
+    {
+     "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
+     "kind": "deductive",
+     "locator": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "job": "",
+     "gate": "n/a",
+     "n": null,
+     "date": ""
+    },
+    {
      "ev_id": "ev_ded_szn_blocker_lattice_20260809",
      "kind": "deductive",
      "locator": "docs/findings/2026-08-09_no_single_posthoc_waiver_rescues_seasonal_target.md",
@@ -12514,6 +12872,14 @@
      "falsifier": "Aliasing ≥ 0.95, which vetoes the expensive fit before any GPU is booked and turns the work into a forcing-design task. Do NOT gate on a ≥0.30 dex span — that is the calcite branch's default and 0.311 dex already failed on aliasing 0.9908 at held-out R² 0.99999999. And do not read a 1.000000 aliasing as a veto without gauge-fixing first: it drops to 0.3078 under pure reparameterization. Banned phrasings for any output: 'breaking the degeneracy', 'recovering the scavenging rate', 'learning the iron closure from data'.",
      "status": "open, re-scoped by docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
      "prereg": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
+    },
+    {
+     "hy_id": "hy_samudrabgc_stoichiometric_increments",
+     "statement": "SamudraBGC's predicted daily increments of DIC, NO3 and O2 preserve the parent MOM6-COBALTv2 model's own stoichiometric coupling, even though the emulator predicts them as independent channels.",
+     "predicts": "On the public 60-day evaluation window, the regression slopes dDIC:dNO3 and dO2:dNO3 of the emulator's one-day increments fall inside the spatial block-bootstrap interval of the parent's slopes in each biome.",
+     "falsifier": "An emulator slope outside the parent's interval in any biome, with the parent column computed by the same code on the same cells. A departure from Redfield that the parent also shows is NOT a failure; the parent is the control.",
+     "status": "open - not run; needs the 0.91 GB checkpoint and the 23.3 GB Zenodo window, and the user's permission to download them",
+     "prereg": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md"
     },
     {
      "hy_id": "hy076",
@@ -12898,6 +13264,14 @@
      "falsifier": "Score the global config (680x1441 at 0.25 deg, 456,873 valid cells, 156 months, skill vs persistence +0.520, seed-stable +0.5165 +/- 0.0023 across five seeds) against the AR(1) null. Named the highest impact-per-effort action in the report, ~1 day, and the internal inconsistency most likely to be caught by a referee.",
      "status": "open",
      "prereg": "docs/research_notes/2026-07-25_deep_research_sweep.md"
+    },
+    {
+     "hy_id": "hy_samudrabgc_survives_seasonal_ar1",
+     "statement": "At 9 km and daily cadence SamudraBGC beats a per-cell seasonal AR(1) at short lead, unlike our prognostic-only monthly operator, because mesoscale advection is not in a climatology.",
+     "predicts": "Positive skill against a per-cell seasonal AR(1) fitted on 1960-2009 for surface DIC, O2, NO3 and Chl at leads of 1-20 days, with a block-bootstrap interval that excludes zero.",
+     "falsifier": "Skill against the seasonal AR(1) whose interval includes or lies below zero for any of the four BGC tracers.",
+     "status": "open - blocked on data only the authors hold: the public window is 60 days and the AR(1) needs the multi-year record, which is not yet public",
+     "prereg": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md"
     },
     {
      "hy_id": "hy075",
@@ -13969,7 +14343,7 @@
     },
     {
      "question": "How much GEOTRACES dissolved-iron coverage do the rectangular AOI boxes leave on the table versus their Longhurst provinces?",
-     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 16 stations / 241 samples against ANTA province 125 / 1,558 -- the box captures 13% of ANTA's stations, so a 7.8x increase in stations and 6.5x in samples is available. Membership is boundary-INCLUSIVE (shapely covers), matching the endpoint-inclusive ds.sel(lat=slice(...)) the loader uses; shapely contains would drop six GP16 corridor stations sitting exactly on lat = -16.0 (92 -> 86). eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs untrained 0/50, P = 3.15e-24; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
+     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 16 stations / 241 samples against ANTA province 125 / 1,558 -- the box captures 13% of ANTA's stations, so a 7.8x increase in stations and 6.5x in samples is available. Membership is boundary-INCLUSIVE (shapely covers), matching the endpoint-inclusive ds.sel(lat=slice(...)) the loader uses; shapely contains would drop six GP16 corridor stations sitting exactly on lat = -16.0 (92 -> 86). eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs a matched untrained pass rate of 0.060 (3/50), P = 3.15e-24; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
      "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "dont": ""
     },
@@ -14841,6 +15215,12 @@
      "question": "Is the scientific novelty of the Track-1 identifiability study high?",
      "answer": "No, minimal. Parameter identifiability in marine ecosystem models is an established field (Biogeosciences bg-14-1647-2017); AD-for-parameter-inference is old (AD Model Builder); the native adjoint is ECCO v4; BGC observing-system design exists (Argo OSSEs); the iron degeneracy is Frants 2016. The defensible METHODOLOGICAL novelty is the narrow combination: a differentiable 0-D surrogate as an inversion-side identifiability and observation-design probe for a non-differentiable GCM, stated 'to our knowledge' against those five prior works.",
      "doc": "docs/research_notes/2026-07-23_1hr_run_summary.md",
+     "dont": ""
+    },
+    {
+     "question": "What does a DIC error of a few umol/kg mean in pCO2 (Revelle amplification), and does a high DIC R2 establish a usable air-sea CO2 flux?",
+     "answer": "No, not by itself. At fixed alkalinity, temperature and salinity, +2 umol/kg of DIC is +3.57 / +3.85 / +4.18 uatm of pCO2 and +4 umol/kg is +7.17 / +7.75 / +8.43 uatm in subtropical (22 C) / mid (15 C) / subpolar (8 C) regimes, with Revelle factors 9.88 / 11.16 / 12.69 taken by autograd through darwindiff.carbonate. That is the size of the air-sea disequilibrium that drives the ocean carbon sink, and a bias, unlike a random error, does not average out of an area-integrated flux. The two magnitudes are the ones the SamudraBGC model card reports (validation bias below 2 umol/kg; time-mean meridional section RMSE 4.0 umol/kg at R2 = 0.992), but NEITHER is a surface error, so this is a SENSITIVITY of the carbonate system and not a finding about their emulator. Reproduce with scripts/analysis/dic_error_to_pco2.py -> docs/findings/dic_error_to_pco2.json.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
      "dont": ""
     },
     {
@@ -15786,6 +16166,12 @@
      "dont": ""
     },
     {
+     "question": "What can DarwinDiff offer the M2LINES / SamudraBGC / SamudrACE biogeochemistry effort (collaboration, pitch, outreach), and what must it NOT pitch?",
+     "answer": "Offer small open artifacts against THEIR code, smallest first. (0) Tell the MIT side first. (1) Reproduce their champion on the public 60-day window, then add three diagnostics with the parent model as the control: skill against persistence with block-bootstrap intervals by lead, depth and biome; stoichiometric coupling of the predicted DIC:NO3 and O2:NO3 increments against the parent's own slopes (needs no reference data); the pCO2 error implied by their surface DIC error. (2) Alkalinity plus the autograd carbonate solver (src/darwindiff/carbonate.py; its calcite saturation state is validated against PyCO2SYS on 2000 GLODAPv3 points, its pCO2 not yet compared directly) as a derived-variable, check or loss module, because DIC without ALK cannot give pCO2 or the air-sea flux. (3) ECCO-Darwin v05 as the OBSERVATION-CONSTRAINED second target for their open recipe, scored against pre-registered nulls and independent dated observations; this is the step that matches InMOS's models-plus-observations charter, and it is a real risk because our own monthly operator lost to seasonal AR(1). (4) Identifiability results as design constraints for ML data assimilation: no estimator breaks a rank-1 structural null, a recovery count needs its untrained chance rate, and the dust-solubility x scavenging iron degeneracy is structural, which COBALT shares. Do NOT pitch: our forward emulator (-0.161 +/- 0.015 against seasonal AR(1)); 'the field baselines too weakly' (settled No); 'first ocean-BGC emulator' (dead four times over); ECCO-Darwin as SamudrACE's BGC component (wrong lineage: SamudrACE emulates GFDL CM4, whose BGC twin is ESM4/COBALT); or the parameter-conditioned calibration emulator (shelved). Lead with AGREEMENT: log space, capacity saturation and ensembling were found independently on both models. Nothing had been run against SamudraBGC as of 2026-09-19.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "dont": ""
+    },
+    {
      "question": "How much frozen prey support is required to bring the excluded large zooplankton to continuous replacement?",
      "answer": "On the independently verified source-floor-corrected cycle-13 path, the minimum all-prey multiplier is 1.114 / 1.104 / 1.061 in EqPac / North Atlantic / Southern Ocean, supporting the preregistered <=1.25 local-refuge hypothesis in every AOI. The basin medians are 1.158 / 1.321 / 1.322, and only 96.45% / 32.31% / 37.58% of cells are <=1.25; all 2,856 ocean-cell roots are bracketed and below 2. Scaling only large prey costs more (median 1.234 / 1.518 / 1.520). Equivalent median subsidies are 0.00417 / 0.00730 / 0.00731 d^-1, or 12.50% / 21.89% / 21.94% of mortality. An independent verifier recomputed both root fields and the source hash chain from 16,780,043 raw tensor cells. This is a one-trajectory frozen-path counterfactual, not modified dynamics, stable coexistence, a selected missing mechanism, target rehabilitation, replication, or B200 authorization. Stage remains stage0-failed-stop.",
      "doc": "docs/findings/2026-08-10_large_zooplankton_is_near_a_local_refuge_but_not_basinwide.md",
@@ -15877,8 +16263,8 @@
     },
     {
      "question": "Does M2LINES or Neural-BGC scoop the ocean-BGC emulator niche?",
-     "answer": "Partially. M2LINES: 84 publications, ZERO biogeochemistry — all physical (eddy/mixing/subgrid, sea ice, DA model error), and Samudra + SamudrACE are physical-only with no BGC channels. Neural-BGC (Ouala & Lachkar 2026) claims DO + NO3 only. Retire 'the ocean-BGC ML emulator niche is empty'; carbon + iron + Chl + calcite emulation and Carroll-6 identifiability remain uncontested, confirmed by three independent groups (JPL/NVIDIA, Neural-BGC, M2LINES).",
-     "doc": "docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
+     "answer": "Partially, and more than this row said before 2026-09-19. CORRECTED 2026-09-19: M2LINES is NOT zero-BGC. SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna; ESSOAr 10.22541/essoar.15006794; code released 2026-07-10) emulates DIC + O2 + NO3 + Chl in an idealised 9 km MOM6-COBALTv2 double gyre, so the old 'M2LINES: 84 publications, ZERO biogeochemistry' and 'confirmed by three independent groups' no longer hold. The scan read the group's publications page and missed a GitHub + Zenodo + ESSOAr release. Samudra, Samudra 2 and SamudrACE themselves remain physical-only. Neural-BGC (Ouala & Lachkar 2026) claims DO + NO3 only. DIC and Chl emulation are now CONTESTED (BG4Sea had already narrowed this on 2026-07-24). Still uncontested, stated narrowly: iron; alkalinity and the carbonate system (pCO2, air-sea CO2 flux); calcite; emulation of a data-assimilating BGC state estimate; validation against independent dated observations rather than the parent model; and Carroll-6 identifiability, which no emulator attempts.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md, docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
      "dont": ""
     },
     {
@@ -15949,7 +16335,7 @@
     },
     {
      "question": "Is the Southern Ocean scav_rat recovery real, or borrowed from the other basins through the shared network?",
-     "answer": "Real and local. Fitting the SO alone: scav_rat 30/50 vs untrained 0/50, P = 3.15e-24; the pre-registered rule was k >= 25 and P < 0.01, both met and neither marginal. Pre-set controls held: alpfe 50/50 (fit not broken), R_PICPOC 0/50 (must be zero - no calcite data in the SO). Jobs 238079/238080, verify_run exit 0. Pooling still adds: 39-50/50 with all three basins vs 30/50 alone.",
+     "answer": "Real and local. Fitting the SO alone: scav_rat 30/50 vs a matched untrained pass rate of 0.060 (3/50), P = 3.15e-24; the pre-registered rule was k >= 25 and P < 0.01, both met and neither marginal. Pre-set controls held: alpfe 50/50 (fit not broken), R_PICPOC 0/50 (must be zero - no calcite data in the SO). Jobs 238079/238080, verify_run exit 0. Pooling still adds: 39-50/50 with all three basins vs 30/50 alone.",
      "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
      "dont": ""
     },
@@ -16341,6 +16727,12 @@
      "question": "Should the calcite analysis adopt the per-AOI convention the recovery grading already uses?",
      "answer": "Yes, and the machinery already exists. `scripts/calcite_driver_scout.py:69-89` already implements biome fixed effects (built in response to the reviewer panel's own Simpson critique) — it was simply never wired into the power-law path. The honest pooled estimate is the fixed-effect beta_within: +6.02 (Daniels), +3.04 (Marsh), with an AOI-CLUSTER bootstrap CI (the i.i.d. bootstrap understates width by 2.4x–6.1x).",
      "doc": "docs/findings/2026-07-29_calcite_pooling_artifact.md",
+     "dont": ""
+    },
+    {
+     "question": "Does M2LINES do ocean biogeochemistry, and what is SamudraBGC?",
+     "answer": "Yes, as of 2026-07-10. SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna; ESSOAr doi 10.22541/essoar.15006794, a GRL submission; code github.com/mkeutgen/SamudraBGC, Apache-2.0; weights on Hugging Face, 0.91 GB, ungated; a 23.3 GB 60-day evaluation window on Zenodo 10.5281/zenodo.21341550; the full 7 TB simulation is NOT yet public) is a ConvNeXt U-Net emulator of DG-MOM6-COBALTv2, an IDEALISED North-Atlantic-like double gyre, 362 x 362 at about 9 km, daily, 1960-2019. It predicts T, S, streamfunction, velocity potential, DIC, O2, NO3 and Chl (20 vertical PCs each) plus SSH, forced by net heat flux and wind stress. It carries NO alkalinity, NO iron and NO pCO2 (0 code-search hits), is scored against its parent model only, and treats conservation as a drift diagnostic, not a loss term. Its ablation (validation R2, upper 500 m): u,v -0.07 -> Helmholtz 0.50 -> log BGC 0.63 -> gradient penalty 0.80 -> 20 PCs 0.81 -> wider/deeper no gain; 4 seeds 0.77 +/- 0.01; about 6 min per model-year on one GPU against about 4 h on 896 cores. NO3 stays linear because its log transform blew up in rollout. Funded by the Schmidt Sciences Ocean Biogeochemistry Virtual Institute (OBVI) InMOS project, Integration of Models and Observations Across Scales, which Hassanzadeh describes as ML for DATA ASSIMILATION of the ocean BGC cycle. SamudrACE itself (Duncan et al. 2026, GRL 53(11) e2025GL119340, doi 10.1029/2025GL119340) stays physical-only and names land and biogeochemical components as its pathway. UNVERIFIED: the preprint text was not read (bot wall), so whether it reports a climatology or AR(1) null is unknown; the code has a persistence RMSE in one side script and no AR(1).",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
      "dont": ""
     },
     {
@@ -18051,6 +18443,12 @@
      "new": "Run on 2026-08-20 (AICR job 408789, n=50, per-cell fields saved): province eta^2 = 0.338 against a latitude-band control of 0.357, and within-province log_sd is NADR 1.085 against 0.196-0.279 in the polar provinces, so the dispersion lives INSIDE NADR rather than between provinces.",
      "reason": "The runner gained a per-cell field save (01f053e), which removed the artifact gap the 2026-08-17 row named; the direct measurement then confirmed the 08-17 conclusion and located the mechanism.",
      "doc": "docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md"
+    },
+    {
+     "old": "M2LINES: 84 publications, ZERO biogeochemistry - all physical, and Samudra + SamudrACE are physical-only with no BGC channels; carbon + iron + Chl + calcite emulation remain uncontested, confirmed by three independent groups (JPL/NVIDIA, Neural-BGC, M2LINES).",
+     "new": "M2LINES does ocean BGC as of 2026-07-10: SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna) emulates DIC + O2 + NO3 + Chl in an idealised 9 km MOM6-COBALTv2 double gyre. DIC and Chl emulation are contested. Uncontested, stated narrowly: iron; alkalinity and the carbonate system; calcite; a data-assimilating state estimate as the target; independent-observation validation; parameter identifiability. Two groups still bound the niche (JPL/NVIDIA physical-only, Neural-BGC DO/NO3-only); M2LINES no longer does.",
+     "reason": "The 2026-07-22 scan read m2lines.github.io/publications. SamudraBGC had been released 12 days earlier as a GitHub repository, a Zenodo record and an ESSOAr preprint, first-authored from the Resplandy group at Princeton with Zanna as last author, and was on none of the pages read. Found 2026-09-19 by a plain web search for the emulator's name plus 'biogeochemistry', prompted by the published SamudrACE paper naming BGC as its next component.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md"
     },
     {
      "old": "The calcite rain ratio is not composition-driven",
@@ -19920,6 +20318,16 @@
      "relation": "establishes"
     },
     {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "ev_id": "ev_ded_dic_error_to_pco2_revelle_20260919",
+     "relation": "establishes"
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
+     "relation": "establishes"
+    },
+    {
      "cl_id": "ded_szn_blocker_lattice_20260809",
      "ev_id": "ev_ded_szn_blocker_lattice_20260809",
      "relation": "establishes"
@@ -20962,6 +21370,11 @@
     {
      "trap": "The so_only/ directory is job 237913, the run that FAILED verify_run with exit 2 on inert declared terms. The reportable Southern Ocean arm is so_only2/ (job 238079, DANIELS_RPICPOC_W=0 and POSI_W=0). Both give identical numbers, but quoting the first as a verified run is wrong. Separately, AOI_W_SOUTHERNOCEANPAC must be 2.0 to match the original artifacts, whose filenames carry w-southernoceanpac2.0; with a single AOI this scales the whole loss and is NOT inert. A 32-second smoke test caught both before the real submission.",
      "doc": "docs/findings/2026-08-12_prereg_so_only_replication.md",
+     "category": ""
+    },
+    {
+     "trap": "A group's PUBLICATIONS PAGE is not its landscape. The 2026-07-22 'M2LINES: 84 publications, ZERO biogeochemistry' scan was right about the page and wrong about the group: SamudraBGC, a Zanna co-authored DIC / O2 / NO3 / Chl emulator, had shipped 12 days earlier as a GitHub repository, a Zenodo record and an ESSOAr preprint, first-authored from a collaborating lab, and was on none of the pages read. The false negative then sat in SETTLED for 59 days reading 'do not re-derive'. A whitespace claim needs a name-plus-topic web search ('<their model name> biogeochemistry'), a code-host search and a preprint-server search, and it needs a DATE on it, because whitespace decays and a settled row does not.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
      "category": ""
     },
     {
@@ -24411,6 +24824,28 @@
      "status": "live",
      "statement": "Skill is computed in each run's working space, so comparing a logged channel's number against a linear channel's number compares log-space skill to linear-space skill - an uncontrolled log-vs-linear emulator comparison is invalid by construction.",
      "ev_id": "ev_ded99",
+     "kind": "deductive",
+     "gate": "n/a",
+     "ev_n": null,
+     "job": ""
+    },
+    {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "mode": "deductive",
+     "status": "live",
+     "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
+     "ev_id": "ev_ded_dic_error_to_pco2_revelle_20260919",
+     "kind": "deductive",
+     "gate": "n/a",
+     "ev_n": null,
+     "job": ""
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "mode": "deductive",
+     "status": "live",
+     "statement": "SamudraBGC cannot diagnose surface pCO2 or the air-sea CO2 flux: it predicts DIC without alkalinity, and no variable set in its code carries alkalinity, iron or pCO2.",
+     "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
      "kind": "deductive",
      "gate": "n/a",
      "ev_n": null,
@@ -31098,6 +31533,30 @@
      "doc": "docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md",
      "parameter": "",
      "track": "track2"
+    },
+    {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Computed from a validated solver with no new data; the conditional (if the error is at the surface) is part of the claim.",
+     "n": "",
+     "null_baseline": "+2 umol/kg -> +3.57 / +3.85 / +4.18 uatm and +4 umol/kg -> +7.17 / +7.75 / +8.43 uatm in subtropical (22 C) / mid (15 C) / subpolar (8 C) regimes; Revelle factor by autograd 9.88 / 11.16 / 12.69; solver's calcite saturation state validated against PyCO2SYS on 2000 GLODAPv3 points, r = 0.9999 (pCO2 itself not compared directly)",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "statement": "SamudraBGC cannot diagnose surface pCO2 or the air-sea CO2 flux: it predicts DIC without alkalinity, and no variable set in its code carries alkalinity, iron or pCO2.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Checkable by inspection of a public repository on a stated date. pCO2 is a function of (DIC, ALK, T, S), so the absence of ALK is sufficient.",
+     "n": "",
+     "null_baseline": "0 GitHub code-search hits for 'alkalin' and 0 for 'pco2' in mkeutgen/SamudraBGC on 2026-09-19 (last push 2026-09-14); variable families in THEIR constants module (ocean_emulators package, not a file in this repo) = dic, o2, no3, pp, chl, poc, temp, salt, uo, vo, psi, phi; champion set helmholtz_log_no_logno3_pca20_all = log_dic, log_o2, no3, log_chl, temp, salt, psi, phi at 20 vertical PCs each, plus SSH",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
     },
     {
      "cl_id": "ded_szn_blocker_lattice_source_corrected_20260810",
@@ -37931,14 +38390,19 @@
     ]
    ]
   },
-  "live claims sourced from a document that carries a retraction banner -- review each": {
-   "sql": "SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d\n        ON instr(c.doc, d.name) > 0\n        WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'",
-   "count": 30,
+  "live claims sourced from a document that carries a retraction or partial-supersession banner -- review each": {
+   "sql": "SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d\n        ON instr(c.doc, d.name) > 0\n        WHERE (d.retracted = 1 OR d.partly_superseded = 1)\n          AND lower(coalesce(c.status,'')) LIKE '%live%'",
+   "count": 34,
    "rows": [
     [
      "ded38",
      "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
      "Depth breaking the degeneracy is not in tension with the gauge symmetr"
+    ],
+    [
+     "ded76",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "Neural-BGC's compensation thesis is bio-vs-physics while DarwinDiff's "
     ],
     [
      "ded168",
@@ -37954,6 +38418,11 @@
      "ded180",
      "2026-07-19_emulator_honest_bounds.md",
      "The stored cube time axis was 0.75x truth because LLC270Config.delta_t"
+    ],
+    [
+     "ded193",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "Their working couple is a memoryless DIAGNOSTIC slave, so the conserva"
     ],
     [
      "ind230",
@@ -38004,6 +38473,11 @@
      "ind304",
      "2026-07-14_3d_emulator.md",
      "Metric space decides the emulator result: log-space scoring removes mo"
+    ],
+    [
+     "ind315",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "On shipped, obs-validated working models Neural-BGC is genuinely ahead"
     ],
     [
      "ind329",
@@ -38064,6 +38538,11 @@
      "ind441",
      "2026-07-14_3d_emulator.md",
      "The tracer-group skill ordering (particulate > iron/chlorophyll > carb"
+    ],
+    [
+     "abd527",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "Neural-BGC's success is a data-density result, and the same method poi"
     ],
     [
      "abd529",
@@ -39461,19 +39940,19 @@
  },
  "counts": {
   "citation": 1,
-  "claim": 590,
+  "claim": 592,
   "derives": 0,
-  "document": 306,
-  "evidence": 299,
-  "hypothesis": 100,
+  "document": 307,
+  "evidence": 301,
+  "hypothesis": 102,
   "parameter": 6,
-  "settled": 575,
-  "supersedes": 303,
-  "supports": 299,
-  "trap": 260,
-  "v_claim_evidence": 590,
+  "settled": 578,
+  "supersedes": 304,
+  "supports": 301,
+  "trap": 261,
+  "v_claim_evidence": 592,
   "v_dangerous": 39,
-  "v_live": 519,
+  "v_live": 521,
   "v_local_only_cite": 2,
   "v_orphan_doc": 0,
   "v_unsupported": 291
