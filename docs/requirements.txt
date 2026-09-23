@@ -1,4 +1,7 @@
 # Documentation-only toolchain (MkDocs + Material).
 # Pinned to majors for reproducible Read the Docs builds; bump deliberately.
+# MkDocs 2.0 removes the plugin system (include-markdown pulls STATUS.md onto the site),
+# so hold the framework itself on 1.x until the site is migrated.
+mkdocs>=1.6,<2
 mkdocs-material>=9.5,<10
 mkdocs-include-markdown-plugin>=6.2,<7

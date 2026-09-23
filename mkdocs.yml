@@ -119,7 +119,9 @@ validation:
 # writeups are archived (docs/archive/) and out of the nav — reachable from the Archive landing.
 nav:
   - Overview: index.md
+  - Start here: ONBOARDING.md
   - Project Status: status.md
+  - Research map: research_map.md
   - Config / Results Matrix: results_matrix.md
   - Guides:
       - DINN design: dinn_design.md
