@@ -20,7 +20,8 @@ environment instead of one global scalar each. That is the entire contribution s
   transport, mixing, and dust/river forcing are all **inherited from v05 as-is** and never learned.
 - It addresses **6 of ~103** independent tunable Darwin scalars (~5.8%). The other ~94% sit at
   literature defaults, held fixed. This is a *slice*, not the model.
-- It is a **surrogate 0-D box** (5 tracers), not the full 39-tracer GCM. See the surrogate gap (§4).
+- It is a **surrogate 0-D box** (the flagship integrates 15 tracers across two layers; the 5-tracer
+  box is the teaching model), not the full 39-tracer GCM. See the surrogate gap (§4).
 - It is a **consistency check against Carroll's own published values**, **not** a cross-validated
   discovery. Held-out real-data R² is negative (§4). Do not describe it as "learning real biology" or
   "replacing Green's functions" without the "consistency-check" qualifier.

@@ -1,52 +1,93 @@
 # ECCO-DarwinDiff
 
-**Differentiable ECCO-Darwin for ocean-biogeochemistry parameter recovery via gradient descent through the box model.**
+**Differentiable ocean biogeochemistry: which parameters do real observations actually pin down?**
 
 <figure markdown="span">
-  ![DINN architecture: three environmental covariates (SST, wind speed, MLD) feed two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights](dinn_architecture.svg){ width="820" }
-  <figcaption>DarwinDiff's per-cell network (DINN): the loss flows through the differentiable box model, so a single backward pass yields gradients for all Carroll parameters at once — of which four are the observable identifiability target.</figcaption>
+  ![DINN architecture: the flagship reads sea-surface temperature alone (optional wind-speed and mixed-layer-depth ablation channels are shown faded) through two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights](dinn_architecture.svg){ width="820" }
+  <figcaption>DarwinDiff's per-cell network (DINN). The loss flows through the differentiable box model, so one backward pass gives gradients for all six Carroll parameters. Four of them are the observable identifiability target.</figcaption>
 </figure>
 
-DarwinDiff is a PyTorch **differentiable 0-D box model** of ocean biogeochemistry — a 15-tracer, two-layer, five-PFT proxy of ECCO-Darwin (the original 5-tracer box, `carroll6.py`, remains as the teaching model) — in which **gradients flow through every step of the box integration**. A single loss surface learns the parameters that Carroll's Green's-functions calibration tunes one-at-a-time — predicted *per grid cell* from local environmental conditions. Manuscript in preparation.
+DarwinDiff is a PyTorch **differentiable box model** of ocean biogeochemistry: a 15-tracer,
+two-layer, five-plankton proxy of ECCO-Darwin (the original 5-tracer box, `carroll6.py`, remains
+as the teaching model), with **gradients through every step of the integration**. A small network
+predicts the parameters that Carroll's Green's-functions calibration tunes one at a time, *per grid
+cell*, from the local environment.
+
+It is a **surrogate-to-model identifiability study**: a consistency check against Carroll's own
+published values, not a cross-validated discovery. A write-up is in preparation.
 
 !!! note "This is the documentation home"
-    The narrative docs, design notes, and per-version findings are organized in the navigation on the left. **[Project Status](status.md)** is the canonical, always-current snapshot of results. The source lives on [GitHub](https://github.com/2imi9/ECCO-DarwinDiff).
+    **[Project Status](status.md)** is the canonical, always-current snapshot of results. New here?
+    Read **[Start here](ONBOARDING.md)** first. The source lives on
+    [GitHub](https://github.com/2imi9/ECCO-DarwinDiff).
+
+## What we found
+
+Flagship `n50e2k_percell_trio`: n=50 seeds, 2000 epochs, graded **per-AOI ≥2-of-3** (never
+cell-weighted). Counts are under the **arithmetic** per-AOI collapse unless a second figure is given.
+
+| Parameter | Recovery | In one line |
+|---|---|---|
+| `R_PICPOC` | **50/50** | 6/50 with the calcite anchor withheld (epoch-matched). **Anchor-conditional**: Marsh 2025 in place of Daniels 2018 gives 30/50 |
+| `alpfe` | **49/50** | **Railed at its 1.0 bound**, and rails to a 1.6 bound too: the data fix a direction, not a value |
+| `scav_rat` | **25/50** arith · **13/50** geom | Established only in the Southern Ocean (30/50 single-AOI, against a measured untrained rate of 0.060) |
+| `diatomgraz` | **40/100** eqpac | Graded per-leg at ≤10% vs untrained **0/50** (P=5.5e-09). Anti-recovered in the other two basins |
+| trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** arith · **12/50** geom | vs **0/50** for a global-scalar control, so the per-cell network is load-bearing |
+
+**Two parameters recovered in every basin** (`alpfe` as a direction, `R_PICPOC` conditional on its
+anchor), **two regionally identifiable in different basins** (`scav_rat`, `diatomgraz`), and **two
+excluded by construction**. The growth pair is excluded for two different reasons: `Biggrow` is
+unobservable by construction (never recovers, seasonal included), while `Smallgrow` is not
+identifiable from the **time-mean** observables this study fits (a seasonal prototype recovers it
+9/10 in the North Atlantic, unconfirmed, job 189324).
+
+The surrogate gap is **dimensional**: the 0-D box homogenizes spatial structure, so identifiability
+rests on real *absolute* anchors, and held-out spatial skill on real data is negative. The caveats
+behind every row, and the retracted readings they replaced, are in **[Project Status](status.md)**.
 
 ## Two tracks
 
-1. **Parameter learner** *(complete — paper #1)* — a surrogate-to-model identifiability study: which of the Carroll parameters (four observable; see below) are identifiable from real ocean observations by gradient descent through the differentiable box model. It is a consistency check against Carroll's own values, not a validated replacement for Green's-functions calibration.
-2. **Identifiability limits + a forward emulator** *(complete — paper #2)* — with prescribed transport, which BGC closures can real observations constrain? None of the three (iron, calcite, growth) sharply — but the iron-sink test (E3) was run where its anchor has **zero coverage** (GP15 210Po/210Pb has 0 points in eqpac, natlsubpolar and southernoceanpac, versus 92 points / 6 stations in npac), so that leg is **mislocated, not settled**, and whether the wall is the observing system or the method is still open (ded77). The forward neural emulator is built and is a **clean negative result**. It is physically valid *once trained in log space* — the global run verified 2026-07-25 (AICR job 204877) emits **0.00% non-physical output on all six tracers** and retains 0.88–0.94 of the true log-range on the four log-transformed tracers (`Chl1` 0.891, `PIC` 0.906, `POC` 0.882, `FeT` 0.940; `DIC` and `ALK` are not log-transformed) and valid carbonate chemistry. **Mass is NOT conserved in that run**: its own artifact records relative drift of +129.7% for `Chl1`, +17.2% `POC`, −7.3% `PIC`, −6.3% `FeT` over six rollout steps (only `DIC`/`ALK` hold, at <0.1%), and `mass_conserve_enforced` was false. The blanket mass-conservation claim previously attributed to this run was wrong and is corrected here (2026-07-28). That took a real bug fix: strictly-positive wide-range tracers were previously z-scored *linearly*, which collapsed chlorophyll to 0.36 of its range and pushed 30.4% of predictions below zero, so **every global emulator figure produced before 2026-07-25 is contaminated and should not be shown**. The fix bought physical validity and dynamic range but **no skill**: the useful horizon is still **one step**, and against a per-cell seasonal AR(1) baseline the model scores −0.161 ± 0.015 with the confidence interval entirely below zero. Two earlier headlines are **retracted**: the "~9-month horizon" (a `delta_t` calendar artifact) and "beats persistence." A full spatial UDE at real scale stays gated on direction, not compute (see [emulator coupling plan](emulator_coupling_plan.md)).
-
-## What works · what's blocked
-
-This study is **complete (paper #1)**. It is a **surrogate-to-model identifiability study** — *which* of the six Carroll parameters are identifiable from real ocean observations, framed honestly as a consistency check against Carroll's own values (not a cross-validated discovery against the GCM). The honest target is **four observable params** {`alpfe`, `scav_rat`, `diatomgraz`, `R_PICPOC`}; the growth pair {`Smallgrow`, `Biggrow`} is excluded because no **time-mean** observable constrains growth rates. `Biggrow` is unobservable by construction (never recovers, seasonal included); `Smallgrow` is only *practically* non-identifiable under time-mean fitting — a seasonal prototype recovers it 9/10 in the North Atlantic (unconfirmed, job 189324).
-
-=== "Identifiable (real data)"
-
-    - **`alpfe` recovers 49/50** and **`R_PICPOC` 50/50** under the honest per-AOI ≥2-of-3 metric — though `alpfe` is **railed against its upper bound**: bounds (0.05, 1.0) vs Carroll 0.92831, trained per-AOI medians 0.992–0.999, and a step-function band sweep (0/50 at bands 0.05 and 0.06, 49/50 at 0.08 and above), so the signal is real and large (98/100 vs untrained 0/100 at a 0.10 band, P = 7.9e-117) but there is **no precision to quote**: a four-arm bound experiment (job 276927, 50 seeds per arm, each with its own bound-matched untrained null) showed the fit rails to whatever ceiling it is given — 99.7% of a 1.0 bound, 99.6% of a 1.6 bound — so what the data fix is a *direction*, not a value (the n=50 flagship `n50e2k_percell_trio`, 2000 epochs, `verify_run` exit 0) — against real GEOTRACES IDP2025 dissolved iron and a real calcite anchor (Daniels CP:PP / MODIS PIC). An epoch-matched anchor-off control (`n50e2k_anchor_off`) collapses `R_PICPOC` to **6/50**, so the real anchor demonstrably drives it.
-    - The trio **{`alpfe`, `scav_rat`, `R_PICPOC`} holds jointly 25/50 arithmetic / 12/50 geometric** versus **0/50** for a global-scalar control — three of the four observables held jointly (the "3-of-4 frontier" label was retired on 2026-08-03: the `diatomgraz` leg is graded separately, at ≤10 %), and the result that makes the per-cell network load-bearing. `scav_rat` is the binding leg (**25/50** arithmetic / **13/50** geometric at 2000 epochs; `ep4k_n50` reads **41/50** at 4000, but that run predates the collapse instrumentation, so the number is arithmetic-only and un-auditable — whether the remaining gap is optimisation or missing information is **open**, ded77). An earlier **38/40 (95%)** iron-pair headline predates this reconciliation and reads more optimistically than the honest metric.
-
-=== "Open / not identifiable"
-
-    - **No 6/6 wall.** `R_PICPOC` is recoverable; the differentiable Darwin calcite port + native resolution were **tested and did not help** — the real gap was a direct calcite *observation*, now supplied.
-    - **`diatomgraz`** is **regionally identifiable**: graded per-leg at ≤10 %, its equatorial-Pacific leg is **40/100 against an untrained 0/50** (P = 5.5e-09), while training pushes the other two legs *below* their own nulls — the 0.40 band cannot see either, because the prior midpoint already sits inside it. It is recoverable from a **model-internal** observable, not from independent real data: with the DINN on SST only it sits at chance (best 4/10); adding **MLD** as a per-cell input channel scores **10/10** at n=10 (P = 0.021 against the matched untrained null), but that count is graded at the 0.40 aggregate band, which the prior already passes, and the MLD arm has not cleared an uncontaminated band (2026-08-03), so it is contaminated-band evidence, not recovery. The earlier "35/50 per-AOI through chlorophyll + MLD" count is **retired** — its architecture-matched untrained control scores 34/50 (P = 0.447). The caveat that keeps it out of the recovered set: the Chl target is Darwin's own, so this is model-internal consistency, not independent validation. **The growth pair is excluded by construction (`Biggrow` unobservable; `Smallgrow` non-identifiable from time-mean observables only).**
-    - The surrogate gap is **dimensional**: the 0-D box homogenizes spatial structure (tracer CV → ~1e-15), so identifiability rests on real *absolute* anchors. 1° proxy; 23-yr climatology; single-GPU. Full evidence → **[Project Status](status.md)**.
+1. **Parameter learner.** The identifiability study above. Results are gated by `verify_run.py`
+   and, for `scav_rat`, by the pooler audit; every number carries a matched control.
+2. **Identifiability limits and a forward emulator.** With prescribed transport, can real
+   observations constrain Darwin's closures? Not sharply, for any of the three tested (iron,
+   calcite, growth). The iron-sink test (E3) was **never run**: its anchor, GP15 ²¹⁰Po/²¹⁰Pb, has
+   zero points in the three flagship basins (92 points in `npac`), so the test is mislocated, not
+   settled, and whether the iron wall is the observing system or the method is still open
+   (`ded77`). The forward neural emulator is a **clean negative result**. Trained in log space it
+   emits 0% non-physical output, but **mass is not conserved** (Chl1 drifts +129.7% over six
+   rollout steps), the useful horizon is **one step**, and against a per-cell seasonal AR(1)
+   baseline it scores −0.161 ± 0.015. The "~9-month horizon" and "beats persistence" headlines are
+   **retracted**. Every global emulator figure from before 2026-07-25 is contaminated by a
+   linear-z-score bug and should not be shown.
 
 ## Documentation map
 
 <div class="grid cards" markdown>
 
+-   :material-compass: **[Start here](ONBOARDING.md)**
+
+    ---
+
+    What the project is, what it deliberately is not, and the handful of ideas you need to follow any result.
+
 -   :material-chart-line: **[Project Status](status.md)**
 
     ---
 
-    The canonical current-best snapshot — headline numbers, the identifiability frame (4 observable params; growth pair unobservable), and known limitations.
+    The canonical current-best snapshot: headline numbers, the identifiability frame (4 observable params; growth pair excluded), and known limitations.
+
+-   :material-graph: **[Research map](research_map.md)**
+
+    ---
+
+    Everything known, how strongly, and what has been retracted. Queryable as SQL with `scripts/research_map_db.py`.
 
 -   :material-table: **[Config / Results Matrix](results_matrix.md)**
 
     ---
 
-    The single source of truth — what every config (v2.x box → 3-AOI `geo1` → native LLC270 → Track-2 feasibility probes (self-twin, synthetic)) tested, found, and how each differs.
+    What every config (v2.x box → 3-AOI `geo1` → native LLC270 → Track-2 feasibility probes) tested, found, and how each differs.
 
 -   :material-sitemap: **[DINN design](dinn_design.md)**
 
@@ -64,7 +105,7 @@ This study is **complete (paper #1)**. It is a **surrogate-to-model identifiabil
 
     ---
 
-    Per-version research provenance, v2.1 → v3.2 (out of the onboarding path) — the verified experimental record behind each matrix row, including the `R_PICPOC` real-calcite-anchor campaign.
+    Per-version research provenance, v2.1 → v3.2 (out of the onboarding path): the verified experimental record behind each matrix row.
 
 -   :material-server: **[Cluster setup](cluster_setup.md)**
 
@@ -76,7 +117,7 @@ This study is **complete (paper #1)**. It is a **surrogate-to-model identifiabil
 
     ---
 
-    Dataset provenance and download mechanics — ECCO-Darwin v05, GLODAP, GEOTRACES, and the shelved leapfrog sources.
+    Dataset provenance and download mechanics: ECCO-Darwin v05, GLODAP, GEOTRACES, and the shelved leapfrog sources.
 
 </div>
 
@@ -87,27 +128,25 @@ git clone https://github.com/2imi9/ECCO-DarwinDiff.git && cd ECCO-DarwinDiff
 uv sync && uv run pytest -q          # smoke test
 ```
 
-The runnable synthetic-recovery demo (~5 min, laptop / Colab T4) lives in
-[`notebooks/demo_colab.ipynb`](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb),
-and the full reproduce path is in the [README](https://github.com/2imi9/ECCO-DarwinDiff#quick-start).
+The runnable synthetic-recovery demo (a few minutes on CPU, or Colab) lives in
+[`notebooks/demo_colab.ipynb`](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb).
+It uses the 5-tracer teaching box; the flagship uses the 15-tracer two-layer box.
 
 ## Background reading
 
-ECCO-Darwin (Carroll et al. [2020](https://doi.org/10.1029/2019MS001888), *JAMES*; [2022](https://doi.org/10.1029/2021GB007162), *GBC*) is calibrated via **Green's functions** ([Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1)), which scale badly: each tuned parameter needs a fresh full forward run, so the published calibration handles only **6 parameters**. DarwinDiff replaces the biogeochemistry side with PyTorch autograd — gradients for all parameters in one backward pass, with values varying across space. That removes the **cost** barrier, not the information one: the study targets the same six parameters, of which four are the observable identifiability target, and its central result is *which* of those real observations can and cannot constrain. The closest method template is the per-location parameter network of [Xu et al. 2025 (BINN)](https://arxiv.org/abs/2502.00672); the full annotated reference list is in the [README](https://github.com/2imi9/ECCO-DarwinDiff#citation).
+ECCO-Darwin (Carroll et al. [2020](https://doi.org/10.1029/2019MS001888), *JAMES*; [2022](https://doi.org/10.1029/2021GB007162), *GBC*) is calibrated via **Green's functions** ([Menemenlis et al. 2005](https://doi.org/10.1175/MWR2912.1)), which scale badly: each tuned parameter needs a fresh full forward run, so the published calibration handles only **6 parameters**. DarwinDiff replaces the biogeochemistry side with PyTorch autograd, so all parameters get gradients in one backward pass, with values varying across space. That removes the **cost** barrier, not the information one: the study targets the same six parameters, of which four are the observable identifiability target, and its central result is *which* of those real observations can and cannot constrain. The closest method template is the per-location parameter network of [Xu et al. 2025 (BINN)](https://arxiv.org/abs/2502.00672); the full reference list is in [References](references.md).
 
 ## How to cite
 
-DarwinDiff is under active development; a formal manuscript and Zenodo DOI will be issued upon publication. In the interim, cite the repository directly:
+A formal write-up and Zenodo DOI will follow. In the interim, cite the repository directly:
 
 ```bibtex
 @software{darwindiff_2026,
-  author    = {{ECCO-DarwinDiff contributors}},
-  title     = {{ECCO-DarwinDiff}: Differentiable Ocean Biogeochemistry
-               for Per-Cell Parameter Recovery},
-  year      = {2026},
-  publisher = {GitHub},
+  author    = {Qi, Ziming},
+  title     = {{ECCO-DarwinDiff}: Differentiable Ocean Biogeochemistry},
+  year      = {2026}, publisher = {GitHub},
   url       = {https://github.com/2imi9/ECCO-DarwinDiff}
 }
 ```
 
-Released under the [MIT License](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/LICENSE). The underlying ECCO-Darwin model is the work of the ECCO and Darwin teams and should be credited independently — see the citation block in the [README](https://github.com/2imi9/ECCO-DarwinDiff#how-to-cite).
+Released under the [MIT License](https://github.com/2imi9/ECCO-DarwinDiff/blob/main/LICENSE). The underlying ECCO-Darwin model is the work of the ECCO and Darwin teams; cite Carroll et al. [2020](https://doi.org/10.1029/2019MS001888) and [2022](https://doi.org/10.1029/2021GB007162) if your work depends on it.
