@@ -1,217 +1,149 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<div align="center">
-
 # ECCO-DarwinDiff
 
-<img src="docs/dinn_architecture.svg" alt="DINN architecture: the flagship reads sea-surface temperature alone (optional wind-speed and mixed-layer-depth ablation channels are shown faded) through two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable carroll6_step box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights" width="640">
+Experiments on which biogeochemistry parameters of
+[ECCO-Darwin](https://github.com/darwinproject/darwin3) real ocean observations can actually
+identify. Carroll et al. ([2020](https://doi.org/10.1029/2019MS001888),
+[2022](https://doi.org/10.1029/2021GB007162)) tune six of them with Green's functions, one full
+forward run per parameter. Here the biogeochemistry is reimplemented as a differentiable box model
+in PyTorch, a small per-cell network predicts all six in every grid cell, and the fit is graded
+against Carroll's published values. Everything uses public artifacts: the
+[ECCO-Darwin v05 output](https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/bin_average/),
+[GEOTRACES IDP2025](https://www.geotraces.org/idp2025/) dissolved iron and biogenic silica, and the
+[Daniels 2018](https://doi.pangaea.de/10.1594/PANGAEA.888182) calcite production ratios.
 
-**Differentiable ocean biogeochemistry. Every parameter gets a gradient in one backward pass,
-so you can ask which ones the observations actually pin down.**
+## Result
 
-[![Tests](https://github.com/2imi9/ECCO-DarwinDiff/actions/workflows/tests.yml/badge.svg)](https://github.com/2imi9/ECCO-DarwinDiff/actions/workflows/tests.yml)
-[![Docs](https://readthedocs.org/projects/ecco-darwindiff/badge/?version=latest)](https://ecco-darwindiff.readthedocs.io/en/latest/)
-[![Colab](https://colab.research.google.com/assets/colab-badge.svg)][colab_url]
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+Each fit gives every parameter a value per grid cell. Three terms:
 
-[Start here][onboarding_url] · [Docs][docs_url] · [Status][status_url] · [Results matrix][matrix_url] · [Research map][map_url]
+- **Recovered** - within ±40% of Carroll's value in at least 2 of the 3 regions (equatorial
+  Pacific, subpolar North Atlantic, Southern Ocean Pacific sector), graded per region, never
+  cell-weighted. Cell-weighting lets the regions land on opposite sides of Carroll's value and
+  overstates recovery.
+- **Collapse** - how the per-cell values become one value per region: arithmetic mean,
+  geometric mean, or median. It matters only for `scav_rat`, which spans two decades, so the
+  arithmetic mean inflates it by `exp(σ²/2)`.
+- **Control** - every count must beat a matched control: the same pipeline with the network left
+  untrained, or the same fit with its identifying observation withheld.
 
-</div>
+<details open>
+<summary><b>Headline comparison: flagship fit, 50 seeds, 2000 epochs</b> (click to shrink)</summary>
 
-## The question
+| Parameter | Recovered, arithmetic · geometric | Matched control | Where it holds |
+|---|---|---|---|
+| `R_PICPOC` | **50/50** · 50/50 | 6/50 with the calcite anchor withheld (epoch-matched) | globally, conditional on the Daniels 2018 anchor |
+| `alpfe` | **49/50** · 49/50 | untrained 0/100 at ≤30% (trained 98/100) | every region, but as a direction only |
+| `scav_rat` | **25/50** · 13/50 | single-region fit: untrained 3/50 | Southern Ocean only |
+| `diatomgraz` | equatorial Pacific leg **40/100** at ≤10% | untrained 0/50 | equatorial Pacific only |
+| trio {`alpfe`, `scav_rat`, `R_PICPOC`} | **25/50** · 12/50 | one global-scalar vector instead of the per-cell network: 0/50 | |
+| `Smallgrow`, `Biggrow` | excluded | | no time-mean observable constrains them |
 
-Ocean biogeochemistry models decide how much carbon the ocean takes up, and their governing
-parameters are not measured. They are tuned. ECCO-Darwin ([Carroll 2020][c20], [2022][c22]) tunes
-six of them with Green's functions, which costs one full forward run per parameter, so six is the
-practical ceiling.
+The flagship predates the collapse instrumentation, so its geometric counts are measured on a
+bitwise-identical reproduction. `alpfe` and `R_PICPOC` do not change with the collapse; `scav_rat`
+does, and the whole difference sits in the North Atlantic leg (19 → 5).
 
-This project reimplements that biogeochemistry in PyTorch so every parameter gets a gradient in one
-backward pass, varying per grid cell through a small network reading the local environment. The
-point is not speed. It is to ask a question the tuning loop cannot: **which parameters do real
-observations actually pin down, and which are we only guessing at?**
+</details>
 
-The answer is parameter-specific and basin-specific, and two of the six are not identifiable from
-these observations at all. That is the result.
+Per-run values, controls and the full parameter table: [STATUS.md](STATUS.md) and the
+[results matrix](docs/results_matrix.md).
 
-This is a **consistency check against Carroll's published values, not a cross-validated
-discovery**. The 0-D box homogenizes, so it does not produce held-out spatial skill on real
-data.[^heldout]
+## Findings
 
-[^heldout]: Measured, gated, and archived:
-    [`docs/findings/2026-07-29_heldout_geotraces_n10e2k.json`](docs/findings/2026-07-29_heldout_geotraces_n10e2k.json).
-    Flagship recipe with 20% of the GEOTRACES iron cells held out of training, n=10 seeds,
-    `verify_run.py` exit 0. **All 30 (AOI × seed) held-out R² values are negative; the best is
-    −0.30.** The fit does worse than predicting the held-out mean, in every basin and every seed.
-    The held-out sets are small (5/3/3 cells), so the result rests on the unanimity of the sign,
-    not on any single R².
+- **The per-cell network is load-bearing.** The trio holds jointly in 25/50 seeds (12/50
+  geometric) against 0/50 for a single global-scalar vector fit the same way
+  ([STATUS](STATUS.md)).
+- **`R_PICPOC` recovers, but only against one calcite compilation.** 50/50 with the Daniels 2018
+  anchor, 6/50 without it. Swapping in its successor, Marsh 2025, gives 30/50 (P = 1.8e-07), and
+  98/100 → 50/100 out of sample (P = 2.7e-16). Under Daniels the Southern Ocean has zero calcite
+  cells, so that leg was inherited through the shared network rather than measured; given 12 real
+  observations it moves to 1.57× Carroll and reads 0/50
+  ([08-13](docs/findings/2026-08-13_the_flagship_rpicpoc_5050_is_daniels_specific.md),
+  [08-14](docs/findings/2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md)).
+- **`alpfe` gives a direction, not a value.** Its bounds are (0.05, 1.0) against Carroll's
+  0.92831, and the fit rails to whatever ceiling it is given: 99.7% of a 1.0 bound, 99.6% of a
+  1.6 bound. Widening the bound moves the untrained control into the pass band, where it scores
+  50/50 against the trained 0/50. The signal itself is real, 98/100 against an untrained 0/100
+  at ≤30% (job 276927,
+  [08-05](docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md)).
+- **`scav_rat` is identifiable in the Southern Ocean and nowhere else, and the average hides
+  it.** A Southern Ocean fit recovers it 30/50 against an untrained 3/50 (P = 3.15e-24), 49/50
+  geometric, and fresh seeds reproduce 30/50 against an untrained 0/50 (job 352450,
+  [08-12](docs/findings/2026-08-12_the_southern_ocean_scavrat_result_replicates.md)). Correcting
+  the arithmetic collapse to the geometric one halves the trio, 25 → 12
+  ([08-04](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md)). The result
+  depends on the loss: a time-mean loss moves the identifiable basin to the equatorial Pacific
+  (job 288619,
+  [08-06](docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md)).
+- **`diatomgraz` is the mirror image: identifiable in the equatorial Pacific, anti-recovered
+  elsewhere.** Its equatorial leg is 40/100 at ≤10% against an untrained 0/50 (P = 5.5e-09);
+  in the other two basins training pushes it below its own control. The usual ±40% band cannot
+  see either, because the prior midpoint already sits inside it
+  ([08-03](docs/findings/2026-08-03_the_pass_band_is_load_bearing.md)).
+- **More optimisation hurts the one basin that works.** 4000 epochs buys a North Atlantic gain
+  that depends on the collapse, and costs a Southern Ocean accuracy loss of 1.4-1.75× that does
+  not (P = 1.6e-09 geometric, job 258713). The flagship stays at 2000 epochs
+  ([08-04](docs/findings/2026-08-04_more_optimisation_damages_the_one_basin_that_works.md)).
+- **The North Atlantic scatter lives inside one ocean province.** Longhurst provinces explain
+  less of it than arbitrary latitude bands (η² 0.338 vs 0.357), and it sits inside NADR
+  (within-province log-sd 1.085 against 0.196-0.279 in the polar provinces), so a province-based
+  region would make it worse (job 408789,
+  [08-20](docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md)).
+- **It does not generalise in space.** With 20% of the GEOTRACES iron cells held out, all 30
+  held-out R² values are negative; the best is −0.30
+  ([artifact](docs/findings/2026-07-29_heldout_geotraces_n10e2k.json)). This is a consistency
+  check against Carroll's values, not a cross-validated discovery.
+- **The growth pair is excluded, for two different reasons.** `Biggrow` is unobservable by
+  construction (never recovers, seasonal included). `Smallgrow` is not identifiable from the
+  time-mean observables fitted here; a seasonal prototype recovers it 9/10 in the North Atlantic,
+  unconfirmed.
+- **The forward emulator is a clean negative.** Trained in log space it emits no negative
+  concentrations, but mass is not conserved (Chl1 drifts +130% over six rollout steps), the
+  useful horizon is one step, and against a per-cell seasonal AR(1) baseline it scores
+  −0.161 ± 0.015. The earlier "~9-month horizon" and "beats persistence" headlines are retracted
+  ([07-23](docs/findings/2026-07-23_emulator_baselines_v2.md)).
+- **Caveat:** the surrogate is a 0-D two-layer box fitted to ECCO-Darwin output plus a few real
+  anchors, so distance to Carroll measures consistency with the model's own calibration, and part
+  of it is proxy bias. Whether the `scav_rat` / `diatomgraz` split is structural or practical is
+  open (`ded77`).
 
-## What we found
+Retracted readings, and every number behind the findings, are in the
+[research map](docs/research_map.md): about 600 claims and 300 retractions, queryable as SQL.
 
-Flagship `n50e2k_percell_trio`: n=50 seeds, 2000 epochs. The metric is **per-AOI ≥2-of-3**, never
-cell-weighted (which straddles Carroll and overstates recovery). Counts are under the
-**arithmetic** per-AOI collapse unless a second figure is given.
+Docs: [start here](docs/ONBOARDING.md) · [status](STATUS.md) ·
+[results matrix](docs/results_matrix.md) · [research map](docs/research_map.md) ·
+[findings](docs/findings/) · [DINN design](docs/dinn_design.md) ·
+[ECCO-Darwin relationship](docs/ecco_darwin_relationship.md) ·
+[site](https://ecco-darwindiff.readthedocs.io/en/latest/) · [changelog](CHANGELOG.md)
 
-| Parameter | Recovery | In one line |
-|---|---|---|
-| `R_PICPOC` | **50/50** | 6/50 without a real calcite anchor. Collapse-invariant, but **anchor-conditional** |
-| `alpfe` | **49/50** | Every basin, collapse-invariant, but **railed at its 1.0 bound**: a direction, not a value |
-| `scav_rat` | **25/50** arith · **13/50** geom | Established only in the Southern Ocean. The North Atlantic leg carries the arith/geom gap, 19 → 5 |
-| `diatomgraz` | **40/100** eqpac | Graded per-leg at ≤10% vs untrained **0/50** (P=5.5e-09). Anti-recovered elsewhere |
-| trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** arith · **12/50** geom | vs **0/50** for a global-scalar control, so the per-cell network is load-bearing |
+## Method
 
-The honest summary: **two parameters recovered globally (`alpfe` as a direction, `R_PICPOC`
-conditional on its anchor), two regionally identifiable in different basins (`scav_rat`,
-`diatomgraz`), two excluded by construction.**
+This is an identifiability study: fit the parameters by gradient descent through a
+differentiable surrogate, then ask which ones the observations fix. The surrogate is
+`carroll6_5pft_2layer` (15 tracers, two layers, five plankton types); a per-cell network reading
+sea-surface temperature predicts all six parameters in every grid cell; the loss combines
+ECCO-Darwin v05 targets with the real anchors above. Every count is graded per region against a
+matched control and must pass `scripts/verify_run.py` (exit 0), and `scav_rat` must also pass
+`scripts/analysis/pooler_audit.py`. The closest method template is the per-location parameter
+network of [BINN](https://arxiv.org/abs/2502.00672).
 
-### Three of these numbers do not mean what they look like
+![DINN architecture: sea-surface temperature feeds two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters, which pass through the differentiable box model to the loss; gradients flow back through the box model to the network](docs/dinn_architecture.svg)
 
-- **`scav_rat` depends on how you average it.** It is a log-scale parameter, and the arithmetic
-  collapse inflates it by `exp(σ²/2)`, so the trio roughly halves under the geometric collapse.
-  The flagship's own artifacts predate that instrumentation, so the geometric figures are measured
-  on its bitwise-identical reproduction. See the
-  [pooler audit](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md).
-- **`alpfe` rails to whatever bound it is given.** Its bounds are (0.05, **1.0**) against a Carroll
-  value of **0.92831**, so the ceiling sits 7.72% above truth and the fit saturates there: 27–49 of
-  50 seeds per basin land within 1% of the bound, and the band sweep is a step function (0/50 at
-  0.05 and 0.06, 49/50 from 0.08 up). The *signal* is real and survives its own control (98/100
-  against an untrained 0/100, at the bands the gated sweep measures, ≤0.20 and ≤0.30). The
-  *precision* is bound-determined: widening the bound to 1.6 moves the **untrained** null into the
-  pass band, where it scores **50/50 against the trained arm's 0/50**. See
-  [the bound experiment](docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md).
-- **`R_PICPOC`'s 50/50 depends on one calcite compilation, and one basin had no data.** Swapping
-  Daniels 2018 for its direct successor Marsh 2025 drops recovery to 30/50 (P = 1.8e-07), and
-  out-of-sample at n=100, 98/100 → 50/100 (P = 2.7e-16). Under Daniels the Southern Ocean has
-  **zero** calcite cells, so its leg was inherited through the shared network rather than
-  measured, and it passed. Give it 12 real observations and the basin moves to 1.57× Carroll and
-  its leg reads 0/50. That is evidence Carroll's single global rain ratio is under-constrained,
-  which is a result, but the 50/50 should be read as *anchor-conditional*, not as validation of the
-  value 0.0425. See [the replication](docs/findings/2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md).
+## Reproduce
 
-**The denominator is 4, not 6.** The growth pair is excluded, not failed, for two different
-reasons. `Biggrow` is unobservable by construction (never recovers, seasonal included); `Smallgrow`
-is not identifiable from the **time-mean** observables this study fits, though a seasonal prototype
-recovers it in strong-bloom basins (N. Atlantic 9/10, unconfirmed). `scav_rat` and `diatomgraz`
-recover in opposite basins, so no config gets all four. Whether that ceiling is **structural**
-(information the observations do not carry) or **practical** (optimisation) is still open: `ded77`
-is unsettled, and differential-algebra structural identifiability can settle it symbolically, with
-no data and no cluster time.
-
-### Forward emulator: a clean negative result
-
-Positivity holds in log space (0% negative concentrations on all six tracers) but **mass is not
-conserved**: Chl1 drifts +130% over six rollout steps. The useful horizon is **one step**, with no
-significant skill over a seasonal AR(1) baseline (−0.161 ± 0.015). The "~9-month horizon" (a
-`delta_t` artifact) and "beats persistence" (a weak baseline) are **retracted**. The reusable asset
-is infrastructure: the first ocean-BGC Earth2Studio `PrognosticModel`, plus physics validators.
-
-> Global emulator figures from before 2026-07-25 predate the log-space fix. Do not show them.
-
-## How every number here is gated
-
-A parameter-recovery result is easy to fake by accident: pick a favourable metric, compare against
-a weak baseline, or quote a run whose instrumentation was missing. This repository is built so that
-each of those fails loudly rather than silently.
-
-- **Nothing is reported without a matched control.** Every recovery count is graded against either
-  an architecture-matched untrained network or the same fit with its identifying anchor withheld.
-  A count with no control is not a result.
-- **One grading rule, chosen in advance.** Per-AOI ≥2-of-3, never cell-weighted. Cell-weighting
-  lets per-basin legs straddle Carroll's value and overstates recovery, most severely for the one
-  parameter whose recovery is weakest.
-- **Pooler sensitivity is audited, not assumed.** `scav_rat` spans two decades, so the arithmetic
-  mean inflates it. All three collapses are reported. Where the deciding keys are absent,
-  `pooler_audit.py` exits 2. 119 of 211 run directories are not auditable at all, and that is
-  surfaced rather than quietly defaulted to the flattering number.
-- **Every number passes a gate before it is written down.** `uv run python scripts/verify_run.py
-  <run-dir>` must exit 0.
-- **Retractions are first-class.** The [research map][map_url] is a queryable record of what is
-  known and how strongly: about 600 claims and 300 retractions. This project has retracted about
-  half of what it has claimed, on its own evidence, and each retraction names what replaced it.
-  SQL integrity constraints fail the build on a claim that cites a missing document or a DOI that
-  resolves to the wrong paper.
-
-```bash
-python scripts/research_map_db.py settled <topic>     # is this already answered?
-python scripts/research_map_db.py superseded <number> # has this number been retracted?
-python scripts/research_map_db.py check               # integrity constraints; exit 1 on violation
+```
+uv sync
+uv run pytest -q
 ```
 
-## Where things live
+[`notebooks/demo_colab.ipynb`](notebooks/demo_colab.ipynb) runs a synthetic recovery on CPU in a
+few minutes and needs nothing else
+([Colab](https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb));
+it uses the 5-tracer teaching box. The flagship is
+`source scripts/configs/flagship_geo1.sh; python scripts/run_v3.0_joint_multi_aoi.py`, which
+needs `DARWIN_DATA_ROOT` pointing at the LLC270 tree plus the GEOTRACES and Daniels files
+([data](data/README.md), [cluster setup](docs/cluster_setup.md)). Then
+`python scripts/verify_run.py RUN_DIR` must exit 0 before any number is quoted.
 
-| Path | What it holds |
-|---|---|
-| [`src/darwindiff/`](src/darwindiff/) | The package. `carroll6_5pft_2layer.py` is the flagship integrator (15 tracers, two layers, five plankton types); `carroll6.py` holds the parameter registry and the 5-tracer teaching box. Also the per-cell networks, the observation loaders, grading and diagnostics, and the Track-2 transport, closure and emulator code. |
-| [`scripts/run_v3.0_joint_multi_aoi.py`](scripts/run_v3.0_joint_multi_aoi.py) | The flagship training run, configured by [`scripts/configs/flagship_geo1.sh`](scripts/configs/flagship_geo1.sh). |
-| [`scripts/verify_run.py`](scripts/verify_run.py), [`scripts/analysis/pooler_audit.py`](scripts/analysis/pooler_audit.py) | The gates every recovery number passes. |
-| [`scripts/research_map_db.py`](scripts/research_map_db.py) | The research map as an in-memory SQL database. |
-| [`scripts/slurm/`](scripts/slurm/) | Cluster job files (AICR B200, Explorer H200). |
-| `scripts/` (the rest) | Per-experiment drivers and analyses. Each finding names the script that produced it. |
-| [`tests/`](tests/) | About 1,000 tests: physics unit tests, plus guards that pin headline numbers and keep the docs from drifting away from them. |
-| [`docs/findings/`](docs/findings/) | One dated note per result, with its data files. This is the evidence. |
-| [`docs/research_map.md`][map_url] | The index of what is known, how strongly, and what was retracted. |
-| [`notebooks/`](notebooks/), [`docs/archive/`](docs/archive/index.md) | The historical record. Notebooks carry a superseded-framing banner; [`demo_colab.ipynb`][demo_url] is the one current notebook. |
-| [`data/`](data/README.md) | Provenance only. Observational data is downloaded, not committed. |
-
-## Install
-
-```bash
-git clone https://github.com/2imi9/ECCO-DarwinDiff.git && cd ECCO-DarwinDiff
-uv sync && uv run pytest -q
-```
-
-Python 3.11+, PyTorch 2.4+. Real fits need `DARWIN_DATA_ROOT` pointing at the LLC270 tree
-([cluster setup][cluster_url], [data][data_url]). The demo needs nothing else.
-
-## Quick start
-
-[`notebooks/demo_colab.ipynb`][demo_url] runs a synthetic recovery on CPU in a few minutes
-([![Colab](https://colab.research.google.com/assets/colab-badge.svg)][colab_url]). It uses the
-5-tracer teaching box; the flagship uses the 15-tracer two-layer box.
-
-```python
-from darwindiff.carroll6 import PARAM_BOUNDS, bounded_params, carroll6_integrate
-from darwindiff.networks import DINN
-
-params = bounded_params(DINN(1, 16, 6)(env), PARAM_BOUNDS)   # flagship env = [SST]
-final = carroll6_integrate(state0, params, dt=0.25, n_steps=200)
-(final - target).pow(2).mean().backward()                     # gradients through the simulation
-```
-
-## Docs
-
-📖 **[ecco-darwindiff.readthedocs.io][docs_url]**: [Onboarding][onboarding_url] (start here) ·
-[Status][status_url] (canonical numbers) · [Results matrix][matrix_url] ·
-[Research map][map_url] (what is known, and what has been retracted) ·
-[References](docs/references.md)
-
-## Citation
-
-```bibtex
-@software{darwindiff_2026,
-  author    = {Qi, Ziming},
-  title     = {{ECCO-DarwinDiff}: Differentiable Ocean Biogeochemistry},
-  year      = {2026}, publisher = {GitHub},
-  url       = {https://github.com/2imi9/ECCO-DarwinDiff}
-}
-```
-
-If your work depends on the underlying model, cite Carroll et al. [2020][c20] and [2022][c22].
-
-## Contributing
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md): scope-prefixed PR titles and the `verify_run.py` gate
-every number must pass.
-
-MIT licensed. See [LICENSE](LICENSE).
-
-<!-- Reference links -->
-[docs_url]: https://ecco-darwindiff.readthedocs.io/en/latest/
-[onboarding_url]: docs/ONBOARDING.md
-[status_url]: STATUS.md
-[matrix_url]: docs/results_matrix.md
-[map_url]: docs/research_map.md
-[cluster_url]: docs/cluster_setup.md
-[data_url]: data/README.md
-[demo_url]: notebooks/demo_colab.ipynb
-[colab_url]: https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb
-[c20]: https://doi.org/10.1029/2019MS001888
-[c22]: https://doi.org/10.1029/2021GB007162
+Status: research code under active development. Results are updated in place as later findings
+supersede earlier ones; the retraction chain is in the research map. MIT licensed. If you use
+this, cite the repository and Carroll et al. [2020](https://doi.org/10.1029/2019MS001888) and
+[2022](https://doi.org/10.1029/2021GB007162).
