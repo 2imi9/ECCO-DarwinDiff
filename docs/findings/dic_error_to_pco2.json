@@ -1,0 +1,38 @@
+{
+  "dic_errors_umolkg": [
+    2.0,
+    4.0
+  ],
+  "regimes": {
+    "subtropical_gyre": {
+      "dic_umolkg": 2050.0,
+      "alk_umolkg": 2350.0,
+      "T_degC": 22.0,
+      "S": 36.0,
+      "pco2_uatm": 367.75,
+      "revelle": 9.88,
+      "dpco2_uatm_for_ddic_2": 3.57,
+      "dpco2_uatm_for_ddic_4": 7.17
+    },
+    "subpolar_gyre": {
+      "dic_umolkg": 2120.0,
+      "alk_umolkg": 2310.0,
+      "T_degC": 8.0,
+      "S": 34.8,
+      "pco2_uatm": 346.27,
+      "revelle": 12.69,
+      "dpco2_uatm_for_ddic_2": 4.18,
+      "dpco2_uatm_for_ddic_4": 8.43
+    },
+    "mid_15C": {
+      "dic_umolkg": 2080.0,
+      "alk_umolkg": 2320.0,
+      "T_degC": 15.0,
+      "S": 35.0,
+      "pco2_uatm": 356.02,
+      "revelle": 11.16,
+      "dpco2_uatm_for_ddic_2": 3.85,
+      "dpco2_uatm_for_ddic_4": 7.75
+    }
+  }
+}

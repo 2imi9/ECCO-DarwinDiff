@@ -1,5 +1,13 @@
 # Landscape verdict: Neural-BGC (Ouala GRL 2026) + M2LINES vs DarwinDiff (2026-07-22)
 
+> **⚠️ PARTLY SUPERSEDED 2026-09-19 by `docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md`.**
+> The **M2LINES** section below ("84 publications, ZERO biogeochemistry", "third independent niche
+> confirmation") no longer holds. SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li,
+> Hassanzadeh, Zanna; code released 2026-07-10, twelve days before this scan) emulates DIC, O2, NO3
+> and Chl. It was missed because the scan read the group's publications page. DIC and Chl emulation
+> are now contested; iron, alkalinity and the carbonate system, calcite, observation-validated
+> emulation and the identifiability result are not. **The Neural-BGC sections are unaffected.**
+
 Two external landscape reads, assessed against our documented ceilings: the Ouala & Lachkar **Neural-BGC**
 paper (GRL 2026, 10.1029/2026GL123123, read in full) via a 6-lens adversarially-verified workflow + a
 max-effort strategic cross-track pass; and a scan of **M2LINES** (m2lines.github.io publications + code). Both

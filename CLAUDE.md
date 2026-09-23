@@ -66,7 +66,7 @@ is the same reasoning that keeps STRADDLE advisory in `verify_run`:
 ```
 σ_live(CLAIM) ⋈ σ_local_only(DOCUMENT), sole cite          2 rows   reader cannot open the source
 CLAIM ⋈ SUPPORTS ⋈ σ_gate≠exit0(EVIDENCE) where live     39 rows   `dangerous` lists them
-σ_live(CLAIM) ⋈ σ_retracted(DOCUMENT)                    26 rows   review each by hand
+σ_live(CLAIM) ⋈ σ_retracted(DOCUMENT)                    34 rows   review each by hand
 CLAIM − π_cl(SUPPORTS)                                  291 rows   claims with no evidence edge
 ```
 

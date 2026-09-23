@@ -3444,6 +3444,30 @@
      "track": "track2"
     },
     {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Computed from a validated solver with no new data; the conditional (if the error is at the surface) is part of the claim.",
+     "n": "",
+     "null_baseline": "+2 umol/kg -> +3.57 / +3.85 / +4.18 uatm and +4 umol/kg -> +7.17 / +7.75 / +8.43 uatm in subtropical (22 C) / mid (15 C) / subpolar (8 C) regimes; Revelle factor by autograd 9.88 / 11.16 / 12.69; solver validated against PyCO2SYS on 2000 GLODAPv3 points, r = 0.9999",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "statement": "SamudraBGC cannot diagnose surface pCO2 or the air-sea CO2 flux: it predicts DIC without alkalinity, and no variable set in its code carries alkalinity, iron or pCO2.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Checkable by inspection of a public repository on a stated date. pCO2 is a function of (DIC, ALK, T, S), so the absence of ALK is sufficient.",
+     "n": "",
+     "null_baseline": "0 GitHub code-search hits for 'alkalin' and 0 for 'pco2' in mkeutgen/SamudraBGC on 2026-09-19 (last push 2026-09-14); variable families in THEIR constants module (ocean_emulators package, not a file in this repo) = dic, o2, no3, pp, chl, poc, temp, salt, uo, vo, psi, phi; champion set helmholtz_log_no_logno3_pca20_all = log_dic, log_o2, no3, log_chl, temp, salt, psi, phi at 20 vertical PCs each, plus SSH",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
+    },
+    {
      "cl_id": "ded_szn_blocker_lattice_20260809",
      "statement": "Under the explicit-grazer target's frozen acceptance logic, no single post-hoc simplification and no pair of waivers can make the artifact pass: the minimum is all three logically separable groups, which is scientifically forbidden and does not rehabilitate the target.",
      "mode": "deductive",
@@ -7482,7 +7506,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 100730,
+     "words": 101417,
      "local_only": 0
     },
     {
@@ -8073,8 +8097,8 @@
      "path": "docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
      "name": "2026-07-22_neuralbgc_m2lines_landscape.md",
      "date": "2026-07-22",
-     "retracted": 0,
-     "words": 975,
+     "retracted": 1,
+     "words": 1065,
      "local_only": 0
     },
     {
@@ -9643,6 +9667,14 @@
      "date": "2026-08-20",
      "retracted": 0,
      "words": 1040,
+     "local_only": 0
+    },
+    {
+     "path": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "name": "2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "date": "2026-09-19",
+     "retracted": 0,
+     "words": 2437,
      "local_only": 0
     }
    ]
@@ -12171,6 +12203,24 @@
      "date": ""
     },
     {
+     "ev_id": "ev_ded_dic_error_to_pco2_revelle_20260919",
+     "kind": "deductive",
+     "locator": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "job": "",
+     "gate": "n/a",
+     "n": null,
+     "date": ""
+    },
+    {
+     "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
+     "kind": "deductive",
+     "locator": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "job": "",
+     "gate": "n/a",
+     "n": null,
+     "date": ""
+    },
+    {
      "ev_id": "ev_ded_szn_blocker_lattice_20260809",
      "kind": "deductive",
      "locator": "docs/findings/2026-08-09_no_single_posthoc_waiver_rescues_seasonal_target.md",
@@ -12514,6 +12564,14 @@
      "falsifier": "Aliasing ≥ 0.95, which vetoes the expensive fit before any GPU is booked and turns the work into a forcing-design task. Do NOT gate on a ≥0.30 dex span — that is the calcite branch's default and 0.311 dex already failed on aliasing 0.9908 at held-out R² 0.99999999. And do not read a 1.000000 aliasing as a veto without gauge-fixing first: it drops to 0.3078 under pure reparameterization. Banned phrasings for any output: 'breaking the degeneracy', 'recovering the scavenging rate', 'learning the iron closure from data'.",
      "status": "open, re-scoped by docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md",
      "prereg": "docs/findings/2026-07-29_ude_scaling_claim_audit.md"
+    },
+    {
+     "hy_id": "hy_samudrabgc_stoichiometric_increments",
+     "statement": "SamudraBGC's predicted daily increments of DIC, NO3 and O2 preserve the parent MOM6-COBALTv2 model's own stoichiometric coupling, even though the emulator predicts them as independent channels.",
+     "predicts": "On the public 60-day evaluation window, the regression slopes dDIC:dNO3 and dO2:dNO3 of the emulator's one-day increments fall inside the spatial block-bootstrap interval of the parent's slopes in each biome.",
+     "falsifier": "An emulator slope outside the parent's interval in any biome, with the parent column computed by the same code on the same cells. A departure from Redfield that the parent also shows is NOT a failure; the parent is the control.",
+     "status": "open - not run; needs the 0.91 GB checkpoint and the 23.3 GB Zenodo window, and the user's permission to download them",
+     "prereg": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md"
     },
     {
      "hy_id": "hy076",
@@ -12898,6 +12956,14 @@
      "falsifier": "Score the global config (680x1441 at 0.25 deg, 456,873 valid cells, 156 months, skill vs persistence +0.520, seed-stable +0.5165 +/- 0.0023 across five seeds) against the AR(1) null. Named the highest impact-per-effort action in the report, ~1 day, and the internal inconsistency most likely to be caught by a referee.",
      "status": "open",
      "prereg": "docs/research_notes/2026-07-25_deep_research_sweep.md"
+    },
+    {
+     "hy_id": "hy_samudrabgc_survives_seasonal_ar1",
+     "statement": "At 9 km and daily cadence SamudraBGC beats a per-cell seasonal AR(1) at short lead, unlike our prognostic-only monthly operator, because mesoscale advection is not in a climatology.",
+     "predicts": "Positive skill against a per-cell seasonal AR(1) fitted on 1960-2009 for surface DIC, O2, NO3 and Chl at leads of 1-20 days, with a block-bootstrap interval that excludes zero.",
+     "falsifier": "Skill against the seasonal AR(1) whose interval includes or lies below zero for any of the four BGC tracers.",
+     "status": "open - blocked on data only the authors hold: the public window is 60 days and the AR(1) needs the multi-year record, which is not yet public",
+     "prereg": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md"
     },
     {
      "hy_id": "hy075",
@@ -14844,6 +14910,12 @@
      "dont": ""
     },
     {
+     "question": "What does a DIC error of a few umol/kg mean in pCO2 (Revelle amplification), and does a high DIC R2 establish a usable air-sea CO2 flux?",
+     "answer": "No, not by itself. At fixed alkalinity, temperature and salinity, +2 umol/kg of DIC is +3.57 / +3.85 / +4.18 uatm of pCO2 and +4 umol/kg is +7.17 / +7.75 / +8.43 uatm in subtropical (22 C) / mid (15 C) / subpolar (8 C) regimes, with Revelle factors 9.88 / 11.16 / 12.69 taken by autograd through darwindiff.carbonate. That is the size of the air-sea disequilibrium that drives the ocean carbon sink, and a bias, unlike a random error, does not average out of an area-integrated flux. The two magnitudes are the ones the SamudraBGC model card reports (validation bias below 2 umol/kg; time-mean meridional section RMSE 4.0 umol/kg at R2 = 0.992), but NEITHER is a surface error, so this is a SENSITIVITY of the carbonate system and not a finding about their emulator. Reproduce with scripts/analysis/dic_error_to_pco2.py -> docs/findings/dic_error_to_pco2.json.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "dont": ""
+    },
+    {
      "question": "Are the per-PFT surface chlorophyll fields usable as targets?",
      "answer": "No, not until TRAC27-TRAC31 are resolved against Darwin's tracer table. surfChl4 is NEGATIVE in 100% of ocean cells at the median timestep; surfChl5 41.3%, surfChl3 39.7%, surfChl2 26.5%, surfChl1 9.4%. Negatives persist all 27 years, so this is not spin-up. Log-space training needs clipping and the clipped fraction must be recorded. SST (26.1% negative, min -1.961 C, max 33.08 C) is physical and validates the pipeline end to end. Carry forward: surfChl4 should never appear as a target again (linear skill -606 is a division by noise).",
      "doc": "docs/research_notes/2026-07-30_session_handoff.md, docs/findings/2026-07-30_daily_emulator_rescored_vs_ar1.md",
@@ -15786,6 +15858,12 @@
      "dont": ""
     },
     {
+     "question": "What can DarwinDiff offer the M2LINES / SamudraBGC / SamudrACE biogeochemistry effort (collaboration, pitch, outreach), and what must it NOT pitch?",
+     "answer": "Offer small open artifacts against THEIR code, smallest first. (0) Tell the MIT side first. (1) Reproduce their champion on the public 60-day window, then add three diagnostics with the parent model as the control: skill against persistence with block-bootstrap intervals by lead, depth and biome; stoichiometric coupling of the predicted DIC:NO3 and O2:NO3 increments against the parent's own slopes (needs no reference data); the pCO2 error implied by their surface DIC error. (2) Alkalinity plus the autograd carbonate solver (src/darwindiff/carbonate.py, validated against PyCO2SYS on 2000 GLODAPv3 points) as a derived-variable, check or loss module, because DIC without ALK cannot give pCO2 or the air-sea flux. (3) ECCO-Darwin v05 as the OBSERVATION-CONSTRAINED second target for their open recipe, scored against pre-registered nulls and independent dated observations; this is the step that matches InMOS's models-plus-observations charter, and it is a real risk because our own monthly operator lost to seasonal AR(1). (4) Identifiability results as design constraints for ML data assimilation: no estimator breaks a rank-1 structural null, a recovery count needs its untrained chance rate, and the dust-solubility x scavenging iron degeneracy is structural, which COBALT shares. Do NOT pitch: our forward emulator (-0.161 +/- 0.015 against seasonal AR(1)); 'the field baselines too weakly' (settled No); 'first ocean-BGC emulator' (dead four times over); ECCO-Darwin as SamudrACE's BGC component (wrong lineage: SamudrACE emulates GFDL CM4, whose BGC twin is ESM4/COBALT); or the parameter-conditioned calibration emulator (shelved). Lead with AGREEMENT: log space, capacity saturation and ensembling were found independently on both models. Nothing had been run against SamudraBGC as of 2026-09-19.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "dont": ""
+    },
+    {
      "question": "How much frozen prey support is required to bring the excluded large zooplankton to continuous replacement?",
      "answer": "On the independently verified source-floor-corrected cycle-13 path, the minimum all-prey multiplier is 1.114 / 1.104 / 1.061 in EqPac / North Atlantic / Southern Ocean, supporting the preregistered <=1.25 local-refuge hypothesis in every AOI. The basin medians are 1.158 / 1.321 / 1.322, and only 96.45% / 32.31% / 37.58% of cells are <=1.25; all 2,856 ocean-cell roots are bracketed and below 2. Scaling only large prey costs more (median 1.234 / 1.518 / 1.520). Equivalent median subsidies are 0.00417 / 0.00730 / 0.00731 d^-1, or 12.50% / 21.89% / 21.94% of mortality. An independent verifier recomputed both root fields and the source hash chain from 16,780,043 raw tensor cells. This is a one-trajectory frozen-path counterfactual, not modified dynamics, stable coexistence, a selected missing mechanism, target rehabilitation, replication, or B200 authorization. Stage remains stage0-failed-stop.",
      "doc": "docs/findings/2026-08-10_large_zooplankton_is_near_a_local_refuge_but_not_basinwide.md",
@@ -15877,8 +15955,8 @@
     },
     {
      "question": "Does M2LINES or Neural-BGC scoop the ocean-BGC emulator niche?",
-     "answer": "Partially. M2LINES: 84 publications, ZERO biogeochemistry — all physical (eddy/mixing/subgrid, sea ice, DA model error), and Samudra + SamudrACE are physical-only with no BGC channels. Neural-BGC (Ouala & Lachkar 2026) claims DO + NO3 only. Retire 'the ocean-BGC ML emulator niche is empty'; carbon + iron + Chl + calcite emulation and Carroll-6 identifiability remain uncontested, confirmed by three independent groups (JPL/NVIDIA, Neural-BGC, M2LINES).",
-     "doc": "docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
+     "answer": "Partially, and more than this row said before 2026-09-19. CORRECTED 2026-09-19: M2LINES is NOT zero-BGC. SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna; ESSOAr 10.22541/essoar.15006794; code released 2026-07-10) emulates DIC + O2 + NO3 + Chl in an idealised 9 km MOM6-COBALTv2 double gyre, so the old 'M2LINES: 84 publications, ZERO biogeochemistry' and 'confirmed by three independent groups' no longer hold. The scan read the group's publications page and missed a GitHub + Zenodo + ESSOAr release. Samudra, Samudra 2 and SamudrACE themselves remain physical-only. Neural-BGC (Ouala & Lachkar 2026) claims DO + NO3 only. DIC and Chl emulation are now CONTESTED (BG4Sea had already narrowed this on 2026-07-24). Still uncontested, stated narrowly: iron; alkalinity and the carbonate system (pCO2, air-sea CO2 flux); calcite; emulation of a data-assimilating BGC state estimate; validation against independent dated observations rather than the parent model; and Carroll-6 identifiability, which no emulator attempts.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md, docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
      "dont": ""
     },
     {
@@ -16341,6 +16419,12 @@
      "question": "Should the calcite analysis adopt the per-AOI convention the recovery grading already uses?",
      "answer": "Yes, and the machinery already exists. `scripts/calcite_driver_scout.py:69-89` already implements biome fixed effects (built in response to the reviewer panel's own Simpson critique) — it was simply never wired into the power-law path. The honest pooled estimate is the fixed-effect beta_within: +6.02 (Daniels), +3.04 (Marsh), with an AOI-CLUSTER bootstrap CI (the i.i.d. bootstrap understates width by 2.4x–6.1x).",
      "doc": "docs/findings/2026-07-29_calcite_pooling_artifact.md",
+     "dont": ""
+    },
+    {
+     "question": "Does M2LINES do ocean biogeochemistry, and what is SamudraBGC?",
+     "answer": "Yes, as of 2026-07-10. SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna; ESSOAr doi 10.22541/essoar.15006794, a GRL submission; code github.com/mkeutgen/SamudraBGC, Apache-2.0; weights on Hugging Face, 0.91 GB, ungated; a 23.3 GB 60-day evaluation window on Zenodo 10.5281/zenodo.21341550; the full 7 TB simulation is NOT yet public) is a ConvNeXt U-Net emulator of DG-MOM6-COBALTv2, an IDEALISED North-Atlantic-like double gyre, 362 x 362 at about 9 km, daily, 1960-2019. It predicts T, S, streamfunction, velocity potential, DIC, O2, NO3 and Chl (20 vertical PCs each) plus SSH, forced by net heat flux and wind stress. It carries NO alkalinity, NO iron and NO pCO2 (0 code-search hits), is scored against its parent model only, and treats conservation as a drift diagnostic, not a loss term. Its ablation (validation R2, upper 500 m): u,v -0.07 -> Helmholtz 0.50 -> log BGC 0.63 -> gradient penalty 0.80 -> 20 PCs 0.81 -> wider/deeper no gain; 4 seeds 0.77 +/- 0.01; about 6 min per model-year on one GPU against about 4 h on 896 cores. NO3 stays linear because its log transform blew up in rollout. Funded by the Schmidt Sciences Ocean Biogeochemistry Virtual Institute (OBVI) InMOS project, Integration of Models and Observations Across Scales, which Hassanzadeh describes as ML for DATA ASSIMILATION of the ocean BGC cycle. SamudrACE itself (Duncan et al. 2026, GRL 53(11) e2025GL119340, doi 10.1029/2025GL119340) stays physical-only and names land and biogeochemical components as its pathway. UNVERIFIED: the preprint text was not read (bot wall), so whether it reports a climatology or AR(1) null is unknown; the code has a persistence RMSE in one side script and no AR(1).",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
      "dont": ""
     },
     {
@@ -18051,6 +18135,12 @@
      "new": "Run on 2026-08-20 (AICR job 408789, n=50, per-cell fields saved): province eta^2 = 0.338 against a latitude-band control of 0.357, and within-province log_sd is NADR 1.085 against 0.196-0.279 in the polar provinces, so the dispersion lives INSIDE NADR rather than between provinces.",
      "reason": "The runner gained a per-cell field save (01f053e), which removed the artifact gap the 2026-08-17 row named; the direct measurement then confirmed the 08-17 conclusion and located the mechanism.",
      "doc": "docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md"
+    },
+    {
+     "old": "M2LINES: 84 publications, ZERO biogeochemistry - all physical, and Samudra + SamudrACE are physical-only with no BGC channels; carbon + iron + Chl + calcite emulation remain uncontested, confirmed by three independent groups (JPL/NVIDIA, Neural-BGC, M2LINES).",
+     "new": "M2LINES does ocean BGC as of 2026-07-10: SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna) emulates DIC + O2 + NO3 + Chl in an idealised 9 km MOM6-COBALTv2 double gyre. DIC and Chl emulation are contested. Uncontested, stated narrowly: iron; alkalinity and the carbonate system; calcite; a data-assimilating state estimate as the target; independent-observation validation; parameter identifiability. Two groups still bound the niche (JPL/NVIDIA physical-only, Neural-BGC DO/NO3-only); M2LINES no longer does.",
+     "reason": "The 2026-07-22 scan read m2lines.github.io/publications. SamudraBGC had been released 12 days earlier as a GitHub repository, a Zenodo record and an ESSOAr preprint, first-authored from the Resplandy group at Princeton with Zanna as last author, and was on none of the pages read. Found 2026-09-19 by a plain web search for the emulator's name plus 'biogeochemistry', prompted by the published SamudrACE paper naming BGC as its next component.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md"
     },
     {
      "old": "The calcite rain ratio is not composition-driven",
@@ -19920,6 +20010,16 @@
      "relation": "establishes"
     },
     {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "ev_id": "ev_ded_dic_error_to_pco2_revelle_20260919",
+     "relation": "establishes"
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
+     "relation": "establishes"
+    },
+    {
      "cl_id": "ded_szn_blocker_lattice_20260809",
      "ev_id": "ev_ded_szn_blocker_lattice_20260809",
      "relation": "establishes"
@@ -20962,6 +21062,11 @@
     {
      "trap": "The so_only/ directory is job 237913, the run that FAILED verify_run with exit 2 on inert declared terms. The reportable Southern Ocean arm is so_only2/ (job 238079, DANIELS_RPICPOC_W=0 and POSI_W=0). Both give identical numbers, but quoting the first as a verified run is wrong. Separately, AOI_W_SOUTHERNOCEANPAC must be 2.0 to match the original artifacts, whose filenames carry w-southernoceanpac2.0; with a single AOI this scales the whole loss and is NOT inert. A 32-second smoke test caught both before the real submission.",
      "doc": "docs/findings/2026-08-12_prereg_so_only_replication.md",
+     "category": ""
+    },
+    {
+     "trap": "A group's PUBLICATIONS PAGE is not its landscape. The 2026-07-22 'M2LINES: 84 publications, ZERO biogeochemistry' scan was right about the page and wrong about the group: SamudraBGC, a Zanna co-authored DIC / O2 / NO3 / Chl emulator, had shipped 12 days earlier as a GitHub repository, a Zenodo record and an ESSOAr preprint, first-authored from a collaborating lab, and was on none of the pages read. The false negative then sat in SETTLED for 59 days reading 'do not re-derive'. A whitespace claim needs a name-plus-topic web search ('<their model name> biogeochemistry'), a code-host search and a preprint-server search, and it needs a DATE on it, because whitespace decays and a settled row does not.",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
      "category": ""
     },
     {
@@ -24411,6 +24516,28 @@
      "status": "live",
      "statement": "Skill is computed in each run's working space, so comparing a logged channel's number against a linear channel's number compares log-space skill to linear-space skill - an uncontrolled log-vs-linear emulator comparison is invalid by construction.",
      "ev_id": "ev_ded99",
+     "kind": "deductive",
+     "gate": "n/a",
+     "ev_n": null,
+     "job": ""
+    },
+    {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "mode": "deductive",
+     "status": "live",
+     "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
+     "ev_id": "ev_ded_dic_error_to_pco2_revelle_20260919",
+     "kind": "deductive",
+     "gate": "n/a",
+     "ev_n": null,
+     "job": ""
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "mode": "deductive",
+     "status": "live",
+     "statement": "SamudraBGC cannot diagnose surface pCO2 or the air-sea CO2 flux: it predicts DIC without alkalinity, and no variable set in its code carries alkalinity, iron or pCO2.",
+     "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
      "kind": "deductive",
      "gate": "n/a",
      "ev_n": null,
@@ -31098,6 +31225,30 @@
      "doc": "docs/findings/2026-07-30_monthly_log_tracers_does_not_rescue_it.md",
      "parameter": "",
      "track": "track2"
+    },
+    {
+     "cl_id": "ded_dic_error_to_pco2_revelle_20260919",
+     "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Computed from a validated solver with no new data; the conditional (if the error is at the surface) is part of the claim.",
+     "n": "",
+     "null_baseline": "+2 umol/kg -> +3.57 / +3.85 / +4.18 uatm and +4 umol/kg -> +7.17 / +7.75 / +8.43 uatm in subtropical (22 C) / mid (15 C) / subpolar (8 C) regimes; Revelle factor by autograd 9.88 / 11.16 / 12.69; solver validated against PyCO2SYS on 2000 GLODAPv3 points, r = 0.9999",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
+    },
+    {
+     "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
+     "statement": "SamudraBGC cannot diagnose surface pCO2 or the air-sea CO2 flux: it predicts DIC without alkalinity, and no variable set in its code carries alkalinity, iron or pCO2.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Checkable by inspection of a public repository on a stated date. pCO2 is a function of (DIC, ALK, T, S), so the absence of ALK is sufficient.",
+     "n": "",
+     "null_baseline": "0 GitHub code-search hits for 'alkalin' and 0 for 'pco2' in mkeutgen/SamudraBGC on 2026-09-19 (last push 2026-09-14); variable families in THEIR constants module (ocean_emulators package, not a file in this repo) = dic, o2, no3, pp, chl, poc, temp, salt, uo, vo, psi, phi; champion set helmholtz_log_no_logno3_pca20_all = log_dic, log_o2, no3, log_chl, temp, salt, psi, phi at 20 vertical PCs each, plus SSH",
+     "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "parameter": "",
+     "track": "data"
     },
     {
      "cl_id": "ded_szn_blocker_lattice_source_corrected_20260810",
@@ -37933,12 +38084,17 @@
   },
   "live claims sourced from a document that carries a retraction banner -- review each": {
    "sql": "SELECT c.cl_id, d.name, substr(c.statement,1,70) FROM claim c JOIN document d\n        ON instr(c.doc, d.name) > 0\n        WHERE d.retracted = 1 AND lower(coalesce(c.status,'')) LIKE '%live%'",
-   "count": 30,
+   "count": 34,
    "rows": [
     [
      "ded38",
      "2026-07-31_scavrat_southern_ocean_signal_is_depth.md",
      "Depth breaking the degeneracy is not in tension with the gauge symmetr"
+    ],
+    [
+     "ded76",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "Neural-BGC's compensation thesis is bio-vs-physics while DarwinDiff's "
     ],
     [
      "ded168",
@@ -37954,6 +38110,11 @@
      "ded180",
      "2026-07-19_emulator_honest_bounds.md",
      "The stored cube time axis was 0.75x truth because LLC270Config.delta_t"
+    ],
+    [
+     "ded193",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "Their working couple is a memoryless DIAGNOSTIC slave, so the conserva"
     ],
     [
      "ind230",
@@ -38004,6 +38165,11 @@
      "ind304",
      "2026-07-14_3d_emulator.md",
      "Metric space decides the emulator result: log-space scoring removes mo"
+    ],
+    [
+     "ind315",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "On shipped, obs-validated working models Neural-BGC is genuinely ahead"
     ],
     [
      "ind329",
@@ -38064,6 +38230,11 @@
      "ind441",
      "2026-07-14_3d_emulator.md",
      "The tracer-group skill ordering (particulate > iron/chlorophyll > carb"
+    ],
+    [
+     "abd527",
+     "2026-07-22_neuralbgc_m2lines_landscape.md",
+     "Neural-BGC's success is a data-density result, and the same method poi"
     ],
     [
      "abd529",
@@ -39461,19 +39632,19 @@
  },
  "counts": {
   "citation": 1,
-  "claim": 590,
+  "claim": 592,
   "derives": 0,
-  "document": 306,
-  "evidence": 299,
-  "hypothesis": 100,
+  "document": 307,
+  "evidence": 301,
+  "hypothesis": 102,
   "parameter": 6,
-  "settled": 575,
-  "supersedes": 303,
-  "supports": 299,
-  "trap": 260,
-  "v_claim_evidence": 590,
+  "settled": 578,
+  "supersedes": 304,
+  "supports": 301,
+  "trap": 261,
+  "v_claim_evidence": 592,
   "v_dangerous": 39,
-  "v_live": 519,
+  "v_live": 521,
   "v_local_only_cite": 2,
   "v_orphan_doc": 0,
   "v_unsupported": 291
