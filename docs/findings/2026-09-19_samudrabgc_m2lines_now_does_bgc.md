@@ -144,9 +144,10 @@ What 60 days cannot do is fit a climatology or an AR(1). That null needs the mul
 so it is a one-command request to them, not something to claim from outside.
 
 **Step 2. Alkalinity and a differentiable carbonate head.** `carbonate.py` is autograd-compatible
-(Follows et al. 2006), returns pCO2, pH, calcite saturation and the air-sea flux, and is validated
-against PyCO2SYS on 2000 GLODAPv3 surface points (r = 0.9999 on saturation state, median relative
-difference 1.3%). It works as a derived-variable module, a consistency check, or a loss term.
+(Follows et al. 2006) and returns pCO2, pH, calcite saturation and the air-sea flux. Its calcite
+saturation state is validated against PyCO2SYS on 2000 GLODAPv3 surface points (r = 0.9999, median
+relative difference 1.3%); its pCO2 output has not yet been compared with PyCO2SYS directly, and
+that comparison should come before it is offered as a pCO2 module. It works as a derived-variable module, a consistency check, or a loss term.
 Needs ALK in their MOM6-COBALT output, which COBALT carries.
 
 **Step 3. ECCO-Darwin as the observation-constrained second target.** Their open recipe

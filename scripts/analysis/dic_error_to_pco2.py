@@ -12,8 +12,10 @@ DIC section RMSE 4.0 umol/kg). Neither of those is a SURFACE error, so the mappi
 "if the surface error were this large, then". See
 docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md.
 
-Solver: darwindiff.carbonate.solve_carbonate (Follows et al. 2006, Lueker 2000 K1/K2), validated
-against PyCO2SYS on 2000 GLODAPv3 surface points by scripts/validate_carbonate_pyco2sys.py. The
+Solver: darwindiff.carbonate.solve_carbonate (Follows et al. 2006, Lueker 2000 K1/K2). Its calcite
+saturation state is validated against PyCO2SYS on 2000 GLODAPv3 surface points by
+scripts/validate_carbonate_pyco2sys.py (r = 0.9999); its pCO2 output has NOT been compared with
+PyCO2SYS directly, so the numbers below inherit the solver's pCO2 accuracy unverified. The
 Revelle factor is taken by autograd, which is the point of having a differentiable solver. CPU,
 no data needed.
 
