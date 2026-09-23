@@ -7263,7 +7263,7 @@
      "name": "AGENTS.md",
      "date": "",
      "retracted": 0,
-     "words": 2635,
+     "words": 2642,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -7281,7 +7281,7 @@
      "name": "CLAUDE.md",
      "date": "",
      "retracted": 0,
-     "words": 2637,
+     "words": 2644,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -7317,7 +7317,7 @@
      "name": "README.md",
      "date": "",
      "retracted": 0,
-     "words": 1273,
+     "words": 1362,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -7461,7 +7461,7 @@
      "name": "index.md",
      "date": "",
      "retracted": 0,
-     "words": 1138,
+     "words": 1141,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -7542,7 +7542,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101417,
+     "words": 101499,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -14343,7 +14343,7 @@
     },
     {
      "question": "How much GEOTRACES dissolved-iron coverage do the rectangular AOI boxes leave on the table versus their Longhurst provinces?",
-     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 16 stations / 241 samples against ANTA province 125 / 1,558 -- the box captures 13% of ANTA's stations, so a 7.8x increase in stations and 6.5x in samples is available. Membership is boundary-INCLUSIVE (shapely covers), matching the endpoint-inclusive ds.sel(lat=slice(...)) the loader uses; shapely contains would drop six GP16 corridor stations sitting exactly on lat = -16.0 (92 -> 86). eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs a matched untrained pass rate of 0.060 (3/50), P = 3.15e-24; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
+     "answer": "Most of it, and worst in the one basin where scav_rat is established. GEOTRACES IDP2025 Fe_D_CONC at QC 1/2 (1,914 stations / 23,090 good samples globally): southernoceanpac box 16 stations / 241 samples against ANTA province 125 / 1,558 -- the box captures 13% of ANTA's stations, so a 7.8x increase in stations and 6.5x in samples is available. Membership is boundary-INCLUSIVE (shapely covers), matching the endpoint-inclusive ds.sel(lat=slice(...)) the loader uses; shapely contains would drop six GP16 corridor stations sitting exactly on lat = -16.0 (92 -> 86). eqpac box 29 / 490 against PEQD 43 / 565. natlsubpolar box 13 / 237 against its DOMINANT province NADR 11 / 234, i.e. the trade goes the WRONG way there -- province membership and data density are independent and must be checked per AOI, never assumed. scav_rat is locally identifiable in the Southern Ocean and nowhere else (30/50 vs an untrained 0/50, P = 3.15e-24 against the pre-registered rule-of-three floor 3/50 = 0.060; 49/50 geometric) and is the sole binding leg of the trio headline, so ANTA is a far more direct lever than the dispersion argument. Caveat: ANTA is circumpolar and therefore a much larger domain than the box, so part of the factor is simply more area with a proportionate cost in cells and compute.",
      "doc": "docs/findings/2026-08-17_provinces_do_not_explain_the_north_atlantic_dispersion.md",
      "dont": ""
     },
@@ -16335,7 +16335,7 @@
     },
     {
      "question": "Is the Southern Ocean scav_rat recovery real, or borrowed from the other basins through the shared network?",
-     "answer": "Real and local. Fitting the SO alone: scav_rat 30/50 vs a matched untrained pass rate of 0.060 (3/50), P = 3.15e-24; the pre-registered rule was k >= 25 and P < 0.01, both met and neither marginal. Pre-set controls held: alpfe 50/50 (fit not broken), R_PICPOC 0/50 (must be zero - no calcite data in the SO). Jobs 238079/238080, verify_run exit 0. Pooling still adds: 39-50/50 with all three basins vs 30/50 alone.",
+     "answer": "Real and local. Fitting the SO alone: scav_rat 30/50 vs an untrained 0/50, P = 3.15e-24 against the pre-registered rule-of-three floor 3/50 = 0.060; the pre-registered rule was k >= 25 and P < 0.01, both met and neither marginal. Pre-set controls held: alpfe 50/50 (fit not broken), R_PICPOC 0/50 (must be zero - no calcite data in the SO). Jobs 238079/238080, verify_run exit 0. Pooling still adds: 39-50/50 with all three basins vs 30/50 alone.",
      "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
      "dont": ""
     },
@@ -18287,6 +18287,12 @@
      "new": "The 0/50 is an artifact of the 2-of-3 majority rule. With the Darwin-pattern term OFF, the scav_rat southernoceanpac LEG is 42/50 (obsonly_mld_litic), 39/50 (obsonly_mld) and 50/50 (obsonly_litic) against an untrained rate of 0/50, and 49/50 in the flagship; eqpac and natl legs are 0/50. A SINGLE-AOI southernoceanpac fit recovers scav_rat 30/50 from GEOTRACES surface+subsurface iron alone (untrained chance 0.060, P=3.15e-24, verify_run exit 0, pre-registered LOCAL rule k>=25 and P<0.01 both met).",
      "reason": "Grading each AOI leg against its own architecture-matched untrained null. Do not over-read: local-vs-pooled is not yet distinguished for scav_rat (the anchor-off control that settled R_PICPOC has not been run for it).",
      "doc": "docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md, docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md"
+    },
+    {
+     "old": "The Southern Ocean scav_rat result is 30/50 against a MEASURED untrained pass rate of 0.060 (3/50), not against a literal 0/50.",
+     "new": "The untrained arm scored 0/50. The 0.060 = 3/50 is the pre-registered rule-of-three floor (prereg line 78: 'with the rule-of-three floor 3/50 = 0.060 if the null count is zero'), used so the P-value is conservative; it is not a measured rate. The same 0.060 appears for Smallgrow, Biggrow and R_PICPOC in the result table for the same reason. State it as 30/50 vs an untrained 0/50, P = 3.15e-24 against the floor.",
+     "reason": "A 2026-09-13 accuracy pass read the result table's 'untrained chance 0.060' as a measured rate and rewrote 'untrained 0/50' into 'a matched untrained rate of 0.060' in CLAUDE.md, AGENTS.md and two settled rows. Three reviewers of the 2026-09-23 manuscript red-team (R2, R3, R7) and Greptile on #252 independently flagged it; the pre-registration settles it.",
+     "doc": "docs/findings/2026-07-30_prereg_scavrat_southern_ocean.md"
     },
     {
      "old": "R_PICPOC ground truth is 0.04245 (v05 data.darwin:53), confirmed on primary evidence, so the 50/50 recovery stands.",
@@ -39947,7 +39953,7 @@
   "hypothesis": 102,
   "parameter": 6,
   "settled": 578,
-  "supersedes": 304,
+  "supersedes": 305,
   "supports": 301,
   "trap": 261,
   "v_claim_evidence": 592,

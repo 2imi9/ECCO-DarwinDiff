@@ -30,9 +30,9 @@ Each fit gives every parameter a value per grid cell. Three terms:
 
 | Parameter | Recovered, arithmetic · geometric | Matched control | Where it holds |
 |---|---|---|---|
-| `R_PICPOC` | **50/50** · 50/50 | 6/50 with the calcite anchor withheld (epoch-matched) | globally, conditional on the Daniels 2018 anchor |
+| `R_PICPOC` | **50/50** · 50/50 | 6/50 with the calcite anchor withheld (epoch-matched) | globally, conditional on the Daniels 2018 anchor and the box's bulk calcite closure |
 | `alpfe` | **49/50** · 49/50 | untrained 0/100 at ≤30% (trained 98/100) | every region, but as a direction only |
-| `scav_rat` | **25/50** · 13/50 | single-region fit: untrained 3/50 | Southern Ocean only |
+| `scav_rat` | **25/50** · 13/50 | single-region fit: untrained 0/50 | Southern Ocean only, at the published loss and 50-day window |
 | `diatomgraz` | equatorial Pacific leg **40/100** at ≤10% | untrained 0/50 | equatorial Pacific only |
 | trio {`alpfe`, `scav_rat`, `R_PICPOC`} | **25/50** · 12/50 | one global-scalar vector instead of the per-cell network: 0/50 | |
 | `Smallgrow`, `Biggrow` | excluded | | no time-mean observable constrains them |
@@ -57,7 +57,10 @@ Per-run values, controls and the full parameter table: [STATUS.md](STATUS.md) an
   cells, so that leg was inherited through the shared network rather than measured; given 12 real
   observations it moves to 1.57× Carroll and reads 0/50
   ([08-13](docs/findings/2026-08-13_the_flagship_rpicpoc_5050_is_daniels_specific.md),
-  [08-14](docs/findings/2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md)).
+  [08-14](docs/findings/2026-08-14_the_anchor_conditionality_of_rpicpoc_replicates.md)). It
+  also needs the box's bulk calcite closure: making calcite come from calcifiers only, as in
+  ECCO-Darwin, takes it from 10/10 to 0/10 at about 24× Carroll
+  ([07-29](docs/findings/2026-07-29_coccolith_only_screen.md)).
 - **`alpfe` gives a direction, not a value.** Its bounds are (0.05, 1.0) against Carroll's
   0.92831, and the fit rails to whatever ceiling it is given: 99.7% of a 1.0 bound, 99.6% of a
   1.6 bound. Widening the bound moves the untrained control into the pass band, where it scores
@@ -65,14 +68,19 @@ Per-run values, controls and the full parameter table: [STATUS.md](STATUS.md) an
   at ≤30% (job 276927,
   [08-05](docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md)).
 - **`scav_rat` is identifiable in the Southern Ocean and nowhere else, and the average hides
-  it.** A Southern Ocean fit recovers it 30/50 against an untrained 3/50 (P = 3.15e-24), 49/50
+  it.** A Southern Ocean fit recovers it 30/50 against an untrained 0/50 (P = 3.15e-24, taken
+  conservatively against a rule-of-three floor of 3/50), 49/50
   geometric, and fresh seeds reproduce 30/50 against an untrained 0/50 (job 352450,
   [08-12](docs/findings/2026-08-12_the_southern_ocean_scavrat_result_replicates.md)). Correcting
   the arithmetic collapse to the geometric one halves the trio, 25 → 12
-  ([08-04](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md)). The result
-  depends on the loss: a time-mean loss moves the identifiable basin to the equatorial Pacific
-  (job 288619,
-  [08-06](docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md)).
+  ([08-04](docs/findings/2026-08-04_pooler_audit_the_flagship_trio_halves.md)). The verdict
+  depends on two analysis choices. A time-mean loss moves the identifiable basin to the
+  equatorial Pacific (job 288619,
+  [08-06](docs/findings/2026-08-06_the_loss_formulation_selects_which_basin_is_identifiable.md)),
+  and the Southern Ocean value drifts steadily with the integration window: 2.78× Carroll at 100
+  steps, 0.88× at the published 200, 0.49× at 400 (job 270032,
+  [08-05](docs/findings/2026-08-05_the_integration_window_is_a_contested_resource.md)). It
+  describes the day-50 transient of subsurface iron, not a steady state.
 - **`diatomgraz` is the mirror image: identifiable in the equatorial Pacific, anti-recovered
   elsewhere.** Its equatorial leg is 40/100 at ≤10% against an untrained 0/50 (P = 5.5e-09);
   in the other two basins training pushes it below its own control. The usual ±40% band cannot
