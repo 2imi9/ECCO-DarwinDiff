@@ -30,7 +30,7 @@ cell-weighted). Counts are under the **arithmetic** per-AOI collapse unless a se
 |---|---|---|
 | `R_PICPOC` | **50/50** | 6/50 with the calcite anchor withheld (epoch-matched). **Anchor-conditional**: Marsh 2025 in place of Daniels 2018 gives 30/50 |
 | `alpfe` | **49/50** | **Railed at its 1.0 bound**, and rails to a 1.6 bound too: the data fix a direction, not a value |
-| `scav_rat` | **25/50** arith · **13/50** geom | Established only in the Southern Ocean: 30/50 single-AOI against a matched untrained pass rate of 0.060 (3/50), replicated on fresh seeds at 30/50 against an untrained 0/50 (job 352450) |
+| `scav_rat` | **25/50** arith · **13/50** geom | Established only in the Southern Ocean: 30/50 single-AOI against an untrained 0/50 (P = 3.15e-24 against the rule-of-three floor, 0.060), replicated on fresh seeds at 30/50 against an untrained 0/50 (job 352450) |
 | `diatomgraz` | **40/100** eqpac | Graded per-leg at ≤10% vs untrained **0/50** (P=5.5e-09). Anti-recovered in the other two basins |
 | trio {`alpfe`,`scav_rat`,`R_PICPOC`} | **25/50** arith · **12/50** geom | vs **0/50** for a global-scalar control, so the per-cell network is load-bearing |
 

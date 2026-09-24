@@ -218,7 +218,7 @@ pure discussion / read-only turns. Don't silently let the tracker drift from rea
   **pooler-dependent** natl gain (better under arithmetic and geometric, *worse* under median) and
   pays with a **pooler-invariant** Southern Ocean loss of **1.4–1.75×** at 4000 epochs alone
   (P = 1.6e-09 geometric), rising to **2.7–5.1×** with width added. The SO is the **one** basin
-  where `scav_rat` is established (30/50 vs a matched untrained rate of 0.060, P = 3.15e-24). The reported count is
+  where `scav_rat` is established (30/50 vs an untrained 0/50; P = 3.15e-24 is computed against the pre-registered rule-of-three floor, 3/50 = 0.060). The reported count is
   blind to it: a 5× accuracy loss shows as 9 seeds, because the SO sits far inside a 40% band —
   that "SO 49→48" is one seed hiding a 1.75× degradation. **Keep the flagship at width 16 /
   2000 epochs**; it is the best cell in the 2×2 for the SO under all three poolers. Affects
