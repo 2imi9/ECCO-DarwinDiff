@@ -4914,7 +4914,7 @@
      "status": "live",
      "detail": "Measured with n=50 seeds against a matched untrained null, pre-registered with zero JSONs on disk, and gated at verify_run exit 0. Both pre-registered controls held and the expected answer was the other one.",
      "n": "",
-     "null_baseline": "single-AOI southernoceanpac, n=50 + n=50 untrained, jobs 238079 -> 238080, verify_run exit 0 on both arms. scav_rat 30/50 vs untrained chance 0.060, P(X>=30) = 3.15e-24. alpfe 50/50 vs 0.340 (untrained 17/50), P=3.75e-24. diatomgraz 50/50 vs 0.720 (declared uninformative in advance). Smallgrow 0/50, Biggrow 0/50, R_PICPOC 0/50, all vs 0.060, all P=1.00. Pre-registered rule: LOCAL if k>=25 and P<0.01.",
+     "null_baseline": "single-AOI southernoceanpac, n=50 + n=50 untrained, jobs 238079 -> 238080, verify_run exit 0 on both arms. scav_rat 30/50 vs untrained 0/50, P(X>=30) = 3.15e-24 against the rule-of-three floor 0.060. alpfe 50/50 vs 0.340 (untrained 17/50), P=3.75e-24. diatomgraz 50/50 vs 0.720 (declared uninformative in advance). Smallgrow 0/50, Biggrow 0/50, R_PICPOC 0/50, all vs 0.060, all P=1.00. Pre-registered rule: LOCAL if k>=25 and P<0.01.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "parameter": "scav_rat",
      "track": "track1"
@@ -4962,7 +4962,7 @@
      "status": "live",
      "detail": "A measured count over n=50 seeds against a measured untrained null, with two pre-registered controls.",
      "n": "",
-     "null_baseline": "30/50 vs untrained 0.060, P = 3.15e-24, verify_run exit 0 on both arms, jobs 238079 → 238080. 27 GEOTRACES bins. Controls: alpfe 50/50 (untrained 0.340, P=3.75e-24), R_PICPOC 0/50 with zero Daniels cells. Pooling still adds: the three-AOI observations-only arms give the SO leg 42/50, 39/50 and 50/50.",
+     "null_baseline": "30/50 vs untrained 0/50 (P = 3.15e-24 against the rule-of-three floor 0.060), verify_run exit 0 on both arms, jobs 238079 → 238080. 27 GEOTRACES bins. Controls: alpfe 50/50 (untrained 0.340, P=3.75e-24), R_PICPOC 0/50 with zero Daniels cells. Pooling still adds: the three-AOI observations-only arms give the SO leg 42/50, 39/50 and 50/50.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "parameter": "scav_rat",
      "track": "track1"
@@ -7317,7 +7317,7 @@
      "name": "README.md",
      "date": "",
      "retracted": 0,
-     "words": 1362,
+     "words": 1369,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -7542,7 +7542,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101588,
+     "words": 101583,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -16236,7 +16236,7 @@
     },
     {
      "question": "Is scav_rat anchor-driven or pattern-driven?",
-     "answer": "PARTLY SUPERSEDED — read both halves. On anchors alone scav_rat is 0/50 on the per-AOI >=2-of-3 metric, and its genuine majority recovery (25/50 at geo1, n=50) REQUIRES the DINN/per-cell spatial pattern loss; alpfe (50/50) and R_PICPOC (28/50) are by contrast ANCHOR-driven. But 'surface absolute anchors provably cannot do scav_rat' is REFUTED: with the Darwin-pattern term off, the southernoceanpac LEG recovers 42/50, 39/50 and 50/50 across the three observations-only arms against untrained 0/50, and a single-AOI southernoceanpac fit recovers 30/50 from GEOTRACES surface+subsurface iron alone (untrained 0.060, P=3.15e-24, verify_run exit 0). The 0/50 is an artifact of the 2-of-3 majority rule, not a measurement that nothing was learned. Local-vs-pooled for that leg is still unsettled (the anchor-off control that settled R_PICPOC has not been run for scav_rat).",
+     "answer": "PARTLY SUPERSEDED — read both halves. On anchors alone scav_rat is 0/50 on the per-AOI >=2-of-3 metric, and its genuine majority recovery (25/50 at geo1, n=50) REQUIRES the DINN/per-cell spatial pattern loss; alpfe (50/50) and R_PICPOC (28/50) are by contrast ANCHOR-driven. But 'surface absolute anchors provably cannot do scav_rat' is REFUTED: with the Darwin-pattern term off, the southernoceanpac LEG recovers 42/50, 39/50 and 50/50 across the three observations-only arms against untrained 0/50, and a single-AOI southernoceanpac fit recovers 30/50 from GEOTRACES surface+subsurface iron alone (untrained 0/50; P=3.15e-24 against the rule-of-three floor 0.060; verify_run exit 0). The 0/50 is an artifact of the 2-of-3 majority rule, not a measurement that nothing was learned. Local-vs-pooled for that leg is still unsettled (the anchor-off control that settled R_PICPOC has not been run for scav_rat).",
      "doc": "docs/findings/2026-07-22_anchors_only_n50_verified.md, docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md, docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "dont": ""
     },
@@ -16836,7 +16836,7 @@
     },
     {
      "question": "Does scav_rat recover in a single-AOI Southern Ocean fit, with no other basin to pool from?",
-     "answer": "Yes. 30/50 against an untrained chance rate of 0.060, P(X>=30) = 3.15e-24. The pre-registered rule (LOCAL if k>=25 AND P<0.01) fires on both clauses and neither is marginal. The live loss is GEOTRACES surface and subsurface iron ONLY - no calcite anchor, no Darwin pattern term, no PINN - with MLD as an input channel and literature initial conditions.",
+     "answer": "Yes. 30/50 against an untrained 0/50; P(X>=30) = 3.15e-24 against the pre-registered rule-of-three floor of 0.060. The pre-registered rule (LOCAL if k>=25 AND P<0.01) fires on both clauses and neither is marginal. The live loss is GEOTRACES surface and subsurface iron ONLY - no calcite anchor, no Darwin pattern term, no PINN - with MLD as an input channel and literature initial conditions.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "dont": ""
     },
@@ -18299,7 +18299,7 @@
     },
     {
      "old": "scav_rat is pattern-driven and surface absolute anchors provably cannot recover it (0/50 per-AOI on anchors alone).",
-     "new": "The 0/50 is an artifact of the 2-of-3 majority rule. With the Darwin-pattern term OFF, the scav_rat southernoceanpac LEG is 42/50 (obsonly_mld_litic), 39/50 (obsonly_mld) and 50/50 (obsonly_litic) against an untrained rate of 0/50, and 49/50 in the flagship; eqpac and natl legs are 0/50. A SINGLE-AOI southernoceanpac fit recovers scav_rat 30/50 from GEOTRACES surface+subsurface iron alone (untrained chance 0.060, P=3.15e-24, verify_run exit 0, pre-registered LOCAL rule k>=25 and P<0.01 both met).",
+     "new": "The 0/50 is an artifact of the 2-of-3 majority rule. With the Darwin-pattern term OFF, the scav_rat southernoceanpac LEG is 42/50 (obsonly_mld_litic), 39/50 (obsonly_mld) and 50/50 (obsonly_litic) against an untrained rate of 0/50, and 49/50 in the flagship; eqpac and natl legs are 0/50. A SINGLE-AOI southernoceanpac fit recovers scav_rat 30/50 from GEOTRACES surface+subsurface iron alone (untrained 0/50; P=3.15e-24 against the rule-of-three floor 0.060; verify_run exit 0, pre-registered LOCAL rule k>=25 and P<0.01 both met).",
      "reason": "Grading each AOI leg against its own architecture-matched untrained null. Do not over-read: local-vs-pooled is not yet distinguished for scav_rat (the anchor-off control that settled R_PICPOC has not been run for it).",
      "doc": "docs/findings/2026-07-30_per_aoi_legs_vs_their_own_null.md, docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md"
     },
@@ -18347,7 +18347,7 @@
     },
     {
      "old": "Scavenging does not come back / scav_rat does not recover (the framing in the note to Jon).",
-     "new": "Wrong as stated. scav_rat recovers 30/50 in a single-AOI southernoceanpac fit, from GEOTRACES surface and subsurface iron alone, against an untrained chance rate of 0.060 (P(X>=30) = 3.15e-24). The right framing is that the degeneracy is a gauge symmetry that the Southern Ocean's residual curvature partially breaks - not that the degeneracy was mistaken, which still holds globally.",
+     "new": "Wrong as stated. scav_rat recovers 30/50 in a single-AOI southernoceanpac fit, from GEOTRACES surface and subsurface iron alone, against an untrained 0/50 (P(X>=30) = 3.15e-24 against the rule-of-three floor 0.060). The right framing is that the degeneracy is a gauge symmetry that the Southern Ocean's residual curvature partially breaks - not that the degeneracy was mistaken, which still holds globally.",
      "reason": "A pre-registered single-AOI experiment (rule fixed in advance: LOCAL if k>=25 and P<0.01) with a matched untrained null and verify_run exit 0. The pre-registration named POOLING as the prior expectation and the measurement said otherwise.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md"
     },
@@ -33019,7 +33019,7 @@
      "status": "live",
      "detail": "Measured with n=50 seeds against a matched untrained null, pre-registered with zero JSONs on disk, and gated at verify_run exit 0. Both pre-registered controls held and the expected answer was the other one.",
      "n": "",
-     "null_baseline": "single-AOI southernoceanpac, n=50 + n=50 untrained, jobs 238079 -> 238080, verify_run exit 0 on both arms. scav_rat 30/50 vs untrained chance 0.060, P(X>=30) = 3.15e-24. alpfe 50/50 vs 0.340 (untrained 17/50), P=3.75e-24. diatomgraz 50/50 vs 0.720 (declared uninformative in advance). Smallgrow 0/50, Biggrow 0/50, R_PICPOC 0/50, all vs 0.060, all P=1.00. Pre-registered rule: LOCAL if k>=25 and P<0.01.",
+     "null_baseline": "single-AOI southernoceanpac, n=50 + n=50 untrained, jobs 238079 -> 238080, verify_run exit 0 on both arms. scav_rat 30/50 vs untrained 0/50, P(X>=30) = 3.15e-24 against the rule-of-three floor 0.060. alpfe 50/50 vs 0.340 (untrained 17/50), P=3.75e-24. diatomgraz 50/50 vs 0.720 (declared uninformative in advance). Smallgrow 0/50, Biggrow 0/50, R_PICPOC 0/50, all vs 0.060, all P=1.00. Pre-registered rule: LOCAL if k>=25 and P<0.01.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "parameter": "scav_rat",
      "track": "track1"
@@ -33067,7 +33067,7 @@
      "status": "live",
      "detail": "A measured count over n=50 seeds against a measured untrained null, with two pre-registered controls.",
      "n": "",
-     "null_baseline": "30/50 vs untrained 0.060, P = 3.15e-24, verify_run exit 0 on both arms, jobs 238079 → 238080. 27 GEOTRACES bins. Controls: alpfe 50/50 (untrained 0.340, P=3.75e-24), R_PICPOC 0/50 with zero Daniels cells. Pooling still adds: the three-AOI observations-only arms give the SO leg 42/50, 39/50 and 50/50.",
+     "null_baseline": "30/50 vs untrained 0/50 (P = 3.15e-24 against the rule-of-three floor 0.060), verify_run exit 0 on both arms, jobs 238079 → 238080. 27 GEOTRACES bins. Controls: alpfe 50/50 (untrained 0.340, P=3.75e-24), R_PICPOC 0/50 with zero Daniels cells. Pooling still adds: the three-AOI observations-only arms give the SO leg 42/50, 39/50 and 50/50.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "parameter": "scav_rat",
      "track": "track1"
@@ -36268,7 +36268,7 @@
      "status": "live",
      "detail": "Measured with n=50 seeds against a matched untrained null, pre-registered with zero JSONs on disk, and gated at verify_run exit 0. Both pre-registered controls held and the expected answer was the other one.",
      "n": "",
-     "null_baseline": "single-AOI southernoceanpac, n=50 + n=50 untrained, jobs 238079 -> 238080, verify_run exit 0 on both arms. scav_rat 30/50 vs untrained chance 0.060, P(X>=30) = 3.15e-24. alpfe 50/50 vs 0.340 (untrained 17/50), P=3.75e-24. diatomgraz 50/50 vs 0.720 (declared uninformative in advance). Smallgrow 0/50, Biggrow 0/50, R_PICPOC 0/50, all vs 0.060, all P=1.00. Pre-registered rule: LOCAL if k>=25 and P<0.01.",
+     "null_baseline": "single-AOI southernoceanpac, n=50 + n=50 untrained, jobs 238079 -> 238080, verify_run exit 0 on both arms. scav_rat 30/50 vs untrained 0/50, P(X>=30) = 3.15e-24 against the rule-of-three floor 0.060. alpfe 50/50 vs 0.340 (untrained 17/50), P=3.75e-24. diatomgraz 50/50 vs 0.720 (declared uninformative in advance). Smallgrow 0/50, Biggrow 0/50, R_PICPOC 0/50, all vs 0.060, all P=1.00. Pre-registered rule: LOCAL if k>=25 and P<0.01.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "parameter": "scav_rat",
      "track": "track1"
@@ -36316,7 +36316,7 @@
      "status": "live",
      "detail": "A measured count over n=50 seeds against a measured untrained null, with two pre-registered controls.",
      "n": "",
-     "null_baseline": "30/50 vs untrained 0.060, P = 3.15e-24, verify_run exit 0 on both arms, jobs 238079 → 238080. 27 GEOTRACES bins. Controls: alpfe 50/50 (untrained 0.340, P=3.75e-24), R_PICPOC 0/50 with zero Daniels cells. Pooling still adds: the three-AOI observations-only arms give the SO leg 42/50, 39/50 and 50/50.",
+     "null_baseline": "30/50 vs untrained 0/50 (P = 3.15e-24 against the rule-of-three floor 0.060), verify_run exit 0 on both arms, jobs 238079 → 238080. 27 GEOTRACES bins. Controls: alpfe 50/50 (untrained 0.340, P=3.75e-24), R_PICPOC 0/50 with zero Daniels cells. Pooling still adds: the three-AOI observations-only arms give the SO leg 42/50, 39/50 and 50/50.",
      "doc": "docs/findings/2026-07-30_scavrat_is_locally_identifiable_in_the_southern_ocean.md",
      "parameter": "scav_rat",
      "track": "track1"

@@ -64,9 +64,10 @@ Per-run values, controls and the full parameter table: [STATUS.md](STATUS.md) an
 - **`alpfe` gives a direction, not a value.** Its bounds are (0.05, 1.0) against Carroll's
   0.92831, and the fit rails to whatever ceiling it is given: 99.7% of a 1.0 bound, 99.6% of a
   1.6 bound. Widening the bound moves the untrained control into the pass band, where it scores
-  50/50 against the trained 0/50. The signal itself is real, 98/100 against an untrained 0/100
-  at ≤30% (job 276927,
-  [08-05](docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md)).
+  50/50 against the trained 0/50 (job 276927,
+  [08-05](docs/findings/2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md)). The signal
+  itself is real, 98/100 against an untrained 0/100 at ≤30% (job 258439,
+  [08-03](docs/findings/2026-08-03_the_pass_band_is_load_bearing.md)).
 - **`scav_rat` is identifiable in the Southern Ocean and nowhere else, and the average hides
   it.** A Southern Ocean fit recovers it 30/50 against an untrained 0/50 (P = 3.15e-24, taken
   conservatively against a rule-of-three floor of 3/50), 49/50
@@ -146,10 +147,10 @@ uv run pytest -q
 few minutes and needs nothing else
 ([Colab](https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb));
 it uses the 5-tracer teaching box. The flagship is
-`source scripts/configs/flagship_geo1.sh; python scripts/run_v3.0_joint_multi_aoi.py`, which
+`source scripts/configs/flagship_geo1.sh; uv run python scripts/run_v3.0_joint_multi_aoi.py`, which
 needs `DARWIN_DATA_ROOT` pointing at the LLC270 tree plus the GEOTRACES and Daniels files
 ([data](data/README.md), [cluster setup](docs/cluster_setup.md)). Then
-`python scripts/verify_run.py RUN_DIR` must exit 0 before any number is quoted.
+`uv run python scripts/verify_run.py RUN_DIR` must exit 0 before any number is quoted.
 
 Status: research code under active development. Results are updated in place as later findings
 supersede earlier ones; the retraction chain is in the research map. MIT licensed. If you use
