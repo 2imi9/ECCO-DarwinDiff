@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (578 questions)
+## 1. SETTLED — do not re-derive (579 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -125,6 +125,7 @@ this table, it is done: say so and move on.
 | Do the emulator cubes' 4 chlorophyll channels represent total chlorophyll? | Yes — surfChl4 contributes −0.002% of total Chl, so the 4 channels are total chlorophyll. Units match exactly (mg m-3), no conversion needed. Confounds: linear mean is 86.5% above geometric mean (use log10 throughout), and January satellit… | `docs/findings/2026-07-19_results_matrix.md` |
 | Do the on-disk E3 sink-anchor datasets reach eqpac, the basin E3 predicts it is the only intervention able to move? | The two IRON-side components do NOT. GP15 210Po/210Pb (gp15_1814_particulate_po_pb.csv n=76, leg1_dissolved_total_po_pb.csv n=89) spans latitude 19.68-56.06 N, longitude -156.96 to -152.00; the eqpac AOI is (-5..15 lat, -160..-110 lon), so… | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
 | Do the published v0.1.0 checkpoint configs match their tensors — is ck["config"] trustworthy? | Yes. All six opt3d seeds match config to tensors (modes 24/20/24/28/20/24, width 64/64/48/64/80/80). The 'seed0's config lies' report was FALSE. The model-card instruction to read architecture from ck["config"] is correct and needs no corr… | `docs/findings/2026-07-19_two_negatives.md` |
+| Do the raw run directories behind the paper's headline numbers still exist? | Partly. A read-only listing on 2026-09-23 found every AICR /scratch/qi_zim_neu run directory the 2026-08-13 results manifest names there present but EMPTY after the 30-day purge: mvd and mvdrep (the R_PICPOC Daniels-vs-Marsh A/B, 50/50 -> … | `docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md` |
 | Do v05 velocities need C-grid destaggering or rotation for the transport model? | No. v05 publishes velocities cell-centered and already geographic (`uVel_C` = UE_VEL_C eastward, `vVel_C` = VN_VEL_C northward), so `uVel_C` feeds transport zonal u DIRECTLY and must NOT be negated (a negation inverts the westward SEC). Va… | `docs/research_notes/2026-07-07_deep_review_e2_readiness.md` |
 | Do we have ECCO-Darwin's own parameter sensitivities (Green's-functions Jacobians) anywhere, to validate the surrogate Fisher? | NO. Exhaustive search of the repo, AICR (`~/dd_data`, `/scratch/qi_zim_neu`) and the reference material turns up no GF perturbation runs, no saved d(tracer)/d(param) fields, no Darwin bin_average at perturbed parameters. A find for *green*… | `docs/findings/2026-07-23_surrogate_jacobian_validation.md` |
 | Do we need a custom torch.autograd.Function adjoint for the tridiagonal (Thomas) solver? | No. Thomas is a sequence of differentiable scalar ops; a pure-PyTorch loop over the Z axis (tens of layers) records ~2*Z ops and backprops exactly, with an O(Z) tape. torch.linalg has NO tridiagonal solver, so never route through the O(Z^3… | `docs/research_notes/2026-07-06_ude_phase1_implementation_brief.md` |
@@ -1677,7 +1678,7 @@ document, check it here.
 
 ---
 
-## 7. TRAPS — process failures that cost time (261)
+## 7. TRAPS — process failures that cost time (262)
 
 | trap | doc |
 |---|---|
@@ -1942,6 +1943,7 @@ document, check it here.
 | The WIDTH/DOF axis is answered but was NOT INDEXED, and that invisibility caused a re-derivation. `settled "degrees of freedom"` returns the SHARING ladder (global scalar / shared DINN / per-AOI DINN / free per-cell fie… | `docs/findings/2026-08-03_capacity_is_the_scav_rat_lever.md` |
 | An untrained null is ARCHITECTURE-matched, so it CANNOT be shared across arms that differ in architecture (width, sharing, channel count). This is the exact opposite of the loss-side rule: a null at NB23_LR=0 IS shared … | `docs/findings/2026-08-12_prereg_so_marsh_anchor.md` |
 | A group's PUBLICATIONS PAGE is not its landscape. The 2026-07-22 'M2LINES: 84 publications, ZERO biogeochemistry' scan was right about the page and wrong about the group: SamudraBGC, a Zanna co-authored DIC / O2 / NO3 /… | `docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md` |
+| AICR /scratch is a 30-day cache, not storage. The results manifest recorded run directories there as the evidence behind abstract-level numbers, and 41 days later the purge had emptied them, including the calcite-compil… | `docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md` |
 
 ---
 

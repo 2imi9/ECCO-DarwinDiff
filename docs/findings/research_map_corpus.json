@@ -2889,6 +2889,11 @@
       "answer": "No, not by itself. At fixed alkalinity, temperature and salinity, +2 umol/kg of DIC is +3.57 / +3.85 / +4.18 uatm of pCO2 and +4 umol/kg is +7.17 / +7.75 / +8.43 uatm in subtropical (22 C) / mid (15 C) / subpolar (8 C) regimes, with Revelle factors 9.88 / 11.16 / 12.69 taken by autograd through darwindiff.carbonate. That is the size of the air-sea disequilibrium that drives the ocean carbon sink, and a bias, unlike a random error, does not average out of an area-integrated flux. The two magnitudes are the ones the SamudraBGC model card reports (validation bias below 2 umol/kg; time-mean meridional section RMSE 4.0 umol/kg at R2 = 0.992), but NEITHER is a surface error, so this is a SENSITIVITY of the carbonate system and not a finding about their emulator. Reproduce with scripts/analysis/dic_error_to_pco2.py -> docs/findings/dic_error_to_pco2.json.",
       "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
       "question": "What does a DIC error of a few umol/kg mean in pCO2 (Revelle amplification), and does a high DIC R2 establish a usable air-sea CO2 flux?"
+    },
+    {
+      "question": "Do the raw run directories behind the paper's headline numbers still exist?",
+      "answer": "Partly. A read-only listing on 2026-09-23 found every AICR /scratch/qi_zim_neu run directory the 2026-08-13 results manifest names there present but EMPTY after the 30-day purge: mvd and mvdrep (the R_PICPOC Daniels-vs-Marsh A/B, 50/50 -> 30/50 and 98/100 -> 50/100), sorep/so_rep and som (anchor and noanchor). Also empty: pcf (job 408789, the province run), alpfebound (job 276927), collapse, flagwin and kerg. Local copies survive for the flagship n50e2k_percell_trio, both anchor-off controls, collapse_n50, ctrl_n50, so_only, so_rep, som_anchor and the gs_obsonly priors, backed up to runs/_evidence_backup_2026-09-23/. Every lost run's graded counts remain in its finding note, and the province per-cell summaries are committed, so no number is lost, but those runs can no longer be re-graded from raw per-seed files.",
+      "doc": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md"
     }
   ],
   "claims": [
@@ -11680,6 +11685,10 @@
     {
       "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
       "trap": "A group's PUBLICATIONS PAGE is not its landscape. The 2026-07-22 'M2LINES: 84 publications, ZERO biogeochemistry' scan was right about the page and wrong about the group: SamudraBGC, a Zanna co-authored DIC / O2 / NO3 / Chl emulator, had shipped 12 days earlier as a GitHub repository, a Zenodo record and an ESSOAr preprint, first-authored from a collaborating lab, and was on none of the pages read. The false negative then sat in SETTLED for 59 days reading 'do not re-derive'. A whitespace claim needs a name-plus-topic web search ('<their model name> biogeochemistry'), a code-host search and a preprint-server search, and it needs a DATE on it, because whitespace decays and a settled row does not."
+    },
+    {
+      "trap": "AICR /scratch is a 30-day cache, not storage. The results manifest recorded run directories there as the evidence behind abstract-level numbers, and 41 days later the purge had emptied them, including the calcite-compilation replication and the alpfe bound experiment. Copy every run directory a finding quotes to durable storage when the finding is written, and check that a directory still exists and is non-empty before a manuscript says every number traces to it.",
+      "doc": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md"
     }
   ]
 }

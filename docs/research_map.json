@@ -7542,7 +7542,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101499,
+     "words": 101588,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -9982,6 +9982,15 @@
      "date": "2026-09-19",
      "retracted": 0,
      "words": 2462,
+     "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md",
+     "name": "2026-09-23_aicr_scratch_purged_the_raw_evidence.md",
+     "date": "2026-09-23",
+     "retracted": 0,
+     "words": 296,
      "local_only": 0,
      "partly_superseded": 0
     }
@@ -16274,6 +16283,12 @@
      "dont": ""
     },
     {
+     "question": "Do the raw run directories behind the paper's headline numbers still exist?",
+     "answer": "Partly. A read-only listing on 2026-09-23 found every AICR /scratch/qi_zim_neu run directory the 2026-08-13 results manifest names there present but EMPTY after the 30-day purge: mvd and mvdrep (the R_PICPOC Daniels-vs-Marsh A/B, 50/50 -> 30/50 and 98/100 -> 50/100), sorep/so_rep and som (anchor and noanchor). Also empty: pcf (job 408789, the province run), alpfebound (job 276927), collapse, flagwin and kerg. Local copies survive for the flagship n50e2k_percell_trio, both anchor-off controls, collapse_n50, ctrl_n50, so_only, so_rep, som_anchor and the gs_obsonly priors, backed up to runs/_evidence_backup_2026-09-23/. Every lost run's graded counts remain in its finding note, and the province per-cell summaries are committed, so no number is lost, but those runs can no longer be re-graded from raw per-seed files.",
+     "doc": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md",
+     "dont": ""
+    },
+    {
      "question": "What is the identifiability geometry of the iron pair, quantitatively?",
      "answer": "Per-AOI 2x2 {alpfe, scav_rat} conditioning: sopac 2.22 (not ratio-degenerate) < eqpac 34.7 < natl 50.8 (both ratio-degenerate); the aggregate cond 3022 -> 2.2 improvement (job 188077) is Southern-Ocean-driven. Per-AOI iron sloppiness 5.19 / 5.99 / 4.99 decades; joint 3-AOI 2.69 decades (24-start, saddle-fixed, job 8515339). scav_rat profile-likelihoods are CURVED in all 3 AOIs (practical, not structural, non-ID); span eqpac 3.69 > natl 1.30 > sopac 1.12. GN-Fisher JtJ is PSD by construction and valid at Carroll where the loss Hessian is an indefinite saddle; residual reconstruction reproduces the loss to 1e-7.",
      "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md",
@@ -21381,6 +21396,11 @@
     {
      "trap": "A group's PUBLICATIONS PAGE is not its landscape. The 2026-07-22 'M2LINES: 84 publications, ZERO biogeochemistry' scan was right about the page and wrong about the group: SamudraBGC, a Zanna co-authored DIC / O2 / NO3 / Chl emulator, had shipped 12 days earlier as a GitHub repository, a Zenodo record and an ESSOAr preprint, first-authored from a collaborating lab, and was on none of the pages read. The false negative then sat in SETTLED for 59 days reading 'do not re-derive'. A whitespace claim needs a name-plus-topic web search ('<their model name> biogeochemistry'), a code-host search and a preprint-server search, and it needs a DATE on it, because whitespace decays and a settled row does not.",
      "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
+     "category": ""
+    },
+    {
+     "trap": "AICR /scratch is a 30-day cache, not storage. The results manifest recorded run directories there as the evidence behind abstract-level numbers, and 41 days later the purge had emptied them, including the calcite-compilation replication and the alpfe bound experiment. Copy every run directory a finding quotes to durable storage when the finding is written, and check that a directory still exists and is non-empty before a manuscript says every number traces to it.",
+     "doc": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md",
      "category": ""
     },
     {
@@ -39948,14 +39968,14 @@
   "citation": 1,
   "claim": 592,
   "derives": 0,
-  "document": 307,
+  "document": 308,
   "evidence": 301,
   "hypothesis": 102,
   "parameter": 6,
-  "settled": 578,
+  "settled": 579,
   "supersedes": 305,
   "supports": 301,
-  "trap": 261,
+  "trap": 262,
   "v_claim_evidence": 592,
   "v_dangerous": 39,
   "v_live": 521,
