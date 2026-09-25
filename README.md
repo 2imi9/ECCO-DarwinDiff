@@ -34,7 +34,7 @@ Carroll's published values, not a cross-validated discovery.
 ## How a result is made
 
 <p align="center">
-  <img src="docs/figures/readme/readme_loop.svg" width="100%" alt="Research-loop diagram: a clockwise loop through Plan, Run, Verify, Write up and Index. Run sits on the cluster outside the repository, with an arm and its control in the same job; results re-enter only through Verify, which recomputes every number or stops. Write up produces dated findings, and an older finding keeps its text under a RETRACTED stamp with a supersedes arrow from the newer one. CI tests sit between Write up and Index, where a corpus JSON is rendered into the research map and rebuilt as an in-memory SQL database that the next Plan queries. Claude Code and Codex work under one working agreement, beside a maintainer who owns scope and the issue tracker.">
+  <img src="docs/figures/readme/readme_loop.svg" width="100%" alt="Research-loop diagram: a clockwise loop through Plan, Run, Verify, Write up and Index. Run sits on the cluster outside the repository, with an arm and its control in the same job; results re-enter only through Verify, which re-derives the grading or stops. Write up produces dated findings, and an older finding keeps its text under a RETRACTED stamp with a supersedes arrow from the newer one. CI tests sit between Write up and Index, where a corpus JSON is rendered into the research map and rebuilt as an in-memory SQL database that the next Plan queries. Claude Code and Codex work under one working agreement, beside a maintainer who owns scope and the issue tracker.">
 </p>
 
 Experiments run as multi-seed sweeps on a cluster. `scripts/verify_run.py` re-derives the grading
