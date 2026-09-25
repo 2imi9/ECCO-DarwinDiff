@@ -1,0 +1,63 @@
+% dd-readme.sty -- style for the README figures (readme_method, readme_components, readme_loop).
+%
+% Carries over ONLY the v2 palette and its semantic rules from docs/figures/tikz/darwindiff-tikz-v2.sty:
+%   red   = the gradient, stroke only, never a fill or a text colour
+%   blue  = a real observation;  gold = ECCO-Darwin v05 model output
+%   rounded = learned;  sharp = data / state;  grey fill = fixed machinery;  dashed = scope
+% Figures are drawn at final size (176 mm wide, the README column) with an 8 pt floor, on an
+% opaque white canvas so they stay legible on GitHub dark mode. No result numbers, ever: results
+% move with the research loop and live in STATUS.md and on the docs site.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{dd-readme}[2026/09/25 DarwinDiff README figures]
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage[scaled=0.92]{helvet}
+\renewcommand\familydefault{\sfdefault}
+\RequirePackage{amsmath}
+\RequirePackage{sansmath}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta,calc,decorations.markings,decorations.pathreplacing,
+  shapes.geometric,fit}
+
+% ---- palette: Tol high-contrast + neutrals (v2) --------------------------------------
+\definecolor{ddBlue} {HTML}{004488}
+\definecolor{ddGold} {HTML}{DDAA33}
+\definecolor{ddRed}  {HTML}{BB5566}
+\definecolor{ddInk}  {HTML}{1A1A1A}
+\definecolor{ddMute} {HTML}{595959}
+\definecolor{ddRule} {HTML}{B0B0B0}
+\definecolor{ddFixed}{HTML}{EDEDED}
+\definecolor{ddWash} {HTML}{F7F7F7}
+% shadows and track: opaque greys, never opacity (an opacity + transform-canvas shadow is
+% what rendered fig4_architecture_bw.svg blank)
+\definecolor{ddShadeNear}{HTML}{E1E1E1}
+\definecolor{ddShadeFar} {HTML}{EFEFEF}
+\definecolor{ddTrack}    {HTML}{E6E6E6}
+
+% ---- type ladder: nothing below 8 pt ----------------------------------------------------
+\newcommand{\fTitle}{\fontsize{10}{12}\selectfont\bfseries}
+\newcommand{\fLabel}{\fontsize{9}{11}\selectfont}
+\newcommand{\fSmall}{\fontsize{8}{10}\selectfont}
+\newcommand{\fMono} {\fontsize{8}{10}\selectfont\ttfamily}
+
+\tikzset{
+  learned/.style  = {rounded corners=1.2pt, draw=ddInk, line width=0.75pt, fill=white},
+  datum/.style    = {sharp corners, draw=ddInk, line width=0.6pt, fill=white},
+  fixedbox/.style = {datum, fill=ddFixed},
+  scope/.style    = {sharp corners, draw=ddRule, line width=0.6pt, dash pattern=on 2pt off 1.5pt},
+  excluded/.style = {scope, font=\fSmall\itshape, text=ddMute},
+  hair/.style     = {draw=ddRule, line width=0.4pt},
+  flow/.style     = {draw=ddMute, line width=0.75pt, -{Stealth[length=2.0mm,width=1.6mm]}},
+  flowS/.style    = {draw=ddMute, line width=0.75pt, -{Stealth[length=1.6mm,width=1.3mm]}},
+  grad/.style     = {draw=ddRed, line width=1.6pt, -{Stealth[length=3.2mm,width=2.6mm]}},
+}
+
+% \ddshadow{<path>}: a two-step opaque soft shadow, offset down-right. Call BEFORE the object.
+\newcommand{\ddshadow}[1]{%
+  \begin{scope}[shift={(1.0mm,-1.0mm)}]\fill[ddShadeFar]  #1;\end{scope}%
+  \begin{scope}[shift={(0.5mm,-0.5mm)}]\fill[ddShadeNear] #1;\end{scope}}
+
+% \ddcanvas{W}{H}: fix the bounding box and paint it white. First command in every picture.
+\newcommand{\ddcanvas}[2]{%
+  \useasboundingbox (0,0) rectangle (#1,#2);
+  \fill[white] (0,0) rectangle (#1,#2);}
