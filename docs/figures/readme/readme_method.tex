@@ -1,4 +1,4 @@
-% readme_method.tex -- README hero: how the model learns.
+% readme_method.tex -- README hero: how the model learns, and the equations it uses.
 %
 % What it shows, left to right:
 %   A  a per-cell network drawn as stacked feature maps (SST -> 16 -> 16 -> 6 parameters). One
@@ -6,29 +6,113 @@
 %      MLP with shared weights applied independently at every cell. A fixed sigmoid bounds chip
 %      sits on the rod before the six parameter maps.
 %   B  that one cell magnified into its own two-layer water column, stepped forward x0 -> xT,
-%      with the parameters entering every step (theta bus). No arrows between cells.
+%      with the parameters entering every step from above (theta_c bus). No arrows between cells.
+%      Its data inputs enter from below, on a rail of two sharp chips outside the scope box, each
+%      named by its symbol in (2): x_c^IC (an arrow into x_0; a gold bar on 'v05 pickup chemistry',
+%      the fixed grey on 'literature plankton', the split of readme_components' initial-state
+%      bar) and phi_c (a gold bar on 'SST, SSS, wind, pCO2' over a ddMute 'v05 time means', one
+%      riser into EVERY step, the theta bus's mirror). The network input is SST alone; the SST
+%      label carries the same gold bar and the forcing list names SST first, so the one v05 field
+%      reads as feeding both the network and the box.
 %   C  the end state xT overlaid, exploded-view style, with a gold ECCO-Darwin pattern card
 %      (shape only) and a card of sparse blue real observations. One solid collector runs down
 %      the deck's right-hand corners and becomes the arrow into L, so all three cards feed the
-%      loss; an iron-budget chip also reads xT and has its own arrow into L.
-%   One red backward pass runs from the loss beneath every step to the shared-weights pill.
+%      loss; an iron-budget chip also reads xT and has its own arrow into L. The chip carries a
+%      ddMute 'simplified' sub-label, as readme_components does: its term is a simplified
+%      surface-iron balance (no temperature factor, no diffusion), not the box's own Fe balance.
+%   One red backward pass runs from the loss beneath every step (and beneath the input rail) to
+%   the shared-weights pill.
+%   Below a ddRule hairline, an equation band: (1) under zone A, (2) under zone B, (3) under zone
+%   C, then the objective under A (min_w L over its constraint, paper style) and the gradient (4)
+%   under the backward pass. Small ddMute tags (1)-(4) sit on the element each equation
+%   describes: the bounds chip, the first step box (above it, right of theta's arrow), L, and
+%   the red arrow; in the band each heading's number is ink, its title ddMute. Under each row-1
+%   equation a ddMute symbol key defines what the diagram does not label: l, u, sigma,
+%   w = {W_k, b_k}, the elementwise product and the z-score's mean and sd (fixed, over all
+%   regions) under (1); F, phi_c, Delta t, T and IC under (2); the region a, its weight omega_a
+%   and its loss L_a under (3), whose per-term forms are the next figure's, then the note that
+%   the Carroll comparison is graded after training, outside L. The heading of (4) defines S.
+%   All three row-1 columns end on one key baseline (\kyA).
+%
+% Equations: the verified flagship set (each one executed against the code). Code references are
+% to scripts/run_v3.0_joint_multi_aoi.py ("runner") unless a file is named. No numeric parameter
+% values appear in the figure; the flagship values live in scripts/configs/flagship_geo1.sh.
+%   (1) theta_c = ell + (u - ell) (.) sigma(f_w(z_c)),
+%       f_w(z) = W_3 tanh(W_2 tanh(W_1 z + b_1) + b_2) + b_3,
+%       z_c = (SST_c - mean SST) / sd(SST).
+%       The LINEAR bounds map for all six parameters, scav_rat included: PARAM_LOG_SCALE is unset,
+%       so the log / geometric branch is inactive. The three 1x1 convolutions are written as the
+%       per-cell MLP they equal. mean and sd (population, ddof 0) run over the ocean cells of all
+%       three regions; sd, not sigma, because sigma is the sigmoid.
+%       src/darwindiff/carroll6.py:621-679 (bounded_params, linear map :678-679);
+%       src/darwindiff/networks.py:112-135 (DINN, layers :121-129); runner :1837-1851 (shared
+%       mean / std), :1886-1887 (z, 0 on land), :1983-1991 (one network per seed, the same w in
+%       every region), :2550.
+%   (2) x_{c,t+1} = max(0, x_{c,t} + Delta t F(x_{c,t}; theta_c, phi_c)),  x_{c,0} = x_c^IC.
+%       Forward Euler, F evaluated once at x_{c,t}, theta_c the same at every step; the floor
+%       max(0, .) is in the code, so it stays in the equation. No lateral term.
+%       src/darwindiff/carroll6_5pft_2layer.py:383-636 (Euler stack :610-626, floor :636);
+%       runner :2025-2044 (_integrate), :814 (Delta t), :839 (T).
+%   (3) L = sum_a omega_a L_a(x_{a,T}, theta_a), on the END state x_T (TIME_MEAN_LOSS is off).
+%       The per-term forms of L_a live in readme_components, so they are not repeated here.
+%       runner :2243-2519 (aoi_loss; state = state_final :2256), :2562 (weighted region sum).
+%   (4) grad_w L = sum_{a,c} [(dL/dx_{c,T}) S_{c,T} + dL/dtheta_c] dtheta_c/dw,
+%       S_{c,t+1} = (dx_{c,t+1}/dx_{c,t}) S_{c,t} + dx_{c,t+1}/dtheta_c,  S_{c,0} = 0,
+%       with S = dx/dtheta, the sum over the regions a and their cells c, as verified. Both
+%       Jacobians are parenthesised, so no slash fraction can be read as dL/(dx S).
+%       The code gets the gradient from ONE reverse-mode pass per epoch through all T steps; S is
+%       never formed, and the recursion is that pass's forward-mode equivalent.
+%       runner :2546-2562, :2606-2608 (total_loss.backward()); carroll6_5pft_2layer.py:610-636.
+%   objective: min_w L s.t. (1), (2) at every cell c and step t < T. Only w is optimised (Adam).
+%       Grading against Carroll happens after training, under no_grad, outside the objective.
+%       runner :1996-2011 (Adam over the network parameters only), :2518-2608 (epoch loop),
+%       :2698-2735 (post-training grading).
 %
 % Rules (dd-readme.sty): red = the gradient, stroke only, exactly one grad path; blue = real
 % observation; gold = ECCO-Darwin v05 output; rounded = learned; sharp = data/state; grey fill =
 % fixed machinery; dashed = scope. 8 pt floor, drawn at final size (176 mm), opaque white canvas,
 % opaque stepped shadows, no result numbers (the only numerals are the architecture facts 16, 16,
-% 6). The network input is SST only; the network is a 1x1-conv per-cell MLP, never an operator.
-% Draw order: canvas -> shadows -> objects back to front -> rods/arrows/hairlines -> grad -> text.
+% 6, the equation numbers, the indices and zeros inside the equations, the product name "v05" and
+% the 2 of pCO2). The network input is SST only; the box also reads the forcing phi_c at every step
+% and starts from x_c^IC, both drawn as data (sharp, no gradient: only w is optimised). The network
+% is a 1x1-conv per-cell MLP, never an operator. Equation text is ink and every tag is ddMute:
+% nothing in the band is red.
+% Inputs (verified by executing the flagship code): the NETWORK reads SST alone (n_input_channels=1,
+% runner :1837-1908). The BOX reads phi_c at every step: the v05 time means SST_c (the SAME field
+% as z_c's), SSS_c, wind speed_c and atmospheric pCO2_c (runner :913-930, passed to every step at
+% :2245-2250 via _integrate :2025-2044; SST also sets the Eppley factor gamma_c; v05 MLD is not
+% used by the box). x_{c,0} = x_c^IC: the 10 chemistry tracers (Fe, POC, PIC, DIC, ALK, both
+% layers) from the v05 pickup (DARWIN_IC=1, runner :1720-1739, build_darwin_ic_cache.py), the 5
+% plankton from literature constants (runner :1694-1702). Light, dust iron, layer depths, K_z and
+% remineralisation are code constants, not v05 inputs, and are left to readme_components.
+% Draw order: canvas -> shadows -> objects back to front -> rods/arrows/hairlines -> grad -> text
+% -> tags -> equation band.
 %
 % Deviations from the plan spec (coordinates below are the spec's, except where noted):
-%   - canvas 176 x 57.14 mm, not 66, with the whole drawing shifted by (\shiftX,\dropY): trims the
-%     empty bands above and below and evens the side margins (see the note at \canvasH);
+%   - canvas 176 x 110.409 mm: the 57.14 mm diagram, 8.819 mm (25 bp, \gapH) more under its chain
+%     for the input rail, then a 44.450 mm equation band (\bandH). The diagram is drawn shifted by
+%     (\shiftX,\dropY), which trims the spec's empty bands and evens the side margins, and \dropY
+%     grows by \bandH + \gapH, so the diagram keeps its place under the canvas top and the band
+%     lies at negative spec y (see the note at \canvasH). Everything on the backward pass (the
+%     pill, the red line, L, tags (3) and (4)) sits \gapH lower (y \gY), and the band is drawn in
+%     a scope shifted down by \gapH, so its glyphs keep their places measured from the canvas
+%     bottom (checked word by word with pdftotext -bbox);
 %   - math is one oblique set: x, T and w are the sans oblique that \sansmath gives, and theta,
 %     the partial sign and L are Euler (Greek, and Euler Script for L) slanted by the same 0.21 as
 %     the sans oblique (\obl). This TeX Live has no sans lowercase Greek (no cmbright / newtxsf /
-%     sansmathfonts), and Euler is the one unserifed Greek it has. The slash in dL/dw is the text
-%     slash, and the elision is three drawn dots, so no Computer Modern glyph is left anywhere;
-%   - \DeclareMathSizes{9}{9}{8}{8}: the x_0 / x_1 / x_T subscripts sit at the 8 pt floor, not 6 pt;
+%     sansmathfonts), and Euler is the one unserifed Greek it has. The equations keep that set:
+%     sigma, phi, omega and ell are slanted Euler too; Delta and nabla (Euler's Delta turned over;
+%     Euler has no nabla) stay upright, as operators do; the sum is Euler's (euex), the minus is
+%     Helvetica's own (TS1), the < of the objective is Helvetica's (T1), the slash is the text
+%     slash, the elementwise product is drawn, and parentheses, + and = are Helvetica. The elision in zone B is three drawn dots. So no
+%     Computer Modern glyph is left anywhere (pdffonts: NimbusSans, EURM, EUSM, EUSB, EUEX);
+%   - sansmath option EULERGREEK, not eulergreek: the upper-case Delta of (2) needs it, and the
+%     switch leaves the diagram pixel-identical;
+%   - \DeclareMathSizes{9}{9}{8}{8}: the x_0 / x_1 / x_T subscripts, and every sub- and superscript
+%     in the band, sit at the 8 pt floor, not 6 pt. Equations are 9 pt (\fLabel), with every
+%     fraction written with the slash so nothing drops to script size; \jot is 1.6 pt. The 8 pt
+%     ddMute headings and keys set their symbols at that same 9 pt (\sy), so omega_a, W_k and the
+%     rest keep 8 pt scripts there too; the key's braces and dots are Helvetica's, not cmsy's;
 %   - shadows: a local four-step \mshadow (0.4 / 0.8 / 1.2 / 1.6 mm down-right, greys D8 / DF /
 %     E8 / F1), not the sty's two faint steps, so every card, block, sheet and chip still reads as
 %     lifted at the 880 px README width; opaque fills only, no opacity, no transform canvas. The
@@ -37,15 +121,30 @@
 %     five ddMute page edges down the front and over the top (same language as the theta stack);
 %   - zone captions 'per-cell MLP' and "one cell's column, unrolled" are one style: \fSmall ddMute,
 %     left-aligned on their zone's left edge, baseline 1.35 mm above the top of what they name
-%     (the stack's top at y 48, the scope box's top at y 56);
+%     (the stack's top at y 48, the scope box's top at y 56). The band's headings use the same
+%     style on the same edges (x 6 / 71 / 131.5) and carry the equation numbers, set in ink;
 %   - zoom lines in ddMute from the ink cell's two RIGHT corners to the theta strip's top-left and
 %     x0's bottom-left corner, so they widen from the cell into its column;
 %   - scope box bottom at y 22.5, not 20, and top at 56, not 58 (caption follows): no empty band;
 %     right edge at 129.6, not 129, and the x_0 / x_1 / x_T labels at y 25.7, not 26.5, so the
 %     column shadows clear both;
-%   - extra red heads sit under the two step boxes (pos 0.402 / 0.644), each step hanging a
-%     hairline onto the backward pass, echoing the junction hairlines in zone A; 'through every
-%     step' is centred under the span of those two heads; every hairline is ddRule 0.5 pt;
+%   - extra red heads sit under the two step boxes (pos 0.402 / 0.644); the tag (4) is centred
+%     under the span of those two heads. The ddRule hairlines that hung each step onto the
+%     backward pass are gone: the phi_c risers now leave from the steps' undersides, and a
+%     hairline to the red line would have had to cross the forcing chip. The tag (2) sits over
+%     the first step box's right half, between theta's arrow and x_1, clear of the x_0 / x_1 label
+%     row. The old 'through every step' and dL/dw labels under the arrow became (4)'s heading and
+%     equation in the band; every hairline is ddRule 0.5 pt, the band's separator included, which
+%     ends at the right edge of the tag (3);
+%   - the input rail: two sharp datum chips on one centre line (y \railM, 3.5 mm under the axis-
+%     label row and 3.5 mm over the pill), each 0.8 pad, its symbol at 9 pt (8 pt scripts), 1.1, a
+%     0.8 mm source bar per row, 0.7, two 8 pt rows on a 3.2 mm pitch, 0.8 pad. The phi_c chip is
+%     centred under the two step boxes, its risers at the steps' centres (x 87 / 113.5, under the
+%     theta drops); the x_c^IC chip ends 2.0 mm to its left and starts right of the pill, its
+%     arrow entering x_0 at x 76, so the x_0 label moves right to x 79. Arrows are the theta
+%     drops' style (ddMute 0.6 pt, 1.5 mm heads). \DeclareMathSizes{8}{8}{8}{8} keeps the 2 of
+%     the 8 pt pCO2 at the floor; no other 8 pt math is set. The theta label is theta_c, so all
+%     three inputs carry (2)'s own symbols;
 %   - zone C deck raised 4 mm (sheets at y 33 / 41 / 49) so its top lines up with the other zones.
 %     All three sheets are opaque cards with a shadow: the pattern card is an opaque gold tint
 %     (ddGold!28!white, the colour 0.28 opacity gave on white), so the figure has no opacity;
@@ -57,24 +156,65 @@
 %   - the L in the loss circle is bold Euler Script at 12 pt (the spec's \fTitle is 10 pt), so the
 %     symbol fills its 9 mm node;
 %   - x_T -> end state runs level on the chain's own line, y 36, into the card's left edge; the
-%     iron-budget chip sits at y 18-24 and the x_T -> chip elbow leaves from x 126.4, not 126;
+%     iron-budget chip sits at y 10.04-18.04, centred on the input rail's line (two lines: 'iron
+%     budget' over a ddMute 'simplified'), the x_T -> chip elbow leaves from x 126.4, not 126, and
+%     enters at the chip's mid-height; its arrow into L is aimed at L's centre and stops 4.6 mm
+%     from it, in L's upper left;
 %   - nine observation dots on two straight parallel cruise tracks (5 + 4) across the card, each
 %     dot (1.1 mm across) >= 0.36 mm inside the inner edge of the card's stroke.
 \documentclass[tikz,border=0pt]{standalone}
-% sansmath (loaded by dd-readme) takes lowercase Greek from serif cmmi unless told otherwise; the
-% eulergreek option gives an unserifed theta. The partial sign comes from the same Euler font.
-\PassOptionsToPackage{eulergreek}{sansmath}
+% sansmath (loaded by dd-readme) takes Greek from serif cmmi unless told otherwise; EULERGREEK
+% takes all of it, upper case too (the Delta of (2)), from Euler. The partial sign, the ell and
+% the sum come from Euler as well, so the equations add no Computer Modern glyph.
+\PassOptionsToPackage{EULERGREEK}{sansmath}
 \usepackage{dd-readme}
 \DeclareMathSymbol{\eupartial}{\mathord}{EulerGreek}{"40}
+\DeclareMathSymbol{\euell}{\mathord}{EulerGreek}{"60}
+\DeclareSymbolFont{EulerExtension}{U}{euex}{m}{n}   % Euler's sum, not cmex's
+\DeclareSymbolFont{sansTS}{TS1}{\sfdefault}{m}{n}   % Helvetica's own minus, not cmsy's
+\DeclareSymbolFont{sansTo}{T1}{\sfdefault}{m}{n}    % Helvetica's own <, not cmmi's
+\makeatletter
+\DeclareMathSymbol{\sum@}{\mathop}{EulerExtension}{"50}
+\makeatother
+\DeclareMathSymbol{-}{\mathbin}{sansTS}{"3D}
+\DeclareMathSymbol{<}{\mathrel}{sansTo}{"3C}
+\DeclareMathSymbol{/}{\mathord}{operators}{"2F}     % the text slash, as in the old dL/dw label
 % 9 pt labels keep their subscripts (x_0, x_1, x_T) at the 8 pt floor, not the default 6 pt
 \DeclareMathSizes{9}{9}{8}{8}
+% the 8 pt forcing chip's pCO2 keeps its 2 at the 8 pt floor too (no other 8 pt math in the figure)
+\DeclareMathSizes{8}{8}{8}{8}
 % \obl{<text>}: slant a glyph by 0.21 (the sans oblique's 12 degrees) so the upright Euler glyphs
 % match the oblique sans x and w. A pdfTeX text matrix: no font file, no TikZ transform.
 \newcommand{\obl}[1]{\mbox{\pdfsave\pdfsetmatrix{1 0 0.21 1}\rlap{#1}\pdfrestore\phantom{#1}}}
 \newcommand{\mth}{\obl{$\theta$}}
 \newcommand{\mpd}{\obl{$\eupartial$}}
-\newcommand{\mL}{\obl{\usefont{U}{eus}{m}{n}L}}      % Euler Script L, medium (in dL/dw)
+\newcommand{\mL}{\obl{\usefont{U}{eus}{m}{n}L}}      % Euler Script L, medium (in the equations)
 \newcommand{\mLb}{\obl{\usefont{U}{eus}{b}{n}L}}     % Euler Script L, bold (in the loss circle)
+% ---- equation band: the slanted Euler Greek of \mth, as math atoms --------------------------
+\newcommand{\gk}[1]{\mathord{\obl{$#1$}}}
+\newcommand{\qth}{\mathord{\mth}}
+\newcommand{\qpd}{\mathord{\mpd}}
+\newcommand{\qL}{\mathord{\mL}}
+\newcommand{\qsig}{\gk{\sigma}}
+\newcommand{\qphi}{\gk{\phi}}
+\newcommand{\qom}{\gk{\omega}}
+\newcommand{\qell}{\gk{\euell}}
+% nabla: Euler's Delta turned over (Euler has no nabla of its own)
+\newcommand{\qnabla}{\mathord{\raisebox{\depth}{\scalebox{1}[-1]{$\Delta$}}}}
+% elementwise product: drawn, centred on Helvetica's math axis (the bar of its + and minus)
+\newcommand{\qodot}{\mathbin{\tikz[baseline=0pt]{%
+  \draw[line width=0.5pt] (0,2.09pt) circle (2.1pt); \fill (0,2.09pt) circle (0.62pt);}}}
+\newcommand{\tsum}[1]{{\textstyle\sum_{#1}}}         % aligned cells are display style
+\newcommand{\eqtag}[1]{\textup{(#1)}}
+% a band heading's number: ink, so number / equation (ink, 9 pt) / key (ddMute) are three levels
+\newcommand{\hnum}[1]{\textcolor{ddInk}{\eqtag{#1}}\enspace}
+% T after a comma in a subscript: the oblique T's left bearing opens 'a, T' wider than 'c,t'
+\newcommand{\kT}{\mkern-2mu T}
+% ---- symbol key: 8 pt ddMute words, every symbol at the equations' own 9 pt (scripts at 8 pt) --
+\newcommand{\sy}[1]{{\fLabel$#1$}}
+\newcommand{\kdot}{\enspace\textperiodcentered\enspace}
+% set braces from Helvetica (T1), not cmsy
+\newcommand{\qset}[1]{\mathopen{\text{\textbraceleft}}#1\mathclose{\text{\textbraceright}}}
 
 % ---- figure-local greys: the SST ramp (row 1 = darkest) and the stepped shadow ---------------
 \definecolor{rampA}{HTML}{C9C9C9}
@@ -162,16 +302,45 @@
 % zone C deck: the three cards' front edges (end state, pattern, observations)
 \def\dE{33}\def\dP{41}\def\dO{49}
 
-% Canvas height 57.14 mm = 161.97 bp, chosen for the render check, not by eye alone:
+% Canvas height 110.409 mm = 312.97 bp (was 287.97; +25 bp for the input rail), chosen for the
+% render check, not by eye alone:
 %  - pdftocairo lays the page out at ceil(height in bp) and shrinks the drawing into the exact
 %    height; at 66 mm (187.09 bp -> 188) that 0.5 % shrink misregistered the SVG by ~3 px;
-%  - rsvg-convert rounds 161.999 bp up to one pixel more than pdftoppm does, and the check then
-%    resamples the SVG raster. 161.97 bp sits clear of both edges (mean |pdf-svg| ~2.3/255).
+%  - rsvg-convert rounds a height just under a whole bp up to one pixel more than pdftoppm does,
+%    and the check then resamples the SVG raster. A height of N.97 bp sits clear of both edges:
+%    263.97 / 264.97 / 265.97 bp all gave mean |pdf-svg| ~3.3/255, while 264.47 and 265.47 gave
+%    ~6.8 and failed; 277.97 bp gave ~3.1, 287.97 bp ~3.0 and 312.97 bp gives ~3.0. The band grew
+%    by exactly 10 bp (3.528 mm, row 2 moved down by the same) to fit two-line keys under (1) and
+%    (3) and a third under (2), and the diagram by exactly 25 bp (\gapH) for the input rail; the
+%    band's bottom margin (2.9 mm of white under the last subscript) still equals the top one
+%    (2.9 mm over the zone B caption).
 % Everything below is drawn in spec coordinates inside one scope lowered by \dropY, which removes
-% the empty band the spec left under the bottom labels.
-\def\canvasH{57.14}
-\def\dropY{-5}
+% the empty band the spec left under the bottom labels, then raised by \bandH + \gapH for the
+% band and the input rail.
+\def\bandH{44.4495}     % the equation band added under the diagram
+\def\gapH{8.81944}      % 25 bp more under the chain, for the input rail (keeps the N.97 bp height)
+\pgfmathsetmacro{\canvasH}{57.14+\bandH+\gapH}
+\pgfmathsetmacro{\dropY}{-5+\bandH+\gapH}
+% the backward pass, the shared-weights pill and L, lowered by \gapH
+\pgfmathsetmacro{\gY}{13-\gapH}
+% the input rail under zone B: two data chips, two 8 pt rows each (baselines \rowA, \rowB)
+\def\railB{10.64}\def\railT{17.44}\def\railM{14.04}
+\def\rowA{14.98}\def\rowB{11.78}
+% chip = 0.8 pad, symbol, 1.1, 0.8 bar, 0.7, widest row, 0.8 pad; the forcing chip is centred under
+% the two steps (risers 4.05 mm in from either end), the initial-state chip 2.0 mm to its left
+\def\icL{48.085}\def\icR{80.955} % initial state x_c^IC -> x_0 (widest row 24.18 mm)
+\def\fcL{82.955}\def\fcR{117.545} % forcing phi_c -> every step (widest row 26.48 mm, 8 pt script)
+% the iron-budget chip, centred on the rail's line
+\def\irB{10.04}\def\irT{18.04}
 \def\shiftX{-2}   % and nudged left, so the left and right margins match
+% equation band columns (spec x): each starts on its zone's left edge
+\def\colA{6}\def\colB{71}\def\colC{131.5}
+% and baselines (spec y): row headings, first equation lines (4 mm under their heading, less than
+% the 4.445 mm line pitch \eqP, so each numbered block reads as one unit), and the symbol keys
+\def\hdA{1.2}\def\eqA{-2.8}\def\hdB{-26.528}\def\eqB{-30.528}\def\eqP{4.445}
+\def\kyA{-20.0}\def\kyP{3.5}   % the last key line of row 1 (all three columns); key line pitch
+\def\objW{9.5mm}   % the objective's left column: 'min_w' over 's.t.', the constraint under L
+\setlength{\jot}{1.6pt}
 
 \begin{document}
 \begin{tikzpicture}[x=1mm,y=1mm]
@@ -185,13 +354,14 @@
 \mshadow{\blockpath{31}{26}{6}}                % H2
 \foreach \X in {56.0,57.1,58.2,59.3,60.4,61.5} {\mshadow{\facepath{\X}{26}}}
 \mshadow{(47,35.17) rectangle (53,41.17)}      % bounds chip
-\mshadow{[rounded corners=1.2pt] (11,10) rectangle (48,16)} % shared weights
+\mshadow{[rounded corners=1.2pt] (11,{\gY-3}) rectangle (48,{\gY+3})} % shared weights
 \mshadow{(73.5,47.2) rectangle (83.7,48.9)}    % theta strip
 \mshadow{\colpath{73.5}}\mshadow{\colpath{93.5}}\mshadow{\colpath{120}}
 \mshadow{(83.5,32.5) rectangle (90.5,39.5)}\mshadow{(110,32.5) rectangle (117,39.5)}
+\mshadow{(\icL,\railB) rectangle (\icR,\railT)}\mshadow{(\fcL,\railB) rectangle (\fcR,\railT)}
 \mshadow{\flatpath{133}{\dE}}\mshadow{\flatpath{133}{\dP}}\mshadow{\flatpath{133}{\dO}}
-\mshadow{(131.5,18) rectangle (148.5,24)}      % iron-budget chip
-\mshadow{(162,13) circle (4.5)}
+\mshadow{(131.5,\irB) rectangle (148.5,\irT)}  % iron-budget chip
+\mshadow{(162,\gY) circle (4.5)}
 
 % ============================ 2. objects =====================================================
 % --- zone A: per-cell network ---
@@ -202,7 +372,7 @@
   \fill[white] \facepath{\X}{26};
   \draw[ddInk, line width=0.6pt, line join=round] \facepath{\X}{26};}
 \rampface{61.5}{26}{rampF,rampE,rampD,rampC,rampB,rampA}
-\draw[learned] (11,10) rectangle (48,16);
+\draw[learned] (11,{\gY-3}) rectangle (48,{\gY+3});
 
 % --- zone B: one column per cell ---
 \draw[scope] (71,22.5) rectangle (129.6,56);
@@ -210,6 +380,9 @@
 \column{73.5}\column{93.5}\column{120}
 \draw[fixedbox] (83.5,32.5) rectangle (90.5,39.5);
 \draw[fixedbox] (110,32.5) rectangle (117,39.5);
+% the input rail: data (sharp), outside the scope box, feeding the column from below
+\draw[datum] (\icL,\railB) rectangle (\icR,\railT);
+\draw[datum] (\fcL,\railB) rectangle (\fcR,\railT);
 
 % --- zone C: the deck of three opaque cards, back to front in depth = bottom to top on screen ---
 % back-left guide (x=139) first, so each card above hides the part of it that runs behind it
@@ -231,8 +404,8 @@
 % (one heading, 16 deg on screen, 1.75 mm station spacing; dots 1.1 mm across)
 \foreach \p in {(136.35,50.02),(138.03,50.51),(139.71,51.00),(141.39,51.49),(143.07,51.98),
                 (145.10,50.26),(146.78,50.75),(148.46,51.25),(150.14,51.74)} {\fill[ddBlue] \p circle (0.55);}
-\draw[fixedbox] (131.5,18) rectangle (148.5,24);
-\draw[ddInk, line width=0.75pt, fill=white] (162,13) circle (4.5);
+\draw[fixedbox] (131.5,\irB) rectangle (148.5,\irT);
+\draw[ddInk, line width=0.75pt, fill=white] (162,\gY) circle (4.5);
 
 % ============================ 3. rods, arrows, hairlines ====================================
 \draw[ddInk, line width=0.9pt, line cap=round] (8.5,\rodY) -- (64,\rodY);
@@ -243,7 +416,7 @@
 \draw[ddInk, line width=0.6pt] plot[domain=-1:1, samples=30] ({50+2.4*\x},{36.0+4.3/(1+exp(-5*\x))});
 % weight junctions and their hairlines to the shared-weights pill
 \foreach \x in {14,29.5,45} {%
-  \draw[ddRule, line width=0.5pt] (\x,\rodY) -- (\x,16);
+  \draw[ddRule, line width=0.5pt] (\x,\rodY) -- (\x,{\gY+3});
   \fill[ddInk] (\x,\rodY) circle (0.7);}
 % zoom from the highlighted theta cell into its column: from the ink cell's two right corners to
 % the theta strip's top-left corner and x0's bottom-left corner, in ddMute so it never reads as grid
@@ -258,39 +431,41 @@
 % x_T -> end-state card, level on the chain's line (the card's left edge is at x 137.5 there)
 \draw[flow] (127,36) -- (137.4,36);
 % x_T -> iron budget
-\draw[flow] (126.4,29) |- (131.5,21);  % 0.4 right of spec: clears the x_T label
+\draw[flow] (126.4,29) |- (131.5,{(\irB+\irT)/2});  % 0.4 right of spec: clears the x_T label
 % the collector: all three cards feed L. Down the back-right corners, then into the top of L
-\draw[flow, rounded corners=1.6mm] (154,\dO+4) -- (154,23) -- (162,23) -- (162,17.6);
+\draw[flow, rounded corners=1.6mm] (154,\dO+4) -- (154,23) -- (162,23) -- (162,{\gY+4.6});
 \foreach \y in {\dE,\dP,\dO} {\fill[ddMute] (154,\y+4) circle (0.6);}
 % iron budget -> L, aimed at the centre: enters the upper left, clear of the top and the west point
-\draw[flow] (148.5,21) -- (158.04,15.35);
-% each step hangs a hairline onto the backward pass: the gradient goes back through every step
-\draw[ddRule, line width=0.5pt] (87,32.5) -- (87,13.8);
-\draw[ddRule, line width=0.5pt] (113.5,32.5) -- (113.5,13.8);
+\draw[flow] (148.5,{(\irB+\irT)/2}) -- ($(162,\gY)!4.6mm!(148.5,{(\irB+\irT)/2})$);
+% inputs from below, the theta bus's mirror: x_c^IC into x_0, phi_c into every step
+\draw[ddMute, line width=0.6pt, -{Stealth[length=1.5mm,width=1.2mm]}] (76,\railT) -- (76,29);
+\draw[ddMute, line width=0.6pt, -{Stealth[length=1.5mm,width=1.2mm]}] (87,\railT) -- (87,32.5);
+\draw[ddMute, line width=0.6pt, -{Stealth[length=1.5mm,width=1.2mm]}] (113.5,\railT) -- (113.5,32.5);
 
 % ============================ 4. the backward pass (the only red) ===========================
 \draw[grad, postaction={decorate}, decoration={markings,
     mark=at position 0.402 with {\arrow{Stealth[length=2.4mm,width=2.0mm]}},
     mark=at position 0.644 with {\arrow{Stealth[length=2.4mm,width=2.0mm]}}}]
-  (157.5,13) -- (48,13);
+  (157.5,\gY) -- (48,\gY);
 
 % ============================ 5. text ========================================================
 \node[font=\fSmall, text=ddMute, anchor=base west, inner sep=0pt] at (6,49.35) {per-cell MLP};
 % one row of axis labels: same size, same baseline
 \node[font=\fSmall, anchor=base] at (9,21.44) {SST};
+\fill[ddGold] (5.3,21.44-0.75) rectangle ++(0.8,2.85);   % v05 SST: the same gold bar as phi_c's
 \node[font=\fSmall, anchor=base] at (22,21.44) {16};
 \node[font=\fSmall, anchor=base] at (37,21.44) {16};
 \node[font=\fSmall, anchor=base] at (60.5,21.44) {6 parameters};
 \node[font=\fSmall, text=ddMute] at (50,43.6) {bounds};
-\node[font=\fLabel] at (29.5,13) {shared weights $w$};
+\node[font=\fLabel] at (29.5,\gY) {shared weights $w$};
 
 \node[font=\fSmall, text=ddMute, anchor=base west, inner sep=0pt] at (71,57.35) {one cell's column, unrolled};
-\node[font=\fLabel] at (78.6,51.5) {\mth};
+\node[font=\fLabel] at (78.6,51.5) {$\qth_c$};
 \node[font=\fSmall] at (87,36) {step};
 \node[font=\fSmall] at (113.5,36) {step};
 % elision: three drawn dots, centred between the arrow tip (102.7) and tail (107.3)
 \foreach \dx in {-1.1,0,1.1} {\fill[ddMute] ({105+\dx},36) circle (0.26);}
-\node[font=\fLabel] at (77,25.7) {$x_0$};
+\node[font=\fLabel] at (79.0,25.7) {$x_0$};  % right of the x_c^IC arrow
 \node[font=\fLabel] at (97,25.7) {$x_1$};
 \node[font=\fLabel] at (123.5,25.7) {$x_T$};
 
@@ -298,11 +473,85 @@
 \node[font=\fSmall, anchor=west] at (157,\dP+3.6) {Darwin pattern};
 \node[font=\fSmall, anchor=west, text=ddMute] at (157,\dP+0.4) {shape only};
 \node[font=\fSmall, anchor=west] at (157,\dE+2.5) {end state};
-\node[font=\fSmall] at (140,21) {iron budget};
-\node[font=\fontsize{12}{14}\selectfont] at (162,13) {\mLb};  % 12 pt: the loss symbol fills its node
+% the chip's term is a SIMPLIFIED surface-iron balance (no temperature factor, no diffusion), not
+% the box's own iron mass balance: named as in readme_components, with the same sub-label
+\node[font=\fSmall, anchor=base] at (140,\irT-3.15) {iron budget};
+\node[font=\fSmall, text=ddMute, anchor=base] at (140,\irT-6.45) {simplified};
+\node[font=\fontsize{12}{14}\selectfont] at (162,\gY) {\mLb};
+% the input rail's contents: symbol, then a source bar and a row of text per source
+\begin{scope}[every node/.style={inner sep=0pt}]
+\node[font=\fLabel, anchor=west] at (\icL+0.8,\railM) {$x_c^{\mathrm{IC}}$};
+\fill[ddGold] (\icL+6.39,\rowA-0.75) rectangle ++(0.8,2.85);
+\fill[ddRule] (\icL+6.39,\rowB-0.75) rectangle ++(0.8,2.85);
+\node[font=\fSmall, anchor=base west] at (\icL+7.89,\rowA) {v05 pickup chemistry};
+\node[font=\fSmall, anchor=base west] at (\icL+7.89,\rowB) {literature plankton};
+\node[font=\fLabel, anchor=west] at (\fcL+0.8,\railM) {$\qphi_c$};
+\fill[ddGold] (\fcL+5.81,\rowB-0.75) rectangle (\fcL+6.61,\rowA+2.1);
+\node[font=\fSmall, anchor=base west] at (\fcL+7.31,\rowA) {SST, SSS, wind, $p\mathrm{CO}_2$};
+\node[font=\fSmall, text=ddMute, anchor=base west] at (\fcL+7.31,\rowB) {v05 time means};
+\end{scope}  % 12 pt: the loss symbol fills its node
 
-\node[font=\fSmall, text=ddMute] at (101.45,9.3) {through every step};
-\node[font=\fLabel] at (55.5,9.3) {\mpd\mL\textup{/}\mpd$w$};
+% ---- equation tags: each sits on the element its equation describes -------------------------
+\begin{scope}[every node/.style={font=\fSmall, text=ddMute, inner sep=0pt}]
+\node[anchor=base] at (50,30.6) {\eqtag{1}};           % under the bounds chip
+\node[anchor=base] at (90.3,41.2) {\eqtag{2}};          % over the first step box, right of theta's arrow
+\node[anchor=base west] at (168.6,\gY-0.9) {\eqtag{3}};   % beside L
+\node[anchor=base] at (101.45,\gY-4.5) {\eqtag{4}};        % under the backward pass
+\end{scope}
+
+% ============================ 6. equation band ===============================================
+% A ddRule hairline, then two rows. Each equation has a ddMute heading on its zone's left edge
+% (the zone captions' style) that carries its number; the math is ink, set on the same edge.
+% Under each row-1 equation, a ddMute symbol key for the symbols the diagram does not label; its
+% symbols keep the equations' 9 pt, so every script in the band stays at the 8 pt floor.
+\begin{scope}[yshift=-\gapH mm]
+\draw[ddRule, line width=0.5pt] (\colA,5.2) -- (172.3,5.2);
+\begin{scope}[every node/.style={inner sep=0pt}]
+\begin{scope}[every node/.append style={font=\fSmall, text=ddMute, anchor=base west}]
+% headings: the number in ink (it is what the diagram's tags point to), the title in ddMute
+\node at (\colA,\hdA) {\hnum{1}bounded parameters};
+\node at (\colB,\hdA) {\hnum{2}one forward-Euler step};
+\node at (\colC,\hdA) {\hnum{3}loss on the end state};
+\node at (\colA,\hdB) {objective};
+\node at (\colB,\hdB) {\hnum{4}gradient, with \sy{S=\qpd x/\qpd\qth} carried through every step};
+% symbol keys, all ending on row 1's last key line \kyA. (1): the z-score's mean and sd are shared
+% over the ocean cells of all three regions and fixed, not learned
+\node at (\colA,\kyA+\kyP) {\sy{\qell}, \sy{u} fixed bounds\kdot\sy{\qsig} sigmoid\kdot\sy{w=\qset{W_k,b_k}}};
+\node at (\colA,\kyA) {\sy{\qodot} elementwise\kdot mean, sd fixed, over all regions};
+\node at (\colB,\kyA+2*\kyP) {\sy{F} box tendency\kdot\sy{\qphi_c} forcing};
+\node at (\colB,\kyA+\kyP) {\sy{\Delta t} step length\kdot\sy{T} final step};
+\node at (\colB,\kyA) {IC initial condition};
+% (3): its two key lines on the equations' own \eqP pitch, so row 1 shares one baseline grid
+\node at (\colC,\eqA-\eqP) {\sy{a} region\kdot\sy{\qom_a} its weight};
+\node at (\colC,\eqA-2*\eqP) {\sy{\qL_a} its loss (terms: next figure)};
+% the Carroll comparison is not a term of L: said under L, in zone C's column
+\node at (\colC,\kyA+\kyP) {graded against Carroll only after};
+\node at (\colC,\kyA) {training, outside \sy{\qL}};
+\end{scope}
+\begin{scope}[every node/.append style={font=\fLabel, anchor=base west}]
+% row 1: the forward pass, one column per zone
+\node at (\colA,\eqA) {$\begin{aligned}[t]
+  \qth_c &= \qell+(u-\qell\mkern1mu)\qodot\qsig(f_w(z_c))\\
+  f_w(z) &= W_3\tanh(W_2\tanh(W_1z+b_1)+b_2)+b_3\\
+  z_c &= (\mathrm{SST}_c-\overline{\mathrm{SST}})/\mathrm{sd}(\mathrm{SST})
+\end{aligned}$};
+\node at (\colB,\eqA) {$\begin{aligned}[t]
+  x_{c,t+1} &= \max(0,x_{c,t}+\Delta t\,F(x_{c,t};\qth_c,\qphi_c))\\
+  x_{c,0} &= x_c^{\mathrm{IC}}
+\end{aligned}$};
+\node at (\colC,\eqA) {$\qL = \tsum{a}\,\qom_a\,\qL_a(x_{a,\kT},\qth_a)$};
+% row 2: the objective under zone A, as a paper sets an optimisation problem (the constraint under
+% the objective, t < T bounding the steps), and the gradient under the backward pass. The Jacobian
+% of (4)'s first line is parenthesised like the second line's, inside Helvetica square brackets
+\node at (\colA,\eqB) {\makebox[\objW][l]{$\min\nolimits_w$}$\qL$};
+\node at (\colA,\eqB-\eqP) {\makebox[\objW][l]{s.t.}(1), (2) at every cell $c$ and step $t<T$};
+\node at (\colB,\eqB) {$\begin{aligned}[t]
+  \qnabla_{\!w}\mkern2mu\qL &= \tsum{a,c}\,[(\qpd\qL/\qpd x_{c,\kT})\,S_{c,\kT}+\qpd\qL/\qpd\qth_c]\,\qpd\qth_c/\qpd w\\
+  S_{c,t+1} &= (\qpd x_{c,t+1}/\qpd x_{c,t})\,S_{c,t}+\qpd x_{c,t+1}/\qpd\qth_c,\quad S_{c,0}=0
+\end{aligned}$};
+\end{scope}
+\end{scope}
+\end{scope}
 \end{scope}
 \end{tikzpicture}
 \end{document}

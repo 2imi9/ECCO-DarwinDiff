@@ -1,68 +1,250 @@
-% readme_components.tex -- README Figure 2, the "differentiable table".
+% readme_components.tex -- README Figure 2, the "differentiable table", with its equations.
 %
 % What it shows: every component of the flagship DarwinDiff training step, one row each, in an
-% ML-paper (booktabs) method table. The columns say whether a component is LEARNED, whether it is
-% DIFFERENTIABLE (sits on the gradient path), whether it varies PER CELL or is shared, and where
-% it comes from. Exactly one row is learned (the per-cell 1x1-conv network, set in bold on an
-% opaque ddWash band: the "ours highlighted" idiom); theta is its bounded output. The model group
-% runs in data-flow order: network -> bounds map -> theta -> box step, then the fixed constants.
+% ML-paper (booktabs) method table. FORM gives the row's term in a few symbols; the other columns
+% say whether a component is LEARNED, whether it is DIFFERENTIABLE (sits on the gradient path),
+% whether it varies PER CELL or is shared, and where it comes from. Exactly one row is learned (the
+% per-cell 1x1-conv network, set in bold on an opaque ddWash band: the "ours highlighted" idiom);
+% theta is its bounded output, and its row carries the whole bounds equation. The model group runs
+% in data-flow order: network -> bounds map -> theta -> box step, then the fixed constants. The
+% loss rows are the summands of L_a: 'L_a =' ahead of the first and a ddMute + ahead of the rest,
+% so the Form column reads as one equation. Under the bottom rule sits the key to the table's
+% glyphs (a booktabs table note), then a footer with the three equations the loss rows use.
 %
-% Canvas: 499 x 249 bp (176.04 x 87.84 mm) instead of 176 x 88 mm. This pdftocairo build fits a
-% page whose size is not a whole number of bp onto a whole-bp page, shrinking the SVG by 0.22%
-% and leaving a ~0.5 pt unpainted sliver at its left, right and bottom edges; a whole-bp page
-% gives the SVG an identity transform, so the committed SVG matches the PDF.
+% Equation numbers are shared with readme_method, which sits directly above this figure in the
+% README, so every equation has ONE number across the README: (1) bounds, (2) step, (3) loss and
+% (4) gradient are readme_method's, anchored here without being restated; this figure continues
+% with (5) Z, (6) E and (7) rho. Every number has an anchor, as a small ddMute tag: (1) after the
+% theta and SST Forms, (2) after the box step's, the forcing's and the initial state's (phi_c and
+% x_{c,0} = x_c^IC are (2)'s inputs), (3) on the loss group tag ('loss on x_T (3)',
+% which also says every loss row reads the END state; the loss rows' 'L_a =' is (3)'s L_a), (4)
+% on the key's red tick ("on the gradient path"), and (5), (6), (7) after each Form that uses the
+% symbol. The footer heads each block '(n) name' as readme_method's equation band does (number
+% ink, name ddMute), with the equation flush left under the heading and at most two lines of
+% readme_method-style symbol key ('symbol meaning . symbol meaning') under it.
+%
+% The math is the verified flagship equation set (every equation executed against the code at HEAD
+% d19e15b and refuted twice); notation is lightly adapted for typesetting, the math is not.
+% "runner" = scripts/run_v3.0_joint_multi_aoi.py; config = scripts/configs/flagship_geo1.sh.
+%   network, bounds map, theta, SST: theta_c = l + (u - l) (.) sigma(f_w(z_c)), LINEAR for all six
+%     parameters (PARAM_LOG_SCALE unset, so log_mask=None; never the geometric form);
+%     z_c = (SST_c - mean SST) / sd(SST), mean and population sd over the ocean cells of all three
+%     regions, 0 on land. src/darwindiff/carroll6.py:621-679 (linear map :678-679);
+%     src/darwindiff/networks.py:112-135 (three 1x1 convs = one per-cell MLP f_w, shared weights
+%     w); runner :1837-1851 and :1886-1887 (z_c), :2550.
+%   box step: x_{c,t+1} = max(0, x_{c,t} + dt F(x_{c,t}; theta_c, phi_c)), forward Euler, theta
+%     constant in t; the floor never fired but is in the code, so it stays.
+%     src/darwindiff/carroll6_5pft_2layer.py:383-636 (Euler :610-626, clamp :636); runner
+%     :2025-2044 (_integrate).
+%   inputs (verified by executing the flagship code): the NETWORK reads SST alone
+%     (n_input_channels=1; z_c above). The BOX reads the forcing phi_c at every step: the v05
+%     time means SST_c (the SAME field as z_c's), SSS_c, wind speed_c and atmospheric pCO2_c
+%     (runner :913-930, passed to every step at :2245-2250 via _integrate :2025-2044; SST also
+%     sets the Eppley factor; v05 MLD is not used by the box). It starts from x_{c,0} = x_c^IC:
+%     the 10 chemistry tracers (Fe, POC, PIC, DIC, ALK, both layers) from the v05 pickup
+%     (DARWIN_IC=1, runner :1720-1739, build_darwin_ic_cache.py), the 5 plankton from literature
+%     constants (:1694-1702). Neither is learned or on the gradient path (w is the only optimised
+%     quantity). Network inputs tried and dropped (wind, SSS, pCO2, CO2 flux, MLD):
+%     docs/findings/2026-07-22_covariate_channels_result.md.
+%   loss, on the END state x_T: L = sum_a omega_a L_a(x_{a,T}, theta_a), L_a = (lambda_P/11)
+%     sum_{f=1}^{11} Z(p_f, yhat_f) + lambda_2 Z_POC2 + lambda_C Z_Chl1 + sum_{o in O_a} lambda_o
+%     E_o + lambda_rho <rho^2>. Every weight stays symbolic, the four observation weights
+%     included (o in {GT_1, GT_2, Dan, Si}; the GEOTRACES pair is written sum_k lambda_{GT,k}).
+%     O_a holds only the families with cells in region a (the code gates each term on n > 0:
+%     runner :2450, :2465), which key (6) says. Z_Chl1 = Z(P_d, yhat_Chl1): the diatom field
+%     scored against the Chl1 target (v05's PFT-1 chlorophyll, keyed so its subscript 1 is not
+%     read as the surface layer), so its row writes it out.
+%     runner :2243-2519 (aoi_loss; state_final :2256; pattern :2274-2287; POC_SUB_W :2357-2359;
+%     CHL1_W_EXTRA :2363-2365), :2562 (region weights).
+%   Z (shape only; p = model field at x_T, y = its v05 target; means and Bessel sds over the
+%     region's ocean cells Omega_a): runner :2229-2240 (term_batched), :1276-1281 (target z-scored
+%     once at load). Written with the slash, one line, so nothing drops below 8 pt.
+%   E = sum_{c in M} (p_c - y_c)^2 / sum_{c in M} y_c^2 over the observed cells M = M_{o,a} of the
+%     row's family in region a: runner :2345-2355 (GEOTRACES Fe, both layers), :2450-2456 (Daniels,
+%     PIC_1/POC_1), :2465-2474 with src/darwindiff/silica.py:77-108 (bSi_1 = the steady-state
+%     silica diagnostic of P_d and g, not a tracer; g = theta_diatomgraz read directly, runner
+%     :2469; P_d = diatom biomass at x_T, keyed once, in (5)).
+%   rho: a SIMPLIFIED surface-Fe balance, printed WITHOUT the temperature (Eppley) factor and the
+%     diffusion term, so it is not the box's own F_Fe1/Fe_1: runner :2289-2308, against the box's
+%     dDFe_1 at carroll6_5pft_2layer.py:530-535. It reads theta directly: alpha = theta_alpfe,
+%     kappa = the PER-DAY scavenging rate from theta_scav_rat (the runner multiplies by 86400,
+%     :2304), mu_lge = theta_Biggrow and mu_HL = theta_Smallgrow (the other mu_j are fixed). Its
+%     key says "kappa per day" and "the learned mu_j" for exactly that reason. One name for it
+%     throughout the figure: the row's Source and (7)'s heading both say "surface iron balance".
+%   comparison to Carroll: after training, under no_grad, outside the objective: runner :2698-2735.
+%
+% Canvas: 499 x 453 bp (176.04 x 159.81 mm). pdftocairo fits a page whose size is not a whole
+% number of bp onto a whole-bp page, shrinking the SVG and leaving an unpainted sliver at its edges;
+% a whole-bp page gives the SVG an identity transform, so the committed SVG matches the PDF.
 %
 % Rules it follows (dd-readme.sty):
-%   * red = the gradient: here ONLY the thin check strokes; never a fill or a text colour.
+%   * red = the gradient: here ONLY the thin check strokes; never a fill or a text colour. Every
+%     equation is ink, 'L_a' in the loss gutter included; the tags, operators in the loss gutter
+%     and footer keys are ddMute.
 %   * blue bar = a real observation; gold bar = ECCO-Darwin v05 model output. Full strength.
 %   * "Differentiable" is defined on components and loss TERMS, never on data.
 %   * booktabs look: no vertical rules, no zebra, no row outlines, no shadows, no opacity; the
 %     only shading is the one learned-row band, drawn before the rules. Top, mid and bottom rules
 %     span x 1.5-174.5 so the rotated group tags sit inside the frame (a multirow group column);
 %     the group separators are partial, from x 7. Every cell sits on the column grid.
-%   * no result numbers: the only numerals are "1x1", the citation years and the product name
-%     "ECCO-Darwin v05". No counts, weights, tracer or step numbers.
+%   * no result numbers: the numerals are "1x1", the structural count 11 (pattern fields), index
+%     subscripts and limits (layers 1 and 2, k = 1..2, f = 1..11, x_{c,0}), the citation years, the
+%     equation numbers, the product name "ECCO-Darwin v05" and the 2 of CO2 and pCO2. No weights,
+%     parameter values, tracer or step counts (the inputs say "chemistry + plankton", not 10 + 5).
 %   * the Per cell column is one glyph family, a 3x3 hairline grid (ddMute stroke): light grey
 %     texture = varies by cell, one uniform grey = one shared value, two ink cells = sparse
 %     observations (all three keyed in the legend).
-%   * 8 pt floor, drawn at final size (176 mm = the README column), opaque white canvas.
+%   * 8 pt floor, drawn at final size (176 mm = the README column), opaque white canvas. Math is
+%     9 pt with its scripts at 8 pt (\DeclareMathSizes{9}{9}{8}{8}); the footer keys set their
+%     symbols at that 9 pt (\sy, as readme_method does), and the math inside the 8 pt tags keeps
+%     its scripts at 8 pt too (\DeclareMathSizes{8}{8}{8}{8}), where LaTeX would drop them to 6
+%     and 5 pt. The footer fractions are display-style, so their numerators and denominators stay
+%     at 9 pt.
 %
-% Deviations from the plan spec, each from the round-1 review:
+% Math typesetting: readme_method's glyph set, copied from its preamble, so the two figures print
+% every shared symbol the same way and no Computer Modern glyph is left (pdffonts: NimbusSans,
+% EURM, EUSM, EUEX only). \sansmath with the EULERGREEK option: Greek from Euler, lowercase slanted
+% by 0.21 (\obl) to match the sans oblique x and w, uppercase Delta, Phi, Omega upright, as in TeX.
+% The option is EULERGREEK, not eulergreek: eulergreek leaves the uppercase Greek to the OT1 sans,
+% which has none, and they print as boxes. The loss is Euler Script L (\mL, \qL), as in
+% readme_method; ell is Euler's (\euell); the sum is Euler's (euex); the minus is Helvetica's own
+% (TS1), and so is the centred dot; the slash is the text slash; x is the text times sign. Euler
+% has no angle brackets, element-of sign or elementwise product and the sans has none either, so
+% those are drawn at the sans stroke weight on its math axis, as readme_method draws its odot:
+% \qodot (readme_method's own macro), \qlangle / \qrangle, \qin, and the evaluation bar \qbar
+% (with a 2.5 pt kern after it, so its subscript clears it at README width).
+%
+% Deviations from the plan spec (round-1 review, then the math passes):
 %   - no type-glyph column (the v2 shape-grammar squares): at README width it read as a column of
 %     unchecked checkboxes, it had no key, and the Learned dot/ring and the gold/blue bars already
-%     carry learned vs data vs source. Names move from x 16 to x 12 (2.9 mm right of the bars).
-%   - no dashed outlines on the two scope rows: with the glyphs they drew a doubled dashed wall
-%     and stacked six horizontal strokes in the bottom 10 mm. The scope group is marked by its
-%     tag, its separator and italic ddMute names, like any other booktabs group.
-%   - the lateral-transport row sits on the column grid (dashes in Learned, Differentiable and
-%     Per cell, a note in Source) instead of one spanning line; the note says what is absent,
-%     "no exchange between cells", since cells ARE coupled through the shared weights and the
-%     per-region z-scoring of the pattern term.
-%   - glyph columns re-spaced to even header gutters (72 / 95 / 118, Source at 132), so the
-%     table's mass centres on the canvas instead of hugging the left.
-%   - theta is Euler (eulergreek option), as in readme_method; plain \sansmath leaves it serif.
+%     carry learned vs data vs source.
+%   - no dashed outlines on the two scope rows: the scope group is marked by its tag, its separator
+%     and italic ddMute names, like any other booktabs group.
+%   - the lateral-transport row sits on the column grid: dashes in Learned, Differentiable and Per
+%     cell, "not in F" in Form, and a Source note that says what is absent, "no cell-to-cell
+%     exchange" (was "no exchange between cells", shortened to fit), since cells ARE coupled through
+%     the shared weights and the per-region z-scoring of the pattern term. Its partner row says
+%     "after training, not in L": the Carroll comparison grades after training and is not part of
+%     the objective ("after training" moved from its sub-label into Form, to clear the Form column).
+%   - the Form column (x 55.5, was 58.5) pushes the glyph columns right: centres 105.9 / 122.2 /
+%     137.5, Source at 146.0 (the longest Sources, 'Carroll et al. 2020, 2022' and 'no
+%     cell-to-cell exchange', end ~0.7 mm inside the rules, not flush with them), and every header
+%     at 8 pt bold (was 9 pt) so the three glyph headers keep ~3 mm gutters; the glyph columns
+%     are snapped to the 200 dpi pixel grid (see \ddrow); the longest Form (the box step, with
+%     its tag (2)) ends ~3.8 mm before
+%     the Learned dash. The step is set as readme_method sets (2): max(0,x..., no extra thin space.
+%     Rows are 5.2 mm apart (was 4.6) so superscripts and subscripts clear.
+%   - the pattern term is two rows: "pattern term" (the 11 base fields) and "extra pattern terms"
+%     (the POC_2 and Chl_1 z-terms: the same shape-only Z, with their own weights).
+%   - short Sources: "v05 pickup + literature" (the gold bar and the legend name ECCO-Darwin)
+%     and "surface iron balance" (as (7)'s heading says it), with
+%     "simplified" moved to the residual's sub-label. Sub-labels: "1x1 conv" (was "1x1 conv, shared": the Per cell glyph says shared),
+%     "forward Euler", "dust, Fe:C quota" (parallel to Phi_d, Q_Fe; light is 1 and in no
+%     equation), "both layers". The silica
+%     row's "g = diatomgraz" became "g = theta_diatomgraz" in key (6), since at 8 pt it no longer
+%     fits before the Form column.
+%   - the inputs group is four rows (was "SST" and one "forcing, initial state" row, which
+%     read as if SST were the only input): SST, sub-labelled "only network input, in phi_c too"
+%     (the network reads SST alone; the same field is also box forcing); "forcing" (box input,
+%     time means), Form 'phi_c: SST, SSS, wind, pCO2', written as a list, not phi_c = (...), since
+%     phi_c also carries the Eppley factor SST sets; "initial state" (chemistry + plankton), Form
+%     x_{c,0} = x_c^IC, Source "v05 pickup + literature" in the same order as its sub-label, its
+%     bar gold on top (the v05 part) and the fixed grey below (the literature constants); and the
+%     network inputs tried and dropped, set like the scope rows (italic ddMute, dashes). The
+%     z-score's pooling, which the SST sub-label said before ("mean, sd over all regions"), moved
+%     to key (5), right after the per-region means it differs from ("z_c uses the mean, sd over
+%     all regions"); readme_method's (1) key says it too. The canvas grew 36 bp (100 px at 200
+%     dpi) for the two new rows: the table above the inputs rose 82 px, and 9 px went to each of
+%     the top and bottom margins, so every baseline kept its pixel phase. The forcing row sits
+%     1 px (0.127 mm) above the 5.2 mm pitch: on it, its dashes fell on a pixel boundary at 880 px
+%     and printed twice as thick as the rest of the column.
+%   - theta is Euler, as in readme_method; plain \sansmath leaves it serif.
 %   - theta's source is "network + bounds map": theta here, as in readme_method, is the bounded
 %     parameter field that enters the box.
 %   - the learned dot is 2.6 mm (spec 2.2) so the one learned mark is the darkest in its column.
 %   - the GRID greys are white/C8/7F (spec ED/D9/C4) so "varies by cell" reads as a checkered
-%     texture at README width, clearly apart from the flat grey of SHARED; SHARED is the same grid filled uniformly (spec: a 1.6 mm ddMute square).
-%   - the legend drops the learned dot and the red check (their column headers say it) and is
-%     centred on the rule span instead of starting at 16.
-%   - the learned row's source is "trained here" (spec "this repo") and its sub-label says the
-%     weights are shared; both scope rows set their Source in italic ddMute, like their names.
+%     texture at README width, clearly apart from the flat grey of SHARED; SHARED is the same grid
+%     filled uniformly (spec: a 1.6 mm ddMute square).
+%   - the legend drops the learned dot (its column header says it) but keys the red check as
+%     "on the gradient path (4)", the one place readme_method's (4) is anchored here; it is
+%     centred on the rule span instead of starting at 16, and sits directly under the bottom rule
+%     as a table note, above the footer equations, so the glyphs it decodes are next to it.
+%   - the footer does not restate (3) (it repeated readme_method's word for word and keyed
+%     omega_a, which no row uses); (3) lives in the table as 'L_a =' ahead of the loss rows and
+%     the 'loss on x_T (3)' tag.
+%   - the learned row's source is "trained here" (spec "this repo"); both scope rows set their
+%     Source in italic ddMute, like their names.
 \documentclass[tikz,border=0pt]{standalone}
-% sansmath (loaded by dd-readme) takes lowercase Greek from serif cmmi unless told otherwise; the
-% eulergreek option gives an unserifed theta, matching readme_method.
-\PassOptionsToPackage{eulergreek}{sansmath}
+% EULERGREEK takes ALL Greek from Euler: with eulergreek alone the uppercase Delta, Phi and Omega
+% come from the OT1 sans, which has none, and they print as boxes
+\PassOptionsToPackage{EULERGREEK}{sansmath}
 \usepackage{dd-readme}
+% ---- readme_method's math glyphs: Euler ell and sum, Helvetica minus, text slash --------------
+\DeclareMathSymbol{\euell}{\mathord}{EulerGreek}{"60}
+\DeclareSymbolFont{EulerExtension}{U}{euex}{m}{n}   % Euler's sum, not cmex's
+\DeclareSymbolFont{sansTS}{TS1}{\sfdefault}{m}{n}   % Helvetica's own minus, not cmsy's
+\makeatletter
+\DeclareMathSymbol{\sum@}{\mathop}{EulerExtension}{"50}
+\makeatother
+\DeclareMathSymbol{-}{\mathbin}{sansTS}{"3D}
+\DeclareMathSymbol{/}{\mathord}{operators}{"2F}     % the text slash, not cmmi's
+\DeclareMathSymbol{\qcdot}{\mathord}{sansTS}{"B7}   % Helvetica's centred dot, not cmsy's
+% 9 pt math keeps its subscripts and fraction parts at the 8 pt floor, not the default 6 pt; the
+% 8 pt notes and tags keep theirs at 8 pt, not the default 6 and 5 pt
+\DeclareMathSizes{9}{9}{8}{8}
+\DeclareMathSizes{8}{8}{8}{8}
+% \obl{<text>}: slant a glyph by 0.21 (the sans oblique's 12 degrees), as in readme_method
+\newcommand{\obl}[1]{\mbox{\pdfsave\pdfsetmatrix{1 0 0.21 1}\rlap{#1}\pdfrestore\phantom{#1}}}
+% \sG{<greek>}: a slanted Euler lowercase Greek letter, at the right size in every math style
+\newcommand{\sG}[1]{{\mathchoice{\obl{$\displaystyle#1$}}{\obl{$\textstyle#1$}}%
+  {\obl{$\scriptstyle#1$}}{\obl{$\scriptscriptstyle#1$}}}}
+\newcommand{\vth}{\sG{\theta}}  \newcommand{\vsi}{\sG{\sigma}}  \newcommand{\vph}{\sG{\phi}}
+\newcommand{\vla}{\sG{\lambda}} \newcommand{\vrh}{\sG{\rho}}    \newcommand{\vom}{\sG{\omega}}
+\newcommand{\val}{\sG{\alpha}}  \newcommand{\vka}{\sG{\kappa}}  \newcommand{\vmu}{\sG{\mu}}
+\newcommand{\vel}{\sG{\euell}}
+\newcommand{\rmm}[1]{\mathrm{#1}}
+% the loss: Euler Script L, as readme_method sets it (\mL there)
+\newcommand{\mL}{\obl{\usefont{U}{eus}{m}{n}L}}
+\newcommand{\qL}{\mathord{\mL}}
+\newcommand{\tsum}[1]{{\textstyle\sum_{#1}}}
+% ---- drawn glyphs: neither Euler nor the sans has them ----------------------------------------
+% elementwise product: readme_method's, centred on Helvetica's math axis (the bar of its + and -)
+\newcommand{\qodot}{\mathbin{\tikz[baseline=0pt]{%
+  \draw[line width=0.5pt] (0,2.09pt) circle (2.1pt); \fill (0,2.09pt) circle (0.62pt);}}}
+% angle brackets, the height of a text-size delimiter, scaled with the font (9 pt rows, 8 pt notes)
+\makeatletter
+\newdimen\qu
+\newcommand{\qsz}{\qu=\f@size pt\divide\qu 9 }
+\makeatother
+\newcommand{\qlangle}{\mathopen{\qsz\tikz[baseline=0pt]{%
+  \draw[line width=0.5pt, line join=miter] (2.35\qu,6.43\qu) -- (0.35\qu,2.09\qu) -- (2.35\qu,-2.25\qu);
+  \useasboundingbox (0,-2.25\qu) rectangle (2.7\qu,6.43\qu);}}}
+\newcommand{\qrangle}{\mathclose{\qsz\tikz[baseline=0pt]{%
+  \draw[line width=0.5pt, line join=miter] (0.35\qu,6.43\qu) -- (2.35\qu,2.09\qu) -- (0.35\qu,-2.25\qu);
+  \useasboundingbox (0,-2.25\qu) rectangle (2.7\qu,6.43\qu);}}}
+% element-of, at the 8 pt script size of the sums it sits under, on the 8 pt math axis
+\newcommand{\qin}{\mathrel{\tikz[baseline=0pt]{%
+  \draw[line width=0.45pt] (3.9pt,3.76pt) -- (2.35pt,3.76pt)
+    arc[start angle=90, end angle=270, radius=1.9pt] -- (3.9pt,-0.04pt);
+  \draw[line width=0.45pt] (0.45pt,1.86pt) -- (3.5pt,1.86pt);
+  \useasboundingbox (0,-0.3pt) rectangle (4.5pt,4.0pt);}}}
+% evaluation bar |_{...}: a rule at the sans stroke weight, as tall as the display fraction it
+% closes (numerator top to denominator subscript, measured on the \dfrac box), as \right| sets it.
+% The 2.5 pt kern keeps the subscript off the rule: with none TeX hangs it flush on the rule and
+% the bar and the slanted x read as one glyph ('|x'); with a delimiter's 1 pt they still touched
+% at 880 px, where the subscript's top overlaps the bar's lower end
+\newcommand{\qbar}{\mathclose{\vrule height 13.6pt depth 7.9pt width 0.5pt\kern2.5pt}}
+% T after a comma in a subscript: readme_method's \kT, so 'c, T' is set as readme_method sets it
+\newcommand{\kT}{\mkern-2mu T}
+% ---- symbol key: readme_method's, 8 pt ddMute words, every symbol at the equations' own 9 pt
+% (scripts at 8 pt), entries 'symbol meaning' joined by Helvetica's centred dot ----------------
+\newcommand{\sy}[1]{{\fLabel$#1$}}
+\newcommand{\kdot}{\enspace\textperiodcentered\enspace}
 
 % ---- extra greys for the per-cell glyph (opaque, never opacity) -------------------------
-% light enough that GRID reads as a texture at README width, not as three hard tones
 \definecolor{ddG1}{HTML}{F2F2F2}
 \definecolor{ddG2}{HTML}{D9D9D9}
 \definecolor{ddG3}{HTML}{BFBFBF}
-% GRID texture: white / light / dark, a wide tonal spread so "varies by cell" reads as a
-% checkered texture at README width, never as the flat grey of SHARED
 \definecolor{ddV2}{HTML}{C8C8C8}
 \definecolor{ddV3}{HTML}{7F7F7F}
 
@@ -70,139 +252,235 @@
 \newcommand{\xTag}{3.5}     % rotated group tags (centre)
 \newcommand{\xBar}{7.0}     % colour bar (west edge), 2.1 mm wide
 \newcommand{\xName}{12.0}   % component name (west)
-\newcommand{\xLrn}{72.0}    % Learned (centre)
-\newcommand{\xDif}{95.0}    % Differentiable (centre)
-\newcommand{\xCel}{118.0}   % Per cell (centre)
-\newcommand{\xSrc}{132.0}   % Source (west)
+\newcommand{\xForm}{55.5}   % Form, the row's term in symbols (west)
+\newcommand{\xLrn}{105.9}   % Learned (centre)
+\newcommand{\xDif}{122.2}   % Differentiable (centre)
+\newcommand{\xCel}{137.5}   % Per cell (centre)
+\newcommand{\xSrc}{146.0}   % Source (west)
 \newcommand{\xF}{1.5}       % top, mid and bottom rules: left end (the frame holds the tags)
-\newcommand{\xL}{7.0}       % group separators: left end (partial rules, like \cmidrule{2-6})
+\newcommand{\xL}{7.0}       % group separators: left end (partial rules, like \cmidrule{2-7})
 \newcommand{\xR}{174.5}     % every rule: right end (1.5 mm margins either side)
 
 \tikzset{
-  % one text style per role; "mid" anchors keep baselines level whatever the descenders
-  cHdr/.style   = {font=\fLabel\bfseries, text=ddInk, inner sep=0pt},
+  cHdr/.style   = {font=\fSmall\bfseries, text=ddInk, inner sep=0pt},
   cName/.style  = {font=\fLabel, text=ddInk, inner sep=0pt, anchor=mid west},
   cSub/.style   = {font=\fSmall, text=ddMute, inner sep=0pt, anchor=base west},
+  cForm/.style  = {font=\fLabel, text=ddInk, inner sep=0pt, anchor=mid west},
   cSrc/.style   = {font=\fSmall, text=ddInk, inner sep=0pt, anchor=mid west},
   cTag/.style   = {font=\fSmall, text=ddMute, inner sep=0pt, rotate=90},
-  % ---- Learned column ----
   pics/dot/.style  = {code={\fill[ddInk] (0,0) circle (1.3);}},
   pics/ring/.style = {code={\draw[ddInk, line width=0.6pt] (0,0) circle (1.1);}},
   pics/no/.style   = {code={\draw[ddRule, line width=0.6pt] (-1.1,0) -- (1.1,0);}},
-  % ---- Differentiable column: the only red in the figure ----
   pics/tick/.style = {code={\draw[ddRed, line width=0.9pt, line cap=round, line join=round]
                             (-1.3,0.1) -- (-0.3,-1.0) -- (1.5,1.3);}},
-  % ---- Per cell column ----
-  % One glyph family: the same 3x3 hairline grid of 1.1 mm cells, ddMute 0.3pt stroke; only
-  % the fill says varies / shared / sparse.
-  % GRID: 3x3 opaque greys, a Latin square, so "varies by cell" reads without colour
   pics/grid/.style = {code={
       \foreach \c [count=\i from 0] in {white,ddV2,ddV3,ddV2,ddV3,white,ddV3,white,ddV2}{
         \pgfmathtruncatemacro{\col}{mod(\i,3)}\pgfmathtruncatemacro{\row}{div(\i,3)}
         \fill[\c] (-1.65+1.1*\col, 1.65-1.1*\row) rectangle ++(1.1,-1.1);}
       \pic {cellgrid};}},
-  % SHARED: one value for every cell, all nine cells the same grey (the GRID's darkest, so the
-  % flat glyph stays distinct from the light texture at README width)
   pics/shared/.style = {code={
       \fill[ddG3] (-1.65,-1.65) rectangle (1.65,1.65);
       \pic {cellgrid};}},
-  % SPARSE: observations exist at a few cells only
   pics/sparse/.style = {code={
-      \fill[ddInk] (-1.65,1.65) rectangle ++(1.1,-1.1);   % top-left
-      \fill[ddInk] (0.55,0.55) rectangle ++(1.1,-1.1);    % middle-right
+      \fill[ddInk] (-1.65,1.65) rectangle ++(1.1,-1.1);
+      \fill[ddInk] (0.55,0.55) rectangle ++(1.1,-1.1);
       \pic {cellgrid};}},
   pics/cellgrid/.style = {code={
       \draw[ddMute, line width=0.3pt, step=1.1, shift={(-1.65,-1.65)}] (0,0) grid (3.3,3.3);}},
-  % "mid" like every other cell, so its baseline sits level with the row's names and sources
   pics/perregion/.style = {code={
       \node[font=\fSmall, text=ddMute, inner sep=0pt, anchor=mid] {per region};}},
-  % ---- colour bar (source category), 2.1 x 4.0 mm, full strength ----
   pics/bar-gold/.style = {code={\fill[ddGold] (0,-2.0) rectangle (2.1,2.0);}},
   pics/bar-blue/.style = {code={\fill[ddBlue] (0,-2.0) rectangle (2.1,2.0);}},
+  % part v05 (the pickup chemistry), part fixed (the literature plankton): gold on top, the
+  % rest the fixed grey, one bar of the full height
+  pics/bar-goldpart/.style = {code={\fill[ddGold] (0,-0.67) rectangle (2.1,2.0);
+      \fill[ddRule] (0,-2.0) rectangle (2.1,-0.67);}},
   pics/bar-none/.style = {code={}},
-  % legend keys for the bars: 2.1 x 3.0 mm, centred
   pics/key-gold/.style = {code={\fill[ddGold] (-1.05,-1.5) rectangle (1.05,1.5);}},
   pics/key-blue/.style = {code={\fill[ddBlue] (-1.05,-1.5) rectangle (1.05,1.5);}},
 }
 
-% \ddrow{y}{bar}{name}{sub-label}{learned}{differentiable}{per cell}{source}
-%   bar in {gold, blue, none}; the three glyph columns take pic names. The name and source
-%   arguments may open with a font or colour switch (\bfseries, \itshape\color{ddMute}).
-\newcommand{\ddrow}[8]{%
+% \ddrow{y}{bar}{name}{sub-label}{form}{learned}{differentiable}{per cell}{source}
+% The three glyph columns sit at \ys, the row's y moved (by at most 0.064 mm) onto a whole-pixel
+% boundary of check_render's 200 dpi raster (0.127 mm pixels, counted from the top of the 453 bp
+% page, with the table's \tabshift): poppler draws the 0.6 pt dashes unantialiased, 1 or 2 px
+% thick by pixel phase, so unsnapped dashes printed at two different greys down one column
+\newcommand{\tabshift}{7.543}
+\newcommand{\ddrow}[9]{%
+  \pgfmathsetmacro{\ys}{159.808-0.127*round((159.808-(#1+\tabshift))/0.127)-\tabshift}%
   \pic at (\xBar,#1)  {bar-#2};
   \node[cName] (nm) at (\xName,#1) {#3};
   \node[cSub] at ($(nm.base east)+(1.5,0)$) {#4};
-  \pic at (\xLrn,#1) {#5};
-  \pic at (\xDif,#1) {#6};
-  \pic at (\xCel,#1) {#7};
-  \node[cSrc] at (\xSrc,#1) {#8};}
+  \node[cForm] at (\xForm,#1) {#5};
+  \pic at (\xLrn,\ys) {#6};
+  \pic at (\xDif,\ys) {#7};
+  \pic at (\xCel,\ys) {#8};
+  \node[cSrc] at (\xSrc,#1) {#9};}
 \newcommand{\scopetext}{\itshape\color{ddMute}}
+% \eqref-style tag after a Form: points at the footer equation that defines its symbol
+\newcommand{\etag}[1]{\hspace{1.4mm}{\fSmall\color{ddMute}(#1)}}
 
-% \legitem{previous node}{glyph width}{pic}{text}{this node}: glyph, 1 mm gap, text; items 3 mm apart
+% \legitem{previous node}{glyph width}{pic}{text}{this node}: one key entry, on lg0's line
 \newcommand{\legitem}[5]{%
-  \path let \p1 = (#1.east) in coordinate (lg) at (\x1+3mm+#2mm/2, 4.6mm);
+  \path let \p1 = (#1.east), \p2 = (lg0) in coordinate (lg) at (\x1+3mm+#2mm/2, \y2);
   \pic at (lg) {#3};
   \node[font=\fSmall, text=ddInk, inner sep=0pt, anchor=mid west] (#5)
     at ($(lg)+(#2/2+1,0)$) {#4};}
 
+% footer: the three equations this figure adds, (5) Z, (6) E and (7) rho, set as readme_method
+% sets its equation band: a heading '(n) name' (the number in ink, the name ddMute), the equation
+% flush left under it, then a symbol key of at most two ddMute lines in readme_method's
+% 'symbol meaning . symbol meaning' style, each symbol keyed once in the figure. (3) is NOT
+% restated: readme_method sits directly above, and here (3) is the loss group's tag and the
+% 'L_a =' written ahead of the loss rows' Form column, as (1), (2) and (4) are anchored without
+% being restated. Row 1 = (5), on the full width (one line, ~67 mm); row 2 = (6) | (7). Column A
+% starts on the table body's left edge (the colour bars and the group separators, \xL); column B
+% on the frame's centre line.
+\newcommand{\xA}{7.0}   \newcommand{\xB}{88.0}
+\newcommand{\hnum}[1]{\textcolor{ddInk}{(#1)}\enspace}
+% \fhead{x}{baseline y}{number}{name}; \feq{x}{baseline y}{equation}; \fnote{x}{baseline y}{key}
+\newcommand{\fhead}[4]{%
+  \node[font=\fSmall, text=ddMute, inner sep=0pt, anchor=base west] at (#1,#2) {\hnum{#3}#4};}
+\newcommand{\feq}[3]{%
+  \node[font=\fLabel, text=ddInk, inner sep=0pt, anchor=base west] at (#1,#2) {$#3$};}
+\newcommand{\fnote}[3]{%
+  \node[font=\fSmall, text=ddMute, inner sep=0pt, anchor=base west] at (#1,#2) {#3};}
+% footer baselines (mm), each on a whole pixel row of check_render's 200 dpi raster, counted from
+% the top of the 453 bp page (y = 159.808 - k x 0.127): heading -> equation 36 px (row 1) and
+% 56 px (row 2, clearing the fraction's numerator), equation -> first key line 35 px (row 1) and
+% 54 px (row 2, under the denominator and the evaluation bar's subscript), key pitch 30 px (the
+% keys' 9 pt symbols: 28 px left 0.46 mm between a subscript and the next line's angle bracket),
+% last key line of row 1 -> row 2 heading 54 px (6.9 mm, so the two rows read as separate blocks)
+\newcommand{\yHa}{43.095} \newcommand{\yEa}{38.523} \newcommand{\yGa}{34.078}
+\newcommand{\yHb}{23.410} \newcommand{\yEb}{16.298} \newcommand{\yGb}{9.440}
+\newcommand{\np}{3.810}   % key line pitch (30 px)
+
 \begin{document}
 \begin{tikzpicture}[x=1mm, y=1mm]
 \sansmath
-\ddcanvas{499bp}{249bp}
+\ddcanvas{499bp}{453bp}
 
-% ---- highlight: the one learned row, an opaque ddWash band under the rules ------------------
-\fill[ddWash] (\xF,72.9) rectangle (\xR,77.5);
+% The table is raised \tabshift = 7.543 mm: 6.35 mm (18 bp = 50 px at 200 dpi, the room the
+% two-row footer needs), plus 0.05 mm (0.4 px, invisible), which puts its text baselines closer to
+% the check raster's pixel grid, like the footer's (see the note there), plus 1.143 mm (9 px), the
+% bottom margin's share of the canvas growth. Inside it, everything above the inputs group sits
+% 10.414 mm (82 px) higher than before the inputs grew by two rows, so every row keeps its pixel
+% phase counted from the top.
+\begin{scope}[yshift=\tabshift mm]
+% ---- highlight: the one learned row ----------------------------------------------------------
+\fill[ddWash] (\xF,135.814) rectangle (\xR,140.814);
 
-% ---- booktabs rules: full-width frame, partial group separators ------------------------------
-\draw[ddInk, line width=0.8pt] (\xF,84.0) -- (\xR,84.0);   % top
-\draw[ddInk, line width=0.5pt] (\xF,78.0) -- (\xR,78.0);   % under the header
-\foreach \y in {53.9, 43.5, 19.3} \draw[hair] (\xL,\y) -- (\xR,\y);   % group separators
-\draw[ddInk, line width=0.8pt] (\xF,9.0) -- (\xR,9.0);     % bottom
+% ---- booktabs rules ----------------------------------------------------------------------------
+\draw[ddInk, line width=0.8pt] (\xF,147.414) -- (\xR,147.414);   % top
+\draw[ddInk, line width=0.5pt] (\xF,141.214) -- (\xR,141.214);   % under the header
+\foreach \y in {114.214, 92.0, 59.4} \draw[hair] (\xL,\y) -- (\xR,\y);
+\draw[ddInk, line width=0.8pt] (\xF,48.0) -- (\xR,48.0);     % bottom
 
-% ---- header ----------------------------------------------------------------------------------
-\node[cHdr, anchor=mid west] at (\xName,80.9) {Component};
-\node[cHdr, anchor=mid]      at (\xLrn,80.9)  {Learned};
-\node[cHdr, anchor=mid]      at (\xDif,80.9)  {Differentiable};
-\node[cHdr, anchor=mid]      at (\xCel,80.9)  {Per cell};
-\node[cHdr, anchor=mid west] at (\xSrc,80.9)  {Source};
+% ---- header --------------------------------------------------------------------------------------
+\node[cHdr, anchor=mid west] at (\xName,144.314) {Component};
+\node[cHdr, anchor=mid west] at (\xForm,144.314) {Form};
+\node[cHdr, anchor=mid]      at (\xLrn,144.314)  {Learned};
+\node[cHdr, anchor=mid]      at (\xDif,144.314)  {Differentiable};
+\node[cHdr, anchor=mid]      at (\xCel,144.314)  {Per cell};
+\node[cHdr, anchor=mid west] at (\xSrc,144.314)  {Source};
 
-% ---- group tags --------------------------------------------------------------------------------
-\node[cTag] at (\xTag,66.0) {model};
-\node[cTag] at (\xTag,48.7) {inputs};
-\node[cTag] at (\xTag,31.4) {loss};
-\node[cTag] at (\xTag,14.1) {scope};
+% ---- group tags -----------------------------------------------------------------------------------
+\node[cTag] at (\xTag,127.914) {model};
+\node[cTag] at (\xTag,103.107) {inputs};
+\node[cTag] at (\xTag,75.7)  {loss on $x_T$\hspace{1.2mm}(3)};
+\node[cTag] at (\xTag,53.5)  {scope};
 
-% ---- rows ----------------------------------------------------------------------------------------
-%       y     bar   name                                sub-label        Lrn   Dif    Per cell  source
-% model, in data-flow order: network -> bounds map -> theta -> box step
-\ddrow{75.2}{none}{\bfseries per-cell network}         {1$\times$1 conv, shared}{dot}{tick}{shared}{trained here}
-\ddrow{70.6}{none}{bounds map}                         {sigmoid}          {no}  {tick} {shared}  {fixed ranges}
-\ddrow{66.0}{none}{parameters $\theta$}                {six fields}       {ring}{tick} {grid}    {network + bounds map}
-\ddrow{61.4}{none}{two-layer box step}                 {}                 {no}  {tick} {grid}    {simplified Darwin}
-\ddrow{56.8}{none}{fixed constants}                    {dust, light}      {no}  {no}   {shared}  {fixed in code}
-% inputs
-\ddrow{51.0}{gold}{SST}                                {network input}    {no}  {no}   {grid}    {ECCO-Darwin v05}
-\ddrow{46.4}{gold}{forcing, initial state}             {box input}        {no}  {no}   {grid}    {ECCO-Darwin v05 + literature}
-% loss
-\ddrow{40.6}{gold}{pattern term}                       {shape only}       {no}  {tick} {grid}    {ECCO-Darwin v05}
-\ddrow{36.0}{blue}{dissolved-iron term}                {}                 {no}  {tick} {sparse}  {GEOTRACES}
-\ddrow{31.4}{blue}{calcite-ratio term}                 {}                 {no}  {tick} {sparse}  {Daniels et al.\ 2018}
-\ddrow{26.8}{blue}{biogenic-silica term}               {}                 {no}  {tick} {sparse}  {GEOTRACES}
-\ddrow{22.2}{none}{iron-budget residual}               {}                 {no}  {tick} {grid}    {simplified surface-Fe balance}
-% scope: outside the differentiable step; italic ddMute names and sources, no outlines
-\ddrow{16.4}{none}{\scopetext lateral transport}       {}                 {no}  {no}   {no}      {\scopetext no exchange between cells}
-\ddrow{11.8}{none}{\scopetext comparison to Carroll}   {after training}   {no}  {no}   {perregion}{\scopetext Carroll et al.\ 2020, 2022}
+% ---- rows -------------------------------------------------------------------------------------------
+\ddrow{138.314}{none}{\bfseries per-cell network}{1\texttimes1 conv}
+  {$f_w(z_c)$}{dot}{tick}{shared}{trained here}
+\ddrow{133.114}{none}{bounds map}{sigmoid}
+  {$\vel+(u-\vel\mkern1mu)\qodot\vsi(\qcdot)$}{no}{tick}{shared}{fixed ranges}
+\ddrow{127.914}{none}{parameters \obl{$\theta$}}{six fields}
+  {$\vth_c=\vel+(u-\vel\mkern1mu)\qodot\vsi(f_w(z_c))$\etag{1}}{ring}{tick}{grid}{network + bounds map}
+\ddrow{122.714}{none}{two-layer box step}{forward Euler}
+  {$\max(0,x_{c,t}+\Delta t\,F(x_{c,t};\vth_c,\vph_c))$\etag{2}}{no}{tick}{grid}{simplified Darwin}
+\ddrow{117.514}{none}{fixed constants}{dust, Fe:C quota}
+  {$\Phi_{\rmm d},\,Q_{\rmm{Fe}}$, \ldots}{no}{no}{shared}{fixed in code}
+% inputs: the network reads SST ALONE (n_input_channels=1, runner :1837-1908); the box reads
+% the forcing phi_c at every step (runner :913-930, :2245-2250 via _integrate :2025-2044), whose
+% SST is the SAME v05 field, and starts from x_{c,0} = x_c^IC (the 10 chemistry tracers from the
+% v05 pickup, DARWIN_IC=1, runner :1720-1739; the 5 plankton from literature, :1694-1702). None
+% of them is learned or on the gradient path; w is the only optimised quantity
+\ddrow{110.914}{gold}{SST}{only network input, in $\vph_c$ too}
+  {$z_c=(\rmm{SST}_c-\overline{\rmm{SST}})/\rmm{sd}(\rmm{SST})$\etag{1}}{no}{no}{grid}{ECCO-Darwin v05}
+\ddrow{105.841}{gold}{forcing}{box input, time means}
+  {$\vph_c$: SST, SSS, wind, $p\rmm{CO}_2$\etag{2}}{no}{no}{grid}{ECCO-Darwin v05}
+\ddrow{100.514}{goldpart}{initial state}{chemistry + plankton}
+  {$x_{c,0}=x^{\rmm{IC}}_c$\etag{2}}{no}{no}{grid}{v05 pickup + literature}
+% the network inputs tried and dropped (docs/findings/2026-07-22_covariate_channels_result.md),
+% set like the scope rows: italic ddMute, dashes in every glyph column
+\ddrow{95.314}{none}{\scopetext other network inputs}{}
+  {\scopetext\fSmall wind, SSS, \textit{p}CO$_2$, CO$_2$ flux, MLD}{no}{no}{no}{\scopetext tested, not used}
+% loss: every row is read on the end state x_T
+\ddrow{88.7}{gold}{pattern term}{shape only}
+  {$(\vla_P/11)\sum_{f=1}^{11}Z(p_f,\hat y_f)$\etag{5}}{no}{tick}{grid}{ECCO-Darwin v05}
+\ddrow{83.5}{gold}{extra pattern terms}{shape only}
+  {$\vla_2Z_{\rmm{POC}_2}+\vla_CZ(P_{\rmm d},\hat y_{\rmm{Chl}_1})$\etag{5}}{no}{tick}{grid}{ECCO-Darwin v05}
+\ddrow{78.3}{blue}{dissolved-iron term}{both layers}
+  {$\sum_{k=1}^{2}\vla_{\rmm{GT},k}E(\rmm{Fe}_k,y^{\rmm{GT}}_k)$\etag{6}}{no}{tick}{sparse}{GEOTRACES}
+\ddrow{73.1}{blue}{calcite-ratio term}{}
+  {$\vla_{\rmm{Dan}}E(\rmm{PIC}_1/\rmm{POC}_1,\,y^{\rmm{Dan}})$\etag{6}}{no}{tick}{sparse}{Daniels et al.\ 2018}
+\ddrow{67.9}{blue}{biogenic-silica term}{}
+  {$\vla_{\rmm{Si}}E(\rmm{bSi}_1(P_{\rmm d},g),\,y^{\rmm{Si}})$\etag{6}}{no}{tick}{sparse}{GEOTRACES}
+\ddrow{62.7}{none}{iron-budget residual}{simplified}
+  {$\vla_{\vrh}\qlangle\vrh^2\qrangle_{\Omega_a}$\etag{7}}{no}{tick}{grid}{surface iron balance}
+% the loss rows are the summands of L_a, written as one equation down the Form column: the left
+% side L_a (ink, it is math) and a ddMute = ahead of row 1, a ddMute + ahead of rows 2-6, all in
+% the gutter between the sub-labels (whose ink ends by x 51.3) and the Form column, so the
+% operator column reads = + + + + +. Each sits ~0.5 mm before the Form, a binary operator's
+% spacing, so it binds to the term, not the label. This, with the group tag, anchors (3) here
+\node[font=\fLabel, text=ddInk, inner sep=0pt, anchor=mid east] at (52.5,88.7) {$\qL_a$};
+\node[font=\fLabel, text=ddMute, inner sep=0pt, anchor=mid] at (54.1,88.7) {$=$};
+\foreach \y in {83.5, 78.3, 73.1, 67.9, 62.7}
+  \node[font=\fLabel, text=ddMute, inner sep=0pt, anchor=mid] at (54.1,\y) {$+$};
+% scope
+\ddrow{56.1}{none}{\scopetext lateral transport}{}
+  {\scopetext\fSmall not in $F$}{no}{no}{no}{\scopetext no cell-to-cell exchange}
+\ddrow{50.9}{none}{\scopetext comparison to Carroll}{}
+  {\scopetext\fSmall after training, not in $\qL$}{no}{no}{perregion}{\scopetext Carroll et al.\ 2020, 2022}
 
-% ---- legend: one line, centred on the rule span (1.5-174.5, centre 88.0) --------------------------
-% No keys for the learned dot or the red check: their column headers already say it.
-\coordinate (lg0) at (25.5,4.6);   % first glyph starts at 28.5; the line is 119.0 wide
+\end{scope}
+
+% ---- key: the table's glyphs, directly under the bottom rule (a booktabs table note) ----------------
+% Raised with the table (43.67 + 6.35 + 1.143), so it keeps its pixel row. The red tick is keyed as the
+% gradient path of readme_method's (4), which gives (4) its anchor in this figure; the tick stays
+% red, its text ink. lg0 is set so the key is centred on the frame (1.5-174.5): see LEGEND-END.
+\coordinate (lg0) at (8.17,51.163);
 \legitem{lg0}{2.2}{ring}{predicted}{lg1}
 \legitem{lg1}{3.3}{grid}{varies by cell}{lg2}
 \legitem{lg2}{3.3}{shared}{shared}{lg3}
 \legitem{lg3}{3.3}{sparse}{sparse}{lg4}
 \legitem{lg4}{2.1}{key-blue}{real observation}{lg5}
 \legitem{lg5}{2.1}{key-gold}{ECCO-Darwin v05}{lg6}
-% logs the right end (147.5 mm = 419.7 pt) so a label change can be re-centred in one build
-\path let \p1 = (lg6.east) in \pgfextra{\typeout{LEGEND-END \x1}};
+\legitem{lg6}{3.0}{tick}{on the gradient path\etag{4}}{lg7}
+\path let \p1 = (lg7.east) in \pgfextra{\typeout{LEGEND-END \x1}};
+
+% ---- footer: the definitions the Form column uses, numbered on from readme_method's (1)-(4) ----------
+% Every baseline here, and the key's, sits on a whole pixel of check_render's 200 dpi raster (the
+% gloss pitch 3.556 mm is 28 px). Measured: a text line whose baseline falls between pixels
+% antialiases differently in poppler and librsvg, which is most of the PDF-vs-SVG difference; on
+% whole pixels the two agree (mean |pdf-svg| 4.2 -> 2.8, check_render fails above 4).
+% Every equation is set flush left under its own heading (anchor base west), so no = floats.
+% row 1: (5), on the full width. Its bars and s are per region (Omega_a); the SST z-score's are
+% not. Chl_1 is v05's diatom chlorophyll (PFT 1), not the surface layer: its key says so
+\fhead{\xA}{\yHa}{5}{pattern score, shape only}
+\feq{\xA}{\yEa}{Z(p,\hat y)=\qlangle((p_c-\bar p)/s_p-\hat y_c)^2\qrangle_{\Omega_a},\quad \hat y_c=(y_c-\bar y)/s_y}
+\fnote{\xA}{\yGa}{\sy{p_f} field \sy{f} at \sy{x_T}\kdot\sy{y_f} its v05 target\kdot\sy{Z_X=Z(X,\hat y_X)}\kdot\sy{P_{\rmm d}} diatoms\kdot\sy{\rmm{Chl}_1} v05 diatom chlorophyll}
+\fnote{\xA}{\yGa-\np}{\sy{\qlangle\qcdot\qrangle}, \sy{\bar p}, \sy{\bar y}, \sy{s}: mean, sample sd over \sy{\Omega_a}, the ocean cells of region \sy{a}\kdot\sy{z_c} uses the mean, sd over all regions}
+% row 2, column A: (6). bSi_1 is a steady-state diagnostic of P_d and g, not a model tracer
+\fhead{\xA}{\yHb}{6}{error on sparse observations}
+\feq{\xA}{\yEb}{E(p,y)=\dfrac{\sum_{c\qin M}(p_c-y_c)^2}{\sum_{c\qin M}y_c^2}}
+\fnote{\xA}{\yGb}{\sy{p} at \sy{x_T}, \sy{y} observed\kdot\sy{M} its cells in region \sy{a} (if none, no term)}
+\fnote{\xA}{\yGb-\np}{\sy{\rmm{bSi}_1} steady-state silica diagnostic\kdot\sy{g=\vth_{\rmm{diatomgraz}}}}
+% row 2, column B: (7), without the temperature factor and diffusion, so named simplified
+\fhead{\xB}{\yHb}{7}{surface iron balance, simplified}
+\feq{\xB}{\yEb}{\vrh_c=\dfrac{\val\Phi_{\rmm d}-\vka\,\rmm{Fe}_1\rmm{POC}_1-Q_{\rmm{Fe}}\,f_{\rmm{Fe}}\sum_j\vmu_jP_j}{\rmm{Fe}_1}\,\qbar_{x_{c,\kT}}}
+\fnote{\xB}{\yGb}{no temperature factor, no diffusion\kdot\sy{\vka} per day}
+\fnote{\xB}{\yGb-\np}{\sy{\vth_c} sets \sy{\val}, \sy{\vka}, the learned \sy{\vmu_j}\kdot\sy{P_j} plankton\kdot\sy{f_{\rmm{Fe}}} iron limitation}
 \end{tikzpicture}
 \end{document}
