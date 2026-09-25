@@ -65,13 +65,15 @@ uv run pytest -q
 runs a small synthetic example on the teaching box and shows why fitting is not identifying.
 Real-data runs need the ECCO-Darwin v05 output and the observation files
 ([data](data/README.md), [cluster setup](docs/cluster_setup.md)). The flagship configuration is
-pinned in one file; set `DARWIN_DATA_ROOT` first, and check every run before quoting it:
+pinned in one file. A recovery count means nothing without an untrained control of the same
+architecture, so run one alongside it and make `verify_run.py` require it:
 
 ```bash
-export DARWIN_DATA_ROOT=/path/to/ecco_darwin_v5 OUTPUT_DIR=runs/flagship
-source scripts/configs/flagship_geo1.sh
-uv run python scripts/run_v3.0_joint_multi_aoi.py   # one seed by default; set NB23_SEEDS for more
-uv run python scripts/verify_run.py "$OUTPUT_DIR"   # a non-zero exit means no result
+export DARWIN_DATA_ROOT=/path/to/ecco_darwin_v5
+source scripts/configs/flagship_geo1.sh             # one seed by default; set NB23_SEEDS for more
+OUTPUT_DIR=runs/flagship  uv run python scripts/run_v3.0_joint_multi_aoi.py
+OUTPUT_DIR=runs/untrained NB23_LR=0 NB23_N_EPOCHS=1 uv run python scripts/run_v3.0_joint_multi_aoi.py
+uv run python scripts/verify_run.py runs/flagship --baseline runs/untrained --require-baseline
 ```
 
 | Path | Contents |

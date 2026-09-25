@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the README figures: pdflatex -> SVG (pdftocairo) -> render check.
+# Build the README figures: pdflatex -> SVG (pdftocairo) -> render check -> hash manifest.
 # Needs a TeX Live with pgf/tikz, sansmath and standalone, poppler-utils, librsvg2-bin, and a
 # Python with Pillow for the render check (PYTHON=... to choose it; e.g. pip install pillow).
 #   bash docs/figures/readme/build.sh                 # every figure
@@ -17,3 +17,4 @@ for f in "${figs[@]}"; do
   rsvg-convert -z 2.7778 -b white "$f.svg" -o "$f.svgref.png"
   "${PYTHON:-python3}" check_render.py "$f"
 done
+"${PYTHON:-python3}" manifest.py   # hashes that tests/test_readme_figures.py checks in CI
