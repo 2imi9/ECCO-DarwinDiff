@@ -1,0 +1,256 @@
+% readme_method.tex -- README hero: how the model learns.
+%
+% What it shows, left to right:
+%   A  a per-cell network drawn as stacked feature maps (SST -> 16 -> 16 -> 6 parameters). One
+%      ink rod pierces the SAME grid cell of every map: it is the 1x1 convolution, i.e. one small
+%      MLP with shared weights applied independently at every cell. A fixed sigmoid bounds chip
+%      sits on the rod before the six parameter maps.
+%   B  that one cell magnified into its own two-layer water column, stepped forward x0 -> xT,
+%      with the parameters entering every step (theta bus). No arrows between cells.
+%   C  the end state xT overlaid, exploded-view style, with a gold ECCO-Darwin pattern layer
+%      (shape only) and sparse blue real observations; an iron-budget chip also reads xT.
+%   One red backward pass runs from the loss beneath every step to the shared-weights pill.
+%
+% Rules (dd-readme.sty): red = the gradient, stroke only, exactly one grad path; blue = real
+% observation; gold = ECCO-Darwin v05 output; rounded = learned; sharp = data/state; grey fill =
+% fixed machinery; dashed = scope. 8 pt floor, drawn at final size (176 mm), opaque white canvas,
+% opaque two-step shadows, no result numbers (the only numerals are the architecture facts 16, 16,
+% 6). The network input is SST only; the network is a 1x1-conv per-cell MLP, never an operator.
+% Draw order: canvas -> shadows -> objects back to front -> rods/arrows/hairlines -> grad -> text.
+%
+% Deviations from the plan spec (coordinates below are the spec's, except where noted):
+%   - canvas 176 x 57.14 mm, not 66, with the whole drawing shifted by (\shiftX,\dropY): trims the
+%     empty bands above and below and evens the side margins (see the note at \canvasH);
+%   - theta and the partial sign are Euler (eulergreek option): plain \sansmath leaves them serif,
+%     and this TeX Live has no sans lowercase Greek (no cmbright / newtxsf / sansmathfonts);
+%   - \DeclareMathSizes{9}{9}{8}{8}: the x_0 / x_1 / x_T subscripts sit at the 8 pt floor, not 6 pt;
+%   - each block is a pressed pile of slabs: front face ddShadeFar, top ddWash, map face white, and
+%     five ddMute page edges down the front and over the top (same language as the theta stack);
+%   - zone captions 'per-cell MLP' and "one cell's column, unrolled", both left-aligned on one
+%     baseline at the scope box's caption line; the zone A bottom labels are one \fSmall row on a
+%     common baseline, '6 parameters' at x 60.5;
+%   - zoom lines in ddMute from the ink cell's two RIGHT corners to the theta strip's top-left and
+%     x0's bottom-left corner, so they widen from the cell into its column;
+%   - scope box bottom at y 22.5, not 20, and top at 56, not 58 (caption follows): no empty band;
+%   - extra red heads sit under the two step boxes (pos 0.402 / 0.644), each step hanging a ddRule
+%     hairline onto the backward pass, echoing the junction hairlines in zone A;
+%   - exploded-view guides: x=139 stops at the observation sheet's front edge (never through its
+%     dots), plus a third guide up the front-right corner x=148, where the arrow to L leaves;
+%   - x_T -> end state leaves at y 35.5 (clear of the divider); end state -> L lands near the top of
+%     the circle, (160.5,17.2), clear of the iron-budget arrow;
+%   - observation dots nudged so none crosses the sheet edge; elision arrows stop 0.3 mm shorter
+%     either side of the dots, which sit at x 105.33 (centred between tip and tail); the
+%     x_T -> iron-budget elbow leaves from x 126.4, not 126.
+\documentclass[tikz,border=0pt]{standalone}
+% sansmath (loaded by dd-readme) takes lowercase Greek from serif cmmi unless told otherwise; the
+% eulergreek option gives an unserifed theta. The partial sign comes from the same Euler font.
+\PassOptionsToPackage{eulergreek}{sansmath}
+\usepackage{dd-readme}
+\DeclareMathSymbol{\eupartial}{\mathord}{EulerGreek}{"40}
+% 9 pt labels keep their subscripts (x_0, x_1, x_T) at the 8 pt floor, not the default 6 pt
+\DeclareMathSizes{9}{9}{8}{8}
+
+% ---- figure-local greys: the SST ramp (row 1 = darkest) -----------------------------------
+\definecolor{rampA}{HTML}{C9C9C9}
+\definecolor{rampB}{HTML}{D3D3D3}
+\definecolor{rampC}{HTML}{DDDDDD}
+\definecolor{rampD}{HTML}{E7E7E7}
+\definecolor{rampE}{HTML}{F0F0F0}
+\definecolor{rampF}{HTML}{F7F7F7}
+
+% ---- primitives -------------------------------------------------------------------------------
+% FACE(X,Y): upright feature-map sheet; vertical edge 18 = latitude, receding edge (6,4) = longitude.
+\newcommand{\facepath}[2]{(#1,#2) -- ++(6,4) -- ++(0,18) -- ++(-6,-4) -- cycle}
+% 6x6 grid on a face
+\newcommand{\facegrid}[2]{%
+  \foreach \k in {1,...,5} {%
+    \draw[ddRule, line width=0.3pt] ({#1+\k},{#2+\k*4/6}) -- ++(0,18);
+    \draw[ddRule, line width=0.3pt] ({#1},{#2+3*\k}) -- ++(6,4);
+  }}
+% row ramp on a face: #3 = six colours, row 1 (bottom) first
+\newcommand{\facerows}[3]{%
+  \foreach \c [count=\r] in {#3} {%
+    \fill[\c] ({#1},{#2+3*(\r-1)}) -- ++(6,4) -- ++(0,3) -- ++(-6,-4) -- cycle;
+  }}
+% the highlighted cell (r=4, c=3), filled ink
+\newcommand{\facecell}[2]{%
+  \fill[ddInk] ({#1+2},{#2+10.3333}) -- ({#1+3},{#2+11}) -- ({#1+3},{#2+14})
+    -- ({#1+2},{#2+13.3333}) -- cycle;}
+% a full gridded face with a ramp: X, Y, colour list
+\newcommand{\rampface}[3]{%
+  \fill[white] \facepath{#1}{#2};
+  \facerows{#1}{#2}{#3}%
+  \facegrid{#1}{#2}%
+  \facecell{#1}{#2}%
+  \draw[ddInk, line width=0.6pt, line join=round] \facepath{#1}{#2};}
+
+% BLOCK(X,Y,T): channel block, front face T wide, top face ddWash, gridded right face
+\newcommand{\blockpath}[3]{(#1,#2) -- ++(#3,0) -- ++(6,4) -- ++(0,18) -- ++(-#3,0) -- ++(-6,-4) -- cycle}
+\newcommand{\block}[3]{%
+  % toned faces: the gridded map face is the lit one, the edge-on front face the darkest
+  \fill[ddShadeFar] (#1,#2) rectangle ++(#3,18);
+  \fill[ddWash] (#1,{#2+18}) -- ++(#3,0) -- ++(6,4) -- ++(-#3,0) -- cycle;
+  % channel slabs: one page edge per slab, down the front face and over the top, so the block
+  % reads as a pressed pile of maps (the same language as the theta stack)
+  \foreach \k in {1,...,5} {%
+    \draw[ddMute, line width=0.3pt] ({#1+#3*\k/6},#2) -- ++(0,18) -- ++(6,4);}
+  \fill[white] \facepath{#1+#3}{#2};
+  \facegrid{#1+#3}{#2}%
+  \facecell{#1+#3}{#2}%
+  \draw[ddInk, line width=0.6pt, line join=round] (#1,#2) rectangle ++(#3,18);
+  \draw[ddInk, line width=0.6pt, line join=round] (#1,{#2+18}) -- ++(#3,0) -- ++(6,4) -- ++(-#3,0) -- cycle;
+  \draw[ddInk, line width=0.6pt, line join=round] \facepath{#1+#3}{#2};}
+
+% FLAT(X,Y): lying sheet; grid 8 along the base x 3 along the slant
+\newcommand{\flatpath}[2]{(#1,#2) -- ++(15,0) -- ++(6,4) -- ++(-15,0) -- cycle}
+\newcommand{\flatgrid}[3]{% X, Y, draw options
+  \foreach \k in {1,...,7} {\draw[#3] ({#1+15*\k/8},{#2}) -- ++(6,4);}
+  \foreach \k in {1,2}     {\draw[#3] ({#1+2*\k},{#2+4*\k/3}) -- ++(15,0);}}
+
+% COL(X): one cell's two-layer water column (surface 38-43 with plankton, subsurface 29-38)
+\newcommand{\colpath}[1]{(#1,29) rectangle ++(7,14)}
+\newcommand{\chem}[2]{\fill[ddMute] ({#1-0.45},{#2-0.45}) rectangle ++(0.9,0.9);}
+\newcommand{\column}[1]{%
+  \draw[datum] \colpath{#1};
+  \draw[ddInk, line width=0.4pt] (#1,38) -- ++(7,0);
+  \foreach \dx in {1.6,3.5,5.4} {\draw[ddInk, line width=0.4pt] ({#1+\dx},41.3) circle (0.55);}
+  \chem{#1+2.3}{39.3}\chem{#1+4.7}{39.3}%
+  \foreach \dx in {1.6,3.5,5.4} {\chem{#1+\dx}{33.5}}}
+
+% the rod height (centre of the highlighted cell in every map)
+\def\rodY{38.17}
+
+% Canvas height 57.14 mm = 161.97 bp, chosen for the render check, not by eye alone:
+%  - pdftocairo lays the page out at ceil(height in bp) and shrinks the drawing into the exact
+%    height; at 66 mm (187.09 bp -> 188) that 0.5 % shrink misregistered the SVG by ~3 px;
+%  - rsvg-convert rounds 161.999 bp up to one pixel more than pdftoppm does, and the check then
+%    resamples the SVG raster. 161.97 bp sits clear of both edges (mean |pdf-svg| ~2.3/255).
+% Everything below is drawn in spec coordinates inside one scope lowered by \dropY, which removes
+% the empty band the spec left under the bottom labels.
+\def\canvasH{57.14}
+\def\dropY{-5}
+\def\shiftX{-2}   % and nudged left, so the left and right margins match
+
+\begin{document}
+\begin{tikzpicture}[x=1mm,y=1mm]
+\sansmath
+\ddcanvas{176}{\canvasH}
+\begin{scope}[shift={(\shiftX,\dropY)}]
+
+% ============================ 1. shadows =====================================================
+\ddshadow{\facepath{6}{26}}                     % SST
+\ddshadow{\blockpath{16}{26}{6}}                % H1
+\ddshadow{\blockpath{31}{26}{6}}                % H2
+\foreach \X in {56.0,57.1,58.2,59.3,60.4,61.5} {\ddshadow{\facepath{\X}{26}}}
+\ddshadow{(47,35.17) rectangle (53,41.17)}      % bounds chip
+\ddshadow{[rounded corners=1.2pt] (11,10) rectangle (48,16)} % shared weights
+\ddshadow{\colpath{73.5}}\ddshadow{\colpath{93.5}}\ddshadow{\colpath{120}}
+\ddshadow{(83.5,32.5) rectangle (90.5,39.5)}\ddshadow{(110,32.5) rectangle (117,39.5)}
+\ddshadow{\flatpath{133}{29}}
+\ddshadow{(131.5,16) rectangle (148.5,22)}
+\ddshadow{(162,13) circle (4.5)}
+
+% ============================ 2. objects =====================================================
+% --- zone A: per-cell network ---
+\rampface{6}{26}{rampA,rampB,rampC,rampD,rampE,rampF}
+\block{16}{26}{6}
+\block{31}{26}{6}
+\foreach \X in {56.0,57.1,58.2,59.3,60.4} {%
+  \fill[white] \facepath{\X}{26};
+  \draw[ddInk, line width=0.6pt, line join=round] \facepath{\X}{26};}
+\rampface{61.5}{26}{rampF,rampE,rampD,rampC,rampB,rampA}
+\draw[learned] (11,10) rectangle (48,16);
+
+% --- zone B: one column per cell ---
+\draw[scope] (71,22.5) rectangle (129,56);
+\foreach \i in {0,...,5} {\draw[ddInk, line width=0.4pt, fill=white] ({73.5+1.7*\i},47.2) rectangle ++(1.7,1.7);}
+\column{73.5}\column{93.5}\column{120}
+\draw[fixedbox] (83.5,32.5) rectangle (90.5,39.5);
+\draw[fixedbox] (110,32.5) rectangle (117,39.5);
+
+% --- zone C: loss with overlays ---
+\fill[white] \flatpath{133}{29};
+\flatgrid{133}{29}{ddRule, line width=0.3pt}
+\draw[ddInk, line width=0.6pt, line join=round] \flatpath{133}{29};
+% exploded-view guides through the deck's corners; the x=139 guide stops at the observation
+% sheet's front edge so it never runs through the (unfilled) sheet and its dots
+\draw[ddRule, line width=0.4pt, dashed] (139,33) -- (139,45);
+\draw[ddRule, line width=0.4pt, dashed] (154,33) -- (154,49);
+\draw[ddRule, line width=0.4pt, dashed] (148,29) -- (148,45);
+\fill[ddGold, fill opacity=0.28] \flatpath{133}{37};
+\flatgrid{133}{37}{ddGold, line width=0.3pt}
+\draw[ddGold, line width=0.75pt, line join=round] \flatpath{133}{37};
+\draw[ddBlue, line width=0.6pt, line join=round] \flatpath{133}{45};
+% nine sparse stations on two cruise-like tracks; each dot sits >= 0.3 mm inside the sheet edge
+\foreach \p in {(137.2,46.0),(139.6,46.6),(142.2,47.4),(144.8,48.0),(143.6,46.0),
+                (146.5,46.2),(148.8,46.8),(150.6,48.0),(140.0,48.0)} {\fill[ddBlue] \p circle (0.65);}
+\draw[fixedbox] (131.5,16) rectangle (148.5,22);
+\draw[ddInk, line width=0.75pt, fill=white] (162,13) circle (4.5);
+
+% ============================ 3. rods, arrows, hairlines ====================================
+\draw[ddInk, line width=0.9pt, line cap=round] (8.5,\rodY) -- (64,\rodY);
+% bounds chip AFTER the rod, so the rod passes through it
+\draw[fixedbox] (47,35.17) rectangle (53,41.17);
+\draw[ddMute, line width=0.4pt, dashed] (47.6,36.0) -- (52.4,36.0);
+\draw[ddMute, line width=0.4pt, dashed] (47.6,40.3) -- (52.4,40.3);
+\draw[ddInk, line width=0.6pt] plot[domain=-1:1, samples=30] ({50+2.4*\x},{36.0+4.3/(1+exp(-5*\x))});
+% weight junctions and their hairlines to the shared-weights pill
+\foreach \x in {14,29.5,45} {%
+  \draw[ddRule, line width=0.5pt] (\x,\rodY) -- (\x,16);
+  \fill[ddInk] (\x,\rodY) circle (0.7);}
+% zoom from the highlighted theta cell into its column: from the ink cell's two right corners to
+% the theta strip's top-left corner and x0's bottom-left corner, in ddMute so it never reads as grid
+\draw[ddMute, line width=0.5pt, dash pattern=on 1.2pt off 0.8pt] (64.5,40) -- (73.5,48.9);
+\draw[ddMute, line width=0.5pt, dash pattern=on 1.2pt off 0.8pt] (64.5,37) -- (73.5,29);
+% theta bus: parameters enter every step
+\draw[ddMute, line width=0.6pt] (83.7,48.05) -- (113.5,48.05);
+\draw[ddMute, line width=0.6pt, -{Stealth[length=1.5mm,width=1.2mm]}] (87,48.05) -- (87,39.5);
+\draw[ddMute, line width=0.6pt, -{Stealth[length=1.5mm,width=1.2mm]}] (113.5,48.05) -- (113.5,39.5);
+% state -> step -> state
+\foreach \a/\b in {80.5/83.5, 90.5/93.5, 100.5/102.7, 107.3/110, 117/120} {\draw[flowS] (\a,36) -- (\b,36);}
+% x_T -> end-state sheet, x_T -> iron budget, both -> loss
+\draw[flow] (127,35.5) -- (135.4,30.6);  % clear of the divider at y 38
+\draw[flow] (126.4,29) |- (131.5,19);  % 0.4 right of spec: clears the x_T label
+\draw[flow] (148,29) -- (160.5,17.2);  % lands near the top, clear of the chip arrow
+\draw[flow] (148.5,19) -- (157.7,14.4);
+% each step hangs a hairline onto the backward pass: the gradient goes back through every step
+\draw[ddRule, line width=0.4pt] (87,32.5) -- (87,13.8);
+\draw[ddRule, line width=0.4pt] (113.5,32.5) -- (113.5,13.8);
+
+% ============================ 4. the backward pass (the only red) ===========================
+\draw[grad, postaction={decorate}, decoration={markings,
+    mark=at position 0.402 with {\arrow{Stealth[length=2.4mm,width=2.0mm]}},
+    mark=at position 0.644 with {\arrow{Stealth[length=2.4mm,width=2.0mm]}}}]
+  (157.5,13) -- (48,13);
+
+% ============================ 5. text ========================================================
+\node[font=\fSmall, text=ddMute, anchor=base west, inner sep=0pt] at (6,57.35) {per-cell MLP};
+% one row of axis labels: same size, same baseline
+\node[font=\fSmall, anchor=base] at (9,21.44) {SST};
+\node[font=\fSmall, anchor=base] at (22,21.44) {16};
+\node[font=\fSmall, anchor=base] at (37,21.44) {16};
+\node[font=\fSmall, anchor=base] at (60.5,21.44) {6 parameters};
+\node[font=\fSmall, text=ddMute] at (50,43.6) {bounds};
+\node[font=\fLabel] at (29.5,13) {shared weights};
+
+\node[font=\fSmall, text=ddMute, anchor=base west, inner sep=0pt] at (71,57.35) {one cell's column, unrolled};
+\node[font=\fLabel] at (78.6,51.5) {$\theta$};
+\node[font=\fSmall] at (87,36) {step};
+\node[font=\fSmall] at (113.5,36) {step};
+\node[font=\fLabel, text=ddMute] at (105.33,36) {$\cdots$};  % centred between arrow tip and tail
+\node[font=\fLabel] at (77,26.5) {$x_0$};
+\node[font=\fLabel] at (97,26.5) {$x_1$};
+\node[font=\fLabel] at (123.5,26.5) {$x_T$};
+
+\node[font=\fSmall, anchor=west] at (156,47.5) {observations};
+\node[font=\fSmall, anchor=west] at (156,40.6) {Darwin pattern};
+\node[font=\fSmall, anchor=west, text=ddMute] at (156,37.4) {shape only};
+\node[font=\fSmall, anchor=west] at (156,31.5) {end state};
+\node[font=\fSmall] at (140,19) {iron budget};
+\node[font=\fTitle] at (162,13) {$\mathcal{L}$};
+
+\node[font=\fSmall, text=ddMute] at (98,9.3) {through every step};
+\node[font=\fLabel] at (55.5,9.3) {$\eupartial\mathcal{L}/\eupartial w$};
+\end{scope}
+\end{tikzpicture}
+\end{document}
