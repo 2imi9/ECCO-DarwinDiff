@@ -3,8 +3,9 @@
 % What it shows: every component of the flagship DarwinDiff training step, one row each, in an
 % ML-paper (booktabs) method table. The columns say whether a component is LEARNED, whether it is
 % DIFFERENTIABLE (sits on the gradient path), whether it varies PER CELL or is shared, and where
-% it comes from. Exactly one row is learned (the per-cell 1x1-conv network, set in bold: the
-% "ours in bold" idiom); theta is its bounded output.
+% it comes from. Exactly one row is learned (the per-cell 1x1-conv network, set in bold on an
+% opaque ddWash band: the "ours highlighted" idiom); theta is its bounded output. The model group
+% runs in data-flow order: network -> bounds map -> theta -> box step, then the fixed constants.
 %
 % Canvas: 499 x 249 bp (176.04 x 87.84 mm) instead of 176 x 88 mm. This pdftocairo build fits a
 % page whose size is not a whole number of bp onto a whole-bp page, shrinking the SVG by 0.22%
@@ -15,12 +16,15 @@
 %   * red = the gradient: here ONLY the thin check strokes; never a fill or a text colour.
 %   * blue bar = a real observation; gold bar = ECCO-Darwin v05 model output. Full strength.
 %   * "Differentiable" is defined on components and loss TERMS, never on data.
-%   * booktabs look: no vertical rules, no zebra, no cell shading, no row outlines, no shadows,
-%     no opacity. Every cell sits on the column grid.
+%   * booktabs look: no vertical rules, no zebra, no row outlines, no shadows, no opacity; the
+%     only shading is the one learned-row band, drawn before the rules. Top, mid and bottom rules
+%     span x 1.5-174.5 so the rotated group tags sit inside the frame (a multirow group column);
+%     the group separators are partial, from x 7. Every cell sits on the column grid.
 %   * no result numbers: the only numerals are "1x1", the citation years and the product name
 %     "ECCO-Darwin v05". No counts, weights, tracer or step numbers.
-%   * the Per cell column: grid = varies by cell, dark square = one shared value, sparse grid =
-%     observations at a few cells only (all three keyed in the legend).
+%   * the Per cell column is one glyph family, a 3x3 hairline grid (ddMute stroke): light grey
+%     texture = varies by cell, one uniform grey = one shared value, two ink cells = sparse
+%     observations (all three keyed in the legend).
 %   * 8 pt floor, drawn at final size (176 mm = the README column), opaque white canvas.
 %
 % Deviations from the plan spec, each from the round-1 review:
@@ -39,9 +43,13 @@
 %   - theta is Euler (eulergreek option), as in readme_method; plain \sansmath leaves it serif.
 %   - theta's source is "network + bounds map": theta here, as in readme_method, is the bounded
 %     parameter field that enters the box.
-%   - the learned dot is 2.6 mm (spec 2.2) so the one learned mark is the darkest in its column;
-%     the GRID greys are deepened (E0/C8/A8, spec ED/D9/C4) so "varies by cell" reads as a
-%     texture at README width; the legend is centred on the rule span instead of starting at 16.
+%   - the learned dot is 2.6 mm (spec 2.2) so the one learned mark is the darkest in its column.
+%   - the GRID greys are white/C8/7F (spec ED/D9/C4) so "varies by cell" reads as a checkered
+%     texture at README width, clearly apart from the flat grey of SHARED; SHARED is the same grid filled uniformly (spec: a 1.6 mm ddMute square).
+%   - the legend drops the learned dot and the red check (their column headers say it) and is
+%     centred on the rule span instead of starting at 16.
+%   - the learned row's source is "trained here" (spec "this repo") and its sub-label says the
+%     weights are shared; both scope rows set their Source in italic ddMute, like their names.
 \documentclass[tikz,border=0pt]{standalone}
 % sansmath (loaded by dd-readme) takes lowercase Greek from serif cmmi unless told otherwise; the
 % eulergreek option gives an unserifed theta, matching readme_method.
@@ -49,9 +57,14 @@
 \usepackage{dd-readme}
 
 % ---- extra greys for the per-cell glyph (opaque, never opacity) -------------------------
-\definecolor{ddG1}{HTML}{E0E0E0}
-\definecolor{ddG2}{HTML}{C8C8C8}
-\definecolor{ddG3}{HTML}{A8A8A8}
+% light enough that GRID reads as a texture at README width, not as three hard tones
+\definecolor{ddG1}{HTML}{F2F2F2}
+\definecolor{ddG2}{HTML}{D9D9D9}
+\definecolor{ddG3}{HTML}{BFBFBF}
+% GRID texture: white / light / dark, a wide tonal spread so "varies by cell" reads as a
+% checkered texture at README width, never as the flat grey of SHARED
+\definecolor{ddV2}{HTML}{C8C8C8}
+\definecolor{ddV3}{HTML}{7F7F7F}
 
 % ---- column x-positions (mm) --------------------------------------------------------------
 \newcommand{\xTag}{3.5}     % rotated group tags (centre)
@@ -61,8 +74,9 @@
 \newcommand{\xDif}{95.0}    % Differentiable (centre)
 \newcommand{\xCel}{118.0}   % Per cell (centre)
 \newcommand{\xSrc}{132.0}   % Source (west)
-\newcommand{\xL}{7.0}       % rules: left end
-\newcommand{\xR}{174.0}     % rules: right end
+\newcommand{\xF}{1.5}       % top, mid and bottom rules: left end (the frame holds the tags)
+\newcommand{\xL}{7.0}       % group separators: left end (partial rules, like \cmidrule{2-6})
+\newcommand{\xR}{174.5}     % every rule: right end (1.5 mm margins either side)
 
 \tikzset{
   % one text style per role; "mid" anchors keep baselines level whatever the descenders
@@ -79,20 +93,29 @@
   pics/tick/.style = {code={\draw[ddRed, line width=0.9pt, line cap=round, line join=round]
                             (-1.3,0.1) -- (-0.3,-1.0) -- (1.5,1.3);}},
   % ---- Per cell column ----
+  % One glyph family: the same 3x3 hairline grid of 1.1 mm cells, ddMute 0.3pt stroke; only
+  % the fill says varies / shared / sparse.
   % GRID: 3x3 opaque greys, a Latin square, so "varies by cell" reads without colour
   pics/grid/.style = {code={
-      \foreach \c [count=\i from 0] in {ddG1,ddG2,ddG3,ddG2,ddG3,ddG1,ddG3,ddG1,ddG2}{
+      \foreach \c [count=\i from 0] in {white,ddV2,ddV3,ddV2,ddV3,white,ddV3,white,ddV2}{
         \pgfmathtruncatemacro{\col}{mod(\i,3)}\pgfmathtruncatemacro{\row}{div(\i,3)}
         \fill[\c] (-1.65+1.1*\col, 1.65-1.1*\row) rectangle ++(1.1,-1.1);}
-      \draw[ddInk, line width=0.3pt, step=1.1, shift={(-1.65,-1.65)}] (0,0) grid (3.3,3.3);}},
-  % SHARED: one value for every cell
-  pics/shared/.style = {code={\fill[ddMute] (-0.8,-0.8) rectangle (0.8,0.8);}},
+      \pic {cellgrid};}},
+  % SHARED: one value for every cell, all nine cells the same grey (the GRID's darkest, so the
+  % flat glyph stays distinct from the light texture at README width)
+  pics/shared/.style = {code={
+      \fill[ddG3] (-1.65,-1.65) rectangle (1.65,1.65);
+      \pic {cellgrid};}},
   % SPARSE: observations exist at a few cells only
   pics/sparse/.style = {code={
       \fill[ddInk] (-1.65,1.65) rectangle ++(1.1,-1.1);   % top-left
       \fill[ddInk] (0.55,0.55) rectangle ++(1.1,-1.1);    % middle-right
-      \draw[ddRule, line width=0.3pt, step=1.1, shift={(-1.65,-1.65)}] (0,0) grid (3.3,3.3);}},
-  pics/perregion/.style = {code={\node[font=\fSmall, text=ddMute, inner sep=0pt] {per region};}},
+      \pic {cellgrid};}},
+  pics/cellgrid/.style = {code={
+      \draw[ddMute, line width=0.3pt, step=1.1, shift={(-1.65,-1.65)}] (0,0) grid (3.3,3.3);}},
+  % "mid" like every other cell, so its baseline sits level with the row's names and sources
+  pics/perregion/.style = {code={
+      \node[font=\fSmall, text=ddMute, inner sep=0pt, anchor=mid] {per region};}},
   % ---- colour bar (source category), 2.1 x 4.0 mm, full strength ----
   pics/bar-gold/.style = {code={\fill[ddGold] (0,-2.0) rectangle (2.1,2.0);}},
   pics/bar-blue/.style = {code={\fill[ddBlue] (0,-2.0) rectangle (2.1,2.0);}},
@@ -127,11 +150,14 @@
 \sansmath
 \ddcanvas{499bp}{249bp}
 
-% ---- booktabs rules ----------------------------------------------------------------------
-\draw[ddInk, line width=0.8pt] (\xL,84.0) -- (\xR,84.0);   % top
-\draw[ddInk, line width=0.5pt] (\xL,78.0) -- (\xR,78.0);   % under the header
+% ---- highlight: the one learned row, an opaque ddWash band under the rules ------------------
+\fill[ddWash] (\xF,72.9) rectangle (\xR,77.5);
+
+% ---- booktabs rules: full-width frame, partial group separators ------------------------------
+\draw[ddInk, line width=0.8pt] (\xF,84.0) -- (\xR,84.0);   % top
+\draw[ddInk, line width=0.5pt] (\xF,78.0) -- (\xR,78.0);   % under the header
 \foreach \y in {53.9, 43.5, 19.3} \draw[hair] (\xL,\y) -- (\xR,\y);   % group separators
-\draw[ddInk, line width=0.8pt] (\xL,9.0) -- (\xR,9.0);     % bottom
+\draw[ddInk, line width=0.8pt] (\xF,9.0) -- (\xR,9.0);     % bottom
 
 % ---- header ----------------------------------------------------------------------------------
 \node[cHdr, anchor=mid west] at (\xName,80.9) {Component};
@@ -148,10 +174,10 @@
 
 % ---- rows ----------------------------------------------------------------------------------------
 %       y     bar   name                                sub-label        Lrn   Dif    Per cell  source
-% model
-\ddrow{75.2}{none}{\bfseries per-cell network}         {1$\times$1 conv}  {dot} {tick} {shared}  {this repo}
-\ddrow{70.6}{none}{parameters $\theta$}                {six fields}       {ring}{tick} {grid}    {network + bounds map}
-\ddrow{66.0}{none}{bounds map}                         {sigmoid}          {no}  {tick} {shared}  {fixed ranges}
+% model, in data-flow order: network -> bounds map -> theta -> box step
+\ddrow{75.2}{none}{\bfseries per-cell network}         {1$\times$1 conv, shared}{dot}{tick}{shared}{trained here}
+\ddrow{70.6}{none}{bounds map}                         {sigmoid}          {no}  {tick} {shared}  {fixed ranges}
+\ddrow{66.0}{none}{parameters $\theta$}                {six fields}       {ring}{tick} {grid}    {network + bounds map}
 \ddrow{61.4}{none}{two-layer box step}                 {}                 {no}  {tick} {grid}    {simplified Darwin}
 \ddrow{56.8}{none}{fixed constants}                    {dust, light}      {no}  {no}   {shared}  {fixed in code}
 % inputs
@@ -163,19 +189,20 @@
 \ddrow{31.4}{blue}{calcite-ratio term}                 {}                 {no}  {tick} {sparse}  {Daniels et al.\ 2018}
 \ddrow{26.8}{blue}{biogenic-silica term}               {}                 {no}  {tick} {sparse}  {GEOTRACES}
 \ddrow{22.2}{none}{iron-budget residual}               {}                 {no}  {tick} {grid}    {iron mass balance}
-% scope: outside the differentiable step; italic ddMute names, no outlines
+% scope: outside the differentiable step; italic ddMute names and sources, no outlines
 \ddrow{16.4}{none}{\scopetext lateral transport}       {}                 {no}  {no}   {no}      {\scopetext no exchange between cells}
-\ddrow{11.8}{none}{\scopetext comparison to Carroll}   {after training}   {no}  {no}   {perregion}{Carroll et al.\ 2020, 2022}
+\ddrow{11.8}{none}{\scopetext comparison to Carroll}   {after training}   {no}  {no}   {perregion}{\scopetext Carroll et al.\ 2020, 2022}
 
-% ---- legend: one line, centred on the rule span (7-174) ------------------------------------------
-\coordinate (lg0) at (10.45,4.6);
-\legitem{lg0}{2.6}{dot}{learned}{lg1}
-\legitem{lg1}{2.2}{ring}{predicted}{lg2}
-\legitem{lg2}{2.8}{tick}{differentiable}{lg3}
-\legitem{lg3}{3.3}{grid}{varies by cell}{lg3a}
-\legitem{lg3a}{1.6}{shared}{shared}{lg3b}
-\legitem{lg3b}{3.3}{sparse}{sparse}{lg4}
+% ---- legend: one line, centred on the rule span (1.5-174.5, centre 88.0) --------------------------
+% No keys for the learned dot or the red check: their column headers already say it.
+\coordinate (lg0) at (25.5,4.6);   % first glyph starts at 28.5; the line is 119.0 wide
+\legitem{lg0}{2.2}{ring}{predicted}{lg1}
+\legitem{lg1}{3.3}{grid}{varies by cell}{lg2}
+\legitem{lg2}{3.3}{shared}{shared}{lg3}
+\legitem{lg3}{3.3}{sparse}{sparse}{lg4}
 \legitem{lg4}{2.1}{key-blue}{real observation}{lg5}
 \legitem{lg5}{2.1}{key-gold}{ECCO-Darwin v05}{lg6}
+% logs the right end (147.5 mm = 419.7 pt) so a label change can be re-centred in one build
+\path let \p1 = (lg6.east) in \pgfextra{\typeout{LEGEND-END \x1}};
 \end{tikzpicture}
 \end{document}
