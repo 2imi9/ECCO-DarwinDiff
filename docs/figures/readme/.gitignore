@@ -1,0 +1,6 @@
+# build intermediates; the committed outputs are the .tex sources and the .svg renders
+*.aux
+*.log
+*.buildlog
+*.pdf
+*.png
