@@ -35,6 +35,22 @@ is a consistency check against Carroll's published values, not a cross-validated
   <img src="docs/figures/readme/readme_components.svg" width="100%" alt="Component table. Rows: per-cell network, bounds map, parameters theta, two-layer box step, fixed constants, SST, forcing and initial state, pattern term, dissolved-iron term, calcite-ratio term, biogenic-silica term, iron-budget residual, lateral transport, comparison to Carroll. Columns mark whether each is learned, whether it is differentiable, whether it varies by cell, and its source. Only the network is learned; the bounds map, box step and loss terms are fixed but differentiable. SST, forcing and the pattern term come from ECCO-Darwin v05; the iron, calcite and silica terms use sparse real observations from GEOTRACES and Daniels et al. 2018. There is no lateral transport, and the comparison to Carroll happens per region after training.">
 </p>
 
+The network predicts six parameters, the ones Carroll et al. tuned, as a field over the grid cells:
+
+| Parameter | What it sets in the box | Where it acts |
+|---|---|---|
+| `alpfe` | scale on the box's constant surface iron source | surface dissolved iron |
+| `scav_rat` | scavenging of dissolved iron onto POC, a permanent loss | dissolved iron in both layers |
+| `Smallgrow` | maximum growth rate of the high-light *Prochlorococcus* pool | surface plankton, iron uptake, DIC |
+| `Biggrow` | maximum growth rate of other large eukaryotes (diatom growth is fixed) | surface plankton, iron uptake, DIC |
+| `diatomgraz` | grazing loss on diatoms, a multiplier on a fixed rate | surface diatoms, which feed POC and calcite |
+| `R_PICPOC` | calcite produced per unit organic carbon lost, for all phytoplankton | surface PIC, DIC and alkalinity |
+
+Each acts directly in the surface layer except `scav_rat`, and reaches the rest of the state through
+the dynamics. The box stands in for Darwin's processes in simplified form: `diatomgraz` is a grazing
+palatability in Darwin, and `R_PICPOC` applies only to calcifying types there. So matching Carroll's
+values is a consistency check, not an equivalence.
+
 Results come from multi-seed cluster runs that `scripts/verify_run.py` re-grades, and AI agents
 write them up, retract what later runs overturn and index them in the
 [research map](docs/research_map.md); because they keep moving, they live in [STATUS.md](STATUS.md)
