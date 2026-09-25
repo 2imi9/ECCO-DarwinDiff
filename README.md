@@ -25,15 +25,29 @@ extra inputs ([2026-07-22](docs/findings/2026-07-22_covariate_channels_result.md
 
 ## How it works
 
-Only Darwin's biogeochemistry is rebuilt. Time-mean temperature, salinity, wind speed and
-atmospheric pCO₂, and most of the initial chemistry, come from ECCO-Darwin v05 as fixed inputs;
-light, dust deposition, layer depths and mixing are constants in the code. Only the network is
-trained: everything downstream of it is fixed but differentiable. The result is a surrogate, so it
-is a consistency check against Carroll's published values, not a cross-validated discovery.
+Only Darwin's biogeochemistry is rebuilt, as a two-layer box (0–50 m and 50–1000 m) run
+independently in every grid cell. Only the network is trained: everything downstream of it is
+fixed but differentiable. The result is a surrogate, so it is a consistency check against
+Carroll's published values, not a cross-validated discovery.
+
+### Inputs
+
+| Input | Enters | Source |
+|---|---|---|
+| sea-surface temperature, z-scored | the network (its only input) | ECCO-Darwin v05, time mean |
+| forcing φ: temperature, salinity, wind speed, atmospheric pCO₂ | every box step | ECCO-Darwin v05, time means |
+| initial chemistry x₀: dissolved iron, POC, PIC, DIC and alkalinity in both layers | the box at the first step | ECCO-Darwin v05 initial conditions (pickup files) |
+| initial plankton x₀: the five phytoplankton types | the box at the first step | constants from the literature |
+| light, dust iron source, layer depths, vertical mixing, remineralisation | every box step | constants in the code |
+
+The same temperature field feeds the network and the forcing, where it also scales growth. The
+loss targets (real observations and ECCO-Darwin v05 patterns) are in the table below.
 
 <p align="center">
   <img src="docs/figures/readme/readme_components.svg" width="100%" alt="Component table. Rows: per-cell network, bounds map, parameters theta, two-layer box step, fixed constants, SST, forcing and initial state, pattern term, dissolved-iron term, calcite-ratio term, biogenic-silica term, iron-budget residual, lateral transport, comparison to Carroll. Columns mark whether each is learned, whether it is differentiable, whether it varies by cell, and its source. Only the network is learned; the bounds map, box step and loss terms are fixed but differentiable. SST, forcing and the pattern term come from ECCO-Darwin v05; the iron, calcite and silica terms use sparse real observations from GEOTRACES and Daniels et al. 2018. There is no lateral transport, and the comparison to Carroll happens per region after training.">
 </p>
+
+### Parameters
 
 The network predicts six parameters, the ones Carroll et al. tuned, as a field over the grid cells:
 
