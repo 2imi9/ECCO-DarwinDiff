@@ -54,13 +54,14 @@ behind every row, and the retracted readings they replaced, are in **[Project St
    observations constrain Darwin's closures? Not sharply, for any of the three tested (iron,
    calcite, growth). The iron-sink test (E3) was **never run**: its anchor, GP15 ²¹⁰Po/²¹⁰Pb, has
    zero points in the three flagship basins (92 points in `npac`), so the test is mislocated, not
-   settled, and whether the iron wall is the observing system or the method is still open
-   ([architecture options note](research_notes/2026-07-20_parameter_learner_architecture_options.md)). The forward neural emulator is a **clean negative result**. Trained in log space it
-   emits 0% non-physical output, but **mass is not conserved** (Chl1 drifts +129.7% over six
-   rollout steps), the useful horizon is **one step**, and against a per-cell seasonal AR(1)
-   baseline it scores −0.161 ± 0.015. The "~9-month horizon" and "beats persistence" headlines are
-   **retracted**. Every global emulator figure from before 2026-07-25 is contaminated by a
-   linear-z-score bug and should not be shown.
+   settled, and whether the iron wall is the observing system or the method is still open ([anchor
+   coverage finding](findings/2026-08-04_anchor_coverage_and_structural_identifiability.md)). The
+   forward neural emulator is a **clean negative result**. Trained in log space it emits 0%
+   non-physical output, but **mass is not conserved** (Chl1 drifts +129.7% over six rollout steps),
+   the useful horizon is **one step**, and against a per-cell seasonal AR(1) baseline it scores
+   −0.161 ± 0.015. The "~9-month horizon" and "beats persistence" headlines are **retracted**. Every
+   global emulator figure from before 2026-07-25 is contaminated by a linear-z-score bug and should
+   not be shown.
 
 ## How a result is made
 
@@ -68,10 +69,10 @@ behind every row, and the retracted readings they replaced, are in **[Project St
   ![Research-loop diagram: a clockwise loop through Plan, Run, Verify, Write up and Index; runs happen on the cluster outside the repository, with an arm and its control; recovery results re-enter through Verify, which re-derives the grading or stops; an older finding keeps its text under a RETRACTED stamp; CI tests sit between Write up and Index, where the research map is built and queried before the next plan](figures/readme/readme_loop.svg){ width="880" }
 </figure>
 
-Experiments run as multi-seed sweeps on a cluster, and `verify_run.py` re-grades every run from its
-per-seed files before any number is used. Findings are written up as dated notes, retracted in
-place when a later run overturns them, and indexed in the [research map](research_map.md), which
-the next session queries before it plans anything.
+Experiments run as multi-seed sweeps on a cluster, and `verify_run.py` re-grades every
+parameter-recovery run from its per-seed files before any count is used. Findings are written up as
+dated notes, retracted in place when a later run overturns them, and indexed in the [research
+map](research_map.md), which the next session queries before it plans anything.
 
 ## Documentation map
 

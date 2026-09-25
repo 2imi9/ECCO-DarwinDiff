@@ -4,13 +4,14 @@
 [![docs](https://readthedocs.org/projects/ecco-darwindiff/badge/?version=latest)](https://ecco-darwindiff.readthedocs.io/en/latest/)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Which biogeochemistry parameters of [ECCO-Darwin](https://github.com/MITgcm-contrib/ecco_darwin)
-can real ocean observations actually pin down? Carroll et al.
+Which biogeochemistry parameters of [ECCO-Darwin](https://github.com/MITgcm-contrib/ecco_darwin) can
+real ocean observations actually pin down? Carroll et al.
 ([2020](https://doi.org/10.1029/2019MS001888)) tuned six of them with Green's functions, one
-perturbed forward run per parameter and one global value each, and ECCO-Darwin v05
-([Carroll et al. 2022](https://doi.org/10.1029/2021GB007162)) keeps those values. This project asks the same question with gradients. The biogeochemistry is rebuilt as a
-differentiable model in PyTorch, a network predicts all six parameters in every grid cell, and
-one backward pass gives the gradient for all of them everywhere.
+perturbed forward run per parameter and one global value each, and ECCO-Darwin v05 ([Carroll et al.
+2022](https://doi.org/10.1029/2021GB007162)) runs with them (its `R_PICPOC` differs from the
+published optimum by about 1%). This project asks the same question with gradients. The
+biogeochemistry is rebuilt as a differentiable model in PyTorch, a network predicts all six
+parameters in every grid cell, and one backward pass gives the gradient for all of them everywhere.
 
 <p align="center">
   <img src="docs/figures/readme/readme_method.svg" width="100%" alt="Method diagram. A sea-surface-temperature map passes through a per-cell network drawn as stacked feature maps; a single rod pierces the same grid cell of every map, showing one small network with shared weights applied at every cell. A fixed bounds map turns its output into six parameter maps. One cell is magnified into its own two-layer water column, stepped forward from x0 to xT with the parameters entering every step. The end state is compared with sparse real observations (blue) and an ECCO-Darwin pattern (gold, shape only), and an iron-budget term joins the loss. One red arrow carries the gradient from the loss back through every step to the shared weights.">
