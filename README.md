@@ -22,8 +22,8 @@ The iron-budget and silica terms also read the parameters directly.</i></sub>
 
 ## How it works
 
-Only Darwin's biogeochemistry is rebuilt. Temperature, salinity, wind and the initial chemistry come
-from ECCO-Darwin v05 as fixed inputs, and only the network is trained: everything downstream of it
+Only Darwin's biogeochemistry is rebuilt. The physical forcing and most of the initial chemistry
+come from ECCO-Darwin v05 as fixed inputs, and only the network is trained: everything downstream of it
 is fixed but differentiable. The result is a surrogate, so it is a consistency check against
 Carroll's published values, not a cross-validated discovery.
 
@@ -37,8 +37,8 @@ Carroll's published values, not a cross-validated discovery.
   <img src="docs/figures/readme/readme_loop.svg" width="100%" alt="Research-loop diagram: a clockwise loop through Plan, Run, Verify, Write up and Index. Run sits on the cluster outside the repository, with an arm and its control in the same job; results re-enter only through Verify, which recomputes every number or stops. Write up produces dated findings, and an older finding keeps its text under a RETRACTED stamp with a supersedes arrow from the newer one. CI tests sit between Write up and Index, where a corpus JSON is rendered into the research map and rebuilt as an in-memory SQL database that the next Plan queries. Claude Code and Codex work under one working agreement, beside a maintainer who owns scope and the issue tracker.">
 </p>
 
-Experiments run as multi-seed sweeps on a cluster. `scripts/verify_run.py` recomputes every number
-from the raw files, and AI agents (Claude Code and Codex, under one
+Experiments run as multi-seed sweeps on a cluster. `scripts/verify_run.py` re-derives the grading
+from the raw per-seed files, and any failure means there is no result. AI agents (Claude Code and Codex, under one
 [working agreement](CLAUDE.md)) write up each result, check it against earlier ones and retract
 what later runs overturn. Everything they conclude goes into a [research map](docs/research_map.md)
 that the next session queries before it plans anything:
