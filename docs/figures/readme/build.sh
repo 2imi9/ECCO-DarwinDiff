@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build the README figures: pdflatex -> SVG (pdftocairo) -> render check.
-# Needs a TeX Live with pgf/tikz, sansmath and standalone, plus poppler-utils and librsvg2-bin.
+# Needs a TeX Live with pgf/tikz, sansmath and standalone, poppler-utils, librsvg2-bin, and a
+# Python with Pillow for the render check (PYTHON=... to choose it; e.g. pip install pillow).
 #   bash docs/figures/readme/build.sh                 # every figure
 #   bash docs/figures/readme/build.sh readme_loop     # one figure
 set -euo pipefail
@@ -14,5 +15,5 @@ for f in "${figs[@]}"; do
   pdftocairo -svg "$f.pdf" "$f.svg"
   pdftoppm -r 200 -png -singlefile "$f.pdf" "$f.pdfref"
   rsvg-convert -z 2.7778 -b white "$f.svg" -o "$f.svgref.png"
-  python3 check_render.py "$f"
+  "${PYTHON:-python3}" check_render.py "$f"
 done

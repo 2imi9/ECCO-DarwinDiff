@@ -44,8 +44,8 @@ what later runs overturn. Everything they conclude goes into a [research map](do
 that the next session queries before it plans anything:
 
 ```bash
-python scripts/research_map_db.py settled <topic>    # is this already answered?
-python scripts/research_map_db.py superseded <value> # has this number been retracted?
+python scripts/research_map_db.py settled daily     # is this already answered?
+python scripts/research_map_db.py superseded 0.408  # has this number been retracted?
 ```
 
 Because results move with this loop, none are kept here. The current state is in
@@ -63,8 +63,16 @@ uv run pytest -q
 [`notebooks/demo_colab.ipynb`](notebooks/demo_colab.ipynb)
 ([open in Colab](https://colab.research.google.com/github/2imi9/ECCO-DarwinDiff/blob/main/notebooks/demo_colab.ipynb))
 runs a small synthetic example on the teaching box and shows why fitting is not identifying.
-Real-data runs need the ECCO-Darwin v05 output and the observation files; see
-[data](data/README.md) and [cluster setup](docs/cluster_setup.md).
+Real-data runs need the ECCO-Darwin v05 output and the observation files
+([data](data/README.md), [cluster setup](docs/cluster_setup.md)). The flagship configuration is
+pinned in one file; set `DARWIN_DATA_ROOT` first, and check every run before quoting it:
+
+```bash
+export DARWIN_DATA_ROOT=/path/to/ecco_darwin_v5 OUTPUT_DIR=runs/flagship
+source scripts/configs/flagship_geo1.sh
+uv run python scripts/run_v3.0_joint_multi_aoi.py   # one seed by default; set NB23_SEEDS for more
+uv run python scripts/verify_run.py "$OUTPUT_DIR"   # a non-zero exit means no result
+```
 
 | Path | Contents |
 |---|---|
