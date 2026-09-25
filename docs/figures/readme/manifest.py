@@ -32,7 +32,8 @@ def digest(path: Path) -> str:
 def read_manifest() -> dict[str, str]:
     if not MANIFEST.exists():
         return {}
-    return {name: h for h, name in (line.split(maxsplit=1) for line in MANIFEST.read_text().splitlines())}
+    pairs = (line.split(maxsplit=1) for line in MANIFEST.read_text().splitlines())
+    return {name: h for h, name in pairs}
 
 
 if __name__ == "__main__":
