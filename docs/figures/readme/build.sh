@@ -17,4 +17,4 @@ for f in "${figs[@]}"; do
   rsvg-convert -z 2.7778 -b white "$f.svg" -o "$f.svgref.png"
   "${PYTHON:-python3}" check_render.py "$f"
 done
-"${PYTHON:-python3}" manifest.py   # hashes that tests/test_readme_figures.py checks in CI
+"${PYTHON:-python3}" manifest.py "${figs[@]}"   # re-hash only what was built; checked in CI
