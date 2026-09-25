@@ -17,42 +17,28 @@ parameters in every grid cell, and one backward pass gives the gradient for all 
   <img src="docs/figures/readme/readme_method.svg" width="100%" alt="Method diagram. A sea-surface-temperature map passes through a per-cell network drawn as stacked feature maps; a single rod pierces the same grid cell of every map, showing one small network with shared weights applied at every cell. A fixed bounds map turns its output into six parameter maps. One cell is magnified into its own two-layer water column, stepped forward from x0 to xT with the parameters entering every step. The end state is compared with sparse real observations (blue) and an ECCO-Darwin pattern (gold, shape only), and an iron-budget term joins the loss. One red arrow carries the gradient from the loss back through every step to the shared weights.">
 </p>
 
-<sub><i>Blue marks real observations, gold marks ECCO-Darwin v05 output compared by shape only,
-and red marks the gradient. Each grid cell runs its own column, with no transport between cells.
-The iron-budget and silica terms also read the parameters directly.</i></sub>
+<sub><i>Blue marks real observations, gold marks ECCO-Darwin v05 output compared by shape only, and red
+marks the gradient. Each grid cell runs its own column, with no transport between cells. The
+iron-budget and silica terms also read the parameters directly. The network reads sea-surface
+temperature alone: wind, salinity, atmospheric pCO₂, CO₂ flux and mixed-layer depth were tested as
+extra inputs ([2026-07-22](docs/findings/2026-07-22_covariate_channels_result.md)) and are not used.</i></sub>
 
 ## How it works
 
 Only Darwin's biogeochemistry is rebuilt. Time-mean temperature, salinity, wind speed and
 atmospheric pCO₂, and most of the initial chemistry, come from ECCO-Darwin v05 as fixed inputs;
 light, dust deposition, layer depths and mixing are constants in the code. Only the network is
-trained: everything downstream of it is fixed but differentiable. The result is a surrogate, so it is a consistency check against
-Carroll's published values, not a cross-validated discovery.
+trained: everything downstream of it is fixed but differentiable. The result is a surrogate, so it
+is a consistency check against Carroll's published values, not a cross-validated discovery.
 
 <p align="center">
   <img src="docs/figures/readme/readme_components.svg" width="100%" alt="Component table. Rows: per-cell network, bounds map, parameters theta, two-layer box step, fixed constants, SST, forcing and initial state, pattern term, dissolved-iron term, calcite-ratio term, biogenic-silica term, iron-budget residual, lateral transport, comparison to Carroll. Columns mark whether each is learned, whether it is differentiable, whether it varies by cell, and its source. Only the network is learned; the bounds map, box step and loss terms are fixed but differentiable. SST, forcing and the pattern term come from ECCO-Darwin v05; the iron, calcite and silica terms use sparse real observations from GEOTRACES and Daniels et al. 2018. There is no lateral transport, and the comparison to Carroll happens per region after training.">
 </p>
 
-## How a result is made
-
-<p align="center">
-  <img src="docs/figures/readme/readme_loop.svg" width="100%" alt="Research-loop diagram: a clockwise loop through Plan, Run, Verify, Write up and Index. Run sits on the cluster outside the repository, with an arm and its control in the same job; recovery results re-enter through Verify, which re-derives the grading from the per-seed files or stops. Write up produces dated findings, and an older finding keeps its text under a RETRACTED stamp with a supersedes arrow from the newer one. CI tests sit between Write up and Index, where a corpus JSON is rendered into the research map and rebuilt as an in-memory SQL database that the next Plan queries. Claude Code and Codex work under one working agreement, beside the maintainer, who sets scope and keeps the issue tracker that holds the plan.">
-</p>
-
-Experiments run as multi-seed sweeps on a cluster, and their raw per-seed files stay there.
-`scripts/verify_run.py` re-derives the grading from those files, and any failure means there is
-no result. AI agents (Claude Code and Codex, under one
-[working agreement](CLAUDE.md)) write up each result, check it against earlier ones and retract
-what later runs overturn. Their conclusions are indexed in a [research map](docs/research_map.md),
-which the next session queries before it plans anything:
-
-```bash
-python scripts/research_map_db.py settled daily     # is this already answered?
-python scripts/research_map_db.py superseded 0.408  # has this number been retracted?
-```
-
-Because results move with this loop, none are kept here. The current state is in
-[STATUS.md](STATUS.md) and on the [documentation site](https://ecco-darwindiff.readthedocs.io/en/latest/).
+Results come from multi-seed cluster runs that `scripts/verify_run.py` re-grades, and AI agents
+write them up, retract what later runs overturn and index them in the
+[research map](docs/research_map.md); because they keep moving, they live in [STATUS.md](STATUS.md)
+and on the [documentation site](https://ecco-darwindiff.readthedocs.io/en/latest/), not here.
 
 ## Quickstart
 

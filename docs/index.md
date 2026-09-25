@@ -63,17 +63,6 @@ behind every row, and the retracted readings they replaced, are in **[Project St
    global emulator figure from before 2026-07-25 is contaminated by a linear-z-score bug and should
    not be shown.
 
-## How a result is made
-
-<figure markdown="span">
-  ![Research-loop diagram: a clockwise loop through Plan, Run, Verify, Write up and Index; runs happen on the cluster outside the repository, with an arm and its control; recovery results re-enter through Verify, which re-derives the grading or stops; an older finding keeps its text under a RETRACTED stamp; CI tests sit between Write up and Index, where the research map is built and queried before the next plan](figures/readme/readme_loop.svg){ width="880" }
-</figure>
-
-Experiments run as multi-seed sweeps on a cluster, and `verify_run.py` re-grades every
-parameter-recovery run from its per-seed files before any count is used. Findings are written up as
-dated notes, retracted in place when a later run overturns them, and indexed in the [research
-map](research_map.md), which the next session queries before it plans anything.
-
 ## Documentation map
 
 <div class="grid cards" markdown>

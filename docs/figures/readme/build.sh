@@ -3,11 +3,11 @@
 # Needs a TeX Live with pgf/tikz, sansmath and standalone, poppler-utils, librsvg2-bin, and a
 # Python with Pillow for the render check (PYTHON=... to choose it; e.g. pip install pillow).
 #   bash docs/figures/readme/build.sh                 # every figure
-#   bash docs/figures/readme/build.sh readme_loop     # one figure
+#   bash docs/figures/readme/build.sh readme_method   # one figure
 set -euo pipefail
 cd "$(dirname "$0")"
 figs=("$@")
-[ ${#figs[@]} -eq 0 ] && figs=(readme_method readme_components readme_loop)
+[ ${#figs[@]} -eq 0 ] && figs=(readme_method readme_components)
 for f in "${figs[@]}"; do
   pdflatex -interaction=nonstopmode -halt-on-error "$f.tex" > "$f.buildlog" 2>&1 \
     || { tail -30 "$f.buildlog"; echo "FAIL: pdflatex $f"; exit 1; }
