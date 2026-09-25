@@ -93,6 +93,11 @@ exclude_docs: |
   *.json
   *.csv
   *.tex
+  # README figure build tooling (the .svg renders are the only published part)
+  figures/readme/*.sty
+  figures/readme/*.sh
+  figures/readme/*.py
+  figures/readme/*.sha256
   # Agent-session scratch: handoffs, checkpoints and next-session prompts. Kept in the
   # repo for continuity, but they address a future session rather than a reader, and
   # they name local paths and machines, so they do not belong on the public site.

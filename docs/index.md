@@ -3,8 +3,8 @@
 **Differentiable ocean biogeochemistry: which parameters do real observations actually pin down?**
 
 <figure markdown="span">
-  ![DINN architecture: the flagship reads sea-surface temperature alone (optional wind-speed and mixed-layer-depth ablation channels are shown faded) through two 16-wide 1x1-convolution layers with Tanh to six Carroll parameters; those parameters pass through bounded_params and the differentiable box model to an MSE loss versus ECCO-Darwin v05, and gradients flow back through the box model to update the network weights](dinn_architecture.svg){ width="820" }
-  <figcaption>DarwinDiff's per-cell network (DINN). The loss flows through the differentiable box model, so one backward pass gives gradients for all six Carroll parameters. Four of them are the observable identifiability target.</figcaption>
+  ![Method diagram: a sea-surface-temperature map passes through a per-cell network drawn as stacked feature maps with shared weights; a fixed bounds map turns its output into six parameter maps; one cell is magnified into its own two-layer water column stepped forward from x0 to xT; the end state is compared with sparse real observations (blue) and an ECCO-Darwin pattern (gold, shape only), and a simplified iron-budget term joins the loss; one red arrow carries the gradient back through every step to the shared weights](figures/readme/readme_method.svg){ width="880" }
+  <figcaption>The per-cell network (DINN) predicts six bounded parameters in every grid cell; each cell's two-layer box is stepped forward on its own, and the loss on the end state combines real observations, shape-only ECCO-Darwin v05 patterns and a simplified iron budget. One backward pass gives the gradient for all six parameters everywhere.</figcaption>
 </figure>
 
 DarwinDiff is a PyTorch **differentiable box model** of ocean biogeochemistry: a 15-tracer,
@@ -54,13 +54,25 @@ behind every row, and the retracted readings they replaced, are in **[Project St
    observations constrain Darwin's closures? Not sharply, for any of the three tested (iron,
    calcite, growth). The iron-sink test (E3) was **never run**: its anchor, GP15 ²¹⁰Po/²¹⁰Pb, has
    zero points in the three flagship basins (92 points in `npac`), so the test is mislocated, not
-   settled, and whether the iron wall is the observing system or the method is still open
-   (`ded77`). The forward neural emulator is a **clean negative result**. Trained in log space it
-   emits 0% non-physical output, but **mass is not conserved** (Chl1 drifts +129.7% over six
-   rollout steps), the useful horizon is **one step**, and against a per-cell seasonal AR(1)
-   baseline it scores −0.161 ± 0.015. The "~9-month horizon" and "beats persistence" headlines are
-   **retracted**. Every global emulator figure from before 2026-07-25 is contaminated by a
-   linear-z-score bug and should not be shown.
+   settled, and whether the iron wall is the observing system or the method is still open ([anchor
+   coverage finding](findings/2026-08-04_anchor_coverage_and_structural_identifiability.md)). The
+   forward neural emulator is a **clean negative result**. Trained in log space it emits 0%
+   non-physical output, but **mass is not conserved** (Chl1 drifts +129.7% over six rollout steps),
+   the useful horizon is **one step**, and against a per-cell seasonal AR(1) baseline it scores
+   −0.161 ± 0.015. The "~9-month horizon" and "beats persistence" headlines are **retracted**. Every
+   global emulator figure from before 2026-07-25 is contaminated by a linear-z-score bug and should
+   not be shown.
+
+## How a result is made
+
+<figure markdown="span">
+  ![Research-loop diagram: a clockwise loop through Plan, Run, Verify, Write up and Index; runs happen on the cluster outside the repository, with an arm and its control; recovery results re-enter through Verify, which re-derives the grading or stops; an older finding keeps its text under a RETRACTED stamp; CI tests sit between Write up and Index, where the research map is built and queried before the next plan](figures/readme/readme_loop.svg){ width="880" }
+</figure>
+
+Experiments run as multi-seed sweeps on a cluster, and `verify_run.py` re-grades every
+parameter-recovery run from its per-seed files before any count is used. Findings are written up as
+dated notes, retracted in place when a later run overturns them, and indexed in the [research
+map](research_map.md), which the next session queries before it plans anything.
 
 ## Documentation map
 
