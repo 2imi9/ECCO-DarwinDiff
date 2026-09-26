@@ -3456,6 +3456,18 @@
      "track": "data"
     },
     {
+     "cl_id": "ded_growth_params_are_timescales_20260926",
+     "statement": "Carroll's Smallgrow and Biggrow are growth TIMES in days in Darwin (mu = 1/(growthdays*pday)), but the box registers them as rates in d^-1 and uses them directly, including for the fixed diatom, Synechococcus and low-light Prochlorococcus rates, so every box phytoplankton type grows 2.3-5.4x slower than in Darwin.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Read directly from Carroll's Darwin source and the box code; no data or fit involved.",
+     "n": "",
+     "null_baseline": "Carroll Smallgrow 0.66098 d and Biggrow 0.43148 d are growth times; Darwin max growth 1.51 and 2.32 d^-1; the box uses 0.66098 and 0.43148 d^-1, i.e. 2.29x and 5.37x slower",
+     "doc": "docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md",
+     "parameter": "smallgrow",
+     "track": "track1"
+    },
+    {
      "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
      "statement": "SamudraBGC cannot diagnose surface pCO2 or the air-sea CO2 flux: it predicts DIC without alkalinity, and no variable set in its code carries alkalinity, iron or pCO2.",
      "mode": "deductive",
@@ -7542,7 +7554,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101583,
+     "words": 101754,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -9991,6 +10003,15 @@
      "date": "2026-09-23",
      "retracted": 0,
      "words": 296,
+     "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md",
+     "name": "2026-09-26_growth_parameters_are_timescales_in_darwin.md",
+     "date": "2026-09-26",
+     "retracted": 0,
+     "words": 438,
      "local_only": 0,
      "partly_superseded": 0
     }
@@ -12529,6 +12550,15 @@
      "date": ""
     },
     {
+     "ev_id": "ev_ded_growth_params_are_timescales_20260926",
+     "kind": "deductive",
+     "locator": "docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md",
+     "job": "",
+     "gate": "n/a",
+     "n": null,
+     "date": ""
+    },
+    {
      "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
      "kind": "deductive",
      "locator": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
@@ -12793,6 +12823,14 @@
      "falsifier": "A different ranking in the GCM would block transferring the surrogate Fisher eigenbasis (sloppy/stiff directions, the EKI reparameterization) to ECCO-Darwin. Also requires a demonstrated convergence-with-integration-length, since short runs measure transient rather than equilibrated sensitivity.",
      "status": "open",
      "prereg": "docs/findings/2026-07-23_v05_perturbation_recipe.md"
+    },
+    {
+     "hy_id": "hy_growth_timescale_fix_moves_results",
+     "statement": "The box's slow growth (Carroll's growth times used as rates) is a model departure large enough to affect the recovery results, not only the excluded growth pair.",
+     "predicts": "Correcting the growth units changes the fitted state (phytoplankton biomass, POC, iron uptake) enough to move at least one reported per-AOI verdict.",
+     "falsifier": "A flagship re-run with growth rates 1/Smallgrow and 1/Biggrow (and matching fixed rates), with its matched controls in the same job, gives the same per-AOI verdicts for alpfe, scav_rat, diatomgraz and R_PICPOC under all three poolers.",
+     "status": "open - not run; needs a decision on the fix and a matched-control flagship re-run",
+     "prereg": "docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md"
     },
     {
      "hy_id": "hy053",
@@ -20344,6 +20382,11 @@
      "relation": "establishes"
     },
     {
+     "cl_id": "ded_growth_params_are_timescales_20260926",
+     "ev_id": "ev_ded_growth_params_are_timescales_20260926",
+     "relation": "establishes"
+    },
+    {
      "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
      "ev_id": "ev_ded_samudrabgc_no_alk_no_pco2_20260919",
      "relation": "establishes"
@@ -24861,6 +24904,17 @@
      "status": "live",
      "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
      "ev_id": "ev_ded_dic_error_to_pco2_revelle_20260919",
+     "kind": "deductive",
+     "gate": "n/a",
+     "ev_n": null,
+     "job": ""
+    },
+    {
+     "cl_id": "ded_growth_params_are_timescales_20260926",
+     "mode": "deductive",
+     "status": "live",
+     "statement": "Carroll's Smallgrow and Biggrow are growth TIMES in days in Darwin (mu = 1/(growthdays*pday)), but the box registers them as rates in d^-1 and uses them directly, including for the fixed diatom, Synechococcus and low-light Prochlorococcus rates, so every box phytoplankton type grows 2.3-5.4x slower than in Darwin.",
+     "ev_id": "ev_ded_growth_params_are_timescales_20260926",
      "kind": "deductive",
      "gate": "n/a",
      "ev_n": null,
@@ -31571,6 +31625,18 @@
      "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md",
      "parameter": "",
      "track": "data"
+    },
+    {
+     "cl_id": "ded_growth_params_are_timescales_20260926",
+     "statement": "Carroll's Smallgrow and Biggrow are growth TIMES in days in Darwin (mu = 1/(growthdays*pday)), but the box registers them as rates in d^-1 and uses them directly, including for the fixed diatom, Synechococcus and low-light Prochlorococcus rates, so every box phytoplankton type grows 2.3-5.4x slower than in Darwin.",
+     "mode": "deductive",
+     "status": "live",
+     "detail": "Read directly from Carroll's Darwin source and the box code; no data or fit involved.",
+     "n": "",
+     "null_baseline": "Carroll Smallgrow 0.66098 d and Biggrow 0.43148 d are growth times; Darwin max growth 1.51 and 2.32 d^-1; the box uses 0.66098 and 0.43148 d^-1, i.e. 2.29x and 5.37x slower",
+     "doc": "docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md",
+     "parameter": "smallgrow",
+     "track": "track1"
     },
     {
      "cl_id": "ded_samudrabgc_no_alk_no_pco2_20260919",
@@ -39966,19 +40032,19 @@
  },
  "counts": {
   "citation": 1,
-  "claim": 592,
+  "claim": 593,
   "derives": 0,
-  "document": 308,
-  "evidence": 301,
-  "hypothesis": 102,
+  "document": 309,
+  "evidence": 302,
+  "hypothesis": 103,
   "parameter": 6,
   "settled": 579,
   "supersedes": 305,
-  "supports": 301,
+  "supports": 302,
   "trap": 262,
-  "v_claim_evidence": 592,
+  "v_claim_evidence": 593,
   "v_dangerous": 39,
-  "v_live": 521,
+  "v_live": 522,
   "v_local_only_cite": 2,
   "v_orphan_doc": 0,
   "v_unsupported": 291

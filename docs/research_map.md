@@ -635,7 +635,7 @@ this table, it is done: say so and move on.
 
 ---
 
-## 2. CLAIM — deductive (229)
+## 2. CLAIM — deductive (230)
 
 Follows from structure. Checkable without new data. **These are the strongest things the project has** and should carry the manuscript's load-bearing arguments.
 
@@ -671,6 +671,7 @@ Follows from structure. Checkable without new data. **These are the strongest th
 |  | B-SOSE's TRAC06 is total dissolved iron (ligand-bound + free), the same conceptual quantity as Darwin's FeT, so the 21% offset is a difference in the modelled field and not a units-or-definition artifact. | Established from the integrated source B-SOSE actually runs, by inspection - no compute. Where the solution page label and the source disagree, the source is authoritative. | live | `docs/findings/2026-07-30_bsose_trac06_is_total_dissolved_iron.md` |  |
 |  | BLING's scavenging rate constant and Darwin's scav_rat have different operands, so no numerical comparison between them carries information. | Established by reading both formulations side by side; no new data needed. 'A numerical agreement between them would mean nothing, and a disagreement would mean nothing either.' | live | `docs/findings/2026-07-28_bling_comparability.md` |  |
 |  | Carroll's archival perturbations must not be reused for a local derivative — they are v4-era, mostly one-sided, and the scavenging perturbation is +500%, far too large for a local derivative near the v05 optimum. Use geometric tw… | follows from what a central finite difference requires; no new data needed to see the +500% step is not local | live | `docs/findings/2026-07-23_v05_perturbation_recipe.md` |  |
+| ded_growth_params_are_timescales_20260926 | Carroll's Smallgrow and Biggrow are growth TIMES in days in Darwin (mu = 1/(growthdays*pday)), but the box registers them as rates in d^-1 and uses them directly, including for the fixed diatom, Synechococcus and low-light Prochl… | Read directly from Carroll's Darwin source and the box code; no data or fit involved. | live | `docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md` | First-hand source read: MITgcm-contrib/ecco_darwin ec435f9, v04/llc270_JAMES_paper/code_darwin/darwin_init_fixed.F:159-162 and darwin_generate_phyto.F:191-227 (mu = 1/(growthdays*… |
 |  | Classic flux limiters (minmod/superbee/van Leer) contain min/max/abs kinks and flat zero-gradient regions that starve backprop, so a differentiable advection scheme needs a smooth blend. | the gradient pathology follows from the functional form of the limiters; no measurement needed | live | `docs/research_notes/2026-07-06_ude_phase1_implementation_brief.md` |  |
 |  | Community bulk PIC:POC peaks at intermediate temperature while per-cell physiology has a MINIMUM at optimal-growth temperature - the opposite curve - so a learned calcite closure must be fit against bulk Darwin, not lab physiolog… | A structural statement about what the two curves represent (thermally-bounded coccolithophore abundance vs single-cell response); load-bearing as a design constraint, checkable without new … | live | `docs/research_notes/2026-07-07_track2_reshaped_plan.md` |  |
 |  | Damped anomaly persistence, the baseline used by the leading 2026 marine-BGC emulator paper, IS a seasonal AR(1) null - so our baseline is the field's baseline and the 'their baselines are too weak' fallback framing does not surv… | An equivalence between two constructions (deseasonalise, persist the anomaly damped by a decorrelation timescale estimated from the anomaly autocorrelation) - checkable by inspection, no ne… | live | `docs/findings/2026-07-26_emulator_baseline_literature.md` |  |
@@ -1254,7 +1255,7 @@ Inference to the best explanation. **Not a result until it predicts something it
 
 ---
 
-## 5. HYPOTHESIS — open, with falsifiers (102)
+## 5. HYPOTHESIS — open, with falsifiers (103)
 
 | hy_id | statement | predicts | falsifier | status | doc |
 |---|---|---|---|---|---|
@@ -1360,6 +1361,7 @@ Inference to the best explanation. **Not a result until it predicts something it
 | hy_szn_loss | Under a stable seasonally forced Carroll self-twin, scav_rat recovery follows temporal-statistic matching: an all-step whole-cycle-mean target is recoverable with the same whole-cycle-mean loss but n… | Before fitting, the seasonal all-step target passes frozen cycle-stability, DFe2-contrast and Chl1-sanity gates. At n=50 per basin, mean_mean and end_end each … | If the target gate fails, this construction cannot decide the loss question. If either matched arm fails its null, the twin is non-diagnostic. If mean_end is n… | open-blocked-by-target-gate | `docs/findings/2026-08-09_prereg_seasonal_loss_self_twin.md` |
 | hy_samudrabgc_stoichiometric_increments | SamudraBGC's predicted daily increments of DIC, NO3 and O2 preserve the parent MOM6-COBALTv2 model's own stoichiometric coupling, even though the emulator predicts them as independent channels. | On the public 60-day evaluation window, the regression slopes dDIC:dNO3 and dO2:dNO3 of the emulator's one-day increments fall inside the spatial block-bootstr… | An emulator slope outside the parent's interval in any biome, with the parent column computed by the same code on the same cells. A departure from Redfield tha… | open - not run; needs the 0.91 GB checkpoint and the 23.3 GB Zenodo window, and… | `docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md` |
 | hy_samudrabgc_survives_seasonal_ar1 | At 9 km and daily cadence SamudraBGC beats a per-cell seasonal AR(1) at short lead, unlike our prognostic-only monthly operator, because mesoscale advection is not in a climatology. | Positive skill against a per-cell seasonal AR(1) fitted on 1960-2009 for surface DIC, O2, NO3 and Chl at leads of 1-20 days, with a block-bootstrap interval th… | Skill against the seasonal AR(1) whose interval includes or lies below zero for any of the four BGC tracers. | open - blocked on data only the authors hold: the public window is 60 days and … | `docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md` |
+| hy_growth_timescale_fix_moves_results | The box's slow growth (Carroll's growth times used as rates) is a model departure large enough to affect the recovery results, not only the excluded growth pair. | Correcting the growth units changes the fitted state (phytoplankton biomass, POC, iron uptake) enough to move at least one reported per-AOI verdict. | A flagship re-run with growth rates 1/Smallgrow and 1/Biggrow (and matching fixed rates), with its matched controls in the same job, gives the same per-AOI ver… | open - not run; needs a decision on the fix and a matched-control flagship re-r… | `docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md` |
 
 ---
 

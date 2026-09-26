@@ -7664,6 +7664,16 @@
       "statement": "A surface DIC bias of 2 umol/kg is a pCO2 bias of about 4 uatm, and 4 umol/kg is about 8 uatm, at fixed alkalinity, temperature and salinity, so a DIC skill of R2 = 0.992 does not by itself establish a usable air-sea CO2 flux. This is a sensitivity of the carbonate system, not a measurement of any emulator.",
       "status": "live",
       "why_this_mode": "Computed from a validated solver with no new data; the conditional (if the error is at the surface) is part of the claim."
+    },
+    {
+      "cl_id": "ded_growth_params_are_timescales_20260926",
+      "doc": "docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md",
+      "evidence": "First-hand source read: MITgcm-contrib/ecco_darwin ec435f9, v04/llc270_JAMES_paper/code_darwin/darwin_init_fixed.F:159-162 and darwin_generate_phyto.F:191-227 (mu = 1/(growthdays*pday)); box: src/darwindiff/carroll6.py:166-179, carroll6_5pft.py:107-109",
+      "mode": "deductive",
+      "numbers": "Carroll Smallgrow 0.66098 d and Biggrow 0.43148 d are growth times; Darwin max growth 1.51 and 2.32 d^-1; the box uses 0.66098 and 0.43148 d^-1, i.e. 2.29x and 5.37x slower",
+      "statement": "Carroll's Smallgrow and Biggrow are growth TIMES in days in Darwin (mu = 1/(growthdays*pday)), but the box registers them as rates in d^-1 and uses them directly, including for the fixed diatom, Synechococcus and low-light Prochlorococcus rates, so every box phytoplankton type grows 2.3-5.4x slower than in Darwin.",
+      "status": "live",
+      "why_this_mode": "Read directly from Carroll's Darwin source and the box code; no data or fit involved."
     }
   ],
   "supersedes": [
@@ -10639,6 +10649,14 @@
       "predicts": "Positive skill against a per-cell seasonal AR(1) fitted on 1960-2009 for surface DIC, O2, NO3 and Chl at leads of 1-20 days, with a block-bootstrap interval that excludes zero.",
       "statement": "At 9 km and daily cadence SamudraBGC beats a per-cell seasonal AR(1) at short lead, unlike our prognostic-only monthly operator, because mesoscale advection is not in a climatology.",
       "status": "open - blocked on data only the authors hold: the public window is 60 days and the AR(1) needs the multi-year record, which is not yet public"
+    },
+    {
+      "doc": "docs/findings/2026-09-26_growth_parameters_are_timescales_in_darwin.md",
+      "falsifier": "A flagship re-run with growth rates 1/Smallgrow and 1/Biggrow (and matching fixed rates), with its matched controls in the same job, gives the same per-AOI verdicts for alpfe, scav_rat, diatomgraz and R_PICPOC under all three poolers.",
+      "hy_id": "hy_growth_timescale_fix_moves_results",
+      "predicts": "Correcting the growth units changes the fitted state (phytoplankton biomass, POC, iron uptake) enough to move at least one reported per-AOI verdict.",
+      "statement": "The box's slow growth (Carroll's growth times used as rates) is a model departure large enough to affect the recovery results, not only the excluded growth pair.",
+      "status": "open - not run; needs a decision on the fix and a matched-control flagship re-run"
     }
   ],
   "traps": [
