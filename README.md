@@ -14,16 +14,16 @@ biogeochemistry is rebuilt as a differentiable model in PyTorch, a network predi
 parameters in every grid cell, and one backward pass gives the gradient for all of them everywhere.
 
 <p align="center">
-  <img src="docs/figures/readme/readme_method.svg" width="100%" alt="Method diagram with its equations. A sea-surface-temperature map, z-scored, passes through a per-cell network drawn as stacked feature maps; a rod pierces the same grid cell of every map, showing one small network with shared weights w applied at every cell. A fixed sigmoid bounds map turns its output into the six parameters theta_c (equation 1). One cell is magnified into its own two-layer column, stepped forward from x0 to xT by forward Euler (equation 2); theta_c and the forcing phi_c (SST, salinity, wind and atmospheric pCO2, ECCO-Darwin v05 time means) enter every step, and the initial state x_c^IC comes from the v05 pickup for the chemistry and from literature constants for the plankton. The end state is compared with sparse real observations (blue) and an ECCO-Darwin pattern (gold, shape only), and a simplified surface iron balance joins the loss L, summed over regions (equation 3). One red arrow carries the gradient back through every step to the shared weights (equation 4); the objective is to minimise L over w subject to equations 1 and 2.">
+  <img src="docs/figures/readme/readme_method.svg" width="100%" alt="Method diagram. A sea-surface-temperature map passes through a per-cell network drawn as stacked feature maps; a rod pierces the same grid cell of every map, showing one small network with shared weights w applied at every cell. A fixed sigmoid bounds map turns its output into six parameter maps theta_c. One cell is magnified into its own two-layer column, stepped forward from x0 to xT; theta_c and the forcing phi_c (SST, salinity, wind and atmospheric pCO2, ECCO-Darwin v05 time means) enter every step, and the initial state x_c^IC comes from the v05 pickup for the chemistry and from literature constants for the plankton. The end state is compared with sparse real observations (blue) and an ECCO-Darwin pattern (gold, shape only), and a simplified surface iron balance joins the loss L. One red arrow carries the gradient back through every step to the shared weights. Small tags (1) to (4) point to the equations below.">
 </p>
 
-<sub><i>Equations (1)–(4) are the ones the code runs. Blue marks real observations, gold marks ECCO-Darwin
-v05 output compared by shape only, and red marks the gradient. Each grid cell runs its own column
-from its initial state x₀, driven by the forcing φ, with no transport between cells. The iron-budget
-and silica terms also read the parameters directly. The network reads sea-surface temperature alone:
-wind, salinity, atmospheric pCO₂, CO₂ flux and mixed-layer depth were tested as extra network inputs
-([2026-07-22](docs/findings/2026-07-22_covariate_channels_result.md)) and dropped there, though the
-first three still force the box.</i></sub>
+<sub><i>Blue marks real observations, gold marks ECCO-Darwin v05 output compared by shape only, and red
+marks the gradient. Each grid cell runs its own column from its initial state x₀, driven by the
+forcing φ, with no transport between cells. The iron-budget and silica terms also read the
+parameters directly. Tags (1)–(4) refer to the equations below. The network reads sea-surface
+temperature alone: wind, salinity, atmospheric pCO₂, CO₂ flux and mixed-layer depth were tested as
+extra network inputs ([2026-07-22](docs/findings/2026-07-22_covariate_channels_result.md)) and
+dropped there, though the first three still force the box.</i></sub>
 
 ## How it works
 
@@ -46,8 +46,17 @@ The same temperature field feeds the network and the forcing, where it also scal
 loss targets (real observations and ECCO-Darwin v05 patterns) are in the table below.
 
 <p align="center">
-  <img src="docs/figures/readme/readme_components.svg" width="100%" alt="Component table with a Form column giving each term's equation. Model rows: per-cell network f_w, bounds map, parameters theta_c, two-layer box step (forward Euler), fixed constants. Input rows: SST (the network's only input, also part of the forcing), forcing phi_c (SST, salinity, wind, atmospheric pCO2; v05 time means), initial state x_c0 (v05 pickup chemistry plus literature plankton), and other network inputs that were tested and not used. Loss rows on the end state x_T: shape-only pattern terms against ECCO-Darwin v05, relative errors against GEOTRACES dissolved iron and silica and Daniels et al. 2018 calcite ratios, and a simplified surface iron balance. Scope rows: no lateral transport; the comparison to Carroll happens per region after training. Columns mark whether each item is learned, differentiable and per cell, and its source. Footer definitions give the pattern score Z, the observation error E and the iron residual rho.">
+  <img src="docs/figures/readme/readme_components.svg" width="100%" alt="Component table. Model rows: per-cell network, bounds map, parameters theta, two-layer box step (forward Euler), fixed constants. Input rows: SST (the network's only input, also part of the forcing), forcing (SST, salinity, wind, atmospheric pCO2; v05 time means), initial state (v05 pickup chemistry plus literature plankton), and other network inputs that were tested and not used. Loss rows on the end state: shape-only pattern terms against ECCO-Darwin v05, errors against GEOTRACES dissolved iron and silica and Daniels et al. 2018 calcite ratios, and a simplified surface iron balance. Scope rows: no lateral transport; the comparison to Carroll happens per region after training. Columns mark whether each item is learned, differentiable and per cell, and its source.">
 </p>
+
+<details>
+<summary><b>Equations</b> (the ones the code runs, numbered as tagged in the figures)</summary>
+
+<p align="center">
+  <img src="docs/figures/readme/readme_equations.svg" width="100%" alt="The equations, numbered as tagged in the figures. (1) Bounded parameters: theta_c = l + (u - l) times sigma of f_w(z_c), with f_w a tanh 1x1 network and z_c the SST z-score. (2) Forward-Euler step: x_{c,t+1} = max(0, x_{c,t} + dt F(x_{c,t}; theta_c, phi_c)), x_{c,0} = x_c^IC. (3) Loss on the end state: L = sum over regions a of omega_a L_a(x_{a,T}, theta_a). (4) Gradient with the sensitivity S = dx/dtheta carried through every step. Objective: minimise L over w subject to (1) and (2). The terms of L_a: shape-only pattern scores Z (5), relative errors E against sparse observations (6) for dissolved iron, the calcite ratio and biogenic silica, and a simplified surface iron balance rho (7).">
+</p>
+
+</details>
 
 ### Parameters
 

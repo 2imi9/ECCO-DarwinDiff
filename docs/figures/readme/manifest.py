@@ -14,7 +14,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 MANIFEST = HERE / "build.sha256"
 STYLE = "dd-readme.sty"
-FIGURES = ("readme_method", "readme_components")
+FIGURES = ("readme_method", "readme_components", "readme_equations")
 
 
 def figure_files(figure: str) -> list[str]:

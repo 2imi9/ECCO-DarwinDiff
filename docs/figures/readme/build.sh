@@ -7,7 +7,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 figs=("$@")
-[ ${#figs[@]} -eq 0 ] && figs=(readme_method readme_components)
+[ ${#figs[@]} -eq 0 ] && figs=(readme_method readme_components readme_equations)
 for f in "${figs[@]}"; do
   pdflatex -interaction=nonstopmode -halt-on-error "$f.tex" > "$f.buildlog" 2>&1 \
     || { tail -30 "$f.buildlog"; echo "FAIL: pdflatex $f"; exit 1; }
