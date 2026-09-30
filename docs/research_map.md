@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (579 questions)
+## 1. SETTLED — do not re-derive (580 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -120,6 +120,7 @@ this table, it is done: say so and move on.
 | Do pooled cross-basin Omega exponents constrain the rain-ratio closure? | No - they are Simpson between-biome slopes and must not be over-read. Pooled: Daniels n = +0.89 CI [-0.23, +1.78]; Marsh n = -0.47 CI [-1.16, +0.16]; GLODAP n = -1.80 CI [-3.20, -0.27]. But WITHIN-basin Marsh slopes are individually signif… | `docs/research_notes/2026-07-09_track2_identifiability_writeup.md` |
 | Do real Southern-Ocean calcite anchors exist for R_PICPOC? | Yes. Great Calcite Belt, Rosengard et al. 2015 (BG 12:3953, 27 Atlantic/Indian stations, size-fractionated PIC/POC/bSi/234Th) and Pacific GP19, Balch et al. 2025 (GBC 10.1029/2024GB008457, PIC/POC standing stocks plus calcification:photosy… | `docs/research_notes/2026-07-23_expert_review_corrections.md` |
 | Do real, direct, Darwin-independent calcite observations constrain an Omega-driven rain-ratio closure? | No. The robust, defensible result is the NULL. Swapping the environment source from Marsh in-situ carbonate to the GLODAPv2.2016b OmegaC climatology FLIPS N.Atlantic bloom from +0.69 to -2.27 (p=0.98, n=59) and Patagonian from +0.86 to -1.… | `docs/research_notes/2026-07-09_calcite_identifiability_map.md` |
+| Do reruns of the flagship configuration reproduce its per-region grades? | Not fully; only the Southern Ocean scav_rat leg is stable. Three runs of flagship_geo1.sh on seeds 0-9 were compared pairwise: the published n50e2k_percell_trio (Explorer), collapse_n50 (the instrumented twin of the reproduction ctrl_n50, … | `docs/findings/2026-09-29_three_flagship_runs_agree_only_on_the_southern_ocean_scav_rat_leg.md` |
 | Do Si observables alone identify diatomgraz? | No. Si-only (SiO2 + prognostic bSi, no biomass) puts the argmin nominally at truth (0.83 vs 0.830) but the well is ~16x shallower (0.0046 vs 0.0732), and the best-fit growth rate slides monotonically 0.60 -> 0.85 across the grid - the grow… | `docs/findings/2026-07-23_box_silica_feasibility.md` |
 | Do surface and subsurface iron observations constrain the same parameters? | No, they invert cleanly. so_surf (surface iron): alpfe 49/50 RECOVERS, scav_rat 14/50. so_sub (subsurface iron): alpfe 14/50, scav_rat 33/50 RECOVERS. Surface identifies the SOURCE and cannot see the sink; subsurface identifies the SINK an… | `docs/findings/2026-07-31_scavrat_southern_ocean_signal_is_depth.md` |
 | Do the emulator cubes' 4 chlorophyll channels represent total chlorophyll? | Yes — surfChl4 contributes −0.002% of total Chl, so the 4 channels are total chlorophyll. Units match exactly (mg m-3), no conversion needed. Confounds: linear mean is 86.5% above geometric mean (use log10 throughout), and January satellit… | `docs/findings/2026-07-19_results_matrix.md` |

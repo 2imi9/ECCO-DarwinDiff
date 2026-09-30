@@ -64,6 +64,9 @@ dev = [
     "nbconvert>=7.16",
     "jupyter>=1.1",
 ]
+figures = [
+    "cartopy>=0.24",
+]
 
 [project.urls]
 Repository = "https://github.com/2imi9/ECCO-DarwinDiff"
