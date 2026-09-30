@@ -7,6 +7,12 @@
   <figcaption>The per-cell network (DINN) predicts six bounded parameters in every grid cell; each cell's two-layer box is stepped forward on its own, and the loss on the end state combines real observations, shape-only ECCO-Darwin v05 patterns and a simplified iron budget. One backward pass gives the gradient for all six parameters everywhere.</figcaption>
 </figure>
 
+<figure markdown="span">
+  ![Global map of ECCO-Darwin v05 surface chlorophyll averaged over 1995 to 2017, on a log scale, with the three study regions outlined: equatorial Pacific, subpolar North Atlantic and the Pacific sector of the Southern Ocean](figures/v05_surface_chlorophyll.png#only-light){ width="720" }
+  ![Global map of ECCO-Darwin v05 surface chlorophyll, dark version](figures/v05_surface_chlorophyll_dark.png#only-dark){ width="720" }
+  <figcaption>The model being fitted: ECCO-Darwin v05 surface chlorophyll (all five phytoplankton types, 1995–2017 mean, log scale), with the three regions the fit is graded in.</figcaption>
+</figure>
+
 DarwinDiff is a PyTorch **differentiable box model** of ocean biogeochemistry: a 15-tracer,
 two-layer, five-plankton proxy of ECCO-Darwin (the original 5-tracer box, `carroll6.py`, remains
 as the teaching model), with **gradients through every step of the integration**. A small network
@@ -41,6 +47,12 @@ excluded by construction**. The growth pair is excluded for two different reason
 unobservable by construction (never recovers, seasonal included), while `Smallgrow` is not
 identifiable from the **time-mean** observables this study fits (a seasonal prototype recovers it
 9/10 in the North Atlantic, unconfirmed, job 189324).
+
+<figure markdown="span">
+  ![Six maps, one per Carroll parameter, of the fitted value divided by Carroll's in each grid cell of the three study regions; the growth pair is hatched as excluded](figures/fig_param_fields.png#only-light)
+  ![Six maps of the fitted parameter fields, dark version](figures/fig_param_fields_dark.png#only-dark)
+  <figcaption>Each parameter divided by Carroll's value, per cell, median of 10 seeds of the flagship configuration. Colour shows the fitted field, not the grade: the counts above are graded on each region's collapsed value, and nothing is fitted outside the three regions. Details and the reproduction check are on the <a href="status/">status page</a>.</figcaption>
+</figure>
 
 The surrogate gap is **dimensional**: the 0-D box homogenizes spatial structure, so identifiability
 rests on real *absolute* anchors, and held-out spatial skill on real data is negative. The caveats

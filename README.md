@@ -25,6 +25,19 @@ temperature alone: wind, salinity, atmospheric pCO₂, CO₂ flux and mixed-laye
 extra network inputs ([2026-07-22](docs/findings/2026-07-22_covariate_channels_result.md)) and
 dropped there, though the first three still force the box.</i></sub>
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/figures/v05_surface_chlorophyll_dark.png">
+    <img src="docs/figures/v05_surface_chlorophyll.png" width="85%" alt="Global map of ECCO-Darwin v05 surface chlorophyll averaged over 1995 to 2017, on a log scale, with the three study regions outlined: equatorial Pacific, subpolar North Atlantic and the Pacific sector of the Southern Ocean.">
+  </picture>
+</p>
+
+<sub><i>The model being fitted: ECCO-Darwin v05 surface chlorophyll (all five phytoplankton types,
+1995–2017 mean, log scale) from the public
+[1° bin-average product](https://data.nas.nasa.gov/ecco/llc_270/ecco_darwin_v5/output/bin_average/),
+with the three regions the fit is graded in. Regenerate with
+`uv run --group figures python scripts/make_chlorophyll_map.py`.</i></sub>
+
 ## How it works
 
 Only Darwin's biogeochemistry is rebuilt, as a two-layer box (0–50 m and 50–1000 m) run
@@ -76,7 +89,21 @@ the dynamics. The box stands in for Darwin's processes in simplified form: `diat
 palatability in Darwin, and `R_PICPOC` applies only to calcifying types there. So matching Carroll's
 values is a consistency check, not an equivalence.
 
-Results come from multi-seed cluster runs that `scripts/verify_run.py` re-grades, and AI agents
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/figures/fig_param_fields_dark.png">
+    <img src="docs/figures/fig_param_fields.png" width="100%" alt="Six maps, one per Carroll parameter, of the fitted value divided by Carroll's in each grid cell of the three study regions. alpfe is at its upper bound (about 1.08 times Carroll) in the North Atlantic and Southern Ocean and near Carroll in the equatorial Pacific, where seeds split; R_PICPOC is about 1.2 times Carroll; scav_rat is below Carroll in the equatorial Pacific and North Atlantic and spans the band in the Southern Ocean; diatomgraz is near Carroll in the equatorial Pacific and far below it elsewhere; Smallgrow and Biggrow are hatched as excluded.">
+  </picture>
+</p>
+
+<sub><i>What the six fields look like after a fit: each parameter divided by Carroll's value, per
+cell, as the median of 10 seeds of the flagship configuration. White is Carroll's value and the
+marks on the colour bar are the ±40% band. Colour shows the fit, not the grade: recovery is graded
+on each region's collapsed value against a matched untrained control, and nothing is fitted
+outside the three regions. Regenerate with
+`uv run --group figures python scripts/make_param_field_figure.py docs/findings/2026-09-29_flagship_percell_local`.</i></sub>
+
+The grades come from multi-seed cluster runs that `scripts/verify_run.py` re-grades, and AI agents
 write them up, retract what later runs overturn and index them in the
 [research map](docs/research_map.md); because they keep moving, they live in [STATUS.md](STATUS.md)
 and on the [documentation site](https://ecco-darwindiff.readthedocs.io/en/latest/), not here.

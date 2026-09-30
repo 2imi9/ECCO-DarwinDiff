@@ -1,0 +1,171 @@
+Device: cuda
+GPU: NVIDIA GeForce RTX 5090 Laptop GPU
+Per-AOI gating: OFF (ungated baseline)
+AOIS: ['eqpac', 'natlsubpolar', 'southernoceanpac']  (joint training across 3 AOIs)
+Per-AOI weights: {'eqpac': 1.0, 'natlsubpolar': 2.0, 'southernoceanpac': 2.0}
+Seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] (N=10)
+Config: fet_w=1.0, pinn_w=3.0, geo_surf_w=1.0, geo_sub_w=1.0, poc_sub_w=3.0, darwin_ic=True
+        epochs=2000, subsurface depth: [50.0, 1000.0] m
+        daniels_rpicpoc_w=1.0 (real CP:PP anchor, depth<=50.0m), per-AOI mult={'eqpac': 1.0, 'natlsubpolar': 1.0, 'southernoceanpac': 1.0}
+
+
+=== Loading AOI bundle: eqpac (Equatorial Pacific) ===
+  loaded target cache from D:\ecco_darwin_v5\cache\eqpac_targets_equatorial_pacific.pt
+  AOI shape: (21, 51); ocean cells: 1071
+  Daniels R_PICPOC target: 34 cells (123 samples), geomean=0.0392 (Darwin R_PICPOC=0.04245)
+  loading GEOTRACES IDP2025 (Eq Pac stations slice)...
+  GEOTRACES bins in-AOI: surface=26, subsurface=28
+  GEOTRACES bSi in-AOI surface bins (depth <= 50.0m): 7, mean target = 0.04865 mmol Si/m^3
+  loading Darwin IC cache darwin_ic_cache.npz
+
+=== Loading AOI bundle: natlsubpolar (North Atlantic Subpolar) ===
+  loaded target cache from D:\ecco_darwin_v5\cache\eqpac_targets_north_atlantic_subpolar.pt
+  AOI shape: (16, 31); ocean cells: 484
+  Daniels R_PICPOC target: 26 cells (116 samples), geomean=0.0336 (Darwin R_PICPOC=0.04245)
+  loading GEOTRACES IDP2025 (Eq Pac stations slice)...
+  GEOTRACES bins in-AOI: surface=13, subsurface=13
+  GEOTRACES bSi in-AOI surface bins (depth <= 50.0m): 4, mean target = 0.1748 mmol Si/m^3
+  loading Darwin IC cache darwin_ic_cache_natlsubpolar.npz
+
+=== Loading AOI bundle: southernoceanpac (Southern Ocean Pacific) ===
+  loaded target cache from D:\ecco_darwin_v5\cache\eqpac_targets_southern_ocean_pacific.pt
+  AOI shape: (16, 81); ocean cells: 1296
+  [warn] DANIELS_RPICPOC_W=1.0 but no Daniels coverage in AOI; loss term will be skipped
+  loading GEOTRACES IDP2025 (Eq Pac stations slice)...
+  GEOTRACES bins in-AOI: surface=13, subsurface=14
+  GEOTRACES bSi in-AOI surface bins (depth <= 50.0m): 0, mean target = 0 mmol Si/m^3
+  loading Darwin IC cache darwin_ic_cache_southernoceanpac.npz
+
+Shared-scale SST z-score: mean=13.76, std=10.68
+  eqpac: SST z-range [0.92, 1.38]
+  natlsubpolar: SST z-range [-1.23, 0.01]
+  southernoceanpac: SST z-range [-1.38, -0.30]
+
+Building 10 shared DINN networks (one per seed; applied to each AOI's env input)...
+  DINN: n_input_channels=1  hidden_dim=16  (AOI_ID=False, MLD=False, extra=[])
+torch.compile applied to per-step function (mode='default').
+
+=== v3.0 joint training: 3 AOIs, 10 seeds, 2000 epochs ===
+  epoch  250  per-seed joint loss: mean=5.376e+01
+  epoch  500  per-seed joint loss: mean=5.159e+01
+  epoch  750  per-seed joint loss: mean=5.028e+01
+  epoch 1000  per-seed joint loss: mean=4.846e+01
+  epoch 1250  per-seed joint loss: mean=4.795e+01
+  epoch 1500  per-seed joint loss: mean=4.606e+01
+  epoch 1750  per-seed joint loss: mean=4.472e+01
+  epoch 2000  per-seed joint loss: mean=4.275e+01
+
+Done in 682s (68.2s amortized per seed)
+
+=== Seed 0 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe             0.999      0.9998      0.9997      0.9995      0.9283  joint=Cal-grade (0.077)
+scav_rat       2.71e-07   3.643e-07   5.394e-07   4.088e-07   6.025e-07  joint=Cal-grade (0.321)
+Smallgrow        0.4735      0.3833      0.2917      0.3755       0.661  joint=Loose (0.432)
+Biggrow           0.108      0.1753      0.1961      0.1595      0.4315  joint=Loose (0.630)
+diatomgraz       0.7328       0.248      0.2696      0.4399        0.83  joint=Loose (0.470)
+R_PICPOC        0.05234     0.05225     0.05824     0.05501     0.04245  joint=Cal-grade (0.296)
+       -> joint 3/6 cal-grade (0 Excellent)
+
+=== Seed 1 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.8271      0.9998      0.9999       0.935      0.9283  joint=Excellent (0.007)
+scav_rat      6.081e-07    4.09e-07   5.809e-07   5.619e-07   6.025e-07  joint=Cal-grade (0.067)
+Smallgrow        0.1474      0.2871      0.1336      0.1648       0.661  joint=Loose (0.751)
+Biggrow          0.1008      0.1513      0.1714      0.1414      0.4315  joint=Loose (0.672)
+diatomgraz       0.5451      0.2265      0.3808      0.4163        0.83  joint=Loose (0.498)
+R_PICPOC        0.05775     0.04809     0.04616     0.05084     0.04245  joint=Cal-grade (0.198)
+       -> joint 3/6 cal-grade (1 Excellent)
+
+=== Seed 2 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.1069      0.9762      0.9949      0.6581      0.9283  joint=Cal-grade (0.291)
+scav_rat      1.843e-06   4.182e-07   5.188e-07   9.993e-07   6.025e-07  joint=Loose (0.659)
+Smallgrow        0.2928      0.2048      0.2116       0.241       0.661  joint=Loose (0.635)
+Biggrow          0.2784      0.4587      0.2508      0.2965      0.4315  joint=Cal-grade (0.313)
+diatomgraz      0.06385      0.1188      0.4351      0.2419        0.83  joint=Loose (0.709)
+R_PICPOC        0.05444     0.05263     0.07057     0.06146     0.04245  joint=Loose (0.448)
+       -> joint 2/6 cal-grade (0 Excellent)
+
+=== Seed 3 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.2238      0.9815      0.9977      0.7042      0.9283  joint=Cal-grade (0.241)
+scav_rat      1.476e-06   4.306e-07   5.319e-07   8.694e-07   6.025e-07  joint=Loose (0.443)
+Smallgrow          0.33      0.1713      0.1563      0.2241       0.661  joint=Loose (0.661)
+Biggrow          0.3176        0.37      0.1096       0.232      0.4315  joint=Loose (0.462)
+diatomgraz      0.05026     0.09667      0.4595      0.2442        0.83  joint=Loose (0.706)
+R_PICPOC        0.04913     0.05866     0.06536     0.05812     0.04245  joint=Cal-grade (0.369)
+       -> joint 2/6 cal-grade (0 Excellent)
+
+=== Seed 4 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.6862      0.9969      0.9986       0.881      0.9283  joint=Cal-grade (0.051)
+scav_rat      1.121e-07   3.601e-07   5.624e-07   3.589e-07   6.025e-07  joint=Loose (0.404)
+Smallgrow        0.3751      0.1579      0.1484      0.2351       0.661  joint=Loose (0.644)
+Biggrow           1.995      0.5119      0.1406      0.9004      0.4315  joint=Drifted (1.087)
+diatomgraz       0.2494      0.1769      0.2072      0.2179        0.83  joint=Loose (0.737)
+R_PICPOC        0.05227     0.05098     0.04741     0.04984     0.04245  joint=Cal-grade (0.174)
+       -> joint 2/6 cal-grade (0 Excellent)
+
+=== Seed 5 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.7413      0.9971      0.9991      0.9019      0.9283  joint=Excellent (0.028)
+scav_rat      1.819e-07   3.299e-07   6.158e-07   4.043e-07   6.025e-07  joint=Cal-grade (0.329)
+Smallgrow        0.2399      0.1575      0.1492      0.1847       0.661  joint=Loose (0.721)
+Biggrow          0.4196      0.3238      0.1353      0.2741      0.4315  joint=Cal-grade (0.365)
+diatomgraz       0.7263       0.277      0.2387      0.4284        0.83  joint=Loose (0.484)
+R_PICPOC        0.05002     0.05295     0.03643     0.04434     0.04245  joint=Excellent (0.045)
+       -> joint 4/6 cal-grade (2 Excellent)
+
+=== Seed 6 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.9963      0.9993      0.9987      0.9979      0.9283  joint=Cal-grade (0.075)
+scav_rat      1.438e-07   3.424e-07   5.723e-07   3.723e-07   6.025e-07  joint=Cal-grade (0.382)
+Smallgrow        0.7265      0.5341      0.1198       0.418       0.661  joint=Cal-grade (0.368)
+Biggrow          0.1282      0.1236      0.1203      0.1238      0.4315  joint=Loose (0.713)
+diatomgraz       0.7871     0.07523     0.05446      0.3332        0.83  joint=Loose (0.599)
+R_PICPOC        0.05335     0.05028     0.03998     0.04675     0.04245  joint=Cal-grade (0.101)
+       -> joint 4/6 cal-grade (0 Excellent)
+
+=== Seed 7 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe             0.998      0.9998      0.9998      0.9991      0.9283  joint=Cal-grade (0.076)
+scav_rat      3.084e-07   3.787e-07     5.1e-07    4.12e-07   6.025e-07  joint=Cal-grade (0.316)
+Smallgrow        0.1217      0.4339      0.4089      0.3052       0.661  joint=Loose (0.538)
+Biggrow          0.1037      0.1005      0.1006      0.1017      0.4315  joint=Loose (0.764)
+diatomgraz        0.826      0.2862       0.272      0.4826        0.83  joint=Loose (0.419)
+R_PICPOC        0.05318      0.0503     0.06598     0.05851     0.04245  joint=Cal-grade (0.378)
+       -> joint 3/6 cal-grade (0 Excellent)
+
+=== Seed 8 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.9904      0.9996      0.9995      0.9961      0.9283  joint=Cal-grade (0.073)
+scav_rat      1.594e-07    3.69e-07   5.429e-07   3.693e-07   6.025e-07  joint=Cal-grade (0.387)
+Smallgrow        0.2024      0.1787      0.1641       0.181       0.661  joint=Loose (0.726)
+Biggrow          0.6262      0.5496      0.1805      0.4106      0.4315  joint=Excellent (0.048)
+diatomgraz       0.7828     0.05694     0.05321      0.3279        0.83  joint=Loose (0.605)
+R_PICPOC        0.05619     0.05125     0.04668     0.05103     0.04245  joint=Cal-grade (0.202)
+       -> joint 4/6 cal-grade (1 Excellent)
+
+=== Seed 9 recovery ===
+Param             eqpac    natlsubp    southern       JOINT     Carroll
+alpfe            0.9977      0.9998      0.9994      0.9988      0.9283  joint=Cal-grade (0.076)
+scav_rat      4.812e-07   3.563e-07   5.313e-07   4.828e-07   6.025e-07  joint=Cal-grade (0.199)
+Smallgrow        0.2122      0.4126       0.362      0.3143       0.661  joint=Loose (0.524)
+Biggrow          0.1008      0.1015      0.1135      0.1067      0.4315  joint=Loose (0.753)
+diatomgraz       0.8843      0.3373       0.334      0.5413        0.83  joint=Cal-grade (0.348)
+R_PICPOC        0.05332     0.05018     0.05721     0.05456     0.04245  joint=Cal-grade (0.285)
+       -> joint 4/6 cal-grade (0 Excellent)
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed0_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed1_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed2_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed3_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed4_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed5_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed6_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed7_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed8_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+  wrote run_v3.0_joint_eqpac-natlsubpolar-southernoceanpac_seed9_surf1.0_sub1.0_pinn3.0_pocsubW3.0_w-natlsubpolar2.0-southernoceanpac2.0_chl1W3.0_danielsW1.0_posiW1.0_eppleyT0.0633.json
+
+Batch summary: 3 AOIs x 10 seeds in 682s (68.2s amortized per seed)
+exit 0

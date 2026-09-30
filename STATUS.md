@@ -398,6 +398,26 @@ iron + a real calcite anchor (the headline); **`silicate_scope`** is *synthetic*
 | **Biggrow** | ❌ | 0/7 | silicate_scope | unobservable by construction - excluded from the denominator, not a failed recovery (never identified synthetic, real, or seasonal) | ✅ fails-tight (0.68–0.71) |
 | **Trio {alpfe,scav_rat,R_PICPOC}** | ✅ per-cell | **25/50 per-AOI arithmetic / 12/50 geometric** 2000ep; **~41/50** at 4000ep is arithmetic-only and unauditable, and is **not an upgrade** — the epoch lever costs 1.4–1.75x Southern Ocean accuracy in the one basin where `scav_rat` is established (see the 2026-08-04 correction); the flagship stays at width 16 / 2000 epochs (n=50; 33/50 cell-wtd) | geo1 | **per-cell load-bearing** (0/50 global); joint tracks scav_rat's binding leg (25/50 arithmetic / 12/50 geometric at 2000ep; the ~41/50 at 4000ep is arithmetic-only and unauditable); cleanest quantitative result | ✅ {7,8,7}/10 |
 
+![Six maps, one per Carroll parameter, of the fitted value divided by Carroll's in each grid cell of the three study regions. alpfe is at its upper bound (about 1.08 times Carroll) in the North Atlantic and Southern Ocean and near Carroll in the equatorial Pacific, where seeds split; R_PICPOC is about 1.2 times Carroll; scav_rat is below Carroll in the equatorial Pacific and North Atlantic and spans the band in the Southern Ocean; diatomgraz is near Carroll in the equatorial Pacific and far below it elsewhere; Smallgrow and Biggrow are hatched as excluded.](docs/figures/fig_param_fields.png#gh-light-mode-only)
+![Six maps, one per Carroll parameter, of the fitted value divided by Carroll's in each grid cell of the three study regions, dark version.](docs/figures/fig_param_fields_dark.png#gh-dark-mode-only)
+
+The matrix above as maps: each parameter's fitted value divided by Carroll's, per cell, median of 10
+seeds; white is Carroll's value and the lines on the colour bar mark the ±40% band (`diatomgraz` is
+graded at ≤10%). **Colour shows the fitted field, not the grade:** every count above is graded on
+each region's collapsed value, and structure inside a box is a property of the fit, not of ocean
+provinces ([08-20](docs/findings/2026-08-20_the_dispersion_lives_inside_one_province.md)). In the
+equatorial Pacific the `alpfe` seeds split between its upper bound and well below it, so the median
+there matches no single seed. The fields come from a local rerun of the flagship configuration with
+per-cell output, seeds 0–9
+([artifacts](https://github.com/2imi9/ECCO-DarwinDiff/tree/main/docs/findings/2026-09-29_flagship_percell_local)).
+Reruns are not bitwise reproducible: on these seeds this rerun gives the same trio verdict as the
+published flagship on 9 of 10 seeds, `alpfe` and `R_PICPOC` keep every ≥2-of-3 verdict, every
+difference is `scav_rat`, and the Southern Ocean `scav_rat` leg keeps its verdict in all three runs
+compared
+([2026-09-29](docs/findings/2026-09-29_three_flagship_runs_agree_only_on_the_southern_ocean_scav_rat_leg.md)).
+Regenerate with `uv run --group figures python scripts/make_param_field_figure.py` (arguments in
+its docstring).
+
 > **⚠️ CORRECTED 2026-08-03 — "3-of-4 frontier" and "two operating points" both overstate this.**
 > Both count a `diatomgraz` leg graded in a band its prior already sits inside (midpoint rel
 > **0.367**, inside 0.40; untrained rate **0.64**). At the ≤10% band `diatomgraz` is **0/50

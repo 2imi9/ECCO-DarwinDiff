@@ -13,6 +13,14 @@
   --md-typeset-a-color: #ff77b3;
 }
 
+/* ---- Honour GitHub's light/dark image fragments on the site too. STATUS.md is rendered by
+   both GitHub and this site (via include-markdown), so its figures use #gh-light-mode-only /
+   #gh-dark-mode-only; without this rule the site would show both variants. ---- */
+[data-md-color-scheme="default"] img[src$="#gh-dark-mode-only"],
+[data-md-color-scheme="slate"] img[src$="#gh-light-mode-only"] {
+  display: none;
+}
+
 /* ---- Flat, neutral header — Furo has no colored top bar or drop shadow. ---- */
 .md-header,
 .md-header--shadow {
