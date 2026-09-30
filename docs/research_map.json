@@ -7081,12 +7081,12 @@
     },
     {
      "cl_id": "ind_data_not_compute_binds_corrdiff_20260930",
-     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer independent samples than any published training set, and the only regime with comparable raw counts (daily) is surface-only, strongly autocorrelated and lacks DIC, ALK, PIC, POC and FeT.",
+     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model trained on the MONTHLY full-variable set, the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer samples than any published training set. The daily surface regime has a Manchester-scale raw count (9,463 days), but its effective sample size is unmeasured, its physical inputs are thin, and it lacks DIC, ALK, PIC, POC and FeT.",
      "mode": "inductive",
      "status": "live",
      "detail": "A comparison of measured sample counts against published training-set sizes, generalised to a feasibility bound.",
      "n": "",
-     "null_baseline": "v05 monthly: 158 prognostic steps, 123-313 same-time diagnostic months; daily 9,392 steps at lag-1 r 0.994-0.996; published CorrDiff 24,154, StormCast 30,660, NVIDIA rule of thumb >= 50,000. Null: the published training-set sizes at which these recipes are shown to work.",
+     "null_baseline": "v05 monthly: 158 prognostic steps, 123-313 same-time diagnostic months; daily cubes 9,463 days at lag-1 r 0.994-0.996; published CorrDiff 24,154, StormCast 30,660, Manchester about 8,760 (not stated), NVIDIA rule of thumb >= 50,000. Null: the published training-set sizes at which these recipes are shown to work.",
      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
      "parameter": "",
      "track": "data"
@@ -7602,7 +7602,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 102824,
+     "words": 102828,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -10077,7 +10077,7 @@
      "name": "2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
      "date": "2026-09-30",
      "retracted": 0,
-     "words": 2651,
+     "words": 3106,
      "local_only": 0,
      "partly_superseded": 0
     }
@@ -14127,12 +14127,6 @@
      "dont": ""
     },
     {
-     "question": "Is compute or data the binding constraint for a CorrDiff/StormCast-style ECCO-Darwin model, given AICR B200 access?",
-     "answer": "Data. Published training sets: CorrDiff Taiwan 24,154 samples (about 21,504 H100 GPU-hours); StormCast 30,660 (7,680 H100 GPU-hours); NVIDIA's own rule of thumb at least 50,000. Manchester used 384 GPU-hours, which 32 B200s cover in hours. v05 offers 158 monthly prognostic steps (76 truly monthly pairs); a same-time diagnostic reaches 313 months (7 surface physics fields), 268-283 (physics plus one BGC tracer), 152 (all six tracers), 123 (plus 3-D T/S), computed from the local monthly mirror. Daily gives 9,392 shared steps but lag-1 r 0.994-0.996, surface only, and no DIC, ALK, PIC, POC or FeT, i.e. only the variables SamudraBGC already contests. Diffusion denoisers memorise at N <= 100 (Kadkhodaie et al., arXiv 2310.02557; transfer inferred). Extra compute cannot buy samples.",
-     "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
-     "dont": ""
-    },
-    {
      "question": "Why was the particulate:dissolved iron ratio retracted as a route to the scavenging rate?",
      "answer": "Deductively: the ratio reduces to scavenging rate x POC / sinking rate, so dissolved iron cancels EXACTLY. Empirically: in GEOTRACES IDP2025 surface data only 76 samples worldwide carry both total particulate and dissolved iron under strict co-location, 4 of them in the eqpac box, and where both exist the ratio spans ~2.6 orders of magnitude. Caveat flagged in the doc's own pre-send checklist: the 76/4 counts are a floor on co-location, not a count of ocean locations, and were not re-confirmed.",
      "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
@@ -14352,6 +14346,12 @@
      "question": "Does the two-anchor {dust source + scav sink} design break the alpfe-scav_rat degeneracy in the real differentiable box?",
      "answer": "It breaks the GEOMETRY, not recovery: |rho(alpfe,scav)| falls 0.472 -> 0.195 (dust) -> 0.089 (sink) -> 0.061 (both), conditional on pinning the export/uptake partition (both_free only reaches 0.131, ~2x looser). scav_rat recovers 20/20 in EVERY config including baseline because the self-twin anchors are self-consistent, so the script's own verdict is 'NO CLEAN BREAK' in the recovery sense.",
      "doc": "docs/findings/2026-07-22_realbox_geometry_result.md",
+     "dont": ""
+    },
+    {
+     "question": "Is compute or data the binding constraint for a CorrDiff/StormCast-style ECCO-Darwin model, given AICR B200 access?",
+     "answer": "It depends on the task. MONTHLY (full variable set): data binds. v05 offers 158 prognostic steps (76 truly monthly pairs), and a same-time diagnostic reaches 313 months (7 surface physics fields), 268-283 (physics plus one BGC tracer), 152 (all six tracers) or 123 (plus 3-D T/S), computed from the local monthly mirror. Published training sets are CorrDiff Taiwan 24,154 samples (about 21,504 H100 GPU-hours), StormCast 30,660 (7,680 H100 GPU-hours), and NVIDIA's rule of thumb is at least 50,000. Diffusion denoisers memorise at N <= 100 (Kadkhodaie et al., arXiv 2310.02557; transfer inferred). DAILY (surface only): the raw count matches Manchester's. The saved cubes hold 9,463 days against about 8,760 hourly samples, and effective sample size is unmeasured for both (daily lag-1 r 0.994-0.996; hourly air quality is autocorrelated too). The daily archive includes pCO2, pH and air-sea CO2 flux, which SamudraBGC does NOT carry (CORRECTED 2026-09-30; an earlier version of this row said the daily regime held only variables SamudraBGC already contests). But its physical inputs are thin (SST, SSSanom, wspeed, sea ice; no MLD, no shortwave), and it has no DIC, ALK, PIC, POC or FeT. Compute is not binding in either case: Manchester used 384 GPU-hours, which 32 B200s cover in hours. Surviving daily cubes: AICR /work/neu/p2026_0089_neu/cubes (1 deg and 0.5 deg, surfChl1/2/3/5 + SST + wspeed); daily carbonate fields need a re-download from data.nas.nasa.gov, which was unreachable on 2026-09-30.",
+     "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
      "dont": ""
     },
     {
@@ -28429,7 +28429,7 @@
      "cl_id": "ind_data_not_compute_binds_corrdiff_20260930",
      "mode": "inductive",
      "status": "live",
-     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer independent samples than any published training set, and the only regime with comparable raw counts (daily) is surface-only, strongly autocorrelated and lacks DIC, ALK, PIC, POC and FeT.",
+     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model trained on the MONTHLY full-variable set, the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer samples than any published training set. The daily surface regime has a Manchester-scale raw count (9,463 days), but its effective sample size is unmeasured, its physical inputs are thin, and it lacks DIC, ALK, PIC, POC and FeT.",
      "ev_id": "ev_ind_data_not_compute_binds_corrdiff_20260930",
      "kind": "inductive",
      "gate": "ungated",
@@ -28843,7 +28843,7 @@
     },
     {
      "cl_id": "ind_data_not_compute_binds_corrdiff_20260930",
-     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer independent samples than any published training set, and the only regime with comparable raw counts (daily) is surface-only, strongly autocorrelated and lacks DIC, ALK, PIC, POC and FeT.",
+     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model trained on the MONTHLY full-variable set, the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer samples than any published training set. The daily surface regime has a Manchester-scale raw count (9,463 days), but its effective sample size is unmeasured, its physical inputs are thin, and it lacks DIC, ALK, PIC, POC and FeT.",
      "ev_id": "ev_ind_data_not_compute_binds_corrdiff_20260930",
      "gate": "ungated"
     }
@@ -35034,12 +35034,12 @@
     },
     {
      "cl_id": "ind_data_not_compute_binds_corrdiff_20260930",
-     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer independent samples than any published training set, and the only regime with comparable raw counts (daily) is surface-only, strongly autocorrelated and lacks DIC, ALK, PIC, POC and FeT.",
+     "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model trained on the MONTHLY full-variable set, the binding constraint is sample count, not compute: v05 offers two orders of magnitude fewer samples than any published training set. The daily surface regime has a Manchester-scale raw count (9,463 days), but its effective sample size is unmeasured, its physical inputs are thin, and it lacks DIC, ALK, PIC, POC and FeT.",
      "mode": "inductive",
      "status": "live",
      "detail": "A comparison of measured sample counts against published training-set sizes, generalised to a feasibility bound.",
      "n": "",
-     "null_baseline": "v05 monthly: 158 prognostic steps, 123-313 same-time diagnostic months; daily 9,392 steps at lag-1 r 0.994-0.996; published CorrDiff 24,154, StormCast 30,660, NVIDIA rule of thumb >= 50,000. Null: the published training-set sizes at which these recipes are shown to work.",
+     "null_baseline": "v05 monthly: 158 prognostic steps, 123-313 same-time diagnostic months; daily cubes 9,463 days at lag-1 r 0.994-0.996; published CorrDiff 24,154, StormCast 30,660, Manchester about 8,760 (not stated), NVIDIA rule of thumb >= 50,000. Null: the published training-set sizes at which these recipes are shown to work.",
      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
      "parameter": "",
      "track": "data"
@@ -38956,7 +38956,7 @@
     [
      "ind_data_not_compute_binds_corrdiff_20260930",
      "ungated",
-     "For a CorrDiff/StormCast-style ECCO-Darwin model the binding"
+     "For a CorrDiff/StormCast-style ECCO-Darwin model trained on "
     ],
     [
      "abd518",

@@ -20,6 +20,40 @@ own repository.
 > **conjunction** (a data-assimilating state estimate, with iron **and** the carbonate system **and**
 > calcite), validation against independent dated observations, and identifiability.
 
+> **DECISION, same day (2026-09-30): the owner is building the recipe anyway, and the reason is sound.**
+> Every ECCO-Darwin parameter change or scenario needs a full rerun, so a complex scenario needs many
+> reruns. A fast emulator is worth having for that, and the evidence below does not argue against speed.
+> What the evidence below does decide is **how the build is graded**:
+>
+> - **Deterministic skill comes from the regression stage** (§2). The diffusion stage is judged on what it
+>   is known to buy: calibrated spread, CRPS and spectra. Those matter for many-run uncertainty work.
+> - **Every number carries its nulls** (§5).
+> - **Changing a parameter needs training runs in which that parameter changes.** A model trained on the
+>   single v05 run cannot predict the effect of a parameter change it never saw. The map already settles
+>   that we can generate such runs ourselves:
+>   - v05 runs on Explorer's `short` partition with no NASA account and no new allocation
+>     (`docs/findings/2026-07-25_surrogate_to_gcm_validation.md`,
+>     `docs/findings/2026-07-31_no_nasa_account_needed_v05_is_already_built.md`);
+>   - a 17-deck perturbation recipe exists (`docs/findings/2026-07-23_v05_perturbation_recipe.md`).
+>
+> **Correction to §3, made the same day.** The daily archive is **not** limited to variables SamudraBGC
+> already covers. SamudraBGC carries no pCO2, pH or air-sea CO2 flux, and the daily archive has all three.
+> The daily task's raw sample count (9,463 days in the saved cubes) also matches Manchester's (about 8,760
+> hourly). So "data binds" holds for the **monthly** task (158 to 313 samples), **not** for the daily
+> surface task. Effective sample size is unmeasured for both, and hourly air quality is autocorrelated too.
+>
+> **Data state as of 2026-09-30:**
+> - **Cubes that survive** are in AICR `/work/neu/p2026_0089_neu/cubes/`, which is snapshotted and not
+>   purged:
+>   - `daily_global_1deg_cube.npz`: 9,463 days × {surfChl1, 2, 3, 5} plus forcing {SST, wspeed},
+>     171×360;
+>   - `daily_global_halfdeg_cube.npz`: the same at 341×720, which gives a ready 1° → 0.5° pair;
+>   - `global3d_L10_cube.npz`: 158 months × {DIC, ALK, PIC, POC, FeT, Chl1} × 10 levels, 680×1440.
+> - **Lost to the purge:** the raw AICR `/scratch` daily, monthly and v05-build trees.
+> - **Blocked today:** `data.nas.nasa.gov:443` is unreachable from the workstation, AICR and Explorer,
+>   while `www.nas.nasa.gov` answers. So daily pCO2, pH and CO2 flux cannot be downloaded today.
+> - **Still available:** the local monthly mirror has pCO2, CO2_flux and all the physical fields.
+
 ## 1. What the post establishes, and what it does not
 
 The blog is the **only first-hand account**. It was read verbatim, and it links no paper, preprint,
@@ -97,8 +131,10 @@ The AICR allocation (B200, QOS cap 32 GPUs) covers Manchester's budget in hours 
 unbenchmarked "3x over H100" figure). **Extra compute cannot buy samples.** Diffusion denoisers memorise
 their training set at N of 100 or fewer and are transitional near 1,000 (Kadkhodaie et al., arXiv
 2310.02557; transfer to conditional residual diffusion is our inference). The only v05 regime with
-CorrDiff-scale raw counts, the daily archive, holds only the variables SamudraBGC already contests
-(chlorophyll, pCO2).
+CorrDiff-scale raw counts is the daily archive. It is surface-only, and its physical inputs are thin: SST,
+SSSanom, wspeed and sea ice, with no MLD and no shortwave. It does include pCO2, pH and air-sea CO2 flux,
+which SamudraBGC does not carry. (An earlier version of this sentence said the daily archive held only
+variables SamudraBGC already covers; that was wrong about pCO2. See the correction at the top.)
 
 ## 4. Which settled negatives bind which task
 
