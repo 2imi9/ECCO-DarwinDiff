@@ -132,8 +132,8 @@
     },
     {
       "question": "Does the FNO / neural-operator literature (GINO, Geo-FNO, PINO, AFNO, U-FNO, PhysicsNeMo, Earth2Studio) change the decision to shelve the parameter-conditioned calibration emulator?",
-      "answer": "No, unanimous verdict across 9 topics (8 reinforce shelving, 1 accelerates the UDE), keep it shelved. Blocker 1, data scarcity: GINO needed ~500 full CFD solves, U-FNO 4,500 ECLIPSE simulations of 5,500 total, FourCastNet ERA5 ~37 years hourly + ~1024 A100-GPU-hours; DarwinDiff has ONE v05 trajectory and no perturbed-Carroll-6 GCM ensemble. Blocker 2, dirty gradients: SC-FNO measured plain-FNO parameter-gradient R2 of only 0.21-0.82 despite accurate forward solutions (0.998 with sensitivity labels). PINO flips positive but argues FOR the UDE. Earth2Studio is an inference/coupling harness with no training, no autograd, no ocean/BGC model - do not add it to the Track-2 critical path. SCOPE NOTE (2026-07-11): 'shelved' covers ONLY the parameter-conditioned calibration emulator.",
-      "doc": "docs/research_notes/2026-07-08_fno_neural_operator_emulator_decision.md"
+      "answer": "No, unanimous verdict across 9 topics (8 reinforce shelving, 1 accelerates the UDE), keep it shelved. Blocker 1, data scarcity: GINO needed ~500 full CFD solves, U-FNO 4,500 ECLIPSE simulations of 5,500 total, FourCastNet ERA5 ~37 years hourly + ~1024 A100-GPU-hours; DarwinDiff has ONE v05 trajectory and no perturbed-Carroll-6 GCM ensemble. Blocker 2, dirty gradients: SC-FNO measured plain-FNO parameter-gradient R2 of only 0.21-0.82 despite accurate forward solutions (0.998 with sensitivity labels). PINO flips positive but argues FOR the UDE. Earth2Studio is an inference/coupling harness with no training, no autograd and no BGC model (CORRECTED 2026-09-30: it does carry ocean PHYSICS - DLESyM couples an SST ocean model and NVIDIA published DLESyM-Ocean in Aug 2026 - so 'no ocean model' was too strong) - do not add it to the Track-2 critical path. SCOPE NOTE (2026-07-11): 'shelved' covers ONLY the parameter-conditioned calibration emulator.",
+      "doc": "docs/research_notes/2026-07-08_fno_neural_operator_emulator_decision.md, docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
     },
     {
       "question": "Is there an ARCHITECTURAL fix for the Track-1 parameter learner?",
@@ -361,8 +361,8 @@
       "doc": "docs/research_notes/2026-07-08_overnight_summary.md"
     },
     {
-      "answer": "Partially, and more than this row said before 2026-09-19. CORRECTED 2026-09-19: M2LINES is NOT zero-BGC. SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna; ESSOAr 10.22541/essoar.15006794; code released 2026-07-10) emulates DIC + O2 + NO3 + Chl in an idealised 9 km MOM6-COBALTv2 double gyre, so the old 'M2LINES: 84 publications, ZERO biogeochemistry' and 'confirmed by three independent groups' no longer hold. The scan read the group's publications page and missed a GitHub + Zenodo + ESSOAr release. Samudra, Samudra 2 and SamudrACE themselves remain physical-only. Neural-BGC (Ouala & Lachkar 2026) claims DO + NO3 only. DIC and Chl emulation are now CONTESTED (BG4Sea had already narrowed this on 2026-07-24). Still uncontested, stated narrowly: iron; alkalinity and the carbonate system (pCO2, air-sea CO2 flux); calcite; emulation of a data-assimilating BGC state estimate; validation against independent dated observations rather than the parent model; and Carroll-6 identifiability, which no emulator attempts.",
-      "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md, docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md",
+      "answer": "Partially, and more than this row said before 2026-09-19. CORRECTED 2026-09-19: M2LINES is NOT zero-BGC. SamudraBGC (Keutgen De Greef, Resplandy, Champenois, Poupon, Li, Hassanzadeh, Zanna; ESSOAr 10.22541/essoar.15006794; code released 2026-07-10) emulates DIC + O2 + NO3 + Chl in an idealised 9 km MOM6-COBALTv2 double gyre, so the old 'M2LINES: 84 publications, ZERO biogeochemistry' and 'confirmed by three independent groups' no longer hold. The scan read the group's publications page and missed a GitHub + Zenodo + ESSOAr release. Samudra, Samudra 2 and SamudrACE themselves remain physical-only. Neural-BGC (Ouala & Lachkar 2026) claims DO + NO3 only. DIC and Chl emulation are now CONTESTED (BG4Sea had already narrowed this on 2026-07-24). CORRECTED 2026-09-30: AI-GOMS (Xiong et al., arXiv 2308.03152, 2023) already predicts iron, nitrate and four phytoplankton classes from a physical backbone, trained on the NASA Ocean Biogeochemical Model, which assimilates satellite chlorophyll, at 1 degree with no baseline - so iron alone and 'emulating a data-assimilating product' alone are each touched; only their CONJUNCTION with the carbonate system and calcite is uncontested. Still uncontested, stated narrowly: iron (only in that conjunction); alkalinity and the carbonate system (pCO2, air-sea CO2 flux); calcite; emulation of a data-assimilating BGC state estimate; validation against independent dated observations rather than the parent model; and Carroll-6 identifiability, which no emulator attempts.",
+      "doc": "docs/findings/2026-09-19_samudrabgc_m2lines_now_does_bgc.md, docs/findings/2026-07-22_neuralbgc_m2lines_landscape.md, docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
       "question": "Does M2LINES or Neural-BGC scoop the ocean-BGC emulator niche?"
     },
     {
@@ -832,8 +832,8 @@
     },
     {
       "question": "Can daily ECCO-Darwin v5 output replace monthly for the parameter learner?",
-      "answer": "No. Daily v5 is surface-2D only — 16 diagnostics (CO2_flux, O2_flux, SIarea, SIheff, SSSanom, SST, apCO2, pCO2, pH, surfChl1-5, surfDIC_tend, surfPCO2, wspeed). It does not contain the 3-D tracers the loss uses (POC, PIC, DIC, ALK, FeT, subsurface DFe), which are monthly-only.",
-      "doc": "docs/research_notes/2026-06-06_daily_data_defer.md"
+      "answer": "No. Daily v5 is MOSTLY surface-2D (CORRECTED 2026-09-30: pCO2, pH and surfPCO2 are full 50-level 3-D files of 189,540,000 B = 50 x 947,700 x 4 B each, per the 2026-06-20 portal listing snapshot; the conclusion below is unchanged because DIC, ALK, PIC, POC and FeT are still monthly-only) — 16 diagnostics (CO2_flux, O2_flux, SIarea, SIheff, SSSanom, SST, apCO2, pCO2, pH, surfChl1-5, surfDIC_tend, surfPCO2, wspeed). It does not contain the 3-D tracers the loss uses (POC, PIC, DIC, ALK, FeT, subsurface DFe), which are monthly-only.",
+      "doc": "docs/research_notes/2026-06-06_daily_data_defer.md, docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
     },
     {
       "question": "Is mirroring daily v5 to the laptop practical?",
@@ -1582,8 +1582,8 @@
     },
     {
       "question": "Which input tree is missing for a v05 run, and is our access the problem?",
-      "answer": "Exactly one: era_xx / era_xx_it42_v2 (atmospheric forcing) plus nbp19_dmenemen_public_llc270 are not on the public NAS portal. They live on ECCO Drive, which is Earthdata-gated and NOT SERVING - TCP:443 refused from four independent vantage points since 2026-07-28 while podaac.jpl, urs.earthdata and nas.nasa.gov all return 200. The host is down; this is not an access problem. Whether an ordinary Earthdata registrant can read ECCO2/LLC270/era_xx_it42_v2 specifically is unverified.",
-      "doc": "docs/findings/2026-07-31_no_nasa_account_needed_v05_is_already_built.md"
+      "answer": "Exactly one: era_xx / era_xx_it42_v2 (atmospheric forcing) plus nbp19_dmenemen_public_llc270 are not on the public NAS portal. They live on ECCO Drive, which is Earthdata-gated and NOT SERVING - TCP:443 refused from four independent vantage points since 2026-07-28 while podaac.jpl, urs.earthdata and nas.nasa.gov all return 200. The host is down; this is not an access problem. Whether an ordinary Earthdata registrant can read ECCO2/LLC270/era_xx_it42_v2 specifically is unverified. UPDATE 2026-09-30: ECCO Drive (https://ecco.jpl.nasa.gov/drive/) now answers HTTP 401, i.e. it is SERVING and Earthdata-gated; the owner has an Earthdata account (credentials belong in the owner's own ~/.netrc, never in chat or the repo). On the same day data.nas.nasa.gov:443 was unreachable from the workstation (timeout), AICR (refused) and Explorer while www.nas.nasa.gov answered.",
+      "doc": "docs/findings/2026-07-31_no_nasa_account_needed_v05_is_already_built.md, docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
     },
     {
       "question": "Do we need a custom torch.autograd.Function adjoint for the tridiagonal (Thomas) solver?",
@@ -2899,6 +2899,76 @@
       "question": "Do the raw run directories behind the paper's headline numbers still exist?",
       "answer": "Partly. A read-only listing on 2026-09-23 found every AICR /scratch/qi_zim_neu run directory the 2026-08-13 results manifest names there present but EMPTY after the 30-day purge: mvd and mvdrep (the R_PICPOC Daniels-vs-Marsh A/B, 50/50 -> 30/50 and 98/100 -> 50/100), sorep/so_rep and som (anchor and noanchor). Also empty: pcf (job 408789, the province run), alpfebound (job 276927), collapse, flagwin and kerg. Local copies survive for the flagship n50e2k_percell_trio, both anchor-off controls, collapse_n50, ctrl_n50, so_only, so_rep, som_anchor and the gs_obsonly priors, backed up to runs/_evidence_backup_2026-09-23/. Every lost run's graded counts remain in its finding note, and the province per-cell summaries are committed, so no number is lost, but those runs can no longer be re-graded from raw per-seed files.",
       "doc": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md"
+    },
+    {
+      "question": "Is the Manchester Earth-2 air-pollution work (NVIDIA blog 2026-09-15, CorrDiff + StormCast on one year of hourly UK chemistry-climate output) evidence that a generative emulator would work for ECCO-Darwin BGC?",
+      "answer": "No. It is evidence that the pipeline RUNS, not that it has skill. The blog is the only first-hand source (read verbatim): no paper, preprint, repo or dataset; no chemistry model, species, CorrDiff inputs, StormCast conditioning, split, metric or baseline. Its one performance statement is 'worked on the first attempt'. Compute is one eight-GPU GH200 node for about two days (384 GPU-hours), and the post does not say which of the two models that covers. The NVIDIA spokesperson (Niall Robinson) co-authored with Topping in 2021 (doi 10.3389/frsc.2021.786563), so it is a collaboration announcement. The closest inspectable relative, github.com/envdes/code_CMAQ_CorrDiff_Germany_2019 (Zheng group, CMAQ PM2.5 36 km -> 4 km, unpublished), shows mean monthly PM2.5 RMSE bilinear 4.14, regression U-Net 2.96, CorrDiff 2.81, plain diffusion 3.62: the U-Net carries the gain and diffusion adds about 5%; for O3 CorrDiff is WORSE than its own regression stage (2.52 vs 2.44). Probable UK chemistry model: WRF-EMEP (N8 Bede page; the link is inferred).",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "question": "Does CorrDiff's (or StormCast's) diffusion stage improve deterministic skill over its own regression UNet?",
+      "answer": "No. CorrDiff paper (arXiv 2309.15214v4, Commun Earth Environ 6, 124) Table 1, ensemble-mean MAE vs regression UNet: radar 2.54 vs 2.51, t2m 0.65 vs 0.64, u10m 1.08 vs 1.10, v10m 1.19 vs 1.21, a slight degradation the paper calls expected; the gain is CRPS, spectra and tails, and the ensembles are under-dispersive. Fotiadis et al. (arXiv 2410.19814): RMSE within about 0-3% of the UNet. StormCast (arXiv 2408.10958) justifies diffusion by chaotic, under-sampled km-scale convection, which this repo measured ABSENT in the BGC emulator (no positive Lyapunov exponent). This matches the settled 'EDM diffusion adds no skill' row, whose own artifacts are absent, so the external evidence now carries the verdict. scripts/diffusion_emulator.py is already the CorrDiff two-stage design; any CorrDiff/StormCast variant is decided by its REGRESSION stage.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "question": "Is compute, data volume, or data variation the binding constraint for a CorrDiff/StormCast-style ECCO-Darwin model, given AICR B200 access?",
+      "answer": "Variation, not compute and not volume. Compute: Manchester used 384 GPU-hours, which 32 B200s cover in hours. Volume: v05 offers 158 monthly prognostic steps and 123-313 same-time diagnostic months, two orders below published diffusion training sets (CorrDiff Taiwan 24,154; StormCast 30,660; NVIDIA rule of thumb >= 50,000), which is a MEMORISATION risk for a diffusion stage (Kadkhodaie et al., arXiv 2310.02557; transfer inferred). But the map already settles that the monthly emulator's learning curve is FLAT from n~55 (+0.4700 n=55, +0.4701 n=82, +0.4657 n=110; docs/findings/2026-07-19_two_negatives.md), so more samples of the same run do not raise deterministic skill. Daily: the saved cubes hold 9,463 days, a Manchester-scale raw count (about 8,760 hourly), with effective sample size unmeasured for both; the daily archive includes pCO2, pH and air-sea CO2 flux, which SamudraBGC does NOT carry (CORRECTED 2026-09-30), but its physics inputs are thin and it lacks DIC, ALK, PIC, POC and FeT. Variation: for the owner's use case (the effect of a parameter change or scenario without a rerun) the data has NONE, and no public ECCO-Darwin output supplies it; perturbed runs must be made (see the build-spec note).",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md, docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "Has anyone applied CorrDiff or StormCast to ocean biogeochemistry, or diagnosed ocean BGC from physics with a generative model?",
+      "answer": "Not found as of 2026-09-30. CorrDiff has been used on ocean PHYSICS only: OcDiffSR (arXiv 2609.22574) uses it as a baseline for Adriatic SST, salinity and currents and beats it; two 2025 JSCE papers use it for coastal waves (index metadata only). StormCast: no ocean, BGC or air-quality application indexed. Physics-to-BGC diagnostics exist without generative models and mostly without a climatology null: AI-GOMS (arXiv 2308.03152; iron, nitrate, chlorophyll classes), Ehmen, Mackay and Watson (EGUsphere preprint doi 10.5194/egusphere-2026-3396, under review for BG; DIC, ECCO-Darwin as testbed), Skakala (arXiv 2508.10178; 'mostly learned the free run climatology', fails on DIC), Lakra et al. (arXiv 2602.04689; no climatology null). Alkalinity or calcite diagnosed from physics in a state estimate: not found.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "question": "Which PhysicsNeMo recipe would a CorrDiff or StormCast adoption use today?",
+      "answer": "Not the CorrDiff example: it was deprecated on 2026-08-13 (physicsnemo PR #1909). New work goes to examples/weather/regional_weather_diffusion (PR #1977, created 2026-09-10), which exists on main only and NOT in release v2.2.2, so an adoption must pin a commit. It adds an optional per-pixel loss mask (the old CorrDiff train.py had none, relevant for a land mask) and supports StormCast-style background conditioning and static invariants. It needs PyTorch >= 2.10 and physicsnemo extras; code is Apache-2.0. NVIDIA's newest 'CorrDiff' model, corrdiff-cosmo-era5 (2026-07-27), is a DiT predicting the field directly, not a residual. earth2studio's stock StormCast wrapper is hardwired to the HRRR grid.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "question": "Should Track 2 (emulator, UDE/transport/closures) move to its own repository?",
+      "answer": "Not now; measured on 2026-09-30. 'Track 2' is two pieces with opposite coupling. The emulator (emulator.py, e2s/: 4 src files, 715 lines) imports nothing from darwindiff inside the package; only scripts/emulator_poc.py pulls five shared loaders and iron_forcing_loader.py:57 takes PHI_DUST from carroll6. The UDE work (6 src files, 2,407 lines) is built on the Track-1 core: transport.py:21 and closures.py:20 import carroll6, the UDE hook is carroll6_ude_tendency (carroll6.py:365), tests/test_transport.py:34 asserts equality with the box tendency. The research-map DOCUMENT table comes from git ls-files, and 80-172 Track-2 claims sit in 39-111 docs of which only 9-28 are purely Track 2, so moving docs breaks check. A uv workspace shares one lock and cannot isolate earth2studio's netCDF4<1.7.3 against the locked 1.7.4. GMD needs a frozen DOI archive, which a tagged Zenodo snapshot gives. Recommendation: keep one repo; on the first unguarded physicsnemo/earth2studio import, make a SEPARATE uv project inside the repo (own pyproject + uv.lock, path dependency on darwindiff) holding the emulator only; a separate repo (by copy, never history rewrite) only if a second contributor, a funder/venue/NVIDIA, or a separately versioned package demands it.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "question": "Is any public ECCO-Darwin output that varies a parameter or scenario available to train a parameter-conditioned emulator?",
+      "answer": "No perturbed-PARAMETER output was found (2026-09-30). The public /ecco/llc_270/ holds only ecco_darwin_v4/, ecco_darwin_v5/, grid/ and iter42/ (one run each; v04 vs v05 changes many things at once). Carroll et al. 2020 (JAMES, v04, Darwin 1) ran 18 Green's-function experiments; #12-17 are one-sided single-parameter runs (alpfe -20%, scav_rat x5, Smallgrow +10%, Biggrow +10%, palatability +0.1, PIC:POC +20%); their output was not found, Carroll 2022 (v05) inherited rather than redid them, and a recreation recipe is at MITgcm-contrib/ecco_darwin@d0df0d9 v04/llc270_JAMES_paper/greens_functions/greens_functions_instructions.txt. SCENARIO output on our exact model exists but is not public: Tyka, Zhou, Yankovsky and Carroll 2026 (Biogeosciences 23:4943-4966, doi 10.5194/bg-23-4943-2026) ran ECCO-Darwin v05 LLC270 OAE pulses, 24 x 15-yr plus 20 x 5-yr runs plus a 16-run biology on/off ablation (verified on the article page); output 'available upon request' per the workflow agent, not re-confirmed. Public but a different configuration: Savelli riverine-input sensitivity, GMD 19:867 (2026), Zenodo 10.5281/zenodo.17317011, 3.14 GB of 1 deg ECCO V4r5 Darwin surface fields.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "Can the AICR /work daily and 3-D emulator cubes be used as graded training data for a new emulator?",
+      "answer": "No - plumbing and memory probes only. /work/neu/p2026_0089_neu/cubes/ survives the /scratch purge and holds daily_global_1deg_cube.npz (9463 x {surfChl1,2,3,5} + forcing {SST, wspeed}, 171x360), daily_global_halfdeg_cube.npz (341x720) and global3d_L10_cube.npz (158 x 60 channels: DIC, ALK, PIC, POC, FeT, Chl1 x 10 levels, 680x1440). But times_days = iters x 900 s in all three (every value 0.75x truth, verified 2026-09-30) and labels the window END; the 1-deg grid is 171 rows spanning -80..89.75 at 0.998538 deg, not 1 deg; surfChl2/3/5 are 26-41% negative; provenance is unclear. Derive time from iters x 1200 s if they are touched at all.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "What does PhysicsNeMo's regional_weather_diffusion recipe (the CorrDiff/StormCast successor) require of a custom dataset?",
+      "answer": "At physicsnemo@536553a (2026-09-30): one recipe does both modes, chosen by the condition lists and the dict __getitem__ returns (downscaling: {background, state: target}; forecasting: {background, state: [t, t+1]}). Input and output grids must be the SAME size (all conditions are channel-concatenated), so a coarse input is upsampled in the dataset. No CorrDiff-style patch training. SongUNet H and W must be multiples of 2^(levels-1) (721 rows can never work). Regression and diffusion are separate runs chosen by training.loss.type, with the handoff via model.regression_weights, which upstream tests never exercise. The dataset owns normalisation, time, split and the mask (a per-pixel loss weight); NaN must be zero-filled AFTER normalisation. Launch with torchrun even on one GPU (inferred). The upstream StormCast configs fail the recipe's own pydantic validation on main. Not in release v2.2.2: pin a commit.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "In earth2studio, can a CorrDiff diagnostic chained after a prognostic see inputs the prognostic does not output (fine physics, day-of-year)?",
+      "answer": "No. DiagnosticWrapper passes the diagnostic only the prognostic's output tensor and selects variables by name (earth2studio@2067756d dxwrapper.py:158-167), and a grid mismatch silently inserts a LatLonInterpolation (dxwrapper.py:148-156). So the prognostic must pass the physics background and day-of-year through as extra output channels, and the dx input grid must equal the px output grid bitwise. CorrDiff.__call__ under @batch_func probably receives valid_time=None in the chain (inferred from code order, not executed).",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "What is the build order for a Topping-recipe (CorrDiff + StormCast + earth2studio) ECCO-Darwin emulator, and what gates it?",
+      "answer": "Design only as of 2026-09-30 (docs/research_notes/2026-09-30_topping_recipe_build_spec.md). One grid (cell-centred ascending lat -80..80; HR 0.25 deg 640x1440, LR 1 deg 160x360 as an exact 4x4 block mean), one split (G12: train 1992-2005, val 2006-2008, gap 2009, test 2010-end; robustness G6/G24/REV12), one transforms owner in the main package, a Linux-only track2/ uv project pinned to physicsnemo@536553a and earth2studio@2067756d. Order: M0 builder + amendment (local) -> M1 plumbing and parity (AICR, no skill numbers) -> M2 budget probes -> M3 the physics-to-BGC diagnostic S0, regression only, with all nulls in-job and a fresh-seed Job B; a STOP closes the CorrDiff/StormCast direction -> M4-M5 downscaling and diffusion only if gates pass -> M6-M8 daily and the chain once data.nas answers -> M9 speed benchmark. Recommendation on record: not necessary now; fix #257 and make perturbed v05 runs first, because a parameter-aware emulator needs them.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "Which physical ocean fields are exactly paired with ECCO-Darwin v05 biogeochemistry, and at what cadence?",
+      "answer": "Only the v05 run's own diagnostics, because Darwin is driven online by the LLC270 circulation every 1200 s step (Carroll et al. 2022 GBC; MITgcm-contrib/ecco_darwin@e39a22a v05/llc270/input/data.diagnostics). DAILY physical: SST, SSSanom, wspeed, SIarea, SIheff only; a daily MXLDEPTH stream is configured but absent from the portal listing. MONTHLY: 3-D THETA, SALTanom, UE/VN_VEL_C, WVEL, PAR (local mirror partly incomplete, 280-293 of 324 months); 2-D mldDepth, oceanQsw, oceanQnet, SST, SSSanom, sea ice, wspeed; budget streams ETAN, TFLUX, SFLUX and more. Never written at any cadence: UVEL/VVEL, wind stress, EXF atmospheric state, KPP (v05 uses GGL90). All 90 diagnostic streams (numlists=90) are in use.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "Can ECCO V4r4 (or another MIT physics product) supply daily physical conditioning for an emulator trained on ECCO-Darwin v05 targets?",
+      "answer": "Not for TRAINING; yes as an inference-time scenario background after measuring the shift. ECCO V4r4 is the only public daily physics in the ECCO family: LLC90 ~1 deg, same 50 levels, 1992-01-01 to 2018-01-01, 80 PO.DAAC collections in CMR (e.g. ECCO_L4_TEMP_SALINITY_LLC0090GRID_DAILY_V4R4 = C1991543736-POCLOUD), Earthdata login required; the daily set is about 733 GB at 0.5 deg or 866 GB native. But it is a separately optimised solution, not the physics that drove v05, so as training conditioning it teaches p(BGC | physics that did not cause it): errors-in-variables that shrink sensitivities and pass validation on the same mismatched pairs. The only complete route to exactly paired daily physics is a v05 re-run (MITgcm + Darwin together) with extra daily diagnostics, taking physics AND BGC from that one run; a physics-only re-run cannot be paired with the published BGC because eddy-permitting LLC270 diverges under any build difference.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "question": "Is there another ECCO-Darwin run with the same biogeochemistry as v05 but different physics, usable as a second training trajectory?",
+      "answer": "Yes in configuration, not in public output. v05/1deg (MITgcm-contrib/ecco_darwin) runs Darwin 3 with data.traits byte-identical to v05 and data.darwin identical except the llc90 iron-dust file, on ECCO V4r4 and V4r5 physics, but from a different Darwin code checkpoint (jahn/darwin3 darwin_ckpt68d_at_c66g vs 24885b71); its BGC output is not public. LLC270 variants with the same BGC namelists (v5r1 physics, a 1985-2022 back-extension, repeat-year 1995/1999 forcing, JRA55-do runoff) have no public output either. CBIOMES-global, Darwin cs510, ECCO2-Darwin, Manizza 2019, v04 and v06 use a DIFFERENT ecosystem and are a different target. Savelli et al. 2026 (GMD, LLC90 V4r5) released derived surface fields only (Zenodo 10.5281/zenodo.17317011).",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
     }
   ],
   "claims": [
@@ -7008,7 +7078,7 @@
     {
       "statement": "No production 3D ocean emulator carries biogeochemistry, and the Earth-2 stack has zero ocean/BGC models - the global, multi-tracer, depth-resolved BGC operator is first-of-kind.",
       "mode": "inductive",
-      "status": "live",
+      "status": "superseded",
       "numbers": "Samudra, Samudra-2, SamudrACE, NeuralOM, OceanNet all stop at T/S/U/V/SSH. The only depth-resolved BGC-ML prior art is two 1D single-water-column emulators (arXiv 2606.27168).",
       "why_this_mode": "A surveyed absence across the production emulator corpus, generalised into a whitespace claim.",
       "doc": "docs/research_notes/2026-07-23_3d_emulator_earth2studio_design.md"
@@ -7679,6 +7749,56 @@
       "statement": "Carroll's Smallgrow and Biggrow are growth TIMES in days in Darwin (mu = 1/(growthdays*pday)), but the box registers them as rates in d^-1 and uses them directly, including for the fixed diatom, Synechococcus and low-light Prochlorococcus rates, so every box phytoplankton type grows 2.3-5.4x slower than in Darwin.",
       "status": "live",
       "why_this_mode": "Read directly from Carroll's Darwin source and the box code; no data or fit involved."
+    },
+    {
+      "cl_id": "ded_manchester_post_is_feasibility_only_20260930",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
+      "evidence": "NVIDIA blog 2026-09-15 read verbatim; OpenAlex, arXiv, GitHub and Hugging Face searched 2026-09-30; spokesperson co-authorship doi 10.3389/frsc.2021.786563",
+      "mode": "deductive",
+      "numbers": "0 papers, 0 repos, 0 metrics, 0 baselines; 1 eight-GPU GH200 node for about 2 days = 384 GPU-hours, model not specified",
+      "statement": "The Manchester Earth-2 air-pollution post establishes only that CorrDiff and StormCast can be trained on one year of hourly chemistry-model output on one eight-GPU node; it reports no skill against any baseline, so it cannot support a claim that the recipe would add skill for ECCO-Darwin.",
+      "status": "live",
+      "why_this_mode": "Read directly from the only first-hand source; the absence of a metric or baseline is a property of the text, not an inference from data."
+    },
+    {
+      "cl_id": "ind_corrdiff_diffusion_no_deterministic_gain_20260930",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
+      "evidence": "arXiv 2309.15214v4 Table 1; arXiv 2410.19814 Table 2; envdes/code_CMAQ_CorrDiff_Germany_2019 metric CSVs; all opened by the citation auditor",
+      "mode": "inductive",
+      "numbers": "CorrDiff ensemble-mean MAE vs regression UNet: 2.54 vs 2.51, 0.65 vs 0.64, 1.08 vs 1.10, 1.19 vs 1.21; Fotiadis RMSE within 0-3%; Germany PM2.5 RMSE UNet 2.96 vs CorrDiff 2.81, O3 2.44 vs 2.52. Null: the regression UNet stage itself, trained on the same data.",
+      "statement": "Across the CorrDiff paper, an independent re-evaluation and the Manchester group's own Germany study, the diffusion stage leaves deterministic error within about 5% of its regression UNet and sometimes worse; its gains are in CRPS, spectra and tails, so any CorrDiff-style ECCO-Darwin model is decided by its regression stage.",
+      "status": "live",
+      "why_this_mode": "Generalised from three independent measured comparisons against the same-data regression stage."
+    },
+    {
+      "cl_id": "ind_data_not_compute_binds_corrdiff_20260930",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
+      "evidence": "Sample counts computed from D:\\ecco_darwin_v5\\output\\monthly on 2026-09-30; CorrDiff and StormCast papers; PhysicsNeMo CorrDiff README FAQ",
+      "mode": "inductive",
+      "numbers": "v05 monthly: 158 prognostic steps, 123-313 same-time diagnostic months; daily cubes 9,463 days at lag-1 r 0.994-0.996; published CorrDiff 24,154, StormCast 30,660, Manchester about 8,760 (not stated), NVIDIA rule of thumb >= 50,000. Null: the published training-set sizes at which these recipes are shown to work.",
+      "statement": "For a CorrDiff/StormCast-style ECCO-Darwin model, compute does not bind and neither does volume in the sense of more samples of the same run (the monthly learning curve is flat from n~55); the monthly sample count is two orders below published diffusion training sets, a memorisation risk for the diffusion stage, and the data carries no parameter or scenario variation at all, which is what the owner's use case needs.",
+      "status": "live",
+      "why_this_mode": "A comparison of measured sample counts against published training-set sizes, generalised to a feasibility bound."
+    },
+    {
+      "cl_id": "ded_track2_split_coupling_20260930",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
+      "evidence": "src/darwindiff/transport.py:21, closures.py:20, iron_forcing_loader.py:57, carroll6.py:365, tests/test_transport.py:34; scripts/research_map_db.py git ls-files document list; uv.lock:1914-1915",
+      "mode": "deductive",
+      "numbers": "emulator 4 src files / 715 lines, 0 internal package imports; UDE 6 files / 2,407 lines on carroll6; 80-172 Track-2 claims in 39-111 docs, 9-28 purely Track 2",
+      "statement": "Only the emulator half of Track 2 is separable from Track 1: the UDE, transport and closure code imports the Track-1 box core, and moving Track-2 documents out of this repo would orphan claims under the research-map gate, which builds its document list from git ls-files.",
+      "status": "live",
+      "why_this_mode": "Read from the import graph and the gate's own code; no data or fit involved."
+    },
+    {
+      "cl_id": "ded_e2s_double_batch_func_20260930",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md",
+      "evidence": "src/darwindiff/e2s/prognostic.py:276 and :282 both decorate __call__ with @batch_func(); tests/test_e2s_conformance.py skips without earth2studio; the fallback batch_func shim is a no-op (prognostic.py:42-70)",
+      "mode": "deductive",
+      "numbers": "2 decorators on one method; 0 CI runs with earth2studio installed",
+      "statement": "DarwinBGCPrognostic.__call__ is wrapped by @batch_func() twice, a defect that CI cannot see because the earth2studio conformance test skips when earth2studio is absent and the fallback decorator is a no-op; the wrapper's 'substantially conformant' status predates it and must be re-checked with earth2studio installed.",
+      "status": "live",
+      "why_this_mode": "Read directly from the source file; no execution needed to establish the duplicate decorator."
     }
   ],
   "supersedes": [
@@ -9511,6 +9631,24 @@
       "new": "The untrained arm scored 0/50. The 0.060 = 3/50 is the pre-registered rule-of-three floor (prereg line 78: 'with the rule-of-three floor 3/50 = 0.060 if the null count is zero'), used so the P-value is conservative; it is not a measured rate. The same 0.060 appears for Smallgrow, Biggrow and R_PICPOC in the result table for the same reason. State it as 30/50 vs an untrained 0/50, P = 3.15e-24 against the floor.",
       "reason": "A 2026-09-13 accuracy pass read the result table's 'untrained chance 0.060' as a measured rate and rewrote 'untrained 0/50' into 'a matched untrained rate of 0.060' in CLAUDE.md, AGENTS.md and two settled rows. Three reviewers of the 2026-09-23 manuscript red-team (R2, R3, R7) and Greptile on #252 independently flagged it; the pre-registration settles it.",
       "doc": "docs/findings/2026-07-30_prereg_scavrat_southern_ocean.md"
+    },
+    {
+      "old": "No production 3D ocean emulator carries biogeochemistry, and the Earth-2 stack has zero ocean/BGC models - the global, multi-tracer, depth-resolved BGC operator is first-of-kind.",
+      "new": "No production 3-D ocean emulator carries biogeochemistry, and the Earth-2 stack has no BGC model. It does carry ocean physics: DLESyM couples an SST ocean model (NVIDIA blog, 2025-07-11) and NVIDIA published DLESyM-Ocean (upper ocean and sea ice) in August 2026.",
+      "reason": "The 2026-06-14 audit and the 2026-07-23 design note surveyed the model zoo for BGC and wrote 'ocean/BGC'. A 2026-09-30 prior-art sweep, checked by a citation auditor against the DLESyM blog and NVIDIA's Climate Lab page, found ocean-physics models in the Earth-2 family. The BGC half of the statement stands.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "old": "Uncontested, stated narrowly: iron; alkalinity and the carbonate system; calcite; a data-assimilating state estimate as the target; independent-observation validation; parameter identifiability.",
+      "new": "Iron alone and a data-assimilating target alone are each touched: AI-GOMS (arXiv 2308.03152, 2023) predicts iron, nitrate and four phytoplankton classes, trained on the NASA Ocean Biogeochemical Model, which assimilates satellite chlorophyll, at 1 degree, with no baseline. Uncontested, stated narrowly: alkalinity and the carbonate system; calcite; their CONJUNCTION with iron in an emulator of a data-assimilating state estimate; independent-observation validation; parameter identifiability.",
+      "reason": "The 2026-09-19 niche scan searched emulator groups (M2LINES, Neural-BGC, BG4Sea) and not older single-paper systems. The 2026-09-30 prior-art sweep found AI-GOMS; its biochemistry module was read in the arXiv HTML and re-checked by the citation auditor.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "old": "Daily v5 is surface-2D only - 16 diagnostics (CO2_flux, O2_flux, SIarea, SIheff, SSSanom, SST, apCO2, pCO2, pH, surfChl1-5, surfDIC_tend, surfPCO2, wspeed).",
+      "new": "Daily v5 is mostly surface 2-D: 17 directories, 15 unique fields. pCO2, pH and surfPCO2 are full 50-level 3-D files (189,540,000 B each); the physical daily fields are SST, SSSanom, wspeed, SIarea and SIheff only. DIC, ALK, PIC, POC and FeT remain monthly-only, so the parameter-learner conclusion stands.",
+      "reason": "The 2026-06-06 note summarised the daily tree as surface-2D. The 2026-09-30 paired-physics sweep read the local portal listing snapshot (D:\\ecco_darwin_v5\\output\\daily\\pCO2\\index.html.tmp: 923 entries of 180.76 MiB) and the v05 data.diagnostics (pH and pCO2 written with no level restriction); download_daily.sh already labelled them '50-level'.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
     }
   ],
   "hypotheses": [
@@ -10662,6 +10800,14 @@
       "predicts": "Correcting the growth units changes the fitted state (phytoplankton biomass, POC, iron uptake) enough to move at least one reported per-AOI verdict.",
       "statement": "The box's slow growth (Carroll's growth times used as rates) is a model departure large enough to affect the recovery results, not only the excluded growth pair.",
       "status": "open - not run; needs a decision on the fix and a matched-control flagship re-run"
+    },
+    {
+      "hy_id": "hy_physics_to_bgc_diagnostic_beats_climatology",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md",
+      "statement": "A deterministic same-time map from v05 surface physics (SST, SSSanom, mldDepth, wspeed, oceanQsw, oceanQnet, SIarea plus statics and month harmonics, no lagged BGC) to surface DIC, ALK, FeT and PIC carries skill beyond a per-cell monthly climatology and a per-cell ridge regression on the same inputs.",
+      "predicts": "A 5-seed regression U-Net ensemble beats per-cell ridge with block-bootstrap CI lower bound > 0 on at least 2 of {DIC, ALK, FeT, PIC}, and beats per-cell climatology by >= +0.10 skill on those fields, under 6/12/24-month train-test gaps and a reversed split (train 1992-2008, test 2010-2018).",
+      "falsifier": "Ridge within CI of the U-Net, or the U-Net at or below climatology, or a pass at only one gap/split. A falsification closes the CorrDiff/StormCast direction too, because a diffusion stage cannot add deterministic skill its regression stage lacks.",
+      "status": "open - not run; local 5090/CPU on the monthly mirror; do not score with emulator_baselines_v2._season_bin"
     }
   ],
   "traps": [
@@ -11712,6 +11858,22 @@
     {
       "trap": "AICR /scratch is a 30-day cache, not storage. The results manifest recorded run directories there as the evidence behind abstract-level numbers, and 41 days later the purge had emptied them, including the calcite-compilation replication and the alpfe bound experiment. Copy every run directory a finding quotes to durable storage when the finding is written, and check that a directory still exists and is non-empty before a manuscript says every number traces to it.",
       "doc": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md"
+    },
+    {
+      "trap": "Reading a vendor press post as evidence of skill. The 2026-09-15 NVIDIA Manchester air-pollution post reports no metric and no baseline ('worked on the first attempt' means the code ran), and its spokesperson is a prior co-author of the PI. Treat such posts as feasibility-only until a paper with a null baseline exists.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "trap": "Proposing a uv workspace member to isolate the earth2studio / physicsnemo stack. Workspace members share ONE lock, so earth2studio's netCDF4<1.7.3 still collides with the locked 1.7.4. Isolation needs a separate uv project with its own uv.lock (in-repo, path dependency on darwindiff) or a separate environment.",
+      "doc": "docs/findings/2026-09-30_earth2_air_pollution_recipe_is_not_a_track2_lever.md"
+    },
+    {
+      "trap": "Reading dates from the AICR /work emulator cubes' times_days. In daily_global_1deg, daily_global_halfdeg and global3d_L10 it equals iters x 900 s (0.75x truth, verified 2026-09-30) and labels the window end, so the daily cubes appear to end on 2012-03-31. Derive time from iters x 1200 s and treat the cubes as plumbing-only.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
+    },
+    {
+      "trap": "Conditioning an emulator trained on ECCO-Darwin v05 targets on physics from a DIFFERENT solution (ECCO V4r4, V4r5, ECCO2, a physics-only re-run). The network learns BGC as a function of physics that did not cause it (errors-in-variables), sensitivities shrink toward zero, and validation on the same mismatched pairs still looks fine. Train only on the v05 run's own physics; use other physics only as an inference-time scenario background after measuring the shift.",
+      "doc": "docs/research_notes/2026-09-30_topping_recipe_build_spec.md"
     }
   ]
 }
