@@ -115,7 +115,20 @@ converges to the regression mean, which `scripts/diffusion_emulator.py`'s own do
 an EDM residual conditioned on `[x_t, mu]`). What the repo has never tried is the **task**: a diagnostic
 or downscaling mapping with physical conditioning. The design is not new; the task would be.
 
-## 3. Compute is not the binding constraint; data is
+## 3. Compute is not the binding constraint; what binds is variation in the data, not volume
+
+> **Reconciled 2026-09-30 with a settled row.** The map already settles that the monthly emulator's
+> learning curve is **flat from n≈55** (+0.4700 at n=55, +0.4701 at n=82, +0.4657 at n=110;
+> `docs/findings/2026-07-19_two_negatives.md`). So "data binds", in the sense that more samples of the
+> same run would raise deterministic skill, is **wrong** and is not claimed here.
+>
+> What the table below shows is narrower:
+>
+> - **Memorisation risk.** The sample count is two orders below what published diffusion recipes train on,
+>   which is a memorisation risk for a diffusion stage.
+> - **What is missing is variation.** For the owner's use case, predicting the effect of a parameter change
+>   or a scenario, the data has **no** variation at all, and no amount of volume supplies it. See
+>   `docs/research_notes/2026-09-30_topping_recipe_build_spec.md` §1.
 
 | | training samples | compute |
 |---|---|---|
