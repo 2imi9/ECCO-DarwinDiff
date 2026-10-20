@@ -57,10 +57,15 @@ validated operator maps it there.
 What the helper could legitimately give:
 
 1. **A second-sensor `R_PICPOC` anchor that extends Daniels coverage** — if, and only if, it
-   predicts `CP/PP` (not PIC) and beats the baselines in §4 at held-out in-situ stations. A
-   recovery re-run against it alone would be evidence from an independent instrument, which no
-   amount of new seeds on the Daniels data can supply. Note `southernoceanpac` has **zero** Daniels
-   cells, and that is exactly where satellite PIC is least trustworthy.
+   predicts `CP/PP` (not PIC) and beats the baselines in §4 at held-out in-situ stations. Note
+   `southernoceanpac` has **zero** Daniels cells, and that is exactly where satellite PIC is least
+   trustworthy.
+   **Independence depends on the labels, not the sensor.** A helper trained on Daniels rows is a
+   *derived retrieval* of the Daniels evidence: a recovery against it re-uses that evidence and must
+   not be described as corroboration. The independent-instrument claim is reserved for a helper
+   trained and validated on calcification-rate labels **disjoint from every Daniels row** (e.g.
+   Balch et al. 2025 GP19 and other non-Daniels cruises). If only Daniels-derived labels are
+   available, report the arm as a coverage extension, not a replication.
 2. **The roadmap C.1 channel** (PFT-resolved Chl, [cluster_roadmap.md](../cluster_roadmap.md)) —
    relevant to whether `diatomgraz`'s eqpac signal survives on independent real data.
 
@@ -162,28 +167,41 @@ are altered by sinking, grazing and dissolution (§3). Rerun on the AOI IC cache
 **Gate 1 — matchup count (hours, CPU).** Sentinel-3A launched February 2016; most of the Daniels
 compilation predates it. Count in-situ `CP/PP` (and calcification-rate) samples that fall inside the
 OLCI era and our AOIs: Daniels' post-2016 rows, Balch et al. 2025 GP19
-(10.1029/2024GB008457), and any other calcification-rate cruises. **If the count is too small for a
-held-out split (pre-register the threshold before counting), stop here** — the helper cannot be
-validated and must not be used as an anchor.
+(10.1029/2024GB008457), and any other calcification-rate cruises. Count **per AOI** and record, for
+each sample, whether it is a Daniels row (§3, independence). **Pre-register a per-AOI minimum
+held-out size before counting.** An AOI below it gets **no helper target**: its cells are masked out
+of the helper loss, whatever the pooled count says. This matters most for `southernoceanpac`, which
+has zero Daniels coverage and the least trustworthy satellite PIC. If no AOI clears the minimum,
+stop here — the helper cannot be validated and must not be used as an anchor.
 
 **Gate 2 — the matchup test (hours, 1 GPU).** Frozen Granite encoder + small head, trained on
 OLCI tiles at matchup stations, scored on **held-out stations** (spatial blocks, not random rows).
-It must beat, on the same held-out set:
+It must beat, on the same held-out set and **separately in every AOI that clears Gate 1**:
 
 - the trivial baseline (per-AOI climatological `CP/PP`);
-- the standard-product route (operational PIC and PP products → ratio);
+- the standard-product route, **only if it yields the same quantity**: operational PIC is a standing
+  stock and PP is a rate, so PIC/PP is not `CP/PP`. The baseline is the standard products passed
+  through a stock-to-rate operator (e.g. PIC × a turnover rate) calibrated on stations **outside**
+  the test set. If no such operator can be validated, report this baseline as unavailable rather
+  than substituting PIC/PP;
 - for the C.1 channel, the standard OLCI/OC-CCI chlorophyll and PFT products against in-situ HPLC.
 
 Report the error with uncertainty, and say in advance what margin counts as "beats". Under the repo's
-three-check rule a pass needs a **fresh** set of stations for replication, not a re-split.
+three-check rule a pass needs a **fresh** set of stations for replication, not a re-split. A pooled
+pass with a failing AOI does not license that AOI.
 
 **Gate 3 — only if Gate 2 passes.** Fine-tune Granite end to end (1 B200, hours). Consider OlmoEarth
 continued pretraining (node-days) only if Granite's 42×42 tiles or band set is shown to be the
-limitation.
+limitation. **The exact fine-tuned checkpoint must re-pass Gate 2** — held-out stations untouched by
+fine-tuning, per AOI, against the same baselines and margin, plus the fresh-station replication —
+before it may supply an anchor. If it does not, Gate 4 uses the frozen-encoder model that passed
+Gate 2, or nothing.
 
 **Gate 4 — use.** Re-run the flagship with the helper's `CP/PP` replacing Daniels (anchor-only
-swap, same job as its control), and once with both. Report per-AOI, with the untrained null, and
-`R_PICPOC` against the 6/50 epoch-matched anchor-off control.
+swap), and once with both, **in the same submission as a newly run anchor-off control**. Report
+per-AOI, with the untrained null, and grade `R_PICPOC` against that co-submitted control; the
+earlier 6/50 epoch-matched anchor-off result is historical context only, never the comparison.
+Helper targets apply only in AOIs that passed Gates 1–3.
 
 ## 5. Open risks
 
