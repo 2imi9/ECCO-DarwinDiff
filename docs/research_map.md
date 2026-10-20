@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (581 questions)
+## 1. SETTLED — do not re-derive (582 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -79,6 +79,7 @@ this table, it is done: say so and move on.
 | Can an outsider re-derive the flagship n=50 headline from the checkout? | No. .gitignore:54 excludes runs/, and a repo-wide search for `per_aoi_recovered` returns ZERO JSON files. The 25/50 trio number and every per-AOI tally exist only in prose. This also blocks US from computing the same-AOI co-recovery number… | `docs/research_notes/2026-07-25_deep_research_sweep.md` |
 | Can any estimator (EnKF, CES/EKI, history matching, KOH GP emulator, SINDy) break the rank-1 alpfe<->scav_rat structural null? | No. Five independent routes in — EnKF rank <= N-1, CES flat ridge, history-matching NROY ray, KOH theta-delta ridge, SINDy non-uniqueness — all hit the same wall. No estimator breaks a rank-1 structural null. Adopt EKI/CES as a diagnostic … | `docs/findings/2026-07-22_citation_method_lessons.md` |
 | Can any profile likelihood of scav_rat computed against `ScavClosure` say anything about its identifiability? | No. `src/darwindiff/closures.py:130` gives the closure a FREE multiplicative level `self.log_r0 = nn.Parameter(torch.tensor(math.log(base * self.POC0)))` (independently confirmed at that exact line), exactly redundant with `scav_rat`, so (… | `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md` |
+| Can any satellite observable, including iron-stress fluorescence, see the alpfe x scav_rat degenerate direction? | No. Extended Gate 0b screen (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes, 200- and 1460-step windows), +/-40% with alpfe and scav_rat scaled TOGETHER: Chl 0.0004-0.0083 dex, PIC/POC/PP/CP 0.0005-0.… | `docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md` |
 | Can bSi:POC anchor diatomgraz? | No, combination-only. Silicification IS the anti-grazing defense (Pancic 2019: 6x silica -> 4x less grazing), so diatom Si:C quota and grazing palatability push bSi the same way. Needs a diatom RATE anchor (32-Si production + dilution graz… | `docs/findings/2026-07-22_two_anchor_redteam.md` |
 | Can candidate observational anchors be screened before spending implementation days and cluster nights on them? | YES, symbolically. Structural identifiability is a property of the (model, observable set) pair, so adding a candidate observable to g and re-running assess_identifiability / find_identifiable_functions predicts in minutes whether that anc… | `docs/findings/2026-08-04_anchor_coverage_and_structural_identifiability.md` |
 | Can daily ECCO-Darwin v5 output replace monthly for the parameter learner? | No. Daily v5 is surface-2D only — 16 diagnostics (CO2_flux, O2_flux, SIarea, SIheff, SSSanom, SST, apCO2, pCO2, pH, surfChl1-5, surfDIC_tend, surfPCO2, wspeed). It does not contain the 3-D tracers the loss uses (POC, PIC, DIC, ALK, FeT, su… | LOCAL-ONLY source, not in the repo: 2026-06-06_daily_data_defer.md |

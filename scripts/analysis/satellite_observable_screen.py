@@ -18,7 +18,14 @@ Observables, all time-means over the window:
 * ``cp``     -- calcite production, R_PICPOC * M_tot
 * ``cp_pp``  -- ratio of the two means: the Daniels observation operator
 * ``pic_poc`` -- the standing-stock ratio a satellite PIC/POC pair would give
+* ``f_fe``   -- iron limitation DFe / (DFe + K_FE), the quantity a fluorescence quantum-yield
+  (iron-stress) retrieval proxies
 * ``dfe``    -- dissolved iron, NOT satellite-visible; the in-situ reference row
+
+Two combined columns follow the six parameters. ``alpfe+scav`` scales both by the same factor, the
+direction the iron degeneracy leaves free (``d log y/d log alpfe + d log y/d log scav_rat``);
+``alpfe-scav`` moves them in opposition, for contrast. An observable that cannot see ``alpfe+scav``
+cannot separate the pair, whatever its sensitivity to either parameter alone.
 
 The only measured noise floor in the repo is Chl, 0.130 dex (MODIS vs v05,
 ``docs/findings/2026-07-21_chl_binning_recompute.md``). PIC, PP and CP/PP floors are not yet sourced,
@@ -52,7 +59,7 @@ REGIMES: dict[str, float] = {
     "near-K_Fe": 1.0 * C.K_FE,
     "iron-replete": 10.0 * C.K_FE,
 }
-OBSERVABLES = ("chl", "pic", "poc", "pp", "cp", "cp_pp", "pic_poc", "dfe")
+OBSERVABLES = ("chl", "pic", "poc", "pp", "cp", "cp_pp", "pic_poc", "f_fe", "dfe")
 
 
 def time_mean_observables(
@@ -60,7 +67,7 @@ def time_mean_observables(
 ) -> torch.Tensor:
     params = torch.exp(log_params)
     s = torch.tensor([dfe0, 0.1, 0.1, 0.1, 0.01], dtype=torch.float64)
-    acc = torch.zeros(7, dtype=torch.float64)
+    acc = torch.zeros(8, dtype=torch.float64)
     for _ in range(n_steps):
         DFe, Ps, Pl, POC, PIC = s[0], s[1], s[2], s[3], s[4]
         f_fe = DFe / (DFe + C.K_FE)
@@ -71,11 +78,11 @@ def time_mean_observables(
             + params[P.diatomgraz] * C.G0_GRAZE * Pl
         )
         cp = params[P.R_PICPOC] * m_tot
-        acc = acc + torch.stack([Ps + Pl, PIC, POC, pp, cp, DFe, m_tot])
+        acc = acc + torch.stack([Ps + Pl, PIC, POC, pp, cp, DFe, m_tot, f_fe])
         s = torch.clamp(s + dt * C.carroll6_tendency(s, params), min=1e-12)
     m = acc / n_steps
-    chl, pic, poc, pp, cp, dfe = m[0], m[1], m[2], m[3], m[4], m[5]
-    return torch.stack([chl, pic, poc, pp, cp, cp / pp, pic / poc, dfe])
+    chl, pic, poc, pp, cp, dfe, f_fe_mean = m[0], m[1], m[2], m[3], m[4], m[5], m[7]
+    return torch.stack([chl, pic, poc, pp, cp, cp / pp, pic / poc, f_fe_mean, dfe])
 
 
 def main() -> int:
@@ -94,11 +101,14 @@ def main() -> int:
             lambda lp: torch.log(time_mean_observables(lp, dfe0, args.n_steps)), base
         )
         print(f"\n[{regime}]  DFe0 = {dfe0:.1e} mmol/m^3   signal in dex (* = above Chl floor)")
-        print(f"{'':>9}" + "".join(f"{n:>12}" for n in names))
+        cols = [*names, "alpfe+scav", "alpfe-scav"]
+        print(f"{'':>9}" + "".join(f"{n:>12}" for n in cols))
         for i, obs in enumerate(OBSERVABLES):
+            s_a, s_s = float(jac[i, P.alpfe]), float(jac[i, P.scav_rat])
+            sens = [float(jac[i, j]) for j in range(len(names))] + [s_a + s_s, s_a - s_s]
             row = ""
-            for j in range(len(names)):
-                sig = abs(float(jac[i, j])) * band_dex
+            for s in sens:
+                sig = abs(s) * band_dex
                 flag = "*" if sig > CHL_FLOOR_DEX else " "
                 row += f"{sig:>11.4f}{flag}"
             print(f"{obs:>9}" + row)

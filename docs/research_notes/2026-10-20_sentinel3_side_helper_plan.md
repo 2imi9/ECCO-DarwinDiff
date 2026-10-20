@@ -160,6 +160,31 @@ is not a true pre-registration):
   stays excluded.
 - **The `Biggrow` control** reads 0.03–0.07 dex: below the floor, as required, though not zero.
 
+**The degenerate direction, 2026-10-20 (same script, extended).** The screen also reports the signal
+when `alpfe` and `scav_rat` are scaled *together* (`alpfe+scav`, the direction the iron degeneracy
+leaves free) and in opposition (`alpfe-scav`), and adds `f_fe` = DFe/(DFe+K_FE), the quantity a
+fluorescence quantum-yield (iron-stress) retrieval proxies. Signal in dex, ±40%, same regimes and
+windows:
+
+| observable | `alpfe+scav` (degenerate) | `alpfe-scav` (contrast) |
+|---|---|---|
+| Chl | 0.0004–0.0083 | 0.051–0.072 |
+| PIC, POC, PP, CP | 0.0005–0.0124 | 0.077–0.107 |
+| `CP/PP`, PIC/POC | ≤0.0002 | ≤0.0006 |
+| `f_fe` (fluorescence proxy) | **0.0002–0.0051** | 0.036–0.043 |
+| DFe (in-situ ref.) | 0.0074–0.036 | **0.15–0.19** |
+
+- **No satellite observable sees the degenerate direction.** Every satellite row is 10× to over 600×
+  below the 0.130 dex floor along `alpfe+scav`. The fluorescence proxy is the weakest of all,
+  0.0002–0.0051 dex, 25× to 650× below. Iron-stress fluorescence measures the *degree* of iron
+  limitation, and that is what the degenerate direction holds fixed.
+- In this box the degeneracy is **approximate, not exact**: the degenerate signal is about 7× to 100×
+  smaller than the contrast signal, not zero, because the phytoplankton uptake term does not scale with
+  the pair. (The exact gauge symmetry is for the UDE's multiplicative sink,
+  `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md`.)
+- Even in-situ DFe sees the degenerate direction only at 0.007–0.036 dex, below the floor; it sees the
+  contrast direction clearly. Separating the pair needs a flux-partition observable, not a state.
+
 Caveats: a 0-D box on stylised regimes, not the flagship per-AOI geometry; in the box PIC and POC sink
 at the same rate, so PIC/POC equals `R_PICPOC` by construction, whereas real standing-stock ratios
 are altered by sinking, grazing and dissolution (§3). Rerun on the AOI IC caches when v05 is mounted.

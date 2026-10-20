@@ -7554,7 +7554,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101853,
+     "words": 101900,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -10029,7 +10029,7 @@
      "name": "2026-10-20_sentinel3_side_helper_plan.md",
      "date": "2026-10-20",
      "retracted": 0,
-     "words": 2239,
+     "words": 2477,
      "local_only": 0,
      "partly_superseded": 0
     }
@@ -15550,6 +15550,12 @@
      "question": "Is the daily staging actually complete?",
      "answer": "No. Expected 9860 records (iter 144 to 709992, stride 72). Actual .data files: surfChl1 9796, SST 9794, wspeed 9791 — each ~0.7% short, but MISSING DIFFERENT DAYS, so the 7-way intersection collapses to M=9392, losing 468 of 9860 (~4.7%). Same mechanism as the monthly mirror's 158-of-324. Changes nothing for Track 1; a bounded ~4% upside for Track 2 (re-score run already uses 6246 train / 2691 val pairs).",
      "doc": "docs/findings/2026-07-30_daily_archive_era_and_completeness.md",
+     "dont": ""
+    },
+    {
+     "question": "Can any satellite observable, including iron-stress fluorescence, see the alpfe x scav_rat degenerate direction?",
+     "answer": "No. Extended Gate 0b screen (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes, 200- and 1460-step windows), +/-40% with alpfe and scav_rat scaled TOGETHER: Chl 0.0004-0.0083 dex, PIC/POC/PP/CP 0.0005-0.0124, CP/PP and PIC/POC <=0.0002, and the f_Fe = DFe/(DFe+K_FE) fluorescence quantum-yield proxy 0.0002-0.0051 dex, 25x to 650x below the 0.130 dex floor and the weakest of all, because iron-stress fluorescence measures the degree of iron limitation, which the degenerate direction holds fixed. The same observables see the OPPOSED direction (alpfe up, scav_rat down) at 0.036-0.107 dex, so in this box the degeneracy is approximate (7x to 100x suppression), not exact; the exact gauge symmetry is for the UDE multiplicative sink. Even in-situ DFe sees the degenerate direction only at 0.007-0.036 dex. Separating the pair needs a flux-partition observable, not a state.",
+     "doc": "docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md",
      "dont": ""
     },
     {
@@ -40068,7 +40074,7 @@
   "evidence": 302,
   "hypothesis": 103,
   "parameter": 6,
-  "settled": 581,
+  "settled": 582,
   "supersedes": 305,
   "supports": 302,
   "trap": 262,
