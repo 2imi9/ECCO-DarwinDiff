@@ -7554,7 +7554,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101802,
+     "words": 101900,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -10021,6 +10021,15 @@
      "date": "2026-09-29",
      "retracted": 0,
      "words": 833,
+     "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md",
+     "name": "2026-10-20_sentinel3_side_helper_plan.md",
+     "date": "2026-10-20",
+     "retracted": 0,
+     "words": 2477,
      "local_only": 0,
      "partly_superseded": 0
     }
@@ -15544,6 +15553,12 @@
      "dont": ""
     },
     {
+     "question": "Can any satellite observable, including iron-stress fluorescence, see the alpfe x scav_rat degenerate direction?",
+     "answer": "No. Extended Gate 0b screen (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes, 200- and 1460-step windows), +/-40% with alpfe and scav_rat scaled TOGETHER: Chl 0.0004-0.0083 dex, PIC/POC/PP/CP 0.0005-0.0124, CP/PP and PIC/POC <=0.0002, and the f_Fe = DFe/(DFe+K_FE) fluorescence quantum-yield proxy 0.0002-0.0051 dex, 25x to 650x below the 0.130 dex floor and the weakest of all, because iron-stress fluorescence measures the degree of iron limitation, which the degenerate direction holds fixed. The same observables see the OPPOSED direction (alpfe up, scav_rat down) at 0.036-0.107 dex, so in this box the degeneracy is approximate (7x to 100x suppression), not exact; the exact gauge symmetry is for the UDE multiplicative sink. Even in-situ DFe sees the degenerate direction only at 0.007-0.036 dex. Separating the pair needs a flux-partition observable, not a state.",
+     "doc": "docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md",
+     "dont": ""
+    },
+    {
      "question": "Can any estimator (EnKF, CES/EKI, history matching, KOH GP emulator, SINDy) break the rank-1 alpfe<->scav_rat structural null?",
      "answer": "No. Five independent routes in — EnKF rank <= N-1, CES flat ridge, history-matching NROY ray, KOH theta-delta ridge, SINDy non-uniqueness — all hit the same wall. No estimator breaks a rank-1 structural null. Adopt EKI/CES as a diagnostic only, never as a recovery improvement. (Note: this is about ESTIMATORS. New out-of-manifold OBSERVATIONS do break it — see the two-anchor OSSE row.)",
      "doc": "docs/findings/2026-07-22_citation_method_lessons.md",
@@ -16249,6 +16264,12 @@
      "question": "Which covariate channels are safe to add to the DINN input, and which break R_PICPOC?",
      "answer": "Only MLD is safe. Single-covariate matrix (diatomgraz / R_PICPOC per-AOI, n=10): MLD 10/10 / 5/10 (→10/10 at DAN=8); wind 10/10 / 0/10; SSS 7/10 / 0/10; pCO2atm 8/10 / 3/10; CO2-flux 10/10 / 0/10. Every carbonate/salinity-linked covariate breaks R_PICPOC and 8× anchor weight does NOT rescue wind (0/10, median pinned at 0.21 ≈ 5× Carroll at every anchor weight).",
      "doc": "docs/findings/2026-07-23_rpicpoc_protection_result.md",
+     "dont": ""
+    },
+    {
+     "question": "Can a Sentinel-3 ocean-colour observable see each Carroll-6 parameter above retrieval noise?",
+     "answer": "Only R_PICPOC, and only just. Gate 0b pilot (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes because the AOI IC caches are not committed, 200- and 1460-step windows): a +/-40% change moves CP/PP and PIC/POC by 0.146 dex for R_PICPOC with essentially zero cross-sensitivity, only 1.1x the 0.130 dex Chl floor, so a satellite ratio product needs sigma <= ~0.146 dex to resolve the band at 1 sigma and ~0.073 dex at 2 sigma. Absolute PIC is NOT a usable R_PICPOC observable: it carries Smallgrow (0.18-0.21 dex) more strongly than R_PICPOC (0.144). alpfe, scav_rat and diatomgraz stay 2-5x below the floor in every satellite observable (Chl, PIC, POC, PP, ratios). Smallgrow's 0.18-0.21 dex in PIC/POC/PP is sensitivity, not identifiability: it enters only as Smallgrow x LIGHT, exactly degenerate with the light field. Biggrow control 0.03-0.07 dex, below floor.",
+     "doc": "docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md",
      "dont": ""
     },
     {
@@ -40049,11 +40070,11 @@
   "citation": 1,
   "claim": 593,
   "derives": 0,
-  "document": 310,
+  "document": 311,
   "evidence": 302,
   "hypothesis": 103,
   "parameter": 6,
-  "settled": 580,
+  "settled": 582,
   "supersedes": 305,
   "supports": 302,
   "trap": 262,

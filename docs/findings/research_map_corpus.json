@@ -2899,6 +2899,16 @@
       "question": "Do the raw run directories behind the paper's headline numbers still exist?",
       "answer": "Partly. A read-only listing on 2026-09-23 found every AICR /scratch/qi_zim_neu run directory the 2026-08-13 results manifest names there present but EMPTY after the 30-day purge: mvd and mvdrep (the R_PICPOC Daniels-vs-Marsh A/B, 50/50 -> 30/50 and 98/100 -> 50/100), sorep/so_rep and som (anchor and noanchor). Also empty: pcf (job 408789, the province run), alpfebound (job 276927), collapse, flagwin and kerg. Local copies survive for the flagship n50e2k_percell_trio, both anchor-off controls, collapse_n50, ctrl_n50, so_only, so_rep, som_anchor and the gs_obsonly priors, backed up to runs/_evidence_backup_2026-09-23/. Every lost run's graded counts remain in its finding note, and the province per-cell summaries are committed, so no number is lost, but those runs can no longer be re-graded from raw per-seed files.",
       "doc": "docs/findings/2026-09-23_aicr_scratch_purged_the_raw_evidence.md"
+    },
+    {
+      "question": "Can a Sentinel-3 ocean-colour observable see each Carroll-6 parameter above retrieval noise?",
+      "answer": "Only R_PICPOC, and only just. Gate 0b pilot (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes because the AOI IC caches are not committed, 200- and 1460-step windows): a +/-40% change moves CP/PP and PIC/POC by 0.146 dex for R_PICPOC with essentially zero cross-sensitivity, only 1.1x the 0.130 dex Chl floor, so a satellite ratio product needs sigma <= ~0.146 dex to resolve the band at 1 sigma and ~0.073 dex at 2 sigma. Absolute PIC is NOT a usable R_PICPOC observable: it carries Smallgrow (0.18-0.21 dex) more strongly than R_PICPOC (0.144). alpfe, scav_rat and diatomgraz stay 2-5x below the floor in every satellite observable (Chl, PIC, POC, PP, ratios). Smallgrow's 0.18-0.21 dex in PIC/POC/PP is sensitivity, not identifiability: it enters only as Smallgrow x LIGHT, exactly degenerate with the light field. Biggrow control 0.03-0.07 dex, below floor.",
+      "doc": "docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md"
+    },
+    {
+      "question": "Can any satellite observable, including iron-stress fluorescence, see the alpfe x scav_rat degenerate direction?",
+      "answer": "No. Extended Gate 0b screen (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes, 200- and 1460-step windows), +/-40% with alpfe and scav_rat scaled TOGETHER: Chl 0.0004-0.0083 dex, PIC/POC/PP/CP 0.0005-0.0124, CP/PP and PIC/POC <=0.0002, and the f_Fe = DFe/(DFe+K_FE) fluorescence quantum-yield proxy 0.0002-0.0051 dex, 25x to 650x below the 0.130 dex floor and the weakest of all, because iron-stress fluorescence measures the degree of iron limitation, which the degenerate direction holds fixed. The same observables see the OPPOSED direction (alpfe up, scav_rat down) at 0.036-0.107 dex, so in this box the degeneracy is approximate (7x to 100x suppression), not exact; the exact gauge symmetry is for the UDE multiplicative sink. Even in-situ DFe sees the degenerate direction only at 0.007-0.036 dex. Separating the pair needs a flux-partition observable, not a state.",
+      "doc": "docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md"
     }
   ],
   "claims": [
