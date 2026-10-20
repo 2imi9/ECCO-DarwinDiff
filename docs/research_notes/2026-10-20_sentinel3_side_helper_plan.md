@@ -72,6 +72,33 @@ Carroll outside eqpac. Any helper output used as a loss target must be derived f
 and in-situ labels only. The repo's forward/OSSE emulator (2026-07-11) is the place for the
 Weber & Kelp idea, not this helper.
 
+### 3a. How much information Sentinel-3 can carry, per parameter
+
+A foundation model cannot add information that is not in the radiance; it can only extract it. OLCI
+sees the upper optical layer (about one attenuation depth, a few metres to tens of metres):
+phytoplankton absorption (Chl), CDOM and particle backscatter, where coccolith calcite is a strong
+backscatterer. SLSTR adds SST. It does not see dissolved iron, nutrients, DIC/alkalinity, any rate,
+or anything below the optical layer.
+
+| parameter | what Sentinel-3 can carry | basis |
+|---|---|---|
+| `alpfe` | essentially none: DFe is invisible, and the only indirect route (Chl in HNLC regions) lies along the alpfe×sink degenerate direction | `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md` |
+| `scav_rat` | none: scavenging is subsurface | no optical signature |
+| `R_PICPOC` | **some**, the only parameter with a direct optical signal (calcite backscatter), but as a standing stock, not a production rate | `docs/research_notes/2026-07-23_expert_review_corrections.md` |
+| `diatomgraz` | none: 0 of 14 satellite PFT algorithms retrieve a rate; PACE adds composition, still no rate | `docs/research_notes/2026-07-20_external_validation_iron_residence_alpfe.md` |
+| `Smallgrow`, `Biggrow` | not applicable: excluded by construction | CLAUDE.md framing |
+
+Existing ocean-colour evidence agrees: MODIS Chl against v05 is unbiased in eqpac (inside the
+0.130 dex noise floor) and 5.0× low in the North Atlantic bloom
+(`docs/findings/2026-07-21_chl_binning_recompute.md`). That exposes a **structural** model error, not
+parameter information.
+
+**Consequence for this plan.** The helper's ceiling is `R_PICPOC`, which already recovers 50/50 with
+the Daniels anchor. Its value is an independent-instrument replication and wider coverage, not new
+identifiability. For the hard parameters (`scav_rat`, `diatomgraz`) the information is in in-situ
+data (GEOTRACES DFe, thorium, BGC-Argo), not in ocean colour. Gate 0b below tests this table
+quantitatively before any ML.
+
 ## 4. Gates — each must pass before the next is funded
 
 **Gate 0 — symbolic screen (minutes, laptop).** Add the candidate observable to the structural
@@ -79,6 +106,58 @@ identifiability analysis (`docs/findings/2026-08-04_anchor_coverage_and_structur
 Validate first on the known flip: with and without Daniels, `R_PICPOC` must go non-identifiable →
 identifiable. Then check that a standing-stock PIC observable, and a `CP/PP` observable, each make
 `R_PICPOC` identifiable. If PIC does not, drop it and keep only the `CP/PP` route.
+
+**Gate 0b — sensitivity against retrieval noise (about an hour, laptop).** Structural
+identifiability says whether a parameter *can* be seen; this gate asks whether Sentinel-3 can see it
+*above its own noise*. For each candidate surface observable `y` (Chl, PIC, `CP/PP`, PP) and **all six**
+Carroll parameters `θ` (the excluded growth pair included as a control: `Biggrow` is unobservable by
+construction and should read near zero, so a large value there flags a broken computation), using the differentiable box with autograd at Carroll's values, per AOI:
+
+1. compute the log-sensitivity `s = |∂log y / ∂log θ|`;
+2. form the signal `Δlog y ≈ s · log(1.4)`, the response to a ±40% change in `θ` (the pass band);
+3. compare it with the retrieval error σ in log units: 0.130 dex for Chl (the MODIS noise floor
+   measured in this repo), and the published algorithm error for PIC and PP, converted to dex.
+
+A parameter whose signal is below σ in every AOI is declared **not visible to Sentinel-3** and dropped
+from the plan. Pre-register the expected outcome from §3a: `R_PICPOC` above σ (PIC, `CP/PP`), every
+other parameter below. This needs only the Jacobian of one observable, not an inverted Hessian
+(the finite-difference Hessian at Carroll is indefinite and is not used here). If `R_PICPOC` itself
+falls below σ, close the plan.
+
+**Pilot run, 2026-10-20** (`scripts/analysis/satellite_observable_screen.py`). The AOI IC caches are
+not committed (they are built from the offline v05 archive), so this ran three stylised iron regimes
+(initial DFe 0.4×, 1×, 10× `K_FE`) on the default background constants, at the flagship 200-step
+window and at 1460 steps. Signal in dex for a ±40% parameter change; σ reference 0.130 dex. Ranges
+are min–max over the three regimes and both windows:
+
+| observable | `alpfe` | `scav_rat` | `Smallgrow` | `Biggrow` | `diatomgraz` | `R_PICPOC` |
+|---|---|---|---|---|---|---|
+| Chl | 0.025–0.038 | 0.024–0.034 | 0.076–0.097 | 0.055–0.074 | 0.040–0.057 | 0.000 |
+| PIC (absolute) | 0.037–0.057 | 0.038–0.050 | **0.18–0.21** | 0.035–0.042 | 0.020–0.028 | **0.144–0.146** |
+| PP | 0.042–0.057 | 0.041–0.050 | **0.18–0.20** | 0.037–0.042 | 0.022–0.028 | 0.000 |
+| `CP/PP` | ≤0.0002 | ≤0.0001 | ≤0.0035 | ≤0.0014 | ≤0.0013 | **0.146** |
+| PIC/POC | ≤0.0004 | ≤0.0003 | ≤0.0015 | ≤0.0003 | ≤0.0001 | **0.144–0.146** |
+| DFe (in-situ ref.) | 0.079–0.115 | 0.072–0.087 | 0.17–0.20 | 0.027–0.044 | 0.012–0.029 | 0.000 |
+
+What it says (the expected outcome above was written before this run, but in the same session, so it
+is not a true pre-registration):
+
+- **`R_PICPOC` is visible, but only just.** The two ratios carry it with log-sensitivity exactly 1
+  and essentially nothing from any other parameter, so they isolate it cleanly. Absolute PIC does
+  not: it carries `Smallgrow` more strongly than `R_PICPOC`. **Use a ratio product, never absolute
+  PIC.** A band-sized change moves the ratio 0.146 dex, only 1.1× the Chl floor, so the satellite
+  ratio needs σ ≲ 0.146 dex (≈40%) to resolve the band at 1σ and ≲ 0.073 dex (≈18%) at 2σ.
+- **`alpfe`, `scav_rat`, `diatomgraz` are below the floor in every satellite observable**, by 2–5×.
+  §3a holds.
+- **`Smallgrow` is the exception: PIC, POC and PP move 0.18–0.21 dex.** This is sensitivity, not
+  identifiability. In the box `Smallgrow` enters only as the product `Smallgrow × LIGHT`, so a
+  satellite signal in PP is exactly degenerate with an error in the light field. The growth pair
+  stays excluded.
+- **The `Biggrow` control** reads 0.03–0.07 dex: below the floor, as required, though not zero.
+
+Caveats: a 0-D box on stylised regimes, not the flagship per-AOI geometry; in the box PIC and POC sink
+at the same rate, so PIC/POC equals `R_PICPOC` by construction, whereas real standing-stock ratios
+are altered by sinking, grazing and dissolution (§3). Rerun on the AOI IC caches when v05 is mounted.
 
 **Gate 1 — matchup count (hours, CPU).** Sentinel-3A launched February 2016; most of the Daniels
 compilation predates it. Count in-situ `CP/PP` (and calcification-rate) samples that fall inside the

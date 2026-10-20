@@ -7554,7 +7554,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101802,
+     "words": 101853,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -10029,7 +10029,7 @@
      "name": "2026-10-20_sentinel3_side_helper_plan.md",
      "date": "2026-10-20",
      "retracted": 0,
-     "words": 1058,
+     "words": 1977,
      "local_only": 0,
      "partly_superseded": 0
     }
@@ -16258,6 +16258,12 @@
      "question": "Which covariate channels are safe to add to the DINN input, and which break R_PICPOC?",
      "answer": "Only MLD is safe. Single-covariate matrix (diatomgraz / R_PICPOC per-AOI, n=10): MLD 10/10 / 5/10 (→10/10 at DAN=8); wind 10/10 / 0/10; SSS 7/10 / 0/10; pCO2atm 8/10 / 3/10; CO2-flux 10/10 / 0/10. Every carbonate/salinity-linked covariate breaks R_PICPOC and 8× anchor weight does NOT rescue wind (0/10, median pinned at 0.21 ≈ 5× Carroll at every anchor weight).",
      "doc": "docs/findings/2026-07-23_rpicpoc_protection_result.md",
+     "dont": ""
+    },
+    {
+     "question": "Can a Sentinel-3 ocean-colour observable see each Carroll-6 parameter above retrieval noise?",
+     "answer": "Only R_PICPOC, and only just. Gate 0b pilot (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes because the AOI IC caches are not committed, 200- and 1460-step windows): a +/-40% change moves CP/PP and PIC/POC by 0.146 dex for R_PICPOC with essentially zero cross-sensitivity, only 1.1x the 0.130 dex Chl floor, so a satellite ratio product needs sigma <= ~0.146 dex to resolve the band at 1 sigma and ~0.073 dex at 2 sigma. Absolute PIC is NOT a usable R_PICPOC observable: it carries Smallgrow (0.18-0.21 dex) more strongly than R_PICPOC (0.144). alpfe, scav_rat and diatomgraz stay 2-5x below the floor in every satellite observable (Chl, PIC, POC, PP, ratios). Smallgrow's 0.18-0.21 dex in PIC/POC/PP is sensitivity, not identifiability: it enters only as Smallgrow x LIGHT, exactly degenerate with the light field. Biggrow control 0.03-0.07 dex, below floor.",
+     "doc": "docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md",
      "dont": ""
     },
     {
@@ -40062,7 +40068,7 @@
   "evidence": 302,
   "hypothesis": 103,
   "parameter": 6,
-  "settled": 580,
+  "settled": 581,
   "supersedes": 305,
   "supports": 302,
   "trap": 262,

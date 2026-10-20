@@ -46,7 +46,7 @@ example that completed on 2026-07-31.
 
 ---
 
-## 1. SETTLED — do not re-derive (580 questions)
+## 1. SETTLED — do not re-derive (581 questions)
 
 **Check here first.** Each row is a question with an answer already on disk. If your task is in
 this table, it is done: say so and move on.
@@ -70,6 +70,7 @@ this table, it is done: say so and move on.
 | Can a cleanly powered within-region calcite E2 test ever be run in eqpac? | No — structurally impossible. Within-region Omega range is <=0.16 dex and pooling biomes turns the Omega-band hold-out into between-biome extrapolation (Simpson confound). n_val = 6. The verdict is 'decisive at the available power', not a … | `docs/findings/2026-07-10_e2_powered_result.md` |
 | Can a global-scalar architecture ever win a cross-validated observations-only claim? | No, by construction at any data volume. Global-scalar produces a spatially uniform anomaly, and `anomaly_masked_r2` scores against the constant train mean, so it cannot beat that null. Per-cell could give held-out spatial skill but is cove… | `docs/findings/2026-07-28_project_evidence_matrix.md` |
 | Can a re-score of the daily emulator be done without retraining? | Yes. emulator_poc.py --load-model restores weights and standardization statistics and skips training; it reproduced daily_train.json exactly (0.40769555 -> +0.4077) with standardization reproduced to 2.20e-07 sigma. The loader aborts rathe… | `docs/findings/2026-07-30_daily_emulator_rescored_vs_ar1.md` |
+| Can a Sentinel-3 ocean-colour observable see each Carroll-6 parameter above retrieval noise? | Only R_PICPOC, and only just. Gate 0b pilot (scripts/analysis/satellite_observable_screen.py, 0-D box, three stylised iron regimes because the AOI IC caches are not committed, 200- and 1460-step windows): a +/-40% change moves CP/PP and PI… | `docs/research_notes/2026-10-20_sentinel3_side_helper_plan.md` |
 | Can a source-side (dust) anchor move scav_rat? | No. Dust-anchor A/B on B200 at n=10, both configs verify_run exit 0: scav_rat 0/10 in BOTH arms, medians 3.76e-7 (W=0) vs 3.75e-7 (+dust W=5) against Carroll 6.03e-7. The source anchor cannot move the sink leg; that needs a separate Phase-… | `docs/findings/2026-07-22_dust_anchor_ab_b200.md` |
 | Can a synthetic self-twin validate the E2 thesis? | No - it validates the MACHINERY only. The closure is per-cell in env g(env), so held-out recovery comes from env-INTERPOLATION, not 'transport closes the surrogate gap', and a flexible closure can absorb transport differences. The K_num ab… | `docs/research_notes/2026-07-07_deep_review_e2_readiness.md` |
 | Can a UDE or any learned closure break the alpfe/scav_rat degeneracy? | No, and this is provable. Write the sink as S(x) = r0 * g_theta(x) for ANY g: S is homogeneous of degree one in r0, so (alpfe, r0) -> (lambda*alpfe, lambda*r0) leaves the predicted dissolved-iron field unchanged. A network inside a multipl… | `docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md` |
