@@ -3,7 +3,7 @@
 Produced 2026-07-29 by an adversarially-verified 5-topic audit (11 agents). Prompted by the question:
 we pitch that adding parameters is easy AND we are proposing a UDE, and those may not sit together.
 Companions: [`2026-07-28_session_evidence_log.md`](2026-07-28_session_evidence_log.md),
-[`2026-07-29_jon_reply_crosscheck.md`](2026-07-29_jon_reply_crosscheck.md).
+`2026-07-29_jon_reply_crosscheck.md` (local only).
 
 
 # Does the UDE break our scaling pitch?

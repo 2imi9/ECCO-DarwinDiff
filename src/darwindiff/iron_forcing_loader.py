@@ -3,11 +3,10 @@
 Track-2 replaces the 0-D box's **constant scalar** ``PHI_DUST = 5e-5`` with the
 **spatial** soluble-iron deposition field that ECCO-Darwin v05 is actually forced
 by -- the Mahowald-2009 product ``llc270_Mahowald_2009_soluble_iron_dust.bin``.
-This is the load-bearing forcing fix from the 2026-07-07 Jon+Schultz meeting:
-"ECCO-Darwin already contains the spatial variability [in the forcing field]" --
-so the spatial iron structure belongs in the *forcing*, while ``alpfe`` stays a
-(near-unity) global scalar. See
-``docs/findings/2026-07-07_jon_schultz_meeting_capture.md`` and STATUS.md Track 2.
+This is the load-bearing forcing fix from the 2026-07-07 Jon+Schultz meeting: ECCO-Darwin
+already contains the spatial variability in the forcing field, so the spatial iron structure
+belongs in the *forcing*, while ``alpfe`` stays a (near-unity) global scalar. See STATUS.md
+Track 2 (the meeting notes themselves are kept locally).
 
 **The file.** v05 ``data.darwin`` sets::
 

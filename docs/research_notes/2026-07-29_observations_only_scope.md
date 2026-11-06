@@ -1,10 +1,10 @@
 # Observations-only Track-1 closeout — scope, feasibility, pre-registration
 
 **Date:** 2026-07-29 · **Status:** design + feasibility only, nothing launched · **Prescription:**
-J. Lauderdale, captured in [`docs/findings/2026-07-29_lauderdale_answers.md:31-36`](../findings/2026-07-29_lauderdale_answers.md)
+J. Lauderdale (emailed 2026-07-28; the email is kept in a local-only note)
 
-> "This work is great. I think what would wrap up track 1 is dropping the ECCO-Darwin model output
-> and just trying to fit observations."
+> Paraphrase of the email: Track 1 would be wrapped up by removing the ECCO-Darwin model output as a
+> target and fitting observations alone.
 
 `README.md:26-27` states the study is a *"consistency check against Carroll's published values, not a
 cross-validated discovery — the 0-D box homogenizes, so held-out real-data R² is negative."* Dropping

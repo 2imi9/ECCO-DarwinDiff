@@ -489,8 +489,8 @@ should be stated explicitly in the manuscript rather than left implicit.
 
 ## A6. ANSWER to Jon's open question: the three R_PICPOC values, and which one runs
 
-Jon (email, 2026-07-28): *"I actually notice three rain ratio values in data.darwin and data.traits,
-and I'm not sure which are used."* Resolved first-hand against the cloned v05 config and the pinned
+Jon's question (email, 2026-07-28, paraphrased): three rain ratio values appear in data.darwin and
+data.traits, so which of them is used? Resolved first-hand against the cloned v05 config and the pinned
 `darwin3` source (`24885b71`) on AICR.
 
 **The three values:**
@@ -684,8 +684,8 @@ the wrong null. This is now a documented requirement in CONTRIBUTING.md.
 
 ## G5. OBSERVATIONS-ONLY run, re-graded against the measured baseline (answers Jon's directive)
 
-Jon (2026-07-28): *"what would wrap up track 1 is dropping the ECCO-Darwin model output and just
-trying to fit observations."* That configuration **already exists and has been run at n=50**
+Jon's directive (2026-07-28, paraphrased): wrap up Track 1 by removing the ECCO-Darwin model output as
+a target and fitting observations alone. That configuration **already exists and has been run at n=50**
 (`coord_anchors_pinnOFF`, Explorer). It had never been graded against a measured untrained baseline.
 Done here, zero new compute.
 

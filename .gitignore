@@ -105,6 +105,26 @@ scripts/overnight_log.txt
 /docs/research_notes/2026-05-23_overnight_executed.md
 /docs/research_notes/2026-06-06_daily_data_defer.md
 
+# Mentor correspondence: what they wrote or said, the replies and drafts to them, and the material
+# prepared for conversations with them. Kept on disk, never tracked. The technical notes that
+# used to quote them (2026-07-28_session_evidence_log, 2026-07-29_observations_only_scope,
+# 2026-08-12_darwin_traits_echo_file_located) stay tracked with the quoted words removed.
+/docs/findings/2026-07-07_jon_schultz_meeting_capture.md
+/docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md
+/docs/findings/2026-07-29_jon_reply_crosscheck.md
+/docs/findings/2026-07-29_lauderdale_answers.md
+/docs/findings/2026-08-12_lauderdale_answers_round2.md
+/docs/research_notes/2026-07-07_jon_questions_track2.md
+/docs/research_notes/2026-07-21_jon_update.md
+/docs/research_notes/2026-07-21_jon_update_presenting_script.md
+/docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md
+/docs/research_notes/2026-07-30_jon_followup_SENT.md
+/docs/research_notes/2026-08-12_jon_reply_pavia_DRAFT.md
+/docs/research_notes/2026-08-12_jon_reply_round2_DRAFT.md
+/docs/research_notes/2026-08-12_pavia_thorium_lead.md
+/docs/research_notes/2026-08-13_jon_reply_pavia_DRAFT.md
+/docs/archive/findings/modis_arc/meeting_deck_2026_05_lauderdale.md
+
 # Draft manuscript — kept local + in git history, not in the public default tree
 /docs/paper/
 

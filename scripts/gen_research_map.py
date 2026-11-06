@@ -21,7 +21,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from research_map_db import LOCAL_ONLY_DOCS  # the declared gitignored notes
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-#: Basenames of the seven notes that are gitignored ON PURPOSE. Only these may render as
+#: Basenames of the declared notes that are gitignored ON PURPOSE. Only these may render as
 #: "LOCAL-ONLY"; any other untracked name is a typo or a rename and must say so.
 LOCAL_ONLY_NAMES = {p.rsplit("/", 1)[1] for p in LOCAL_ONLY_DOCS}
 #: Marker for a cited name that is neither tracked nor declared local-only. research_map_db.py

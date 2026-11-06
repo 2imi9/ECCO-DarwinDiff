@@ -55,7 +55,7 @@
   "its own coverage line for this reason.",
   "* DOCUMENT is built from `git ls-files` plus the declared LOCAL_ONLY_DOCS, never from a disk",
   "walk. Enumerating from disk made the orphan constraint pass on the author's machine and fail",
-  "in CI, where the seven gitignored notes do not exist. The mirror is now byte-identical from a",
+  "in CI, where the gitignored notes do not exist. The mirror is now byte-identical from a",
   "tracked-files-only checkout, which is the negative control ADR-0004 asks for."
  ],
  "schema": {
@@ -115,7 +115,7 @@
      "detail": "An explanatory reading of a flat profile that would otherwise be read as failure; the honesty caveat is attached because the diagnostic cannot yet separate the two readings.",
      "n": "",
      "null_baseline": "profile-likelihood span 0.0235 (the 2026-07-19 diagnostic, reported in the 2026-07-20 architecture note) while alpfe recovers 9-10/10",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md, docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
+     "doc": "docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -139,7 +139,7 @@
      "detail": "Inference to the best explanation of a surprise (flat calcifier fraction under a 113x bulk spread). Its corroboration - that USE_ENV_RAIN_RATIO reproduced the spread while cocco-only gating did not - is RETRODICTION, not a tested novel prediction; the measured refutation half is what carries the row.",
      "n": "",
      "null_baseline": "calcifier fraction 1.4x spread (0.153/0.134/0.109); bulk PIC:POC 113x (0.034/0.729/0.006); implied per-calcifier R 92x (0.22/5.4/0.06); Chl2-PIC correlation r=0.50 eqpac, r=0.73 SO",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "data"
     },
@@ -163,7 +163,7 @@
      "detail": "Proposed to explain why diatomgraz counts were high and unstable; confirmed by a control the explanation was not built from (the architecture-matched untrained run).",
      "n": "",
      "null_baseline": "diatomgraz scores 0.640 untrained at n=50 (job 227777). The 35/50 'non-circular handle' result is P = 0.447 against an architecture-matched untrained baseline of 34/50 (MLD_CHANNEL=1, job 227876) - it beats an untrained network by ONE seed. The obs-only 11/50 is BELOW chance (lower-tail P = 1.6e-09).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -367,7 +367,7 @@
      "detail": "The single-box steady-state degeneracy argument predicted the residence-time response; an independent published controlled experiment, not designed to test our framing, matched it.",
      "n": "",
      "null_baseline": "source varied ~5x -> tau x4.8. The doc states this 'lands right on our prediction' but does not print the predicted number, so do not quote one.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "data"
     },
@@ -487,7 +487,7 @@
      "detail": "Inference to the best explanation of the FeMIP spread, and it made a prediction (Somes' controlled experiment) it was not built to explain, which landed.",
      "n": "",
      "null_baseline": "Tagliabue 2016 Table 2 (13 models): residence time 3.7 → 626 yr (169×), mean concentration 0.58 ± 0.14 nM (~24%), total input flux ~140× (sediment 0-194 Gmol/yr). τ = inventory/input reproduces every model's τ exactly; 169× = 130× input × 1.3× inventory. Somes 2021: vary combined atmospheric+sedimentary source ~5×, retune scavenging to hold concentration → τ ×4.8 (predicted). Not a provable true negative on the literature search; Schartau 2017 uses the vocabulary in marine-ecosystem calibration generally but not for the iron cycle.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "track1"
     },
@@ -595,7 +595,7 @@
      "detail": "Proposed as the best explanation of the per-cell pattern; it makes a prediction (transport homogenizes the spatial rates) that has NOT been tested for the iron pair, so it is not yet a result.",
      "n": "",
      "null_baseline": "The iron/scav_rat/R_PICPOC transport-homogenization gate has NOT been run. A different E2 - the calcite closure through prescribed transport - WAS run and returned a decisive out-of-sample negative (regularized: learned -0.05 vs null +0.50, delta -0.55, flat K_num ladder; 10-seed replication, learned loses in every seed; docs/findings/2026-07-10_e2_powered_result.md, which states 'the E2 was not run for' iron).",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "method"
     },
@@ -655,7 +655,7 @@
      "detail": "An explanation of a robust negative supplied from outside (Jon), which upgrades the finding rather than weakening it - but it has never been tested against dissolution or export. Language fix required: 'Omega does not predict the surface calcite PRODUCTION ratio'.",
      "n": "",
      "null_baseline": "Every Omega test ran against the surface calcite PRODUCTION ratio (Daniels/Marsh CP:PP); src/darwindiff/closures.py:35-41 confirms the learned closure's drivers feed PIC production. The null: swapping the env source from Marsh in-situ to GLODAPv2.2016b flips the N. Atlantic bloom from +0.69 to -2.27; the two Omega sources agree only at r = 0.24; point-level corr(log ratio, in-situ Omega) = 0.011.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "method"
     },
@@ -1255,7 +1255,7 @@
      "detail": "The logical gap between what was tested and what matters follows from the form of the correction; no new data is needed to see the test is not decisive.",
      "n": "",
      "null_baseline": "The eliminated per-cell/location-indexed constant-bias field explained only ~0.22% of held-out variance. A flat 2-D FFT on a curved, land-masked grid produces a state-dependent boundary-concentrated bias (Spherical-FNO diagnosis) that a CONSTANT per-cell correction cannot capture, so 0.22% does not rule it out. The direct test failed for want of data: the global geographic cube is no longer on disk and the AOI cubes have a non-geographic layout.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "track2"
     },
@@ -1423,7 +1423,7 @@
      "detail": "An algebraic identity checked against a published table - verifiable by inspection without new data.",
      "n": "",
      "null_baseline": "Tagliabue 2016 FeMIP Table 2, all 13 models: concentration agreed to ~2x, residence time roams 169x = ~130x (input) x ~1.3x (inventory). Sedimentary iron source spans 0 to 194 Gmol/yr across models, all landing near 0.5 nM. Honesty caveat: Tagliabue's full text was paywalled, so this rests on Table 2 plus the internal identity check.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "data"
     },
@@ -1447,7 +1447,7 @@
      "detail": "Follows from what the observable measures; a bulk quantity cannot resolve a per-group rate pair.",
      "n": "",
      "null_baseline": "the standing ask is a size-fractionated or per-class chlorophyll product for the 2003-2018 era",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "",
      "track": "data"
     },
@@ -1555,7 +1555,7 @@
      "detail": "The cancellation is algebra on the model's own sink term, checkable by inspection with no new data.",
      "n": "",
      "null_baseline": "pFe := scav_rat*DFe*POC/W_SINK, so pFe/DFe = scav_rat*POC/W_SINK; the reported '~14x tighter' was a grid-and-threshold artifact. Real-data context: GEOTRACES IDP2025 surface <=50 m, QC {49,50} - 76 global and 4 eqpac samples carry both Fe_TP and Fe_D, 130 global and 0 eqpac carry Fe_TPL and Fe_D; log10 span of pFe/DFe is 2.59 (Fe_TP) and 3.69 (Fe_TPL). The 76 is a strict same-station same-sample-index match against 273 total surface Fe_TP samples - a floor on co-location, not a count of ocean locations.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "scav_rat",
      "track": "track1"
     },
@@ -1567,7 +1567,7 @@
      "detail": "A statement about what an architecture ablation can and cannot license; it looks like support and is not.",
      "n": "",
      "null_baseline": "the real regional evidence is independent: Daniels CP:PP puts the equatorial Pacific ~1.6x the global mean, and Sarmiento 2002 spans 20 to 30x regionally.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "",
      "track": "data"
     },
@@ -1603,7 +1603,7 @@
      "detail": "Needing per-cell structure to recover a scalar is not the same as measuring regional structure - an inference about the estimator, checkable without new data.",
      "n": "",
      "null_baseline": "trio 25/50 vs 0/50 and R_PICPOC 50/50 vs 0/50 must NOT be sent as support for regional variation. At uniform Carroll the 0-D box relaxes to a near-uniform state (tracer CV ~1e-15 against Darwin's O(1)). The legitimate regional evidence is Daniels: eqpac surface geomean ~0.039, about 1.6x the global 0.025; Sarmiento 2002 Table 3 spans 20-30x regionally.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "track1"
     },
@@ -1783,7 +1783,7 @@
      "detail": "Derived algebraically from the box steady state; checkable without new data.",
      "n": "",
      "null_baseline": "Rank-1. Independently re-derived. Detail in docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md. Corroborated by the OSSE's box Fisher eigenvalues [800, 2.8e-14].",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "data"
     },
@@ -2119,7 +2119,7 @@
      "detail": "Established by reading Darwin3 docs, the v05/v06 config decks and our own source lines - checkable by inspection, no new data.",
      "n": "",
      "null_baseline": "PHI_DUST = 5e-5 (carroll6.py:68); alpfe bounds 0.05-1.0, Carroll 0.928 (carroll6.py:119-123); v05 ironfile = llc270_Mahowald_2009_soluble_iron_dust.bin; v06 alpfe = 1.0",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -2155,7 +2155,7 @@
      "detail": "A property of the v05 code version, checkable by inspection; it reframes an existing null.",
      "n": "",
      "null_baseline": "the Omega-dependent dissolution modes are a later darwin3 addition. Our own box does the same between 50 and 1000 m; the default Kdissc looks roughly an order of magnitude fast. Consequence: an Omega null tested against the surface PRODUCTION ratio is what you would expect, not a data problem.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "",
      "track": "method"
     },
@@ -2167,7 +2167,7 @@
      "detail": "A source-precedence argument plus a live file disagreement; both checkable by reading, no run needed.",
      "n": "",
      "null_baseline": "data.traits line 92 under &DARWIN_TRAITS: R_PICPOC = 0.0, 2*4.1886E-2, 4*0.0 (types 2 and 3 are the calcifiers, the other five carry 0.0). darwin_init_fixed.F: DARWIN_GENERATE_RANDOM at line 357 fills from val_R_PICPOC, DARWIN_READ_TRAITS at line 382 overwrites. Pinned darwin3 source 24885b71. Carroll's published 0.04245 vs v05's 0.0418860 is ~1.4%.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -2203,7 +2203,7 @@
      "detail": "A code-vs-code comparison; no data needed. It raises a test never run.",
      "n": "",
      "null_baseline": "src/darwindiff/carroll6_5pft.py:22-40 states the 'Option A' choice: Smallgrow is learned on Pro-HL specifically and Biggrow on other large eukaryotes specifically, 'instead of an average over multiple species'; :107-109 freeze the non-learned PFTs at Carroll's optima. In the production two-layer box only mu_proHL = params[I_SMALLGROW] and mu_lge = params[I_BIGGROW] are learned; diatoms, Syn and Pro-LL run frozen with Syn and Pro-LL sharing an identical rate. In Darwin they are GEIDER size-class scalars with a spread (Smallgrow, Biggrow, Smallgrowrange, Biggrowrange in PCMAX / data.traits).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "smallgrow",
      "track": "track1"
     },
@@ -2215,7 +2215,7 @@
      "detail": "A scope audit of what was run vs what is claimed; checkable by reading the experiment list.",
      "n": "",
      "null_baseline": "The horizontal gradient is what Somes 2021 and our own STATUS.md:375 argument actually invoke. The two get conflated in our own wording and a referee will catch it.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "data"
     },
@@ -2323,7 +2323,7 @@
      "detail": "The conclusion follows from the source, but the direct empirical check is outstanding and is explicitly flagged as a caveat.",
      "n": "",
      "null_baseline": "the argument is source precedence + file disagreement; STDOUT.0000 has not been grepped on a real run. A one-command script exists.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -2599,7 +2599,7 @@
      "detail": "Source-order inspection of the pinned darwin3 commit 24885b71 plus a file disagreement; no run needed. Caveat: no STDOUT.0000 namelist echo observed. Strengthened later (2026-07-30_rain_ratio_which_value_is_live.md): 0.04245 is UNREACHABLE under v05's compile flags, not merely overwritten.",
      "n": "",
      "null_baseline": "darwin_init_fixed.F: DARWIN_GENERATE_RANDOM at line 357, DARWIN_READ_TRAITS last at line 382. Array reads R_PICPOC = 0.0, 2*4.188600000000000E-002, 4*0.0. Loaded 0.0418860 vs published 0.04245 = 1.35% difference.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -2791,7 +2791,7 @@
      "detail": "Follows from the sampling density itself - a field with ~2% coverage cannot verify a field, by construction.",
      "n": "",
      "null_baseline": "~16k dFe points IDP2021, ~70% in upper 500 m, SO austral winter essentially unsampled; surface cells eqpac 25, N.Atlantic 13, S.Ocean 14; globally ~2% coverage",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "data"
     },
@@ -2827,7 +2827,7 @@
      "detail": "Read off the closure's own inputs.",
      "n": "",
      "null_baseline": "src/darwindiff/closures.py, EnvCalciteClosure.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "",
      "track": "data"
     },
@@ -2971,7 +2971,7 @@
      "detail": "Follows from what the metric IS - landing inside a +/-40% band around a published value cannot be a discovery about the ocean.",
      "n": "",
      "null_baseline": "Ranked gap #1, 'blocks the central claim'. The one held-out real-data GEOTRACES test returns negative R2 because the 0-D box homogenizes (docs/results_matrix.md:103-108). Issue #163 OPEN. Machinery exists: GEOTRACES_HOLDOUT_FRAC at runner:299, src/darwindiff/held_out_obs.py.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "method"
     },
@@ -2983,7 +2983,7 @@
      "detail": "The split is predicted by Darwin's own parameter algebra (which symbol multiplies a constant vs a field), so it follows from structure rather than from the fit.",
      "n": "",
      "null_baseline": "alpfe global-scalar 10/10; scav_rat per-cell 8/10 vs global 0/10; R_PICPOC per-cell 9/10 vs global 0/10",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -3019,7 +3019,7 @@
      "detail": "Statement ordering in source code, checkable by inspection.",
      "n": "",
      "null_baseline": "darwin_generate_phyto.F lines 476-486 (v04/llc270_JAMES_paper, 782 lines, fetched from MITgcm-contrib/ecco_darwin@master): 477 val_R_PICPOC for diacoc==2; 479 0.0 for non-calcifiers; 484 0.04245 for np=2,3,8; 485 0.133 COMMENTED OUT (labelled 'GF optizm run ag4').",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -3031,7 +3031,7 @@
      "detail": "Read directly from the namelists; a shape mismatch, not a measurement.",
      "n": "",
      "null_baseline": "v06/llc270/input_darwin/data.darwin:223 a_R_PICPOC(:) = 2*4.19E-2,1*0.05,3*4.19E-2 -> [0.0419, 0.0419, 0.05, 0.0419, 0.0419, 0.0419]. v05 data.traits:7 HASPIC = 0, 2*1, 4*0 (2 of 7 types calcify); v05 data.traits:36 R_PICPOC = 0.0, 2*4.1886E-2, 4*0.0.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -3211,7 +3211,7 @@
      "detail": "Inspection of the model source against the GCM's parameter inventory.",
      "n": "",
      "null_baseline": "src/darwindiff/carroll6.py:286. Darwin's own iron cycle carries 11 tunable parameters (docs/ecco_darwin_parameter_inventory.md:162). Our observation-design note already predicts that real hydrothermal and sedimentary iron at depth 'would re-inject an alpfe-like source term and erode the subsurface discriminating power'; v06 adding hydrothermal-vent iron makes that concrete. That test has NEVER been run.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "data"
     },
@@ -3271,7 +3271,7 @@
      "detail": "The scoping follows from the grading band's width and from the mis-specification of a global constant; no new measurement is needed.",
      "n": "",
      "null_baseline": "Recovered ~0.05 vs Carroll 0.0425. Carroll's own value is under-constrained, and a single global constant is mis-specified against a regionally-variable rain ratio.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -3415,7 +3415,7 @@
      "detail": "An algebraic budget decomposition of the shipped box at fixed parameters; the mechanism claim that this is WHY the SO recovers is a separate untested hypothesis.",
      "n": "",
      "null_baseline": "79.7% - computed from the SHIPPED 2-layer box at Carroll values, NOT from the recovery run. The remainder is uptake and mixing, which do not scale with scav_rat.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -3835,7 +3835,7 @@
      "detail": "n=50 per arm, but underpowered - report directionally, do not harden.",
      "n": "",
      "null_baseline": "Biggrow 6/50 -> 12/50, arm-to-arm p = 0.192 (roughly 3x the seeds needed for p < 0.05). Smallgrow 7/50 -> 6/50, Fisher flatness p = 1.000. The clean result is the asymmetry, not the improvement.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "smallgrow",
      "track": "track1"
     },
@@ -3979,7 +3979,7 @@
      "detail": "Repeated per-basin counts against an architecture-matched untrained baseline.",
      "n": "",
      "null_baseline": "3 of 3 basins with the MLD input channel, 1 of 3 without. An untrained network already lands inside the band about two thirds of the time because of where the parameter bounds sit, so the honest comparison is against that null, not against zero.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -4039,7 +4039,7 @@
      "detail": "Measured in the boundary-rail pilot and reproduced in the silicate array; consistent with the registry-derived upper physical bound.",
      "n": "",
      "null_baseline": "Boundary-rail pilot job 8503326 (done). Identifiability array job 8510248 (x4) timed out at 8 h with partial output kept. The same appendix row also reports 'conditioning improves with Si (min-eig 0.01 -> 3.2)' WITHOUT caveat - do not use that reading: docs/findings/2026-07-19_silicate_fim_artifact_audit.md establishes the Hessian spectrum is uninterpretable until theta* converges (one negative eigenvalue at theta* in every run, 2-3 at Carroll's values).",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -4279,7 +4279,7 @@
      "detail": "A repeated negative measured across two different model structures.",
      "n": "",
      "null_baseline": "The 0-D box homogenizes, so held-out GEOTRACES R² is negative. The July 9-10 transport-UDE study fit a differentiable-transport UDE to real spatially-resolved GEOTRACES iron and still found scav_rat observability-limited.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "data"
     },
@@ -4387,7 +4387,7 @@
      "detail": "A published multi-model measurement, generalized across 13 independent implementations.",
      "n": "",
      "null_baseline": "Tagliabue 2016 FeMIP Table 2: 13 models, dissolved-Fe residence time 3.7 yr (COBALT) to 626.3 yr (BFM), while mean ocean DFe agrees at 0.58 +/- 0.14 nM and total input flux roams 66.9 +/- 67.1 Gmol Fe/yr - sources 'compensated by variable scavenging rates in order to reproduce the observed DFe concentration'. Somes 2021 is the controlled 5-run demonstration; Frants 2016 published the compensating family.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md, docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
+     "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
      "parameter": "",
      "track": "data"
     },
@@ -4459,7 +4459,7 @@
      "detail": "Measured, n=50, through the identical grading path - this IS the matched null.",
      "n": "",
      "null_baseline": "Job 227777, n=50, verify_run exit 0, NB23_LR=0 / NB23_N_EPOCHS=1: alpfe 0.200, scav_rat 0.000, Smallgrow 0.120, Biggrow 0.000, diatomgraz 0.640, R_PICPOC 0.000; untrained joint trio 0/50. Adding the MLD channel alone moves untrained alpfe 10/50 -> 16/50 and untrained diatomgraz to 34/50 (job 227876).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "track1"
     },
@@ -4519,7 +4519,7 @@
      "detail": "A published multi-model intercomparison - measured across many models and generalised.",
      "n": "",
      "null_baseline": "source flux 1 to >30 Gmol/yr; residence time 5 to >500 yr (Tagliabue et al. 2016, GBC, doi:10.1002/2015GB005289)",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "data"
     },
@@ -4831,7 +4831,7 @@
      "detail": "A derived quantity from measured recoveries, compared against a published observational envelope.",
      "n": "",
      "null_baseline": "~1-8 days across eqpac / natl / SO, against Black et al. 2020's observed upper-ocean envelope of 10-100 d. It barely roams within the data-consistent band because fitting real GEOTRACES section structure per-cell escapes the global-mean-only degeneracy.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "track1"
     },
@@ -4843,7 +4843,7 @@
      "detail": "Measured across three AOIs (job 8510828); the escape mechanism is the concrete version of Somes' point about the full section profile versus the mean.",
      "n": "",
      "null_baseline": "~0.8 d (Southern Ocean) to ~13 d (equatorial Pacific), quoted as '1 to 8 days' in the headline. tau pinned within the data band except in the Southern Ocean (weakest Fe gradient).",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "track1"
     },
@@ -4867,7 +4867,7 @@
      "detail": "A controlled retrain scored in two metric spaces - an adversarial attempt to break the prior result that reproduced it.",
      "n": "",
      "null_baseline": "3 of 6 tracers were scaled in the wrong space; both versions scored in two common metric spaces; each looks better in the space it was trained in and neither beats the free baseline in either. The old number reproduces.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "",
      "track": "track2"
     },
@@ -5467,7 +5467,7 @@
      "detail": "Measured across 50 seeds in three basins with a consistent sign and small spread.",
      "n": "",
      "null_baseline": "eqpac median recovered/Carroll 1.518, 0 of 50 seeds below Carroll, IQR [0.0615, 0.0654]; natlsubpolar 1.029, 15 of 50 below; southernoceanpac 1.268 (unanchored). eqpac is about half picoplankton, natl nearly all large eukaryotes. The eqpac Cal-grade count is 5/50 - a band edge on a tight precise estimate, deliberately NOT reported as the headline.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md, docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
+     "doc": "docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -5527,7 +5527,7 @@
      "detail": "Measured fits at two scales; the aggregation-artifact reading generalises the same family as the cell-weighted-vs-per-AOI straddle.",
      "n": "",
      "null_baseline": "eqpac n-hat 6.42 [1.83-10.35] R2 0.313 n=32; natl 7.01 [0.86-12.99] R2 0.147 n=24; POOLED 0.89 [-0.23-1.78] R2 0.046 n=58. The recorded verdict attributes the null to data support (n_points=58, ZERO in the Southern Ocean), not to misspecification.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "",
      "track": "data"
     },
@@ -5719,7 +5719,7 @@
      "detail": "Measured across configs and quantified by an independent excitation oracle with a pass/fail threshold. Note: for the IRON closure specifically, 2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md adds a separate, stronger blocker (the r0 gauge orbit).",
      "n": "",
      "null_baseline": "Loss down 152,000x; 0.65% relative error on the visited DFe range and 288% on the full range; weight decay and anchoring changed nothing in any config. Symbolic-distillation oracle (scripts/symbolic_distill_probe.py, 677 lines, 22 tests): DISTILL-FAIL 0/2 at a visited span of 0.31 dex, DISTILL-PASS 2/2 at 1.8 dex; applied to Daniels, Marsh and in-situ GLODAPv3 it returns NON-IDENTIFIABLE everywhere. Transport itself is sound: relative global mass drift ~5e-6, bounded and non-accumulating, identical at 20k and 100k steps (job 8524801).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "data"
     },
@@ -6019,7 +6019,7 @@
      "detail": "A set of repeated per-AOI measurements generalised into a handling rule.",
      "n": "",
      "null_baseline": "SO PIC:POC 0.0067; iron pair 5/5 alone at native resolution; zero Daniels cells",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "track1"
     },
@@ -6115,7 +6115,7 @@
      "detail": "Per-parameter measurements across seeds plus a method-independence check with a different optimizer.",
      "n": "",
      "null_baseline": "scav_rat drives the '38 of 40' joint number, CV ~43%, in-band only. R_PICPOC 10/10, lands around 0.05 versus Carroll 0.0425 - consistent within a wide band, NOT a validation.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -6415,7 +6415,7 @@
      "detail": "A monotone dose-response measured across three arms, against a pre-registered prediction.",
      "n": "",
      "null_baseline": "Pre-registered and falsified: scav_rat per-AOI 9/10 at GEOTRACES_SUB_W=1, 5/10 at 3, 1/10 at 8, all three arms verify_run exit 0. At n=50, subW=1 gives 26/50; surface-only subW=0 gives 4/10. The Fisher gain was condition 3022 -> 2.2 (job 188077). The cell-weighted 7 -> 10 -> 10 'improvement' is a straddle artifact.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "scav_rat",
      "track": "track1"
     },
@@ -6631,7 +6631,7 @@
      "detail": "Seed-variance measurements from a partial sweep; flagged unverified because the sweep was ~20/30 complete, all numbers are synthetic self-recovery (theta* vs Carroll), and no verify_run gate is recorded.",
      "n": "",
      "null_baseline": "Smallgrow 7/7 at rel-err 0.005 (range 0.001-0.009); Biggrow 0/7 at 0.70 (range 0.68-0.71); scav_rat 0/6. Multi-seed variance sweep job 8512053 (x30), ~20/30 done.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "smallgrow",
      "track": "track1"
     },
@@ -6643,7 +6643,7 @@
      "detail": "A measured diagnostic (job 8512523) whose own convergence precondition fails; the qualitative rank structure survives, the magnitude does not.",
      "n": "",
      "null_baseline": "~3.96 decades (Eq. Pacific); theta* has a zero eigenvalue. Qualitative rank structure (concentration stiff, residence-time sloppy) is solid; the exact number awaits a multi-start re-optimisation landing a positive-definite theta*.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "data"
     },
@@ -6655,7 +6655,7 @@
      "detail": "Measured counts at n=10 with a stated null; superseded in magnitude by the later n=50 flagship counts (49/50, 50/50, 25/50 vs 0/50 global-scalar), and diatomgraz's '4/10 = chance' is superseded by the MLD-channel result. The per-cell-vs-global direction stands.",
      "n": "",
      "null_baseline": "alpfe: reached by a DINN-free global scalar AND a gradient-free Nelder-Mead estimator; near-saturated (~100% pass). scav_rat: 0/10 under a global-scalar estimator, recovers in-band with CV ~43%, not point-identified. R_PICPOC 9/10 in geo1, 10/10 in the RATIO_MAX config. diatomgraz best 4/10 = chance. Trio {alpfe, scav_rat, R_PICPOC} 7/10 per-cell vs 0/10 global vector. The '38/40' is the best of an ~86-config sweep, Wilson 95% CI ~[84%, 99%].",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -7554,7 +7554,7 @@
      "name": "research_map.md",
      "date": "",
      "retracted": 0,
-     "words": 101802,
+     "words": 102427,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -7703,24 +7703,6 @@
      "partly_superseded": 0
     },
     {
-     "path": "docs/research_notes/2026-07-07_jon_questions_track2.md",
-     "name": "2026-07-07_jon_questions_track2.md",
-     "date": "2026-07-07",
-     "retracted": 0,
-     "words": 932,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
-     "name": "2026-07-07_jon_schultz_meeting_capture.md",
-     "date": "2026-07-07",
-     "retracted": 0,
-     "words": 2477,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
      "path": "docs/findings/2026-07-07_overnight_h200_identifiability_profiles.md",
      "name": "2026-07-07_overnight_h200_identifiability_profiles.md",
      "date": "2026-07-07",
@@ -7754,6 +7736,24 @@
      "retracted": 0,
      "words": 493,
      "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/research_notes/2026-07-07_jon_questions_track2.md",
+     "name": "2026-07-07_jon_questions_track2.md",
+     "date": "2026-07-07",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "name": "2026-07-07_jon_schultz_meeting_capture.md",
+     "date": "2026-07-07",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
      "partly_superseded": 0
     },
     {
@@ -8072,24 +8072,6 @@
      "partly_superseded": 0
     },
     {
-     "path": "docs/research_notes/2026-07-21_jon_update.md",
-     "name": "2026-07-21_jon_update.md",
-     "date": "2026-07-21",
-     "retracted": 0,
-     "words": 1571,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
-     "name": "2026-07-21_jon_update_presenting_script.md",
-     "date": "2026-07-21",
-     "retracted": 0,
-     "words": 1587,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
      "path": "docs/research_notes/2026-07-21_manuscript_redteam.md",
      "name": "2026-07-21_manuscript_redteam.md",
      "date": "2026-07-21",
@@ -8114,6 +8096,24 @@
      "retracted": 0,
      "words": 443,
      "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/research_notes/2026-07-21_jon_update.md",
+     "name": "2026-07-21_jon_update.md",
+     "date": "2026-07-21",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "name": "2026-07-21_jon_update_presenting_script.md",
+     "date": "2026-07-21",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
      "partly_superseded": 0
     },
     {
@@ -8648,15 +8648,6 @@
      "partly_superseded": 0
     },
     {
-     "path": "docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
-     "name": "2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
-     "date": "2026-07-25",
-     "retracted": 0,
-     "words": 144,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
      "path": "docs/research_notes/2026-07-25_next_session_start_here.md",
      "name": "2026-07-25_next_session_start_here.md",
      "date": "2026-07-25",
@@ -8670,8 +8661,17 @@
      "name": "2026-07-25_surrogate_to_gcm_validation.md",
      "date": "2026-07-25",
      "retracted": 0,
-     "words": 1701,
+     "words": 1703,
      "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
+     "name": "2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
+     "date": "2026-07-25",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
      "partly_superseded": 0
     },
     {
@@ -8855,33 +8855,6 @@
      "partly_superseded": 0
     },
     {
-     "path": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "name": "2026-07-29_jon_reply_crosscheck.md",
-     "date": "2026-07-29",
-     "retracted": 0,
-     "words": 5502,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
-     "name": "2026-07-29_jon_reply_part1_DRAFT.md",
-     "date": "2026-07-29",
-     "retracted": 0,
-     "words": 985,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/findings/2026-07-29_lauderdale_answers.md",
-     "name": "2026-07-29_lauderdale_answers.md",
-     "date": "2026-07-29",
-     "retracted": 0,
-     "words": 2372,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
      "path": "docs/findings/2026-07-29_math_audit_index.md",
      "name": "2026-07-29_math_audit_index.md",
      "date": "2026-07-29",
@@ -8895,7 +8868,7 @@
      "name": "2026-07-29_observations_only_scope.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 3966,
+     "words": 3972,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -8913,8 +8886,35 @@
      "name": "2026-07-29_ude_scaling_claim_audit.md",
      "date": "2026-07-29",
      "retracted": 0,
-     "words": 4403,
+     "words": 4405,
      "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "date": "2026-07-29",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "name": "2026-07-29_jon_reply_part1_DRAFT.md",
+     "date": "2026-07-29",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "name": "2026-07-29_lauderdale_answers.md",
+     "date": "2026-07-29",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
      "partly_superseded": 0
     },
     {
@@ -8977,15 +8977,6 @@
      "date": "2026-07-30",
      "retracted": 0,
      "words": 1245,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
-     "name": "2026-07-30_jon_followup_SENT.md",
-     "date": "2026-07-30",
-     "retracted": 0,
-     "words": 1515,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -9057,7 +9048,7 @@
      "name": "2026-07-30_rain_ratio_which_value_is_live.md",
      "date": "2026-07-30",
      "retracted": 0,
-     "words": 987,
+     "words": 996,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -9086,6 +9077,15 @@
      "retracted": 0,
      "words": 2070,
      "local_only": 0,
+     "partly_superseded": 0
+    },
+    {
+     "path": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "name": "2026-07-30_jon_followup_SENT.md",
+     "date": "2026-07-30",
+     "retracted": 0,
+     "words": 0,
+     "local_only": 1,
      "partly_superseded": 0
     },
     {
@@ -9768,7 +9768,7 @@
      "name": "2026-08-12_darwin_traits_echo_file_located.md",
      "date": "2026-08-12",
      "retracted": 0,
-     "words": 455,
+     "words": 456,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -9787,42 +9787,6 @@
      "date": "2026-08-12",
      "retracted": 0,
      "words": 804,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/research_notes/2026-08-12_jon_reply_pavia_DRAFT.md",
-     "name": "2026-08-12_jon_reply_pavia_DRAFT.md",
-     "date": "2026-08-12",
-     "retracted": 0,
-     "words": 321,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/research_notes/2026-08-12_jon_reply_round2_DRAFT.md",
-     "name": "2026-08-12_jon_reply_round2_DRAFT.md",
-     "date": "2026-08-12",
-     "retracted": 0,
-     "words": 528,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
-     "name": "2026-08-12_lauderdale_answers_round2.md",
-     "date": "2026-08-12",
-     "retracted": 0,
-     "words": 1259,
-     "local_only": 0,
-     "partly_superseded": 0
-    },
-    {
-     "path": "docs/research_notes/2026-08-12_pavia_thorium_lead.md",
-     "name": "2026-08-12_pavia_thorium_lead.md",
-     "date": "2026-08-12",
-     "retracted": 0,
-     "words": 636,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -9899,12 +9863,12 @@
      "partly_superseded": 0
     },
     {
-     "path": "docs/research_notes/2026-08-13_jon_reply_pavia_DRAFT.md",
-     "name": "2026-08-13_jon_reply_pavia_DRAFT.md",
-     "date": "2026-08-13",
+     "path": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
+     "name": "2026-08-12_lauderdale_answers_round2.md",
+     "date": "2026-08-12",
      "retracted": 0,
-     "words": 552,
-     "local_only": 0,
+     "words": 0,
+     "local_only": 1,
      "partly_superseded": 0
     },
     {
@@ -9948,7 +9912,7 @@
      "name": "2026-08-14_session_handoff.md",
      "date": "2026-08-14",
      "retracted": 0,
-     "words": 695,
+     "words": 697,
      "local_only": 0,
      "partly_superseded": 0
     },
@@ -10050,7 +10014,7 @@
     {
      "ev_id": "ev_abd519",
      "kind": "abductive",
-     "locator": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md, docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
+     "locator": "docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
      "job": "",
      "gate": "ungated",
      "n": null,
@@ -10068,7 +10032,7 @@
     {
      "ev_id": "ev_abd521",
      "kind": "abductive",
-     "locator": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "job": "",
      "gate": "ungated",
      "n": null,
@@ -10086,7 +10050,7 @@
     {
      "ev_id": "ev_abd523",
      "kind": "abductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "ungated",
      "n": null,
@@ -10239,7 +10203,7 @@
     {
      "ev_id": "ev_abd540",
      "kind": "abductive",
-     "locator": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "job": "",
      "gate": "ungated",
      "n": null,
@@ -10329,7 +10293,7 @@
     {
      "ev_id": "ev_abd550",
      "kind": "abductive",
-     "locator": "docs/research_notes/2026-07-21_jon_update.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "job": "",
      "gate": "ungated",
      "n": null,
@@ -10410,7 +10374,7 @@
     {
      "ev_id": "ev_abd559",
      "kind": "abductive",
-     "locator": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "job": "",
      "gate": "ungated",
      "n": null,
@@ -10455,7 +10419,7 @@
     {
      "ev_id": "ev_abd564",
      "kind": "abductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "ungated",
      "n": null,
@@ -10905,7 +10869,7 @@
     {
      "ev_id": "ev_ded135",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-21_jon_update.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11031,7 +10995,7 @@
     {
      "ev_id": "ev_ded148",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11049,7 +11013,7 @@
     {
      "ev_id": "ev_ded15",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11130,7 +11094,7 @@
     {
      "ev_id": "ev_ded158",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11139,7 +11103,7 @@
     {
      "ev_id": "ev_ded159",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11166,7 +11130,7 @@
     {
      "ev_id": "ev_ded161",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11301,7 +11265,7 @@
     {
      "ev_id": "ev_ded175",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-21_jon_update.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11553,7 +11517,7 @@
     {
      "ev_id": "ev_ded20",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11580,7 +11544,7 @@
     {
      "ev_id": "ev_ded202",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11589,7 +11553,7 @@
     {
      "ev_id": "ev_ded203",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11616,7 +11580,7 @@
     {
      "ev_id": "ev_ded206",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11625,7 +11589,7 @@
     {
      "ev_id": "ev_ded207",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11706,7 +11670,7 @@
     {
      "ev_id": "ev_ded215",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -11913,7 +11877,7 @@
     {
      "ev_id": "ev_ded35",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12057,7 +12021,7 @@
     {
      "ev_id": "ev_ded5",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12084,7 +12048,7 @@
     {
      "ev_id": "ev_ded52",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12192,7 +12156,7 @@
     {
      "ev_id": "ev_ded63",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12201,7 +12165,7 @@
     {
      "ev_id": "ev_ded64",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12228,7 +12192,7 @@
     {
      "ev_id": "ev_ded67",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12237,7 +12201,7 @@
     {
      "ev_id": "ev_ded68",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12372,7 +12336,7 @@
     {
      "ev_id": "ev_ded81",
      "kind": "deductive",
-     "locator": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12417,7 +12381,7 @@
     {
      "ev_id": "ev_ded86",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-21_jon_update.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12525,7 +12489,7 @@
     {
      "ev_id": "ev_ded97",
      "kind": "deductive",
-     "locator": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "locator": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "job": "",
      "gate": "n/a",
      "n": null,
@@ -12871,7 +12835,7 @@
      "predicts": "A geometry-aware operator should beat the flat FFT on a rebuilt global cube - the clean experiment is scoped.",
      "falsifier": "A geometry-aware operator that does not beat the flat FFT. Blocked so far: jobs 8512977/8512998 were inconclusive because the AOI cubes are non-geographic (empty interior) and cannot resolve coastal versus interior, and the global cube is off disk.",
      "status": "open",
-     "prereg": "docs/research_notes/2026-07-21_jon_update_presenting_script.md"
+     "prereg": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md"
     },
     {
      "hy_id": "hy025",
@@ -12911,7 +12875,7 @@
      "predicts": "Originally: once the calcifying set and its fraction are read from the namelists, the inflation becomes PREDICTABLE before fitting (eqpac ~half picoplankton -> ~1.5x Carroll; natl nearly all large eukaryotes -> ~1.0x). SURVIVES: the anchor constrains a product, the box applies the ratio to all 5 PFTs where Darwin applies it to 2, and the offset is systematic.",
      "falsifier": "ALREADY FIRED for the magnitude law. Source says the calcifiers are types 2 and 3 = large eukaryotes AND Synechococcus, i.e. Chl2 + Chl3 (one large, one pico), not the large fraction. Under the correct grouping 1/f gives eqpac 4.329 against a measured 1.518 (overshoots ~2.9x) while natl still lands (1.043 vs 1.029). 'That 1/f predicts the magnitude' DOES NOT SURVIVE - it fit better under the wrong grouping, which is what post-hoc matching on two anchored points does. Also chlorophyll fraction is a proxy for production share, not equal to it.",
      "status": "open, and its quantitative half is already REFUTED",
-     "prereg": "docs/research_notes/2026-07-30_jon_followup_SENT.md, docs/findings/2026-07-30_rain_ratio_which_value_is_live.md"
+     "prereg": "docs/findings/2026-07-30_rain_ratio_which_value_is_live.md"
     },
     {
      "hy_id": "hy085",
@@ -13103,7 +13067,7 @@
      "predicts": "If the per-cell requirement really is the fingerprint of the 0-D surrogate gap, a transport-resolving surrogate should collapse scav_rat and R_PICPOC toward global scalars.",
      "falsifier": "If scav_rat and R_PICPOC still require per-cell parameters with transport present, the surrogate-gap explanation is wrong and per-cell is a genuine physical property. NOT RUN for the iron pair: the only E2 executed is the calcite-closure gate (2026-07-10_e2_powered_result.md), a decisive negative that explicitly does not cover iron.",
      "status": "open",
-     "prereg": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md"
+     "prereg": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md"
     },
     {
      "hy_id": "hy096",
@@ -13199,7 +13163,7 @@
      "predicts": "A geometry-aware operator (GINO) beats the flat FFT on a rebuilt GLOBAL geographic cube, with the gap concentrated at coastal/boundary cells.",
      "falsifier": "No coastal-vs-interior contrast on a rebuilt global cube. Note the existing 0.22% constant-bias-field result does NOT falsify it: a per-cell CONSTANT correction cannot capture a state-dependent bias. Blocked because the global geographic cube is no longer on disk and the AOI cubes have a non-geographic layout.",
      "status": "open",
-     "prereg": "docs/research_notes/2026-07-21_jon_update.md"
+     "prereg": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md"
     },
     {
      "hy_id": "hy016",
@@ -13207,7 +13171,7 @@
      "predicts": "A profile-targeted UDE under realistic sparse/noisy coverage moves the July result, which found scav_rat observability-limited even with transport present. The gradient alone will NOT work — it is source-invariant.",
      "falsifier": "No movement against the July fit. A noiseless single-point-source toy already suggested it could work, but a toy is not commensurate evidence against a real-data negative. NOTE: 2026-07-31 measured exactly this on real data at box scale — subsurface iron alone recovers scav_rat 33/50 while surface alone gives 14/50 — so the profile hypothesis now has real-data support and the real-data 1-D column build is the named next rung.",
      "status": "open — and materially strengthened by the 2026-07-31 depth result",
-     "prereg": "docs/research_notes/2026-07-21_jon_update.md"
+     "prereg": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md"
     },
     {
      "hy_id": "hy057",
@@ -13263,7 +13227,7 @@
      "predicts": "The code comment predicts 'with PFT-specific scaling the cross-AOI PIC differences come naturally from P_lge abundance' - and the ~23x eqpac-vs-natl PIC/POC spread is exactly what a single bulk scalar has to absorb.",
      "falsifier": "R_PICPOC degrades below 50/50 under COCCOLITH_ONLY=1. Caveats: the code's 'degenerate (R_PICPOC, mort_lge) pair' comment is a WARNING ABOUT THIS MODE (it appears when the mode runs without PIC_ABS_W > 0 to anchor PIC magnitude), not evidence about the default; and per docs/findings/2026-07-30_rain_ratio_which_value_is_live.md the v05 calcifying set is types 2 AND 3 = large eukaryote plus Synechococcus, so a Chl2-only mode still does not match Darwin exactly.",
      "status": "open",
-     "prereg": "docs/findings/2026-07-29_lauderdale_answers.md"
+     "prereg": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md"
     },
     {
      "hy_id": "hy067",
@@ -13375,7 +13339,7 @@
      "predicts": "Section-profile targeting should break a degeneracy that field-mean fitting cannot, mirroring the Track-1 finding that fitting the real section per-cell escapes the global-mean-only degeneracy.",
      "falsifier": "The July negative stands until the new UDE demonstrably moves it. Flagged in the update as feasibility and design, NOT a real-data result - and it must be reconciled with the standing negative up front rather than presented as new ground.",
      "status": "open",
-     "prereg": "docs/research_notes/2026-07-21_jon_update_presenting_script.md"
+     "prereg": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md"
     },
     {
      "hy_id": "hy019",
@@ -13415,7 +13379,7 @@
      "predicts": "The degeneracy is 'nearly flat rather than flat', with the leftover curvature largest in iron-limited basins.",
      "falsifier": "The separating experiment is a refit with the SUBSURFACE iron term removed - it has NOT been run. The 79.7% figure comes from the shipped 2-layer box at Carroll values, not from the recovery run, so it is not evidence about the fit. Do not claim the mechanism.",
      "status": "open",
-     "prereg": "docs/research_notes/2026-07-30_jon_followup_SENT.md"
+     "prereg": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md"
     },
     {
      "hy_id": "hy008",
@@ -13447,7 +13411,7 @@
      "predicts": "A real RATE observable - the one observable class scav_rat lacks - bounds it to a factor of a few (the red-team bound is bounding, not point-identification).",
      "falsifier": "Unbuilt: no SCAV_ANCHOR_W term exists in the runner, black2020_fe_flux_loader has zero importers and no tests, and Cochran GP15 Leg 2 gives only 64 dissolved samples at 3 stations. Prior evidence is discouraging: self-twin |rho| improved 0.472 -> 0.061 (job 179387) yet real-data recovery stayed 0/10. Cost: a few days of code plus one A/B. Cheap probe first: arm O4 (eqpac, GEOTRACES_SUB_W=3).",
      "status": "open",
-     "prereg": "docs/research_notes/2026-07-29_observations_only_scope.md, docs/findings/2026-07-29_jon_reply_crosscheck.md"
+     "prereg": "docs/research_notes/2026-07-29_observations_only_scope.md"
     },
     {
      "hy_id": "hy078",
@@ -13716,7 +13680,7 @@
     {
      "question": "What is the observed PIC:POC spread across the three AOIs versus the single published rain ratio?",
      "answer": "0.0065, 0.031 and 0.72 across the three regions - about a hundred times (elsewhere quoted 111x) spread against a single published value of 0.042. Critically this is a STANDING-STOCK ratio from the target caches; Daniels is a PRODUCTION ratio. The distinction must be made explicitly, not glossed.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "dont": ""
     },
     {
@@ -13734,7 +13698,7 @@
     {
      "question": "Which of the three R_PICPOC values in the v05 llc270 deck is the one the model actually integrates?",
      "answer": "0.0418860, from data.traits &DARWIN_TRAITS entries 2 and 3 (the calcifiers); the other five types carry 0.0. The array reads R_PICPOC = 0.0, 2*4.188600000000000E-002, 4*0.0. data.darwin:53 val_R_PICPOC = 0.04245 under &DARWIN_RANDOM_PARAMS is INERT. Precedence in pkg/darwin/darwin_init_fixed.F: DARWIN_GENERATE_RANDOM at line 357 fills the array, then DARWIN_READ_TRAITS runs LAST at line 382 and overwrites it. Carroll's published 0.04245 vs v05's running 0.0418860 is a 1.35% difference - inside the 5% Excellent band, changes no verdict. Caveat: no observed STDOUT.0000 namelist echo yet. NOTE (later doc): docs/findings/2026-07-30_rain_ratio_which_value_is_live.md gives the traits array at data.traits:36 (not :92), upgrades 'inert' to 'UNREACHABLE under v05 compile flags', and corrects the framing - &DARWIN_RANDOM_PARAMS and &DARWIN_TRAIT_PARAMS are BOTH read from data.darwin.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md, docs/findings/2026-07-30_rain_ratio_which_value_is_live.md",
+     "doc": "docs/findings/2026-07-30_rain_ratio_which_value_is_live.md",
      "dont": ""
     },
     {
@@ -13800,7 +13764,7 @@
     {
      "question": "What is alpfe, physically?",
      "answer": "A near-unity scalar (0.928) applied to ALREADY-SOLUBLE iron, not a dust solubility. Darwin3's own docs say set it to 1 if the ironfile is already soluble, and v05 forces with the soluble Mahowald product. The 'iron dust solubility' mislabel was fixed in our code.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "dont": ""
     },
     {
@@ -13828,7 +13792,7 @@
      "dont": ""
     },
     {
-     "question": "Has \"drop the ECCO-Darwin model output and fit observations only\" (Jon's prescription) already been run? Do I need to build it?",
+     "question": "Has the observations-only design (Jon's prescription: drop the ECCO-Darwin model output as a target and fit observations only) already been run? Do I need to build it?",
      "answer": "ALREADY IMPLEMENTED AND ALREADY RUN TWICE, under the name *anchors-only*. n=10 (2026-07-21, PINN kept on, verify_run exit 0): alpfe 10/10, scav_rat 0/10, R_PICPOC 6/10, trio 0/10. n=50 (batch coord_anchors_pinnOFF, Slurm 8536393, verify_run --expect-seeds 50 exit 0, PINN also off): alpfe 50/50, R_PICPOC 28/50, scav_rat 0/50, diatomgraz 11/50, trio 0/50. Env recipe is DARWIN_PATTERN_W=0 POC_SUB_W=0 CHL1_W_EXTRA=0. The answer is 2-of-4. Do not re-derive.",
      "doc": "docs/research_notes/2026-07-29_observations_only_scope.md",
      "dont": ""
@@ -13877,8 +13841,8 @@
     },
     {
      "question": "Is alpfe's 1.0 upper bound a hard PHYSICAL ceiling, or an unstated prior?",
-     "answer": "An UNSTATED PRIOR, on domain-expert authority. J. Lauderdale (MIT, ECCO-Darwin co-author), 2026-08-12: 'No, it's not a hard ceiling. I think there is enough uncertainty in the soluble iron flux that I wouldn't be surprised if values of >1 (ie the ocean wants more soluble iron input to satisfy surface iron concentrations).' This selects the second branch of the open physics question left in section 5 of 2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md. Consequences are ZERO-COMPUTE and interpretive only: (1) report alpfe as a DIRECTION ('the observations say it is high, decisively against an untrained control'), never as a value or an accuracy; (2) the 49/50 is substantially measuring where the bound was put, since rel(upper)=0.077 places the ceiling inside the 0.40 band; (3) the measured 1.594 at the widened bound is physically unremarkable, not a divergence. NO NEW ARRAY IS LICENSED: the widened-bound experiment ALREADY RAN (job 276927 + grader 276928, 4 arms x 50 seeds, DD_ALPFE_HI lever, PR #234). A 2026-08-12 session re-proposed it as new and filed issue #240; #240 was closed as already-answered.",
-     "doc": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
+     "answer": "An UNSTATED PRIOR, on domain-expert authority. J. Lauderdale (MIT, ECCO-Darwin co-author), 2026-08-12, paraphrased: it is not a hard ceiling; the soluble iron flux is uncertain enough that values above 1 would not surprise him (the ocean may want more soluble iron input to match surface iron concentrations). This selects the second branch of the open physics question left in section 5 of 2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md. Consequences are ZERO-COMPUTE and interpretive only: (1) report alpfe as a DIRECTION ('the observations say it is high, decisively against an untrained control'), never as a value or an accuracy; (2) the 49/50 is substantially measuring where the bound was put, since rel(upper)=0.077 places the ceiling inside the 0.40 band; (3) the measured 1.594 at the widened bound is physically unremarkable, not a divergence. NO NEW ARRAY IS LICENSED: the widened-bound experiment ALREADY RAN (job 276927 + grader 276928, 4 arms x 50 seeds, DD_ALPFE_HI lever, PR #234). A 2026-08-12 session re-proposed it as new and filed issue #240; #240 was closed as already-answered.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-12_lauderdale_answers_round2.md",
      "dont": ""
     },
     {
@@ -14028,7 +13992,7 @@
     {
      "question": "Why was the particulate:dissolved iron ratio retracted as a route to the scavenging rate?",
      "answer": "Deductively: the ratio reduces to scavenging rate x POC / sinking rate, so dissolved iron cancels EXACTLY. Empirically: in GEOTRACES IDP2025 surface data only 76 samples worldwide carry both total particulate and dissolved iron under strict co-location, 4 of them in the eqpac box, and where both exist the ratio spans ~2.6 orders of magnitude. Caveat flagged in the doc's own pre-send checklist: the 76/4 counts are a floor on co-location, not a count of ocean locations, and were not re-confirmed.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "dont": ""
     },
     {
@@ -14148,7 +14112,7 @@
     {
      "question": "Is the iron source/sink degeneracy specific to our box, or field-wide?",
      "answer": "Field-wide. Tagliabue 2016 FeMIP Table 2, all 13 models: concentration agreed to ~2x, residence time roams 169x, decomposing as ~130x input flux x ~1.3x inventory; the sedimentary iron source spans 0 to 194 Gmol/yr with every model landing near 0.5 nM by compensating with scavenging. The contribution is not discovering the degeneracy but naming it as a formal identifiability/sloppiness problem.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "dont": ""
     },
     {
@@ -14298,7 +14262,7 @@
     {
      "question": "Does scav_rat recover at all in the observations-only arms, or is the 0 real?",
      "answer": "It recovers in the Southern Ocean and nowhere else. Across all three observations-only arms the SO leg recovers 39-50 of 50 seeds against 0/50 untrained, while eqpac and natl are flat zero. The headline 0 was a property of the per-AOI 2-of-3 grading rule (one basin can never form a majority), not of the model.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "dont": ""
     },
     {
@@ -14310,7 +14274,7 @@
     {
      "question": "What is the measured untrained (chance) hit rate for each parameter, and what null must every count be graded against?",
      "answer": "Job 227777, n=50, verify_run exit 0, real pipeline at NB23_LR=0 / NB23_N_EPOCHS=1 through the identical grading path. Per-AOI untrained rates: alpfe 0.200, scav_rat 0.000, Smallgrow 0.120, Biggrow 0.000, diatomgraz 0.640, R_PICPOC 0.000. Untrained joint trio 0/50. The baseline is ARCHITECTURE-MATCHED: adding the MLD input channel alone moves untrained alpfe 10/50 to 16/50 and untrained diatomgraz to 34/50 (job 227876).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "dont": ""
     },
     {
@@ -14321,8 +14285,8 @@
     },
     {
      "question": "What would turn Track 1 from a consistency check into a discovery, per the domain expert?",
-     "answer": "Lauderdale: 'what would wrap up track 1 is dropping the ECCO-Darwin model output and just trying to fit observations.' Remove the model target entirely; observations-only is the Track-1 closeout.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "answer": "Lauderdale (paraphrased): Track 1 would be wrapped up by removing the ECCO-Darwin model output as a target and fitting observations alone. Remove the model target entirely; observations-only is the Track-1 closeout.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "dont": ""
     },
     {
@@ -15060,7 +15024,7 @@
     {
      "question": "Does phytoplankton COMPOSITION explain the ~100x basin spread in bulk PIC:POC?",
      "answer": "No, REFUTED against Darwin's real Chl2 field. Calcifier fraction is nearly flat, 1.4x (eqpac 0.153 / natl 0.134 / SO 0.109), while bulk PIC:POC spans 113x (0.034 / 0.729 / 0.006), so the implied per-calcifier R has a 92x spread (0.22 / 5.4 / 0.06). The spread is carried by per-calcifier calcification EFFICIENCY, i.e. environment / carbonate chemistry. The earlier per_pft_picpoc_experiment.py ASSUMED calcifier fractions of 3.3/67.6/0.7%; per_pft_real_chl2_validation.py read the real field. Coccolith-only per-PFT gating stays shelved.",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "dont": ""
     },
     {
@@ -15144,7 +15108,7 @@
     {
      "question": "Does the parameter-conditioned (calibration) emulator route or SBI have a path forward?",
      "answer": "No, both stay shelved on budget and theory grounds. They need a perturbed-parameter Darwin ensemble - tens to hundreds of full GCM runs spanning Carroll-6, at ~5 TB per full v05 run - which does not exist and cannot be cheaply produced. Separately the DIFNO theorem says a calibration-grade surrogate needs true Jacobian labels that only a differentiable solver (the UDE) supplies. The mechanistic UDE on prescribed v05 transport (route B) was chosen because it needs ZERO new GCM runs.",
-     "doc": "docs/research_notes/2026-07-11_emulator_build_plan.md, docs/research_notes/2026-07-07_jon_questions_track2.md",
+     "doc": "docs/research_notes/2026-07-11_emulator_build_plan.md",
      "dont": ""
     },
     {
@@ -15492,7 +15456,7 @@
     {
      "question": "Does R_PICPOC recovering 10/10 near 0.05 validate Carroll's 0.0425?",
      "answer": "No. Carroll's own value is under-constrained, so the only honest statement is that the two are consistent within a wide band. Do not present it as a validation.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "dont": ""
     },
     {
@@ -15516,7 +15480,7 @@
     {
      "question": "Is alpfe an iron dust solubility?",
      "answer": "No. Darwin3's own docs say to set it to 1 if the ironfile deposition is already soluble iron; ECCO-Darwin v05 forces with the soluble Mahowald-2009 product and sets ALPFE = 0.928. So alpfe is a near-unity dimensionless correction on already-soluble iron, not the ~1-2% fractional solubility of dust iron. The 'iron dust solubility' label was corrected in code.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "dont": ""
     },
     {
@@ -15671,8 +15635,8 @@
     },
     {
      "question": "Is the alpfe/scav_rat degeneracy an artifact of Darwin's ligand-free scavenging parameterization?",
-     "answer": "No. Lauderdale: the ocean iron cycle is 'open' because of its short residence time, so source and sink parameterizations really matter - the degeneracy is a property of the CYCLE, fundamental, not of our formulation. The ligand question is still testable but is not the explanation. His constructive response: 'This would be a good candidate for UDE!'",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "answer": "No. Lauderdale (paraphrased): iron's short residence time keeps the ocean iron cycle 'open', so how sources and sinks are parameterized matters a great deal; the degeneracy is a property of the CYCLE, fundamental, not of our formulation. The ligand question is still testable but is not the explanation. His constructive response (paraphrased): this would be a good candidate for a UDE.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "dont": ""
     },
     {
@@ -15702,7 +15666,7 @@
     {
      "question": "Is there any wired real rate-anchor for scav_rat in the learner?",
      "answer": "No. No SCAV_ANCHOR_W loss term exists in scripts/run_v3.0_joint_multi_aoi.py. Of 12 observational loaders in src/darwindiff/, only three reach the flagship runner: geotraces_loader (:204), glodap_loader (:209, only if ALK_ABS_W>0), daniels_loader (:214). black2020_fe_flux_loader (234Th/sediment-trap Fe export flux, a real RATE) and xu_weber_loader have ZERO importers and no tests. cochran_gp15_po_pb_loader has 13 tests, all skipping on unstaged data. Wiring any rate anchor is a code task, not an env var. Grep for cochran/black2020/rufas2024 in the runner returns 0.",
-     "doc": "docs/research_notes/2026-07-29_observations_only_scope.md, docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "docs/research_notes/2026-07-29_observations_only_scope.md",
      "dont": ""
     },
     {
@@ -15876,7 +15840,7 @@
     {
      "question": "Does the daily-cadence emulator beat a per-cell autoregressive baseline?",
      "answer": "No. The daily version was off by about four in the wrong units; fixing the scaling recovers almost all of that, but it still loses to a per-cell autoregression. Daily autocorrelation is around 0.995, so that baseline is very hard to beat and more capacity is not expected to change it.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "dont": ""
     },
     {
@@ -15888,7 +15852,7 @@
     {
      "question": "Does the 169× FeMIP iron residence-time spread need exotic physics to explain?",
      "answer": "No. The identity τ = inventory / input reproduces every model's residence time exactly, so the 169× spread decomposes as 130× from input × 1.3× from inventory — a single source↔scavenging identifiability degeneracy. Tagliabue 2016 Table 2: τ 3.7 → 626 yr, concentration pinned at 0.58 ± 0.14 nM (~24%), total input flux ~140× (sediment source 0-194 Gmol/yr).",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "dont": ""
     },
     {
@@ -15942,7 +15906,7 @@
     {
      "question": "Does the 1-D column result (transport rescues held-out R2) mean transport rescues generalization on real data?",
      "answer": "No. The synthetic 1-D column go/no-go is real but bounded: holding out ~30% of layers, a transport-free local box gives held-out R2 ~= -0.3 while the same fit WITH vertical mixing gives ~= +1.0. That is a SYNTHETIC VERTICAL-1D CAPACITY result, explicitly not the E2 gate. The real gate - held-out R2 > 0 on real GEOTRACES/calcite cells with HORIZONTAL transport - was later run and FAILED: learned R2 -0.05 against a null of +0.50, replicated across 10 seeds.",
-     "doc": "docs/research_notes/2026-07-07_jon_questions_track2.md, docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_questions_track2.md",
      "dont": ""
     },
     {
@@ -15990,7 +15954,7 @@
     {
      "question": "Does the flagship's calcification structure match Darwin's?",
      "answer": "No. USE_COCCOLITH_ONLY_CALCITE = False (carroll6_5pft_2layer.py:158) and the flagship run record contains 'use_coccolith_only_calcite': false, so the box computes dPIC = R_PICPOC * mort_total with mort_total = mort_s + mort_l + graze_l (carroll6.py:225,231) - calcification from all FIVE PFTs - while Darwin applies the rain ratio to np = 2,3 only (v04, and types 2,3 in v05 data.traits) and to a per-group array in v06. The 50/50 R_PICPOC number stands but this belongs in limitations.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "dont": ""
     },
     {
@@ -16110,13 +16074,13 @@
     {
      "question": "Does ECCO-Darwin v05 have Omega/saturation-gated calcite dissolution?",
      "answer": "No. v05 has NO disscSelect switch, constant-rate dissolution ONLY. The Omega-dependent Naviaux-2019 / Keir modes are a post-v05 darwin3 addition and do not exist in v05's code (verified at pinned commit 24885b71). Our two-layer box's constant R_PIC_DISSOL over 50-1000 m matches disscSelect=0 by construction. v05's exact Kdissc is unknown (~1/300 per day per ADR 0001:233); our default 0.05/day is ~15x faster.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "dont": ""
     },
     {
      "question": "Does v05 have Omega-dependent calcite dissolution?",
      "answer": "No. v05 has no `disscSelect` switch at all; the Omega-dependent modes are a later darwin3 addition, so v05 dissolves calcite at a constant rate by construction. Our own box does the same between 50 and 1000 m, and its default Kdissc looks roughly an order of magnitude fast. An Omega-null on the surface PRODUCTION ratio is what you would expect, not a data problem.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "dont": ""
     },
     {
@@ -16254,7 +16218,7 @@
     {
      "question": "Which Carroll-6 parameters can be perturbed by editing data.darwin?",
      "answer": "Only `alpfe` and `scav_rat`. Exactly two of the four observables (R_PICPOC, diatomgraz) are trait-overridden and must be perturbed in `data.traits` (R_PICPOC types 2&3; PALAT diatom entries 36/43); the growth pair lives in PCMAX, also data.traits. alpfe/scav_rat are read by `darwin_read_params.F` and appear in neither the traits reader nor the generator. Proof it is live: the two v05 files already disagree (traits 0.0419 vs darwin 0.0425), so the 0.0425 recovery target is the generation scalar, not the loaded 0.0419.",
-     "doc": "docs/research_notes/2026-07-23_1hr_run_summary.md, docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "docs/research_notes/2026-07-23_1hr_run_summary.md",
      "dont": ""
     },
     {
@@ -16320,7 +16284,7 @@
     {
      "question": "What is the correct citation for Darwin's iron model?",
      "answer": "Parekh, Follows & Boyle (2005), GBC 19, GB2020. The '2006' DOI in circulation is a different paper.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "dont": ""
     },
     {
@@ -16356,7 +16320,7 @@
     {
      "question": "What exactly is the recovery metric, and why is the cell-weighted number forbidden?",
      "answer": "Per-AOI >=2-of-3 Cal-grade+: a seed recovers a parameter if >=2 of {eqpac, natlsubpolar, southernoceanpac} land Cal-grade+ per diagnostics.band_of (Excellent <=5% off Carroll, Cal-grade <=40%, Loose <=80%), counted over the seed ensemble as N/50 or N/10, graded against Carroll's published Green's-functions optima (bit-identical v04/v05). Cell-weighted (joint-cw) OVERSTATES it via a straddle - per-AOI legs on opposite sides of Carroll whose weighted mean lands near it; it overstated scav_rat by +5 to +10 seeds. The obs-only scav_rat cell-weighted 40/50 is exactly this: all 50 seeds land Cal+ in exactly ONE AOI (always southernoceanpac), so no 2-AOI majority ever forms.",
-     "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md",
      "dont": ""
     },
     {
@@ -16380,7 +16344,7 @@
     {
      "question": "Which of the three rain-ratio values in data.darwin / data.traits does ECCO-Darwin actually use?",
      "answer": "RESOLVED FROM SOURCE: the LIVE value is 0.041886 on plankton types 2 and 3 only, set in v05 data.traits:36 (R_PICPOC = 0.0, 2*4.1886E-2, 4*0.0; HASPIC = 0, 2*1, 4*0). The published val_R_PICPOC=0.04245 in v05 data.darwin:53 is not merely overridden but UNREACHABLE: DARWIN_OPTIONS.h:149 selects DARWIN_GENERATE_RANDOM (killing a_R_PICPOC), and under DARWIN_NINE_SPECIES_SETUP diacoc=2 is set only at np==9 while DARWIN_SIZE.h:26 gives nPhoto=5, so the coccolithophore branch never executes. Gap to the published value is 1.35%, far inside the Excellent band, so no recovery verdict changes - but the manuscript must say which number it grades against. In our box's ordering the calcifying types 2 and 3 are large eukaryotes and Synechococcus (one large, one pico). v06 data.darwin:223 sets a_R_PICPOC(:) = 2*4.19E-2,1*0.05,3*4.19E-2. The v04 Fortran 0.133 at darwin_generate_phyto.F:485 is COMMENTED OUT and is the likely source of confusion.",
-     "doc": "docs/findings/2026-07-30_rain_ratio_which_value_is_live.md, docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "docs/findings/2026-07-30_rain_ratio_which_value_is_live.md",
      "dont": ""
     },
     {
@@ -16392,7 +16356,7 @@
     {
      "question": "Which observable would break the iron degeneracy, and does adding more surface DFe help?",
      "answer": "Ranked by iron 2x2 variance reduction along the sloppy direction: 234Th/210Po scavenging flux 1434x (condition number 2930 -> 6.9), subsurface DFe 1261x (-> 2.5), subsurface scav flux 311x. Controls: bSi 15.3x, PIC 2.33x, POC 2.33x, and a second identical SURFACE DFe survey exactly 2.00x with the condition number UNCHANGED at 2930. Section-type observables beat any additional surface concentration by two to three orders. Caveat: 1400x assumes other params known; marginalized, subsurface DFe is stronger (~25x vs ~9x), so the flux is one of TWO symmetry-breakers, not uniquely it.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md, docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
+     "doc": "docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
      "dont": ""
     },
     {
@@ -16404,7 +16368,7 @@
     {
      "question": "Is the Southern Ocean scav_rat recovery real, or borrowed from the other basins through the shared network?",
      "answer": "Real and local. Fitting the SO alone: scav_rat 30/50 vs an untrained 0/50, P = 3.15e-24 against the pre-registered rule-of-three floor 3/50 = 0.060; the pre-registered rule was k >= 25 and P < 0.01, both met and neither marginal. Pre-set controls held: alpfe 50/50 (fit not broken), R_PICPOC 0/50 (must be zero - no calcite data in the SO). Jobs 238079/238080, verify_run exit 0. Pooling still adds: 39-50/50 with all three basins vs 30/50 alone.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "dont": ""
     },
     {
@@ -16536,7 +16500,7 @@
     {
      "question": "Does the 0-D box include silicate, and is 'dense-silica targets' a nutrient?",
      "answer": "The box has NO dissolved-silicate tracer and no Si-limitation (5-tracer state [DFe, Ps, Pl, POC, PIC]). But 'dense-silica targets' means BIOGENIC silica (POSi/bSi), a diatom output diagnostic used to constrain diatomgraz, not a silicate nutrient. Rename in all comms. Separately: v05 itself DOES carry prognostic dissolved SiO2, applies Si limitation and assimilates silicate (Carroll 2022), so the missing-Si is OUR surrogate, not the model.",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md, docs/research_notes/2026-07-23_expert_review_corrections.md",
+     "doc": "docs/research_notes/2026-07-23_expert_review_corrections.md",
      "dont": ""
     },
     {
@@ -16590,7 +16554,7 @@
     {
      "question": "How many ways does ECCO-Darwin enter the fit, and which are removable?",
      "answer": "Three. (1) Loss targets - 19 Darwin-target terms vs 6 real-observation terms, 1 switchable (ALK_ABS_W), 2 untargeted; removable by env var (DARWIN_PATTERN_W=0 POC_SUB_W=0 CHL1_W_EXTRA=0). (2) Initial condition - USE_DARWIN_IC, pickup-derived cache :1397-1431; removable via DARWIN_IC=0 falling back to LIT_IC literature constants :1387-1394. (3) FORCING - SST, MLD, wind, SSS, apCO2 from v05 (:635-643, consumed :1449); NOT removable, would need ERA5/OISST substitution, real code. A repo-wide search finds NO observational MLD product (no de Boyer Montegut, no Argo, no WOA). Never claim a Darwin-free fit.",
-     "doc": "docs/research_notes/2026-07-29_observations_only_scope.md, docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "docs/research_notes/2026-07-29_observations_only_scope.md",
      "dont": ""
     },
     {
@@ -16721,8 +16685,8 @@
     },
     {
      "question": "Is the data.traits-over-data.darwin rain-ratio precedence confirmed by anyone outside this repo?",
-     "answer": "YES, externally confirmed by the model's own maintainer. J. Lauderdale, 2026-08-12: 'PICPOC ratio from data.traits supersedes value in data.darwin.' This matches the repo's independent 2026-07-30 source-read-order derivation exactly (DARWIN_READ_TRAITS runs after DARWIN_GENERATE_RANDOM in darwin_init_fixed.F), so v05 integrates R_PICPOC = 0.0418860 from data.traits and data.darwin's val_R_PICPOC = 0.04245 is inert. The published value is ~1.4% from the live one, inside the 5% Excellent band, so NO reported number changes. He also names a second confirmation route not previously known: a 'darwin_traits' file the model writes out with the values it actually used. Finding that file in the v05 datastore would close ded215 (the pending namelist-echo check) without needing STDOUT.0000.",
-     "doc": "docs/findings/2026-08-12_lauderdale_answers_round2.md",
+     "answer": "YES, externally confirmed by the model's own maintainer. J. Lauderdale, 2026-08-12, paraphrased: the PIC:POC ratio from data.traits supersedes the value in data.darwin. This matches the repo's independent 2026-07-30 source-read-order derivation exactly (DARWIN_READ_TRAITS runs after DARWIN_GENERATE_RANDOM in darwin_init_fixed.F), so v05 integrates R_PICPOC = 0.0418860 from data.traits and data.darwin's val_R_PICPOC = 0.04245 is inert. The published value is ~1.4% from the live one, inside the 5% Excellent band, so NO reported number changes. He also names a second confirmation route not previously known: a 'darwin_traits' file the model writes out with the values it actually used. Finding that file in the v05 datastore would close ded215 (the pending namelist-echo check) without needing STDOUT.0000.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-08-12_lauderdale_answers_round2.md",
      "dont": ""
     },
     {
@@ -16992,7 +16956,7 @@
     {
      "question": "Which Carroll-6 parameters can be edited in data.darwin and which must be edited in data.traits?",
      "answer": "alpfe and scav_rat are safe to edit in data.darwin (read by darwin_read_params.F, consumed in darwin_forcing.F, absent from darwin_read_traits.F and darwin_generate_random.F). R_PICPOC, diatomgraz (PALAT) and the growth pair (PCMAX) must be edited in data.traits.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "dont": ""
     },
     {
@@ -17004,7 +16968,7 @@
     {
      "question": "What is alpfe physically, and should we fix it to 1.0 for v05 recovery?",
      "answer": "alpfe is a dimensionless GLOBAL SCALAR on an already-soluble iron-deposition forcing, not a dust solubility. v05's ironfile is 'llc270_Mahowald_2009_soluble_iron_dust.bin' (soluble product) yet Carroll's GF calibration retained ALPFE = 0.92831 (deck 1.0 -> 0.927, a ~7% residual scale); v06 sets alpfe = 1.0. Do NOT fix alpfe=1 for v05 recovery, because v05's ground truth is 0.928. Re-gloss the registry as 'dimensionless scale on the (already-soluble) iron-deposition forcing', physical prior 1.0. The Darwin3 iron doc says verbatim: set it to 1 if the deposition rate in [ironfile] is already of soluble iron.",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "dont": ""
     },
     {
@@ -17100,7 +17064,7 @@
     {
      "question": "Which R_PICPOC value does v05 actually integrate, and does editing `val_R_PICPOC` in data.darwin do anything?",
      "answer": "v05 integrates 0.0418860 from `data.traits` line 92 under &DARWIN_TRAITS. `data.darwin` line 53's `val_R_PICPOC = 0.04245` is INERT. In `darwin_init_fixed.F`, DARWIN_GENERATE_RANDOM runs at line 357 and fills the array, then DARWIN_READ_TRAITS runs last at line 382 and overwrites it. The array reads `R_PICPOC = 0.0, 2*4.1886E-2, 4*0.0` so types 2 and 3 (calcifiers) carry 0.0418860. Pinned darwin3 source 24885b71. Carroll's published 0.04245 differs by ~1.4%.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "dont": ""
     },
     {
@@ -17187,6 +17151,102 @@
      "doc": "LOCAL-ONLY source, not in the repo: 2026-05-23_overnight_executed.md"
     },
     {
+     "old": "'Dense-silica targets' (implying a silicate nutrient constraint)",
+     "new": "'Dense biogenic-silica (POSi/bSi) diagnostic targets for diatomgraz' - a diatom OUTPUT diagnostic, not a nutrient",
+     "reason": "The box has no dissolved-silicate tracer and no Si-limitation on growth; conflating the two misstates what the target constrains.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md"
+    },
+    {
+     "old": "Phytoplankton composition explains the ~100x basin PIC:POC spread (per_pft_picpoc_experiment.py, which ASSUMED calcifier fractions of 3.3 / 67.6 / 0.7%)",
+     "new": "Composition is REFUTED. Darwin's ACTUAL Chl2 field gives a nearly flat 1.4x calcifier fraction against a 113x bulk spread, so the spread is carried by per-calcifier calcification EFFICIENCY (environment / carbonate chemistry)",
+     "reason": "The earlier experiment assumed the fractions rather than reading them; per_pft_real_chl2_validation.py read the real field.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md"
+    },
+    {
+     "old": "alpfe is 'iron dust solubility'; Carroll's 0.928 means ~93% of dust dissolves",
+     "new": "alpfe is a dimensionless GLOBAL SCALE on an already-soluble iron-deposition forcing; 0.928 is a ~7% residual scale on the soluble product (deck 1.0 -> 0.927); physical prior is 1.0 and v06 adopts it",
+     "reason": "Verified against the Darwin3 iron doc, the v05 ironfile (Mahowald 2009 SOLUBLE product) and the v06 config. The bare gloss invites a false ~1-2% comparison.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md"
+    },
+    {
+     "old": "Darwin's iron model is Parekh et al. 2006 (the '2006' DOI in circulation)",
+     "new": "Parekh, Follows & Boyle (2005), GBC 19, GB2020. The 2006 DOI is a different paper.",
+     "reason": "Primary-source citation check.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md"
+    },
+    {
+     "old": "alpfe is Fe dust solubility (~1-2% fractional solubility of dust iron)",
+     "new": "alpfe is a near-unity dimensionless correction on ALREADY-SOLUBLE iron. v05 forces with the soluble Mahowald-2009 product and sets ALPFE = 0.928; Darwin3's own docs say set it to 1 if the ironfile is already soluble.",
+     "reason": "Confirmed from Darwin3 documentation and the production namelist. The 'iron dust solubility' label was corrected in code.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md"
+    },
+    {
+     "old": "The forward-emulator rollout ceiling is irreducible.",
+     "new": "CONTESTED, not resolved. The test that supported it only ruled out a CONSTANT per-cell bias (0.22% of variance), but the mechanism that matters - a flat 2-D FFT on a curved, land-masked grid - produces a state-dependent, boundary-concentrated error that a constant correction cannot capture.",
+     "reason": "The supporting test does not address the proposed mechanism. The clean experiment (a geometry-aware operator versus the flat FFT on a rebuilt global cube) is scoped but could not be run: jobs 8512977/8512998 were inconclusive because the AOI cubes are non-geographic with an empty interior and the global cube is off disk.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md"
+    },
+    {
+     "old": "The ~1400x subsurface-DFe Fisher conditioning gain (cond 3022 -> 2.2) will convert into scav_rat recovery, so up-weight subsurface GEOTRACES iron.",
+     "new": "FALSIFIED. Recovery FALLS as the weight rises: scav_rat per-AOI 9/10 at GEOTRACES_SUB_W=1, 5/10 at 3, 1/10 at 8, all verify_run exit 0. The cell-weighted 7 -> 10 -> 10 'improvement' is a straddle artifact.",
+     "reason": "A pre-registered hypothesis tested and refuted. Fisher conditioning gain does not translate into recoverability.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md"
+    },
+    {
+     "old": "The R_PICPOC anchor-off control is 4/50 (n50_anchor_off).",
+     "new": "Quote 6/50 - the EPOCH-MATCHED 2000-epoch n50e2k_anchor_off control. 4/50 is the older 1500-epoch run and is not a control for the 2000-epoch flagship. Further: 6/50 is itself chance-level (P = 0.078 against the rule-of-three floor), so the contrast is 50/50 versus NOTHING, not 50/50 versus a little.",
+     "reason": "Control must be matched to the epoch budget. docs/findings/2026-07-22_anchors_only_n50_verified.md still cites 4/50 and should be corrected.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md"
+    },
+    {
+     "old": "A particulate:dissolved iron ratio observable makes scav_rat ~14x tighter - a clean win.",
+     "new": "REFUTED, not a candidate. pFe := scav_rat*DFe*POC/W_SINK so pFe/DFe = scav_rat*POC/W_SINK and DFe cancels exactly; the '~14x tighter' was a grid-and-threshold artifact.",
+     "reason": "Did not survive adversarial verification; the reduction is algebraic. Retraction propagated to STATUS.md:475-477 and 2026-07-22_iron_bottleneck_solution_map.md:17-19. NOTE: this retraction was never sent to Jon.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md"
+    },
+    {
+     "old": "Transport supplies the spatial structure the box lacks, so a transport-equipped fit generalizes on real data (held-out R2 -0.3 -> +1.0 in the 1-D column).",
+     "new": "That is a SYNTHETIC vertical-1D capacity result, not the E2 gate. The real out-of-sample transport test on real calcite FAILED: learned R2 -0.05 against a null of +0.50, replicated across 10 seeds.",
+     "reason": "The 1-D column held out layers within a synthetic twin; the real gate requires held-out R2 > 0 on real GEOTRACES/calcite cells with HORIZONTAL transport, and that gate was run and failed.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md"
+    },
+    {
+     "old": "No public source documents any v06 calcite / rain-ratio / coccolithophore revision; any such claim would be unsupported.",
+     "new": "v06 more explicitly determines which plankton groups calcify (group-specific calcification), stated by Lauderdale from the inside. This closes the open item and removes the internal tension with the v05 perturbation recipe.",
+     "reason": "An authoritative statement from a project insider supersedes an absence-of-public-documentation finding.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md"
+    },
+    {
+     "old": "A particulate:dissolved iron ratio observable breaks the iron scavenging wall",
+     "new": "RETRACTED. The ratio reduces to scav_rat * POC / W_SINK, so dissolved iron cancels exactly; and in GEOTRACES IDP2025 surface data only 76 samples worldwide carry both under strict co-location (4 in the eqpac box), spanning ~2.6 orders of magnitude.",
+     "reason": "It looked like a clean win and did not survive adversarial verification; the algebraic reason was available without any data.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md"
+    },
+    {
+     "old": "Our recovery target R_PICPOC = 0.04245 is the value v05 integrates",
+     "new": "v05 integrates 0.0418860 (data.traits line 92). 0.04245 is the generation scalar in data.darwin and is inert. About 1.4% apart.",
+     "reason": "DARWIN_READ_TRAITS (line 382) runs after DARWIN_GENERATE_RANDOM (line 357) and overwrites the array; the two files already disagree, which proves the precedence is live.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md"
+    },
+    {
+     "old": "The np=8 element in darwin_generate_phyto.F targets an index outside the array and might write past the end - flag it to the Darwin team as a possible bug.",
+     "new": "RETRACTED. Line 483 is a CONDITION on the loop variable, if (np.eq.2.or.np.eq.3.or.np.eq.8), not an assignment to R_PICPOC(8). If the loop never reaches np=8 the branch simply never fires. No memory is touched. Also npmax=5 could not be verified from primary source, so even the 'dead code' reading is unconfirmed. Do NOT send this to the Darwin team.",
+     "reason": "An overstatement built on a secondary source; it nearly caused a non-bug to be reported to a collaborator.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md"
+    },
+    {
+     "old": "R_PICPOC is not set by a namelist at all - it is an inline Green's-functions override in Fortran at darwin_generate_phyto.F:484, so the namelist values are not what the model runs on.",
+     "new": "That answers Darwin 1 / v04 llc270_JAMES_paper, where parameters are hardcoded in source. Jon asked about data.darwin / data.traits, which are DARWIN 3 namelist files. The Darwin 3 answer is v05 data.darwin:53 val_R_PICPOC=0.04245 (dead) and v05 data.traits:36 R_PICPOC=0.041886 (live), plus v06's per-group a_R_PICPOC array.",
+     "reason": "Answered the wrong model generation; caught by an adversarial validation pass before it went out. The repo's own inventory states the Darwin-1-vs-Darwin-3 distinction at ecco_darwin_parameter_inventory.md:125-127.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md"
+    },
+    {
+     "old": "The alpfe/scav_rat degeneracy may be partly an artifact of Darwin's ligand-free scavenging, since BLING partitions free from complexed Fe (docs/findings/2026-07-28_bling_comparability.md); 'is the degeneracy formulation-dependent?' is the most interesting open question.",
+     "new": "The degeneracy is FUNDAMENTAL - a property of the iron cycle's short residence time, which makes it source/sink-controlled regardless of which simple parameterization is chosen (Lauderdale, 2026-07-29).",
+     "reason": "Domain-expert answer. The ligand question is still worth testing but is NOT the explanation, and the BLING note must not be read as implying our model choice created the degeneracy.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md"
+    },
+    {
      "old": "diatomgraz reaches 35/50 per-AOI non-circularly via the Chl + MLD channel (POSI_W=0).",
      "new": "The 35/50 count is RETIRED. The architecture-matched untrained control scores 34/50, so 35/50 beats its own null by one seed at P = 0.447 — the count measures the parameter bounds, not the observations. diatomgraz is not refuted: geo1+MLD 10/10 (P = 0.021) remains the headline verdict.",
      "reason": "Empirical chance baseline run through the real pipeline at NB23_LR=0 / NB23_N_EPOCHS=1 with MLD_CHANNEL=1, n=50, verify_run exit 0, job 227876. Bounds (0.05, 1.0) against Carroll 0.83003 put the Cal band at [0.498, 1.0] = 52.8% of the range with the midpoint inside it. Now enforced in code via KNOWN_PRIOR_CONTAMINATED.",
@@ -17197,24 +17257,6 @@
      "new": "RETRACTED. An architecture-matched UNTRAINED control (MLD_CHANNEL=1, job 227876, verify_run exit 0) scores diatomgraz 34/50 with no training at all, so 35/50 beats untrained by one seed: P = 0.447 (0.500 paired). 'Do not reinstate 35/50 anywhere.' Any pinned-coordinate or prior-loaded architecture now requires three controls: architecture-matched untrained, pin-only with zero free parameters, and a prior sweep.",
      "reason": "The n=50 count measured the parameter's bounds, not the observations. Evidence in docs/agu26_abstract_draft.md and docs/findings/2026-07-28_session_evidence_log.md §G4, re-tested paired in docs/findings/2026-07-29_math_audit_index.md §7; the three-control generalization is named in the gauge-symmetry doc.",
      "doc": "docs/agu26_abstract_draft.md, docs/findings/2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md"
-    },
-    {
-     "old": "'Dense-silica targets' (implying a silicate nutrient constraint)",
-     "new": "'Dense biogenic-silica (POSi/bSi) diagnostic targets for diatomgraz' - a diatom OUTPUT diagnostic, not a nutrient",
-     "reason": "The box has no dissolved-silicate tracer and no Si-limitation on growth; conflating the two misstates what the target constrains.",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md"
-    },
-    {
-     "old": "Phytoplankton composition explains the ~100x basin PIC:POC spread (per_pft_picpoc_experiment.py, which ASSUMED calcifier fractions of 3.3 / 67.6 / 0.7%)",
-     "new": "Composition is REFUTED. Darwin's ACTUAL Chl2 field gives a nearly flat 1.4x calcifier fraction against a 113x bulk spread, so the spread is carried by per-calcifier calcification EFFICIENCY (environment / carbonate chemistry)",
-     "reason": "The earlier experiment assumed the fractions rather than reading them; per_pft_real_chl2_validation.py read the real field.",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md"
-    },
-    {
-     "old": "alpfe is 'iron dust solubility'; Carroll's 0.928 means ~93% of dust dissolves",
-     "new": "alpfe is a dimensionless GLOBAL SCALE on an already-soluble iron-deposition forcing; 0.928 is a ~7% residual scale on the soluble product (deck 1.0 -> 0.927); physical prior is 1.0 and v06 adopts it",
-     "reason": "Verified against the Darwin3 iron doc, the v05 ironfile (Mahowald 2009 SOLUBLE product) and the v06 config. The bare gloss invites a false ~1-2% comparison.",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md"
     },
     {
      "old": "The synthetic calcite panel (oracle recovers n=0.50 from R0*Omega^0.5) corroborates the real-data calcite null.",
@@ -17703,6 +17745,12 @@
      "doc": "docs/findings/2026-07-23_parameter_completion_matrix.md"
     },
     {
+     "old": "diatomgraz 35/50 with bSi OFF is a non-bSi handle that answers the M11 circularity objection (LEAD B, CONFIRMED at n=50, job 190529).",
+     "new": "REFUTED as a recovery claim: P = 0.447 against an architecture-matched untrained baseline of 34/50 (MLD_CHANNEL=1, job 227876). It beats an untrained network by ONE seed. Do not quote it.",
+     "reason": "The measured untrained baseline (job 227777) shows diatomgraz scores 0.640 untrained, and adding a DINN input channel changes the chance rate with no training at all - so the original 35/50 was graded against the wrong null.",
+     "doc": "docs/findings/2026-07-23_parameter_completion_matrix.md"
+    },
+    {
      "old": "A single robust 4-of-4 config may exist in the pat030-mld middle - the endpoints are known-negative so the middle is the whole question.",
      "new": "RESOLVED: NO 4-of-4, and the trade-off is STRUCTURAL, not an optimization limit. full-loss + MLD at 4000 epochs gives diatomgraz 0/10 in both the pattern=1 and pattern=0.3 arms and degrades alpfe to 4/10 and scav_rat to 6/10 (job 192298, VERIFIED).",
      "reason": "More optimization does not rescue diatomgraz when the pattern term is present. scav_rat needs the Darwin-pattern term; diatomgraz needs MLD; they are a genuine loss-landscape conflict.",
@@ -18067,60 +18115,6 @@
      "new": "It did not until inert_terms() landed. A run declaring DANIELS_RPICPOC_W=1 with n_daniels_cells_per_aoi zero in all three AOIs passed at exit 0, [VERIFIED] (10/10 seeds).",
      "reason": "The gate never read the declared weight and the realised cell count together - the same defect class as the canonical-number guards: a fact correct in one place and unused in another.",
      "doc": "docs/findings/2026-07-29_inert_anchor_passes_the_gate.md"
-    },
-    {
-     "old": "The ~1400x subsurface-DFe Fisher conditioning gain (cond 3022 -> 2.2) will convert into scav_rat recovery, so up-weight subsurface GEOTRACES iron.",
-     "new": "FALSIFIED. Recovery FALLS as the weight rises: scav_rat per-AOI 9/10 at GEOTRACES_SUB_W=1, 5/10 at 3, 1/10 at 8, all verify_run exit 0. The cell-weighted 7 -> 10 -> 10 'improvement' is a straddle artifact.",
-     "reason": "A pre-registered hypothesis tested and refuted. Fisher conditioning gain does not translate into recoverability.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md"
-    },
-    {
-     "old": "The R_PICPOC anchor-off control is 4/50 (n50_anchor_off).",
-     "new": "Quote 6/50 - the EPOCH-MATCHED 2000-epoch n50e2k_anchor_off control. 4/50 is the older 1500-epoch run and is not a control for the 2000-epoch flagship. Further: 6/50 is itself chance-level (P = 0.078 against the rule-of-three floor), so the contrast is 50/50 versus NOTHING, not 50/50 versus a little.",
-     "reason": "Control must be matched to the epoch budget. docs/findings/2026-07-22_anchors_only_n50_verified.md still cites 4/50 and should be corrected.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md"
-    },
-    {
-     "old": "A particulate:dissolved iron ratio observable makes scav_rat ~14x tighter - a clean win.",
-     "new": "REFUTED, not a candidate. pFe := scav_rat*DFe*POC/W_SINK so pFe/DFe = scav_rat*POC/W_SINK and DFe cancels exactly; the '~14x tighter' was a grid-and-threshold artifact.",
-     "reason": "Did not survive adversarial verification; the reduction is algebraic. Retraction propagated to STATUS.md:475-477 and 2026-07-22_iron_bottleneck_solution_map.md:17-19. NOTE: this retraction was never sent to Jon.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md"
-    },
-    {
-     "old": "No public source documents any v06 calcite / rain-ratio / coccolithophore revision; any such claim would be unsupported.",
-     "new": "v06 more explicitly determines which plankton groups calcify (group-specific calcification), stated by Lauderdale from the inside. This closes the open item and removes the internal tension with the v05 perturbation recipe.",
-     "reason": "An authoritative statement from a project insider supersedes an absence-of-public-documentation finding.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md"
-    },
-    {
-     "old": "diatomgraz 35/50 with bSi OFF is a non-bSi handle that answers the M11 circularity objection (LEAD B, CONFIRMED at n=50, job 190529).",
-     "new": "REFUTED as a recovery claim: P = 0.447 against an architecture-matched untrained baseline of 34/50 (MLD_CHANNEL=1, job 227876). It beats an untrained network by ONE seed. Do not quote it.",
-     "reason": "The measured untrained baseline (job 227777) shows diatomgraz scores 0.640 untrained, and adding a DINN input channel changes the chance rate with no training at all - so the original 35/50 was graded against the wrong null.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md, docs/findings/2026-07-23_parameter_completion_matrix.md"
-    },
-    {
-     "old": "Transport supplies the spatial structure the box lacks, so a transport-equipped fit generalizes on real data (held-out R2 -0.3 -> +1.0 in the 1-D column).",
-     "new": "That is a SYNTHETIC vertical-1D capacity result, not the E2 gate. The real out-of-sample transport test on real calcite FAILED: learned R2 -0.05 against a null of +0.50, replicated across 10 seeds.",
-     "reason": "The 1-D column held out layers within a synthetic twin; the real gate requires held-out R2 > 0 on real GEOTRACES/calcite cells with HORIZONTAL transport, and that gate was run and failed.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md, docs/research_notes/2026-07-07_jon_questions_track2.md"
-    },
-    {
-     "old": "The np=8 element in darwin_generate_phyto.F targets an index outside the array and might write past the end - flag it to the Darwin team as a possible bug.",
-     "new": "RETRACTED. Line 483 is a CONDITION on the loop variable, if (np.eq.2.or.np.eq.3.or.np.eq.8), not an assignment to R_PICPOC(8). If the loop never reaches np=8 the branch simply never fires. No memory is touched. Also npmax=5 could not be verified from primary source, so even the 'dead code' reading is unconfirmed. Do NOT send this to the Darwin team.",
-     "reason": "An overstatement built on a secondary source; it nearly caused a non-bug to be reported to a collaborator.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md"
-    },
-    {
-     "old": "R_PICPOC is not set by a namelist at all - it is an inline Green's-functions override in Fortran at darwin_generate_phyto.F:484, so the namelist values are not what the model runs on.",
-     "new": "That answers Darwin 1 / v04 llc270_JAMES_paper, where parameters are hardcoded in source. Jon asked about data.darwin / data.traits, which are DARWIN 3 namelist files. The Darwin 3 answer is v05 data.darwin:53 val_R_PICPOC=0.04245 (dead) and v05 data.traits:36 R_PICPOC=0.041886 (live), plus v06's per-group a_R_PICPOC array.",
-     "reason": "Answered the wrong model generation; caught by an adversarial validation pass before it went out. The repo's own inventory states the Darwin-1-vs-Darwin-3 distinction at ecco_darwin_parameter_inventory.md:125-127.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md"
-    },
-    {
-     "old": "The alpfe/scav_rat degeneracy may be partly an artifact of Darwin's ligand-free scavenging, since BLING partitions free from complexed Fe (docs/findings/2026-07-28_bling_comparability.md); 'is the degeneracy formulation-dependent?' is the most interesting open question.",
-     "new": "The degeneracy is FUNDAMENTAL - a property of the iron cycle's short residence time, which makes it source/sink-controlled regardless of which simple parameterization is chosen (Lauderdale, 2026-07-29).",
-     "reason": "Domain-expert answer. The ligand question is still worth testing but is NOT the explanation, and the BLING note must not be read as implying our model choice created the degeneracy.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md"
     },
     {
      "old": "'The R_PICPOC anchor-off control at 6/50 is itself chance-level (P = 0.078), so the contrast is 50/50 decisive vs 6/50 chance.'",
@@ -18651,24 +18645,6 @@
      "doc": "docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md"
     },
     {
-     "old": "Darwin's iron model is Parekh et al. 2006 (the '2006' DOI in circulation)",
-     "new": "Parekh, Follows & Boyle (2005), GBC 19, GB2020. The 2006 DOI is a different paper.",
-     "reason": "Primary-source citation check.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md"
-    },
-    {
-     "old": "alpfe is Fe dust solubility (~1-2% fractional solubility of dust iron)",
-     "new": "alpfe is a near-unity dimensionless correction on ALREADY-SOLUBLE iron. v05 forces with the soluble Mahowald-2009 product and sets ALPFE = 0.928; Darwin3's own docs say set it to 1 if the ironfile is already soluble.",
-     "reason": "Confirmed from Darwin3 documentation and the production namelist. The 'iron dust solubility' label was corrected in code.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md"
-    },
-    {
-     "old": "The forward-emulator rollout ceiling is irreducible.",
-     "new": "CONTESTED, not resolved. The test that supported it only ruled out a CONSTANT per-cell bias (0.22% of variance), but the mechanism that matters - a flat 2-D FFT on a curved, land-masked grid - produces a state-dependent, boundary-concentrated error that a constant correction cannot capture.",
-     "reason": "The supporting test does not address the proposed mechanism. The clean experiment (a geometry-aware operator versus the flat FFT on a rebuilt global cube) is scoped but could not be run: jobs 8512977/8512998 were inconclusive because the AOI cubes are non-geographic with an empty interior and the global cube is off disk.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md"
-    },
-    {
      "old": "The flagship joint recovery is 33/50, Wilson [0.52, 0.78].",
      "new": "That number is CELL-WEIGHTED. The per-AOI >=2-of-3 joint is bounded by scav_rat's 25/50 -> <=25/50 (0.50), Wilson ~[0.37, 0.63] — below the advertised CI lower bound of 0.52.",
      "reason": "The panel's #1 objection (R2/R3/R5/R7). A conjunction cannot exceed its weakest leg. Body made honest; abstract/Fig.3 pending a user decision.",
@@ -18943,18 +18919,6 @@
      "new": "They are FISHER-matrix condition numbers, i.e. already kappa(J)^2. Verified against source: 2026-07-23_observation_design.md:76-78 gives iron 2x2 Fisher eigenvalues 1.08e-3 / 3.18, ratio 2944 ~ 2930. Corrected kappa(J) = 54 (surface-only iron), 5.9-7.1 (eqpac/natl), 1.5 (Southern Ocean). This INVERTS section 1.5 Test 1 and every downstream inference resting on it (the section-4 conditioning-vs-observability split, E4's prediction, the section-6 summary). Sections 2 and 3 are UNAFFECTED - the hierarchy matrix, the fabricated-covariance finding, and the no-independent-anchor observation are all independent of the kappa arithmetic.",
      "reason": "adversarial review of the document; a units error caught by re-deriving the number from the published eigenvalues",
      "doc": "docs/research_notes/2026-07-27_hierarchical_inversion_design.md"
-    },
-    {
-     "old": "A particulate:dissolved iron ratio observable breaks the iron scavenging wall",
-     "new": "RETRACTED. The ratio reduces to scav_rat * POC / W_SINK, so dissolved iron cancels exactly; and in GEOTRACES IDP2025 surface data only 76 samples worldwide carry both under strict co-location (4 in the eqpac box), spanning ~2.6 orders of magnitude.",
-     "reason": "It looked like a clean win and did not survive adversarial verification; the algebraic reason was available without any data.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md"
-    },
-    {
-     "old": "Our recovery target R_PICPOC = 0.04245 is the value v05 integrates",
-     "new": "v05 integrates 0.0418860 (data.traits line 92). 0.04245 is the generation scalar in data.darwin and is inert. About 1.4% apart.",
-     "reason": "DARWIN_READ_TRAITS (line 382) runs after DARWIN_GENERATE_RANDOM (line 357) and overwrites the array; the two files already disagree, which proves the precedence is live.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md"
     },
     {
      "old": "The synthetic Fisher-information ordering: scav_rat lowest (0.026) and R_PICPOC nonzero (0.099).",
@@ -20532,6 +20496,71 @@
      "category": ""
     },
     {
+     "trap": "An experiment that cannot run because the data artifact is the wrong shape or off disk. The emulator geometry test (jobs 8512977/8512998) was inconclusive because the AOI cubes are non-geographic with an empty interior and cannot resolve coastal versus interior, and the global cube is off disk - leaving a headline claim ('the rollout ceiling is irreducible') contested rather than resolved.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
+     "category": ""
+    },
+    {
+     "trap": "Quoting a sloppiness magnitude from a saddle. The per-AOI CRLB gives ~3.96 decades in the Eq. Pacific, but the theta* Hessian carries a zero/negative eigenvalue, so theta* is not a clean minimum and the decade-span is not quotable. The qualitative rank structure survives; the number does not. Same root cause as the 07-19 audit, which records one negative eigenvalue at theta* in every run and 2-3 at Carroll's values.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
+     "category": ""
+    },
+    {
+     "trap": "Sending a drafted collaborator email. The 2026-07-25 GCM-ensemble ask (kept locally) is a DRAFT that was never sent and carries an explicit note to leave the To: line blank until it is ready. The standing rule is draft, never send.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
+     "category": ""
+    },
+    {
+     "trap": "Assuming a retraction reached the collaborator. The particulate:dissolved iron retraction was propagated to STATUS.md and the solution map but was NEVER sent to Jon - checked by grepping the most recent Jon-facing document for particulate/partition/pFe/Fe_TP (zero hits). Internal propagation is not communication.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
+     "category": ""
+    },
+    {
+     "trap": "Grading a covariate arm against a different-architecture baseline. Adding a DINN input channel changes the chance rate with NO training at all - untrained alpfe goes 10/50 to 16/50 and untrained diatomgraz reaches 34/50 on the MLD channel alone. Any covariate comparison graded against a non-matched null is graded against the wrong null; this is why several published numbers were downgraded.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
+     "category": ""
+    },
+    {
+     "trap": "Inconsistent statistical floors inside one document. The evidence log states the rule-of-three floor as 3/50 = 0.06 at lines 329-330 and as 3/30 = 0.10 at line 570; the tables use 0.06. Also, three documents still carry the RETRACTED '(scav_rat, W_SINK) are perfectly degenerate' claim (2026-07-09_track2_identifiability_writeup.md:179, 2026-07-10_jon_decision_brief.md:78, scripts/iron_partitioning_controls.py docstring 13-15).",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
+     "category": ""
+    },
+    {
+     "trap": "Quoting an epoch-mismatched control. The R_PICPOC anchor-off number is 6/50 at 2000 epochs (n50e2k_anchor_off, epoch-matched to the flagship) and 4/50 at 1500 epochs (n50_anchor_off). docs/findings/2026-07-22_anchors_only_n50_verified.md still cites the 1500-epoch 4/50 against the 2000-epoch flagship.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
+     "category": ""
+    },
+    {
+     "trap": "Sending the per-cell vs global-scalar contrast (trio 25/50 vs 0/50, R_PICPOC 50/50 vs 0/50) as support for regional rain-ratio variation. It is an identifiability fact about our estimator, not a measurement that the true ratio varies. The legitimate regional evidence is Daniels (eqpac ~1.6x global) and Sarmiento 2002 (20-30x).",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
+     "category": ""
+    },
+    {
+     "trap": "Planning a v05 perturbation experiment by editing `data.darwin`. For R_PICPOC and diatomgraz that silently does nothing - DARWIN_READ_TRAITS (line 382) overwrites DARWIN_GENERATE_RANDOM (line 357). Only alpfe and scav_rat are editable there. Answering this precedence question once already 'saved a wasted perturbation experiment'.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
+     "category": ""
+    },
+    {
+     "trap": "Answering the wrong model generation. A question about data.darwin / data.traits (Darwin 3 namelists) was answered with a Darwin 1 / v04 finding about parameters hardcoded in source - even though the repo's own inventory states the distinction at ecco_darwin_parameter_inventory.md:125-127. Caught only by an adversarial validation pass before it went out.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
+     "category": ""
+    },
+    {
+     "trap": "Nearly reporting a non-bug to a collaborator on the strength of a secondary source. The claimed 'out-of-bounds write' at R_PICPOC(8) was a CONDITION on the loop variable, not an assignment; no memory is touched. Built on our own inventory doc rather than the Fortran.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
+     "category": ""
+    },
+    {
+     "trap": "Quoting a run that produced correct-looking numbers but failed the verification gate. Job 237913 gave counts IDENTICAL to the accepted run but exited 2 because the config declared DANIELS_RPICPOC_W and POSI_W on a basin with zero cells for either. The re-run (238079/238080) is bitwise identical, max relative difference 0.000e+00 - but quote the re-run, not 237913.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
+     "category": ""
+    },
+    {
+     "trap": "Reporting a property of the GRADING RULE as a property of the model. scav_rat was reported as recovering in 0 seeds because the per-AOI 2-of-3 basin rule cannot return a majority from one basin - while the Southern Ocean leg was actually recovering 39-50 of 50 against 0/50 untrained.",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
+     "category": ""
+    },
+    {
      "trap": "The same failure recurred and was caught: diatomgraz 35/50 was reported and propagated into an AGU abstract rewrite before its architecture-matched untrained control was run. The control scored 34/50. When a parameter's Cal band covers 52.8% of its bounds with the midpoint inside it, the count measures the bounds. Run the untrained arm FIRST for any parameter whose band is a large fraction of its range.",
      "doc": "STATUS.md",
      "category": ""
@@ -20852,6 +20881,11 @@
      "category": ""
     },
     {
+     "trap": "Quoting a cell-weighted count as recovery. It overstates the per-AOI metric via a STRADDLE (per-AOI legs on opposite sides of Carroll whose weighted mean lands near it) - by +5 to +10 seeds for scav_rat. The obs-only scav_rat cell-weighted 40/50 is the canonical case: all 50 seeds land Cal+ in exactly ONE AOI (always southernoceanpac), so no 2-AOI majority ever forms. The grader flags straddles explicitly.",
+     "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md",
+     "category": ""
+    },
+    {
      "trap": "Running 50 seeds in one process. It CUDA-OOMs. n>=50 must be 5x 10-seed array blocks pooled into one OUTPUT_DIR.",
      "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md",
      "category": ""
@@ -20862,18 +20896,8 @@
      "category": ""
     },
     {
-     "trap": "Quoting a cell-weighted count as recovery. It overstates the per-AOI metric via a STRADDLE (per-AOI legs on opposite sides of Carroll whose weighted mean lands near it) - by +5 to +10 seeds for scav_rat. The obs-only scav_rat cell-weighted 40/50 is the canonical case: all 50 seeds land Cal+ in exactly ONE AOI (always southernoceanpac), so no 2-AOI majority ever forms. The grader flags straddles explicitly.",
-     "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "category": ""
-    },
-    {
      "trap": "Fallback shims that validate nothing hide conformance bugs. With earth2studio absent, the batch_func decorator is a no-op, so tensors kept whatever rank the test happened to use (rank 4) and everything passed - while the real 6-D path was indexing 'time' as if it were 'variable'. The tests proved the code RUNS; they never proved it CONFORMS. A green CI run is not evidence of conformance when the extra is missing.",
      "doc": "docs/findings/2026-07-25_e2s_conformance_verified.md",
-     "category": ""
-    },
-    {
-     "trap": "Sending a drafted collaborator email. docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md is a DRAFT that was never sent and carries an explicit 'Leave the To: line until ready'. The standing rule is draft, never send.",
-     "doc": "docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
      "category": ""
     },
     {
@@ -21049,41 +21073,6 @@
     {
      "trap": "Treating `verify_run.py` exit 0 as proof the declared loss terms ran. A holdout run declared DANIELS_RPICPOC_W=1, the PANGAEA file was unstaged, the anchor was silently skipped with only a `[warn]`, and the gate returned exit 0 [VERIFIED] (10/10 seeds) on a result at 0.20-0.26x Carroll. The two keys that would have caught it were both already in the run JSON.",
      "doc": "docs/findings/2026-07-29_inert_anchor_passes_the_gate.md",
-     "category": ""
-    },
-    {
-     "trap": "Assuming a retraction reached the collaborator. The particulate:dissolved iron retraction was propagated to STATUS.md and the solution map but was NEVER sent to Jon - checked by grepping the most recent Jon-facing document for particulate/partition/pFe/Fe_TP (zero hits). Internal propagation is not communication.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "category": ""
-    },
-    {
-     "trap": "Grading a covariate arm against a different-architecture baseline. Adding a DINN input channel changes the chance rate with NO training at all - untrained alpfe goes 10/50 to 16/50 and untrained diatomgraz reaches 34/50 on the MLD channel alone. Any covariate comparison graded against a non-matched null is graded against the wrong null; this is why several published numbers were downgraded.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "category": ""
-    },
-    {
-     "trap": "Inconsistent statistical floors inside one document. The evidence log states the rule-of-three floor as 3/50 = 0.06 at lines 329-330 and as 3/30 = 0.10 at line 570; the tables use 0.06. Also, three documents still carry the RETRACTED '(scav_rat, W_SINK) are perfectly degenerate' claim (2026-07-09_track2_identifiability_writeup.md:179, 2026-07-10_jon_decision_brief.md:78, scripts/iron_partitioning_controls.py docstring 13-15).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "category": ""
-    },
-    {
-     "trap": "Quoting an epoch-mismatched control. The R_PICPOC anchor-off number is 6/50 at 2000 epochs (n50e2k_anchor_off, epoch-matched to the flagship) and 4/50 at 1500 epochs (n50_anchor_off). docs/findings/2026-07-22_anchors_only_n50_verified.md still cites the 1500-epoch 4/50 against the 2000-epoch flagship.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "category": ""
-    },
-    {
-     "trap": "Sending the per-cell vs global-scalar contrast (trio 25/50 vs 0/50, R_PICPOC 50/50 vs 0/50) as support for regional rain-ratio variation. It is an identifiability fact about our estimator, not a measurement that the true ratio varies. The legitimate regional evidence is Daniels (eqpac ~1.6x global) and Sarmiento 2002 (20-30x).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "category": ""
-    },
-    {
-     "trap": "Answering the wrong model generation. A question about data.darwin / data.traits (Darwin 3 namelists) was answered with a Darwin 1 / v04 finding about parameters hardcoded in source - even though the repo's own inventory states the distinction at ecco_darwin_parameter_inventory.md:125-127. Caught only by an adversarial validation pass before it went out.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
-     "category": ""
-    },
-    {
-     "trap": "Nearly reporting a non-bug to a collaborator on the strength of a secondary source. The claimed 'out-of-bounds write' at R_PICPOC(8) was a CONDITION on the loop variable, not an assignment; no memory is touched. Built on our own inventory doc rather than the Fortran.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
      "category": ""
     },
     {
@@ -21542,16 +21531,6 @@
      "category": ""
     },
     {
-     "trap": "An experiment that cannot run because the data artifact is the wrong shape or off disk. The emulator geometry test (jobs 8512977/8512998) was inconclusive because the AOI cubes are non-geographic with an empty interior and cannot resolve coastal versus interior, and the global cube is off disk - leaving a headline claim ('the rollout ceiling is irreducible') contested rather than resolved.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
-     "category": ""
-    },
-    {
-     "trap": "Quoting a sloppiness magnitude from a saddle. The per-AOI CRLB gives ~3.96 decades in the Eq. Pacific, but the theta* Hessian carries a zero/negative eigenvalue, so theta* is not a clean minimum and the decade-span is not quotable. The qualitative rank structure survives; the number does not. Same root cause as the 07-19 audit, which records one negative eigenvalue at theta* in every run and 2-3 at Carroll's values.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
-     "category": ""
-    },
-    {
      "trap": "Splicing two different metrics into one claim. 'scav_rat collapse 8/10 -> 0/10, p=7e-4' spliced a cell-weighted numerator onto a per-AOI denominator; restated under one metric it is per-AOI 25/50 -> 1/50 with Fisher p ~ 0.03. A referee will catch a metric change inside a single sentence.",
      "doc": "docs/research_notes/2026-07-21_manuscript_redteam.md",
      "category": ""
@@ -21682,11 +21661,6 @@
      "category": ""
     },
     {
-     "trap": "Planning a v05 perturbation experiment by editing `data.darwin`. For R_PICPOC and diatomgraz that silently does nothing - DARWIN_READ_TRAITS (line 382) overwrites DARWIN_GENERATE_RANDOM (line 357). Only alpfe and scav_rat are editable there. Answering this precedence question once already 'saved a wasted perturbation experiment'.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
-     "category": ""
-    },
-    {
      "trap": "Auditing the loss by variable name. The target key co2_flux_obs is assigned from ds_avg_local['CO2_flux'] - Darwin's own flux diagnostic, NOT an observation - and misclassifies loss terms 11 and 26. The key cannot be renamed (torch.save cache key, no version field, read outside the rebuild try). 10 local uses were renamed to co2_flux_darwin with three mutation-tested guards.",
      "doc": "docs/research_notes/2026-07-29_observations_only_scope.md",
      "category": ""
@@ -21697,28 +21671,18 @@
      "category": ""
     },
     {
+     "trap": "Claiming a Darwin-free or observations-only FIT. Darwin enters three ways and env vars remove only two: loss targets (removable), initial condition (removable via DARWIN_IC=0), and FORCING - SST, MLD, wind, SSS, apCO2 all from v05, plus Darwin SST and Darwin mldDepth as the DINN input channels. A repo-wide search finds NO observational MLD product (no de Boyer Montegut, no Argo, no WOA). 'Observations only' currently means 'observations-only TARGETS'.",
+     "doc": "docs/research_notes/2026-07-29_observations_only_scope.md",
+     "category": ""
+    },
+    {
      "trap": "Piping verify_run.py or pytest. A pipe masks the exit code, so the gate silently passes.",
      "doc": "docs/research_notes/2026-07-29_observations_only_scope.md",
      "category": ""
     },
     {
-     "trap": "Re-deriving the observations-only design. The loss half of Jon's 'drop the ECCO-Darwin output' prescription was ALREADY implemented and ALREADY run twice (n=10 and n=50) under the different name *anchors-only*, with verify_run exit 0. Search for DARWIN_PATTERN_W and 'anchors-only' before scoping any observations-only work.",
+     "trap": "Re-deriving the observations-only design. The loss half of Jon's observations-only prescription was ALREADY implemented and ALREADY run twice (n=10 and n=50) under the different name *anchors-only*, with verify_run exit 0. Search for DARWIN_PATTERN_W and 'anchors-only' before scoping any observations-only work.",
      "doc": "docs/research_notes/2026-07-29_observations_only_scope.md",
-     "category": ""
-    },
-    {
-     "trap": "Claiming a Darwin-free or observations-only FIT. Darwin enters three ways and env vars remove only two: loss targets (removable), initial condition (removable via DARWIN_IC=0), and FORCING - SST, MLD, wind, SSS, apCO2 all from v05, plus Darwin SST and Darwin mldDepth as the DINN input channels. A repo-wide search finds NO observational MLD product (no de Boyer Montegut, no Argo, no WOA). 'Observations only' currently means 'observations-only TARGETS'.",
-     "doc": "docs/research_notes/2026-07-29_observations_only_scope.md, docs/findings/2026-07-29_jon_reply_crosscheck.md",
-     "category": ""
-    },
-    {
-     "trap": "Quoting a run that produced correct-looking numbers but failed the verification gate. Job 237913 gave counts IDENTICAL to the accepted run but exited 2 because the config declared DANIELS_RPICPOC_W and POSI_W on a basin with zero cells for either. The re-run (238079/238080) is bitwise identical, max relative difference 0.000e+00 - but quote the re-run, not 237913.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
-     "category": ""
-    },
-    {
-     "trap": "Reporting a property of the GRADING RULE as a property of the model. scav_rat was reported as recovering in 0 seeds because the per-AOI 2-of-3 basin rule cannot return a majority from one basin - while the Southern Ocean leg was actually recovering 39-50 of 50 against 0/50 untrained.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
      "category": ""
     },
     {
@@ -28649,7 +28613,7 @@
      "detail": "An explanatory reading of a flat profile that would otherwise be read as failure; the honesty caveat is attached because the diagnostic cannot yet separate the two readings.",
      "n": "",
      "null_baseline": "profile-likelihood span 0.0235 (the 2026-07-19 diagnostic, reported in the 2026-07-20 architecture note) while alpfe recovers 9-10/10",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md, docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
+     "doc": "docs/research_notes/2026-07-20_parameter_learner_architecture_options.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -28673,7 +28637,7 @@
      "detail": "Inference to the best explanation of a surprise (flat calcifier fraction under a 113x bulk spread). Its corroboration - that USE_ENV_RAIN_RATIO reproduced the spread while cocco-only gating did not - is RETRODICTION, not a tested novel prediction; the measured refutation half is what carries the row.",
      "n": "",
      "null_baseline": "calcifier fraction 1.4x spread (0.153/0.134/0.109); bulk PIC:POC 113x (0.034/0.729/0.006); implied per-calcifier R 92x (0.22/5.4/0.06); Chl2-PIC correlation r=0.50 eqpac, r=0.73 SO",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "data"
     },
@@ -28697,7 +28661,7 @@
      "detail": "Proposed to explain why diatomgraz counts were high and unstable; confirmed by a control the explanation was not built from (the architecture-matched untrained run).",
      "n": "",
      "null_baseline": "diatomgraz scores 0.640 untrained at n=50 (job 227777). The 35/50 'non-circular handle' result is P = 0.447 against an architecture-matched untrained baseline of 34/50 (MLD_CHANNEL=1, job 227876) - it beats an untrained network by ONE seed. The obs-only 11/50 is BELOW chance (lower-tail P = 1.6e-09).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -28901,7 +28865,7 @@
      "detail": "The single-box steady-state degeneracy argument predicted the residence-time response; an independent published controlled experiment, not designed to test our framing, matched it.",
      "n": "",
      "null_baseline": "source varied ~5x -> tau x4.8. The doc states this 'lands right on our prediction' but does not print the predicted number, so do not quote one.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "data"
     },
@@ -29021,7 +28985,7 @@
      "detail": "Inference to the best explanation of the FeMIP spread, and it made a prediction (Somes' controlled experiment) it was not built to explain, which landed.",
      "n": "",
      "null_baseline": "Tagliabue 2016 Table 2 (13 models): residence time 3.7 → 626 yr (169×), mean concentration 0.58 ± 0.14 nM (~24%), total input flux ~140× (sediment 0-194 Gmol/yr). τ = inventory/input reproduces every model's τ exactly; 169× = 130× input × 1.3× inventory. Somes 2021: vary combined atmospheric+sedimentary source ~5×, retune scavenging to hold concentration → τ ×4.8 (predicted). Not a provable true negative on the literature search; Schartau 2017 uses the vocabulary in marine-ecosystem calibration generally but not for the iron cycle.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "track1"
     },
@@ -29597,7 +29561,7 @@
      "detail": "The logical gap between what was tested and what matters follows from the form of the correction; no new data is needed to see the test is not decisive.",
      "n": "",
      "null_baseline": "The eliminated per-cell/location-indexed constant-bias field explained only ~0.22% of held-out variance. A flat 2-D FFT on a curved, land-masked grid produces a state-dependent boundary-concentrated bias (Spherical-FNO diagnosis) that a CONSTANT per-cell correction cannot capture, so 0.22% does not rule it out. The direct test failed for want of data: the global geographic cube is no longer on disk and the AOI cubes have a non-geographic layout.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "track2"
     },
@@ -29765,7 +29729,7 @@
      "detail": "An algebraic identity checked against a published table - verifiable by inspection without new data.",
      "n": "",
      "null_baseline": "Tagliabue 2016 FeMIP Table 2, all 13 models: concentration agreed to ~2x, residence time roams 169x = ~130x (input) x ~1.3x (inventory). Sedimentary iron source spans 0 to 194 Gmol/yr across models, all landing near 0.5 nM. Honesty caveat: Tagliabue's full text was paywalled, so this rests on Table 2 plus the internal identity check.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "data"
     },
@@ -29789,7 +29753,7 @@
      "detail": "Follows from what the observable measures; a bulk quantity cannot resolve a per-group rate pair.",
      "n": "",
      "null_baseline": "the standing ask is a size-fractionated or per-class chlorophyll product for the 2003-2018 era",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "",
      "track": "data"
     },
@@ -29897,7 +29861,7 @@
      "detail": "The cancellation is algebra on the model's own sink term, checkable by inspection with no new data.",
      "n": "",
      "null_baseline": "pFe := scav_rat*DFe*POC/W_SINK, so pFe/DFe = scav_rat*POC/W_SINK; the reported '~14x tighter' was a grid-and-threshold artifact. Real-data context: GEOTRACES IDP2025 surface <=50 m, QC {49,50} - 76 global and 4 eqpac samples carry both Fe_TP and Fe_D, 130 global and 0 eqpac carry Fe_TPL and Fe_D; log10 span of pFe/DFe is 2.59 (Fe_TP) and 3.69 (Fe_TPL). The 76 is a strict same-station same-sample-index match against 273 total surface Fe_TP samples - a floor on co-location, not a count of ocean locations.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "scav_rat",
      "track": "track1"
     },
@@ -29909,7 +29873,7 @@
      "detail": "A statement about what an architecture ablation can and cannot license; it looks like support and is not.",
      "n": "",
      "null_baseline": "the real regional evidence is independent: Daniels CP:PP puts the equatorial Pacific ~1.6x the global mean, and Sarmiento 2002 spans 20 to 30x regionally.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "",
      "track": "data"
     },
@@ -29945,7 +29909,7 @@
      "detail": "Needing per-cell structure to recover a scalar is not the same as measuring regional structure - an inference about the estimator, checkable without new data.",
      "n": "",
      "null_baseline": "trio 25/50 vs 0/50 and R_PICPOC 50/50 vs 0/50 must NOT be sent as support for regional variation. At uniform Carroll the 0-D box relaxes to a near-uniform state (tracer CV ~1e-15 against Darwin's O(1)). The legitimate regional evidence is Daniels: eqpac surface geomean ~0.039, about 1.6x the global 0.025; Sarmiento 2002 Table 3 spans 20-30x regionally.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "track1"
     },
@@ -30125,7 +30089,7 @@
      "detail": "Derived algebraically from the box steady state; checkable without new data.",
      "n": "",
      "null_baseline": "Rank-1. Independently re-derived. Detail in docs/research_notes/2026-07-20_iron_degeneracy_math_validation.md. Corroborated by the OSSE's box Fisher eigenvalues [800, 2.8e-14].",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "data"
     },
@@ -30461,7 +30425,7 @@
      "detail": "Established by reading Darwin3 docs, the v05/v06 config decks and our own source lines - checkable by inspection, no new data.",
      "n": "",
      "null_baseline": "PHI_DUST = 5e-5 (carroll6.py:68); alpfe bounds 0.05-1.0, Carroll 0.928 (carroll6.py:119-123); v05 ironfile = llc270_Mahowald_2009_soluble_iron_dust.bin; v06 alpfe = 1.0",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -30497,7 +30461,7 @@
      "detail": "A property of the v05 code version, checkable by inspection; it reframes an existing null.",
      "n": "",
      "null_baseline": "the Omega-dependent dissolution modes are a later darwin3 addition. Our own box does the same between 50 and 1000 m; the default Kdissc looks roughly an order of magnitude fast. Consequence: an Omega null tested against the surface PRODUCTION ratio is what you would expect, not a data problem.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "",
      "track": "method"
     },
@@ -30509,7 +30473,7 @@
      "detail": "A source-precedence argument plus a live file disagreement; both checkable by reading, no run needed.",
      "n": "",
      "null_baseline": "data.traits line 92 under &DARWIN_TRAITS: R_PICPOC = 0.0, 2*4.1886E-2, 4*0.0 (types 2 and 3 are the calcifiers, the other five carry 0.0). darwin_init_fixed.F: DARWIN_GENERATE_RANDOM at line 357 fills from val_R_PICPOC, DARWIN_READ_TRAITS at line 382 overwrites. Pinned darwin3 source 24885b71. Carroll's published 0.04245 vs v05's 0.0418860 is ~1.4%.",
-     "doc": "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_part1_DRAFT.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -30545,7 +30509,7 @@
      "detail": "A code-vs-code comparison; no data needed. It raises a test never run.",
      "n": "",
      "null_baseline": "src/darwindiff/carroll6_5pft.py:22-40 states the 'Option A' choice: Smallgrow is learned on Pro-HL specifically and Biggrow on other large eukaryotes specifically, 'instead of an average over multiple species'; :107-109 freeze the non-learned PFTs at Carroll's optima. In the production two-layer box only mu_proHL = params[I_SMALLGROW] and mu_lge = params[I_BIGGROW] are learned; diatoms, Syn and Pro-LL run frozen with Syn and Pro-LL sharing an identical rate. In Darwin they are GEIDER size-class scalars with a spread (Smallgrow, Biggrow, Smallgrowrange, Biggrowrange in PCMAX / data.traits).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "smallgrow",
      "track": "track1"
     },
@@ -30557,7 +30521,7 @@
      "detail": "A scope audit of what was run vs what is claimed; checkable by reading the experiment list.",
      "n": "",
      "null_baseline": "The horizontal gradient is what Somes 2021 and our own STATUS.md:375 argument actually invoke. The two get conflated in our own wording and a referee will catch it.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "data"
     },
@@ -30785,7 +30749,7 @@
      "detail": "Source-order inspection of the pinned darwin3 commit 24885b71 plus a file disagreement; no run needed. Caveat: no STDOUT.0000 namelist echo observed. Strengthened later (2026-07-30_rain_ratio_which_value_is_live.md): 0.04245 is UNREACHABLE under v05's compile flags, not merely overwritten.",
      "n": "",
      "null_baseline": "darwin_init_fixed.F: DARWIN_GENERATE_RANDOM at line 357, DARWIN_READ_TRAITS last at line 382. Array reads R_PICPOC = 0.0, 2*4.188600000000000E-002, 4*0.0. Loaded 0.0418860 vs published 0.04245 = 1.35% difference.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -30977,7 +30941,7 @@
      "detail": "Follows from the sampling density itself - a field with ~2% coverage cannot verify a field, by construction.",
      "n": "",
      "null_baseline": "~16k dFe points IDP2021, ~70% in upper 500 m, SO austral winter essentially unsampled; surface cells eqpac 25, N.Atlantic 13, S.Ocean 14; globally ~2% coverage",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "data"
     },
@@ -31013,7 +30977,7 @@
      "detail": "Read off the closure's own inputs.",
      "n": "",
      "null_baseline": "src/darwindiff/closures.py, EnvCalciteClosure.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "",
      "track": "data"
     },
@@ -31157,7 +31121,7 @@
      "detail": "Follows from what the metric IS - landing inside a +/-40% band around a published value cannot be a discovery about the ocean.",
      "n": "",
      "null_baseline": "Ranked gap #1, 'blocks the central claim'. The one held-out real-data GEOTRACES test returns negative R2 because the 0-D box homogenizes (docs/results_matrix.md:103-108). Issue #163 OPEN. Machinery exists: GEOTRACES_HOLDOUT_FRAC at runner:299, src/darwindiff/held_out_obs.py.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "method"
     },
@@ -31169,7 +31133,7 @@
      "detail": "The split is predicted by Darwin's own parameter algebra (which symbol multiplies a constant vs a field), so it follows from structure rather than from the fit.",
      "n": "",
      "null_baseline": "alpfe global-scalar 10/10; scav_rat per-cell 8/10 vs global 0/10; R_PICPOC per-cell 9/10 vs global 0/10",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -31205,7 +31169,7 @@
      "detail": "Statement ordering in source code, checkable by inspection.",
      "n": "",
      "null_baseline": "darwin_generate_phyto.F lines 476-486 (v04/llc270_JAMES_paper, 782 lines, fetched from MITgcm-contrib/ecco_darwin@master): 477 val_R_PICPOC for diacoc==2; 479 0.0 for non-calcifiers; 484 0.04245 for np=2,3,8; 485 0.133 COMMENTED OUT (labelled 'GF optizm run ag4').",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -31217,7 +31181,7 @@
      "detail": "Read directly from the namelists; a shape mismatch, not a measurement.",
      "n": "",
      "null_baseline": "v06/llc270/input_darwin/data.darwin:223 a_R_PICPOC(:) = 2*4.19E-2,1*0.05,3*4.19E-2 -> [0.0419, 0.0419, 0.05, 0.0419, 0.0419, 0.0419]. v05 data.traits:7 HASPIC = 0, 2*1, 4*0 (2 of 7 types calcify); v05 data.traits:36 R_PICPOC = 0.0, 2*4.1886E-2, 4*0.0.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -31397,7 +31361,7 @@
      "detail": "Inspection of the model source against the GCM's parameter inventory.",
      "n": "",
      "null_baseline": "src/darwindiff/carroll6.py:286. Darwin's own iron cycle carries 11 tunable parameters (docs/ecco_darwin_parameter_inventory.md:162). Our observation-design note already predicts that real hydrothermal and sedimentary iron at depth 'would re-inject an alpfe-like source term and erode the subsurface discriminating power'; v06 adding hydrothermal-vent iron makes that concrete. That test has NEVER been run.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "data"
     },
@@ -31457,7 +31421,7 @@
      "detail": "The scoping follows from the grading band's width and from the mis-specification of a global constant; no new measurement is needed.",
      "n": "",
      "null_baseline": "Recovered ~0.05 vs Carroll 0.0425. Carroll's own value is under-constrained, and a single global constant is mis-specified against a regionally-variable rain ratio.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -31601,7 +31565,7 @@
      "detail": "An algebraic budget decomposition of the shipped box at fixed parameters; the mechanism claim that this is WHY the SO recovers is a separate untested hypothesis.",
      "n": "",
      "null_baseline": "79.7% - computed from the SHIPPED 2-layer box at Carroll values, NOT from the recovery run. The remainder is uptake and mixing, which do not scale with scav_rat.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -32009,7 +31973,7 @@
      "detail": "n=50 per arm, but underpowered - report directionally, do not harden.",
      "n": "",
      "null_baseline": "Biggrow 6/50 -> 12/50, arm-to-arm p = 0.192 (roughly 3x the seeds needed for p < 0.05). Smallgrow 7/50 -> 6/50, Fisher flatness p = 1.000. The clean result is the asymmetry, not the improvement.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "smallgrow",
      "track": "track1"
     },
@@ -32153,7 +32117,7 @@
      "detail": "Repeated per-basin counts against an architecture-matched untrained baseline.",
      "n": "",
      "null_baseline": "3 of 3 basins with the MLD input channel, 1 of 3 without. An untrained network already lands inside the band about two thirds of the time because of where the parameter bounds sit, so the honest comparison is against that null, not against zero.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -32213,7 +32177,7 @@
      "detail": "Measured in the boundary-rail pilot and reproduced in the silicate array; consistent with the registry-derived upper physical bound.",
      "n": "",
      "null_baseline": "Boundary-rail pilot job 8503326 (done). Identifiability array job 8510248 (x4) timed out at 8 h with partial output kept. The same appendix row also reports 'conditioning improves with Si (min-eig 0.01 -> 3.2)' WITHOUT caveat - do not use that reading: docs/findings/2026-07-19_silicate_fim_artifact_audit.md establishes the Hessian spectrum is uninterpretable until theta* converges (one negative eigenvalue at theta* in every run, 2-3 at Carroll's values).",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -32453,7 +32417,7 @@
      "detail": "A repeated negative measured across two different model structures.",
      "n": "",
      "null_baseline": "The 0-D box homogenizes, so held-out GEOTRACES R² is negative. The July 9-10 transport-UDE study fit a differentiable-transport UDE to real spatially-resolved GEOTRACES iron and still found scav_rat observability-limited.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "data"
     },
@@ -32561,7 +32525,7 @@
      "detail": "A published multi-model measurement, generalized across 13 independent implementations.",
      "n": "",
      "null_baseline": "Tagliabue 2016 FeMIP Table 2: 13 models, dissolved-Fe residence time 3.7 yr (COBALT) to 626.3 yr (BFM), while mean ocean DFe agrees at 0.58 +/- 0.14 nM and total input flux roams 66.9 +/- 67.1 Gmol Fe/yr - sources 'compensated by variable scavenging rates in order to reproduce the observed DFe concentration'. Somes 2021 is the controlled 5-run demonstration; Frants 2016 published the compensating family.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md, docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
+     "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
      "parameter": "",
      "track": "data"
     },
@@ -32633,7 +32597,7 @@
      "detail": "Measured, n=50, through the identical grading path - this IS the matched null.",
      "n": "",
      "null_baseline": "Job 227777, n=50, verify_run exit 0, NB23_LR=0 / NB23_N_EPOCHS=1: alpfe 0.200, scav_rat 0.000, Smallgrow 0.120, Biggrow 0.000, diatomgraz 0.640, R_PICPOC 0.000; untrained joint trio 0/50. Adding the MLD channel alone moves untrained alpfe 10/50 -> 16/50 and untrained diatomgraz to 34/50 (job 227876).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "track1"
     },
@@ -32693,7 +32657,7 @@
      "detail": "A published multi-model intercomparison - measured across many models and generalised.",
      "n": "",
      "null_baseline": "source flux 1 to >30 Gmol/yr; residence time 5 to >500 yr (Tagliabue et al. 2016, GBC, doi:10.1002/2015GB005289)",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "data"
     },
@@ -33005,7 +32969,7 @@
      "detail": "A derived quantity from measured recoveries, compared against a published observational envelope.",
      "n": "",
      "null_baseline": "~1-8 days across eqpac / natl / SO, against Black et al. 2020's observed upper-ocean envelope of 10-100 d. It barely roams within the data-consistent band because fitting real GEOTRACES section structure per-cell escapes the global-mean-only degeneracy.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "track1"
     },
@@ -33017,7 +32981,7 @@
      "detail": "Measured across three AOIs (job 8510828); the escape mechanism is the concrete version of Somes' point about the full section profile versus the mean.",
      "n": "",
      "null_baseline": "~0.8 d (Southern Ocean) to ~13 d (equatorial Pacific), quoted as '1 to 8 days' in the headline. tau pinned within the data band except in the Southern Ocean (weakest Fe gradient).",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "track1"
     },
@@ -33041,7 +33005,7 @@
      "detail": "A controlled retrain scored in two metric spaces - an adversarial attempt to break the prior result that reproduced it.",
      "n": "",
      "null_baseline": "3 of 6 tracers were scaled in the wrong space; both versions scored in two common metric spaces; each looks better in the space it was trained in and neither beats the free baseline in either. The old number reproduces.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "",
      "track": "track2"
     },
@@ -33641,7 +33605,7 @@
      "detail": "Measured across 50 seeds in three basins with a consistent sign and small spread.",
      "n": "",
      "null_baseline": "eqpac median recovered/Carroll 1.518, 0 of 50 seeds below Carroll, IQR [0.0615, 0.0654]; natlsubpolar 1.029, 15 of 50 below; southernoceanpac 1.268 (unanchored). eqpac is about half picoplankton, natl nearly all large eukaryotes. The eqpac Cal-grade count is 5/50 - a band edge on a tight precise estimate, deliberately NOT reported as the headline.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md, docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
+     "doc": "docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -33701,7 +33665,7 @@
      "detail": "Measured fits at two scales; the aggregation-artifact reading generalises the same family as the cell-weighted-vs-per-AOI straddle.",
      "n": "",
      "null_baseline": "eqpac n-hat 6.42 [1.83-10.35] R2 0.313 n=32; natl 7.01 [0.86-12.99] R2 0.147 n=24; POOLED 0.89 [-0.23-1.78] R2 0.046 n=58. The recorded verdict attributes the null to data support (n_points=58, ZERO in the Southern Ocean), not to misspecification.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "",
      "track": "data"
     },
@@ -33893,7 +33857,7 @@
      "detail": "Measured across configs and quantified by an independent excitation oracle with a pass/fail threshold. Note: for the IRON closure specifically, 2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md adds a separate, stronger blocker (the r0 gauge orbit).",
      "n": "",
      "null_baseline": "Loss down 152,000x; 0.65% relative error on the visited DFe range and 288% on the full range; weight decay and anchoring changed nothing in any config. Symbolic-distillation oracle (scripts/symbolic_distill_probe.py, 677 lines, 22 tests): DISTILL-FAIL 0/2 at a visited span of 0.31 dex, DISTILL-PASS 2/2 at 1.8 dex; applied to Daniels, Marsh and in-situ GLODAPv3 it returns NON-IDENTIFIABLE everywhere. Transport itself is sound: relative global mass drift ~5e-6, bounded and non-accumulating, identical at 20k and 100k steps (job 8524801).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "data"
     },
@@ -34193,7 +34157,7 @@
      "detail": "A set of repeated per-AOI measurements generalised into a handling rule.",
      "n": "",
      "null_baseline": "SO PIC:POC 0.0067; iron pair 5/5 alone at native resolution; zero Daniels cells",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "track1"
     },
@@ -34289,7 +34253,7 @@
      "detail": "Per-parameter measurements across seeds plus a method-independence check with a different optimizer.",
      "n": "",
      "null_baseline": "scav_rat drives the '38 of 40' joint number, CV ~43%, in-band only. R_PICPOC 10/10, lands around 0.05 versus Carroll 0.0425 - consistent within a wide band, NOT a validation.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -34589,7 +34553,7 @@
      "detail": "A monotone dose-response measured across three arms, against a pre-registered prediction.",
      "n": "",
      "null_baseline": "Pre-registered and falsified: scav_rat per-AOI 9/10 at GEOTRACES_SUB_W=1, 5/10 at 3, 1/10 at 8, all three arms verify_run exit 0. At n=50, subW=1 gives 26/50; surface-only subW=0 gives 4/10. The Fisher gain was condition 3022 -> 2.2 (job 188077). The cell-weighted 7 -> 10 -> 10 'improvement' is a straddle artifact.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "scav_rat",
      "track": "track1"
     },
@@ -34904,14 +34868,214 @@
    ],
    "rows": [
     {
+     "cl_id": "abd521",
+     "name": "2026-07-07_jon_schultz_meeting_capture.md",
+     "statement": "Composition does NOT carry the basin PIC:POC spread; per-calcifier cal"
+    },
+    {
+     "cl_id": "abd523",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "diatomgraz's recovery counts largely track where the prior sits rather"
+    },
+    {
+     "cl_id": "abd540",
+     "name": "2026-07-21_jon_update_presenting_script.md",
+     "statement": "The controlled Somes 2021 experiment lands on the degeneracy predictio"
+    },
+    {
+     "cl_id": "abd550",
+     "name": "2026-07-21_jon_update.md",
+     "statement": "The iron source↔scavenging degeneracy DarwinDiff recovers is the FeMIP"
+    },
+    {
      "cl_id": "ded123",
      "name": "2026-05-23_compute_ladder.md",
      "statement": "The compute ladder from Stage 0 to Stage 5 is achievable at $0 persona"
     },
     {
+     "cl_id": "ded135",
+     "name": "2026-07-21_jon_update.md",
+     "statement": "The forward-emulator rollout ceiling is contested, not resolved: the p"
+    },
+    {
+     "cl_id": "ded148",
+     "name": "2026-07-21_jon_update_presenting_script.md",
+     "statement": "The identity tau = inventory / input reproduces every FeMIP model's pu"
+    },
+    {
+     "cl_id": "ded15",
+     "name": "2026-07-29_jon_reply_part1_DRAFT.md",
+     "statement": "All chlorophyll in the Track-1 loss is Darwin's own output, and MODIS "
+    },
+    {
+     "cl_id": "ded158",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "The particulate:dissolved iron ratio carries no information about scav"
+    },
+    {
+     "cl_id": "ded159",
+     "name": "2026-07-29_jon_reply_part1_DRAFT.md",
+     "statement": "The per-cell 50/50 vs global-scalar 0/50 contrast is evidence about th"
+    },
+    {
+     "cl_id": "ded161",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "The per-cell vs global-scalar contrast is an identifiability fact abou"
+    },
+    {
+     "cl_id": "ded175",
+     "name": "2026-07-21_jon_update.md",
+     "statement": "The single-box steady-state Fisher matrix for iron is rank-1: concentr"
+    },
+    {
+     "cl_id": "ded20",
+     "name": "2026-07-07_jon_schultz_meeting_capture.md",
+     "statement": "alpfe is a single global scalar in Darwin (DARWIN_PARAMS), not a spati"
+    },
+    {
+     "cl_id": "ded202",
+     "name": "2026-07-29_jon_reply_part1_DRAFT.md",
+     "statement": "v05 has no disscSelect switch and dissolves calcite at a constant rate"
+    },
+    {
+     "cl_id": "ded203",
+     "name": "2026-07-29_jon_reply_part1_DRAFT.md",
+     "statement": "v05 integrates R_PICPOC = 0.0418860 from data.traits; data.darwin's va"
+    },
+    {
+     "cl_id": "ded206",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "What our box learns as Smallgrow/Biggrow is not the object Carroll tun"
+    },
+    {
+     "cl_id": "ded207",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "What we have tested is the VERTICAL axis (subsurface depth bins plus a"
+    },
+    {
+     "cl_id": "ded35",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "data.traits overrides data.darwin for R_PICPOC, so val_R_PICPOC is ine"
+    },
+    {
+     "cl_id": "ded5",
+     "name": "2026-07-07_jon_schultz_meeting_capture.md",
+     "statement": "A GEOTRACES held-out iron test can constrain a HOMOGENEOUS SCALAR but "
+    },
+    {
+     "cl_id": "ded52",
+     "name": "2026-07-29_lauderdale_answers.md",
+     "statement": "EnvCalciteClosure is driven by SST, Omega_calcite AND PAR - three exog"
+    },
+    {
+     "cl_id": "ded63",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "Grading is still against Carroll's published values, so even an observ"
+    },
+    {
+     "cl_id": "ded64",
+     "name": "2026-07-07_jon_schultz_meeting_capture.md",
+     "statement": "Identifiability tracks physics: source-magnitude parameters that multi"
+    },
+    {
+     "cl_id": "ded67",
+     "name": "2026-07-29_lauderdale_answers.md",
+     "statement": "In the v04 Fortran, line 484 runs after 477/479, so R_PICPOC = 0.04245"
+    },
+    {
+     "cl_id": "ded68",
+     "name": "2026-07-29_lauderdale_answers.md",
+     "statement": "In v06 the rain ratio becomes a six-element per-group array, so a sing"
+    },
+    {
+     "cl_id": "ded81",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "Our own iron representation is a single aeolian source and a single fi"
+    },
+    {
+     "cl_id": "ded86",
+     "name": "2026-07-21_jon_update.md",
+     "statement": "R_PICPOC landing near 0.05 is consistent with Carroll only inside the "
+    },
+    {
+     "cl_id": "ded97",
+     "name": "2026-07-30_jon_followup_SENT.md",
+     "statement": "Scavenging is roughly four fifths of the surface iron sink at Carroll "
+    },
+    {
+     "cl_id": "ind250",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "CHL2_W_EXTRA moves Biggrow and not Smallgrow, which is the predicted a"
+    },
+    {
+     "cl_id": "ind262",
+     "name": "2026-07-30_jon_followup_SENT.md",
+     "statement": "diatomgraz beats its own untrained rate separately in each of the thre"
+    },
+    {
+     "cl_id": "ind267",
+     "name": "2026-07-21_jon_update_presenting_script.md",
+     "statement": "diatomgraz rails to the physical ceiling 1.0 - that is a BOUND, not a "
+    },
+    {
+     "cl_id": "ind287",
+     "name": "2026-07-21_jon_update.md",
+     "statement": "Held-out real-data validation is structurally blocked at box scale and"
+    },
+    {
+     "cl_id": "ind302",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "Measured untrained (chance) recovery rates, architecture-matched, n=50"
+    },
+    {
+     "cl_id": "ind307",
+     "name": "2026-07-07_jon_schultz_meeting_capture.md",
+     "statement": "Models agree on dFe CONCENTRATION but diverge by more than an order of"
+    },
+    {
+     "cl_id": "ind333",
+     "name": "2026-07-21_jon_update.md",
+     "statement": "Recovered surface iron residence time is ~1-8 days across the three re"
+    },
+    {
+     "cl_id": "ind334",
+     "name": "2026-07-21_jon_update_presenting_script.md",
+     "statement": "Recovered upper-ocean iron residence time is ~0.8 to ~13 days across t"
+    },
+    {
+     "cl_id": "ind336",
+     "name": "2026-07-30_jon_followup_SENT.md",
+     "statement": "Retraining the forward emulator with three tracers scaled in the corre"
+    },
+    {
      "cl_id": "ind339",
      "name": "2026-05-03_overnight.md",
      "statement": "Said Ouala co-authors three of the most methodologically adjacent pape"
+    },
+    {
+     "cl_id": "ind391",
+     "name": "2026-07-29_lauderdale_answers.md",
+     "statement": "The fitted Omega exponent in the calcite closure is wildly scale-depen"
+    },
+    {
+     "cl_id": "ind407",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "The learned UDE closure is accurate only on states the trajectory visi"
+    },
+    {
+     "cl_id": "ind432",
+     "name": "2026-07-07_jon_schultz_meeting_capture.md",
+     "statement": "The Southern Ocean is a distinct regime and should be kept as a first-"
+    },
+    {
+     "cl_id": "ind440",
+     "name": "2026-07-21_jon_update_presenting_script.md",
+     "statement": "The three recovered parameters are not equally identified: alpfe recov"
+    },
+    {
+     "cl_id": "ind465",
+     "name": "2026-07-29_jon_reply_crosscheck.md",
+     "statement": "Up-weighting subsurface GEOTRACES iron makes scav_rat recovery WORSE, "
     }
    ]
   },
@@ -35258,7 +35422,7 @@
      "detail": "n=50 per arm, but underpowered - report directionally, do not harden.",
      "n": "",
      "null_baseline": "Biggrow 6/50 -> 12/50, arm-to-arm p = 0.192 (roughly 3x the seeds needed for p < 0.05). Smallgrow 7/50 -> 6/50, Fisher flatness p = 1.000. The clean result is the asymmetry, not the improvement.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "smallgrow",
      "track": "track1"
     },
@@ -35402,7 +35566,7 @@
      "detail": "Repeated per-basin counts against an architecture-matched untrained baseline.",
      "n": "",
      "null_baseline": "3 of 3 basins with the MLD input channel, 1 of 3 without. An untrained network already lands inside the band about two thirds of the time because of where the parameter bounds sit, so the honest comparison is against that null, not against zero.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -35462,7 +35626,7 @@
      "detail": "Measured in the boundary-rail pilot and reproduced in the silicate array; consistent with the registry-derived upper physical bound.",
      "n": "",
      "null_baseline": "Boundary-rail pilot job 8503326 (done). Identifiability array job 8510248 (x4) timed out at 8 h with partial output kept. The same appendix row also reports 'conditioning improves with Si (min-eig 0.01 -> 3.2)' WITHOUT caveat - do not use that reading: docs/findings/2026-07-19_silicate_fim_artifact_audit.md establishes the Hessian spectrum is uninterpretable until theta* converges (one negative eigenvalue at theta* in every run, 2-3 at Carroll's values).",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "diatomgraz",
      "track": "track1"
     },
@@ -35702,7 +35866,7 @@
      "detail": "A repeated negative measured across two different model structures.",
      "n": "",
      "null_baseline": "The 0-D box homogenizes, so held-out GEOTRACES R² is negative. The July 9-10 transport-UDE study fit a differentiable-transport UDE to real spatially-resolved GEOTRACES iron and still found scav_rat observability-limited.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "data"
     },
@@ -35810,7 +35974,7 @@
      "detail": "A published multi-model measurement, generalized across 13 independent implementations.",
      "n": "",
      "null_baseline": "Tagliabue 2016 FeMIP Table 2: 13 models, dissolved-Fe residence time 3.7 yr (COBALT) to 626.3 yr (BFM), while mean ocean DFe agrees at 0.58 +/- 0.14 nM and total input flux roams 66.9 +/- 67.1 Gmol Fe/yr - sources 'compensated by variable scavenging rates in order to reproduce the observed DFe concentration'. Somes 2021 is the controlled 5-run demonstration; Frants 2016 published the compensating family.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md, docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
+     "doc": "docs/findings/2026-07-24_reproducibility_methods_appendix.md, docs/research_notes/2026-07-23_2hr_checkpoint_verified.md",
      "parameter": "",
      "track": "data"
     },
@@ -35882,7 +36046,7 @@
      "detail": "Measured, n=50, through the identical grading path - this IS the matched null.",
      "n": "",
      "null_baseline": "Job 227777, n=50, verify_run exit 0, NB23_LR=0 / NB23_N_EPOCHS=1: alpfe 0.200, scav_rat 0.000, Smallgrow 0.120, Biggrow 0.000, diatomgraz 0.640, R_PICPOC 0.000; untrained joint trio 0/50. Adding the MLD channel alone moves untrained alpfe 10/50 -> 16/50 and untrained diatomgraz to 34/50 (job 227876).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "track1"
     },
@@ -35942,7 +36106,7 @@
      "detail": "A published multi-model intercomparison - measured across many models and generalised.",
      "n": "",
      "null_baseline": "source flux 1 to >30 Gmol/yr; residence time 5 to >500 yr (Tagliabue et al. 2016, GBC, doi:10.1002/2015GB005289)",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "data"
     },
@@ -36254,7 +36418,7 @@
      "detail": "A derived quantity from measured recoveries, compared against a published observational envelope.",
      "n": "",
      "null_baseline": "~1-8 days across eqpac / natl / SO, against Black et al. 2020's observed upper-ocean envelope of 10-100 d. It barely roams within the data-consistent band because fitting real GEOTRACES section structure per-cell escapes the global-mean-only degeneracy.",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "",
      "track": "track1"
     },
@@ -36266,7 +36430,7 @@
      "detail": "Measured across three AOIs (job 8510828); the escape mechanism is the concrete version of Somes' point about the full section profile versus the mean.",
      "n": "",
      "null_baseline": "~0.8 d (Southern Ocean) to ~13 d (equatorial Pacific), quoted as '1 to 8 days' in the headline. tau pinned within the data band except in the Southern Ocean (weakest Fe gradient).",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "track1"
     },
@@ -36290,7 +36454,7 @@
      "detail": "A controlled retrain scored in two metric spaces - an adversarial attempt to break the prior result that reproduced it.",
      "n": "",
      "null_baseline": "3 of 6 tracers were scaled in the wrong space; both versions scored in two common metric spaces; each looks better in the space it was trained in and neither beats the free baseline in either. The old number reproduces.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-30_jon_followup_SENT.md",
      "parameter": "",
      "track": "track2"
     },
@@ -36890,7 +37054,7 @@
      "detail": "Measured across 50 seeds in three basins with a consistent sign and small spread.",
      "n": "",
      "null_baseline": "eqpac median recovered/Carroll 1.518, 0 of 50 seeds below Carroll, IQR [0.0615, 0.0654]; natlsubpolar 1.029, 15 of 50 below; southernoceanpac 1.268 (unanchored). eqpac is about half picoplankton, natl nearly all large eukaryotes. The eqpac Cal-grade count is 5/50 - a band edge on a tight precise estimate, deliberately NOT reported as the headline.",
-     "doc": "docs/research_notes/2026-07-30_jon_followup_SENT.md, docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
+     "doc": "docs/findings/2026-07-30_rpicpoc_bias_tracks_large_phyto_fraction.md",
      "parameter": "R_PICPOC",
      "track": "track1"
     },
@@ -36950,7 +37114,7 @@
      "detail": "Measured fits at two scales; the aggregation-artifact reading generalises the same family as the cell-weighted-vs-per-AOI straddle.",
      "n": "",
      "null_baseline": "eqpac n-hat 6.42 [1.83-10.35] R2 0.313 n=32; natl 7.01 [0.86-12.99] R2 0.147 n=24; POOLED 0.89 [-0.23-1.78] R2 0.046 n=58. The recorded verdict attributes the null to data support (n_points=58, ZERO in the Southern Ocean), not to misspecification.",
-     "doc": "docs/findings/2026-07-29_lauderdale_answers.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_lauderdale_answers.md",
      "parameter": "",
      "track": "data"
     },
@@ -37142,7 +37306,7 @@
      "detail": "Measured across configs and quantified by an independent excitation oracle with a pass/fail threshold. Note: for the IRON closure specifically, 2026-07-30_iron_closure_ude_is_a_gauge_symmetry.md adds a separate, stronger blocker (the r0 gauge orbit).",
      "n": "",
      "null_baseline": "Loss down 152,000x; 0.65% relative error on the visited DFe range and 288% on the full range; weight decay and anchoring changed nothing in any config. Symbolic-distillation oracle (scripts/symbolic_distill_probe.py, 677 lines, 22 tests): DISTILL-FAIL 0/2 at a visited span of 0.31 dex, DISTILL-PASS 2/2 at 1.8 dex; applied to Daniels, Marsh and in-situ GLODAPv3 it returns NON-IDENTIFIABLE everywhere. Transport itself is sound: relative global mass drift ~5e-6, bounded and non-accumulating, identical at 20k and 100k steps (job 8524801).",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "",
      "track": "data"
     },
@@ -37442,7 +37606,7 @@
      "detail": "A set of repeated per-AOI measurements generalised into a handling rule.",
      "n": "",
      "null_baseline": "SO PIC:POC 0.0067; iron pair 5/5 alone at native resolution; zero Daniels cells",
-     "doc": "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-07_jon_schultz_meeting_capture.md",
      "parameter": "",
      "track": "track1"
     },
@@ -37538,7 +37702,7 @@
      "detail": "Per-parameter measurements across seeds plus a method-independence check with a different optimizer.",
      "n": "",
      "null_baseline": "scav_rat drives the '38 of 40' joint number, CV ~43%, in-band only. R_PICPOC 10/10, lands around 0.05 versus Carroll 0.0425 - consistent within a wide band, NOT a validation.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -37838,7 +38002,7 @@
      "detail": "A monotone dose-response measured across three arms, against a pre-registered prediction.",
      "n": "",
      "null_baseline": "Pre-registered and falsified: scav_rat per-AOI 9/10 at GEOTRACES_SUB_W=1, 5/10 at 3, 1/10 at 8, all three arms verify_run exit 0. At n=50, subW=1 gives 26/50; surface-only subW=0 gives 4/10. The Fisher gain was condition 3022 -> 2.2 (job 188077). The cell-weighted 7 -> 10 -> 10 'improvement' is a straddle artifact.",
-     "doc": "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-29_jon_reply_crosscheck.md",
      "parameter": "scav_rat",
      "track": "track1"
     },
@@ -38054,7 +38218,7 @@
      "detail": "Seed-variance measurements from a partial sweep; flagged unverified because the sweep was ~20/30 complete, all numbers are synthetic self-recovery (theta* vs Carroll), and no verify_run gate is recorded.",
      "n": "",
      "null_baseline": "Smallgrow 7/7 at rel-err 0.005 (range 0.001-0.009); Biggrow 0/7 at 0.70 (range 0.68-0.71); scav_rat 0/6. Multi-seed variance sweep job 8512053 (x30), ~20/30 done.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "smallgrow",
      "track": "track1"
     },
@@ -38066,7 +38230,7 @@
      "detail": "A measured diagnostic (job 8512523) whose own convergence precondition fails; the qualitative rank structure survives, the magnitude does not.",
      "n": "",
      "null_baseline": "~3.96 decades (Eq. Pacific); theta* has a zero eigenvalue. Qualitative rank structure (concentration stiff, residence-time sloppy) is solid; the exact number awaits a multi-start re-optimisation landing a positive-definite theta*.",
-     "doc": "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update_presenting_script.md",
      "parameter": "",
      "track": "data"
     },
@@ -38078,7 +38242,7 @@
      "detail": "Measured counts at n=10 with a stated null; superseded in magnitude by the later n=50 flagship counts (49/50, 50/50, 25/50 vs 0/50 global-scalar), and diatomgraz's '4/10 = chance' is superseded by the MLD-channel result. The per-cell-vs-global direction stands.",
      "n": "",
      "null_baseline": "alpfe: reached by a DINN-free global scalar AND a gradient-free Nelder-Mead estimator; near-saturated (~100% pass). scav_rat: 0/10 under a global-scalar estimator, recovers in-band with CV ~43%, not point-identified. R_PICPOC 9/10 in geo1, 10/10 in the RATIO_MAX config. diatomgraz best 4/10 = chance. Trio {alpfe, scav_rat, R_PICPOC} 7/10 per-cell vs 0/10 global vector. The '38/40' is the best of an ~86-config sweep, Wilson 95% CI ~[84%, 99%].",
-     "doc": "docs/research_notes/2026-07-21_jon_update.md",
+     "doc": "LOCAL-ONLY source, not in the repo: 2026-07-21_jon_update.md",
      "parameter": "alpfe",
      "track": "track1"
     },
@@ -38483,17 +38647,217 @@
  "advisories": {
   "live claims whose ONLY cited document is a declared local-only note -- a reader cannot check them": {
    "sql": "SELECT cl_id, name, statement FROM v_local_only_cite",
-   "count": 2,
+   "count": 42,
    "rows": [
+    [
+     "abd521",
+     "2026-07-07_jon_schultz_meeting_capture.md",
+     "Composition does NOT carry the basin PIC:POC spread; per-calcifier cal"
+    ],
+    [
+     "abd523",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "diatomgraz's recovery counts largely track where the prior sits rather"
+    ],
+    [
+     "abd540",
+     "2026-07-21_jon_update_presenting_script.md",
+     "The controlled Somes 2021 experiment lands on the degeneracy predictio"
+    ],
+    [
+     "abd550",
+     "2026-07-21_jon_update.md",
+     "The iron source↔scavenging degeneracy DarwinDiff recovers is the FeMIP"
+    ],
     [
      "ded123",
      "2026-05-23_compute_ladder.md",
      "The compute ladder from Stage 0 to Stage 5 is achievable at $0 persona"
     ],
     [
+     "ded135",
+     "2026-07-21_jon_update.md",
+     "The forward-emulator rollout ceiling is contested, not resolved: the p"
+    ],
+    [
+     "ded148",
+     "2026-07-21_jon_update_presenting_script.md",
+     "The identity tau = inventory / input reproduces every FeMIP model's pu"
+    ],
+    [
+     "ded15",
+     "2026-07-29_jon_reply_part1_DRAFT.md",
+     "All chlorophyll in the Track-1 loss is Darwin's own output, and MODIS "
+    ],
+    [
+     "ded158",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "The particulate:dissolved iron ratio carries no information about scav"
+    ],
+    [
+     "ded159",
+     "2026-07-29_jon_reply_part1_DRAFT.md",
+     "The per-cell 50/50 vs global-scalar 0/50 contrast is evidence about th"
+    ],
+    [
+     "ded161",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "The per-cell vs global-scalar contrast is an identifiability fact abou"
+    ],
+    [
+     "ded175",
+     "2026-07-21_jon_update.md",
+     "The single-box steady-state Fisher matrix for iron is rank-1: concentr"
+    ],
+    [
+     "ded20",
+     "2026-07-07_jon_schultz_meeting_capture.md",
+     "alpfe is a single global scalar in Darwin (DARWIN_PARAMS), not a spati"
+    ],
+    [
+     "ded202",
+     "2026-07-29_jon_reply_part1_DRAFT.md",
+     "v05 has no disscSelect switch and dissolves calcite at a constant rate"
+    ],
+    [
+     "ded203",
+     "2026-07-29_jon_reply_part1_DRAFT.md",
+     "v05 integrates R_PICPOC = 0.0418860 from data.traits; data.darwin's va"
+    ],
+    [
+     "ded206",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "What our box learns as Smallgrow/Biggrow is not the object Carroll tun"
+    ],
+    [
+     "ded207",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "What we have tested is the VERTICAL axis (subsurface depth bins plus a"
+    ],
+    [
+     "ded35",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "data.traits overrides data.darwin for R_PICPOC, so val_R_PICPOC is ine"
+    ],
+    [
+     "ded5",
+     "2026-07-07_jon_schultz_meeting_capture.md",
+     "A GEOTRACES held-out iron test can constrain a HOMOGENEOUS SCALAR but "
+    ],
+    [
+     "ded52",
+     "2026-07-29_lauderdale_answers.md",
+     "EnvCalciteClosure is driven by SST, Omega_calcite AND PAR - three exog"
+    ],
+    [
+     "ded63",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "Grading is still against Carroll's published values, so even an observ"
+    ],
+    [
+     "ded64",
+     "2026-07-07_jon_schultz_meeting_capture.md",
+     "Identifiability tracks physics: source-magnitude parameters that multi"
+    ],
+    [
+     "ded67",
+     "2026-07-29_lauderdale_answers.md",
+     "In the v04 Fortran, line 484 runs after 477/479, so R_PICPOC = 0.04245"
+    ],
+    [
+     "ded68",
+     "2026-07-29_lauderdale_answers.md",
+     "In v06 the rain ratio becomes a six-element per-group array, so a sing"
+    ],
+    [
+     "ded81",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "Our own iron representation is a single aeolian source and a single fi"
+    ],
+    [
+     "ded86",
+     "2026-07-21_jon_update.md",
+     "R_PICPOC landing near 0.05 is consistent with Carroll only inside the "
+    ],
+    [
+     "ded97",
+     "2026-07-30_jon_followup_SENT.md",
+     "Scavenging is roughly four fifths of the surface iron sink at Carroll "
+    ],
+    [
+     "ind250",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "CHL2_W_EXTRA moves Biggrow and not Smallgrow, which is the predicted a"
+    ],
+    [
+     "ind262",
+     "2026-07-30_jon_followup_SENT.md",
+     "diatomgraz beats its own untrained rate separately in each of the thre"
+    ],
+    [
+     "ind267",
+     "2026-07-21_jon_update_presenting_script.md",
+     "diatomgraz rails to the physical ceiling 1.0 - that is a BOUND, not a "
+    ],
+    [
+     "ind287",
+     "2026-07-21_jon_update.md",
+     "Held-out real-data validation is structurally blocked at box scale and"
+    ],
+    [
+     "ind302",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "Measured untrained (chance) recovery rates, architecture-matched, n=50"
+    ],
+    [
+     "ind307",
+     "2026-07-07_jon_schultz_meeting_capture.md",
+     "Models agree on dFe CONCENTRATION but diverge by more than an order of"
+    ],
+    [
+     "ind333",
+     "2026-07-21_jon_update.md",
+     "Recovered surface iron residence time is ~1-8 days across the three re"
+    ],
+    [
+     "ind334",
+     "2026-07-21_jon_update_presenting_script.md",
+     "Recovered upper-ocean iron residence time is ~0.8 to ~13 days across t"
+    ],
+    [
+     "ind336",
+     "2026-07-30_jon_followup_SENT.md",
+     "Retraining the forward emulator with three tracers scaled in the corre"
+    ],
+    [
      "ind339",
      "2026-05-03_overnight.md",
      "Said Ouala co-authors three of the most methodologically adjacent pape"
+    ],
+    [
+     "ind391",
+     "2026-07-29_lauderdale_answers.md",
+     "The fitted Omega exponent in the calcite closure is wildly scale-depen"
+    ],
+    [
+     "ind407",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "The learned UDE closure is accurate only on states the trajectory visi"
+    ],
+    [
+     "ind432",
+     "2026-07-07_jon_schultz_meeting_capture.md",
+     "The Southern Ocean is a distinct regime and should be kept as a first-"
+    ],
+    [
+     "ind440",
+     "2026-07-21_jon_update_presenting_script.md",
+     "The three recovered parameters are not equally identified: alpfe recov"
+    ],
+    [
+     "ind465",
+     "2026-07-29_jon_reply_crosscheck.md",
+     "Up-weighting subsurface GEOTRACES iron makes scav_rat recovery WORSE, "
     ]
    ]
   },
@@ -40049,7 +40413,7 @@
   "citation": 1,
   "claim": 593,
   "derives": 0,
-  "document": 310,
+  "document": 306,
   "evidence": 302,
   "hypothesis": 103,
   "parameter": 6,
@@ -40060,7 +40424,7 @@
   "v_claim_evidence": 593,
   "v_dangerous": 39,
   "v_live": 522,
-  "v_local_only_cite": 2,
+  "v_local_only_cite": 42,
   "v_orphan_doc": 0,
   "v_unsupported": 291
  }
