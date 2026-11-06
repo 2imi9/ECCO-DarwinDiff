@@ -22,10 +22,10 @@ Read [docs/research_map.md](../research_map.md) §1 and §6 first, as always.
 2. **Whether a curated `STATUS.md` ships publicly** — currently excluded; the README carries the
    headline table instead.
 3. **Two drafted emails to Jon, unsent:**
-   - [2026-08-12_jon_reply_round2_DRAFT.md](2026-08-12_jon_reply_round2_DRAFT.md) — his six answers
-   - [2026-08-13_jon_reply_pavia_DRAFT.md](2026-08-13_jon_reply_pavia_DRAFT.md) — the Pavia lead,
+   - `2026-08-12_jon_reply_round2_DRAFT.md` (local only) — his six answers
+   - `2026-08-13_jon_reply_pavia_DRAFT.md` (local only) — the Pavia lead,
      **carrying the Black source-vs-sink correction**. He reviewed the old (wrong) description and
-     said "this sounds fine to me", so this correction is owed to him.
+     said it sounded fine, so this correction is owed to him.
 4. **CCAI NeurIPS workshop** (#241) — due **29 Aug AoE**. OpenReview account was recommended by
    ~15 Aug and creation can take two weeks. Gated on Jon + Cris agreeing.
 

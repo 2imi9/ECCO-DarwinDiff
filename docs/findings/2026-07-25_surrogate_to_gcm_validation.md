@@ -149,7 +149,7 @@ scaling MPI to ~800 ranks, confirm the nodes carry InfiniBand and run **1 baseli
 
 ## 4. Coordination — draft only (now optional)
 
-[`2026-07-25_jon_gcm_ensemble_ask_DRAFT.md`](2026-07-25_jon_gcm_ensemble_ask_DRAFT.md) — **not sent.** Given §3.5,
+`2026-07-25_jon_gcm_ensemble_ask_DRAFT.md` (local only) — **not sent.** Given §3.5,
 the strongest framing gives Jon the *choice* (we can run it on Explorer, or he can), rather than handing him
 work. It proposes benchmarking 1 baseline + 1 perturbation first, ≥2 symmetric FD steps, identical
 checkpoints/forcing/averaging, convergence-with-integration-length, and central differences (adjoint returns

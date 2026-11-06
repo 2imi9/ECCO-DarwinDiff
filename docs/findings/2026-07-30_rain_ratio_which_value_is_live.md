@@ -4,8 +4,8 @@
 pins (`24885b71`) plus `MITgcm-contrib/ecco_darwin`, each adversarially verified ·
 **Run:** `wf_a92a1280-409` · **Answers the question put to Jon on 2026-07-30.**
 
-> "The three rain ratio values in `data.darwin` and `data.traits` are the one thing I cannot
-> resolve on my end. Which value is live changes what I can report."
+> Paraphrase of the question put to him: which of the three rain ratio values in `data.darwin` and
+> `data.traits` is live is the one thing that could not be resolved locally, and it changes what can be reported.
 
 **Short answer.** The live value is **0.041886**, applied to plankton types **2 and 3 only**, set in
 `data.traits`. The published **0.04245** in `data.darwin` is not merely overridden, it is

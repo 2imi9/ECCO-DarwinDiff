@@ -65,7 +65,7 @@ THREE CAVEATS, stated because a passing `check` otherwise reads stronger than it
     its own coverage line for this reason.
   * DOCUMENT is built from `git ls-files` plus the declared LOCAL_ONLY_DOCS, never from a disk
     walk. Enumerating from disk made the orphan constraint pass on the author's machine and fail
-    in CI, where the seven gitignored notes do not exist. The mirror is now byte-identical from a
+    in CI, where the gitignored notes do not exist. The mirror is now byte-identical from a
     tracked-files-only checkout, which is the negative control ADR-0004 asks for.
 """
 
@@ -358,15 +358,18 @@ def _infer_track(text: str) -> str:
     return "data"
 
 
-# Seven research notes are gitignored BY NAME (.gitignore:100-106) at the author's direction, so
-# they exist on this machine and nowhere a reader can reach. Enumerating documents from the DISK
-# let them into the table here and only here: the orphan constraint passed locally and failed in
-# CI, where 8 claims (2 of them live) cite no document that a fresh checkout contains. Measured
-# with the v_orphan_doc predicate restricted to local_only=0; an earlier note said 31, which was
-# a count of filename occurrences in the corpus file, not of claims. Enumerate from the REPO and
-# declare the seven, so
+# Research notes that are gitignored BY NAME (.gitignore, "Local-only working notes" and "Mentor
+# correspondence" blocks) at the author's direction, so they exist on this machine and nowhere a
+# reader can reach. Enumerating documents from the DISK let them into the table here and only
+# here: the orphan constraint passed locally and failed in CI, where 8 claims (2 of them live)
+# cite no document that a fresh checkout contains. Measured with the v_orphan_doc predicate
+# restricted to local_only=0; an earlier note said 31, which was a count of filename occurrences
+# in the corpus file, not of claims. Enumerate from the REPO and declare the local-only notes, so
 # both environments build the same table. Same shape as citation.deliberate -- an exemption that is
-# written down and counted, not a silent pass. An eighth undeclared local citation still fails.
+# written down and counted, not a silent pass. An undeclared local citation still fails.
+#
+# The first seven are working notes. The other ten (added 2026-11-06) are mentor-correspondence
+# notes the research map cites; the correspondence notes it does not cite are only gitignored.
 LOCAL_ONLY_DOCS = (
     "docs/research_notes/2026-05-03_overnight.md",
     "docs/research_notes/2026-05-21_jon_meeting_brief.md",
@@ -375,6 +378,16 @@ LOCAL_ONLY_DOCS = (
     "docs/research_notes/2026-05-23_overnight_diff_full_darwin.md",
     "docs/research_notes/2026-05-23_overnight_executed.md",
     "docs/research_notes/2026-06-06_daily_data_defer.md",
+    "docs/findings/2026-07-07_jon_schultz_meeting_capture.md",
+    "docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md",
+    "docs/findings/2026-07-29_jon_reply_crosscheck.md",
+    "docs/findings/2026-07-29_lauderdale_answers.md",
+    "docs/findings/2026-08-12_lauderdale_answers_round2.md",
+    "docs/research_notes/2026-07-07_jon_questions_track2.md",
+    "docs/research_notes/2026-07-21_jon_update.md",
+    "docs/research_notes/2026-07-21_jon_update_presenting_script.md",
+    "docs/research_notes/2026-07-29_jon_reply_part1_DRAFT.md",
+    "docs/research_notes/2026-07-30_jon_followup_SENT.md",
 )
 
 
@@ -442,8 +455,10 @@ def _load_documents(con: sqlite3.Connection) -> None:
             )
 
     # Declared local-only notes. Written from the constant, never read from disk, so the row is
-    # identical whether or not the file happens to be present. All seven are banner-free (checked
-    # 2026-08-04), so retracted=0 is the measured value and not a convenient default.
+    # identical whether or not the file happens to be present. The first seven were banner-free
+    # when checked 2026-08-04 and the ten added 2026-11-06 were checked the same way
+    # (_banner_kind returned None for each), so retracted=0 is the measured value and not a
+    # convenient default.
     for rel in LOCAL_ONLY_DOCS:
         name = rel.rsplit("/", 1)[1]
         m = re.match(r"(20\d\d-\d\d-\d\d)", name)
@@ -725,7 +740,7 @@ CONSTRAINTS = [
         UNION ALL
         SELECT hy_id AS id, statement FROM hypothesis
         WHERE trim(coalesce(status,''))=''"""),
-    # The seven LOCAL_ONLY_DOCS are inside `document`, so claims citing them are not orphans here.
+    # The LOCAL_ONLY_DOCS are inside `document`, so claims citing them are not orphans here.
     # That exemption is deliberate and is COUNTED by the advisory below rather than hidden: the
     # files are gitignored by the author, so gating on them would fail forever and teach readers to
     # ignore the gate. Any OTHER missing file is still a hard failure.

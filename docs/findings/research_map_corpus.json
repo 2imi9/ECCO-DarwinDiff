@@ -1871,7 +1871,7 @@
       "doc": "docs/findings/2026-07-14_3d_emulator.md"
     },
     {
-      "question": "Has \"drop the ECCO-Darwin model output and fit observations only\" (Jon's prescription) already been run? Do I need to build it?",
+      "question": "Has the observations-only design (Jon's prescription: drop the ECCO-Darwin model output as a target and fit observations only) already been run? Do I need to build it?",
       "answer": "ALREADY IMPLEMENTED AND ALREADY RUN TWICE, under the name *anchors-only*. n=10 (2026-07-21, PINN kept on, verify_run exit 0): alpfe 10/10, scav_rat 0/10, R_PICPOC 6/10, trio 0/10. n=50 (batch coord_anchors_pinnOFF, Slurm 8536393, verify_run --expect-seeds 50 exit 0, PINN also off): alpfe 50/50, R_PICPOC 28/50, scav_rat 0/50, diatomgraz 11/50, trio 0/50. Env recipe is DARWIN_PATTERN_W=0 POC_SUB_W=0 CHL1_W_EXTRA=0. The answer is 2-of-4. Do not re-derive.",
       "doc": "docs/research_notes/2026-07-29_observations_only_scope.md"
     },
@@ -2152,12 +2152,12 @@
     },
     {
       "question": "What would turn Track 1 from a consistency check into a discovery, per the domain expert?",
-      "answer": "Lauderdale: 'what would wrap up track 1 is dropping the ECCO-Darwin model output and just trying to fit observations.' Remove the model target entirely; observations-only is the Track-1 closeout.",
+      "answer": "Lauderdale (paraphrased): Track 1 would be wrapped up by removing the ECCO-Darwin model output as a target and fitting observations alone. Remove the model target entirely; observations-only is the Track-1 closeout.",
       "doc": "docs/findings/2026-07-29_lauderdale_answers.md"
     },
     {
       "question": "Is the alpfe/scav_rat degeneracy an artifact of Darwin's ligand-free scavenging parameterization?",
-      "answer": "No. Lauderdale: the ocean iron cycle is 'open' because of its short residence time, so source and sink parameterizations really matter - the degeneracy is a property of the CYCLE, fundamental, not of our formulation. The ligand question is still testable but is not the explanation. His constructive response: 'This would be a good candidate for UDE!'",
+      "answer": "No. Lauderdale (paraphrased): iron's short residence time keeps the ocean iron cycle 'open', so how sources and sinks are parameterized matters a great deal; the degeneracy is a property of the CYCLE, fundamental, not of our formulation. The ligand question is still testable but is not the explanation. His constructive response (paraphrased): this would be a good candidate for a UDE.",
       "doc": "docs/findings/2026-07-29_lauderdale_answers.md"
     },
     {
@@ -2747,12 +2747,12 @@
     },
     {
       "question": "Is alpfe's 1.0 upper bound a hard PHYSICAL ceiling, or an unstated prior?",
-      "answer": "An UNSTATED PRIOR, on domain-expert authority. J. Lauderdale (MIT, ECCO-Darwin co-author), 2026-08-12: 'No, it's not a hard ceiling. I think there is enough uncertainty in the soluble iron flux that I wouldn't be surprised if values of >1 (ie the ocean wants more soluble iron input to satisfy surface iron concentrations).' This selects the second branch of the open physics question left in section 5 of 2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md. Consequences are ZERO-COMPUTE and interpretive only: (1) report alpfe as a DIRECTION ('the observations say it is high, decisively against an untrained control'), never as a value or an accuracy; (2) the 49/50 is substantially measuring where the bound was put, since rel(upper)=0.077 places the ceiling inside the 0.40 band; (3) the measured 1.594 at the widened bound is physically unremarkable, not a divergence. NO NEW ARRAY IS LICENSED: the widened-bound experiment ALREADY RAN (job 276927 + grader 276928, 4 arms x 50 seeds, DD_ALPFE_HI lever, PR #234). A 2026-08-12 session re-proposed it as new and filed issue #240; #240 was closed as already-answered.",
+      "answer": "An UNSTATED PRIOR, on domain-expert authority. J. Lauderdale (MIT, ECCO-Darwin co-author), 2026-08-12, paraphrased: it is not a hard ceiling; the soluble iron flux is uncertain enough that values above 1 would not surprise him (the ocean may want more soluble iron input to match surface iron concentrations). This selects the second branch of the open physics question left in section 5 of 2026-08-05_alpfe_rails_to_whatever_bound_it_is_given.md. Consequences are ZERO-COMPUTE and interpretive only: (1) report alpfe as a DIRECTION ('the observations say it is high, decisively against an untrained control'), never as a value or an accuracy; (2) the 49/50 is substantially measuring where the bound was put, since rel(upper)=0.077 places the ceiling inside the 0.40 band; (3) the measured 1.594 at the widened bound is physically unremarkable, not a divergence. NO NEW ARRAY IS LICENSED: the widened-bound experiment ALREADY RAN (job 276927 + grader 276928, 4 arms x 50 seeds, DD_ALPFE_HI lever, PR #234). A 2026-08-12 session re-proposed it as new and filed issue #240; #240 was closed as already-answered.",
       "doc": "docs/findings/2026-08-12_lauderdale_answers_round2.md"
     },
     {
       "question": "Is the data.traits-over-data.darwin rain-ratio precedence confirmed by anyone outside this repo?",
-      "answer": "YES, externally confirmed by the model's own maintainer. J. Lauderdale, 2026-08-12: 'PICPOC ratio from data.traits supersedes value in data.darwin.' This matches the repo's independent 2026-07-30 source-read-order derivation exactly (DARWIN_READ_TRAITS runs after DARWIN_GENERATE_RANDOM in darwin_init_fixed.F), so v05 integrates R_PICPOC = 0.0418860 from data.traits and data.darwin's val_R_PICPOC = 0.04245 is inert. The published value is ~1.4% from the live one, inside the 5% Excellent band, so NO reported number changes. He also names a second confirmation route not previously known: a 'darwin_traits' file the model writes out with the values it actually used. Finding that file in the v05 datastore would close ded215 (the pending namelist-echo check) without needing STDOUT.0000.",
+      "answer": "YES, externally confirmed by the model's own maintainer. J. Lauderdale, 2026-08-12, paraphrased: the PIC:POC ratio from data.traits supersedes the value in data.darwin. This matches the repo's independent 2026-07-30 source-read-order derivation exactly (DARWIN_READ_TRAITS runs after DARWIN_GENERATE_RANDOM in darwin_init_fixed.F), so v05 integrates R_PICPOC = 0.0418860 from data.traits and data.darwin's val_R_PICPOC = 0.04245 is inert. The published value is ~1.4% from the live one, inside the 5% Excellent band, so NO reported number changes. He also names a second confirmation route not previously known: a 'darwin_traits' file the model writes out with the values it actually used. Finding that file in the v05 datastore would close ded215 (the pending namelist-echo check) without needing STDOUT.0000.",
       "doc": "docs/findings/2026-08-12_lauderdale_answers_round2.md"
     },
     {
@@ -10778,7 +10778,7 @@
       "doc": "docs/research_notes/2026-05-23_cleanup_audit.md ; docs/research_notes/2026-07-30_session_handoff.md"
     },
     {
-      "trap": "Sending a drafted collaborator email. docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md is a DRAFT that was never sent and carries an explicit 'Leave the To: line until ready'. The standing rule is draft, never send.",
+      "trap": "Sending a drafted collaborator email. The 2026-07-25 GCM-ensemble ask (kept locally) is a DRAFT that was never sent and carries an explicit note to leave the To: line blank until it is ready. The standing rule is draft, never send.",
       "doc": "docs/findings/2026-07-25_jon_gcm_ensemble_ask_DRAFT.md"
     },
     {
@@ -11362,7 +11362,7 @@
       "doc": "docs/findings/2026-07-29_math_audit_index.md"
     },
     {
-      "trap": "Re-deriving the observations-only design. The loss half of Jon's 'drop the ECCO-Darwin output' prescription was ALREADY implemented and ALREADY run twice (n=10 and n=50) under the different name *anchors-only*, with verify_run exit 0. Search for DARWIN_PATTERN_W and 'anchors-only' before scoping any observations-only work.",
+      "trap": "Re-deriving the observations-only design. The loss half of Jon's observations-only prescription was ALREADY implemented and ALREADY run twice (n=10 and n=50) under the different name *anchors-only*, with verify_run exit 0. Search for DARWIN_PATTERN_W and 'anchors-only' before scoping any observations-only work.",
       "doc": "docs/research_notes/2026-07-29_observations_only_scope.md"
     },
     {

@@ -5,8 +5,8 @@ primary source; the artifact itself is still not in hand, so **`ded215` stays op
 
 ## Why this was looked for
 
-Lauderdale, 2026-08-12: *"There may also be a file `darwin_traits` that is written out by the model
-with the values it uses… not sure if that is included in the ECCO-Darwin repo/datastore."*
+Lauderdale, 2026-08-12 (paraphrased): the model may also write out a `darwin_traits` file with the
+values it actually used; he was not sure whether it is included in the ECCO-Darwin repo or datastore.
 
 `ded215` is the one pending verification behind the rain-ratio precedence: the argument that
 `data.traits` overrides `data.darwin` rests on **source read-order** plus the disagreement between

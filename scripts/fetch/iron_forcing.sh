@@ -6,7 +6,7 @@
 #   270 x 270, big-endian float32. The spatial soluble-iron deposition field
 #   ECCO-Darwin v05 is forced by (v05 data.darwin: ironfile=..., ironperiod=-12,
 #   darwin_inscal_iron=1000). Loader: src/darwindiff/iron_forcing_loader.py.
-#   Context: docs/findings/2026-07-07_jon_schultz_meeting_capture.md, data/README.md.
+#   Context: the 2026-07-07 Jon+Schultz meeting notes (kept locally), data/README.md.
 #
 # It is PUBLIC on the NAS ECCO data portal (no Earthdata login needed) -- in the
 # input/darwin_forcing/ subdir alongside darwin_initial_conditions/. (Source
